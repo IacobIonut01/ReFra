@@ -103,8 +103,8 @@ fun CategoriesScreen(
                 TopAppBar(
                     title = {
                         TwoLinedDateToolbarTitle(
-                            albumName = "Categories",
-                            dateHeader = "$classifiedCount classified media"
+                            albumName = stringResource(R.string.categories),
+                            dateHeader = stringResource(R.string.classified_media, classifiedCount)
                         )
                     },
                     navigationIcon = {
@@ -257,12 +257,10 @@ fun ScannerButton(
             .clip(RoundedCornerShape(16.dp))
             .then(modifier),
         headlineContent = {
+            val scanningMediaText = stringResource(R.string.scanning_media)
+            val scanForNewCategoriesText = stringResource(R.string.scan_for_new_categories)
             val text = remember(isRunning) {
-                if (isRunning) {
-                    "Scanning media..."
-                } else {
-                    "Scan for new categories"
-                }
+                if (isRunning) scanningMediaText else scanForNewCategoriesText
             }
             Text(
                 modifier = Modifier
@@ -277,7 +275,7 @@ fun ScannerButton(
             Icon(
                 imageVector = Icons.Outlined.Scanner,
                 tint = contentColor,
-                contentDescription = "Scan for new categories"
+                contentDescription = stringResource(R.string.scan_for_new_categories)
             )
         },
         trailingContent = {

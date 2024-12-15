@@ -114,8 +114,8 @@ fun DateFormatScreen(
         ) {
             DateFormatPreview(
                 modifier = Modifier,
-                title = "Date Header",
-                location = "Media View",
+                title = stringResource(R.string.date_header_title),
+                location = stringResource(R.string.media_view),
                 dateFormat = dateHeaderFormat,
                 onDateFormatChange = { dateHeaderFormat = it },
                 defaultDateFormat = Constants.HEADER_DATE_FORMAT,
@@ -156,7 +156,7 @@ fun DateFormatScreen(
                         Image(
                             imageVector = Icons.Outlined.Info,
                             colorFilter = ColorFilter.tint(Color.White),
-                            contentDescription = "info",
+                            contentDescription = null,
                             modifier = Modifier
                                 .height(48.dp)
                         )
@@ -165,8 +165,8 @@ fun DateFormatScreen(
             }
 
             DateFormatPreview(
-                title = "Exif Date",
-                location = "Media Info",
+                title = stringResource(R.string.exif_date),
+                location = stringResource(R.string.media_info),
                 dateFormat = exifDateFormat,
                 onDateFormatChange = { exifDateFormat = it },
                 defaultDateFormat = Constants.EXIF_DATE_FORMAT,
@@ -217,8 +217,8 @@ fun DateFormatScreen(
             }
 
             DateFormatPreview(
-                title = "Weekly Date",
-                location = "Media Grid",
+                title = stringResource(R.string.weekly_date),
+                location = stringResource(R.string.media_grid),
                 dateFormat = weeklyDateFormat,
                 onDateFormatChange = { weeklyDateFormat = it },
                 defaultDateFormat = Constants.WEEKLY_DATE_FORMAT,
@@ -262,8 +262,8 @@ fun DateFormatScreen(
             }
 
             DateFormatPreview(
-                title = "Classic Date",
-                location = "Media Grid",
+                title = stringResource(R.string.classic_date),
+                location = stringResource(R.string.media_grid),
                 dateFormat = defaultDateFormat,
                 onDateFormatChange = { defaultDateFormat = it },
                 defaultDateFormat = Constants.DEFAULT_DATE_FORMAT,
@@ -307,8 +307,8 @@ fun DateFormatScreen(
             }
 
             DateFormatPreview(
-                title = "Extended Date",
-                location = "Media Grid",
+                title = stringResource(R.string.extended_date),
+                location = stringResource(R.string.media_grid),
                 dateFormat = extendedDateFormat,
                 onDateFormatChange = { extendedDateFormat = it },
                 defaultDateFormat = Constants.EXTENDED_DATE_FORMAT,
