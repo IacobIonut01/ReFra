@@ -7,9 +7,11 @@ package com.dot.gallery.core.util.ext
 
 import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Bundle
 import android.os.CancellationSignal
@@ -25,6 +27,7 @@ import com.dot.gallery.feature_node.domain.model.ExifAttributes
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isVideo
+import com.dot.gallery.feature_node.presentation.util.printWarning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
@@ -34,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 fun ContentResolver.queryFlow(
@@ -83,7 +87,7 @@ fun ContentResolver.queryFlow(
     }
 }.conflate()
 
-suspend fun <T: Media> ContentResolver.copyMedia(
+suspend fun <T : Media> ContentResolver.copyMedia(
     from: T,
     path: String
 ) = withContext(Dispatchers.IO) {
@@ -137,10 +141,7 @@ suspend fun <T: Media> ContentResolver.copyMedia(
 fun ContentResolver.overrideImage(
     uri: Uri,
     bitmap: Bitmap,
-    format: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG,
-    mimeType: String = "image/png",
-    relativePath: String = Environment.DIRECTORY_PICTURES,
-    displayName: String
+    format: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG
 ): Boolean {
     val values = ContentValues().apply {
         put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
@@ -250,23 +251,65 @@ fun ContentResolver.saveVideo(
     }
 }
 
-suspend fun <T: Media> ContentResolver.updateMedia(
+suspend fun <T: Media> Context.renameMedia(
     media: T,
-    contentValues: ContentValues
+    newName: String
 ): Boolean = withContext(Dispatchers.IO) {
-    return@withContext try {
-        update(
-            media.getUri(),
-            contentValues,
-            null
-        ) > 0
-    } catch (e: java.lang.Exception) {
-        e.printStackTrace()
-        false
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, newName)
+    }
+    with(contentResolver) {
+        val uri = media.getUri()
+        val newPath = media.path.removeSuffix(media.label).plus(newName)
+        return@withContext runCatching {
+            val updated = update(
+                uri,
+                contentValues,
+                null
+            ) > 0
+            MediaScannerConnection.scanFile(
+                this@renameMedia,
+                arrayOf(media.path.removeSuffix(media.label)),
+                arrayOf(media.mimeType), null
+            )
+            val newFile = File(newPath)
+            if (newFile.exists()) {
+                newFile.setLastModified(media.timestamp)
+            }
+            updated
+        }.getOrElse {
+            printWarning(it.message.toString())
+            false
+        }
     }
 }
 
-suspend fun <T: Media> ContentResolver.updateMediaExif(
+suspend fun <T : Media> Context.updateMedia(
+    media: T,
+    contentValues: ContentValues
+): Boolean = withContext(Dispatchers.IO) {
+    with(contentResolver) {
+        val uri = media.getUri()
+        return@withContext runCatching {
+            val updated = update(
+                uri,
+                contentValues,
+                null
+            ) > 0
+            MediaScannerConnection.scanFile(
+                this@updateMedia,
+                arrayOf(media.path.removeSuffix(media.label)),
+                arrayOf(media.mimeType), null
+            )
+            updated
+        }.getOrElse {
+            printWarning(it.message.toString())
+            false
+        }
+    }
+}
+
+suspend fun <T : Media> ContentResolver.updateMediaExif(
     media: T,
     exifAttributes: ExifAttributes
 ) = withContext(Dispatchers.IO) {

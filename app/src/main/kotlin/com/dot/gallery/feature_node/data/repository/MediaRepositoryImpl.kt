@@ -27,6 +27,7 @@ import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.ext.copyMedia
 import com.dot.gallery.core.util.ext.mapAsResource
 import com.dot.gallery.core.util.ext.overrideImage
+import com.dot.gallery.core.util.ext.renameMedia
 import com.dot.gallery.core.util.ext.saveImage
 import com.dot.gallery.core.util.ext.saveVideo
 import com.dot.gallery.core.util.ext.updateMedia
@@ -243,15 +244,15 @@ class MediaRepositoryImpl(
     override suspend fun <T: Media> renameMedia(
         media: T,
         newName: String
-    ): Boolean = contentResolver.updateMedia(
+    ): Boolean = context.renameMedia(
         media = media,
-        contentValues = displayName(newName)
+        newName = newName
     )
 
     override suspend fun <T: Media> moveMedia(
         media: T,
         newPath: String
-    ): Boolean = contentResolver.updateMedia(
+    ): Boolean = context.updateMedia(
         media = media,
         contentValues = relativePath(newPath)
     )
@@ -279,7 +280,7 @@ class MediaRepositoryImpl(
         mimeType: String,
         relativePath: String,
         displayName: String
-    ) = contentResolver.overrideImage(uri, bitmap, format, mimeType, relativePath, displayName)
+    ) = contentResolver.overrideImage(uri, bitmap, format)
 
     override fun getVaults(): Flow<Resource<List<Vault>>> =
         context.retrieveInternalFiles {
