@@ -20,7 +20,7 @@ class SketchHeifDecoder(
     private val mimeType: String
 ) : Decoder {
 
-    private val coder = HeifCoder(requestContext.request.context)
+    private val coder = HeifCoder()
 
     class Factory : Decoder.Factory {
 

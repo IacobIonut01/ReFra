@@ -15,11 +15,11 @@ data class Saturation(
     override val defaultValue = 1f
 
     override fun apply(bitmap: Bitmap): Bitmap {
-        return Aire.saturation(bitmap, value)
+        return Aire.saturation(bitmap, value, tonemap = false)
     }
 
     override fun revert(bitmap: Bitmap): Bitmap {
-        return Aire.saturation(bitmap, -value)
+        return Aire.saturation(bitmap, -value, tonemap = false)
     }
 
     override fun colorMatrix(): ColorMatrix =
