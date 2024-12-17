@@ -20,6 +20,7 @@ import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -54,18 +56,22 @@ import io.sanghun.compose.video.VideoPlayer as SanghunComposeVideoVideoPlayer
 @androidx.annotation.OptIn(UnstableApi::class)
 @NonRestartableComposable
 @Composable
-fun <T: Media> VideoPlayer(
+fun <T : Media> VideoPlayer(
     media: T,
-    playWhenReady: Boolean,
+    playWhenReady: State<Boolean>,
     videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
     onItemClick: () -> Unit,
     onSwipeDown: () -> Unit
 ) {
-    var totalDuration by rememberSaveable { mutableLongStateOf(0L) }
-    val currentTime = rememberSaveable { mutableLongStateOf(0L) }
-    var bufferedPercentage by rememberSaveable { mutableIntStateOf(0) }
-    val isPlaying = rememberSaveable(playWhenReady) { mutableStateOf(playWhenReady) }
-    var lastPlayingState by rememberSaveable(isPlaying.value) { mutableStateOf(isPlaying.value) }
+    var totalDuration by rememberSaveable(media) { mutableLongStateOf(0L) }
+    val currentTime = rememberSaveable(media) { mutableLongStateOf(0L) }
+    var bufferedPercentage by rememberSaveable(media) { mutableIntStateOf(0) }
+    val isPlaying =
+        rememberSaveable(playWhenReady.value, media) { mutableStateOf(playWhenReady.value) }
+    var lastPlayingState by rememberSaveable(
+        isPlaying.value,
+        media
+    ) { mutableStateOf(isPlaying.value) }
     val context = LocalContext.current
     val keychainHolder = remember {
         KeychainHolder(context)
@@ -116,8 +122,16 @@ fun <T: Media> VideoPlayer(
         mutableStateOf<ExoPlayer?>(null)
     }
 
+    LaunchedEffect(exoPlayer, playWhenReady.value) {
+        exoPlayer?.let { player ->
+            if (player.playWhenReady != playWhenReady.value) {
+                player.playWhenReady = playWhenReady.value
+            }
+        }
+    }
+
     var showPlayer by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -134,11 +148,15 @@ fun <T: Media> VideoPlayer(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    LaunchedEffect(showPlayer) {
-        if (showPlayer) {
-            delay(100)
-            exoPlayer?.playWhenReady = isPlaying.value
-            exoPlayer?.seekTo(currentTime.longValue)
+    LaunchedEffect(LocalConfiguration.current.orientation) {
+        exoPlayer?.let {
+            if (it.currentPosition != currentTime.longValue) {
+                delay(100)
+                it.seekTo(currentTime.longValue)
+                if (lastPlayingState) {
+                    it.play()
+                }
+            }
         }
     }
 
@@ -163,22 +181,30 @@ fun <T: Media> VideoPlayer(
                 }
             },
             handleLifecycle = true,
-            autoPlay = playWhenReady,
+            autoPlay = playWhenReady.value,
             usePlayerController = false,
             enablePip = false,
             handleAudioFocus = audioFocus,
             repeatMode = RepeatMode.ONE,
             playerInstance = {
-                exoPlayer = this
                 addListener(
                     object : Player.Listener {
                         override fun onEvents(player: Player, events: Player.Events) {
                             totalDuration = duration.coerceAtLeast(0L)
-                            lastPlayingState = isPlaying.value
-                            isPlaying.value = player.isPlaying
+                        }
+
+                        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                            super.onPlayWhenReadyChanged(playWhenReady, reason)
+                            isPlaying.value = playWhenReady
+                        }
+
+                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                            super.onIsPlayingChanged(isPlaying)
+                            lastPlayingState = isPlaying
                         }
                     }
                 )
+                exoPlayer = this
             },
             modifier = Modifier
                 .fillMaxSize()

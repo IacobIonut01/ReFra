@@ -299,6 +299,8 @@
     <string name="media_grid">Media Grid</string>
     <string name="classic_date">Classic Date</string>
     <string name="extended_date">Extended Date</string>
+    <string name="auto_play_video">Video Auto-Play</string>
+    <string name="auto_play_video_summary">Play the video automatically while viewing media</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

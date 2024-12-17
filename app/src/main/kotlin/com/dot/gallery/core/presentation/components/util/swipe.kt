@@ -19,6 +19,7 @@ import kotlin.math.roundToInt
 @Composable
 fun Modifier.swipe(
     enabled: Boolean = true,
+    onOffset: (IntOffset) -> Unit = {},
     onSwipeDown: () -> Unit
 ): Modifier {
     var delta by remember { mutableFloatStateOf(0f) }
@@ -66,6 +67,6 @@ fun Modifier.swipe(
             }
         }
         .offset {
-            IntOffset(0, if (isDragging) delta.roundToInt() else animatedDelta.roundToInt())
+            IntOffset(0, if (isDragging) delta.roundToInt() else animatedDelta.roundToInt()).also(onOffset)
         }
 }

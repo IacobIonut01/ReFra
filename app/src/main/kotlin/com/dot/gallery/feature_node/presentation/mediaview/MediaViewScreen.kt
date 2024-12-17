@@ -50,7 +50,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.composables.core.BottomSheet
 import com.composables.core.SheetDetent.Companion.FullyExpanded
@@ -62,6 +64,8 @@ import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
+import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
+import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
@@ -141,30 +145,19 @@ fun <T : Media> MediaViewScreen(
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()
 
-    var currentPage by rememberSaveable { mutableIntStateOf(0) }
     val initialPage by rememberedDerivedState(mediaId, mediaState.value) {
-        var lastMediaPosition = mediaState.value.media.indexOfFirst { it.id == mediaId }
-        if (currentPage != 0) {
-            lastMediaPosition = currentPage
-        }
-        lastMediaPosition.coerceAtLeast(0)
+        mediaState.value.media.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
     }
+    var currentPage by rememberSaveable { mutableIntStateOf(initialPage) }
 
     val pagerState = rememberPagerState(
         initialPage = initialPage,
         initialPageOffsetFraction = 0f,
         pageCount = mediaState.value.media::size
     )
-    LaunchedEffect(initialPage) {
-        if (initialPage != currentPage) {
-            pagerState.scrollToPage(initialPage)
-        }
-    }
 
     val currentMedia by rememberedDerivedState(mediaState.value) {
-        mediaState.value.media.getOrNull(
-            pagerState.currentPage
-        )
+        mediaState.value.media.getOrNull(currentPage)
     }
 
     val currentDateFormat by rememberDateHeaderFormat()
@@ -172,12 +165,15 @@ fun <T : Media> MediaViewScreen(
     val currentDate by rememberedDerivedState {
         currentMedia?.definedTimestamp?.getDate(currentDateFormat) ?: ""
     }
-    val playWhenReady by rememberedDerivedState { currentMedia?.isVideo == true }
+    val canAutoPlay by rememberVideoAutoplay()
+    val playWhenReady by rememberedDerivedState(
+        currentMedia,
+        canAutoPlay
+    ) { currentMedia?.isVideo == true && canAutoPlay }
     val isReadOnly by rememberedDerivedState { currentMedia?.readUriOnly == true }
     val showInfo by rememberedDerivedState { currentMedia?.trashed == 0 && !isReadOnly }
 
     var showUI by rememberSaveable { mutableStateOf(true) }
-    var lastIndex by remember { mutableIntStateOf(-1) }
 
     BackHandler(!showUI) {
         windowInsetsController.toggleSystemBars(show = true)
@@ -192,17 +188,30 @@ fun <T : Media> MediaViewScreen(
 
     val userScrollEnabled by rememberedDerivedState { sheetState.currentDetent != FullyExpanded }
 
-    var storedNormalizationTarget by rememberSaveable(mediaState.value, currentPage, lastSheetHeightDp) { mutableFloatStateOf(0f) }
-    val isNormalizationTargetSet by rememberedDerivedState(mediaState.value, storedNormalizationTarget) {
+    var storedNormalizationTarget by rememberSaveable(LocalConfiguration.current.orientation) {
+        mutableFloatStateOf(0f)
+    }
+
+    val isNormalizationTargetSet by rememberedDerivedState(
+        LocalConfiguration.current.orientation,
+        mediaState.value,
+        sheetHeightDp,
+        storedNormalizationTarget
+    ) {
         lastSheetHeightDp.dp == sheetHeightDp
                 && currentPage == pagerState.currentPage
                 && storedNormalizationTarget > 0f
                 && storedNormalizationTarget < 1f
-                && !((storedNormalizationTarget == 0f || storedNormalizationTarget > 0.9f) && sheetState.progress == 1f)
+                && !((storedNormalizationTarget < 0.2f || storedNormalizationTarget > 0.9f) && sheetState.progress == 1f)
     }
 
-
-    val normalizationTarget by rememberedDerivedState(mediaState.value, currentPage, sheetState.offset, storedNormalizationTarget) {
+    val normalizationTarget by rememberedDerivedState(
+        isNormalizationTargetSet,
+        mediaState.value,
+        currentPage,
+        sheetState.offset,
+        storedNormalizationTarget
+    ) {
         if (isNormalizationTargetSet) {
             storedNormalizationTarget
         } else {
@@ -210,8 +219,7 @@ fun <T : Media> MediaViewScreen(
             if (newOffset > 0f && newOffset < 1f) {
                 storedNormalizationTarget = newOffset
                 newOffset
-            }
-            else storedNormalizationTarget
+            } else storedNormalizationTarget
         }
     }
 
@@ -222,7 +230,6 @@ fun <T : Media> MediaViewScreen(
     }
 
     val normalizedOffset by rememberedDerivedState(
-        mediaState.value,
         sheetState,
         normalizationTarget,
         isNormalizationTargetSet
@@ -234,12 +241,6 @@ fun <T : Media> MediaViewScreen(
 
     LaunchedEffect(mediaState.value) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (lastIndex != -1) {
-                val newIndex = lastIndex.coerceAtMost(pagerState.pageCount - 1)
-                pagerState.scrollToPage(newIndex)
-                lastIndex = -1
-            }
-
             if (!mediaState.value.isLoading && mediaState.value.media.isEmpty() && !isStandalone) {
                 windowInsetsController.toggleSystemBars(show = true)
                 navigateUp()
@@ -289,7 +290,8 @@ fun <T : Media> MediaViewScreen(
         }
     }
 
-    val bottomPadding = remember { paddingValues.calculateBottomPadding() }
+    val bottomPadding =
+        remember(LocalConfiguration.current.orientation) { paddingValues.calculateBottomPadding() }
 
     FullBrightnessWindow {
         Box(
@@ -318,120 +320,135 @@ fun <T : Media> MediaViewScreen(
                     mediaState.value.media.getOrNull(index) ?: "empty"
                 },
                 pageSpacing = 16.dp,
-                beyondViewportPageCount = 1
+                beyondViewportPageCount = 0
             ) { index ->
-                Column(
-                    modifier = Modifier.fillMaxWidth()
+                val media by rememberedDerivedState(mediaState.value) {
+                    mediaState.value.media.getOrNull(
+                        index
+                    )
+                }
+                val canPlay = remember(playWhenReady, currentMedia, media, currentPage) {
+                    mutableStateOf(playWhenReady && currentMedia == media && currentPage == index)
+                }
+                AnimatedVisibility(
+                    visible = media != null,
+                    enter = enterAnimation,
+                    exit = exitAnimation
                 ) {
-                    val media by rememberedDerivedState { mediaState.value.media.getOrNull(index) }
-                    AnimatedVisibility(
-                        visible = media != null,
-                        enter = enterAnimation,
-                        exit = exitAnimation
-                    ) {
-                        MediaPreviewComponent(
-                            media = media,
-                            uiEnabled = showUI,
-                            playWhenReady = playWhenReady,
-                            onSwipeDown = {
-                                windowInsetsController.toggleSystemBars(show = true)
-                                navigateUp()
-                            },
-                            onItemClick = {
-                                if (sheetState.currentDetent == ImageOnly) {
-                                    showUI = !showUI
-                                    windowInsetsController.toggleSystemBars(showUI)
+                    var offset by remember {
+                        mutableStateOf(IntOffset(0,0))
+                    }
+                    MediaPreviewComponent(
+                        media = media,
+                        uiEnabled = showUI,
+                        playWhenReady = canPlay,
+                        onSwipeDown = {
+                            windowInsetsController.toggleSystemBars(show = true)
+                            navigateUp()
+                        },
+                        offset = offset,
+                        onItemClick = {
+                            if (sheetState.currentDetent == ImageOnly) {
+                                showUI = !showUI
+                                windowInsetsController.toggleSystemBars(showUI)
+                            }
+                        }
+                    ) { player, isPlaying, currentTime, totalTime, buffer, frameRate ->
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            val hideUiOnPlay by rememberAutoHideOnVideoPlay()
+                            LaunchedEffect(isPlaying.value, hideUiOnPlay) {
+                                if (isPlaying.value && showUI && hideUiOnPlay) {
+                                    delay(2.seconds)
+                                    showUI = false
+                                    windowInsetsController.toggleSystemBars(false)
                                 }
                             }
-                        ) { player, isPlaying, currentTime, totalTime, buffer, frameRate ->
-                            Box(
+                            val width =
+                                remember(context) { context.resources.displayMetrics.widthPixels }
+                            Spacer(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .graphicsLayer {
+                                        translationX = width / 1.5f
+                                    }
+                                    .align(Alignment.TopEnd)
+                                    .clip(CircleShape)
+                                    .combinedClickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onDoubleClick = {
+                                            scope.launch {
+                                                currentTime.longValue += 10 * 1000
+                                                player.seekTo(currentTime.longValue)
+                                                delay(100)
+                                                player.play()
+                                            }
+                                        },
+                                        onClick = {
+                                            if (sheetState.currentDetent == ImageOnly) {
+                                                showUI = !showUI
+                                                windowInsetsController.toggleSystemBars(showUI)
+                                            }
+                                        }
+                                    )
+                                    .swipe(onOffset = { offset = it }) {
+                                        windowInsetsController.toggleSystemBars(show = true)
+                                        navigateUp()
+                                    }
+                            )
+
+                            Spacer(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .graphicsLayer {
+                                        translationX = -width / 1.5f
+                                    }
+                                    .align(Alignment.TopStart)
+                                    .clip(CircleShape)
+                                    .combinedClickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onDoubleClick = {
+                                            scope.launch {
+                                                currentTime.longValue -= 10 * 1000
+                                                player.seekTo(currentTime.longValue)
+                                                delay(100)
+                                                player.play()
+                                            }
+                                        },
+                                        onClick = {
+                                            if (sheetState.currentDetent == ImageOnly) {
+                                                showUI = !showUI
+                                                windowInsetsController.toggleSystemBars(
+                                                    showUI
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .swipe(onOffset = { offset = it }) {
+                                        windowInsetsController.toggleSystemBars(show = true)
+                                        navigateUp()
+                                    }
+                            )
+
+                            AnimatedVisibility(
+                                visible = showUI,
+                                enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                                exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                val hideUiOnPlay by rememberAutoHideOnVideoPlay()
-                                LaunchedEffect(isPlaying.value, hideUiOnPlay) {
-                                    if (isPlaying.value && showUI && hideUiOnPlay) {
-                                        delay(2.seconds)
-                                        showUI = false
-                                        windowInsetsController.toggleSystemBars(false)
-                                    }
-                                }
-                                val width =
-                                    remember(context) { context.resources.displayMetrics.widthPixels }
-                                Spacer(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .graphicsLayer {
-                                            translationX = width / 1.5f
-                                        }
-                                        .align(Alignment.TopEnd)
-                                        .clip(CircleShape)
-                                        .combinedClickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null,
-                                            onDoubleClick = {
-                                                scope.launch {
-                                                    currentTime.longValue += 10 * 1000
-                                                    player.seekTo(currentTime.longValue)
-                                                    delay(100)
-                                                    player.play()
-                                                }
-                                            },
-                                            onClick = {
-                                                if (sheetState.currentDetent == ImageOnly) {
-                                                    showUI = !showUI
-                                                    windowInsetsController.toggleSystemBars(showUI)
-                                                }
-                                            }
-                                        )
+                                VideoPlayerController(
+                                    paddingValues = paddingValues,
+                                    player = player,
+                                    isPlaying = isPlaying,
+                                    currentTime = currentTime,
+                                    totalTime = totalTime,
+                                    buffer = buffer,
+                                    toggleRotate = toggleRotate,
+                                    frameRate = frameRate
                                 )
-
-                                Spacer(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .graphicsLayer {
-                                            translationX = -width / 1.5f
-                                        }
-                                        .align(Alignment.TopStart)
-                                        .clip(CircleShape)
-                                        .combinedClickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null,
-                                            onDoubleClick = {
-                                                scope.launch {
-                                                    currentTime.longValue -= 10 * 1000
-                                                    player.seekTo(currentTime.longValue)
-                                                    delay(100)
-                                                    player.play()
-                                                }
-                                            },
-                                            onClick = {
-                                                if (sheetState.currentDetent == ImageOnly) {
-                                                    showUI = !showUI
-                                                    windowInsetsController.toggleSystemBars(
-                                                        showUI
-                                                    )
-                                                }
-                                            }
-                                        )
-                                )
-
-                                androidx.compose.animation.AnimatedVisibility(
-                                    visible = showUI,
-                                    enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
-                                    exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    VideoPlayerController(
-                                        paddingValues = paddingValues,
-                                        player = player,
-                                        isPlaying = isPlaying,
-                                        currentTime = currentTime,
-                                        totalTime = totalTime,
-                                        buffer = buffer,
-                                        toggleRotate = toggleRotate,
-                                        frameRate = frameRate
-                                    )
-                                }
                             }
                         }
                     }
@@ -525,10 +542,8 @@ fun <T : Media> MediaViewScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                         ) {
                             MediaViewActions2(
-                                currentIndex = pagerState.currentPage,
                                 currentMedia = currentMedia,
                                 handler = handler,
-                                onDeleteMedia = { lastIndex = it },
                                 showDeleteButton = !isReadOnly,
                                 enabled = showUI,
                                 deleteMedia = deleteMedia,

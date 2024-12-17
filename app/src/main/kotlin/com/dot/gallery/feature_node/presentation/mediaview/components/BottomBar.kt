@@ -682,10 +682,8 @@ private fun <T : Media> MediaViewInfoActions2(
 
 @Composable
 fun <T : Media> MediaViewActions2(
-    currentIndex: Int,
     currentMedia: T?,
     handler: MediaHandleUseCase?,
-    onDeleteMedia: ((Int) -> Unit)?,
     showDeleteButton: Boolean,
     enabled: Boolean,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)?,
@@ -703,7 +701,6 @@ fun <T : Media> MediaViewActions2(
                 enabled = enabled
             ) {
                 scope.launch {
-                    onDeleteMedia?.invoke(currentIndex)
                     handler!!.trashMedia(result = result, arrayListOf(it), trash = false)
                 }
             }
@@ -715,7 +712,6 @@ fun <T : Media> MediaViewActions2(
                 enabled = enabled
             ) {
                 scope.launch {
-                    onDeleteMedia?.invoke(currentIndex)
                     handler!!.deleteMedia(result = result, arrayListOf(it))
                 }
             }
@@ -733,14 +729,12 @@ fun <T : Media> MediaViewActions2(
             // Trash Component
             if (showDeleteButton) {
                 TrashButton(
-                    currentIndex,
-                    currentMedia,
-                    handler,
-                    false,
+                    media = currentMedia,
+                    handler = handler,
+                    followTheme = false,
                     enabled = enabled,
-                    onDeleteMedia,
-                    currentVault = currentVault,
-                    deleteMedia = deleteMedia
+                    deleteMedia = deleteMedia,
+                    currentVault = currentVault
                 )
             }
         }
@@ -990,12 +984,10 @@ fun <T : Media> OpenAsButton(
 
 @Composable
 fun <T : Media> TrashButton(
-    index: Int,
     media: T,
     handler: MediaHandleUseCase?,
     followTheme: Boolean = false,
     enabled: Boolean,
-    onDeleteMedia: ((Int) -> Unit)?,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?
 ) {
@@ -1010,7 +1002,6 @@ fun <T : Media> TrashButton(
         scope.launch {
             state.hide()
             shouldMoveToTrash = true
-            onDeleteMedia?.invoke(index)
         }
     }
     BottomBarColumn(
@@ -1040,9 +1031,7 @@ fun <T : Media> TrashButton(
     ) {
         if (deleteMedia != null && currentVault != null) {
             it.forEach { media ->
-                deleteMedia(currentVault, media) {
-                    onDeleteMedia?.invoke(index)
-                }
+                deleteMedia(currentVault, media) {}
             }
         } else {
             if (shouldMoveToTrash) {

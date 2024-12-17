@@ -340,6 +340,12 @@ object Settings {
             rememberPreference(key = WEEKLY_DATE_FORMAT, defaultValue = Constants.WEEKLY_DATE_FORMAT)
 
         fun getSetting(context: Context, key: Preferences.Key<String>) = context.dataStore.data.map { it[key] }
+
+        private val VIDEO_AUTOPLAY = booleanPreferencesKey("video_autoplay")
+
+        @Composable
+        fun rememberVideoAutoplay() =
+            rememberPreference(key = VIDEO_AUTOPLAY, defaultValue = true)
     }
 }
 
