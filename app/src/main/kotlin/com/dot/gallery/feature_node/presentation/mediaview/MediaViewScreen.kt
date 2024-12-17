@@ -193,6 +193,7 @@ fun <T : Media> MediaViewScreen(
     }
 
     val isNormalizationTargetSet by rememberedDerivedState(
+        currentPage,
         LocalConfiguration.current.orientation,
         mediaState.value,
         sheetHeightDp,
@@ -202,7 +203,7 @@ fun <T : Media> MediaViewScreen(
                 && currentPage == pagerState.currentPage
                 && storedNormalizationTarget > 0f
                 && storedNormalizationTarget < 1f
-                && !((storedNormalizationTarget < 0.2f || storedNormalizationTarget > 0.9f) && sheetState.progress == 1f)
+                && !(storedNormalizationTarget < 0.2f || storedNormalizationTarget > 0.9f)
     }
 
     val normalizationTarget by rememberedDerivedState(
