@@ -132,16 +132,16 @@ jobs:
         with:
           name: Gallery Release (Maps)
       - name: Generate SHA256
-        run: find . -name "Gallery-*.apk" -exec bash -c 'sha256sum "$1" | awk '\''{print $1}'\'' > "$1.sha256"' _ {} \;
+        run: echo "### Checksums" >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt && find . -name "Gallery-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"} ' >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }} Release
+          body_path: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
           prerelease: false
           tag_name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}
           files: |
             ./**/Gallery-*.apk
-            ./**/Gallery-*.apk.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

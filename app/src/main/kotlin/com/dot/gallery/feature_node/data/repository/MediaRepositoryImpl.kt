@@ -34,9 +34,9 @@ import com.dot.gallery.core.util.ext.updateMediaExif
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder.Companion.VAULT_INFO_FILE_NAME
-import com.dot.gallery.feature_node.data.data_source.mediastore.quries.AlbumsFlow
-import com.dot.gallery.feature_node.data.data_source.mediastore.quries.MediaFlow
-import com.dot.gallery.feature_node.data.data_source.mediastore.quries.MediaUriFlow
+import com.dot.gallery.feature_node.data.data_source.mediastore.queries.AlbumsFlow
+import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaFlow
+import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaUriFlow
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.ExifAttributes
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum

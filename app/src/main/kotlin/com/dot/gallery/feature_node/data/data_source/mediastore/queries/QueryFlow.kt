@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2023 The LineageOS Project
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.dot.gallery.feature_node.data.data_source.mediastore.quries
+package com.dot.gallery.feature_node.data.data_source.mediastore.queries
 
 import android.database.Cursor
 import kotlinx.coroutines.flow.Flow

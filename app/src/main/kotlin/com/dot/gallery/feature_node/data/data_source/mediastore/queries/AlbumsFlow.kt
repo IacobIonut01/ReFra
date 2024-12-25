@@ -1,4 +1,4 @@
-package com.dot.gallery.feature_node.data.data_source.mediastore.quries
+package com.dot.gallery.feature_node.data.data_source.mediastore.queries
 
 import android.content.ContentResolver
 import android.content.ContentUris
