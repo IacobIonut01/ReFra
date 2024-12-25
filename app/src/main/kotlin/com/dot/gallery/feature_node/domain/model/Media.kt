@@ -47,6 +47,9 @@ sealed class Media : Parcelable, java.io.Serializable {
         return "$id, $path, $fullDate, $mimeType, $definedTimestamp"
     }
 
+    val key: String
+        get() = "{$id, $path, $definedTimestamp}"
+
     @Serializable
     @Parcelize
     @Entity(tableName = "media", primaryKeys = ["id"])

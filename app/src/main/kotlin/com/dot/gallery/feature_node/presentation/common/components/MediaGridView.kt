@@ -6,7 +6,10 @@
 package com.dot.gallery.feature_node.presentation.common.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
@@ -52,7 +55,7 @@ import com.dot.gallery.feature_node.presentation.util.roundSpToPx
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T : Media> PinchZoomGridScope.MediaGridView(
     mediaState: State<MediaState<T>>,
@@ -70,6 +73,8 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
     aboveGridContent: @Composable (() -> Unit)? = null,
     isScrolling: MutableState<Boolean>,
     emptyContent: @Composable () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit = {},
 ) {
     val mappedData by remember(mediaState, showMonthlyHeader) {
@@ -207,7 +212,9 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
                 aboveGridContent = aboveGridContent,
                 isScrolling = isScrolling,
                 emptyContent = emptyContent,
-                onMediaClick = onMediaClick
+                onMediaClick = onMediaClick,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope
             )
         }
     }
@@ -228,7 +235,9 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
             aboveGridContent = aboveGridContent,
             isScrolling = isScrolling,
             emptyContent = emptyContent,
-            onMediaClick = onMediaClick
+            onMediaClick = onMediaClick,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedContentScope = animatedContentScope
         )
     }
 

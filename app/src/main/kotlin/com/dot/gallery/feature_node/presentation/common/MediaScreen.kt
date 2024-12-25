@@ -8,6 +8,9 @@ package com.dot.gallery.feature_node.presentation.common
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -48,7 +51,7 @@ import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateT
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.Screen
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T: Media> MediaScreen(
     paddingValues: PaddingValues = PaddingValues(0.dp),
@@ -75,6 +78,8 @@ fun <T: Media> MediaScreen(
     toggleNavbar: (Boolean) -> Unit,
     isScrolling: MutableState<Boolean> = remember { mutableStateOf(false) },
     searchBarActive: MutableState<Boolean> = remember { mutableStateOf(false) },
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onActivityResult: (result: ActivityResult) -> Unit,
 ) {
     val showSearchBar = remember { albumId == -1L && target == null }
@@ -149,7 +154,9 @@ fun <T: Media> MediaScreen(
                             if (selectedMedia.isNotEmpty()) selectionState else null
                         },
                         isScrolling = isScrolling,
-                        activeState = searchBarActive
+                        activeState = searchBarActive,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope = animatedContentScope,
                     ) {
                         NavigationActions(
                             actions = navActionsContent,
@@ -182,7 +189,9 @@ fun <T: Media> MediaScreen(
                     toggleSelection = toggleSelection,
                     aboveGridContent = aboveGridContent,
                     isScrolling = isScrolling,
-                    emptyContent = emptyContent
+                    emptyContent = emptyContent,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope
                 ) {
                     if (customViewingNavigation == null) {
                         val albumRoute = "albumId=$albumId"

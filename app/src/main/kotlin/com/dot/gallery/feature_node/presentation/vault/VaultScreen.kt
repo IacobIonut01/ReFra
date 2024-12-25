@@ -7,6 +7,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,6 +49,7 @@ import com.dot.gallery.feature_node.presentation.util.SecureWindow
 import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import kotlinx.coroutines.Dispatchers
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun VaultScreen(
@@ -115,105 +118,111 @@ fun VaultScreen(
         )
     }
 
-    NavHost(
-        modifier = Modifier.fillMaxSize(),
-        navController = navController,
-        startDestination = startDestination,
-        enterTransition = { navigateInAnimation },
-        exitTransition = { navigateUpAnimation },
-        popEnterTransition = { navigateInAnimation },
-        popExitTransition = { navigateUpAnimation }
-    ) {
-        composable(VaultScreens.LoadingScreen()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-
-        composable(VaultScreens.VaultSetup()) {
-            VaultSetup(
-                navigateUp = {
-                    if (addNewVault) {
-                        addNewVault = false
-                        if (vaultState.vaults.isEmpty()) navigateUp() else navPipe.navigateUp()
-                    } else {
-                        navigateUp()
-                    }
-                },
-                onCreate = {
-                    addNewVault = false
-                    isAuthenticated = false
-                    biometricState.authenticate()
-                },
-                vm = viewModel
-            )
-        }
-        composable(VaultScreens.VaultDisplay()) {
-            LaunchedEffect(isAuthenticated, biometricState.isSupported, vaultState) {
-                if (!isAuthenticated && !addNewVault && vaultState.vaults.isNotEmpty()) {
-                    if (biometricState.isSupported) {
-                        biometricState.authenticate()
-                    } else navigateUp()
+    SharedTransitionLayout {
+        NavHost(
+            modifier = Modifier.fillMaxSize(),
+            navController = navController,
+            startDestination = startDestination,
+            enterTransition = { navigateInAnimation },
+            exitTransition = { navigateUpAnimation },
+            popEnterTransition = { navigateInAnimation },
+            popExitTransition = { navigateUpAnimation }
+        ) {
+            composable(VaultScreens.LoadingScreen()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
-            val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
 
-            AnimatedVisibility(
-                visible = isAuthenticated,
-                enter = enterAnimation,
-                exit = exitAnimation
-            ) {
-                VaultDisplay(
-                    navigateUp = navigateUp,
-                    navigate = navPipe::navigate,
-                    vaultState = vaultState,
-                    mediaState = mediaState,
-                    currentVault = viewModel.currentVault,
-                    addMediaToVault = viewModel::addMedia,
-                    addMediaListToVault = viewModel::addMedia,
-                    deleteVault = viewModel::deleteVault,
-                    setVault = { vault -> viewModel.setVault(vault) {} },
-                    onCreateVaultClick = {
-                        addNewVault = true
-                        navPipe.navigate(VaultScreens.VaultSetup())
-                    }
+            composable(VaultScreens.VaultSetup()) {
+                VaultSetup(
+                    navigateUp = {
+                        if (addNewVault) {
+                            addNewVault = false
+                            if (vaultState.vaults.isEmpty()) navigateUp() else navPipe.navigateUp()
+                        } else {
+                            navigateUp()
+                        }
+                    },
+                    onCreate = {
+                        addNewVault = false
+                        isAuthenticated = false
+                        biometricState.authenticate()
+                    },
+                    vm = viewModel
                 )
             }
-        }
-
-        composable(
-            route = VaultScreens.EncryptedMediaViewScreen.id(),
-            arguments = listOf(
-                navArgument("mediaId") {
-                    type = NavType.LongType
+            composable(VaultScreens.VaultDisplay()) {
+                LaunchedEffect(isAuthenticated, biometricState.isSupported, vaultState) {
+                    if (!isAuthenticated && !addNewVault && vaultState.vaults.isNotEmpty()) {
+                        if (biometricState.isSupported) {
+                            biometricState.authenticate()
+                        } else navigateUp()
+                    }
                 }
-            )
-        ) { backStackEntry ->
-            val mediaId = remember(backStackEntry) {
-                backStackEntry.arguments?.getLong("mediaId") ?: -1
-            }
-            val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
-            MediaViewScreen(
-                navigateUp = navPipe::navigateUp,
-                toggleRotate = toggleRotate,
-                paddingValues = paddingValues,
-                mediaId = mediaId,
-                mediaState = mediaState,
-                currentVault = viewModel.currentVault.value,
-                restoreMedia = viewModel::restoreMedia,
-                deleteMedia = viewModel::deleteMedia,
-                handler = null,
-                vaultState = vaultState,
-                addMedia = { vault, media ->
-                    viewModel.addMedia(
-                        vault = vault,
-                        media = media,
-                        onSuccess = {},
-                        onFailed = {}
+                val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
+
+                AnimatedVisibility(
+                    visible = isAuthenticated,
+                    enter = enterAnimation,
+                    exit = exitAnimation
+                ) {
+                    VaultDisplay(
+                        navigateUp = navigateUp,
+                        navigate = navPipe::navigate,
+                        vaultState = vaultState,
+                        mediaState = mediaState,
+                        currentVault = viewModel.currentVault,
+                        addMediaToVault = viewModel::addMedia,
+                        addMediaListToVault = viewModel::addMedia,
+                        deleteVault = viewModel::deleteVault,
+                        setVault = { vault -> viewModel.setVault(vault) {} },
+                        onCreateVaultClick = {
+                            addNewVault = true
+                            navPipe.navigate(VaultScreens.VaultSetup())
+                        },
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope = this@composable
                     )
-                },
-                navigate = navigate
-            )
+                }
+            }
+
+            composable(
+                route = VaultScreens.EncryptedMediaViewScreen.id(),
+                arguments = listOf(
+                    navArgument("mediaId") {
+                        type = NavType.LongType
+                    }
+                )
+            ) { backStackEntry ->
+                val mediaId = remember(backStackEntry) {
+                    backStackEntry.arguments?.getLong("mediaId") ?: -1
+                }
+                val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
+                MediaViewScreen(
+                    navigateUp = navPipe::navigateUp,
+                    toggleRotate = toggleRotate,
+                    paddingValues = paddingValues,
+                    mediaId = mediaId,
+                    mediaState = mediaState,
+                    currentVault = viewModel.currentVault.value,
+                    restoreMedia = viewModel::restoreMedia,
+                    deleteMedia = viewModel::deleteMedia,
+                    handler = null,
+                    vaultState = vaultState,
+                    addMedia = { vault, media ->
+                        viewModel.addMedia(
+                            vault = vault,
+                            media = media,
+                            onSuccess = {},
+                            onFailed = {}
+                        )
+                    },
+                    navigate = navigate,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this@composable
+                )
+            }
         }
     }
 }

@@ -8,6 +8,9 @@ package com.dot.gallery.feature_node.presentation.trashed
 import android.app.Activity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -25,6 +28,7 @@ import com.dot.gallery.feature_node.presentation.trashed.components.AutoDeleteFo
 import com.dot.gallery.feature_node.presentation.trashed.components.EmptyTrash
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashedNavActions
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 inline fun <reified T: Media> TrashedGridScreen(
     paddingValues: PaddingValues,
@@ -37,7 +41,9 @@ inline fun <reified T: Media> TrashedGridScreen(
     noinline toggleSelection: (Int) -> Unit,
     noinline navigate: (route: String) -> Unit,
     noinline navigateUp: () -> Unit,
-    noinline toggleNavbar: (Boolean) -> Unit
+    noinline toggleNavbar: (Boolean) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) = MediaScreen(
     paddingValues = paddingValues,
     target = TARGET_TRASH,
@@ -58,7 +64,9 @@ inline fun <reified T: Media> TrashedGridScreen(
     aboveGridContent = { AutoDeleteFooter() },
     navigate = navigate,
     navigateUp = navigateUp,
-    toggleNavbar = toggleNavbar
+    toggleNavbar = toggleNavbar,
+    sharedTransitionScope = sharedTransitionScope,
+    animatedContentScope = animatedContentScope
 ) { result ->
     if (result.resultCode == Activity.RESULT_OK) {
         selectedMedia.clear()

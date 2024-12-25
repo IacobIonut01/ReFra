@@ -58,6 +58,7 @@ import io.sanghun.compose.video.VideoPlayer as SanghunComposeVideoVideoPlayer
 @Composable
 fun <T : Media> VideoPlayer(
     media: T,
+    modifier: Modifier = Modifier,
     playWhenReady: State<Boolean>,
     videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
     onItemClick: () -> Unit,
@@ -215,7 +216,8 @@ fun <T : Media> VideoPlayer(
                 )
                 .swipe(
                     onSwipeDown = onSwipeDown
-                ),
+                )
+                .then(modifier),
         )
     }
     AnimatedVisibility(

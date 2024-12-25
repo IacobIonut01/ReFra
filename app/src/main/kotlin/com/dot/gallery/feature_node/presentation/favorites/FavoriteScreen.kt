@@ -8,6 +8,9 @@ package com.dot.gallery.feature_node.presentation.favorites
 import android.app.Activity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -24,6 +27,7 @@ import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.favorites.components.EmptyFavorites
 import com.dot.gallery.feature_node.presentation.favorites.components.FavoriteNavActions
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun FavoriteScreen(
     paddingValues: PaddingValues,
@@ -37,7 +41,9 @@ fun FavoriteScreen(
     toggleSelection: (Int) -> Unit,
     navigate: (route: String) -> Unit,
     navigateUp: () -> Unit,
-    toggleNavbar: (Boolean) -> Unit
+    toggleNavbar: (Boolean) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) = MediaScreen(
     paddingValues = paddingValues,
     target = TARGET_FAVORITES,
@@ -55,7 +61,9 @@ fun FavoriteScreen(
     emptyContent = { EmptyFavorites() },
     navigate = navigate,
     navigateUp = navigateUp,
-    toggleNavbar = toggleNavbar
+    toggleNavbar = toggleNavbar,
+    sharedTransitionScope = sharedTransitionScope,
+    animatedContentScope = animatedContentScope,
 ) { result ->
     if (result.resultCode == Activity.RESULT_OK) {
         selectedMedia.clear()

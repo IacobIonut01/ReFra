@@ -6,7 +6,10 @@
 package com.dot.gallery.feature_node.presentation.search
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -74,7 +77,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainSearchBar(
     bottomPadding: Dp,
@@ -83,6 +86,8 @@ fun MainSearchBar(
     toggleNavbar: (Boolean) -> Unit,
     isScrolling: MutableState<Boolean>,
     activeState: MutableState<Boolean>,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     menuItems: @Composable (RowScope.() -> Unit)? = null,
 ) {
     var historySet by rememberSearchHistory()
@@ -283,7 +288,9 @@ fun MainSearchBar(
                                 onMediaClick = {
                                     navigate(Screen.MediaViewScreen.route + "?mediaId=${it.id}&query=true")
                                 },
-                                emptyContent = { EmptyMedia() }
+                                emptyContent = { EmptyMedia() },
+                                animatedContentScope = animatedContentScope,
+                                sharedTransitionScope = sharedTransitionScope
                             )
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = state.value.isLoading,

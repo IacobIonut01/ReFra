@@ -6,6 +6,9 @@
 package com.dot.gallery.feature_node.presentation.timeline
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisallowComposableCalls
@@ -22,6 +25,7 @@ import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 inline fun <reified T: Media> TimelineScreen(
     paddingValues: PaddingValues,
@@ -40,7 +44,9 @@ inline fun <reified T: Media> TimelineScreen(
     noinline navigateUp: @DisallowComposableCalls () -> Unit,
     noinline toggleNavbar: (Boolean) -> Unit,
     isScrolling: MutableState<Boolean>,
-    searchBarActive: MutableState<Boolean> = mutableStateOf(false)
+    searchBarActive: MutableState<Boolean> = mutableStateOf(false),
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) {
     MediaScreen(
         paddingValues = paddingValues,
@@ -73,7 +79,9 @@ inline fun <reified T: Media> TimelineScreen(
         navigateUp = navigateUp,
         toggleNavbar = toggleNavbar,
         isScrolling = isScrolling,
-        searchBarActive = searchBarActive
+        searchBarActive = searchBarActive,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope,
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             selectedMedia.clear()

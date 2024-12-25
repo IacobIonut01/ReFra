@@ -9,7 +9,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,7 +50,6 @@ import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
 import com.github.panpf.sketch.resize.Scale
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun <T: Media> MediaImage(
     modifier: Modifier = Modifier,
@@ -86,7 +84,7 @@ fun <T: Media> MediaImage(
         label = "strokeColor"
     )
     Box(
-        modifier = modifier
+        modifier = Modifier
             .combinedClickable(
                 enabled = canClick,
                 onClick = {
@@ -103,6 +101,7 @@ fun <T: Media> MediaImage(
                 },
             )
             .aspectRatio(1f)
+            .then(modifier)
     ) {
         Box(
             modifier = Modifier

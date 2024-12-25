@@ -3,6 +3,9 @@ package com.dot.gallery.feature_node.presentation.vault
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -78,7 +81,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun VaultDisplay(
     navigateUp: () -> Unit,
@@ -90,7 +93,9 @@ fun VaultDisplay(
     addMediaToVault: (vault: Vault, media: UriMedia, onSuccess: () -> Unit, onFailed: (reason: String) -> Unit) -> Unit,
     addMediaListToVault: (vault: Vault, mediaList: List<UriMedia>) -> Unit,
     setVault: (Vault) -> Unit,
-    deleteVault: (Vault) -> Unit
+    deleteVault: (Vault) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) {
 
     LaunchedEffect(vaultState, currentVault.value) {
@@ -380,7 +385,9 @@ fun VaultDisplay(
                 },
                 emptyContent = {
                     EmptyMedia()
-                }
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope
             )
         }
     }

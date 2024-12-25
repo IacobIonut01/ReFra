@@ -29,6 +29,7 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.video.Vide
 @Composable
 fun <T: Media> MediaPreviewComponent(
     media: T?,
+    modifier: Modifier = Modifier,
     uiEnabled: Boolean,
     playWhenReady: State<Boolean>,
     onItemClick: () -> Unit,
@@ -47,6 +48,7 @@ fun <T: Media> MediaPreviewComponent(
                 exit = fadeOut()
             ) {
                 VideoPlayer(
+                    modifier = modifier,
                     media = media,
                     playWhenReady = playWhenReady,
                     videoController = videoController,
@@ -61,6 +63,7 @@ fun <T: Media> MediaPreviewComponent(
                 exit = fadeOut()
             ) {
                 ZoomablePagerImage(
+                    modifier = modifier,
                     media = media,
                     uiEnabled = uiEnabled,
                     onItemClick = onItemClick,

@@ -301,6 +301,8 @@
     <string name="extended_date">Extended Date</string>
     <string name="auto_play_video">Video Auto-Play</string>
     <string name="auto_play_video_summary">Play the video automatically while viewing media</string>
+    <string name="shared_elements">Animate media items</string>
+    <string name="shared_elements_summary">Animate media items click/return using shared elements transitions</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

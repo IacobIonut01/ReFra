@@ -1,6 +1,9 @@
 package com.dot.gallery.feature_node.presentation.common.components
 
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,11 +42,13 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isBigHeaderKey
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.feature_node.presentation.util.update
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T: Media> PinchZoomGridScope.MediaGrid(
     gridState: LazyGridState,
@@ -59,6 +64,8 @@ fun <T: Media> PinchZoomGridScope.MediaGrid(
     aboveGridContent: @Composable() (() -> Unit)?,
     isScrolling: MutableState<Boolean>,
     emptyContent: @Composable () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit
 ) {
     LaunchedEffect(gridState.isScrollInProgress) {
@@ -133,7 +140,9 @@ fun <T: Media> PinchZoomGridScope.MediaGrid(
             canScroll = canScroll,
             onMediaClick = onMediaClick,
             topContent = topContent,
-            bottomContent = bottomContent
+            bottomContent = bottomContent,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedContentScope = animatedContentScope
         )
     }
 
@@ -150,12 +159,15 @@ fun <T: Media> PinchZoomGridScope.MediaGrid(
             canScroll = canScroll,
             onMediaClick = onMediaClick,
             topContent = topContent,
-            bottomContent = bottomContent
+            bottomContent = bottomContent,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedContentScope = animatedContentScope
         )
     }
 
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
     mediaState: State<MediaState<T>>,
@@ -168,7 +180,9 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
     canScroll: Boolean,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
     topContent: LazyGridScope.() -> Unit,
-    bottomContent: LazyGridScope.() -> Unit
+    bottomContent: LazyGridScope.() -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) {
     val scope = rememberCoroutineScope()
     val stringToday = stringResource(id = R.string.header_today)
@@ -253,26 +267,32 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                         }
                     }
                 } else if (it is MediaItem.MediaViewItem) {
-                    MediaImage(
-                        modifier = Modifier
-                            .animateItem(
-                                fadeInSpec = null
-                            )
-                            .pinchItem(key = it.key),
-                        media = it.media,
-                        selectionState = selectionState,
-                        selectedMedia = selectedMedia,
-                        canClick = canScroll,
-                        onItemClick = {
-                            if (selectionState.value && allowSelection) {
+                    with(sharedTransitionScope) {
+                        MediaImage(
+                            modifier = Modifier
+                                .mediaSharedElement(
+                                    media = it.media,
+                                    animatedVisibilityScope = animatedContentScope
+                                )
+                                .animateItem(
+                                    fadeInSpec = null
+                                )
+                                .pinchItem(key = it.key),
+                            media = it.media,
+                            selectionState = selectionState,
+                            selectedMedia = selectedMedia,
+                            canClick = canScroll,
+                            onItemClick = {
+                                if (selectionState.value && allowSelection) {
+                                    feedbackManager.vibrate()
+                                    toggleSelection(mediaState.value.media.indexOf(it))
+                                } else onMediaClick(it)
+                            }
+                        ) {
+                            if (allowSelection) {
                                 feedbackManager.vibrate()
                                 toggleSelection(mediaState.value.media.indexOf(it))
-                            } else onMediaClick(it)
-                        }
-                    ) {
-                        if (allowSelection) {
-                            feedbackManager.vibrate()
-                            toggleSelection(mediaState.value.media.indexOf(it))
+                            }
                         }
                     }
                 }
@@ -284,6 +304,7 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun <T: Media> PinchZoomGridScope.MediaGridContent(
     mediaState: State<MediaState<T>>,
@@ -295,7 +316,9 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContent(
     canScroll: Boolean,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
     topContent: LazyGridScope.() -> Unit,
-    bottomContent: LazyGridScope.() -> Unit
+    bottomContent: LazyGridScope.() -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) {
     val feedbackManager = rememberFeedbackManager()
     LazyVerticalGrid(
@@ -314,29 +337,35 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContent(
             key = { _, item -> item.toString() },
             contentType = { _, item -> item.isImage }
         ) { index, media ->
-            MediaImage(
-                modifier = Modifier
-                    .animateItem(
-                        fadeInSpec = null
-                    )
-                    .pinchItem(key = media.toString()),
-                media = media,
-                selectionState = selectionState,
-                selectedMedia = selectedMedia,
-                canClick = canScroll,
-                onItemClick = {
-                    if (selectionState.value && allowSelection) {
-                        feedbackManager.vibrate()
-                        toggleSelection(index)
-                    } else onMediaClick(it)
-                },
-                onItemLongClick = {
-                    if (allowSelection) {
-                        feedbackManager.vibrate()
-                        toggleSelection(index)
+            with(sharedTransitionScope) {
+                MediaImage(
+                    modifier = Modifier
+                        .mediaSharedElement(
+                            media = media,
+                            animatedVisibilityScope = animatedContentScope
+                        )
+                        .animateItem(
+                            fadeInSpec = null
+                        )
+                        .pinchItem(key = media.toString()),
+                    media = media,
+                    selectionState = selectionState,
+                    selectedMedia = selectedMedia,
+                    canClick = canScroll,
+                    onItemClick = {
+                        if (selectionState.value && allowSelection) {
+                            feedbackManager.vibrate()
+                            toggleSelection(index)
+                        } else onMediaClick(it)
+                    },
+                    onItemLongClick = {
+                        if (allowSelection) {
+                            feedbackManager.vibrate()
+                            toggleSelection(index)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
 
         bottomContent()

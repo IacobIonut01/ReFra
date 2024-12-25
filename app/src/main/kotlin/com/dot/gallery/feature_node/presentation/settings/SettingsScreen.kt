@@ -443,7 +443,7 @@ fun rememberSettingsList(
             summary = context.getString(R.string.auto_play_video_summary),
             isChecked = autoPlayVideo,
             onCheck = { autoPlayVideo = it },
-            screenPosition = Position.Bottom
+            screenPosition = Position.Middle
         )
     }
 
@@ -464,6 +464,18 @@ fun rememberSettingsList(
             summary = context.getString(R.string.date_header_summary),
             onClick = { navigate(Screen.DateFormatScreen()) },
             screenPosition = Position.Top
+        )
+    }
+
+    var sharedElements by Settings.Misc.rememberSharedElements()
+
+    val sharedElementsPref = remember(sharedElements) {
+        SettingsEntity.SwitchPreference(
+            title = context.getString(R.string.shared_elements),
+            summary = context.getString(R.string.shared_elements_summary),
+            isChecked = sharedElements,
+            onCheck = { sharedElements = it },
+            screenPosition = Position.Bottom
         )
     }
 
@@ -508,6 +520,7 @@ fun rememberSettingsList(
             add(fullBrightnessViewPref)
             add(autoHideOnVideoPlayPref)
             add(autoPlayVideoPref)
+            add(sharedElementsPref)
             /** ********************* **/
             /** ********************* **/
             /** Navigation Section Start **/

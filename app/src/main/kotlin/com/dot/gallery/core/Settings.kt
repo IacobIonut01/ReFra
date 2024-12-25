@@ -346,6 +346,12 @@ object Settings {
         @Composable
         fun rememberVideoAutoplay() =
             rememberPreference(key = VIDEO_AUTOPLAY, defaultValue = true)
+
+        private val SHARED_ELEMENTS = booleanPreferencesKey("shared_elements")
+
+        @Composable
+        fun rememberSharedElements() =
+            rememberPreference(key = SHARED_ELEMENTS, defaultValue = true)
     }
 }
 

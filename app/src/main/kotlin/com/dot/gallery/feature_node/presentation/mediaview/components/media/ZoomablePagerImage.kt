@@ -124,14 +124,14 @@ fun <T: Media> ZoomablePagerImage(
         ZoomImage(
             zoomState = zoomState,
             painter = painter,
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .swipe(
                     onSwipeDown = onSwipeDown
                 )
                 .graphicsLayer {
                     rotationZ = if (isRotating) rotationAnimation else 0f
-                },
+                }.then(modifier),
             onTap = { onItemClick() },
             onLongPress = {
                 scope.launch {
@@ -160,14 +160,15 @@ fun <T: Media> ZoomablePagerImage(
         SketchZoomAsyncImage(
             zoomState = zoomState,
             state = asyncState,
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .swipe(
                     onSwipeDown = onSwipeDown
                 )
                 .graphicsLayer {
                     rotationZ = if (isRotating) rotationAnimation else 0f
-                },
+                }
+                .then(modifier),
             onTap = { onItemClick() },
             onLongPress = {
                 scope.launch {

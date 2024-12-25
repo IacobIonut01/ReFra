@@ -1,6 +1,9 @@
 package com.dot.gallery.feature_node.presentation.classifier
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.stringResource
@@ -10,11 +13,14 @@ import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.util.Screen
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun CategoryViewScreen(
     navigateUp: () -> Unit,
     navigate: (String) -> Unit,
     toggleNavbar: (Boolean) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     category: String
 ) {
     val viewModel = hiltViewModel<CategoryViewModel>().apply {
@@ -53,6 +59,8 @@ fun CategoryViewScreen(
         toggleNavbar = toggleNavbar,
         customViewingNavigation = { media ->
             navigate(Screen.MediaViewScreen.idAndCategory(media.id, category))
-        }
+        },
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope
     )
 }

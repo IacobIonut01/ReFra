@@ -7,7 +7,10 @@ package com.dot.gallery.feature_node.presentation.albums
 
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,8 +64,10 @@ import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponen
 import com.dot.gallery.feature_node.presentation.albums.components.CarouselPinnedAlbums
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AlbumsScreen(
     navigate: (route: String) -> Unit,
@@ -75,7 +80,9 @@ fun AlbumsScreen(
     searchBarActive: MutableState<Boolean>,
     onAlbumClick: (Album) -> Unit,
     onAlbumLongClick: (Album) -> Unit,
-    onMoveAlbumToTrash: (ActivityResultLauncher<IntentSenderRequest>, Album) -> Unit
+    onMoveAlbumToTrash: (ActivityResultLauncher<IntentSenderRequest>, Album) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) {
     var lastCellIndex by rememberAlbumGridSize()
 
@@ -108,7 +115,9 @@ fun AlbumsScreen(
                 navigate = navigate,
                 toggleNavbar = toggleNavbar,
                 isScrolling = isScrolling,
-                activeState = searchBarActive
+                activeState = searchBarActive,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope,
             ) {
                 IconButton(onClick = { navigate(Screen.SettingsScreen.route) }) {
                     Icon(
@@ -186,15 +195,22 @@ fun AlbumsScreen(
                     key = { item -> item.toString() }
                 ) { item ->
                     val trashResult = rememberActivityResult()
-                    AlbumComponent(
-                        modifier = Modifier.pinchItem(key = item.toString()),
-                        album = item,
-                        onItemClick = onAlbumClick,
-                        onTogglePinClick = onAlbumLongClick,
-                        onMoveAlbumToTrash = {
-                            onMoveAlbumToTrash(trashResult, it)
-                        }
-                    )
+                    with(sharedTransitionScope) {
+                        AlbumComponent(
+                            modifier = Modifier
+                                .pinchItem(key = item.toString())
+                                .mediaSharedElement(
+                                    album = item,
+                                    animatedVisibilityScope = animatedContentScope
+                                ),
+                            album = item,
+                            onItemClick = onAlbumClick,
+                            onTogglePinClick = onAlbumLongClick,
+                            onMoveAlbumToTrash = {
+                                onMoveAlbumToTrash(trashResult, it)
+                            }
+                        )
+                    }
                 }
 
                 item(
