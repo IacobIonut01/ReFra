@@ -5,6 +5,7 @@
 
 package com.dot.gallery.feature_node.presentation.mediaview
 
+import android.content.res.Configuration
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentScope
@@ -24,6 +25,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -55,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.composables.core.BottomSheet
@@ -85,14 +89,16 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewD
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayerController
 import com.dot.gallery.feature_node.presentation.util.FullBrightnessWindow
+import com.dot.gallery.feature_node.presentation.util.ProvideInsets
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.BOTTOM_BAR_HEIGHT
-import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.BOTTOM_BAR_HEIGHT_SLIM
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.FullyExpanded
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.ImageOnly
 import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.normalize
 import com.dot.gallery.feature_node.presentation.util.printWarning
+import com.dot.gallery.feature_node.presentation.util.rememberGestureNavigationEnabled
+import com.dot.gallery.feature_node.presentation.util.rememberNavigationBarHeight
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
 import com.dot.gallery.feature_node.presentation.util.setHdrMode
 import com.dot.gallery.feature_node.presentation.util.toggleSystemBars
@@ -147,7 +153,7 @@ fun <T : Media> MediaViewScreen(
     navigate: (String) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
-) {
+) = ProvideInsets {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()
@@ -188,29 +194,70 @@ fun <T : Media> MediaViewScreen(
     }
     var sheetHeightDp by remember { mutableStateOf(1.dp) }
     var lastSheetHeightDp by rememberSaveable { mutableFloatStateOf(0f) }
+
+    val configuration = LocalConfiguration.current
+    var lastOrientation by rememberSaveable(configuration.orientation) {
+        mutableIntStateOf(
+            configuration.orientation
+        )
+    }
+    val isLandscape = remember(configuration) {
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    }
+    val isGestureEnabled = rememberGestureNavigationEnabled()
+    // Extra padding for navigation bar with 3/2-buttons
+    val extraPaddingWithNavButtons by remember(isLandscape, isGestureEnabled) {
+        mutableStateOf(
+            if (!isGestureEnabled && !isLandscape) {
+                32.dp
+            } else 0.dp
+        )
+    }
+    val navigationBarHeight = rememberNavigationBarHeight()
+    val bottomBarHeightDefault by remember(isGestureEnabled, isLandscape) {
+        mutableStateOf(
+            if (!isGestureEnabled && isLandscape) 84.dp
+            else BOTTOM_BAR_HEIGHT
+        )
+    }
+
+    val imageOnlyDetent = remember(bottomBarHeightDefault, extraPaddingWithNavButtons) {
+        ImageOnly { bottomBarHeightDefault + extraPaddingWithNavButtons }
+    }
+
     val sheetState = rememberBottomSheetState(
-        initialDetent = ImageOnly,
-        detents = listOf(ImageOnly, FullyExpanded { sheetHeightDp = it })
+        initialDetent = imageOnlyDetent,
+        detents = listOf(imageOnlyDetent, FullyExpanded { sheetHeightDp = it })
     )
 
     val userScrollEnabled by rememberedDerivedState { sheetState.currentDetent != FullyExpanded }
 
-    var storedNormalizationTarget by rememberSaveable(LocalConfiguration.current.orientation) {
+    var storedNormalizationTarget by rememberSaveable(configuration.orientation) {
         mutableFloatStateOf(0f)
     }
 
     val isNormalizationTargetSet by rememberedDerivedState(
+        bottomBarHeightDefault,
         currentPage,
-        LocalConfiguration.current.orientation,
+        pagerState.currentPage,
+        configuration.orientation,
         mediaState.value,
-        sheetHeightDp,
-        storedNormalizationTarget
+        sheetHeightDp.value,
+        lastSheetHeightDp,
+        lastOrientation
     ) {
-        lastSheetHeightDp.dp == sheetHeightDp
+        lastOrientation == configuration.orientation
+                && lastSheetHeightDp.dp == sheetHeightDp
                 && currentPage == pagerState.currentPage
                 && storedNormalizationTarget > 0f
-                && storedNormalizationTarget < 1f
-                && !(storedNormalizationTarget < 0.2f || storedNormalizationTarget > 0.9f)
+                && storedNormalizationTarget < 0.6f
+    }
+
+    LaunchedEffect(sheetHeightDp.value, configuration.orientation) {
+        if (!isNormalizationTargetSet) {
+            lastSheetHeightDp = sheetHeightDp.value
+            lastOrientation = configuration.orientation
+        }
     }
 
     val normalizationTarget by rememberedDerivedState(
@@ -226,19 +273,12 @@ fun <T : Media> MediaViewScreen(
             val newOffset = sheetState.offset
             if (newOffset > 0f && newOffset < 1f) {
                 storedNormalizationTarget = newOffset
-                newOffset
-            } else storedNormalizationTarget
-        }
-    }
-
-    LaunchedEffect(sheetHeightDp) {
-        if (lastSheetHeightDp.dp != sheetHeightDp) {
-            lastSheetHeightDp = sheetHeightDp.value
+            }
+            storedNormalizationTarget
         }
     }
 
     val normalizedOffset by rememberedDerivedState(
-        sheetState,
         normalizationTarget,
         isNormalizationTargetSet
     ) {
@@ -299,7 +339,11 @@ fun <T : Media> MediaViewScreen(
     }
 
     val bottomPadding =
-        remember(LocalConfiguration.current.orientation) { paddingValues.calculateBottomPadding() }
+        remember(configuration.orientation) {
+            //if (!isGestureEnabled && isLandscape) 0.dp
+            //else
+            paddingValues.calculateBottomPadding()
+        }
 
     FullBrightnessWindow {
         Box(
@@ -312,7 +356,12 @@ fun <T : Media> MediaViewScreen(
                     .fillMaxSize()
                     .graphicsLayer {
                         translationY =
-                            -((sheetHeightDp - BOTTOM_BAR_HEIGHT - bottomPadding).toPx() * normalizedOffset)
+                            -((sheetHeightDp -
+                                    bottomBarHeightDefault -
+                                    bottomPadding -
+                                    extraPaddingWithNavButtons -
+                                    if (!isGestureEnabled && isLandscape) navigationBarHeight else 0.dp
+                                    ).toPx() * normalizedOffset)
                     },
                 userScrollEnabled = userScrollEnabled,
                 state = pagerState,
@@ -362,7 +411,7 @@ fun <T : Media> MediaViewScreen(
                             },
                             offset = offset,
                             onItemClick = {
-                                if (sheetState.currentDetent == ImageOnly) {
+                                if (sheetState.currentDetent == imageOnlyDetent) {
                                     showUI = !showUI
                                     windowInsetsController.toggleSystemBars(showUI)
                                 }
@@ -401,7 +450,7 @@ fun <T : Media> MediaViewScreen(
                                                 }
                                             },
                                             onClick = {
-                                                if (sheetState.currentDetent == ImageOnly) {
+                                                if (sheetState.currentDetent == imageOnlyDetent) {
                                                     showUI = !showUI
                                                     windowInsetsController.toggleSystemBars(showUI)
                                                 }
@@ -433,7 +482,7 @@ fun <T : Media> MediaViewScreen(
                                                 }
                                             },
                                             onClick = {
-                                                if (sheetState.currentDetent == ImageOnly) {
+                                                if (sheetState.currentDetent == imageOnlyDetent) {
                                                     showUI = !showUI
                                                     windowInsetsController.toggleSystemBars(
                                                         showUI
@@ -470,6 +519,10 @@ fun <T : Media> MediaViewScreen(
                 }
             }
             MediaViewAppBar(
+                modifier = Modifier.padding(
+                    start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
+                    end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
+                ),
                 showUI = showUI,
                 showInfo = showInfo,
                 showDate = remember(currentMedia) {
@@ -480,10 +533,10 @@ fun <T : Media> MediaViewScreen(
                 onShowInfo = {
                     scope.launch {
                         if (showUI) {
-                            if (sheetState.currentDetent == ImageOnly) {
+                            if (sheetState.currentDetent == imageOnlyDetent) {
                                 sheetState.animateTo(FullyExpanded)
                             } else {
-                                sheetState.animateTo(ImageOnly)
+                                sheetState.animateTo(imageOnlyDetent)
                             }
                         }
                     }
@@ -491,7 +544,7 @@ fun <T : Media> MediaViewScreen(
                 onGoBack = {
                     scope.launch {
                         if (sheetState.currentDetent == FullyExpanded) {
-                            sheetState.animateTo(ImageOnly)
+                            sheetState.animateTo(imageOnlyDetent)
                         } else {
                             navigateUp()
                         }
@@ -500,12 +553,12 @@ fun <T : Media> MediaViewScreen(
             )
             LaunchedEffect(showUI) {
                 if (!showUI && (sheetState.currentDetent == FullyExpanded || sheetState.targetDetent == FullyExpanded)) {
-                    sheetState.animateTo(ImageOnly)
+                    sheetState.animateTo(imageOnlyDetent)
                 }
             }
             BackHandler(sheetState.currentDetent == FullyExpanded) {
                 scope.launch {
-                    sheetState.animateTo(ImageOnly)
+                    sheetState.animateTo(imageOnlyDetent)
                 }
             }
             val bottomSheetAlpha by animateFloatAsState(
@@ -521,6 +574,10 @@ fun <T : Media> MediaViewScreen(
                     .graphicsLayer {
                         alpha = bottomSheetAlpha
                     }
+                    .padding(
+                        start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
+                        end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
+                    )
                     .fillMaxWidth()
             ) {
                 Column(
@@ -541,7 +598,7 @@ fun <T : Media> MediaViewScreen(
                                 .graphicsLayer {
                                     alpha = actionsAlpha
                                     translationY =
-                                        BOTTOM_BAR_HEIGHT_SLIM.toPx() * normalizedOffset
+                                        bottomBarHeightDefault.toPx() * normalizedOffset
                                 }
                                 .background(
                                     Brush.verticalGradient(
@@ -549,7 +606,7 @@ fun <T : Media> MediaViewScreen(
                                     )
                                 )
                                 .padding(
-                                    bottom = bottomPadding
+                                    bottom = bottomPadding + extraPaddingWithNavButtons
                                 )
                                 .fillMaxWidth()
                                 .horizontalScroll(rememberScrollState()),

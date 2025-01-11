@@ -28,8 +28,13 @@ import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -41,9 +46,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.dot.gallery.BuildConfig
@@ -60,6 +67,77 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+val LocalFixedInsets = compositionLocalOf<FixedInsets> { error("no FixedInsets provided!") }
+
+data class FixedInsets(
+    val statusBarHeight: Dp = 0.dp,
+    val navigationBarsPadding: PaddingValues = PaddingValues(),
+)
+
+@Composable
+fun ProvideInsets(content: @Composable () -> Unit) {
+    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
+    val layoutDirection = LocalLayoutDirection.current
+    val fixedInsets = remember {
+        FixedInsets(
+            statusBarHeight = systemBarsPadding.calculateTopPadding(),
+            navigationBarsPadding = PaddingValues(
+                bottom = systemBarsPadding.calculateBottomPadding(),
+                start = systemBarsPadding.calculateStartPadding(layoutDirection),
+                end = systemBarsPadding.calculateEndPadding(layoutDirection),
+            ),
+        )
+    }
+
+    CompositionLocalProvider(
+        values = arrayOf(
+            LocalFixedInsets provides fixedInsets,
+        ),
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun rememberNavigationBarHeight(): Dp {
+    val insets = LocalFixedInsets.current
+    val layoutDirection = LocalLayoutDirection.current
+
+    val navigationBarPaddingBottom = remember(insets) {
+        insets.navigationBarsPadding.calculateBottomPadding()
+    }
+    val navigationBarPaddingTop = remember(insets) {
+        insets.navigationBarsPadding.calculateTopPadding()
+    }
+    val navigationBarPaddingStart = remember(insets, layoutDirection) {
+        insets.navigationBarsPadding.calculateStartPadding(layoutDirection)
+    }
+    val navigationBarPaddingEnd = remember(insets, layoutDirection) {
+        insets.navigationBarsPadding.calculateEndPadding(layoutDirection)
+    }
+
+    return remember(insets, layoutDirection) {
+        if (navigationBarPaddingTop > 0.dp) {
+            navigationBarPaddingTop
+        } else if (navigationBarPaddingBottom > 0.dp) {
+            navigationBarPaddingBottom
+        } else if (navigationBarPaddingStart > 0.dp) {
+            navigationBarPaddingStart
+        } else {
+            navigationBarPaddingEnd
+        }
+    }
+}
+
+@Composable
+fun rememberGestureNavigationEnabled(): Boolean {
+    val navigationBarHeight = rememberNavigationBarHeight()
+
+    return remember(navigationBarHeight) {
+        navigationBarHeight < 48.dp
+    }
+}
 
 fun Context.goBack(fallback: (() -> Unit)? = null) {
     if (this is ComponentActivity) {

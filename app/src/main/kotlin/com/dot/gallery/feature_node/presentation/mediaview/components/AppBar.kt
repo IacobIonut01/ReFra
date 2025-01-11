@@ -36,6 +36,7 @@ import com.dot.gallery.ui.theme.BlackScrim
 
 @Composable
 fun MediaViewAppBar(
+    modifier: Modifier = Modifier,
     showUI: Boolean,
     showInfo: Boolean,
     showDate: Boolean,
@@ -59,6 +60,7 @@ fun MediaViewAppBar(
                 .padding(top = paddingValues.calculateTopPadding())
                 .padding(start = 5.dp, end = if (showInfo) 8.dp else 16.dp)
                 .padding(vertical = 8.dp)
+                .then(modifier)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,

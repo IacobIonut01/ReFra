@@ -5,10 +5,12 @@ import androidx.compose.ui.unit.dp
 import com.composables.core.SheetDetent
 
 object ViewScreenConstants {
-    val BOTTOM_BAR_HEIGHT = 108.dp
-    val BOTTOM_BAR_HEIGHT_SLIM = 104.dp
+    val BOTTOM_BAR_HEIGHT = 100.dp
 
-    val ImageOnly = SheetDetent("imageOnly") { _, _ -> BOTTOM_BAR_HEIGHT }
+    fun ImageOnly(height: () -> Dp = { BOTTOM_BAR_HEIGHT }) =
+        SheetDetent("imageOnly") { _, _ ->
+            height()
+        }
 
     @Suppress("FunctionName")
     fun FullyExpanded(setHeight: (Dp) -> Unit) =
