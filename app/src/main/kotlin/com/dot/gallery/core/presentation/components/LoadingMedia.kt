@@ -5,6 +5,7 @@
 
 package com.dot.gallery.core.presentation.components
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,10 +40,11 @@ fun LoadingMedia(
 ) {
     val gridSize by rememberGridSize()
     val grid = remember(gridSize) { cellsList.size - gridSize }
+    val canShimmer = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
     Column(
         modifier = modifier
             .fillMaxSize()
-            .then(if (shouldShimmer) Modifier.shimmer() else Modifier),
+            .then(if (shouldShimmer && canShimmer) Modifier.shimmer() else Modifier),
         verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
         if (topContent != null) {

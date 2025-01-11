@@ -5,6 +5,7 @@
 
 package com.dot.gallery.core.presentation.components
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,12 +37,13 @@ fun LoadingAlbum(
     val gridSize by rememberAlbumGridSize()
     val grid = remember(gridSize) { albumCellsList.size - gridSize }
     val shape = remember { RoundedCornerShape(16.dp) }
+    val canShimmer = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
             .padding(top = 48.dp)
-            .then(if (shouldShimmer) Modifier.shimmer() else Modifier),
+            .then(if (shouldShimmer && canShimmer) Modifier.shimmer() else Modifier),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(2) {
