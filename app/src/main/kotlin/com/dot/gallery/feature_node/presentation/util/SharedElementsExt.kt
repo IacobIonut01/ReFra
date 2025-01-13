@@ -6,11 +6,9 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.SharedTransitionScope.PlaceHolderSize.Companion.contentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.Media
@@ -43,8 +41,7 @@ private fun Modifier.mediaSharedElement(
         rememberSharedContentState(key = "media_$key"),
         animatedVisibilityScope = animatedVisibilityScope,
         placeHolderSize = contentSize,
-        boundsTransform = { _, _ -> tween(250) },
-        clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(16.dp))
+        boundsTransform = { _, _ -> tween(250) }
     )
     return if (shouldAnimate) boundsModifier else Modifier
 }
