@@ -9,7 +9,6 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -42,8 +41,21 @@ import com.dot.gallery.ui.theme.GalleryTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 
 class PickerActivityContract : ActivityResultContract<Any?, List<UriMedia>>() {
+
+    private val json = Json {
+        serializersModule = SerializersModule {
+            polymorphic(Media::class) {
+                subclass(UriMedia::class, UriMedia.serializer())
+            }
+        }
+        ignoreUnknownKeys = true
+    }
 
     override fun createIntent(context: Context, input: Any?): Intent {
         return Intent(context, PickerActivity::class.java).apply {
@@ -53,18 +65,13 @@ class PickerActivityContract : ActivityResultContract<Any?, List<UriMedia>>() {
         }
     }
 
-    @Suppress("UNCHECKED_CAST", "DEPRECATION")
     override fun parseResult(resultCode: Int, intent: Intent?): List<UriMedia> {
         if (resultCode != Activity.RESULT_OK || intent == null) {
             return emptyList()
         }
-
-        val list: List<UriMedia> = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableArrayExtra(MEDIA_LIST, UriMedia::class.java)?.toList() ?: emptyList()
-        } else {
-            (intent.getParcelableArrayExtra(MEDIA_LIST) as Array<out UriMedia>?)?.toList() ?: emptyList()
-        }
-        return list
+        return intent.getStringExtra(MEDIA_LIST)?.let {
+            json.decodeFromString<List<UriMedia>?>(it)
+        } ?: emptyList()
     }
 }
 
@@ -142,7 +149,7 @@ class PickerActivity : ComponentActivity() {
         if (exportAsMedia) {
             val newIntent = Intent().apply {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                putExtra(MEDIA_LIST, selectedMedia.toTypedArray())
+                putExtra(MEDIA_LIST, Json.encodeToString(selectedMedia.toTypedArray()))
             }
             setResult(RESULT_OK, newIntent)
             finish()
