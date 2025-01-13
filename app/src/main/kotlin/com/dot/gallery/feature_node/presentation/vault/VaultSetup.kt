@@ -35,7 +35,6 @@ import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.ui.core.Icons
 import com.dot.gallery.ui.core.icons.Encrypted
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun VaultSetup(
     navigateUp: () -> Unit,

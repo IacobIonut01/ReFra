@@ -1,6 +1,5 @@
 package com.dot.gallery.feature_node.presentation.library
 
-import android.os.Build
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -11,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -108,6 +110,10 @@ fun LibraryScreen(
     var noClassification by rememberNoClassification()
 
     Scaffold(
+        modifier = Modifier.padding(
+            start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
+            end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
+        ),
         topBar = {
             MainSearchBar(
                 bottomPadding = paddingValues.calculateBottomPadding(),
@@ -194,19 +200,17 @@ fun LibraryScreen(
                                 Alignment.CenterHorizontally
                             )
                         ) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                LibrarySmallItem(
-                                    title = stringResource(R.string.vault),
-                                    icon = GalleryIcons.Encrypted,
-                                    contentColor = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            navigate(Screen.VaultScreen())
-                                        },
-                                    contentDescription = stringResource(R.string.vault)
-                                )
-                            }
+                            LibrarySmallItem(
+                                title = stringResource(R.string.vault),
+                                icon = GalleryIcons.Encrypted,
+                                contentColor = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        navigate(Screen.VaultScreen())
+                                    },
+                                contentDescription = stringResource(R.string.vault)
+                            )
                             LibrarySmallItem(
                                 title = stringResource(R.string.ignored),
                                 icon = Icons.Outlined.VisibilityOff,

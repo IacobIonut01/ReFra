@@ -80,7 +80,6 @@ import com.dot.gallery.feature_node.presentation.vault.components.SelectVaultShe
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun VaultDisplay(

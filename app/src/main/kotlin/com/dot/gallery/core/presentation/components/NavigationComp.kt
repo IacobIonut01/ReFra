@@ -472,7 +472,6 @@ fun NavigationComp(
                 )
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 composable(
                     route = Screen.VaultScreen()
                 ) {
@@ -483,7 +482,6 @@ fun NavigationComp(
                         navigateUp = navPipe::navigateUp,
                         navigate = navPipe::navigate
                     )
-                }
             }
 
             composable(

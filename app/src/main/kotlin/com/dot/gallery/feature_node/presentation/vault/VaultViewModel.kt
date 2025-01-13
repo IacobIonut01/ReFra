@@ -1,8 +1,6 @@
 package com.dot.gallery.feature_node.presentation.vault
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +30,6 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @HiltViewModel
 open class VaultViewModel @Inject constructor(
     private val repository: MediaRepository,

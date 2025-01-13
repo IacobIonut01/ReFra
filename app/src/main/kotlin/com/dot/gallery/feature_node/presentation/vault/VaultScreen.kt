@@ -1,11 +1,9 @@
 package com.dot.gallery.feature_node.presentation.vault
 
 import android.graphics.Color
-import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -50,7 +48,6 @@ import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricSt
 import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalSharedTransitionApi::class)
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun VaultScreen(
     paddingValues: PaddingValues,
