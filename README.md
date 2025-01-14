@@ -22,7 +22,7 @@
     src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'
     height="80" />](https://play.google.com/store/apps/details?id=com.dot.gallery.gplay&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1)
 [<img 
-    alt='Get it on Google Play'
+    alt='Get it on GitHub'
     src='./screenshots/items/get-it-on-github.png'
     height="80" />](https://github.com/IacobIonut01/Gallery/releases/latest)
 
