@@ -5,7 +5,6 @@
 
 package com.dot.gallery.core.presentation.components
 
-import android.os.Build
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.PaddingValues
@@ -84,7 +83,10 @@ fun NavigationComp(
     val navPipe = hiltViewModel<ChanneledViewModel>()
     navPipe
         .initWithNav(navController, bottomBarState)
-        .collectAsStateWithLifecycle(LocalLifecycleOwner.current, context = Dispatchers.Main.immediate)
+        .collectAsStateWithLifecycle(
+            LocalLifecycleOwner.current,
+            context = Dispatchers.Main.immediate
+        )
     val groupTimelineByMonth by rememberTimelineGroupByMonth()
 
     val context = LocalContext.current
@@ -126,7 +128,8 @@ fun NavigationComp(
             if (it != Screen.VaultScreen()) {
                 shouldSkipAuth.value = false
             }
-            systemBarFollowThemeState.value = !(it.contains(Screen.MediaViewScreen.route) || it.contains(Screen.VaultScreen()))
+            systemBarFollowThemeState.value =
+                !(it.contains(Screen.MediaViewScreen.route) || it.contains(Screen.VaultScreen()))
         }
     }
 
@@ -140,6 +143,8 @@ fun NavigationComp(
 
     val timelineState =
         timelineViewModel.mediaFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
+
+    val vaultState by timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
     LaunchedEffect(groupTimelineByMonth) {
         timelineViewModel.groupByMonth = groupTimelineByMonth
@@ -333,7 +338,6 @@ fun NavigationComp(
                     vm.mediaFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
                 } else timelineState
 
-                val vaultState by timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
                 MediaViewScreen(
                     navigateUp = navPipe::navigateUp,
                     toggleRotate = toggleRotate,
@@ -384,7 +388,6 @@ fun NavigationComp(
                 val mediaState =
                     viewModel.mediaFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
-                val vaultState by timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
                 MediaViewScreen(
                     navigateUp = navPipe::navigateUp,
                     toggleRotate = toggleRotate,
@@ -428,7 +431,6 @@ fun NavigationComp(
                     if (query) viewModel.searchMediaState else viewModel.mediaFlow
                 }.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
-                val vaultState by timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
                 MediaViewScreen(
                     navigateUp = navPipe::navigateUp,
@@ -472,16 +474,16 @@ fun NavigationComp(
                 )
             }
 
-                composable(
-                    route = Screen.VaultScreen()
-                ) {
-                    VaultScreen(
-                        paddingValues = paddingValues,
-                        toggleRotate = toggleRotate,
-                        shouldSkipAuth = shouldSkipAuth,
-                        navigateUp = navPipe::navigateUp,
-                        navigate = navPipe::navigate
-                    )
+            composable(
+                route = Screen.VaultScreen()
+            ) {
+                VaultScreen(
+                    paddingValues = paddingValues,
+                    toggleRotate = toggleRotate,
+                    shouldSkipAuth = shouldSkipAuth,
+                    navigateUp = navPipe::navigateUp,
+                    navigate = navPipe::navigate
+                )
             }
 
             composable(
@@ -555,13 +557,12 @@ fun NavigationComp(
                 val mediaState = viewModel.mediaByCategory
                     .collectAsStateWithLifecycle(MediaState())
 
-                val vaultState by timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
-
                 MediaViewScreen(
                     navigateUp = navPipe::navigateUp,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
+                    target = "category_$category",
                     mediaState = mediaState,
                     albumsState = albumsState,
                     handler = viewModel.handler,
