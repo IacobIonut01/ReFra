@@ -69,8 +69,8 @@ class ClassifierWorker @AssistedInject constructor(
             printWarning("ClassifierWorker cleaning up declassified results")
             database.getClassifierDao().deleteDeclassifiedImages(media.fastMap { it.id })
 
-            printWarning("ClassifierWorker retrieving classified media")
-            val classified = database.getClassifierDao().getClassifiedMedia()
+            printWarning("ClassifierWorker retrieving already checked media")
+            val classified = database.getClassifierDao().getCheckedMedia()
             printWarning("ClassifierWorker classified media size: ${classified.size}")
             media = media.filterNot { item -> classified.any { it.id == item.id && it.timestamp == item.timestamp } }
             if (media.isEmpty()) {

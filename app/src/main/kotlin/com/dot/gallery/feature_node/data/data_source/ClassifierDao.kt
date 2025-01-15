@@ -23,6 +23,9 @@ interface ClassifierDao {
     @Query("SELECT * FROM classified_media WHERE category IS NOT NULL AND category != 'null'")
     suspend fun getClassifiedMedia(): List<ClassifiedMedia>
 
+    @Query("SELECT * FROM classified_media")
+    suspend fun getCheckedMedia(): List<ClassifiedMedia>
+
     @Query("SELECT COUNT(*) FROM classified_media WHERE category IS NOT NULL AND category != 'null'")
     fun getClassifiedMediaCount(): Flow<Int>
 
