@@ -173,6 +173,20 @@ fun <T : Media> MediaViewScreen(
         mediaState.value.media.getOrNull(currentPage)
     }
 
+    var shouldForcePage by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(initialPage, currentPage, mediaState.value) {
+        if (currentPage == 0) {
+            if (mediaState.value.isLoading) {
+                shouldForcePage = true
+            }
+            if (initialPage != 0 && currentPage != initialPage && shouldForcePage) {
+                pagerState.scrollToPage(initialPage)
+                shouldForcePage = false
+            }
+        }
+    }
+
     val currentDateFormat by rememberDateHeaderFormat()
 
     val currentDate by rememberedDerivedState {
@@ -288,7 +302,7 @@ fun <T : Media> MediaViewScreen(
     }
 
     LaunchedEffect(mediaState.value) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
+        snapshotFlow { pagerState.currentPage }.collectLatest { page ->
             if (!mediaState.value.isLoading && mediaState.value.media.isEmpty() && !isStandalone) {
                 windowInsetsController.toggleSystemBars(show = true)
                 navigateUp()
