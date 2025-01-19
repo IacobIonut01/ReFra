@@ -258,13 +258,16 @@ fun <T : Media> MediaViewScreen(
         mediaState.value,
         sheetHeightDp.value,
         lastSheetHeightDp,
-        lastOrientation
+        lastOrientation,
+        shouldForcePage
     ) {
         lastOrientation == configuration.orientation
                 && lastSheetHeightDp.dp == sheetHeightDp
                 && currentPage == pagerState.currentPage
                 && storedNormalizationTarget > 0f
                 && storedNormalizationTarget < 0.6f
+                && !mediaState.value.isLoading
+                && !shouldForcePage
     }
 
     LaunchedEffect(sheetHeightDp.value, configuration.orientation) {
@@ -289,6 +292,12 @@ fun <T : Media> MediaViewScreen(
                 storedNormalizationTarget = newOffset
             }
             storedNormalizationTarget
+        }
+    }
+
+    LaunchedEffect(shouldForcePage) {
+        if (!shouldForcePage) {
+            storedNormalizationTarget = sheetState.offset
         }
     }
 
