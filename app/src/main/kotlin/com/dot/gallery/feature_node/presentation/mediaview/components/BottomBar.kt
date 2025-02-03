@@ -722,6 +722,9 @@ fun <T : Media> MediaViewActions2(
             if (handler != null && currentMedia.canMakeActions) {
                 FavoriteButton(currentMedia, handler, enabled = enabled)
             }
+            if (currentMedia.readUriOnly) {
+                OpenAsButton(currentMedia, enabled = enabled)
+            }
             // Edit
             if (!currentMedia.isEncrypted) {
                 EditButton(currentMedia, enabled = enabled)

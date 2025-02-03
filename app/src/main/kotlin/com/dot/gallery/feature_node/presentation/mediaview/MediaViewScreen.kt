@@ -591,7 +591,7 @@ fun <T : Media> MediaViewScreen(
             )
             BottomSheet(
                 state = sheetState,
-                enabled = showUI && target != TARGET_TRASH,
+                enabled = showUI && target != TARGET_TRASH && showInfo,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .graphicsLayer {

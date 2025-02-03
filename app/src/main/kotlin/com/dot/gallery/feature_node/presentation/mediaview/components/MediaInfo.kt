@@ -92,13 +92,15 @@ fun Media.retrieveMetadata(context: Context, exifMetadata: ExifMetadata?, onLabe
                     content = label
                 )
             )
-            add(
-                InfoRow(
-                    icon = Icons.Outlined.Info,
-                    label = context.getString(R.string.path),
-                    content = path
+            if (path.isNotBlank()) {
+                add(
+                    InfoRow(
+                        icon = Icons.Outlined.Info,
+                        label = context.getString(R.string.path),
+                        content = path
+                    )
                 )
-            )
+            }
         }
         return infoList
     }
@@ -133,7 +135,9 @@ fun Media.retrieveMetadata(context: Context, exifMetadata: ExifMetadata?, onLabe
             )
             val formattedFileSize = File(path).formattedFileSize(context)
             val contentString = StringBuilder()
-            contentString.append(formattedFileSize)
+            if (formattedFileSize != "0 ${context.getString(R.string.kb)}") {
+                contentString.append(formattedFileSize)
+            }
             if (mimeType.contains("video")) {
                 contentString.append(" • ${duration.formatMinSec()}")
             } else if (exifMetadata != null && exifMetadata.imageWidth != 0 && exifMetadata.imageHeight != 0) {
@@ -144,15 +148,17 @@ fun Media.retrieveMetadata(context: Context, exifMetadata: ExifMetadata?, onLabe
                 if (width > 0 && height > 0) contentString.append(" • $width x $height")
             }
             val icon = if (mimeType.contains("video")) Icons.Outlined.VideoFile else Icons.Outlined.ImageSearch
-            add(
-                InfoRow(
-                    icon = icon,
-                    label = context.getString(R.string.metadata),
-                    content = contentString.toString()
+            if (contentString.isNotBlank()) {
+                add(
+                    InfoRow(
+                        icon = icon,
+                        label = context.getString(R.string.metadata),
+                        content = contentString.toString()
+                    )
                 )
-            )
+            }
 
-            if (!isEncrypted) {
+            if (!isEncrypted && path.substringBeforeLast("/").isNotBlank()) {
                 add(
                     InfoRow(
                         icon = Icons.Outlined.Info,

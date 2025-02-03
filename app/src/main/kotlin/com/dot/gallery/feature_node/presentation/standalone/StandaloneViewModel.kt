@@ -43,12 +43,12 @@ class StandaloneViewModel @Inject constructor(
                         val data = it.data
                         if (data != null) {
                             mediaId = data.first().id
-                            MediaState(media = data)
+                            MediaState(media = data, isLoading = false)
                         } else {
                             mediaFromUris()
                         }
                     }
-                    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), MediaState())
+                    .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
         }
     var dataList: List<Uri> = emptyList()
         set(value) {
@@ -59,12 +59,12 @@ class StandaloneViewModel @Inject constructor(
                         val data = it.data
                         if (data != null) {
                             mediaId = data.first().id
-                            MediaState(media = data)
+                            MediaState(media = data, isLoading = false)
                         } else {
                             mediaFromUris()
                         }
                     }
-                    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), MediaState())
+                    .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
         }
 
     var mediaId: Long = -1
@@ -74,17 +74,17 @@ class StandaloneViewModel @Inject constructor(
             val data = it.data
             if (data != null) {
                 mediaId = data.first().id
-                MediaState(media = data)
+                MediaState(media = data, isLoading = false)
             } else {
                 mediaFromUris()
             }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), MediaState())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
 
 
     val vaults = repository.getVaults().map { it.data ?: emptyList() }
         .map { VaultState(it, isLoading = false) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), VaultState())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, VaultState())
 
     fun addMedia(vault: Vault, media: UriMedia) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -97,7 +97,7 @@ class StandaloneViewModel @Inject constructor(
         dataList.forEach {
             Media.createFromUri(applicationContext, it)?.let { it1 -> list.add(it1 as T) }
         }
-        return MediaState(media = list)
+        return MediaState(media = list, isLoading = false)
     }
 
 }

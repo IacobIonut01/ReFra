@@ -213,7 +213,7 @@ fun Context.uriToPath(uri: Uri?): String? {
 }
 
 fun Uri.authorizedUri(context: Context): Uri = if (this.toString()
-        .startsWith("content://media/")
+        .startsWith("content://")
 ) this else FileProvider.getUriForFile(
     context,
     BuildConfig.CONTENT_AUTHORITY,
@@ -223,7 +223,7 @@ fun Uri.authorizedUri(context: Context): Uri = if (this.toString()
 fun <T: Media> Context.shareMedia(media: T) {
     val originalUri = media.getUri()
     val uri = if (originalUri.toString()
-            .startsWith("content://media/")
+            .startsWith("content://")
     ) originalUri else FileProvider.getUriForFile(
         this,
         BuildConfig.CONTENT_AUTHORITY,
