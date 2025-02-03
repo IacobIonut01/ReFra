@@ -70,6 +70,7 @@ import com.dot.gallery.feature_node.presentation.edit.components.editor.EditorNa
 import com.dot.gallery.feature_node.presentation.edit.components.editor.ImageViewer
 import com.dot.gallery.feature_node.presentation.util.getEditImageCapableApps
 import com.dot.gallery.feature_node.presentation.util.goBack
+import com.dot.gallery.ui.theme.GalleryTheme
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -111,7 +112,7 @@ fun EditScreen2(
     applyDrawing: (Bitmap, () -> Unit) -> Unit,
     undoLastPath: () -> Unit,
     redoLastPath: () -> Unit
-) {
+) = GalleryTheme(darkTheme = true, ignoreUserPreference = true) {
     val context = LocalContext.current
     val navigator = rememberSupportingPaneScaffoldNavigator()
     val navController = rememberNavController()

@@ -100,12 +100,13 @@ fun GalleryTheme(
     dynamicColor: Boolean = remember {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     },
+    ignoreUserPreference: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val forceThemeValue by rememberForceTheme()
     val isDarkMode by rememberIsDarkMode()
-    val forcedDarkTheme by remember(forceThemeValue, darkTheme, isDarkMode) {
-        mutableStateOf(if (forceThemeValue) isDarkMode else darkTheme)
+    val forcedDarkTheme by remember(ignoreUserPreference, forceThemeValue, darkTheme, isDarkMode) {
+        mutableStateOf(if (!ignoreUserPreference && forceThemeValue) isDarkMode else darkTheme)
     }
     val isAmoledMode by rememberIsAmoledMode()
     val context = LocalContext.current
