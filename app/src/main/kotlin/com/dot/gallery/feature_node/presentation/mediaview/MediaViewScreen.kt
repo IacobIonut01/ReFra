@@ -325,6 +325,7 @@ fun <T : Media> MediaViewScreen(
     // set HDR Gain map
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         LaunchedEffect(mediaState.value) {
+            withContext(Dispatchers.IO) {
             snapshotFlow { pagerState.currentPage }.collectLatest {
                 printWarning("Trying to set HDR mode for page $it")
                 if (currentMedia?.isImage == true) {
@@ -338,17 +339,20 @@ fun <T : Media> MediaViewScreen(
                             value = currentMedia?.mimeType,
                         )
                     }
-                    val result = withContext(Dispatchers.IO) {
-                        context.sketch.execute(request)
-                    }
+                        val result = context.sketch.execute(request)
                     (result.image as? BitmapImage)?.bitmap?.let { bitmap ->
                         val hasGainmap = bitmap.hasGainmap()
+                            withContext(Dispatchers.Main.immediate) {
                         context.setHdrMode(hasGainmap)
+                            }
                         printWarning("Setting HDR Mode to $hasGainmap")
                     } ?: printWarning("Resulting image null")
                 } else {
+                        withContext(Dispatchers.Main.immediate) {
                     context.setHdrMode(false)
+                        }
                     printWarning("Not an image, skipping")
+                    }
                 }
             }
         }
