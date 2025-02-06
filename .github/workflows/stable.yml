@@ -140,7 +140,7 @@ jobs:
           name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }} Release
           body_path: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
           prerelease: false
-          tag_name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}
+          tag_name: ${{ needs.build_maps.outputs.versionName }}
           files: |
             ./**/Gallery-*.apk
         env:
