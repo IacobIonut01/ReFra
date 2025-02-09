@@ -36,6 +36,7 @@ accompanist = "0.37.0"
 datastore = "1.1.2"
 securityCrypto = "1.1.0-alpha06"
 sketch = "4.0.2"
+startupRuntime = "1.2.0"
 tensorflowLite = "2.16.1"
 tensorflowLiteTaskVision = "0.4.4"
 tensorflowLiteGpu = "2.16.1"
@@ -44,6 +45,8 @@ composealpha = "1.8.0-beta01"
 kotlinxSerializationJson = "1.7.3"
 workRuntimeKtx = "2.10.0"
 zoomimageViewSketch = "1.1.1"
+rules = "1.6.1"
+lifecycleProcess = "2.8.7"
 
 [libraries]
 # AndroidX
@@ -69,6 +72,7 @@ androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstall
 
 # Coil
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
+androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startupRuntime" }
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 avif-coder-coil = { module = "com.github.awxkee:avif-coder-coil", version.ref = "avifCoderCoil" }
@@ -78,7 +82,7 @@ compose-activity = { group = "androidx.activity", name = "activity-compose", ver
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "composealpha" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "composealpha" }
 compose-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle-runtime" }
-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version = "1.7.6" }
+compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version = "1.7.7" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 compose-material3-window-size = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "composealpha" }
@@ -148,6 +152,8 @@ tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.r
 tensorflow-lite-task-vision = { module = "org.tensorflow:tensorflow-lite-task-vision", version.ref = "tensorflowLiteTaskVision" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 zoomimage-sketch = { module = "io.github.panpf.zoomimage:zoomimage-compose-sketch4", version.ref = "zoomimageViewSketch" }
+androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
