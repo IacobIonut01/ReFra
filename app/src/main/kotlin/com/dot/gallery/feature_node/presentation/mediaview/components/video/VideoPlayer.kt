@@ -45,6 +45,7 @@ import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isEncrypted
+import com.dot.gallery.feature_node.presentation.util.printWarning
 import io.sanghun.compose.video.RepeatMode
 import io.sanghun.compose.video.uri.VideoPlayerMediaItem
 import kotlinx.coroutines.delay
@@ -94,12 +95,15 @@ fun <T : Media> VideoPlayer(
             }
         }
     }
-    DisposableEffect(Unit) {
-        val activity = context as? Activity
-        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
+
+    LaunchedEffect(isPlaying.value) {
+        (context as? Activity)?.let { activity ->
+            if (isPlaying.value) {
+                activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+        } ?: printWarning("Couldn't mark the screen as always on. Context is not an activity.")
     }
 
     val metadata = remember(media) {
