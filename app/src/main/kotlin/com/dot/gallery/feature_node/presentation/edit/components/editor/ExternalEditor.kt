@@ -63,7 +63,6 @@ fun ExternalEditor(
                 .fillMaxWidth()
                 .then(
                     if (isSupportingPanel) Modifier
-                        .padding(top = 16.dp)
                         .safeSystemGesturesPadding(onlyRight = true)
                         .clipToBounds()
                         .clip(RoundedCornerShape(16.dp))

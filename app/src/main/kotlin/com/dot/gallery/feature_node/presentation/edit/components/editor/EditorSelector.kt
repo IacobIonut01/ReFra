@@ -2,7 +2,6 @@ package com.dot.gallery.feature_node.presentation.edit.components.editor
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,7 +30,6 @@ fun EditorSelector(
         modifier = modifier
             .then(
                 if (isSupportingPanel) Modifier
-                    .padding(top = 16.dp)
                     .safeSystemGesturesPadding(onlyRight = true)
                     .clipToBounds()
                     .clip(RoundedCornerShape(16.dp))
@@ -46,7 +44,7 @@ fun EditorSelector(
         ) { index, editorItem ->
             EditorItem(
                 imageVector = editorItem.icon,
-                title = editorItem.name,
+                title = editorItem.translatedName,
                 horizontal = isSupportingPanel,
                 onItemClick = {
                     onItemClick(editorItem)

@@ -11,13 +11,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.feature_node.domain.model.editor.SaveFormat
 import com.dot.gallery.feature_node.presentation.edit.adjustments.Crop
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
+import com.dot.gallery.feature_node.presentation.util.writeRequest
 import com.dot.gallery.ui.theme.GalleryTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class EditActivity : ComponentActivity() {
@@ -65,8 +71,25 @@ class EditActivity : ComponentActivity() {
                 val currentPosition by viewModel.currentPosition.collectAsStateWithLifecycle()
                 val previousPosition by viewModel.previousPosition.collectAsStateWithLifecycle()
                 val drawMode by viewModel.drawMode.collectAsStateWithLifecycle()
+                val drawType by viewModel.drawType.collectAsStateWithLifecycle()
                 val currentPath by viewModel.currentPath.collectAsStateWithLifecycle()
                 val currentPathProperty by viewModel.currentPathProperty.collectAsStateWithLifecycle()
+
+                val scope = rememberCoroutineScope { Dispatchers.IO }
+
+                val overrideRequest = rememberActivityResult(
+                    onResultOk = {
+                        viewModel.saveOverride(
+                            saveFormat = SaveFormat.PNG,
+                            onSuccess = {
+                                finish()
+                            },
+                            onFail = {
+                                printError("Failed to save override")
+                            }
+                        )
+                    }
+                )
 
 
                 EditScreen2(
@@ -85,21 +108,16 @@ class EditActivity : ComponentActivity() {
                     pathsUndone = pathsUndone,
                     previousPosition = previousPosition,
                     drawMode = drawMode,
+                    drawType = drawType,
                     currentPathProperty = currentPathProperty,
                     currentPath = currentPath,
                     onClose = {
                         finish()
                     },
                     onOverride = {
-                        viewModel.saveOverride(
-                            saveFormat = SaveFormat.PNG,
-                            onSuccess = {
-                                finish()
-                            },
-                            onFail = {
-
-                            }
-                        )
+                        scope.launch {
+                            uri?.let { uri -> overrideRequest.launch(uri.writeRequest(contentResolver)) }
+                        }
                     },
                     onSaveCopy = {
                         viewModel.saveCopy(
@@ -125,6 +143,7 @@ class EditActivity : ComponentActivity() {
                     setCurrentPosition = viewModel::setCurrentPosition,
                     setPreviousPosition = viewModel::setPreviousPosition,
                     setDrawMode = viewModel::setDrawMode,
+                    setDrawType = viewModel::setDrawType,
                     setCurrentPath = viewModel::setCurrentPath,
                     setCurrentPathProperty = viewModel::setCurrentPathProperty,
                     applyDrawing = viewModel::applyDrawing,

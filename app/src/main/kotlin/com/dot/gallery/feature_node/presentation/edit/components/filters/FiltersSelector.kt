@@ -77,7 +77,6 @@ fun FiltersSelector(
         LazyVerticalGrid(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp)
                 .safeSystemGesturesPadding(onlyRight = true)
                 .clipToBounds()
                 .clip(RoundedCornerShape(16.dp)),

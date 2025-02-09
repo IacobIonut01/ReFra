@@ -1,14 +1,14 @@
 package com.dot.gallery.feature_node.domain.model.editor
 
 import android.os.Parcelable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Redo
-import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.outlined.Brush
-import androidx.compose.material.icons.outlined.ColorLens
-import androidx.compose.material.icons.outlined.Draw
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import com.dot.gallery.R
+import com.dot.gallery.ui.core.icons.InkHighlighter
+import com.dot.gallery.ui.core.icons.InkMarker
 import com.dot.gallery.ui.core.icons.Ink_Eraser
+import com.dot.gallery.ui.core.icons.Stylus
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -16,53 +16,26 @@ import com.dot.gallery.ui.core.Icons as DotIcons
 
 @Serializable
 @Parcelize
-enum class MarkupEraseItems : Parcelable {
-    Undo,
-    Size,
-    Redo;
-
-    @IgnoredOnParcel
-    val icon: ImageVector
-        get() = when (this) {
-            Size -> Icons.Outlined.Brush
-            Undo -> Icons.AutoMirrored.Outlined.Undo
-            Redo -> Icons.AutoMirrored.Outlined.Redo
-        }
-}
-
-
-@Serializable
-@Parcelize
-enum class MarkupDrawItems : Parcelable {
-    Undo,
-    Size,
-    Color,
-    Redo;
-
-    @IgnoredOnParcel
-    val icon: ImageVector
-        get() = when (this) {
-            Size -> Icons.Outlined.Brush
-            Color -> Icons.Outlined.ColorLens
-            Undo -> Icons.AutoMirrored.Outlined.Undo
-            Redo -> Icons.AutoMirrored.Outlined.Redo
-        }
-}
-
-@Serializable
-@Parcelize
 enum class MarkupItems : Parcelable {
-    Undo,
-    Draw,
-    Erase,
-    Redo;
+    Stylus,
+    Highlighter,
+    Marker,
+    Eraser;
+
+    @get:Composable
+    val translatedName get() = when (this) {
+        Stylus -> stringResource(R.string.type_stylus)
+        Highlighter -> stringResource(R.string.type_highlighter)
+        Marker -> stringResource(R.string.type_marker)
+        Eraser -> stringResource(R.string.type_erase)
+    }
 
     @IgnoredOnParcel
     val icon: ImageVector
         get() = when (this) {
-            Draw -> Icons.Outlined.Draw
-            Erase -> DotIcons.Ink_Eraser
-            Undo -> Icons.AutoMirrored.Outlined.Undo
-            Redo -> Icons.AutoMirrored.Outlined.Redo
+            Stylus -> DotIcons.Stylus
+            Highlighter -> DotIcons.InkHighlighter
+            Marker -> DotIcons.InkMarker
+            Eraser -> DotIcons.Ink_Eraser
         }
 }

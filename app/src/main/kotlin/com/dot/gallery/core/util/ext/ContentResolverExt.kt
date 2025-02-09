@@ -145,7 +145,6 @@ fun ContentResolver.overrideImage(
 ): Boolean {
     val values = ContentValues().apply {
         put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
-        put(MediaStore.MediaColumns.IS_PENDING, 1)
     }
 
     return runCatching {

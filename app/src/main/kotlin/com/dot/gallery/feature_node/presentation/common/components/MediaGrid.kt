@@ -27,6 +27,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dokar.pinchzoomgrid.PinchZoomGridScope
@@ -201,7 +202,7 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
     ) {
         LazyVerticalGrid(
             state = gridState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().testTag("media_grid"),
             columns = gridCells,
             contentPadding = paddingValues,
             userScrollEnabled = canScroll,

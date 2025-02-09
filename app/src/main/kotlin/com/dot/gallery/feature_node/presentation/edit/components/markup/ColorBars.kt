@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toRect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -256,6 +258,9 @@ fun HueBar(
     modifier: Modifier = Modifier,
     currentColor: Color,
     isSupportingPanel: Boolean,
+    supportingBarSize: Dp = 48.dp,
+    nonSupportingBarSize: Dp = 32.dp,
+    enabled: Boolean = true,
     setColor: (Float) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -270,29 +275,26 @@ fun HueBar(
 
     val currentSaturation = remember(hsv) { hsv[1] }
     val initialHue = remember(hsv) { hsv[0] }
-    val currentAlpha = remember(currentColor) { currentColor.alpha }
+    val currentAlpha = remember(currentColor, enabled) { currentColor.alpha * if (enabled) 1f else 0.2f }
 
     Canvas(
-        modifier = modifier
+        modifier = Modifier
             .then(
                 if (isSupportingPanel) Modifier
-                    .width(48.dp)
+                    .width(supportingBarSize)
                     .fillMaxHeight()
                 else Modifier
-                    .height(32.dp)
+                    .height(nonSupportingBarSize)
                     .fillMaxWidth()
             )
+            .then(modifier)
             .clip(RoundedCornerShape(20))
             .emitDragGesture(interactionSource)
     ) {
         val drawScopeSize = size
 
         if (drawScopeSize.width > 0 && drawScopeSize.height > 0) {
-            val bitmap = Bitmap.createBitmap(
-                size.width.toInt(),
-                size.height.toInt(),
-                Bitmap.Config.ARGB_8888
-            )
+            val bitmap = createBitmap(size.width.toInt(), size.height.toInt())
             val hueCanvas = android.graphics.Canvas(bitmap)
             val huePanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
             val hueColors = IntArray(
@@ -343,24 +345,26 @@ fun HueBar(
                 } else {
                     Offset(pressPos, 0f)
                 }
-                setColor(selectedHue)
+                if (enabled) setColor(selectedHue)
             }
 
-            drawRoundRect(
-                color = Color.White,
-                topLeft = if (isSupportingPanel) {
-                    Offset(0f, pressOffset.value.y - 8.dp.toPx())
-                } else {
-                    Offset(pressOffset.value.x - 8.dp.toPx(), 0f)
-                },
-                size = if (isSupportingPanel) {
-                    Size(size.width, size.width / 3)
-                } else {
-                    Size(size.height / 3, size.height)
-                },
-                cornerRadius = CornerRadius(20f, 20f),
-                style = Stroke(width = 3.dp.toPx())
-            )
+            if (enabled) {
+                drawRoundRect(
+                    color = Color.White,
+                    topLeft = if (isSupportingPanel) {
+                        Offset(0f, pressOffset.value.y - 8.dp.toPx())
+                    } else {
+                        Offset(pressOffset.value.x - 8.dp.toPx(), 0f)
+                    },
+                    size = if (isSupportingPanel) {
+                        Size(size.width, size.width / 3)
+                    } else {
+                        Size(size.height / 3, size.height)
+                    },
+                    cornerRadius = CornerRadius(20f, 20f),
+                    style = Stroke(width = 3.dp.toPx())
+                )
+            }
         }
     }
 }

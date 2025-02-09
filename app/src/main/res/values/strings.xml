@@ -303,6 +303,15 @@
     <string name="auto_play_video_summary">Play the video automatically while viewing media</string>
     <string name="shared_elements">Animate media items</string>
     <string name="shared_elements_summary">Animate media items click/return using shared elements transitions</string>
+    <string name="type_stylus">Stylus</string>
+    <string name="type_highlighter">Highlighter</string>
+    <string name="type_marker">Marker</string>
+    <string name="type_erase">Eraser</string>
+    <string name="crop">Crop</string>
+    <string name="adjust">Adjust</string>
+    <string name="filters">Filters</string>
+    <string name="markup">Markup</string>
+    <string name="type_size">Size</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

@@ -25,21 +25,6 @@ sealed class EditorDestination {
     data object Markup : EditorDestination()
 
         @Serializable
-        data object MarkupDraw : EditorDestination()
-
-            @Serializable
-            data object MarkupDrawSize : EditorDestination()
-
-            @Serializable
-            data object MarkupDrawColor : EditorDestination()
-
-        @Serializable
-        data object MarkupErase : EditorDestination()
-
-            @Serializable
-            data object MarkupEraseSize : EditorDestination()
-
-        @Serializable
         data object ExternalEditor : EditorDestination()
 
 }

@@ -152,6 +152,11 @@ fun <T: Media> List<T>.writeRequest(
 ) = IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, map { it.getUri() }))
     .build()
 
+fun Uri.writeRequest(
+    contentResolver: ContentResolver,
+) = IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, arrayListOf(this)))
+    .build()
+
 @Composable
 fun <T: Media> rememberMediaInfo(
     media: T,

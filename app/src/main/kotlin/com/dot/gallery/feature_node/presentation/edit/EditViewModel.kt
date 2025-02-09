@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +16,7 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.editor.Adjustment
 import com.dot.gallery.feature_node.domain.model.editor.DrawMode
+import com.dot.gallery.feature_node.domain.model.editor.DrawType
 import com.dot.gallery.feature_node.domain.model.editor.ImageFilter
 import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.domain.model.editor.SaveFormat
@@ -98,6 +100,9 @@ class EditViewModel @Inject constructor(
     private val _drawMode = MutableStateFlow(DrawMode.Draw)
     val drawMode = _drawMode.asStateFlow()
 
+    private val _drawType = MutableStateFlow(DrawType.Stylus)
+    val drawType = _drawType.asStateFlow()
+
     private val _currentPath = MutableStateFlow(Path())
     val currentPath = _currentPath.asStateFlow()
 
@@ -124,7 +129,47 @@ class EditViewModel @Inject constructor(
     }
 
     fun setDrawMode(mode: DrawMode) {
+        setCurrentPathProperty(
+            _currentPathProperty.value.copy(
+                eraseMode = mode == DrawMode.Erase
+            )
+        )
         _drawMode.value = mode
+    }
+
+    fun setDrawType(type: DrawType) {
+        when (type) {
+            DrawType.Stylus -> {
+                setCurrentPathProperty(
+                    _currentPathProperty.value.copy(
+                        strokeWidth = 20f,
+                        color = _currentPathProperty.value.color.copy(alpha = 1f),
+                        strokeCap = StrokeCap.Round
+                    )
+                )
+            }
+
+            DrawType.Highlighter -> {
+                setCurrentPathProperty(
+                    _currentPathProperty.value.copy(
+                        strokeWidth = 30f,
+                        color = _currentPathProperty.value.color.copy(alpha = 0.4f),
+                        strokeCap = StrokeCap.Square
+                    )
+                )
+            }
+
+            DrawType.Marker -> {
+                setCurrentPathProperty(
+                    _currentPathProperty.value.copy(
+                        strokeWidth = 40f,
+                        color = _currentPathProperty.value.color.copy(alpha = 1f),
+                        strokeCap = StrokeCap.Round
+                    )
+                )
+            }
+        }
+        _drawType.value = type
     }
 
     fun setCurrentPath(path: Path) {
@@ -341,15 +386,19 @@ class EditViewModel @Inject constructor(
             val media = activeMedia.value!!
             _currentBitmap.value?.let { bitmap ->
                 try {
-                    mediaHandler.saveImage(
-                        bitmap = bitmap,
-                        format = saveFormat.format,
-                        relativePath = Environment.DIRECTORY_PICTURES + "/Edited",
-                        displayName = media.label,
-                        mimeType = saveFormat.mimeType
-                    )
-                    onSuccess().also { _isSaving.value = false }
-                } catch (e: Exception) {
+                    if (mediaHandler.saveImage(
+                            bitmap = bitmap,
+                            format = saveFormat.format,
+                            relativePath = Environment.DIRECTORY_PICTURES + "/Edited",
+                            displayName = media.label,
+                            mimeType = saveFormat.mimeType
+                        ) != null
+                    ) {
+                        onSuccess().also { _isSaving.value = false }
+                    } else {
+                        onFail().also { _isSaving.value = false }
+                    }
+                } catch (_: Exception) {
                     _isSaving.value = false
                     onFail().also { _isSaving.value = false }
                 }
@@ -368,15 +417,19 @@ class EditViewModel @Inject constructor(
             val media = activeMedia.value!!
             _currentBitmap.value?.let { bitmap ->
                 try {
-                    mediaHandler.overrideImage(
-                        uri = media.uri,
-                        bitmap = bitmap,
-                        format = saveFormat.format,
-                        relativePath = Environment.DIRECTORY_PICTURES + "/Edited",
-                        displayName = media.label,
-                        mimeType = saveFormat.mimeType
-                    )
-                    onSuccess().also { _isSaving.value = false }
+                    if (mediaHandler.overrideImage(
+                            uri = media.uri,
+                            bitmap = bitmap,
+                            format = saveFormat.format,
+                            relativePath = Environment.DIRECTORY_PICTURES + "/Edited",
+                            displayName = media.label,
+                            mimeType = saveFormat.mimeType
+                        )
+                    ) {
+                        onSuccess().also { _isSaving.value = false }
+                    } else {
+                        onFail().also { _isSaving.value = false }
+                    }
                 } catch (e: Exception) {
                     onFail().also { _isSaving.value = false }
                 }

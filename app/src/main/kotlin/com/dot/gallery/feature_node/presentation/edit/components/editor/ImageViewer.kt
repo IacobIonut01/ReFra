@@ -83,7 +83,7 @@ fun ImageViewer(
 
     Box(
         modifier = modifier
-            .padding(top = 16.dp)
+            .then(if (!isSupportingPanel) Modifier.padding(top = 16.dp) else Modifier)
             .safeSystemGesturesPadding(onlyLeft = isSupportingPanel)
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,

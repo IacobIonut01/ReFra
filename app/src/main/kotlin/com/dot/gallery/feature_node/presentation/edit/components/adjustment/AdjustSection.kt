@@ -5,7 +5,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +39,6 @@ fun AdjustSection(
             .fillMaxWidth()
             .then(
                 if (isSupportingPanel) Modifier
-                    .padding(top = 16.dp)
                     .clipToBounds()
                     .clip(RoundedCornerShape(16.dp))
                 else Modifier

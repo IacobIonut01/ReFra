@@ -9,7 +9,9 @@ import android.database.Cursor
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import com.dot.gallery.core.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
 fun <T> Cursor?.mapEachRow(
@@ -46,4 +48,4 @@ fun <T> Flow<List<T>>.mapAsResource(errorOnEmpty: Boolean = false, errorMessage:
     } else {
         Resource.Success(it)
     }
-}
+}.flowOn(Dispatchers.IO)

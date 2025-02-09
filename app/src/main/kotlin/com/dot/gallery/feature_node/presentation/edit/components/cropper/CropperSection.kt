@@ -3,7 +3,6 @@ package com.dot.gallery.feature_node.presentation.edit.components.cropper
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -36,7 +35,6 @@ fun CropperSection(
             .fillMaxWidth()
             .then(
                 if (isSupportingPanel) Modifier
-                    .padding(top = 16.dp)
                     .clipToBounds()
                     .clip(RoundedCornerShape(16.dp))
                 else Modifier
@@ -51,6 +49,7 @@ fun CropperSection(
             SelectableItem(
                 icon = item.icon,
                 title = item.name,
+                selected = item == CropperAction.APPLY_CROP,
                 onItemClick = { onActionClick(item) },
                 horizontal = isSupportingPanel
             )

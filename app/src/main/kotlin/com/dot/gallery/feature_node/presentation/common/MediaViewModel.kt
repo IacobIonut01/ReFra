@@ -122,13 +122,13 @@ open class MediaViewModel @Inject constructor(
                 extendedDateFormat = extendedDateFormat,
                 weeklyDateFormat = weeklyDateFormat
             )
-        }.stateIn(viewModelScope, started = SharingStarted.WhileSubscribed(), MediaState())
+        }.stateIn(viewModelScope, started = SharingStarted.Eagerly, MediaState())
     }
 
     val vaultsFlow = repository.getVaults()
         .map { it.data ?: emptyList() }
         .map { VaultState(it, isLoading = false) }
-        .stateIn(viewModelScope, started = SharingStarted.WhileSubscribed(), VaultState())
+        .stateIn(viewModelScope, started = SharingStarted.Eagerly, VaultState())
 
     private sealed class Event {
         data object UpdateDatabase : Event()

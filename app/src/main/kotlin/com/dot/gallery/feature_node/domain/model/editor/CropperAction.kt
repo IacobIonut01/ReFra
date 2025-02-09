@@ -11,11 +11,11 @@ import com.dot.gallery.feature_node.presentation.edit.adjustments.Rotate90CW
 
 @Keep
 enum class CropperAction {
-    ROTATE_90, CROP, FLIP;
+    ROTATE_90, APPLY_CROP, FLIP;
 
     val icon: ImageVector
         get() = when (this) {
-            CROP -> Icons.Outlined.Crop
+            APPLY_CROP -> Icons.Outlined.Crop
             ROTATE_90 -> Icons.AutoMirrored.Outlined.RotateRight
             FLIP -> Icons.Outlined.Flip
         }

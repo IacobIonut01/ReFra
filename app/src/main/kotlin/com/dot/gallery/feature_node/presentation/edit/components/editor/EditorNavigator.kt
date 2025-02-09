@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,6 +14,7 @@ import com.dot.gallery.core.Constants.Animation.navigateInAnimation
 import com.dot.gallery.core.Constants.Animation.navigateUpAnimation
 import com.dot.gallery.feature_node.domain.model.editor.Adjustment
 import com.dot.gallery.feature_node.domain.model.editor.DrawMode
+import com.dot.gallery.feature_node.domain.model.editor.DrawType
 import com.dot.gallery.feature_node.domain.model.editor.EditorDestination
 import com.dot.gallery.feature_node.domain.model.editor.EditorItems.Adjust
 import com.dot.gallery.feature_node.domain.model.editor.EditorItems.Crop
@@ -27,11 +27,7 @@ import com.dot.gallery.feature_node.presentation.edit.components.adjustment.Adju
 import com.dot.gallery.feature_node.presentation.edit.components.adjustment.AdjustSection
 import com.dot.gallery.feature_node.presentation.edit.components.cropper.CropperSection
 import com.dot.gallery.feature_node.presentation.edit.components.filters.FiltersSelector
-import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupColorSelector
-import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupDrawSelector
-import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupEraseSelector
 import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupSelector
-import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupSizeSelector
 import kotlin.math.roundToInt
 
 @Composable
@@ -46,12 +42,10 @@ fun EditorNavigator(
     onAdjustmentPreview: (Adjustment) -> Unit = {},
     onToggleFilter: (ImageFilter) -> Unit = {},
     startCropping: () -> Unit = {},
-    undoLastPath: () -> Unit,
-    redoLastPath: () -> Unit,
     drawMode: DrawMode,
     setDrawMode: (DrawMode) -> Unit,
-    paths: List<Pair<Path, PathProperties>>,
-    pathsUndone: List<Pair<Path, PathProperties>>,
+    drawType: DrawType,
+    setDrawType: (DrawType) -> Unit,
     currentPathProperty: PathProperties,
     setCurrentPathProperty: (PathProperties) -> Unit,
     isSupportingPanel: Boolean = false
@@ -137,60 +131,11 @@ fun EditorNavigator(
             MarkupSelector(
                 drawMode = drawMode,
                 setDrawMode = setDrawMode,
-                undoLastPath = undoLastPath,
-                redoLastPath = redoLastPath,
-                paths = paths,
-                pathsUndone = pathsUndone,
+                drawType = drawType,
+                setDrawType = setDrawType,
                 isSupportingPanel = isSupportingPanel,
-                navigate = { navController.navigate(it) }
-            )
-        }
-
-        composable<EditorDestination.MarkupDraw> {
-            MarkupDrawSelector(
-                paths = paths,
-                pathsUndone = pathsUndone,
-                undoLastPath = undoLastPath,
-                redoLastPath = redoLastPath,
-                isSupportingPanel = isSupportingPanel,
-                navigate = { navController.navigate(it) }
-            )
-        }
-
-        composable<EditorDestination.MarkupDrawSize> {
-            MarkupSizeSelector(
                 currentPathProperty = currentPathProperty,
-                setCurrentPathProperty = setCurrentPathProperty,
-                isSupportingPanel = isSupportingPanel,
-            )
-        }
-
-        composable<EditorDestination.MarkupDrawColor> {
-            MarkupColorSelector(
-                currentPathProperty = currentPathProperty,
-                setCurrentPathProperty = setCurrentPathProperty,
-                isSupportingPanel = isSupportingPanel,
-            )
-        }
-
-        composable<EditorDestination.MarkupErase> {
-            MarkupEraseSelector(
-                paths = paths,
-                pathsUndone = pathsUndone,
-                undoLastPath = undoLastPath,
-                redoLastPath = redoLastPath,
-                isSupportingPanel = isSupportingPanel,
-                navigate = { navController.navigate(it) }
-            )
-        }
-
-        composable<EditorDestination.MarkupEraseSize> {
-            MarkupSizeSelector(
-                currentPathProperty = currentPathProperty,
-                setCurrentPathProperty = {
-                    setCurrentPathProperty(it.copy(eraseMode = true))
-                },
-                isSupportingPanel = isSupportingPanel,
+                setCurrentPathProperty = setCurrentPathProperty
             )
         }
 
