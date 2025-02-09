@@ -10,6 +10,7 @@ import com.smarttoolfactory.cropper.TouchRegion
 import com.smarttoolfactory.cropper.model.AspectRatio
 import com.smarttoolfactory.cropper.settings.CropProperties
 import kotlinx.coroutines.coroutineScope
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -358,7 +359,7 @@ class DynamicCropState internal constructor(
     }
 
     /**
-     * Update overlay rectangle based on touch gesture
+     * Update overlay rectangle based on touch gesture.
      */
     private fun updateOverlayRect(
         distanceToEdgeFromTouch: Offset,
@@ -370,24 +371,18 @@ class DynamicCropState internal constructor(
         aspectRatio: Float,
         fixedAspectRatio: Boolean,
     ): Rect {
-
         val position = change.position
-        // Get screen coordinates from touch position inside composable
-        // and add how far it's from corner to not jump edge to user's touch position
+        // Adjust the touch position using the distance from the edge so that the
+        // rectangle doesn’t “jump” when starting the gesture.
         val screenPositionX = position.x + distanceToEdgeFromTouch.x
         val screenPositionY = position.y + distanceToEdgeFromTouch.y
 
         return when (touchRegion) {
-
-            // Corners
+            // --- Corner Cases (existing behavior) ---
             TouchRegion.TopLeft -> {
-
-                // Set position of top left while moving with top left handle and
-                // limit position to not intersect other handles
                 val left = screenPositionX.coerceAtMost(rectTemp.right - minDimension.width)
                 val top = if (fixedAspectRatio) {
-                    // If aspect ratio is fixed we need to calculate top position based on
-                    // left position and aspect ratio
+                    // For fixed aspect ratio, calculate the height based on the new width.
                     val width = rectTemp.right - left
                     val height = width / aspectRatio
                     rectTemp.bottom - height
@@ -401,15 +396,25 @@ class DynamicCropState internal constructor(
                     bottom = rectTemp.bottom
                 )
             }
-
+            TouchRegion.TopRight -> {
+                val right = screenPositionX.coerceAtLeast(rectTemp.left + minDimension.width)
+                val top = if (fixedAspectRatio) {
+                    val width = right - rectTemp.left
+                    val height = width / aspectRatio
+                    rectTemp.bottom - height
+                } else {
+                    screenPositionY.coerceAtMost(rectTemp.bottom - minDimension.height)
+                }
+                Rect(
+                    left = rectTemp.left,
+                    top = top,
+                    right = right,
+                    bottom = rectTemp.bottom
+                )
+            }
             TouchRegion.BottomLeft -> {
-
-                // Set position of top left while moving with bottom left handle and
-                // limit position to not intersect other handles
                 val left = screenPositionX.coerceAtMost(rectTemp.right - minDimension.width)
                 val bottom = if (fixedAspectRatio) {
-                    // If aspect ratio is fixed we need to calculate bottom position based on
-                    // left position and aspect ratio
                     val width = rectTemp.right - left
                     val height = width / aspectRatio
                     rectTemp.top + height
@@ -420,49 +425,18 @@ class DynamicCropState internal constructor(
                     left = left,
                     top = rectTemp.top,
                     right = rectTemp.right,
-                    bottom = bottom,
+                    bottom = bottom
                 )
             }
-
-            TouchRegion.TopRight -> {
-
-                // Set position of top left while moving with top right handle and
-                // limit position to not intersect other handles
-                val right = screenPositionX.coerceAtLeast(rectTemp.left + minDimension.width)
-                val top = if (fixedAspectRatio) {
-                    // If aspect ratio is fixed we need to calculate top position based on
-                    // right position and aspect ratio
-                    val width = right - rectTemp.left
-                    val height = width / aspectRatio
-                    rectTemp.bottom - height
-                } else {
-                    screenPositionY.coerceAtMost(rectTemp.bottom - minDimension.height)
-                }
-
-                Rect(
-                    left = rectTemp.left,
-                    top = top,
-                    right = right,
-                    bottom = rectTemp.bottom,
-                )
-
-            }
-
             TouchRegion.BottomRight -> {
-
-                // Set position of top left while moving with bottom right handle and
-                // limit position to not intersect other handles
                 val right = screenPositionX.coerceAtLeast(rectTemp.left + minDimension.width)
                 val bottom = if (fixedAspectRatio) {
-                    // If aspect ratio is fixed we need to calculate bottom position based on
-                    // right position and aspect ratio
                     val width = right - rectTemp.left
                     val height = width / aspectRatio
                     rectTemp.top + height
                 } else {
                     screenPositionY.coerceAtLeast(rectTemp.top + minDimension.height)
                 }
-
                 Rect(
                     left = rectTemp.left,
                     top = rectTemp.top,
@@ -471,16 +445,81 @@ class DynamicCropState internal constructor(
                 )
             }
 
-            TouchRegion.Inside -> {
-                val drag = change.positionChangeIgnoreConsumed()
-                val scaledDragX = drag.x
-                val scaledDragY = drag.y
-                overlayRect.translate(scaledDragX, scaledDragY)
+            // --- New Edge Cases ---
+            TouchRegion.TopEdge -> {
+                if (fixedAspectRatio) {
+                    // Anchor the bottom edge; calculate new height from the new top.
+                    val top = screenPositionY.coerceAtMost(rectTemp.bottom - minDimension.height)
+                    val newHeight = rectTemp.bottom - top
+                    val newWidth = newHeight * aspectRatio
+                    // Center horizontally relative to the original rectangle.
+                    val centerX = rectTemp.center.x
+                    val left = centerX - newWidth / 2
+                    val right = centerX + newWidth / 2
+                    Rect(left, top, right, rectTemp.bottom)
+                } else {
+                    val top = screenPositionY.coerceAtMost(rectTemp.bottom - minDimension.height)
+                    Rect(rectTemp.left, top, rectTemp.right, rectTemp.bottom)
+                }
+            }
+            TouchRegion.BottomEdge -> {
+                if (fixedAspectRatio) {
+                    // Anchor the top edge; calculate new height from the new bottom.
+                    val bottom = screenPositionY.coerceAtLeast(rectTemp.top + minDimension.height)
+                    val newHeight = bottom - rectTemp.top
+                    val newWidth = newHeight * aspectRatio
+                    val centerX = rectTemp.center.x
+                    val left = centerX - newWidth / 2
+                    val right = centerX + newWidth / 2
+                    Rect(left, rectTemp.top, right, bottom)
+                } else {
+                    val bottom = screenPositionY.coerceAtLeast(rectTemp.top + minDimension.height)
+                    Rect(rectTemp.left, rectTemp.top, rectTemp.right, bottom)
+                }
+            }
+            TouchRegion.LeftEdge -> {
+                if (fixedAspectRatio) {
+                    // Anchor the right edge; calculate new width from the new left.
+                    val left = screenPositionX.coerceAtMost(rectTemp.right - minDimension.width)
+                    val newWidth = rectTemp.right - left
+                    val newHeight = newWidth / aspectRatio
+                    val centerY = rectTemp.center.y
+                    val top = centerY - newHeight / 2
+                    val bottom = centerY + newHeight / 2
+                    Rect(left, top, rectTemp.right, bottom)
+                } else {
+                    val left = screenPositionX.coerceAtMost(rectTemp.right - minDimension.width)
+                    Rect(left, rectTemp.top, rectTemp.right, rectTemp.bottom)
+                }
+            }
+            TouchRegion.RightEdge -> {
+                if (fixedAspectRatio) {
+                    // Anchor the left edge; calculate new width from the new right.
+                    val right = screenPositionX.coerceAtLeast(rectTemp.left + minDimension.width)
+                    val newWidth = right - rectTemp.left
+                    val newHeight = newWidth / aspectRatio
+                    val centerY = rectTemp.center.y
+                    val top = centerY - newHeight / 2
+                    val bottom = centerY + newHeight / 2
+                    Rect(rectTemp.left, top, right, bottom)
+                } else {
+                    val right = screenPositionX.coerceAtLeast(rectTemp.left + minDimension.width)
+                    Rect(rectTemp.left, rectTemp.top, right, rectTemp.bottom)
+                }
             }
 
+            // --- Dragging the entire rectangle ---
+            TouchRegion.Inside -> {
+                val drag = change.positionChangeIgnoreConsumed()
+                // Translate the whole rectangle by the drag amount.
+                overlayRect.translate(drag.x, drag.y)
+            }
+
+            // --- Default: no change ---
             else -> overlayRect
         }
     }
+
 
     /**
      * get [TouchRegion] based on touch position on screen relative to [overlayRect].
@@ -490,26 +529,49 @@ class DynamicCropState internal constructor(
         rect: Rect,
         threshold: Float
     ): TouchRegion {
-
-        val closedTouchRange = -threshold / 2..threshold
-
-        return when {
-            position.x - rect.left in closedTouchRange &&
-                    position.y - rect.top in closedTouchRange -> TouchRegion.TopLeft
-
-            rect.right - position.x in closedTouchRange &&
-                    position.y - rect.top in closedTouchRange -> TouchRegion.TopRight
-
-            rect.right - position.x in closedTouchRange &&
-                    rect.bottom - position.y in closedTouchRange -> TouchRegion.BottomRight
-
-            position.x - rect.left in closedTouchRange &&
-                    rect.bottom - position.y in closedTouchRange -> TouchRegion.BottomLeft
-
-
-            rect.contains(offset = position) -> TouchRegion.Inside
-            else -> TouchRegion.None
+        // Check for corners first
+        if (abs(position.x - rect.left) <= threshold && abs(position.y - rect.top) <= threshold) {
+            return TouchRegion.TopLeft
         }
+        if (abs(position.x - rect.right) <= threshold && abs(position.y - rect.top) <= threshold) {
+            return TouchRegion.TopRight
+        }
+        if (abs(position.x - rect.right) <= threshold && abs(position.y - rect.bottom) <= threshold) {
+            return TouchRegion.BottomRight
+        }
+        if (abs(position.x - rect.left) <= threshold && abs(position.y - rect.bottom) <= threshold) {
+            return TouchRegion.BottomLeft
+        }
+
+        // Then check for the edges. Note that we exclude the corners by checking that the
+        // touch is not too near the endpoints (using an offset of 'threshold').
+        if (abs(position.x - rect.left) <= threshold &&
+            position.y in (rect.top + threshold)..(rect.bottom - threshold)
+        ) {
+            return TouchRegion.LeftEdge
+        }
+        if (abs(position.x - rect.right) <= threshold &&
+            position.y in (rect.top + threshold)..(rect.bottom - threshold)
+        ) {
+            return TouchRegion.RightEdge
+        }
+        if (abs(position.y - rect.top) <= threshold &&
+            position.x in (rect.left + threshold)..(rect.right - threshold)
+        ) {
+            return TouchRegion.TopEdge
+        }
+        if (abs(position.y - rect.bottom) <= threshold &&
+            position.x in (rect.left + threshold)..(rect.right - threshold)
+        ) {
+            return TouchRegion.BottomEdge
+        }
+
+        // Finally, if the touch is within the rectangle, return inside.
+        if (rect.contains(position)) {
+            return TouchRegion.Inside
+        }
+
+        return TouchRegion.None
     }
 
     /**

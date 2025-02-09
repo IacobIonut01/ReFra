@@ -261,7 +261,7 @@ private fun DrawScope.drawOverlay(
             topLeft = rect.topLeft,
             size = rect.size,
             color = overlayColor,
-            style = Stroke(width = strokeWidth)
+            style = Stroke(width = strokeWidth * 2)
         )
 
         if (drawHandles) {
@@ -274,7 +274,7 @@ private fun DrawScope.drawOverlay(
                 path = pathHandles,
                 color = handleColor,
                 style = Stroke(
-                    width = strokeWidth * 4,
+                    width = strokeWidth * 6,
                     cap = StrokeCap.Round,
                     join = StrokeJoin.Round
                 )
