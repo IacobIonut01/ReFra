@@ -195,7 +195,7 @@ suspend fun <T : Media> mapMediaToItem(
 }
 
 private fun List<Media>.dateHeader(albumId: Long): String =
-    if (albumId != -1L) {
+    if (albumId != -1L && isNotEmpty()) {
         val startDate: DateExt = last().definedTimestamp.getDateExt()
         val endDate: DateExt = first().definedTimestamp.getDateExt()
         getDateHeader(startDate, endDate)
