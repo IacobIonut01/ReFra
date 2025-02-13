@@ -50,6 +50,7 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.model.isIgnoredKey
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.roundDpToPx
 import com.dot.gallery.feature_node.presentation.util.roundSpToPx
 import kotlinx.coroutines.flow.collectLatest
@@ -77,23 +78,9 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
     animatedContentScope: AnimatedContentScope,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit = {},
 ) {
-    val mappedData by remember(mediaState, showMonthlyHeader) {
-        derivedStateOf {
-            (if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
-            else mediaState.value.mappedMedia).toMutableStateList()
-        }
-    }
-
-    LaunchedEffect(showMonthlyHeader, mediaState.value) {
-        snapshotFlow { mediaState }
-            .distinctUntilChanged()
-            .collectLatest {
-                mappedData.clear()
-                mappedData.addAll(
-                    if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
-                    else mediaState.value.mappedMedia
-                )
-            }
+    val mappedData by rememberedDerivedState(mediaState, showMonthlyHeader) {
+        (if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
+        else mediaState.value.mappedMedia).toMutableStateList()
     }
 
     BackHandler(
@@ -122,8 +109,8 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
     AnimatedVisibility(
         visible = enableStickyHeaders
     ) {
-        val headers by remember(mediaState.value) {
-            derivedStateOf { mediaState.value.headers.toMutableStateList() }
+        val headers by rememberedDerivedState(mediaState.value) {
+            mediaState.value.headers.toMutableStateList()
         }
         val stickyHeaderItem by rememberStickyHeaderItem(
             gridState = gridState,
@@ -172,9 +159,7 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
                     enter = enterAnimation,
                     exit = exitAnimation
                 ) {
-                    val text by remember(stickyHeaderItem) {
-                        derivedStateOf { stickyHeaderItem ?: "" }
-                    }
+                    val text by rememberedDerivedState(stickyHeaderItem) { stickyHeaderItem ?: "" }
                     Text(
                         text = text,
                         style = MaterialTheme.typography.titleMedium,

@@ -1,3 +1,5 @@
+@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED")
+
 package com.dot.gallery.feature_node.presentation.util
 
 

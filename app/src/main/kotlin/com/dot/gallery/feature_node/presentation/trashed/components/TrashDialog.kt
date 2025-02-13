@@ -71,6 +71,8 @@ import com.dot.gallery.feature_node.presentation.util.mediaPair
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.ui.theme.Shapes
 import com.github.panpf.sketch.AsyncImage
+import com.github.panpf.sketch.request.ComposableImageRequest
+import com.github.panpf.sketch.resize.Scale
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -287,7 +289,17 @@ fun <T: Media> TrashDialog(
                         ) {
                             AsyncImage(
                                 modifier = Modifier.fillMaxSize(),
-                                uri = it.getUri().toString(),
+                                request = ComposableImageRequest(it.getUri().toString()) {
+                                    scale(Scale.CENTER_CROP)
+                                    setExtra(
+                                        key = "mediaKey",
+                                        value = it.toString(),
+                                    )
+                                    setExtra(
+                                        key = "realMimeType",
+                                        value = it.mimeType,
+                                    )
+                                },
                                 contentDescription = it.label,
                                 contentScale = ContentScale.Crop
                             )

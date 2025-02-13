@@ -49,6 +49,8 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.video.Vide
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
 import com.github.panpf.sketch.resize.Scale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun <T: Media> MediaImage(
@@ -62,8 +64,10 @@ fun <T: Media> MediaImage(
 ) {
     var isSelected by remember { mutableStateOf(false) }
     LaunchedEffect(selectionState.value, selectedMedia.size) {
-        isSelected = if (!selectionState.value) false else {
-            selectedMedia.find { it.id == media.id } != null
+        withContext(Dispatchers.IO) {
+            isSelected = if (!selectionState.value) false else {
+                selectedMedia.find { it.id == media.id } != null
+            }
         }
     }
     val selectedSize by animateDpAsState(
