@@ -21,11 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.R
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import kotlinx.coroutines.launch
@@ -70,7 +72,7 @@ fun DeleteVaultSheet(
                                 letterSpacing = MaterialTheme.typography.titleLarge.letterSpacing
                             )
                         ) {
-                            append("Confirm Deletion?")
+                            append(stringResource(R.string.vault_deletion_title))
                         }
                     },
                     textAlign = TextAlign.Center,
@@ -81,13 +83,14 @@ fun DeleteVaultSheet(
                         .fillMaxWidth()
                 )
                 Text(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(16.dp),
-                    text = "The current vault and its content will be deleted permanently.\nThis action cannot be undone.",
+                    text = stringResource(R.string.vault_deletion_summary),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -111,7 +114,7 @@ fun DeleteVaultSheet(
                             contentColor = tertiaryOnContainer
                         )
                     ) {
-                        Text(text = "Cancel")
+                        Text(text = stringResource(R.string.action_cancel))
                     }
 
                     Button(
@@ -122,7 +125,7 @@ fun DeleteVaultSheet(
                             }
                         }
                     ) {
-                        Text(text = "Yes")
+                        Text(text = stringResource(R.string.yes))
                     }
                 }
             }

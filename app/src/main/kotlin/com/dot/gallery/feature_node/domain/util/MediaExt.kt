@@ -8,12 +8,12 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.github.panpf.zoomimage.subsampling.ContentImageSource
 import com.github.panpf.zoomimage.subsampling.SubsamplingImage
 import io.ktor.util.reflect.instanceOf
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInput
 import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.util.UUID
 
 /**
  * Determine if the current media is a raw format
@@ -98,24 +98,35 @@ val Media.getCategory: String?
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Serializable> fromByteArray(byteArray: ByteArray): T {
-    val byteArrayInputStream = ByteArrayInputStream(byteArray)
-    val objectInput: ObjectInput = ObjectInputStream(byteArrayInputStream)
-    val result = objectInput.readObject() as T
-    objectInput.close()
-    byteArrayInputStream.close()
-    return result
+    ByteArrayInputStream(byteArray).use { byteArrayInputStream ->
+        ObjectInputStream(byteArrayInputStream).use { objectInput ->
+            return objectInput.readObject() as T
+        }
+    }
 }
 
-fun Serializable.toByteArray(): ByteArray {
-    val byteArrayOutputStream = ByteArrayOutputStream()
-    val objectOutputStream = ObjectOutputStream(byteArrayOutputStream)
-    objectOutputStream.writeObject(this)
-    objectOutputStream.flush()
-    val result = byteArrayOutputStream.toByteArray()
-    byteArrayOutputStream.close()
-    objectOutputStream.close()
-    return result
-}
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> fromKotlinByteArray(byteArray: ByteArray): T =
+    Json.decodeFromString(String(byteArray, Charsets.UTF_8))
+
+inline fun <reified T> T.toKotlinByteArray() = Json.encodeToString(this).toByteArray(Charsets.UTF_8)
+
+fun Media.EncryptedMedia.migrate(uuid: UUID): Media.EncryptedMedia2 = Media.EncryptedMedia2(
+    id = id,
+    label = label,
+    uuid = uuid,
+    path = path,
+    timestamp = timestamp,
+    mimeType = mimeType,
+    duration = duration,
+    trashed = trashed,
+    favorite = favorite,
+    albumID = albumID,
+    albumLabel = albumLabel,
+    relativePath = relativePath,
+    fullDate = fullDate,
+    size = size,
+)
 
 fun <T : Media> T.toEncryptedMedia(bytes: ByteArray): Media.EncryptedMedia {
     return Media.EncryptedMedia(

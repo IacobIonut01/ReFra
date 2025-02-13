@@ -5,6 +5,7 @@ import androidx.room.TypeConverter
 import com.dot.gallery.feature_node.domain.model.Media
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.util.UUID
 
 object Converters {
     @TypeConverter
@@ -30,4 +31,10 @@ object Converters {
 
     @TypeConverter
     fun toMedia(value: String): Media = Json.decodeFromString(value)
+
+    @TypeConverter
+    fun fromUUID(uuid: UUID): String = uuid.toString()
+
+    @TypeConverter
+    fun toUUID(value: String): UUID = UUID.fromString(value)
 }

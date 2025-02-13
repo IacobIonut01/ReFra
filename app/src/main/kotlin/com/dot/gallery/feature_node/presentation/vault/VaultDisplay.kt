@@ -1,8 +1,9 @@
 package com.dot.gallery.feature_node.presentation.vault
 
-import android.os.Build
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.annotation.RequiresApi
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,7 +47,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,6 +59,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.R
@@ -66,17 +70,19 @@ import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.ModalSheet
-import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
-import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.picker.PickerActivityContract
+import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.vault.components.DeleteVaultSheet
 import com.dot.gallery.feature_node.presentation.vault.components.NewVaultSheet
+import com.dot.gallery.feature_node.presentation.vault.components.RestoreVaultSheet
 import com.dot.gallery.feature_node.presentation.vault.components.SelectVaultSheet
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -85,21 +91,33 @@ import kotlin.math.roundToInt
 fun VaultDisplay(
     navigateUp: () -> Unit,
     navigate: (route: String) -> Unit,
-    mediaState: State<MediaState<UriMedia>>,
-    vaultState: VaultState,
+    vaultState: State<VaultState>,
     currentVault: MutableState<Vault?>,
+    createMediaState: (Vault?) -> StateFlow<MediaState<Media.UriMedia>>,
     onCreateVaultClick: () -> Unit,
-    addMediaToVault: (vault: Vault, media: UriMedia, onSuccess: () -> Unit, onFailed: (reason: String) -> Unit) -> Unit,
-    addMediaListToVault: (vault: Vault, mediaList: List<UriMedia>) -> Unit,
+    addMediaListToVault: (vault: Vault, mediaList: List<Uri>) -> Unit,
+    deleteLeftovers: (result: ActivityResultLauncher<IntentSenderRequest>, uris: List<Uri>) -> Unit,
     setVault: (Vault) -> Unit,
     deleteVault: (Vault) -> Unit,
+    restoreVault: (Vault) -> Unit,
+    workerProgress: StateFlow<Float>,
+    workerIsRunning: StateFlow<Boolean>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
+    val isRunning by workerIsRunning.collectAsStateWithLifecycle()
+    val progress by workerProgress.collectAsStateWithLifecycle()
 
-    LaunchedEffect(vaultState, currentVault.value) {
+    @Suppress("LocalVariableName")
+    var _mediaState by remember(currentVault.value, isRunning, progress) {
+        mutableStateOf(createMediaState(currentVault.value))
+    }
+
+    val mediaState = _mediaState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(vaultState.value, currentVault.value) {
         currentVault.value?.let { setVault(it) } ?: run {
-            vaultState.vaults.firstOrNull()?.let { setVault(it) }
+            vaultState.value.vaults.firstOrNull()?.let { setVault(it) }
         }
     }
 
@@ -124,67 +142,45 @@ fun VaultDisplay(
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberAppBottomSheetState()
 
-    var toAddMedia by remember { mutableStateOf<List<UriMedia>>(emptyList()) }
+    var toAddMedia by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
-    val pickerLauncher = rememberLauncherForActivityResult(PickerActivityContract()) { mediaList ->
+    val pickerLauncher = rememberLauncherForActivityResult(PickerActivityContract()) { uriList ->
         scope.launch {
-            if (mediaList.isNotEmpty()) {
-                toAddMedia = mediaList
-                bottomSheetState.show()
+            if (uriList.isNotEmpty()) {
+                toAddMedia = uriList
+                addMediaListToVault(currentVault.value!!, uriList)
+            }
+        }
+    }
+    val postEncryptLauncher = rememberActivityResult()
+
+    LaunchedEffect(isRunning) {
+        if (isRunning) {
+            bottomSheetState.show()
+        } else {
+            bottomSheetState.hide()
+            if (toAddMedia.isNotEmpty()) {
+                deleteLeftovers(postEncryptLauncher, toAddMedia)
+                toAddMedia = emptyList()
             }
         }
     }
 
     val newVaultSheetState = rememberAppBottomSheetState()
+    val decryptVaultSheetState = rememberAppBottomSheetState()
     val deleteVaultSheetState = rememberAppBottomSheetState()
 
-    LaunchedEffect(vaultState) {
-        if (vaultState.isLoading) return@LaunchedEffect
-        if (vaultState.vaults.isNotEmpty()) return@LaunchedEffect
+    LaunchedEffect(vaultState.value) {
+        if (vaultState.value.isLoading) return@LaunchedEffect
+        if (vaultState.value.vaults.isNotEmpty()) return@LaunchedEffect
         navigateUp()
-    }
-
-    var failedMedia by remember { mutableStateOf(emptyList<UriMedia>()) }
-    var progress by remember { mutableFloatStateOf(0f) }
-    var currentIndex by remember { mutableStateOf<Int?>(null) }
-    val text by rememberedDerivedState {
-        if (progress == 1f) {
-            if (failedMedia.isEmpty()) {
-                "Media added successfully"
-            } else {
-                "Failed to add ${failedMedia.size} media"
-            }
-        } else if (currentIndex != null) {
-            "Encrypting media $currentIndex/${toAddMedia.size}"
-        } else {
-            "Encrypting media..."
-        }
     }
 
     ModalSheet(
         sheetState = bottomSheetState,
-        onDismissRequest = {
-            toAddMedia = emptyList()
-        },
-        title = text,
+        onDismissRequest = {},
+        title = stringResource(R.string.encrypting_media),
         content = {
-            LaunchedEffect(toAddMedia) {
-                if (toAddMedia.isEmpty()) return@LaunchedEffect
-                progress = 0f
-                failedMedia = emptyList()
-                currentIndex = null
-                addMediaListToVault(currentVault.value!!, toAddMedia)
-                progress = 1f
-            }
-
-            LaunchedEffect(progress) {
-                if (progress == 1f) {
-                    scope.launch {
-                        bottomSheetState.hide()
-                    }
-                }
-            }
-
             Box(
                 modifier = Modifier
                     .padding(32.dp)
@@ -194,19 +190,20 @@ fun VaultDisplay(
             ) {
                 CircularProgressIndicator(
                     progress = {
-                        progress
+                        progress.fastCoerceAtLeast(0f)
                     },
                     strokeWidth = 4.dp,
                     strokeCap = StrokeCap.Round,
                     modifier = Modifier.size(128.dp),
                 )
-                Text(text = "${(progress * 100).roundToInt()}%")
+                Text(text = "${progress.roundToInt()}%")
             }
 
             Button(
                 onClick = {
                     scope.launch {
-                        toAddMedia = emptyList()
+                        val indexesToDrop = (progress * toAddMedia.size / 100).roundToInt()
+                        toAddMedia = toAddMedia.dropLast(indexesToDrop)
                         bottomSheetState.hide()
                     }
                 },
@@ -245,8 +242,8 @@ fun VaultDisplay(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
                                 .clickable(
-                                    enabled = remember(vaultState) {
-                                        vaultState.vaults.size > 1
+                                    enabled = remember(vaultState.value) {
+                                        vaultState.value.vaults.size > 1
                                     },
                                 ) {
                                     scope.launch {
@@ -261,7 +258,7 @@ fun VaultDisplay(
                                     ?: stringResource(R.string.unknown_vault)
                             )
                             androidx.compose.animation.AnimatedVisibility(
-                                visible = vaultState.vaults.size > 1,
+                                visible = vaultState.value.vaults.size > 1,
                                 enter = enterAnimation,
                                 exit = exitAnimation
                             ) {
@@ -280,7 +277,7 @@ fun VaultDisplay(
                         }
                         SelectVaultSheet(
                             state = sheetState,
-                            vaultState = vaultState
+                            vaultState = vaultState.value
                         ) { vault ->
                             scope.launch {
                                 setVault(vault)
@@ -314,12 +311,12 @@ fun VaultDisplay(
                     Column {
                         Row(
                             modifier = Modifier
-                                .padding(horizontal = 16.dp)
                                 .padding(top = 12.dp)
                                 .horizontalScroll(state = rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Spacer(modifier = Modifier.size(0.dp))
                             SuggestionChip(
                                 onClick = {
                                     scope.launch {
@@ -344,6 +341,28 @@ fun VaultDisplay(
                             SuggestionChip(
                                 onClick = {
                                     scope.launch {
+                                        decryptVaultSheetState.show()
+                                    }
+                                },
+                                label = { Text(text = stringResource(R.string.decrypt_vault)) },
+                                border = null,
+                                shape = CircleShape,
+                                colors = SuggestionChipDefaults.suggestionChipColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    iconContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Restore,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            
+                            SuggestionChip(
+                                onClick = {
+                                    scope.launch {
                                         deleteVaultSheetState.show()
                                     }
                                 },
@@ -362,6 +381,7 @@ fun VaultDisplay(
                                     )
                                 }
                             )
+                            Spacer(modifier = Modifier.size(0.dp))
                         }
                     }
                     NewVaultSheet(
@@ -369,15 +389,23 @@ fun VaultDisplay(
                         onConfirm = onCreateVaultClick
                     )
                     DeleteVaultSheet(
-                        state = deleteVaultSheetState,
-                        onConfirm = {
-                            val vault = currentVault.value ?: vaultState.vaults.firstOrNull()
-                            vault?.let { it1 -> deleteVault(it1) }
-                            if (vaultState.vaults.isEmpty()) {
-                                navigateUp()
-                            }
+                        state = deleteVaultSheetState
+                    ) {
+                        val vault = currentVault.value ?: vaultState.value.vaults.firstOrNull()
+                        vault?.let { it1 -> deleteVault(it1) }
+                        if (vaultState.value.vaults.isEmpty()) {
+                            navigateUp()
                         }
-                    )
+                    }
+                    RestoreVaultSheet(
+                        state = decryptVaultSheetState
+                    ) {
+                        val vault = currentVault.value ?: vaultState.value.vaults.firstOrNull()
+                        vault?.let { it1 -> restoreVault(it1) }
+                        if (vaultState.value.vaults.isEmpty()) {
+                            navigateUp()
+                        }
+                    }
                 },
                 onMediaClick = { encryptedMedia ->
                     navigate(VaultScreens.EncryptedMediaViewScreen.id(encryptedMedia.id))

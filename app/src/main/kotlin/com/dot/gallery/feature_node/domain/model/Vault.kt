@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.domain.model
 
 import android.os.Parcelable
+import androidx.room.Entity
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -14,6 +15,7 @@ import java.io.Serializable as JavaSerializable
 
 @Parcelize
 @Serializable
+@Entity(tableName = "vaults", primaryKeys = ["uuid"])
 data class Vault(
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID = UUID.randomUUID(),

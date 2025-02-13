@@ -54,7 +54,7 @@ class StandaloneActivity : ComponentActivity() {
                         viewModel.reviewMode = action.lowercase().contains("review")
                         viewModel.dataList = uriList.toList()
                     }
-                    val vaults by viewModel.vaults.collectAsStateWithLifecycle()
+                    val vaults = viewModel.vaults.collectAsStateWithLifecycle()
                     val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
                     val staticState by remember { mutableStateOf(true) }
                     SharedTransitionLayout {

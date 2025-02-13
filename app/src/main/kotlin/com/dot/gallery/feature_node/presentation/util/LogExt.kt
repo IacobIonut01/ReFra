@@ -5,6 +5,10 @@ package com.dot.gallery.feature_node.presentation.util
 import android.util.Log
 import com.dot.gallery.BuildConfig
 
+fun printInfo(message: Any) {
+    Log.i("GalleryInfo", message.toString())
+}
+
 fun printDebug(message: Any) {
     printDebug(message.toString())
 }

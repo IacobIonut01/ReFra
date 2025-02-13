@@ -21,11 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.R
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import kotlinx.coroutines.launch
@@ -70,7 +72,7 @@ fun NewVaultSheet(
                                 letterSpacing = MaterialTheme.typography.titleLarge.letterSpacing
                             )
                         ) {
-                            append("Create new vault?")
+                            append(stringResource(R.string.create_new_vault_title))
                         }
                     },
                     textAlign = TextAlign.Center,
@@ -81,14 +83,14 @@ fun NewVaultSheet(
                         .fillMaxWidth()
                 )
                 Text(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(16.dp),
-                    text = "The vault will be accessed using your phone security measures (password or biometrics)\n\n" +
-                            "Encryption key can be accessed inside the vault and will be used in order to restore any vaults.",
+                    text = stringResource(R.string.create_new_vault_summary),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -112,7 +114,7 @@ fun NewVaultSheet(
                             contentColor = tertiaryOnContainer
                         )
                     ) {
-                        Text(text = "Cancel")
+                        Text(text = stringResource(R.string.action_cancel))
                     }
 
                     Button(
@@ -123,7 +125,7 @@ fun NewVaultSheet(
                             }
                         }
                     ) {
-                        Text(text = "Yes")
+                        Text(text = stringResource(R.string.yes))
                     }
                 }
             }

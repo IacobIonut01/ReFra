@@ -145,7 +145,7 @@ fun <T : Media> MediaViewScreen(
     mediaState: State<MediaState<out T>>,
     albumsState: State<AlbumState> = remember { mutableStateOf(AlbumState()) },
     handler: MediaHandleUseCase?,
-    vaultState: VaultState,
+    vaultState: State<VaultState>,
     addMedia: (Vault, T) -> Unit,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
@@ -179,9 +179,10 @@ fun <T : Media> MediaViewScreen(
         if (currentPage == 0) {
             if (mediaState.value.isLoading) {
                 shouldForcePage = true
-            }
-            if (initialPage != 0 && currentPage != initialPage && shouldForcePage) {
-                pagerState.scrollToPage(initialPage)
+            } else {
+                if (initialPage != 0 && currentPage != initialPage && shouldForcePage) {
+                    pagerState.scrollToPage(initialPage)
+                }
                 shouldForcePage = false
             }
         }
@@ -265,7 +266,7 @@ fun <T : Media> MediaViewScreen(
                 && lastSheetHeightDp.dp == sheetHeightDp
                 && currentPage == pagerState.currentPage
                 && storedNormalizationTarget > 0f
-                && storedNormalizationTarget < 0.6f
+                && storedNormalizationTarget < 0.7f
                 && !mediaState.value.isLoading
                 && !shouldForcePage
     }
@@ -326,32 +327,32 @@ fun <T : Media> MediaViewScreen(
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         LaunchedEffect(mediaState.value) {
             withContext(Dispatchers.IO) {
-            snapshotFlow { pagerState.currentPage }.collectLatest {
-                printWarning("Trying to set HDR mode for page $it")
-                if (currentMedia?.isImage == true) {
-                    val request = ImageRequest(context, currentMedia?.getUri().toString()) {
-                        setExtra(
-                            key = "mediaKey",
-                            value = currentMedia.toString(),
-                        )
-                        setExtra(
-                            key = "realMimeType",
-                            value = currentMedia?.mimeType,
-                        )
-                    }
-                        val result = context.sketch.execute(request)
-                    (result.image as? BitmapImage)?.bitmap?.let { bitmap ->
-                        val hasGainmap = bitmap.hasGainmap()
-                            withContext(Dispatchers.Main.immediate) {
-                        context.setHdrMode(hasGainmap)
-                            }
-                        printWarning("Setting HDR Mode to $hasGainmap")
-                    } ?: printWarning("Resulting image null")
-                } else {
-                        withContext(Dispatchers.Main.immediate) {
-                    context.setHdrMode(false)
+                snapshotFlow { pagerState.currentPage }.collectLatest {
+                    printWarning("Trying to set HDR mode for page $it")
+                    if (currentMedia?.isImage == true) {
+                        val request = ImageRequest(context, currentMedia?.getUri().toString()) {
+                            setExtra(
+                                key = "mediaKey",
+                                value = currentMedia.toString(),
+                            )
+                            setExtra(
+                                key = "realMimeType",
+                                value = currentMedia?.mimeType,
+                            )
                         }
-                    printWarning("Not an image, skipping")
+                        val result = context.sketch.execute(request)
+                        (result.image as? BitmapImage)?.bitmap?.let { bitmap ->
+                            val hasGainmap = bitmap.hasGainmap()
+                            withContext(Dispatchers.Main.immediate) {
+                                context.setHdrMode(hasGainmap)
+                            }
+                            printWarning("Setting HDR Mode to $hasGainmap")
+                        } ?: printWarning("Resulting image null")
+                    } else {
+                        withContext(Dispatchers.Main.immediate) {
+                            context.setHdrMode(false)
+                        }
+                        printWarning("Not an image, skipping")
                     }
                 }
             }
@@ -646,6 +647,7 @@ fun <T : Media> MediaViewScreen(
                                 showDeleteButton = !isReadOnly,
                                 enabled = showUI,
                                 deleteMedia = deleteMedia,
+                                restoreMedia = restoreMedia,
                                 currentVault = currentVault
                             )
                         }

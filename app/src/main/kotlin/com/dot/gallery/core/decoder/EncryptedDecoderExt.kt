@@ -44,7 +44,7 @@ fun DataSource.decodeEncryptedBitmap(
     val options = config?.toBitmapOptions()
     val encryptedFile = getFile()
     val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decrypt<EncryptedMedia>()
+        encryptedFile.decryptKotlin<EncryptedMedia>()
     }
     val bitmap = BitmapFactory.decodeByteArray(
         encryptedMedia.bytes,
@@ -70,7 +70,7 @@ fun DataSource.decodeEncryptedRegionBitmap(
 ): Bitmap {
     val encryptedFile = getFile()
     val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decrypt<EncryptedMedia>()
+        encryptedFile.decryptKotlin<EncryptedMedia>()
     }
     val regionDecoder = if (VERSION.SDK_INT >= VERSION_CODES.S) {
         BitmapRegionDecoder.newInstance(encryptedMedia.bytes, 0, encryptedMedia.bytes.size)
@@ -114,7 +114,7 @@ fun DataSource.decodeEncryptedRegionBitmap(
 fun DataSource.readEncryptedExifOrientation(keychainHolder: KeychainHolder): Int {
     val encryptedFile = getFile()
     val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decrypt<EncryptedMedia>()
+        encryptedFile.decryptKotlin<EncryptedMedia>()
     }
     return encryptedMedia.bytes.inputStream().use {
         ExifInterface(it).getAttributeInt(
@@ -131,7 +131,7 @@ fun DataSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: K
     }
     val encryptedFile = getFile()
     val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decrypt<EncryptedMedia>()
+        encryptedFile.decryptKotlin<EncryptedMedia>()
     }
     try {
         BitmapFactory.decodeByteArray(

@@ -312,7 +312,7 @@ fun ScannerButton(
                     ) {
                         LinearProgressIndicator(
                             modifier = Modifier.fillMaxWidth(),
-                            progress = { indicatorCounter / 100f },
+                            progress = { (indicatorCounter / 100f).coerceAtLeast(0f) },
                             color = contentColor,
                         )
                     }

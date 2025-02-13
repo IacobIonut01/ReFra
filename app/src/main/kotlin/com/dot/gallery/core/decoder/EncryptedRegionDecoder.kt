@@ -62,7 +62,7 @@ class EncryptedRegionDecoder(
         if (bitmapRegionDecoder != null) return
 
         val encryptedMedia = with(keychainHolder) {
-            (imageSource as ContentImageSource).uri.toFile().decrypt<EncryptedMedia>()
+            (imageSource as ContentImageSource).uri.toFile().decryptKotlin<EncryptedMedia>()
         }
 
         bitmapRegionDecoder = kotlin.runCatching {

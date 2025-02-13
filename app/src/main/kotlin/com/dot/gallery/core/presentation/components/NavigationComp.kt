@@ -144,7 +144,7 @@ fun NavigationComp(
     val timelineState =
         timelineViewModel.mediaFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
-    val vaultState by timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
+    val vaultState = timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
     LaunchedEffect(groupTimelineByMonth) {
         timelineViewModel.groupByMonth = groupTimelineByMonth

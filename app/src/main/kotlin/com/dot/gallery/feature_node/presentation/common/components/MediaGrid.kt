@@ -19,6 +19,7 @@ import androidx.compose.runtime.DisallowComposableCalls
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,11 +44,14 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isBigHeaderKey
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.feature_node.presentation.util.update
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -189,15 +193,16 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
     val stringToday = stringResource(id = R.string.header_today)
     val stringYesterday = stringResource(id = R.string.header_yesterday)
     val feedbackManager = rememberFeedbackManager()
+    val headers by rememberedDerivedState(mediaState.value) {
+        mediaState.value.headers.toMutableStateList()
+    }
     TimelineScroller(
         modifier = Modifier
             .padding(paddingValues)
             .padding(top = 32.dp)
             .padding(vertical = 32.dp),
         mappedData = mappedData,
-        headers = remember(mediaState.value) {
-            mediaState.value.headers.toMutableStateList()
-        },
+        headers = headers,
         state = gridState,
     ) {
         LazyVerticalGrid(
@@ -227,8 +232,10 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                             isChecked.value = isChecked.value && selectionState.value
                         }
                         LaunchedEffect(selectedMedia.size) {
-                            // Partial check of media items should not check the header
-                            isChecked.value = selectedMedia.map { it.id }.containsAll(it.data)
+                            withContext(Dispatchers.IO) {
+                                // Partial check of media items should not check the header
+                                isChecked.value = selectedMedia.map { it.id }.containsAll(it.data)
+                            }
                         }
                     }
                     MediaItemHeader(

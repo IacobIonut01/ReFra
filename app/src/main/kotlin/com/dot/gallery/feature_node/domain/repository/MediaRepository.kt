@@ -130,7 +130,7 @@ interface MediaRepository {
         onFailed: (reason: String) -> Unit
     )
 
-    fun getEncryptedMedia(vault: Vault): Flow<Resource<List<UriMedia>>>
+    fun getEncryptedMedia(vault: Vault?): Flow<Resource<List<UriMedia>>>
 
     suspend fun <T: Media> addMedia(vault: Vault, media: T): Boolean
 
@@ -143,6 +143,12 @@ interface MediaRepository {
         onSuccess: () -> Unit,
         onFailed: (failedFiles: List<File>) -> Unit
     ): Boolean
+
+    suspend fun getUnmigratedVaultMediaSize(): Int
+
+    suspend fun migrateVault()
+
+    suspend fun restoreVault(vault: Vault)
 
     fun getTimelineSettings(): Flow<TimelineSettings?>
 

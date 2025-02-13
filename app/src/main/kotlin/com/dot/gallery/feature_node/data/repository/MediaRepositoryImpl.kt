@@ -5,7 +5,6 @@
 
 package com.dot.gallery.feature_node.data.repository
 
-import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -21,7 +20,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.work.WorkManager
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.dataStore
-import com.dot.gallery.core.fileFlowObserver
 import com.dot.gallery.core.updateDatabase
 import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.ext.copyMedia
@@ -56,22 +54,26 @@ import com.dot.gallery.feature_node.domain.util.compatibleBitmapFormat
 import com.dot.gallery.feature_node.domain.util.compatibleMimeType
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.domain.util.migrate
 import com.dot.gallery.feature_node.domain.util.toEncryptedMedia
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.BOTH
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.PHOTOS
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.VIDEOS
 import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printInfo
+import com.dot.gallery.feature_node.presentation.util.printWarning
+import com.dot.gallery.feature_node.presentation.vault.scheduleMediaMigrationCheck
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.Serializable
+import java.util.UUID
 
 class MediaRepositoryImpl(
     private val context: Context,
@@ -84,6 +86,7 @@ class MediaRepositoryImpl(
 
     override suspend fun updateInternalDatabase() {
         workManager.updateDatabase()
+        workManager.scheduleMediaMigrationCheck()
     }
 
     /**
@@ -187,7 +190,7 @@ class MediaRepositoryImpl(
             reviewMode = reviewMode
         ).flowData().mapAsResource(errorOnEmpty = true, errorMessage = "Media could not be opened")
 
-    override suspend fun <T: Media> toggleFavorite(
+    override suspend fun <T : Media> toggleFavorite(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>,
         favorite: Boolean
@@ -203,7 +206,7 @@ class MediaRepositoryImpl(
         result.launch(senderRequest)
     }
 
-    override suspend fun <T: Media> trashMedia(
+    override suspend fun <T : Media> trashMedia(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>,
         trash: Boolean
@@ -219,7 +222,7 @@ class MediaRepositoryImpl(
         result.launch(senderRequest, ActivityOptionsCompat.makeTaskLaunchBehind())
     }
 
-    override suspend fun <T: Media> deleteMedia(
+    override suspend fun <T : Media> deleteMedia(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>
     ) {
@@ -233,7 +236,7 @@ class MediaRepositoryImpl(
         result.launch(senderRequest)
     }
 
-    override suspend fun <T: Media> copyMedia(
+    override suspend fun <T : Media> copyMedia(
         from: T,
         path: String
     ): Boolean = contentResolver.copyMedia(
@@ -241,7 +244,7 @@ class MediaRepositoryImpl(
         path = path
     )
 
-    override suspend fun <T: Media> renameMedia(
+    override suspend fun <T : Media> renameMedia(
         media: T,
         newName: String
     ): Boolean = context.renameMedia(
@@ -249,7 +252,7 @@ class MediaRepositoryImpl(
         newName = newName
     )
 
-    override suspend fun <T: Media> moveMedia(
+    override suspend fun <T : Media> moveMedia(
         media: T,
         newPath: String
     ): Boolean = context.updateMedia(
@@ -257,7 +260,7 @@ class MediaRepositoryImpl(
         contentValues = relativePath(newPath)
     )
 
-    override suspend fun <T: Media> updateMediaExif(
+    override suspend fun <T : Media> updateMediaExif(
         media: T,
         exifAttributes: ExifAttributes
     ): Boolean = contentResolver.updateMediaExif(
@@ -282,55 +285,78 @@ class MediaRepositoryImpl(
         displayName: String
     ) = contentResolver.overrideImage(uri, bitmap, format)
 
-    override fun getVaults(): Flow<Resource<List<Vault>>> =
-        context.retrieveInternalFiles {
+    override fun getVaults(): Flow<Resource<List<Vault>>> = database
+        .getVaultDao()
+        .getVaults().map { vaults ->
             with(keychainHolder) {
-                filesDir.listFiles()
-                    ?.filter { it.isDirectory && File(it, VAULT_INFO_FILE_NAME).exists() }
-                    ?.mapNotNull {
-                        try {
-                            File(it, VAULT_INFO_FILE_NAME).decrypt() as Vault
-                        } catch (e: Exception) {
-                            null
-                        }
+                val newVaults = vaults.mapNotNull { vault ->
+                    if (vaultFolder(vault).exists()) vault else {
+                        printWarning("Vault ${vault.uuid} does not exist. It will be deleted from the database.")
+                        database.getVaultDao().deleteVault(vault)
+                        null
                     }
-                    ?: emptyList()
+                }
+                Resource.Success(newVaults)
             }
         }
-
 
     override suspend fun createVault(
         vault: Vault,
         onSuccess: () -> Unit,
         onFailed: (reason: String) -> Unit
-    ) = withContext(Dispatchers.IO) { keychainHolder.writeVaultInfo(vault, onSuccess, onFailed) }
+    ) = withContext(Dispatchers.IO) {
+        keychainHolder.writeVaultInfo(
+            vault = vault,
+            onSuccess = {
+                launch(Dispatchers.IO) {
+                    database.getVaultDao().insertVault(vault)
+                    onSuccess()
+                }
+            },
+            onFailed = onFailed
+        )
+    }
 
     override suspend fun deleteVault(
         vault: Vault,
         onSuccess: () -> Unit,
         onFailed: (reason: String) -> Unit
-    ) = withContext(Dispatchers.IO) { keychainHolder.deleteVault(vault, onSuccess, onFailed) }
+    ) = withContext(Dispatchers.IO) {
+        keychainHolder.deleteVault(
+            vault = vault,
+            onSuccess = {
+                launch(Dispatchers.IO) {
+                    database.getVaultDao().deleteVault(vault)
+                    onSuccess()
+                }
+            },
+            onFailed = onFailed
+        )
+    }
 
-    override fun getEncryptedMedia(vault: Vault): Flow<Resource<List<UriMedia>>> =
-        context.retrieveInternalFiles {
+    override fun getEncryptedMedia(vault: Vault?): Flow<Resource<List<UriMedia>>> =
+        database.getVaultDao().getMediaFromVault(vault?.uuid).map { mediaList ->
             with(keychainHolder) {
-                withContext(Dispatchers.IO) {
-                    (vaultFolder(vault).listFiles()?.filter { it.name.endsWith("enc") }
-                        ?: emptyList()).map { file ->
-                        try {
-                            val id = file.nameWithoutExtension.toLong()
-                            val encryptedFile = vault.mediaFile(id)
-                            val encryptedMedia = encryptedFile.decrypt<EncryptedMedia>()
-                            encryptedMedia.asUriMedia(Uri.fromFile(encryptedFile))
-                        } catch (e: Throwable) {
+                val newMedia = mediaList.mapNotNull { media ->
+                    try {
+                        val encryptedFile = vault!!.mediaFile(media.id)
+                        if (encryptedFile.exists()) {
+                            media.asUriMedia(Uri.fromFile(encryptedFile))
+                        } else {
+                            printWarning("Encrypted Media ${media.id} under ${vault.uuid} does not exist. It will be deleted from the database.")
+                            database.getVaultDao().deleteMediaFromVault(media)
                             null
                         }
+                    } catch (e: Throwable) {
+                        e.printStackTrace()
+                        null
                     }
-                }.filterNotNull().sortedByDescending { it.timestamp }
+                }.sortedByDescending { it.timestamp }
+                Resource.Success(newMedia)
             }
         }
 
-    override suspend fun <T: Media> addMedia(vault: Vault, media: T): Boolean =
+    override suspend fun <T : Media> addMedia(vault: Vault, media: T): Boolean =
         withContext(Dispatchers.IO) {
             with(keychainHolder) {
                 keychainHolder.checkVaultFolder(vault)
@@ -340,10 +366,11 @@ class MediaRepositoryImpl(
                     getBytes(media.getUri())?.let { bytes -> media.toEncryptedMedia(bytes) }
                 return@withContext try {
                     encryptedMedia?.let {
-                        output.encrypt(it)
-                    }
-                    delay(100)
-                    true
+                        output.encryptKotlin(it)
+                        output.setLastModified(System.currentTimeMillis())
+                        database.getVaultDao().addMediaToVault(it.migrate(vault.uuid))
+                        true
+                    } == true
                 } catch (e: Exception) {
                     e.printStackTrace()
                     printError("Failed to add file: ${media.label}")
@@ -352,13 +379,13 @@ class MediaRepositoryImpl(
             }
         }
 
-    override suspend fun <T: Media> restoreMedia(vault: Vault, media: T): Boolean =
+    override suspend fun <T : Media> restoreMedia(vault: Vault, media: T): Boolean =
         withContext(Dispatchers.IO) {
             with(keychainHolder) {
                 checkVaultFolder(vault)
                 return@withContext try {
                     val output = vault.mediaFile(media.id)
-                    val encryptedMedia = output.decrypt<EncryptedMedia>()
+                    val encryptedMedia = output.decryptKotlin<EncryptedMedia>()
                     val restored: Boolean
                     if (media.isImage) {
                         restored = saveImage(
@@ -381,6 +408,9 @@ class MediaRepositoryImpl(
                         ) != null
                     }
                     val deleted = if (restored) output.delete() else false
+                    if (deleted) {
+                        database.getVaultDao().deleteMediaFromVault(encryptedMedia.migrate(vault.uuid))
+                    }
                     restored && deleted
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -390,12 +420,16 @@ class MediaRepositoryImpl(
             }
         }
 
-    override suspend fun <T: Media> deleteEncryptedMedia(vault: Vault, media: T): Boolean =
+    override suspend fun <T : Media> deleteEncryptedMedia(vault: Vault, media: T): Boolean =
         withContext(Dispatchers.IO) {
             with(keychainHolder) {
                 checkVaultFolder(vault)
                 return@withContext try {
-                    vault.mediaFile(media.id).delete()
+                    val deleted = vault.mediaFile(media.id).delete()
+                    if (deleted) {
+                        database.getVaultDao().deleteMediaFromVault(vault.uuid, media.id)
+                    }
+                    deleted
                 } catch (e: Exception) {
                     e.printStackTrace()
                     printError("Failed to delete file: ${media.label}")
@@ -415,7 +449,10 @@ class MediaRepositoryImpl(
             val files = vaultFolder(vault).listFiles()
             files?.forEach { file ->
                 try {
-                    file.delete()
+                    val deleted = file.delete()
+                    if (deleted) {
+                        database.getVaultDao().deleteMediaFromVault(vault.uuid, file.nameWithoutExtension.toLong())
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     printError("Failed to delete file: ${file.name}")
@@ -432,6 +469,107 @@ class MediaRepositoryImpl(
         }
     }
 
+
+    override suspend fun getUnmigratedVaultMediaSize(): Int {
+        return withContext(Dispatchers.IO) {
+            var size = 0
+            with(keychainHolder) {
+                val uuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$".toRegex()
+                val vaults = filesDir.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
+                vaults?.forEach { vaultFolder ->
+                    (vaultFolder.listFiles()?.filter { it.name.endsWith("enc") }
+                        ?: emptyList()).map { file ->
+                        try {
+                            file.decryptKotlin<EncryptedMedia>()
+                        } catch (_: Throwable) {
+                            printWarning("Un-migrated media found: ${file.nameWithoutExtension}")
+                            size++
+                        }
+                    }
+                }
+            }
+            size
+        }
+    }
+
+    override suspend fun migrateVault() {
+        withContext(Dispatchers.IO) {
+            printInfo("Vault Migration started")
+            val databaseStoredVaults = database.getVaultDao().getVaults().firstOrNull()
+            val databaseStoredEncryptedMedia = database.getVaultDao().getAllMedia().firstOrNull()
+            printInfo("Database stored vaults: ${databaseStoredVaults?.size}")
+            printInfo("Database stored encrypted media: ${databaseStoredEncryptedMedia?.size}")
+
+            val keychainStoredVaults = with(keychainHolder) {
+                filesDir.listFiles()
+                    ?.filter { it.isDirectory && File(it, VAULT_INFO_FILE_NAME).exists() }
+                    ?.mapNotNull {
+                        val vaultInfo = File(it, VAULT_INFO_FILE_NAME)
+                        try {
+                            vaultInfo.decrypt<Vault>()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            printError("Failed to decrypt file: ${vaultInfo.name}.")
+                            null
+                        }
+                    }
+                    ?: emptyList()
+            }
+            printInfo("Keychain stored vaults: ${keychainStoredVaults.size}")
+
+            keychainStoredVaults.forEach {
+                if (databaseStoredVaults?.find { vault -> vault.uuid == it.uuid } == null) {
+                    printInfo("Vault ${it.uuid} will be added to the database")
+                    database.getVaultDao().insertVault(it)
+                }
+            }
+
+            val keychainStoredEncryptedMedia = with(keychainHolder) {
+                val uuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$".toRegex()
+                val vaults = filesDir.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
+                val encryptedMedia = mutableListOf<Media.EncryptedMedia2>()
+                vaults?.forEach { vaultFolder ->
+                    (vaultFolder.listFiles()?.filter { it.name.endsWith("enc") } ?: emptyList()).forEach { file ->
+                        try {
+                            val id = file.nameWithoutExtension.toLong()
+                            if (databaseStoredEncryptedMedia?.find { media -> media.id == id } != null) {
+                                return@forEach
+                            }
+                            val oldEncryptedMedia = file.decrypt<EncryptedMedia>()
+                            printInfo("Migrating old encrypted media: ${oldEncryptedMedia.id}")
+                            file.delete()
+                            val encryptedMedia2 = oldEncryptedMedia.migrate(UUID.fromString(vaultFolder.nameWithoutExtension))
+                            file.encryptKotlin(encryptedMedia2)
+                            encryptedMedia.add(encryptedMedia2)
+                        } catch (e: Throwable) {
+                            e.printStackTrace()
+                            printError("Failed to decrypt file: ${file.name}.")
+                        }
+                    }
+                }
+                encryptedMedia
+            }
+
+            printInfo("Keychain stored encrypted media: ${keychainStoredEncryptedMedia.size}")
+
+            keychainStoredEncryptedMedia.forEach {
+                if (databaseStoredEncryptedMedia?.find { media -> media.id == it.id } == null) {
+                    printInfo("Encrypted Media ${it.id} will be added to the database")
+                    database.getVaultDao().addMediaToVault(it)
+                }
+            }
+
+            printInfo("Vault Migration finished")
+        }
+    }
+
+    override suspend fun restoreVault(vault: Vault) {
+        val media = database.getVaultDao().getMediaFromVault(vault.uuid).firstOrNull()
+        media?.forEach {
+            restoreMedia(vault, it)
+        }
+    }
+
     override fun getTimelineSettings(): Flow<TimelineSettings?> =
         database.getMediaDao().getTimelineSettings()
 
@@ -439,7 +577,10 @@ class MediaRepositoryImpl(
         database.getMediaDao().setTimelineSettings(settings)
     }
 
-    override fun <Result> getSetting(key: Preferences.Key<Result>, defaultValue: Result): Flow<Result> {
+    override fun <Result> getSetting(
+        key: Preferences.Key<Result>,
+        defaultValue: Result
+    ): Flow<Result> {
         return context.dataStore.data.map { it[key] ?: defaultValue }
     }
 
@@ -485,14 +626,5 @@ class MediaRepositoryImpl(
         private fun relativePath(newPath: String) = ContentValues().apply {
             put(MediaStore.MediaColumns.RELATIVE_PATH, newPath)
         }
-
-        private fun <T : Serializable> Context.retrieveInternalFiles(dataBody: suspend (ContentResolver) -> List<T>) =
-            fileFlowObserver().map {
-                try {
-                    Resource.Success(data = dataBody.invoke(contentResolver))
-                } catch (e: Exception) {
-                    Resource.Error(message = e.localizedMessage ?: "An error occurred")
-                }
-            }.conflate()
     }
 }

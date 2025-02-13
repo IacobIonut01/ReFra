@@ -17,12 +17,14 @@ import com.dot.gallery.feature_node.presentation.util.getDate
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.io.File
+import java.util.UUID
 import kotlin.random.Random
 
 
 @Serializable
 @Parcelize
 sealed class Media : Parcelable, java.io.Serializable {
+
 
     abstract val id: Long
     abstract val label: String
@@ -166,27 +168,97 @@ sealed class Media : Parcelable, java.io.Serializable {
         }
     }
 
+    @Serializable
+    @Parcelize
+    @Entity(tableName = "encrypted_media", primaryKeys = ["id"])
+    data class EncryptedMedia2(
+        override val id: Long = 0,
+        override val label: String,
+        @Serializable(with = UUIDSerializer::class)
+        val uuid: UUID,
+        override val path: String,
+        override val relativePath: String,
+        override val albumID: Long,
+        override val albumLabel: String,
+        override val timestamp: Long,
+        override val expiryTimestamp: Long? = null,
+        override val takenTimestamp: Long? = null,
+        override val fullDate: String,
+        override val mimeType: String,
+        override val favorite: Int,
+        override val trashed: Int,
+        override val size: Long,
+        override val duration: String? = null
+    ): Media() {
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as EncryptedMedia
+
+            if (id != other.id) return false
+            if (label != other.label) return false
+            if (path != other.path) return false
+            if (relativePath != other.relativePath) return false
+            if (albumID != other.albumID) return false
+            if (albumLabel != other.albumLabel) return false
+            if (timestamp != other.timestamp) return false
+            if (expiryTimestamp != other.expiryTimestamp) return false
+            if (takenTimestamp != other.takenTimestamp) return false
+            if (fullDate != other.fullDate) return false
+            if (mimeType != other.mimeType) return false
+            if (favorite != other.favorite) return false
+            if (trashed != other.trashed) return false
+            if (size != other.size) return false
+            if (duration != other.duration) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = id.hashCode()
+            result = 31 * result + label.hashCode()
+            result = 31 * result + path.hashCode()
+            result = 31 * result + relativePath.hashCode()
+            result = 31 * result + albumID.hashCode()
+            result = 31 * result + albumLabel.hashCode()
+            result = 31 * result + timestamp.hashCode()
+            result = 31 * result + (expiryTimestamp?.hashCode() ?: 0)
+            result = 31 * result + (takenTimestamp?.hashCode() ?: 0)
+            result = 31 * result + fullDate.hashCode()
+            result = 31 * result + mimeType.hashCode()
+            result = 31 * result + favorite
+            result = 31 * result + trashed
+            result = 31 * result + size.hashCode()
+            result = 31 * result + (duration?.hashCode() ?: 0)
+            return result
+        }
+    }
+
     companion object {
-        fun createFromUri(context: Context, uri: Uri): UriMedia? {
+        fun createFromUri(context: Context?, uri: Uri): UriMedia? {
             if (uri.path == null) return null
             val extension = uri.toString().substringAfterLast(".")
             var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension).toString()
             var duration: String? = null
-            try {
-                val retriever = MediaMetadataRetriever().apply {
-                    setDataSource(context, uri)
+            if (context != null) {
+                try {
+                    val retriever = MediaMetadataRetriever().apply {
+                        setDataSource(context, uri)
+                    }
+                    val hasVideo =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO)
+                    val isVideo = "yes" == hasVideo
+                    if (isVideo) {
+                        duration =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    }
+                    if (mimeType.isEmpty()) {
+                        mimeType = if (isVideo) "video/*" else "image/*"
+                    }
+                } catch (_: Exception) {
                 }
-                val hasVideo =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO)
-                val isVideo = "yes" == hasVideo
-                if (isVideo) {
-                    duration =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                }
-                if (mimeType.isEmpty()) {
-                    mimeType = if (isVideo) "video/*" else "image/*"
-                }
-            } catch (_: Exception) {
             }
             var timestamp = 0L
             uri.path?.let { File(it) }?.let {

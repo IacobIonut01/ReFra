@@ -1,21 +1,23 @@
 package com.dot.gallery.feature_node.presentation.vault.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,37 +29,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.presentation.components.DragHandle
-import com.dot.gallery.feature_node.domain.model.Vault
-import com.dot.gallery.feature_node.domain.model.VaultState
-import com.dot.gallery.feature_node.presentation.common.components.OptionItem
-import com.dot.gallery.feature_node.presentation.common.components.OptionLayout
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectVaultSheet(
+fun RestoreVaultSheet(
     state: AppBottomSheetState,
-    vaultState: VaultState,
-    onVaultSelected: (Vault) -> Unit
+    onConfirm: () -> Unit
 ) {
-    val vaults by remember(vaultState) {
-        derivedStateOf { vaultState.vaults }
-    }
     val scope = rememberCoroutineScope()
-    val vaultOptions = remember(vaults, state) {
-        vaults.map { vault ->
-            OptionItem(
-                text = vault.name,
-                onClick = {
-                    onVaultSelected(vault)
-                    scope.launch {
-                        state.hide()
-                    }
-                }
-            )
-        }
-    }
 
     if (state.isVisible) {
         ModalBottomSheet(
@@ -91,7 +72,7 @@ fun SelectVaultSheet(
                                 letterSpacing = MaterialTheme.typography.titleLarge.letterSpacing
                             )
                         ) {
-                            append(stringResource(R.string.select_a_vault))
+                            append(stringResource(R.string.restore_vault_title))
                         }
                     },
                     textAlign = TextAlign.Center,
@@ -101,10 +82,52 @@ fun SelectVaultSheet(
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
                 )
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    optionList = vaultOptions
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    text = stringResource(R.string.restore_vault_summary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
+                    val tertiaryOnContainer = MaterialTheme.colorScheme.onTertiaryContainer
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                state.hide()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = tertiaryContainer,
+                            contentColor = tertiaryOnContainer
+                        )
+                    ) {
+                        Text(text = stringResource(R.string.action_cancel))
+                    }
+
+                    Button(
+                        onClick = {
+                            onConfirm()
+                            scope.launch {
+                                state.hide()
+                            }
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.yes))
+                    }
+                }
             }
         }
     }

@@ -1,33 +1,34 @@
 package com.dot.gallery.feature_node.presentation.vault
 
 import android.annotation.SuppressLint
+import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.dot.gallery.core.Constants
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.Settings
+import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.presentation.util.collectMedia
+import com.dot.gallery.feature_node.presentation.util.RepeatOnResume
+import com.dot.gallery.feature_node.presentation.util.mapMedia
 import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,14 +36,6 @@ open class VaultViewModel @Inject constructor(
     private val repository: MediaRepository,
     private val workManager: WorkManager
 ) : ViewModel() {
-
-    var currentVault = mutableStateOf<Vault?>(null)
-
-    private val _mediaState = MutableStateFlow(MediaState<UriMedia>())
-    val mediaState = _mediaState.asStateFlow()
-
-    private val _vaultState = MutableStateFlow(VaultState())
-    val vaultState = _vaultState.asStateFlow()
 
     private val defaultDateFormat = repository.getSetting(Settings.Misc.DEFAULT_DATE_FORMAT, Constants.DEFAULT_DATE_FORMAT)
         .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.DEFAULT_DATE_FORMAT)
@@ -53,42 +46,58 @@ open class VaultViewModel @Inject constructor(
     private val weeklyDateFormat = repository.getSetting(Settings.Misc.WEEKLY_DATE_FORMAT, Constants.WEEKLY_DATE_FORMAT)
         .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.WEEKLY_DATE_FORMAT)
 
+    var currentVault = mutableStateOf<Vault?>(null)
+
+    val vaultState = repository
+        .getVaults()
+        .map { it.mapToVaultState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, VaultState())
+
+    val isRunning = workManager.getWorkInfosByTagFlow("VaultWorker")
+        .map { it.lastOrNull()?.state == WorkInfo.State.RUNNING }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+
+    val progress = workManager.getWorkInfosByTagFlow("VaultWorker")
+        .map {
+            it.lastOrNull()?.progress?.getFloat("progress", 0f) ?: 0f
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), 0f)
+
     @SuppressLint("ComposableNaming")
     @Composable
     fun attachToLifecycle() {
-        LaunchedEffect(Unit) {
-            fetchVaultsAndMedia()
+        RepeatOnResume {
         }
     }
 
+    fun createMediaState(vault: Vault?) = repository.getEncryptedMedia(vault)
+        .mapMedia(
+            albumId = -1,
+            updateDatabase = {},
+            defaultDateFormat = defaultDateFormat.value,
+            extendedDateFormat = extendedDateFormat.value,
+            weeklyDateFormat = weeklyDateFormat.value
+        )
+        .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
+
     fun setVault(vault: Vault?, onFailed: (reason: String) -> Unit = {}, onSuccess: () -> Unit) {
-        if (vault != currentVault.value) {
-            _mediaState.value = MediaState()
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            val newVaultState = repository.getVaults().singleOrNull().mapToVaultState()
-            _vaultState.emit(newVaultState)
-        }
         viewModelScope.launch(Dispatchers.IO) {
             currentVault.value = vault
             if (vault == null) {
-                fetchVaultsAndMedia()
                 withContext(Dispatchers.Main.immediate) { onSuccess() }
                 return@launch
             }
-            val hasVault = _vaultState.value.vaults.find { it.uuid == vault.uuid } != null
+            val hasVault = vaultState.value.vaults.find { it.uuid == vault.uuid } != null
             if (hasVault) {
-                fetchVaultsAndMedia(vault)
                 withContext(Dispatchers.Main.immediate) { onSuccess() }
             } else {
-                if (_vaultState.value.vaults.firstOrNull { it.name == vault.name } != null) {
+                if (vaultState.value.vaults.firstOrNull { it.name == vault.name } != null) {
                     onFailed("Already exists")
                     return@launch
                 }
                 repository.createVault(
                     vault = vault,
                     onSuccess = {
-                        fetchVaultsAndMedia(vault)
                         currentVault.value = vault
                         viewModelScope.launch(Dispatchers.Main.immediate) { onSuccess() }
                     },
@@ -103,41 +112,23 @@ open class VaultViewModel @Inject constructor(
             repository.deleteVault(
                 vault = vault,
                 onSuccess = {
-                    fetchVaultsAndMedia()
+                    setVault(vault = vaultState.value.vaults.firstOrNull(), onSuccess = {})
                 },
                 onFailed = {
                     printError("Failed to delete vault: $it")
-                    fetchVaultsAndMedia(vault)
                 }
             )
         }
     }
 
-    fun addMedia(vault: Vault, mediaList: List<UriMedia>) {
-        workManager.scheduleEncryptingMedia(vault, mediaList)
-    }
-
-    fun addMedia(vault: Vault, media: UriMedia, onSuccess: () -> Unit, onFailed: (reason: String) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                if (repository.addMedia(vault, media)) {
-                    fetchVaultsAndMedia(vault)
-                    onSuccess()
-                } else {
-                    onFailed("Failed to add media")
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                onFailed("Failed to add media")
-            }
-        }
+    fun addMedia(vault: Vault, list: List<Uri>) {
+        workManager.scheduleEncryptingMedia(vault, list)
     }
 
     fun restoreMedia(vault: Vault, media: UriMedia, onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.restoreMedia(vault, media)
             onSuccess()
-            fetchVaultsAndMedia(vault)
         }
     }
 
@@ -145,7 +136,6 @@ open class VaultViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteEncryptedMedia(vault, media)
             onSuccess()
-            fetchVaultsAndMedia(vault)
         }
     }
 
@@ -154,7 +144,6 @@ open class VaultViewModel @Inject constructor(
             repository.deleteAllEncryptedMedia(
                 vault = vault,
                 onSuccess = {
-                    fetchVaultsAndMedia(vault)
                 },
                 onFailed = { failedFiles ->
                     printError("Failed to delete files: $failedFiles")
@@ -164,28 +153,16 @@ open class VaultViewModel @Inject constructor(
         }
     }
 
-    private fun fetchVaultsAndMedia(vault: Vault? = null) {
-        currentVault.value = vault
+    fun restoreVault(vault: Vault) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getVaults().collectLatest { resource ->
-                _vaultState.emit(resource.mapToVaultState())
-            }
+            repository.restoreVault(vault)
         }
-        vault?.let {
-            viewModelScope.launch(Dispatchers.IO) {
-                repository.getEncryptedMedia(vault).collectLatest {
-                    _mediaState.collectMedia(
-                        data = it.data ?: emptyList(),
-                        error = it.message ?: "",
-                        albumId = -1,
-                        groupByMonth = false,
-                        withMonthHeader = true,
-                        defaultDateFormat = defaultDateFormat.value,
-                        extendedDateFormat = extendedDateFormat.value,
-                        weeklyDateFormat = weeklyDateFormat.value
-                    )
-                }
-            }
+    }
+
+    fun deleteLeftovers(result: ActivityResultLauncher<IntentSenderRequest>, uris: List<Uri>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val mediaList = uris.map { Media.createFromUri(null, it) }.requireNoNulls()
+            repository.deleteMedia(result, mediaList)
         }
     }
 
@@ -196,8 +173,4 @@ open class VaultViewModel @Inject constructor(
         )
     }
 
-    override fun onCleared() {
-        _mediaState.value = MediaState()
-        super.onCleared()
-    }
 }

@@ -142,7 +142,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun <T : Media> MediaViewDetails(
     albumsState: State<AlbumState>,
-    vaultState: VaultState,
+    vaultState: State<VaultState>,
     currentMedia: T?,
     handler: MediaHandleUseCase?,
     addMediaToVault: (Vault, T) -> Unit,
@@ -631,7 +631,7 @@ fun MediaInfoChip2(
 private fun <T : Media> MediaViewInfoActions2(
     media: T,
     albumsState: State<AlbumState>,
-    vaults: VaultState,
+    vaults: State<VaultState>,
     handler: MediaHandleUseCase?,
     addMedia: (Vault, T) -> Unit,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
@@ -650,7 +650,7 @@ private fun <T : Media> MediaViewInfoActions2(
         if (media.isLocalContent) {
             HideButton(
                 media,
-                vaults = vaults,
+                vaults = vaults.value,
                 addMedia = addMedia,
                 followTheme = true,
                 enabled = true
@@ -687,6 +687,7 @@ fun <T : Media> MediaViewActions2(
     showDeleteButton: Boolean,
     enabled: Boolean,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)?,
+    restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?
 ) {
     if (currentMedia != null) {
@@ -725,6 +726,14 @@ fun <T : Media> MediaViewActions2(
             if (currentMedia.readUriOnly) {
                 OpenAsButton(currentMedia, enabled = enabled)
             }
+            // Restore
+            if (currentMedia.isEncrypted && restoreMedia != null && currentVault != null) {
+                RestoreButton(
+                    currentMedia,
+                    currentVault = currentVault,
+                    restoreMedia = restoreMedia
+                )
+            }
             // Edit
             if (!currentMedia.isEncrypted) {
                 EditButton(currentMedia, enabled = enabled)
@@ -734,7 +743,6 @@ fun <T : Media> MediaViewActions2(
                 TrashButton(
                     media = currentMedia,
                     handler = handler,
-                    followTheme = false,
                     enabled = enabled,
                     deleteMedia = deleteMedia,
                     currentVault = currentVault
@@ -998,8 +1006,8 @@ fun <T : Media> TrashButton(
     val state = rememberAppBottomSheetState()
     val scope = rememberCoroutineScope()
     val trashEnabled = rememberTrashEnabled()
-    val trashEnabledRes = remember(trashEnabled) {
-        if (trashEnabled.value) R.string.trash else R.string.trash_delete
+    val trashEnabledRes = remember(trashEnabled, media) {
+        if (trashEnabled.value && !media.isEncrypted) R.string.trash else R.string.trash_delete
     }
     val result = rememberActivityResult {
         scope.launch {

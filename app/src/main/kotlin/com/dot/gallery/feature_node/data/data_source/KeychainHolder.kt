@@ -8,7 +8,8 @@ import androidx.security.crypto.EncryptedFile.FileEncryptionScheme.AES256_GCM_HK
 import androidx.security.crypto.MasterKey
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.fromByteArray
-import com.dot.gallery.feature_node.domain.util.toByteArray
+import com.dot.gallery.feature_node.domain.util.fromKotlinByteArray
+import com.dot.gallery.feature_node.domain.util.toKotlinByteArray
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -41,7 +42,7 @@ class KeychainHolder @Inject constructor(
 
             vaultInfoFile(vault).apply {
                 if (exists()) delete()
-                encrypt(vault)
+                encryptKotlin(vault)
                 onSuccess()
             }
         } catch (e: Exception) {
@@ -72,6 +73,16 @@ class KeychainHolder @Inject constructor(
     }
 
     @Throws(GeneralSecurityException::class, IOException::class, FileNotFoundException::class, UserNotAuthenticatedException::class)
+    internal inline fun <reified T> File.decryptKotlin(): T = EncryptedFile.Builder(
+        context,
+        this,
+        masterKey,
+        AES256_GCM_HKDF_4KB
+    ).build().openFileInput().use {
+        fromKotlinByteArray(it.readBytes())
+    }
+
+    @Throws(GeneralSecurityException::class, IOException::class, FileNotFoundException::class, UserNotAuthenticatedException::class)
     fun <T : Serializable> File.decrypt(): T = EncryptedFile.Builder(
         context,
         this,
@@ -82,14 +93,14 @@ class KeychainHolder @Inject constructor(
     }
 
     @Throws(GeneralSecurityException::class, IOException::class, FileNotFoundException::class, UserNotAuthenticatedException::class)
-    fun <T : Serializable> File.encrypt(data: T) {
+    internal inline fun <reified T> File.encryptKotlin(data: T) {
         EncryptedFile.Builder(
             context,
             this,
             masterKey,
             AES256_GCM_HKDF_4KB
         ).build().openFileOutput().use {
-            it.write(data.toByteArray())
+            it.write(data.toKotlinByteArray())
         }
     }
 

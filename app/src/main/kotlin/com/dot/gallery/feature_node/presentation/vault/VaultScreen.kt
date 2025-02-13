@@ -83,9 +83,9 @@ fun VaultScreen(
         }
     )
 
-    val vaultState by viewModel.vaultState.collectAsStateWithLifecycle()
-    val startDestination by remember(vaultState) {
-        derivedStateOf { vaultState.getStartScreen() }
+    val vaultState = viewModel.vaultState.collectAsStateWithLifecycle()
+    val startDestination by remember(vaultState.value) {
+        derivedStateOf { vaultState.value.getStartScreen() }
     }
 
     val context = LocalContext.current
@@ -136,7 +136,7 @@ fun VaultScreen(
                     navigateUp = {
                         if (addNewVault) {
                             addNewVault = false
-                            if (vaultState.vaults.isEmpty()) navigateUp() else navPipe.navigateUp()
+                            if (vaultState.value.vaults.isEmpty()) navigateUp() else navPipe.navigateUp()
                         } else {
                             navigateUp()
                         }
@@ -151,14 +151,12 @@ fun VaultScreen(
             }
             composable(VaultScreens.VaultDisplay()) {
                 LaunchedEffect(isAuthenticated, biometricState.isSupported, vaultState) {
-                    if (!isAuthenticated && !addNewVault && vaultState.vaults.isNotEmpty()) {
+                    if (!isAuthenticated && !addNewVault && vaultState.value.vaults.isNotEmpty()) {
                         if (biometricState.isSupported) {
                             biometricState.authenticate()
                         } else navigateUp()
                     }
                 }
-                val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
-
                 AnimatedVisibility(
                     visible = isAuthenticated,
                     enter = enterAnimation,
@@ -168,18 +166,21 @@ fun VaultScreen(
                         navigateUp = navigateUp,
                         navigate = navPipe::navigate,
                         vaultState = vaultState,
-                        mediaState = mediaState,
                         currentVault = viewModel.currentVault,
-                        addMediaToVault = viewModel::addMedia,
+                        createMediaState = viewModel::createMediaState,
                         addMediaListToVault = viewModel::addMedia,
+                        deleteLeftovers = viewModel::deleteLeftovers,
                         deleteVault = viewModel::deleteVault,
                         setVault = { vault -> viewModel.setVault(vault) {} },
                         onCreateVaultClick = {
                             addNewVault = true
                             navPipe.navigate(VaultScreens.VaultSetup())
                         },
+                        restoreVault = viewModel::restoreVault,
                         sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedContentScope = this@composable
+                        animatedContentScope = this@composable,
+                        workerProgress = viewModel.progress,
+                        workerIsRunning = viewModel.isRunning
                     )
                 }
             }
@@ -195,7 +196,9 @@ fun VaultScreen(
                 val mediaId = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("mediaId") ?: -1
                 }
-                val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
+                val mediaState = remember(viewModel.currentVault.value) {
+                    viewModel.createMediaState(viewModel.currentVault.value)
+                }.collectAsStateWithLifecycle()
                 MediaViewScreen(
                     navigateUp = navPipe::navigateUp,
                     toggleRotate = toggleRotate,
@@ -210,9 +213,7 @@ fun VaultScreen(
                     addMedia = { vault, media ->
                         viewModel.addMedia(
                             vault = vault,
-                            media = media,
-                            onSuccess = {},
-                            onFailed = {}
+                            list = listOf(media.uri)
                         )
                     },
                     navigate = navigate,

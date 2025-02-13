@@ -115,7 +115,7 @@ private class EncryptedVideoFrameDecodeHelper(
         // Create a temporary file
         val tempFile = File.createTempFile("${file.name}.temp", null)
         val encryptedMedia = with(keychainHolder) {
-            file.decrypt<EncryptedMedia>()
+            file.decryptKotlin<EncryptedMedia>()
         }
 
         // Write the ByteArray to the temporary file
