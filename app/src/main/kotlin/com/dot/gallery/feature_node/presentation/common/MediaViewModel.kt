@@ -93,6 +93,8 @@ open class MediaViewModel @Inject constructor(
         repository.getSetting(Settings.Misc.WEEKLY_DATE_FORMAT, Constants.WEEKLY_DATE_FORMAT)
             .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.WEEKLY_DATE_FORMAT)
 
+    private val permissionState = MutableStateFlow(false)
+
     val mediaFlow by lazy {
         combine(
             repository.mediaFlow(albumId, target),
@@ -104,8 +106,9 @@ open class MediaViewModel @Inject constructor(
                 weeklyDateFormat
             ) { defaultDateFormat, extendedDateFormat, weeklyDateFormat ->
                 Triple(defaultDateFormat, extendedDateFormat, weeklyDateFormat)
-            }
-        ) { result, settings, blacklistedAlbums, (defaultDateFormat, extendedDateFormat, weeklyDateFormat) ->
+            },
+            permissionState
+        ) { result, settings, blacklistedAlbums, (defaultDateFormat, extendedDateFormat, weeklyDateFormat), hasPermission ->
             if (result is Resource.Error) return@combine MediaState(
                 error = result.message ?: "",
                 isLoading = false
@@ -117,7 +120,7 @@ open class MediaViewModel @Inject constructor(
                 },
                 error = result.message ?: "",
                 albumId = albumId,
-                groupByMonth = settings?.groupTimelineByMonth ?: false,
+                groupByMonth = settings?.groupTimelineByMonth == true,
                 defaultDateFormat = defaultDateFormat,
                 extendedDateFormat = extendedDateFormat,
                 weeklyDateFormat = weeklyDateFormat
@@ -149,6 +152,10 @@ open class MediaViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun updatePermissionState(hasPermission: Boolean) {
+        permissionState.tryEmit(hasPermission)
     }
 
     private fun updateDatabase() {

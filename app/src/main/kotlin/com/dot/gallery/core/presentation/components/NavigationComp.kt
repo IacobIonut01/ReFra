@@ -146,6 +146,10 @@ fun NavigationComp(
 
     val vaultState = timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
+    LaunchedEffect(permissionState) {
+        timelineViewModel.updatePermissionState(permissionState)
+    }
+
     LaunchedEffect(groupTimelineByMonth) {
         timelineViewModel.groupByMonth = groupTimelineByMonth
     }
