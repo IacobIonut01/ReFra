@@ -27,7 +27,10 @@ data class Album(
 ) : Parcelable {
 
     val key: String
-        get() = "{$id, $pathToThumbnail, $timestamp}"
+        get() = "{$id, $uri, $timestamp}"
+
+    val idLessKey: String
+        get() = "{$uri, $timestamp}"
 
     @IgnoredOnParcel
     @Stable

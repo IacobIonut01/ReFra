@@ -13,6 +13,7 @@ import android.webkit.MimeTypeMap
 import androidx.room.Entity
 import com.dot.gallery.core.Constants
 import com.dot.gallery.feature_node.domain.util.UriSerializer
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.getDate
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -50,7 +51,10 @@ sealed class Media : Parcelable, java.io.Serializable {
     }
 
     val key: String
-        get() = "{$id, $path, $definedTimestamp}"
+        get() = "{$id, ${try { getUri() } catch (_: Exception) { path} }, $definedTimestamp}"
+
+    val idLessKey: String
+        get() = "{${try { getUri() } catch (_: Exception) { path} }, $definedTimestamp}"
 
     @Serializable
     @Parcelize

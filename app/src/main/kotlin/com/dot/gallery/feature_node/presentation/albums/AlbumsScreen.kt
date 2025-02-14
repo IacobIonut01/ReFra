@@ -206,6 +206,8 @@ fun AlbumsScreen(
                         AlbumComponent(
                             modifier = Modifier
                                 .pinchItem(key = item.toString())
+                                .animateItem(),
+                            thumbnailModifier = Modifier
                                 .mediaSharedElement(
                                     album = item,
                                     animatedVisibilityScope = animatedContentScope

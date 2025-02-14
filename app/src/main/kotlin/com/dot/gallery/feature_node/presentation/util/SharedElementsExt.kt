@@ -21,7 +21,7 @@ context(SharedTransitionScope)
 fun <T: Media> Modifier.mediaSharedElement(
     media: T,
     animatedVisibilityScope: AnimatedVisibilityScope
-): Modifier = mediaSharedElement(key = media.key, animatedVisibilityScope = animatedVisibilityScope)
+): Modifier = mediaSharedElement(key = media.idLessKey, animatedVisibilityScope = animatedVisibilityScope)
 
 context(SharedTransitionScope)
 @Composable
@@ -29,7 +29,7 @@ context(SharedTransitionScope)
 fun Modifier.mediaSharedElement(
     album: Album,
     animatedVisibilityScope: AnimatedVisibilityScope
-): Modifier = mediaSharedElement(key = album.key, animatedVisibilityScope = animatedVisibilityScope)
+): Modifier = mediaSharedElement(key = album.idLessKey, animatedVisibilityScope = animatedVisibilityScope)
 
 context(SharedTransitionScope)
 @Composable
