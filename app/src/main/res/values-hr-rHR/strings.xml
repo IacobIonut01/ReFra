@@ -305,8 +305,7 @@
     <string name="shared_elements_summary">Animate media items click/return using shared elements transitions</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
-        <item quantity="two">%s items</item>
-        <item quantity="many">%s items</item>
+        <item quantity="few">%s items</item>
         <item quantity="other">%s items</item>
     </plurals>
 </resources>
