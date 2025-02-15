@@ -116,6 +116,7 @@ jobs:
           body_path: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-nightly-changelog.txt
           prerelease: true
           tag_name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-nightly
+          target_commitish: ${{ github.sha }}
           files: |
             ./**/Gallery-*.apk
         env:
