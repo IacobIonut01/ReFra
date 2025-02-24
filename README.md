@@ -39,7 +39,7 @@
 - Will you support lower android versions?
     - While this is not a priority right now, I do have in mind to include support for lower Android versions at a cost of reduced features. If anyone volntueers to do so before me can request a pull request.
 - Can I verify the downloaded APK file?
-    - Checksums of APks are provided in the release notes. The signing certificate fingerprint is listed below:
+    - Checksums of APKs are provided in the release notes. The signing certificate fingerprint is listed below:
       `AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA`
 - Will you add [X] feature?
     - Please open a new feature request under 'Issues' tab and if the feature will be considered useful and possible can be added.
