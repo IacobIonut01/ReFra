@@ -33,11 +33,14 @@
     - More options available in-app (Settings -> Donate)
 ## Frequent Questions
 - Why Google Play version is 'Paid'?
-    - It's just another way to support the project while getting back autmatic updates via Google Play
+    - It's just another way to support the project while getting back automatic updates via Google Play
 - Why Android 11 is the minimum version required?
     - Some Media features and APIs require Android 11 as a minimum version [Trash feature, most APIs used in the app]
 - Will you support lower android versions?
     - While this is not a priority right now, I do have in mind to include support for lower Android versions at a cost of reduced features. If anyone volntueers to do so before me can request a pull request.
+- Can I verify the downloaded APK file?
+    - Checksums of APks are provided in the release notes. The signing certificate fingerprint is listed below:
+      `AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA`
 - Will you add [X] feature?
     - Please open a new feature request under 'Issues' tab and if the feature will be considered useful and possible can be added.
 
