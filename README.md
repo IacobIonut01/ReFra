@@ -40,7 +40,9 @@
     - While this is not a priority right now, I do have in mind to include support for lower Android versions at a cost of reduced features. If anyone volntueers to do so before me can request a pull request.
 - Can I verify the downloaded APK file?
     - Checksums of APKs are provided in the release notes. The signing certificate fingerprint is listed below:
-      `AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA:AA`
+      - SHA-256: `78:46:05:DD:50:75:BE:05:82:78:A5:42:5C:BD:E5:21:31:62:CB:B4:59:1B:44:28:F4:4E:75:E0:8C:C6:43:8A`
+      - SHA-1: `AD:93:69:27:F2:3B:33:99:FC:C0:B2:8A:25:44:C8:1C:AA:42:B0:9A`
+      - MD5: `73:FC:3C:60:14:D3:69:6D:1B:DA:34:F1:BF:5A:33:3C`
 - Will you add [X] feature?
     - Please open a new feature request under 'Issues' tab and if the feature will be considered useful and possible can be added.
 
