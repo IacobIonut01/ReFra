@@ -425,7 +425,7 @@ fun NavigationComp(
                     backStackEntry.arguments?.getLong("mediaId") ?: -1
                 }
                 val query: Boolean = remember(backStackEntry) {
-                    backStackEntry.arguments?.getBoolean("query") ?: true
+                    backStackEntry.arguments?.getBoolean("query") != false
                 }
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(Screen.TimelineScreen.route)

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.presentation.components.util.advancedShadow
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.formatMinSec
 
 @Composable
@@ -38,9 +40,12 @@ fun VideoDurationHeader(modifier: Modifier = Modifier, media: Media) {
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val text by rememberedDerivedState(media) {
+            media.duration.formatMinSec()
+        }
         Text(
             modifier = Modifier,
-            text = media.duration.formatMinSec(),
+            text = text,
             style = MaterialTheme.typography.labelSmall,
             color = Color.White
         )

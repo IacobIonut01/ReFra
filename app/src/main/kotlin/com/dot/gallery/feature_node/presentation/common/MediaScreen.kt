@@ -9,6 +9,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
+import com.dot.gallery.core.Constants.Animation.enterAnimation
+import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
@@ -54,6 +57,8 @@ import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.Screen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -86,7 +91,7 @@ fun <T: Media> MediaScreen(
     animatedContentScope: AnimatedContentScope,
     onActivityResult: (result: ActivityResult) -> Unit,
 ) {
-    val showSearchBar = remember { albumId == -1L && target == null }
+    val showSearchBar = remember(albumId, target) { albumId == -1L && target == null }
     var canScroll by rememberSaveable { mutableStateOf(true) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = rememberTopAppBarState(),
@@ -101,8 +106,10 @@ fun <T: Media> MediaScreen(
     )
 
     LaunchedEffect(pinchState.isZooming) {
-        canScroll = !pinchState.isZooming
-        lastCellIndex = cellsList.indexOf(pinchState.currentCells)
+        withContext(Dispatchers.IO) {
+            canScroll = !pinchState.isZooming
+            lastCellIndex = cellsList.indexOf(pinchState.currentCells)
+        }
     }
 
     LaunchedEffect(selectionState.value) {
@@ -118,15 +125,18 @@ fun <T: Media> MediaScreen(
                 end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
             )
     ) {
+        val scaffoldModifier = remember(showSearchBar) {
+            if (!showSearchBar) Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+            else Modifier
+        }
         Scaffold(
-            modifier = Modifier
-                .then(
-                    if (!showSearchBar)
-                        Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-                    else Modifier
-                ),
+            modifier = scaffoldModifier,
             topBar = {
-                if (!showSearchBar) {
+                AnimatedVisibility(
+                    visible = !showSearchBar,
+                    enter = enterAnimation,
+                    exit = exitAnimation
+                ) {
                     LargeTopAppBar(
                         title = {
                             TwoLinedDateToolbarTitle(
@@ -155,7 +165,12 @@ fun <T: Media> MediaScreen(
                         },
                         scrollBehavior = scrollBehavior
                     )
-                } else {
+                }
+                AnimatedVisibility(
+                    visible = showSearchBar,
+                    enter = enterAnimation,
+                    exit = exitAnimation
+                ) {
                     MainSearchBar(
                         bottomPadding = paddingValues.calculateBottomPadding(),
                         navigate = navigate,
@@ -215,7 +230,13 @@ fun <T: Media> MediaScreen(
                 }
             }
         }
-        if (target != TARGET_TRASH) {
+        AnimatedVisibility(
+            modifier = Modifier
+                .align(Alignment.BottomEnd),
+            visible = remember(target) { target != TARGET_TRASH },
+            enter = enterAnimation,
+            exit = exitAnimation
+        ) {
             SelectionSheet(
                 modifier = Modifier
                     .align(Alignment.BottomEnd),

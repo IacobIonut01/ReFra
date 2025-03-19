@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -36,27 +38,37 @@ fun MediaItemHeader(
     isChecked: MutableState<Boolean>,
     onChecked: (() -> Unit)? = null
 ) {
-    val smallModifier = modifier
-        .padding(
-            horizontal = 16.dp,
-            vertical = 24.dp
-        )
-        .fillMaxWidth()
-    val bigModifier = modifier
-        .padding(horizontal = 16.dp)
-        .padding(top = 80.dp)
+    val smallModifier = remember(modifier) {
+        modifier
+            .padding(
+                horizontal = 16.dp,
+                vertical = 24.dp
+            )
+            .fillMaxWidth()
+    }
+    val bigModifier = remember(modifier) {
+        modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 80.dp)
+    }
     val bigTextStyle = MaterialTheme.typography.headlineMedium.copy(
         fontWeight = FontWeight.Bold
     )
     val smallTextStyle = MaterialTheme.typography.titleMedium
+    val headerModifier by rememberedDerivedState(showAsBig) {
+        if (showAsBig) bigModifier else smallModifier
+    }
+    val headerTextStyle by rememberedDerivedState(showAsBig) {
+        if (showAsBig) bigTextStyle else smallTextStyle
+    }
     Row(
-        modifier = if (showAsBig) bigModifier else smallModifier,
+        modifier = headerModifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = remember { date },
-            style = if (showAsBig) bigTextStyle else smallTextStyle,
+            text = date,
+            style = headerTextStyle,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.then(
                 if (!showAsBig) Modifier.combinedClickable(
@@ -71,18 +83,16 @@ fun MediaItemHeader(
                 ) else Modifier
             )
         )
-        if (!showAsBig && onChecked != null) {
-            AnimatedVisibility(
-                visible = isCheckVisible.value,
-                enter = enterAnimation,
-                exit = exitAnimation
-            ) {
-                CheckBox(
-                    isChecked = isChecked.value,
-                    onCheck = onChecked,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+        AnimatedVisibility(
+            visible = isCheckVisible.value && !showAsBig && onChecked != null,
+            enter = enterAnimation,
+            exit = exitAnimation
+        ) {
+            CheckBox(
+                isChecked = isChecked.value,
+                onCheck = onChecked,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }

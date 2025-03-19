@@ -68,10 +68,13 @@ import com.dot.gallery.core.Settings.Misc.rememberNoClassification
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.library.components.dashedBorder
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.ui.core.icons.Encrypted
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -94,18 +97,16 @@ fun LibraryScreen(
     )
 
     LaunchedEffect(pinchState.isZooming) {
-        lastCellIndex = albumCellsList.indexOf(pinchState.currentCells)
+        withContext(Dispatchers.IO) {
+            lastCellIndex = albumCellsList.indexOf(pinchState.currentCells)
+        }
     }
 
     val indicatorState by viewModel.indicatorState.collectAsStateWithLifecycle()
     val classifiedCategories by viewModel.classifiedCategories.collectAsStateWithLifecycle()
     val mostPopularCategories by viewModel.mostPopularCategory.collectAsStateWithLifecycle()
-    val mostPopularCategoriesKeys by remember {
-        derivedStateOf { mostPopularCategories.keys.toList() }
-    }
-    val noCategoriesFound by remember {
-        derivedStateOf { classifiedCategories.isEmpty() }
-    }
+    val mostPopularCategoriesKeys by rememberedDerivedState { mostPopularCategories.keys.toList() }
+    val noCategoriesFound by rememberedDerivedState { classifiedCategories.isEmpty() }
 
     var noClassification by rememberNoClassification()
 

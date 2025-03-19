@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisallowComposableCalls
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +42,6 @@ import com.dot.gallery.feature_node.domain.model.MediaItem
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isBigHeaderKey
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
-import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
@@ -74,10 +72,12 @@ fun <T: Media> PinchZoomGridScope.MediaGrid(
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit
 ) {
     LaunchedEffect(gridState.isScrollInProgress) {
-        snapshotFlow {
-            gridState.isScrollInProgress
-        }.collectLatest {
-            isScrolling.value = it
+        withContext(Dispatchers.IO) {
+            snapshotFlow {
+                gridState.isScrollInProgress
+            }.collectLatest {
+                isScrolling.value = it
+            }
         }
     }
 
@@ -131,9 +131,7 @@ fun <T: Media> PinchZoomGridScope.MediaGrid(
         }
     }
 
-    AnimatedVisibility(
-        visible = allowHeaders
-    ) {
+    if (allowHeaders) {
         MediaGridContentWithHeaders(
             mediaState = mediaState,
             mappedData = mappedData,
@@ -149,11 +147,7 @@ fun <T: Media> PinchZoomGridScope.MediaGrid(
             sharedTransitionScope = sharedTransitionScope,
             animatedContentScope = animatedContentScope
         )
-    }
-
-    AnimatedVisibility(
-        visible = !allowHeaders
-    ) {
+    } else {
         MediaGridContent(
             mediaState = mediaState,
             paddingValues = paddingValues,
@@ -207,7 +201,9 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
     ) {
         LazyVerticalGrid(
             state = gridState,
-            modifier = Modifier.fillMaxSize().testTag("media_grid"),
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("media_grid"),
             columns = gridCells,
             contentPadding = paddingValues,
             userScrollEnabled = canScroll,
@@ -244,12 +240,12 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                                 fadeInSpec = null
                             )
                             .pinchItem(key = it.key),
-                        date = remember {
+                        date = remember(it) {
                             it.text
                                 .replace("Today", stringToday)
                                 .replace("Yesterday", stringYesterday)
                         },
-                        showAsBig = remember { it.key.isBigHeaderKey },
+                        showAsBig = remember(it) { it.key.isBigHeaderKey },
                         isCheckVisible = selectionState,
                         isChecked = isChecked
                     ) {
@@ -329,6 +325,9 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContent(
     animatedContentScope: AnimatedContentScope,
 ) {
     val feedbackManager = rememberFeedbackManager()
+    val items by rememberedDerivedState(mediaState.value) {
+        mediaState.value.media
+    }
     LazyVerticalGrid(
         state = gridState,
         modifier = Modifier.fillMaxSize(),
@@ -340,11 +339,11 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContent(
     ) {
         topContent()
 
-        itemsIndexed(
-            items = mediaState.value.media,
-            key = { _, item -> item.toString() },
-            contentType = { _, item -> item.isImage }
-        ) { index, media ->
+        items(
+            items = items,
+            key = { item -> item.key },
+            contentType = {  item -> item.mimeType }
+        ) { media ->
             with(sharedTransitionScope) {
                 MediaImage(
                     modifier = Modifier
@@ -355,19 +354,21 @@ private fun <T: Media> PinchZoomGridScope.MediaGridContent(
                         .animateItem(
                             fadeInSpec = null
                         )
-                        .pinchItem(key = media.toString()),
+                        .pinchItem(key = media.key),
                     media = media,
                     selectionState = selectionState,
                     selectedMedia = selectedMedia,
                     canClick = canScroll,
                     onItemClick = {
                         if (selectionState.value && allowSelection) {
+                            val index = items.indexOf(it)
                             feedbackManager.vibrate()
                             toggleSelection(index)
                         } else onMediaClick(it)
                     },
                     onItemLongClick = {
                         if (allowSelection) {
+                            val index = items.indexOf(it)
                             feedbackManager.vibrate()
                             toggleSelection(index)
                         }

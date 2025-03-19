@@ -37,13 +37,15 @@ fun <T: Media> MediaPreviewComponent(
     offset: IntOffset,
     videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
 ) {
-    if (media != null) {
+    AnimatedVisibility(
+        visible = media != null,
+    ) {
         Box(
             modifier = Modifier.fillMaxSize().offset { offset },
         ) {
             AnimatedVisibility(
                 modifier = Modifier.fillMaxSize(),
-                visible = media.isVideo,
+                visible = media!!.isVideo,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {

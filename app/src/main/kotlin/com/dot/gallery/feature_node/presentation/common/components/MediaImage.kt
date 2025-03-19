@@ -24,12 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation
@@ -46,11 +44,10 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isFavorite
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoDurationHeader
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
-import com.github.panpf.sketch.resize.Scale
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.github.panpf.sketch.resize.Precision
 
 @Composable
 fun <T: Media> MediaImage(
@@ -62,85 +59,74 @@ fun <T: Media> MediaImage(
     onItemClick: (T) -> Unit,
     onItemLongClick: (T) -> Unit,
 ) {
-    var isSelected by remember { mutableStateOf(false) }
-    LaunchedEffect(selectionState.value, selectedMedia.size) {
-        withContext(Dispatchers.IO) {
-            isSelected = if (!selectionState.value) false else {
-                selectedMedia.find { it.id == media.id } != null
-            }
-        }
+    val isSelected by rememberedDerivedState(selectionState.value, selectedMedia, media) {
+        selectionState.value && selectedMedia.any { it.id == media.id }
     }
     val selectedSize by animateDpAsState(
-        if (isSelected) 12.dp else 0.dp, label = "selectedSize"
+        targetValue = if (isSelected) 12.dp else 0.dp,
+        label = "selectedSize"
     )
     val scale by animateFloatAsState(
-        if (isSelected) 0.5f else 1f, label = "scale"
+        targetValue = if (isSelected) 0.5f else 1f,
+        label = "scale"
     )
     val selectedShapeSize by animateDpAsState(
-        if (isSelected) 16.dp else 0.dp, label = "selectedShapeSize"
+        targetValue = if (isSelected) 16.dp else 0.dp,
+        label = "selectedShapeSize"
     )
     val strokeSize by animateDpAsState(
-        targetValue = if (isSelected) 2.dp else 0.dp, label = "strokeSize"
+        targetValue = if (isSelected) 2.dp else 0.dp,
+        label = "strokeSize"
     )
     val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
     val strokeColor by animateColorAsState(
         targetValue = if (isSelected) primaryContainerColor else Color.Transparent,
         label = "strokeColor"
     )
+    val roundedShape = remember(selectedShapeSize) {
+        RoundedCornerShape(selectedShapeSize)
+    }
     Box(
         modifier = Modifier
             .combinedClickable(
                 enabled = canClick,
-                onClick = {
-                    onItemClick(media)
-                    if (selectionState.value) {
-                        isSelected = !isSelected
-                    }
-                },
-                onLongClick = {
-                    onItemLongClick(media)
-                    if (selectionState.value) {
-                        isSelected = !isSelected
-                    }
-                },
+                onClick = { onItemClick(media) },
+                onLongClick = { onItemLongClick(media) },
             )
             .aspectRatio(1f)
             .then(modifier)
     ) {
-        Box(
+        AsyncImage(
             modifier = Modifier
+                .fillMaxSize()
                 .align(Alignment.Center)
                 .aspectRatio(1f)
                 .padding(selectedSize)
-                .clip(RoundedCornerShape(selectedShapeSize))
+                .clip(roundedShape)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = RoundedCornerShape(selectedShapeSize)
+                    shape = roundedShape
                 )
                 .border(
                     width = strokeSize,
-                    shape = RoundedCornerShape(selectedShapeSize),
+                    shape = roundedShape,
                     color = strokeColor
-                )
-        ) {
-            AsyncImage(
-                modifier = Modifier
-                    .fillMaxSize(),
-                request = ComposableImageRequest(media.getUri().toString()) {
+                ),
+            request = ComposableImageRequest(media.getUri().toString()) {
                 precision(Precision.LESS_PIXELS)
-                    setExtra(
-                        key = "mediaKey",
+                setExtra(
+                    key = "mediaKey",
                     value = media.idLessKey,
-                    )
-                    setExtra(
-                        key = "realMimeType",
-                        value = media.mimeType,
-                    )
-                },
+                )
+                setExtra(
+                    key = "realMimeType",
+                    value = media.mimeType,
+                )
+            },
             filterQuality = FilterQuality.None,
-                contentDescription = media.label,
-                contentScale = ContentScale.Crop,
-            )
+            contentDescription = media.label,
+            contentScale = ContentScale.Crop,
+        )
 
         AnimatedVisibility(
             visible = remember(media) { media.isVideo },
