@@ -417,7 +417,7 @@ fun DateFormatPreview(
                     SimpleDateFormat(newFormat, Locale.getDefault())
                     onDateFormatChange(newFormat)
                     isDateHeaderFormatError = false
-                } catch (e: IllegalArgumentException) {
+                } catch (_: IllegalArgumentException) {
                     isDateHeaderFormatError = true
                 }
             },

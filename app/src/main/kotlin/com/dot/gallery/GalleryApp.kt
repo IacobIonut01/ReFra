@@ -15,6 +15,7 @@ import com.github.panpf.sketch.PlatformContext
 import com.github.panpf.sketch.SingletonSketch
 import com.github.panpf.sketch.Sketch
 import com.github.panpf.sketch.cache.DiskCache
+import com.github.panpf.sketch.cache.MemoryCache
 import com.github.panpf.sketch.decode.supportAnimatedHeif
 import com.github.panpf.sketch.decode.supportAnimatedWebp
 import com.github.panpf.sketch.decode.supportSvg
@@ -44,6 +45,12 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
         val diskCache = DiskCache.Builder(context, FileSystem.SYSTEM)
             .directory(context.appCacheDirectory())
             .maxSize(150 * 1024 * 1024).build()
+
+        memoryCache {
+            MemoryCache.Builder(context)
+                .maxSizePercent(0.70)
+                .build()
+        }
 
         resultCache(diskCache)
         downloadCache(diskCache)
