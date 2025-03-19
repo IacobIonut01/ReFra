@@ -1,6 +1,6 @@
 [versions]
-adaptive = "1.1.0-beta01"
-agp = "8.8.0"
+adaptive = "1.1.0"
+agp = "8.9.0"
 aire = "0.15.5"
 avifCoderCoil = "2.0.10"
 benchmarkMacroJunit4 = "1.3.3"
@@ -10,11 +10,11 @@ composeVideo = "1.2.0"
 core = "1.11.1"
 coreSplashscreen = "1.0.1"
 fuzzywuzzy = "1.4.0"
-exifinterface = "1.3.7"
+exifinterface = "1.4.0"
 graphicsShapes = "1.0.1"
 jxlCoder = "2.1.10"
 kotlin = "2.1.10"
-kotlinCoroutinesVersion = "1.9.0"
+kotlinCoroutinesVersion = "1.10.1"
 ksp = "2.1.10-1.0.29"
 core-ktx = "1.15.0"
 junit = "4.13.2"
@@ -22,29 +22,28 @@ androidx-test-ext-junit = "1.2.1"
 espresso-core = "3.6.1"
 lazycolumnscrollbar = "2.2.0"
 lifecycle-runtime = "2.8.7"
-activity-compose = "1.10.0"
-hilt = "2.53.1"
+activity-compose = "1.10.1"
+hilt = "2.55"
 hiltCommon = "1.2.0"
 material = "1.12.0"
 material3 = "1.3.1"
 media3Exoplayer = "1.5.1"
-navigation-runtime-ktx = "2.8.6"
+navigation-runtime-ktx = "2.8.9"
 pinchzoomgrid = "0.0.5"
 profileinstaller = "1.4.1"
 room = "2.6.1"
-accompanist = "0.37.0"
-datastore = "1.1.2"
+accompanist = "0.37.2"
+datastore = "1.1.3"
 securityCrypto = "1.1.0-alpha06"
-sketch = "4.0.2"
+sketch = "4.0.4"
 startupRuntime = "1.2.0"
 tensorflowLite = "2.16.1"
 tensorflowLiteTaskVision = "0.4.4"
-tensorflowLiteGpu = "2.16.1"
 uiautomator = "2.3.0"
-composealpha = "1.8.0-beta01"
-kotlinxSerializationJson = "1.7.3"
+composealpha = "1.8.0-rc01"
+kotlinxSerializationJson = "1.8.0"
 workRuntimeKtx = "2.10.0"
-zoomimageViewSketch = "1.1.1"
+zoomimageViewSketch = "1.1.2"
 rules = "1.6.1"
 lifecycleProcess = "2.8.7"
 
@@ -82,7 +81,7 @@ compose-activity = { group = "androidx.activity", name = "activity-compose", ver
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "composealpha" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "composealpha" }
 compose-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle-runtime" }
-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version = "1.7.7" }
+compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version = "1.7.8" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 compose-material3-window-size = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "composealpha" }
@@ -92,7 +91,7 @@ compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", ver
 compose-video = { module = "io.sanghun:compose-video", version.ref = "composeVideo" }
 
 # Compose-shimmer
-compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version = "1.3.1"}
+compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version = "1.3.2"}
 
 # Compose Tests
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
@@ -148,7 +147,7 @@ androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflowLiteGpu" }
+tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflowLite" }
 tensorflow-lite-task-vision = { module = "org.tensorflow:tensorflow-lite-task-vision", version.ref = "tensorflowLiteTaskVision" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 zoomimage-sketch = { module = "io.github.panpf.zoomimage:zoomimage-compose-sketch4", version.ref = "zoomimageViewSketch" }
