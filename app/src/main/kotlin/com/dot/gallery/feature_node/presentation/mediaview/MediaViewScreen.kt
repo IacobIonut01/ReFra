@@ -12,8 +12,9 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -66,7 +67,6 @@ import com.composables.core.SheetDetent.Companion.FullyExpanded
 import com.composables.core.rememberBottomSheetState
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
-import com.dot.gallery.core.Constants.DEFAULT_LOW_VELOCITY_SWIPE_DURATION
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
@@ -331,10 +331,12 @@ fun <T : Media> MediaViewScreen(
                     printWarning("Trying to set HDR mode for page $it")
                     if (currentMedia?.isImage == true) {
                         val request = ImageRequest(context, currentMedia?.getUri().toString()) {
-                            setExtra(
-                                key = "mediaKey",
-                                value = currentMedia.toString(),
-                            )
+                            currentMedia?.let { media ->
+                                setExtra(
+                                    key = "mediaKey",
+                                    value = media.idLessKey,
+                                )
+                            }
                             setExtra(
                                 key = "realMimeType",
                                 value = currentMedia?.mimeType,
@@ -395,9 +397,8 @@ fun <T : Media> MediaViewScreen(
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(
                     state = pagerState,
-                    snapAnimationSpec = tween(
-                        easing = FastOutLinearInEasing,
-                        durationMillis = DEFAULT_LOW_VELOCITY_SWIPE_DURATION
+                    snapAnimationSpec = spring(
+                        stiffness = Spring.StiffnessMedium
                     ),
                     snapPositionalThreshold = 0.3f
                 ),

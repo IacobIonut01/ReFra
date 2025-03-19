@@ -73,7 +73,7 @@ private class EncryptedBitmapFactoryDecodeHelper(val request: ImageRequest, priv
     }
     override val supportRegion: Boolean by lazy {
         // The result returns null, which means unknown, but future versions may support it, so it is still worth trying.
-        supportBitmapRegionDecoder(imageInfo.mimeType) ?: true
+        supportBitmapRegionDecoder(imageInfo.mimeType) != false
     }
 
     private val exifOrientation: Int by lazy { dataSource.readEncryptedExifOrientation(keychainHolder) }

@@ -8,6 +8,7 @@ import com.github.panpf.sketch.decode.Decoder
 import com.github.panpf.sketch.decode.ImageInfo
 import com.github.panpf.sketch.fetch.FetchResult
 import com.github.panpf.sketch.request.RequestContext
+import com.github.panpf.sketch.request.get
 import com.github.panpf.sketch.source.DataSource
 
 fun ComponentRegistry.Builder.supportJxlDecoder(): ComponentRegistry.Builder = apply {
@@ -25,7 +26,8 @@ class SketchJxlDecoder(
             get() = "JxlDecoder"
 
         override fun create(requestContext: RequestContext, fetchResult: FetchResult): Decoder? {
-            return if (fetchResult.mimeType?.contains(JXL_MIMETYPE) == true) {
+            val mimeType = requestContext.request.extras?.get("realMimeType") as String? ?: return null
+            return if (mimeType.contains(JXL_MIMETYPE) == true) {
                 SketchJxlDecoder(requestContext, fetchResult.dataSource)
             } else {
                 null

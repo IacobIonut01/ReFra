@@ -127,20 +127,20 @@ fun <T: Media> MediaImage(
                 modifier = Modifier
                     .fillMaxSize(),
                 request = ComposableImageRequest(media.getUri().toString()) {
-                    scale(Scale.CENTER_CROP)
+                precision(Precision.LESS_PIXELS)
                     setExtra(
                         key = "mediaKey",
-                        value = media.toString(),
+                    value = media.idLessKey,
                     )
                     setExtra(
                         key = "realMimeType",
                         value = media.mimeType,
                     )
                 },
+            filterQuality = FilterQuality.None,
                 contentDescription = media.label,
                 contentScale = ContentScale.Crop,
             )
-        }
 
         AnimatedVisibility(
             visible = remember(media) { media.isVideo },

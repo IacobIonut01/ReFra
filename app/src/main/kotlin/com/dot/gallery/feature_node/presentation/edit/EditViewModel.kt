@@ -227,10 +227,12 @@ class EditViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val request = ImageRequest(context, activeMedia.value?.uri.toString()) {
                 size(Size.Origin)
-                setExtra(
-                    key = "mediaKey",
-                    value = activeMedia.value.toString(),
-                )
+                activeMedia.value?.let { media ->
+                    setExtra(
+                        key = "mediaKeyPreview",
+                        value = media.idLessKey,
+                    )
+                }
             }
             val result = context.sketch.execute(request)
             val bitmap = (result.image as? BitmapImage)?.bitmap

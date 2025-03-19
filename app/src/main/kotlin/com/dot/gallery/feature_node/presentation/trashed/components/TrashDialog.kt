@@ -293,7 +293,7 @@ fun <T: Media> TrashDialog(
                                     scale(Scale.CENTER_CROP)
                                     setExtra(
                                         key = "mediaKey",
-                                        value = it.toString(),
+                                        value = it.idLessKey,
                                     )
                                     setExtra(
                                         key = "realMimeType",

@@ -84,10 +84,11 @@ fun <T: Media> ZoomablePagerImage(
                     .alpha(blurAlpha)
                     .blur(100.dp),
                 request = ComposableImageRequest(media.getUri().toString()) {
+                    crossfade(durationMillis = 200)
                     size(Size.parseSize("600x600"))
                     setExtra(
-                        key = "mediaKey",
-                        value = media.toString(),
+                        key = "mediaKeySmall",
+                        value = media.idLessKey,
                     )
                     setExtra("realMimeType", media.mimeType)
                 },
@@ -103,10 +104,10 @@ fun <T: Media> ZoomablePagerImage(
     if (media.isEncrypted) {
         val painter = rememberAsyncImagePainter(
             request = ComposableImageRequest(media.getUri().toString()) {
-                crossfade()
+                crossfade(durationMillis = 200)
                 setExtra(
-                    key = "mediaKey",
-                    value = media.toString(),
+                    key = "mediaKeyPreviewEnc",
+                    value = media.idLessKey,
                 )
                 setExtra("realMimeType", media.mimeType)
             },
@@ -149,9 +150,10 @@ fun <T: Media> ZoomablePagerImage(
     } else {
         val asyncState = rememberAsyncImageState(
             options = ImageOptions {
+                crossfade(durationMillis = 200)
                 setExtra(
-                    key = "mediaKey",
-                    value = media.toString(),
+                    key = "mediaKeyPreview",
+                    value = media.idLessKey,
                 )
                 setExtra("realMimeType", media.mimeType)
             }

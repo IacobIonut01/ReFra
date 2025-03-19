@@ -6,6 +6,7 @@ import com.github.panpf.sketch.decode.Decoder
 import com.github.panpf.sketch.decode.ImageInfo
 import com.github.panpf.sketch.fetch.FetchResult
 import com.github.panpf.sketch.request.RequestContext
+import com.github.panpf.sketch.request.get
 import com.github.panpf.sketch.source.DataSource
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 
@@ -28,7 +29,8 @@ class SketchHeifDecoder(
             get() = "HeifDecoder"
 
         override fun create(requestContext: RequestContext, fetchResult: FetchResult): Decoder? {
-            return if (HEIF_MIMETYPES.any { fetchResult.mimeType?.contains(it) == true }) {
+            val mimeType = requestContext.request.extras?.get("realMimeType") as String? ?: return null
+            return if (HEIF_MIMETYPES.any { mimeType.contains(it) == true }) {
                 SketchHeifDecoder(requestContext, fetchResult.dataSource, fetchResult.mimeType!!)
             } else {
                 null
