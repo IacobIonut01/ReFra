@@ -5,14 +5,17 @@
 
 package com.dot.gallery.feature_node.presentation.util
 
+import android.content.res.Resources
 import android.os.Parcelable
 import android.text.format.DateFormat
+import androidx.core.os.ConfigurationCompat
 import kotlinx.parcelize.Parcelize
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 fun Long.getDateExt(): DateExt {
     val mediaDate = Calendar.getInstance(Locale.US)
@@ -70,9 +73,10 @@ fun Long.getDate(
     stringToday: String,
     stringYesterday: String
 ): String {
-    val currentDate = Calendar.getInstance(Locale.US)
+    val locale = ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0] ?: Locale.getDefault()
+    val currentDate = Calendar.getInstance(locale)
     currentDate.timeInMillis = System.currentTimeMillis()
-    val mediaDate = Calendar.getInstance(Locale.US)
+    val mediaDate = Calendar.getInstance(locale)
     mediaDate.timeInMillis = this * 1000L
     val different: Long = System.currentTimeMillis() - mediaDate.timeInMillis
     val secondsInMilli: Long = 1000
@@ -80,9 +84,9 @@ fun Long.getDate(
     val hoursInMilli = minutesInMilli * 60
     val daysInMilli = hoursInMilli * 24
 
-    val daysDifference = different / daysInMilli
+    val daysDifference = (different / daysInMilli.toFloat()).roundToInt()
 
-    return when (daysDifference.toInt()) {
+    return when (daysDifference) {
         0 -> {
             if (currentDate.get(Calendar.DATE) != mediaDate.get(Calendar.DATE)) {
                 stringYesterday
@@ -96,7 +100,7 @@ fun Long.getDate(
         }
 
         else -> {
-            if (daysDifference.toInt() in 2..5) {
+            if (daysDifference in 2..6) {
                 DateFormat.format(weeklyFormat, mediaDate).toString()
             } else {
                 if (currentDate.get(Calendar.YEAR) > mediaDate.get(Calendar.YEAR)) {
