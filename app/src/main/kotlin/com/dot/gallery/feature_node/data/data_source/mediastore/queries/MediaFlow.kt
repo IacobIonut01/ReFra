@@ -26,8 +26,10 @@ import com.dot.gallery.core.util.join
 import com.dot.gallery.feature_node.data.data_source.mediastore.MediaQuery
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaType
+import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.presentation.util.getDate
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /**
  * Media flow
@@ -167,5 +169,5 @@ class MediaFlow(
             size = size,
             mimeType = mimeType
         )
-    }
+    }.map { MediaOrder.Default.sortMedia(it) }
 }
