@@ -127,11 +127,12 @@ fun <T : Media> VideoPlayer(
         mutableStateOf<ExoPlayer?>(null)
     }
 
-    LaunchedEffect(exoPlayer, playWhenReady.value) {
-        exoPlayer?.let { player ->
-            if (player.playWhenReady != playWhenReady.value) {
-                player.playWhenReady = playWhenReady.value
-            }
+    LaunchedEffect(exoPlayer, exoPlayer?.playWhenReady, isPlaying.value) {
+        exoPlayer?.playWhenReady = isPlaying.value
+        if (isPlaying.value) {
+            exoPlayer?.play()
+        } else {
+            exoPlayer?.pause()
         }
     }
 
@@ -186,7 +187,7 @@ fun <T : Media> VideoPlayer(
                 }
             },
             handleLifecycle = true,
-            autoPlay = playWhenReady.value,
+            autoPlay = false,
             usePlayerController = false,
             enablePip = false,
             handleAudioFocus = audioFocus,
@@ -229,9 +230,6 @@ fun <T : Media> VideoPlayer(
         enter = enterAnimation,
         exit = exitAnimation
     ) {
-        LaunchedEffect(isPlaying.value) {
-            exoPlayer!!.playWhenReady = isPlaying.value
-        }
         if (isPlaying.value) {
             LaunchedEffect(Unit) {
                 while (true) {
