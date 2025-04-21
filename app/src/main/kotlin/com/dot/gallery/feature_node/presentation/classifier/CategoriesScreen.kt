@@ -37,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -153,12 +152,12 @@ fun CategoriesScreen(
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(16.dp)),
                                 media = item,
-                                selectedMedia = remember { mutableStateListOf() },
+                                selectedMedia = remember { mutableStateOf(setOf()) },
                                 selectionState = remember { mutableStateOf(false) },
-                                onItemClick = {
+                                onMediaClick = {
                                     navigate(Screen.CategoryViewScreen.category(item.category!!))
                                 },
-                                onItemLongClick = { },
+                                onItemSelect = {},
                                 canClick = true
                             )
 

@@ -41,7 +41,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -314,9 +313,9 @@ fun LibraryScreen(
                                                             animatedVisibilityScope = animatedContentScope
                                                         ),
                                                     media = it,
-                                                    selectedMedia = remember { mutableStateListOf() },
+                                                    selectedMedia = remember { mutableStateOf(setOf()) },
                                                     selectionState = remember { mutableStateOf(false) },
-                                                    onItemClick = { media ->
+                                                    onMediaClick = { media ->
                                                         navigate(
                                                             Screen.MediaViewScreen.idAndCategory(
                                                                 media.id,
@@ -324,7 +323,7 @@ fun LibraryScreen(
                                                             )
                                                         )
                                                     },
-                                                    onItemLongClick = {
+                                                    onItemSelect = {
                                                         navigate(
                                                             Screen.CategoryViewScreen.category(
                                                                 category!!

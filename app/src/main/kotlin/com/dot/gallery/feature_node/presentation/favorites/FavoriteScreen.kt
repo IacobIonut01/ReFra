@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
@@ -26,6 +25,7 @@ import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.favorites.components.EmptyFavorites
 import com.dot.gallery.feature_node.presentation.favorites.components.FavoriteNavActions
+import com.dot.gallery.feature_node.presentation.util.clear
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -36,7 +36,7 @@ fun FavoriteScreen(
     mediaState: State<MediaState<UriMedia>>,
     albumsState: State<AlbumState>,
     selectionState: MutableState<Boolean>,
-    selectedMedia: SnapshotStateList<UriMedia>,
+    selectedMedia: MutableState<Set<Long>>,
     toggleFavorite: (ActivityResultLauncher<IntentSenderRequest>, List<UriMedia>, Boolean) -> Unit,
     toggleSelection: (Int) -> Unit,
     navigate: (route: String) -> Unit,

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
@@ -27,6 +26,7 @@ import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.trashed.components.AutoDeleteFooter
 import com.dot.gallery.feature_node.presentation.trashed.components.EmptyTrash
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashedNavActions
+import com.dot.gallery.feature_node.presentation.util.clear
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -37,7 +37,7 @@ inline fun <reified T: Media> TrashedGridScreen(
     mediaState: State<MediaState<T>>,
     albumsState: State<AlbumState>,
     selectionState: MutableState<Boolean>,
-    selectedMedia: SnapshotStateList<T>,
+    selectedMedia: MutableState<Set<Long>>,
     noinline toggleSelection: (Int) -> Unit,
     noinline navigate: (route: String) -> Unit,
     noinline navigateUp: () -> Unit,

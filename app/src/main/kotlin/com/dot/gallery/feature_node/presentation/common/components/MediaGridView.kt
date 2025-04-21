@@ -30,11 +30,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -51,6 +49,7 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.model.isIgnoredKey
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.util.clear
 import com.dot.gallery.feature_node.presentation.util.roundDpToPx
 import com.dot.gallery.feature_node.presentation.util.roundSpToPx
 import kotlinx.coroutines.flow.collectLatest
@@ -65,7 +64,7 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
     showSearchBar: Boolean = remember { false },
     allowSelection: Boolean = remember { false },
     selectionState: MutableState<Boolean> = remember { mutableStateOf(false) },
-    selectedMedia: SnapshotStateList<T> = remember { mutableStateListOf() },
+    selectedMedia: MutableState<Set<Long>> = remember { mutableStateOf(emptySet()) },
     toggleSelection: @DisallowComposableCalls (Int) -> Unit = {},
     canScroll: Boolean = true,
     allowHeaders: Boolean = true,

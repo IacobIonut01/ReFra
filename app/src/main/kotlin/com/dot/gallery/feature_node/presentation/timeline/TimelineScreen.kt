@@ -24,6 +24,7 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
+import com.dot.gallery.feature_node.presentation.util.clear
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -35,7 +36,7 @@ inline fun <reified T: Media> TimelineScreen(
     mediaState: State<MediaState<T>>,
     albumsState: State<AlbumState>,
     selectionState: MutableState<Boolean>,
-    selectedMedia: SnapshotStateList<T>,
+    selectedMedia: MutableState<Set<Long>>,
     allowNavBar: Boolean = true,
     allowHeaders: Boolean = true,
     enableStickyHeaders: Boolean = true,

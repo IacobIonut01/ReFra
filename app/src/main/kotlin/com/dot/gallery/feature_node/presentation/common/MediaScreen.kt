@@ -32,7 +32,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -57,6 +56,9 @@ import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.clear
+import com.dot.gallery.feature_node.presentation.util.selectedMedia
+import com.dot.gallery.feature_node.presentation.util.size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -71,7 +73,7 @@ fun <T: Media> MediaScreen(
     albumsState: State<AlbumState> = remember { mutableStateOf(AlbumState()) },
     mediaState: State<MediaState<T>>,
     selectionState: MutableState<Boolean>,
-    selectedMedia: SnapshotStateList<T>,
+    selectedMedia: MutableState<Set<Long>>,
     toggleSelection: (Int) -> Unit,
     allowHeaders: Boolean = true,
     showMonthlyHeader: Boolean = false,
@@ -176,7 +178,7 @@ fun <T: Media> MediaScreen(
                         navigate = navigate,
                         toggleNavbar = toggleNavbar,
                         selectionState = remember(selectedMedia) {
-                            if (selectedMedia.isNotEmpty()) selectionState else null
+                            if (selectedMedia.size > 0) selectionState else null
                         },
                         isScrolling = isScrolling,
                         activeState = searchBarActive,
@@ -237,10 +239,11 @@ fun <T: Media> MediaScreen(
             enter = enterAnimation,
             exit = exitAnimation
         ) {
+            val selectedMediaList = mediaState.value.media.selectedMedia(selectedSet = selectedMedia)
             SelectionSheet(
                 modifier = Modifier
                     .align(Alignment.BottomEnd),
-                selectedMedia = selectedMedia,
+                selectedMedia = selectedMediaList,
                 selectionState = selectionState,
                 albumsState = albumsState,
                 handler = handler

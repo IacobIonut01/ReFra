@@ -13,12 +13,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,7 +30,10 @@ import com.dot.gallery.feature_node.domain.model.MediaItem
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
+import com.dot.gallery.feature_node.presentation.util.add
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
+import com.dot.gallery.feature_node.presentation.util.remove
+import com.dot.gallery.feature_node.presentation.util.size
 import com.dot.gallery.ui.theme.Dimens
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -38,7 +41,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun <T: Media> PickerMediaScreen(
     mediaState: StateFlow<MediaState<T>>,
-    selectedMedia: SnapshotStateList<T>,
+    selectedMedia: MutableState<Set<Long>>,
     allowSelection: Boolean,
 ) {
     val scope = rememberCoroutineScope()
@@ -71,7 +74,7 @@ fun <T: Media> PickerMediaScreen(
                     if (allowSelection) {
                         LaunchedEffect(selectedMedia.size) {
                             // Partial check of media items should not check the header
-                            isChecked.value = selectedMedia.map { it.id }.containsAll(item.data)
+                            isChecked.value = selectedMedia.value.containsAll(item.data)
                         }
                     }
                     val title = item.text
@@ -87,13 +90,10 @@ fun <T: Media> PickerMediaScreen(
                             feedbackManager.vibrate()
                             scope.launch {
                                 isChecked.value = !isChecked.value
+                                val list = mediaState.value.media.map { it.id }
                                 if (isChecked.value) {
-                                    val toAdd = item.data.toMutableList().apply {
-                                        // Avoid media from being added twice to selection
-                                        removeIf { selectedMedia.map { it.id }.contains(it) }
-                                    }
-                                    selectedMedia.addAll(mediaState.value.media.filter { toAdd.contains(it.id) })
-                                } else selectedMedia.removeAll { item.data.contains(it.id) }
+                                    selectedMedia.add(list)
+                                } else selectedMedia.remove(list)
                             }
                         }
                     }
@@ -107,32 +107,35 @@ fun <T: Media> PickerMediaScreen(
                         selectionState = selectionState,
                         selectedMedia = selectedMedia,
                         canClick = true,
-                        onItemClick = {
+                        onMediaClick = {
                             feedbackManager.vibrate()
+                            val id = it.id
                             if (allowSelection) {
-                                if (selectedMedia.contains(it)) selectedMedia.remove(it)
-                                else selectedMedia.add(it)
-                            } else if (!selectedMedia.contains(it) && selectedMedia.size == 1) {
-                                selectedMedia[0] = it
-                            } else if (selectedMedia.isEmpty()) {
-                                selectedMedia.add(it)
+                                if (selectedMedia.value.contains(id)) selectedMedia.value.minus(id)
+                                else selectedMedia.value.plus(id)
+                            } else if (!selectedMedia.value.contains(id) && selectedMedia.size == 1) {
+                                selectedMedia.value = setOf(id)
+                            } else if (selectedMedia.value.isEmpty()) {
+                                selectedMedia.value.plus(id)
                             } else {
-                                selectedMedia.remove(it)
+                                selectedMedia.value.minus(id)
+                            }
+                        },
+                        onItemSelect = {
+                            feedbackManager.vibrate()
+                            val id = it.id
+                            if (allowSelection) {
+                                if (selectedMedia.value.contains(id)) selectedMedia.value.minus(id)
+                                else selectedMedia.value.plus(id)
+                            } else if (!selectedMedia.value.contains(id) && selectedMedia.size == 1) {
+                                selectedMedia.value = setOf(id)
+                            } else if (selectedMedia.value.isEmpty()) {
+                                selectedMedia.value.plus(id)
+                            } else {
+                                selectedMedia.value.minus(id)
                             }
                         }
-                    ) {
-                        feedbackManager.vibrate()
-                        if (allowSelection) {
-                            if (selectedMedia.contains(it)) selectedMedia.remove(it)
-                            else selectedMedia.add(it)
-                        } else if (!selectedMedia.contains(it) && selectedMedia.size == 1) {
-                            selectedMedia[0] = it
-                        } else if (selectedMedia.isEmpty()) {
-                            selectedMedia.add(it)
-                        } else {
-                            selectedMedia.remove(it)
-                        }
-                    }
+                    )
                 }
             }
         }

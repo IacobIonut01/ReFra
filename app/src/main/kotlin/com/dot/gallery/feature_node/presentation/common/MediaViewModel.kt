@@ -9,7 +9,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,9 +24,11 @@ import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
+import com.dot.gallery.feature_node.presentation.util.add
 import com.dot.gallery.feature_node.presentation.util.collectMedia
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.dot.gallery.feature_node.presentation.util.mediaFlow
+import com.dot.gallery.feature_node.presentation.util.remove
 import com.dot.gallery.feature_node.presentation.util.update
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -55,14 +56,14 @@ open class MediaViewModel @Inject constructor(
     val multiSelectState = mutableStateOf(false)
     private val _searchMediaState = MutableStateFlow(MediaState<Media>())
     val searchMediaState = _searchMediaState.asStateFlow()
-    val selectedPhotoState = mutableStateListOf<UriMedia>()
+    val selectedPhotoState = mutableStateOf<Set<Long>>(emptySet())
 
     var albumId: Long = -1L
     var target: String? = null
     var category: String? = null
 
     var groupByMonth: Boolean
-        get() = settingsFlow.value?.groupTimelineByMonth ?: false
+        get() = settingsFlow.value?.groupTimelineByMonth == true
         set(value) {
             viewModelScope.launch(Dispatchers.IO) {
                 settingsFlow.value?.copy(groupTimelineByMonth = value)?.let {
@@ -188,13 +189,13 @@ open class MediaViewModel @Inject constructor(
     fun toggleSelection(index: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val item = mediaFlow.value.media[index]
-            val selectedPhoto = selectedPhotoState.find { it.id == item.id }
+            val selectedPhoto = selectedPhotoState.value.find { it == item.id }
             if (selectedPhoto != null) {
                 selectedPhotoState.remove(selectedPhoto)
             } else {
-                selectedPhotoState.add(item)
+                selectedPhotoState.add(item.id)
             }
-            multiSelectState.update(selectedPhotoState.isNotEmpty())
+            multiSelectState.update(selectedPhotoState.value.isNotEmpty())
         }
     }
 

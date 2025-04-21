@@ -12,7 +12,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,12 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,10 +36,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation
 import com.dot.gallery.core.presentation.components.CheckBox
+import com.dot.gallery.core.presentation.components.util.advancedShadow
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
+import com.dot.gallery.feature_node.domain.model.getIcon
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isFavorite
 import com.dot.gallery.feature_node.domain.util.isVideo
@@ -50,17 +55,18 @@ import com.github.panpf.sketch.request.ComposableImageRequest
 import com.github.panpf.sketch.resize.Precision
 
 @Composable
-fun <T: Media> MediaImage(
+fun <T : Media> MediaImage(
     modifier: Modifier = Modifier,
     media: T,
+    metadata: MediaMetadata? = null,
     selectionState: MutableState<Boolean>,
-    selectedMedia: SnapshotStateList<T>,
+    selectedMedia: MutableState<Set<Long>>,
     canClick: Boolean,
-    onItemClick: (T) -> Unit,
-    onItemLongClick: (T) -> Unit,
+    onMediaClick: (T) -> Unit,
+    onItemSelect: (T) -> Unit,
 ) {
     val isSelected by rememberedDerivedState(selectionState.value, selectedMedia, media) {
-        selectionState.value && selectedMedia.any { it.id == media.id }
+        selectionState.value && selectedMedia.value.any { it == media.id }
     }
     val selectedSize by animateDpAsState(
         targetValue = if (isSelected) 12.dp else 0.dp,
@@ -88,10 +94,23 @@ fun <T: Media> MediaImage(
     }
     Box(
         modifier = Modifier
-            .combinedClickable(
+            .semantics {
+                if (!selectionState.value) {
+                    onLongClick("Select") {
+                        onItemSelect(media)
+                        true
+                    }
+                }
+            }
+            .clickable(
                 enabled = canClick,
-                onClick = { onItemClick(media) },
-                onLongClick = { onItemLongClick(media) },
+                onClick = {
+                    if (selectionState.value) {
+                        onItemSelect(media)
+                    } else {
+                        onMediaClick(media)
+                    }
+                }
             )
             .aspectRatio(1f)
             .then(modifier)
@@ -136,7 +155,7 @@ fun <T: Media> MediaImage(
         ) {
             VideoDurationHeader(
                 modifier = Modifier
-                    .padding(selectedSize / 2)
+                    .padding(selectedSize / 1.5f)
                     .scale(scale),
                 media = media
             )
@@ -153,12 +172,36 @@ fun <T: Media> MediaImage(
         ) {
             Image(
                 modifier = Modifier
-                    .padding(selectedSize / 2)
+                    .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
                     .size(16.dp),
                 imageVector = Icons.Filled.Favorite,
                 colorFilter = ColorFilter.tint(Color.Red),
+                contentDescription = null
+            )
+        }
+
+        AnimatedVisibility(
+            visible = metadata != null && metadata.isRelevant,
+            enter = Animation.enterAnimation,
+            exit = Animation.exitAnimation,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+        ) {
+            Icon(
+                modifier = Modifier
+                    .padding(selectedSize / 1.5f)
+                    .scale(scale)
+                    .padding(8.dp)
+                    .size(16.dp)
+                    .advancedShadow(
+                        cornersRadius = 8.dp,
+                        shadowBlurRadius = 6.dp,
+                        alpha = 0.3f
+                    ),
+                imageVector = metadata!!.getIcon()!!,
+                tint = Color.White,
                 contentDescription = null
             )
         }

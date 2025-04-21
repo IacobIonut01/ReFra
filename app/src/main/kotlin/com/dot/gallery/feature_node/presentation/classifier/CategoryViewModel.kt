@@ -1,6 +1,5 @@
 package com.dot.gallery.feature_node.presentation.classifier
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +10,9 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
+import com.dot.gallery.feature_node.presentation.util.add
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
+import com.dot.gallery.feature_node.presentation.util.remove
 import com.dot.gallery.feature_node.presentation.util.update
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -65,18 +66,18 @@ class CategoryViewModel @Inject constructor(
 
 
     val selectionState = mutableStateOf(false)
-    val selectedMedia = mutableStateListOf<Media.ClassifiedMedia>()
+    val selectedMedia = mutableStateOf<Set<Long>>(emptySet())
 
     fun toggleSelection(mediaState: MediaState<Media.ClassifiedMedia>, index: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val item = mediaState.media[index]
-            val selectedPhoto = selectedMedia.find { it.id == item.id }
+            val selectedPhoto = selectedMedia.value.find { it == item.id }
             if (selectedPhoto != null) {
                 selectedMedia.remove(selectedPhoto)
             } else {
-                selectedMedia.add(item)
+                selectedMedia.add(item.id)
             }
-            selectionState.update(selectedMedia.isNotEmpty())
+            selectionState.update(selectedMedia.value.isNotEmpty())
         }
     }
 

@@ -6,6 +6,7 @@
 package com.dot.gallery.core.presentation.components
 
 import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -109,7 +110,7 @@ fun <T: Media> SelectionSheet(
             }
         }
     )
-    val windowSizeClass = calculateWindowSizeClass(LocalContext.current as Activity)
+    val windowSizeClass = calculateWindowSizeClass(LocalActivity.current as Activity)
     val tabletMode = remember(windowSizeClass) {
         windowSizeClass.widthSizeClass > WindowWidthSizeClass.Compact
     }

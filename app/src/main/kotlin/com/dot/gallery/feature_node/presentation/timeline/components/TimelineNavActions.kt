@@ -23,7 +23,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
@@ -33,6 +32,7 @@ import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.components.OptionItem
 import com.dot.gallery.feature_node.presentation.common.components.OptionSheet
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.clear
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import kotlinx.coroutines.launch
 
@@ -42,7 +42,7 @@ inline fun <reified T: Media> TimelineNavActions(
     handler: MediaHandleUseCase,
     expandedDropDown: MutableState<Boolean>,
     mediaState: State<MediaState<T>>,
-    selectedMedia: SnapshotStateList<T>,
+    selectedMedia: MutableState<Set<Long>>,
     selectionState: MutableState<Boolean>,
     crossinline navigate: @DisallowComposableCalls (route: String) -> Unit,
     crossinline navigateUp: @DisallowComposableCalls () -> Unit
@@ -75,7 +75,7 @@ inline fun <reified T: Media> TimelineNavActions(
                 onClick = {
                     selectionState.value = !selectionState.value
                     if (selectionState.value)
-                        selectedMedia.addAll(mediaState.value.media)
+                        selectedMedia.value.plus(mediaState.value.media.map { it.id })
                     else
                         selectedMedia.clear()
                     expandedDropDown.value = false
