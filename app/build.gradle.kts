@@ -17,13 +17,13 @@ plugins {
 
 android {
     namespace = "com.dot.gallery"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.dot.gallery"
         minSdk = 30
-        targetSdk = 35
-        versionCode = 32000
+        targetSdk = 36
+        versionCode = 32002
         versionName = "3.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -245,6 +245,7 @@ dependencies {
 
     // Exif Interface
     implementation(libs.androidx.exifinterface)
+    implementation(libs.metadata.extractor)
 
     // Datastore Preferences
     implementation(libs.datastore.prefs)
@@ -304,7 +305,7 @@ fun getApiKey(): String {
         val properties = Properties()
         properties.load(FileInputStream(fl))
         properties.getProperty("MAPS_TOKEN")
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "\"DEBUG\""
     }
 }
@@ -317,15 +318,7 @@ val allowAllFilesAccess: String
             val properties = Properties()
             properties.load(FileInputStream(fl))
             properties.getProperty("ALL_FILES_ACCESS")
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             "true"
         }
-    }
-
-@Suppress("UnstableApiUsage")
-val gitHeadVersion: String
-    get() {
-        return providers.exec {
-            commandLine("git", "show", "-s", "--format=%h", "HEAD")
-        }.standardOutput.asText.get().trim()
     }
