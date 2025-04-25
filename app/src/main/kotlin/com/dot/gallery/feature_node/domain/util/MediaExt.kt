@@ -201,4 +201,4 @@ val Any.isBigHeaderKey: Boolean
     get() = this is String && this.startsWith("header_big_")
 
 val Any.isIgnoredKey: Boolean
-    get() = this is String && this == "aboveGrid"
+    get() = this is String && this.contains("aboveGrid")

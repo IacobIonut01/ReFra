@@ -23,7 +23,6 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.core.Constants
-import com.dot.gallery.feature_node.domain.model.ExifAttributes
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isVideo
@@ -250,7 +249,7 @@ fun ContentResolver.saveVideo(
     }
 }
 
-suspend fun <T: Media> Context.renameMedia(
+suspend fun <T : Media> Context.renameMedia(
     media: T,
     newName: String
 ): Boolean = withContext(Dispatchers.IO) {
@@ -308,23 +307,37 @@ suspend fun <T : Media> Context.updateMedia(
     }
 }
 
-suspend fun <T : Media> ContentResolver.updateMediaExif(
+suspend inline fun <T : Media> Context.updateMediaExif(
     media: T,
-    exifAttributes: ExifAttributes
+    crossinline action: suspend ExifInterface.(T) -> Unit,
+    crossinline postAction: suspend (T) -> Unit
 ) = withContext(Dispatchers.IO) {
     return@withContext try {
-        openFileDescriptor(media.getUri(), "rw").use { imagePfd ->
-            if (imagePfd != null) {
-                val exif = ExifInterface(imagePfd.fileDescriptor)
-                exifAttributes.writeExif(exif)
-                runCatching {
+        val uri = media.getUri()
+        contentResolver.openFileDescriptor(uri, "rw").use { imagePfd ->
+            runCatching {
+                if (imagePfd != null) {
+                    val exif = ExifInterface(imagePfd.fileDescriptor)
+                    exif.action(media)
                     exif.saveAttributes()
-                }.onFailure {
-                    it.printStackTrace()
-                }
+                    true
+                } else false
+            }.getOrElse {
+                it.printStackTrace()
+                false
             }
-            true
         }
+        updateMedia(
+            media = media,
+            contentValues = ContentValues().apply {
+                put(
+                    MediaStore.MediaColumns.DATE_MODIFIED,
+                    System.currentTimeMillis()
+                )
+            }
+        )
+        postAction(media)
+        true
     } catch (e: java.lang.Exception) {
         e.printStackTrace()
         false

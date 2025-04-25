@@ -23,11 +23,14 @@ import com.dot.gallery.core.dataStore
 import com.dot.gallery.core.updateDatabase
 import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.ext.copyMedia
+import com.dot.gallery.core.util.ext.deleteGpsMetadata
+import com.dot.gallery.core.util.ext.deleteMetadata
 import com.dot.gallery.core.util.ext.mapAsResource
 import com.dot.gallery.core.util.ext.overrideImage
 import com.dot.gallery.core.util.ext.renameMedia
 import com.dot.gallery.core.util.ext.saveImage
 import com.dot.gallery.core.util.ext.saveVideo
+import com.dot.gallery.core.util.ext.updateImageDescription
 import com.dot.gallery.core.util.ext.updateMedia
 import com.dot.gallery.core.util.ext.updateMediaExif
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
@@ -37,15 +40,17 @@ import com.dot.gallery.feature_node.data.data_source.mediastore.queries.AlbumsFl
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaFlow
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaUriFlow
 import com.dot.gallery.feature_node.domain.model.Album
-import com.dot.gallery.feature_node.domain.model.ExifAttributes
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
 import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
+import com.dot.gallery.feature_node.domain.model.retrieveExtraMediaMetadata
+import com.dot.gallery.feature_node.domain.model.toMediaMetadata
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.domain.util.OrderType
@@ -260,12 +265,39 @@ class MediaRepositoryImpl(
         contentValues = relativePath(newPath)
     )
 
-    override suspend fun <T : Media> updateMediaExif(
+    override suspend fun <T : Media> deleteMediaGPSMetadata(media: T): Boolean =
+        context.updateMediaExif(
+            media = media,
+            action = { deleteGpsMetadata() },
+            postAction = {
+                context.retrieveExtraMediaMetadata(it)?.let { metadata ->
+                    database.getMetadataDao().addMetadata(metadata)
+                }
+            }
+        )
+
+    override suspend fun <T : Media> deleteMediaMetadata(media: T): Boolean =
+        context.updateMediaExif(
+            media = media,
+            action = { deleteMetadata() },
+            postAction = {
+                context.retrieveExtraMediaMetadata(it)?.let { metadata ->
+                    database.getMetadataDao().addMetadata(metadata)
+                }
+            }
+        )
+
+    override suspend fun <T : Media> updateMediaImageDescription(
         media: T,
-        exifAttributes: ExifAttributes
-    ): Boolean = contentResolver.updateMediaExif(
+        description: String
+    ): Boolean = context.updateMediaExif(
         media = media,
-        exifAttributes = exifAttributes
+        action = { updateImageDescription(description) },
+        postAction = {
+            context.retrieveExtraMediaMetadata(it)?.let { metadata ->
+                database.getMetadataDao().addMetadata(metadata)
+            }
+        }
     )
 
     override fun saveImage(
@@ -409,7 +441,8 @@ class MediaRepositoryImpl(
                     }
                     val deleted = if (restored) output.delete() else false
                     if (deleted) {
-                        database.getVaultDao().deleteMediaFromVault(encryptedMedia.migrate(vault.uuid))
+                        database.getVaultDao()
+                            .deleteMediaFromVault(encryptedMedia.migrate(vault.uuid))
                     }
                     restored && deleted
                 } catch (e: Exception) {
@@ -451,7 +484,8 @@ class MediaRepositoryImpl(
                 try {
                     val deleted = file.delete()
                     if (deleted) {
-                        database.getVaultDao().deleteMediaFromVault(vault.uuid, file.nameWithoutExtension.toLong())
+                        database.getVaultDao()
+                            .deleteMediaFromVault(vault.uuid, file.nameWithoutExtension.toLong())
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -474,8 +508,10 @@ class MediaRepositoryImpl(
         return withContext(Dispatchers.IO) {
             var size = 0
             with(keychainHolder) {
-                val uuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$".toRegex()
-                val vaults = filesDir.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
+                val uuidRegex =
+                    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$".toRegex()
+                val vaults =
+                    filesDir.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
                 vaults?.forEach { vaultFolder ->
                     (vaultFolder.listFiles()?.filter { it.name.endsWith("enc") }
                         ?: emptyList()).map { file ->
@@ -525,11 +561,14 @@ class MediaRepositoryImpl(
             }
 
             val keychainStoredEncryptedMedia = with(keychainHolder) {
-                val uuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$".toRegex()
-                val vaults = filesDir.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
+                val uuidRegex =
+                    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$".toRegex()
+                val vaults =
+                    filesDir.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
                 val encryptedMedia = mutableListOf<Media.EncryptedMedia2>()
                 vaults?.forEach { vaultFolder ->
-                    (vaultFolder.listFiles()?.filter { it.name.endsWith("enc") } ?: emptyList()).forEach { file ->
+                    (vaultFolder.listFiles()?.filter { it.name.endsWith("enc") }
+                        ?: emptyList()).forEach { file ->
                         try {
                             val id = file.nameWithoutExtension.toLong()
                             if (databaseStoredEncryptedMedia?.find { media -> media.id == id } != null) {
@@ -538,7 +577,8 @@ class MediaRepositoryImpl(
                             val oldEncryptedMedia = file.decrypt<EncryptedMedia>()
                             printInfo("Migrating old encrypted media: ${oldEncryptedMedia.id}")
                             file.delete()
-                            val encryptedMedia2 = oldEncryptedMedia.migrate(UUID.fromString(vaultFolder.nameWithoutExtension))
+                            val encryptedMedia2 =
+                                oldEncryptedMedia.migrate(UUID.fromString(vaultFolder.nameWithoutExtension))
                             file.encryptKotlin(encryptedMedia2)
                             encryptedMedia.add(encryptedMedia2)
                         } catch (e: Throwable) {
@@ -617,6 +657,16 @@ class MediaRepositoryImpl(
 
     override suspend fun changeCategory(mediaId: Long, newCategory: String) =
         database.getClassifierDao().changeCategory(mediaId, newCategory)
+
+    override fun getMetadata(media: Media): Flow<MediaMetadata> {
+        return database.getMetadataDao().getFullMetadata(media.id).map { it.toMediaMetadata() }
+    }
+
+    override fun getMetadata(): Flow<List<MediaMetadata>> {
+        return database.getMetadataDao().getFullMetadata().map { list ->
+            list.map { it.toMediaMetadata() }
+        }
+    }
 
     companion object {
         private fun displayName(newName: String) = ContentValues().apply {

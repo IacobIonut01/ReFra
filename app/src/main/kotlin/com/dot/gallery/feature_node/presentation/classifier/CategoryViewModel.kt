@@ -3,9 +3,12 @@ package com.dot.gallery.feature_node.presentation.classifier
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.dot.gallery.core.Constants
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -18,6 +21,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,6 +30,7 @@ import javax.inject.Inject
 class CategoryViewModel @Inject constructor(
     private val repository: MediaRepository,
     val handler: MediaHandleUseCase,
+    workManager: WorkManager
 ) : ViewModel() {
 
     var category: String = ""
@@ -63,6 +68,20 @@ class CategoryViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), MediaState())
     }
+
+    val metadataFlow = combine(
+        repository.getMetadata(),
+        workManager.getWorkInfosForUniqueWorkFlow("MetadataCollection")
+            .map { it.lastOrNull()?.state == WorkInfo.State.RUNNING },
+        workManager.getWorkInfosForUniqueWorkFlow("MetadataCollection")
+            .map { it.lastOrNull()?.progress?.getInt("progress", 0) ?: 0 }
+    ) { metadata, isRunning, progress ->
+        MediaMetadataState(
+            metadata = metadata,
+            isLoading = isRunning,
+            isLoadingProgress = progress
+        )
+    }.stateIn(viewModelScope, started = SharingStarted.Eagerly, MediaMetadataState())
 
 
     val selectionState = mutableStateOf(false)

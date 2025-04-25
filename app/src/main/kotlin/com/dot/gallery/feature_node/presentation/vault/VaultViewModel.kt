@@ -15,6 +15,7 @@ import com.dot.gallery.core.Resource
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
@@ -25,6 +26,7 @@ import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -62,6 +64,20 @@ open class VaultViewModel @Inject constructor(
             it.lastOrNull()?.progress?.getFloat("progress", 0f) ?: 0f
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), 0f)
+
+    val metadataFlow = combine(
+        repository.getMetadata(),
+        workManager.getWorkInfosByTagFlow("MetadataCollection")
+            .map { it.lastOrNull()?.state == WorkInfo.State.RUNNING },
+        workManager.getWorkInfosByTagFlow("MetadataCollection")
+            .map { it.lastOrNull()?.progress?.getInt("progress", 0) ?: 0 }
+    ) { metadata, isRunning, progress ->
+        MediaMetadataState(
+            metadata = metadata,
+            isLoading = isRunning,
+            isLoadingProgress = progress
+        )
+    }.stateIn(viewModelScope, started = SharingStarted.Eagerly, MediaMetadataState())
 
     @SuppressLint("ComposableNaming")
     @Composable

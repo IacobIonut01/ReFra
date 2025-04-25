@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.dot.gallery.feature_node.presentation.util.ExifMetadata
 import com.dot.gallery.feature_node.presentation.util.formattedAddress
 import com.dot.gallery.feature_node.presentation.util.getLocation
 import com.dot.gallery.feature_node.presentation.util.rememberGeocoder
@@ -23,17 +22,16 @@ data class LocationData(
 
 @Composable
 fun rememberLocationData(
-    exifMetadata: ExifMetadata?,
-    media: Media
+    exifMetadata: MediaMetadata?
 ): LocationData? {
     val geocoder = rememberGeocoder()
     var locationName by remember { mutableStateOf(exifMetadata?.formattedCords) }
     LaunchedEffect(geocoder, exifMetadata) {
         withContext(Dispatchers.IO) {
-            if (exifMetadata?.gpsLatLong != null) {
+            if (exifMetadata?.gpsLongitude != null && exifMetadata.gpsLatitude != null) {
                 geocoder?.getLocation(
-                    exifMetadata.gpsLatLong[0],
-                    exifMetadata.gpsLatLong[1]
+                    exifMetadata.gpsLatitude,
+                    exifMetadata.gpsLongitude
                 ) { address ->
                     address?.let {
                         val addressName = it.formattedAddress
@@ -45,15 +43,14 @@ fun rememberLocationData(
             }
         }
     }
-    return remember(media, exifMetadata, locationName) {
+    return remember(exifMetadata, locationName) {
         exifMetadata?.let {
-            it.gpsLatLong?.let { latLong ->
-                LocationData(
-                    latitude = latLong[0],
-                    longitude = latLong[1],
-                    location = locationName ?: "Unknown"
-                )
-            }
+            if (it.gpsLatitude == null || it.gpsLongitude == null) return@let null
+            LocationData(
+                latitude = it.gpsLatitude,
+                longitude = it.gpsLongitude,
+                location = locationName ?: "Unknown"
+            )
         }
     }
 }

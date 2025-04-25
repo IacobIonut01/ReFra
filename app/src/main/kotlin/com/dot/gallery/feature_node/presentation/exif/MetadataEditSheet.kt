@@ -37,13 +37,13 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.rememberExifAttributes
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
+import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
-import com.dot.gallery.feature_node.presentation.util.rememberExifInterface
 import com.dot.gallery.feature_node.presentation.util.toastError
 import com.dot.gallery.feature_node.presentation.util.writeRequest
 import com.dot.gallery.ui.theme.Shapes
@@ -55,19 +55,23 @@ import kotlinx.coroutines.launch
 fun <T: Media> MetadataEditSheet(
     state: AppBottomSheetState,
     media: T,
+    metadata: MediaMetadata?,
     handle: MediaHandleUseCase
 ) {
     val scope = rememberCoroutineScope { Dispatchers.IO }
-    val exifInterface = rememberExifInterface(media, useDirectPath = true)
     val context = LocalContext.current
     val cr = remember(context) { context.contentResolver }
-    var exifAttributes by rememberExifAttributes(exifInterface)
+    var imageDescription by rememberSaveable(metadata) {
+        mutableStateOf(metadata?.imageDescription)
+    }
     var newLabel by rememberSaveable { mutableStateOf(media.label) }
     val errorToast = toastError()
     val request = rememberActivityResult {
         scope.launch {
             var done: Boolean
-            done = handle.updateMediaExif(media, exifAttributes)
+            printDebug("Updating media image description to $imageDescription")
+            done = handle.updateMediaImageDescription(media, imageDescription ?: "")
+            printDebug("Updated : $done")
             if (newLabel != media.label && newLabel.isNotBlank()) {
                 done = handle.renameMedia(media, newLabel)
             }
@@ -143,9 +147,9 @@ fun <T: Media> MetadataEditSheet(
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth()
                             .height(112.dp),
-                        value = exifAttributes.imageDescription ?: "",
+                        value = imageDescription ?: "",
                         onValueChange = { newValue ->
-                            exifAttributes = exifAttributes.copy(imageDescription = newValue)
+                            imageDescription = newValue
                         },
                         label = {
                             Text(text = stringResource(R.string.description))

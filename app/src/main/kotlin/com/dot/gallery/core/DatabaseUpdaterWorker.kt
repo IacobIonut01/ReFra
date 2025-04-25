@@ -32,7 +32,13 @@ fun WorkManager.updateDatabase() {
         )
         .build()
 
-    enqueueUniqueWork("DatabaseUpdaterWorker", ExistingWorkPolicy.KEEP, uniqueWork)
+    enqueueUniqueWork("DatabaseUpdaterWorker", ExistingWorkPolicy.APPEND, uniqueWork)
+
+    val metadataWork = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
+        .addTag("MetadataCollection")
+        .build()
+
+    enqueueUniqueWork("MetadataCollection", ExistingWorkPolicy.KEEP, metadataWork)
 }
 
 @HiltWorker

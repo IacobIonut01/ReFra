@@ -75,6 +75,7 @@ import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
@@ -144,6 +145,7 @@ fun <T : Media> MediaViewScreen(
     target: String? = null,
     mediaState: State<MediaState<out T>>,
     albumsState: State<AlbumState> = remember { mutableStateOf(AlbumState()) },
+    metadataState: State<MediaMetadataState> = remember { mutableStateOf(MediaMetadataState()) },
     handler: MediaHandleUseCase?,
     vaultState: State<VaultState>,
     addMedia: (Vault, T) -> Unit,
@@ -657,6 +659,7 @@ fun <T : Media> MediaViewScreen(
                     MediaViewDetails(
                         albumsState = albumsState,
                         vaultState = vaultState,
+                        metadataState = metadataState,
                         currentMedia = currentMedia,
                         handler = handler,
                         addMediaToVault = addMedia,

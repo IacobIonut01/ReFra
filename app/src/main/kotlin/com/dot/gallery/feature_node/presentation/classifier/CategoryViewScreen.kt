@@ -35,6 +35,7 @@ fun CategoryViewScreen(
     }
 
     val mediaState = viewModel.mediaByCategory.collectAsStateWithLifecycle()
+    val metadataState = viewModel.metadataFlow.collectAsStateWithLifecycle()
 
     MediaScreen(
         albumName = category,
@@ -42,6 +43,7 @@ fun CategoryViewScreen(
         selectedMedia = viewModel.selectedMedia,
         selectionState = viewModel.selectionState,
         mediaState = mediaState,
+        metadataState = metadataState,
         target = "category_$category",
         toggleSelection = {
             viewModel.toggleSelection(mediaState.value, it)

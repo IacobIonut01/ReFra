@@ -26,7 +26,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +60,7 @@ import com.github.panpf.sketch.resize.Precision
 fun <T : Media> MediaImage(
     modifier: Modifier = Modifier,
     media: T,
-    metadata: MediaMetadata? = null,
+    metadata: State<MediaMetadata?> = remember { mutableStateOf(null) },
     selectionState: MutableState<Boolean>,
     selectedMedia: MutableState<Set<Long>>,
     canClick: Boolean,
@@ -183,7 +185,7 @@ fun <T : Media> MediaImage(
         }
 
         AnimatedVisibility(
-            visible = metadata != null && metadata.isRelevant,
+            visible = metadata.value != null && metadata.value!!.isRelevant,
             enter = Animation.enterAnimation,
             exit = Animation.exitAnimation,
             modifier = Modifier
@@ -200,7 +202,7 @@ fun <T : Media> MediaImage(
                         shadowBlurRadius = 6.dp,
                         alpha = 0.3f
                     ),
-                imageVector = metadata!!.getIcon()!!,
+                imageVector = metadata.value!!.getIcon()!!,
                 tint = Color.White,
                 contentDescription = null
             )

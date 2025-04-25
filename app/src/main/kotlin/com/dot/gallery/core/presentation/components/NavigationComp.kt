@@ -146,6 +146,8 @@ fun NavigationComp(
 
     val vaultState = timelineViewModel.vaultsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
+    val metadataState = timelineViewModel.metadataFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
+
     LaunchedEffect(permissionState) {
         timelineViewModel.updatePermissionState(permissionState)
     }
@@ -180,6 +182,7 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     handler = timelineViewModel.handler,
                     mediaState = timelineState,
+                    metadataState = metadataState,
                     albumsState = albumsState,
                     selectionState = timelineViewModel.multiSelectState,
                     selectedMedia = timelineViewModel.selectedPhotoState,
@@ -205,6 +208,7 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     handler = vm.handler,
                     mediaState = trashedMediaState,
+                    metadataState = metadataState,
                     albumsState = albumsState,
                     selectionState = vm.multiSelectState,
                     selectedMedia = vm.selectedPhotoState,
@@ -228,6 +232,7 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     handler = vm.handler,
                     mediaState = favoritesMediaState,
+                    metadataState = metadataState,
                     albumsState = albumsState,
                     selectionState = vm.multiSelectState,
                     selectedMedia = vm.selectedPhotoState,
@@ -290,6 +295,7 @@ fun NavigationComp(
                     albumName = argumentAlbumName,
                     handler = vm.handler,
                     mediaState = mediaState,
+                    metadataState = metadataState,
                     albumsState = albumsState,
                     selectionState = vm.multiSelectState,
                     selectedMedia = vm.selectedPhotoState,
@@ -349,6 +355,7 @@ fun NavigationComp(
                     mediaId = mediaId,
                     mediaState = mediaState,
                     albumsState = albumsState,
+                    metadataState = metadataState,
                     handler = vm.handler,
                     addMedia = vm::addMedia,
                     vaultState = vaultState,
@@ -400,6 +407,7 @@ fun NavigationComp(
                     target = target,
                     mediaState = mediaState,
                     albumsState = albumsState,
+                    metadataState = metadataState,
                     handler = viewModel.handler,
                     addMedia = viewModel::addMedia,
                     vaultState = vaultState,
@@ -443,6 +451,7 @@ fun NavigationComp(
                     mediaId = mediaId,
                     mediaState = mediaState,
                     albumsState = albumsState,
+                    metadataState = metadataState,
                     handler = viewModel.handler,
                     addMedia = viewModel::addMedia,
                     vaultState = vaultState,
@@ -569,6 +578,7 @@ fun NavigationComp(
                     target = "category_$category",
                     mediaState = mediaState,
                     albumsState = albumsState,
+                    metadataState = metadataState,
                     handler = viewModel.handler,
                     addMedia = viewModel::addMedia,
                     vaultState = vaultState,

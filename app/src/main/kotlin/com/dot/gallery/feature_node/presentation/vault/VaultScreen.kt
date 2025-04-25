@@ -162,6 +162,7 @@ fun VaultScreen(
                     enter = enterAnimation,
                     exit = exitAnimation
                 ) {
+                    val metadataState = viewModel.metadataFlow.collectAsStateWithLifecycle()
                     VaultDisplay(
                         navigateUp = navigateUp,
                         navigate = navPipe::navigate,
@@ -180,7 +181,8 @@ fun VaultScreen(
                         sharedTransitionScope = this@SharedTransitionLayout,
                         animatedContentScope = this@composable,
                         workerProgress = viewModel.progress,
-                        workerIsRunning = viewModel.isRunning
+                        workerIsRunning = viewModel.isRunning,
+                        metadataState = metadataState
                     )
                 }
             }

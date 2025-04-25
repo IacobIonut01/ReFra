@@ -71,6 +71,7 @@ import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.ModalSheet
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
@@ -104,6 +105,7 @@ fun VaultDisplay(
     workerIsRunning: StateFlow<Boolean>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
+    metadataState: State<MediaMetadataState>,
 ) {
     val isRunning by workerIsRunning.collectAsStateWithLifecycle()
     val progress by workerProgress.collectAsStateWithLifecycle()
@@ -300,6 +302,7 @@ fun VaultDisplay(
         PinchZoomGridLayout(state = pinchState) {
             MediaGridView(
                 mediaState = mediaState,
+                metadataState = metadataState,
                 allowSelection = true,
                 showSearchBar = false,
                 enableStickyHeaders = false,

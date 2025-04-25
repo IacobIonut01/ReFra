@@ -45,6 +45,7 @@ import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.model.isIgnoredKey
@@ -59,6 +60,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun <T : Media> PinchZoomGridScope.MediaGridView(
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     paddingValues: PaddingValues = PaddingValues(0.dp),
     searchBarPaddingTop: Dp = 0.dp,
     showSearchBar: Boolean = remember { false },
@@ -185,6 +187,7 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
             MediaGrid(
                 gridState = gridState,
                 mediaState = mediaState,
+                metadataState = metadataState,
                 mappedData = mappedData,
                 paddingValues = paddingValues,
                 allowSelection = allowSelection,
@@ -208,6 +211,7 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
         MediaGrid(
             gridState = gridState,
             mediaState = mediaState,
+            metadataState = metadataState,
             mappedData = mappedData,
             paddingValues = paddingValues,
             allowSelection = allowSelection,

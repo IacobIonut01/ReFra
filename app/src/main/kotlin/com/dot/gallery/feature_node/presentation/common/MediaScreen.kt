@@ -50,6 +50,7 @@ import com.dot.gallery.core.presentation.components.NavigationButton
 import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
@@ -72,6 +73,7 @@ fun <T: Media> MediaScreen(
     handler: MediaHandleUseCase,
     albumsState: State<AlbumState> = remember { mutableStateOf(AlbumState()) },
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     selectionState: MutableState<Boolean>,
     selectedMedia: MutableState<Set<Long>>,
     toggleSelection: (Int) -> Unit,
@@ -196,6 +198,7 @@ fun <T: Media> MediaScreen(
             PinchZoomGridLayout(state = pinchState) {
                 MediaGridView(
                     mediaState = mediaState,
+                    metadataState = metadataState,
                     allowSelection = true,
                     showSearchBar = showSearchBar,
                     searchBarPaddingTop = remember(paddingValues) {

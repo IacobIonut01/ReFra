@@ -11,7 +11,6 @@ import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import com.dot.gallery.core.Settings.Misc.getTrashEnabled
-import com.dot.gallery.feature_node.domain.model.ExifAttributes
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.util.mediaPair
@@ -87,10 +86,18 @@ class MediaHandleUseCase(
         newPath: String
     ): Boolean = repository.moveMedia(media, newPath)
 
-    suspend fun <T: Media> updateMediaExif(
+    suspend fun <T: Media> deleteMediaMetadata(
+        media: T
+    ): Boolean = repository.deleteMediaMetadata(media)
+
+    suspend fun <T: Media> deleteMediaGPSMetadata(
+        media: T
+    ): Boolean = repository.deleteMediaGPSMetadata(media)
+
+    suspend fun <T: Media> updateMediaImageDescription(
         media: T,
-        exifAttributes: ExifAttributes
-    ): Boolean = repository.updateMediaExif(media, exifAttributes)
+        description: String
+    ): Boolean = repository.updateMediaImageDescription(media, description)
 
     fun saveImage(
         bitmap: Bitmap,

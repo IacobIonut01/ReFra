@@ -12,12 +12,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.dot.gallery.core.Constants
+import com.dot.gallery.core.MetadataCollectionWorker
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
@@ -50,6 +56,7 @@ import javax.inject.Inject
 open class MediaViewModel @Inject constructor(
     private val repository: MediaRepository,
     val handler: MediaHandleUseCase,
+    private val workManager: WorkManager,
 ) : ViewModel() {
 
     var lastQuery = mutableStateOf("")
@@ -95,6 +102,20 @@ open class MediaViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.WEEKLY_DATE_FORMAT)
 
     private val permissionState = MutableStateFlow(false)
+
+    val metadataFlow = combine(
+        repository.getMetadata(),
+        workManager.getWorkInfosForUniqueWorkFlow("MetadataCollection")
+            .map { it.lastOrNull()?.state == WorkInfo.State.RUNNING },
+        workManager.getWorkInfosForUniqueWorkFlow("MetadataCollection")
+            .map { it.lastOrNull()?.progress?.getInt("progress", 0) ?: 0 }
+    ) { metadata, isRunning, progress ->
+        MediaMetadataState(
+            metadata = metadata,
+            isLoading = isRunning,
+            isLoadingProgress = progress
+        )
+    }.stateIn(viewModelScope, started = SharingStarted.Eagerly, MediaMetadataState())
 
     val mediaFlow by lazy {
         combine(
@@ -152,6 +173,10 @@ open class MediaViewModel @Inject constructor(
                     }
                 }
             }
+            val metadataWork = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
+                .build()
+
+            workManager.enqueueUniqueWork("MetadataCollection", ExistingWorkPolicy.APPEND_OR_REPLACE, metadataWork)
         }
     }
 

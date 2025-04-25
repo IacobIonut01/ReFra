@@ -35,6 +35,7 @@ import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.mediaview.components.retrieveMetadata
 import java.io.IOException
@@ -162,7 +163,7 @@ fun Uri.writeRequest(
 @Composable
 fun <T: Media> rememberMediaInfo(
     media: T,
-    exifMetadata: ExifMetadata?,
+    exifMetadata: MediaMetadata?,
     onLabelClick: () -> Unit
 ): List<InfoRow> {
     val context = LocalContext.current

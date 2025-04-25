@@ -11,6 +11,9 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataCore
+import com.dot.gallery.feature_node.domain.model.MediaMetadataFlags
+import com.dot.gallery.feature_node.domain.model.MediaMetadataVideo
 import com.dot.gallery.feature_node.domain.model.MediaVersion
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
@@ -26,9 +29,12 @@ import com.dot.gallery.feature_node.domain.util.Converters
         TimelineSettings::class,
         Media.ClassifiedMedia::class,
         Media.EncryptedMedia2::class,
-        Vault::class
+        Vault::class,
+        MediaMetadataCore::class,
+        MediaMetadataVideo::class,
+        MediaMetadataFlags::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -36,7 +42,8 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 4, to = 5),
         AutoMigration(from = 5, to = 6),
-        AutoMigration(from = 6, to = 7)
+        AutoMigration(from = 6, to = 7),
+        AutoMigration(from = 7, to = 8)
     ]
 )
 @TypeConverters(Converters::class)
@@ -51,6 +58,8 @@ abstract class InternalDatabase : RoomDatabase() {
     abstract fun getClassifierDao(): ClassifierDao
 
     abstract fun getVaultDao(): VaultDao
+
+    abstract fun getMetadataDao(): MetadataDao
 
     companion object {
         const val NAME = "internal_db"

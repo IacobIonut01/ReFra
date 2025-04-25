@@ -20,6 +20,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
@@ -34,6 +35,7 @@ fun FavoriteScreen(
     albumName: String = stringResource(id = R.string.favorites),
     handler: MediaHandleUseCase,
     mediaState: State<MediaState<UriMedia>>,
+    metadataState: State<MediaMetadataState>,
     albumsState: State<AlbumState>,
     selectionState: MutableState<Boolean>,
     selectedMedia: MutableState<Set<Long>>,
@@ -51,6 +53,7 @@ fun FavoriteScreen(
     handler = handler,
     albumsState = albumsState,
     mediaState = mediaState,
+    metadataState = metadataState,
     selectionState = selectionState,
     selectedMedia = selectedMedia,
     toggleSelection = toggleSelection,

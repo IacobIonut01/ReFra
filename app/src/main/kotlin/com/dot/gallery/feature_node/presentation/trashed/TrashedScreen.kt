@@ -20,6 +20,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
@@ -35,6 +36,7 @@ inline fun <reified T: Media> TrashedGridScreen(
     albumName: String = stringResource(id = R.string.trash),
     handler: MediaHandleUseCase,
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     albumsState: State<AlbumState>,
     selectionState: MutableState<Boolean>,
     selectedMedia: MutableState<Set<Long>>,
@@ -51,6 +53,7 @@ inline fun <reified T: Media> TrashedGridScreen(
     handler = handler,
     albumsState = albumsState,
     mediaState = mediaState,
+    metadataState = metadataState,
     selectionState = selectionState,
     selectedMedia = selectedMedia,
     toggleSelection = toggleSelection,

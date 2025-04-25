@@ -12,11 +12,11 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.datastore.preferences.core.Preferences
 import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.domain.model.Album
-import com.dot.gallery.feature_node.domain.model.ExifAttributes
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
@@ -94,9 +94,13 @@ interface MediaRepository {
         newPath: String
     ): Boolean
 
-    suspend fun <T: Media> updateMediaExif(
+    suspend fun <T: Media> deleteMediaMetadata(media: T): Boolean
+
+    suspend fun <T: Media> deleteMediaGPSMetadata(media: T): Boolean
+
+    suspend fun <T: Media> updateMediaImageDescription(
         media: T,
-        exifAttributes: ExifAttributes
+        description: String
     ): Boolean
 
     fun saveImage(
@@ -174,5 +178,9 @@ interface MediaRepository {
     suspend fun changeCategory(mediaId: Long, newCategory: String)
 
     suspend fun deleteClassifications()
+
+    fun getMetadata(): Flow<List<MediaMetadata>>
+
+    fun getMetadata(media: Media): Flow<MediaMetadata>
 
 }

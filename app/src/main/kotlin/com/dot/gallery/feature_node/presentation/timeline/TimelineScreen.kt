@@ -15,11 +15,11 @@ import androidx.compose.runtime.DisallowComposableCalls
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
@@ -34,6 +34,7 @@ inline fun <reified T: Media> TimelineScreen(
     albumName: String = stringResource(R.string.app_name),
     handler: MediaHandleUseCase,
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     albumsState: State<AlbumState>,
     selectionState: MutableState<Boolean>,
     selectedMedia: MutableState<Set<Long>>,
@@ -57,6 +58,7 @@ inline fun <reified T: Media> TimelineScreen(
         handler = handler,
         albumsState = albumsState,
         mediaState = mediaState,
+        metadataState = metadataState,
         selectionState = selectionState,
         selectedMedia = selectedMedia,
         toggleSelection = toggleSelection,

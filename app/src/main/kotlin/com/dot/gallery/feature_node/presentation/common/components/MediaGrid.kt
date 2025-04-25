@@ -44,6 +44,7 @@ import com.dot.gallery.core.presentation.components.LoadingMedia
 import com.dot.gallery.core.presentation.components.MediaItemHeader
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaItem
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isBigHeaderKey
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
@@ -67,6 +68,7 @@ import kotlinx.coroutines.withContext
 fun <T : Media> PinchZoomGridScope.MediaGrid(
     gridState: LazyGridState,
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     mappedData: SnapshotStateList<MediaItem<T>>,
     paddingValues: PaddingValues,
     allowSelection: Boolean,
@@ -94,6 +96,14 @@ fun <T : Media> PinchZoomGridScope.MediaGrid(
 
     val topContent: LazyGridScope.() -> Unit = remember(aboveGridContent) {
         {
+            item(
+                span = { GridItemSpan(maxLineSpan) },
+                key = "aboveGrid_metadata"
+            ) {
+                MetadataCollectionStatus(
+                    state = metadataState
+                )
+            }
             if (aboveGridContent != null) {
                 item(
                     span = { GridItemSpan(maxLineSpan) },
@@ -145,6 +155,7 @@ fun <T : Media> PinchZoomGridScope.MediaGrid(
     if (allowHeaders) {
         MediaGridContentWithHeaders(
             mediaState = mediaState,
+            metadataState = metadataState,
             mappedData = mappedData,
             paddingValues = paddingValues,
             allowSelection = allowSelection,
@@ -161,6 +172,7 @@ fun <T : Media> PinchZoomGridScope.MediaGrid(
     } else {
         MediaGridContent(
             mediaState = mediaState,
+            metadataState = metadataState,
             paddingValues = paddingValues,
             allowSelection = allowSelection,
             selectionState = selectionState,
@@ -181,6 +193,7 @@ fun <T : Media> PinchZoomGridScope.MediaGrid(
 @Composable
 private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     mappedData: SnapshotStateList<MediaItem<T>>,
     paddingValues: PaddingValues,
     allowSelection: Boolean,
@@ -297,11 +310,15 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                                 if (isChecked.value) {
                                     selectedMedia.add(list)
                                 } else selectedMedia.remove(list)
+                                selectionState.update(selectedMedia.value.isNotEmpty())
                             }
                         }
                     }
                 } else if (it is MediaItem.MediaViewItem) {
                     with(sharedTransitionScope) {
+                        val metadata = remember(metadataState.value, it.media) {
+                            mutableStateOf(metadataState.value.metadata.firstOrNull { mtd -> mtd.mediaId == it.media.id })
+                        }
                         MediaImage(
                             modifier = Modifier
                                 .mediaSharedElement(
@@ -313,6 +330,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                                 )
                                 .pinchItem(key = it.key),
                             media = it.media,
+                            metadata = metadata,
                             selectionState = selectionState,
                             selectedMedia = selectedMedia,
                             canClick = canScroll,
@@ -321,6 +339,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                                 if (allowSelection) {
                                     feedbackManager.vibrate()
                                     toggleSelection(mediaState.value.media.indexOf(it))
+                                    selectionState.update(selectedMedia.value.isNotEmpty())
                                 }
                             }
                         )
@@ -338,6 +357,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
 @Composable
 private fun <T : Media> PinchZoomGridScope.MediaGridContent(
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     paddingValues: PaddingValues,
     allowSelection: Boolean,
     selectionState: MutableState<Boolean>,
@@ -367,6 +387,9 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
     LaunchedEffect(selectedMedia.value, scrollGestureActive) {
         selectionState.update(selectedMedia.value.isNotEmpty())
     }
+    val allKeys by rememberedDerivedState {
+        mediaState.value.media.map { it.key }
+    }
 
     LazyVerticalGrid(
         state = gridState,
@@ -380,7 +403,8 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
                 autoScrollThreshold = with(LocalDensity.current) { 40.dp.toPx() },
                 scrollGestureActive = scrollGestureActive,
                 layoutDirection = LocalLayoutDirection.current,
-                contentPadding = paddingValues
+                contentPadding = paddingValues,
+                allKeys = allKeys
             ),
         columns = gridCells,
         contentPadding = paddingValues,
@@ -396,6 +420,9 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
             contentType = { item -> item.mimeType }
         ) { media ->
             with(sharedTransitionScope) {
+                val metadata = remember(metadataState.value, media) {
+                    mutableStateOf(metadataState.value.metadata.firstOrNull { mtd -> mtd.mediaId == media.id })
+                }
                 MediaImage(
                     modifier = Modifier
                         .mediaSharedElement(
@@ -407,6 +434,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
                         )
                         .pinchItem(key = media.key),
                     media = media,
+                    metadata = metadata,
                     selectionState = selectionState,
                     selectedMedia = selectedMedia,
                     canClick = canScroll,
@@ -416,6 +444,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
                             val index = items.indexOf(it)
                             feedbackManager.vibrate()
                             toggleSelection(index)
+                            selectionState.update(selectedMedia.value.isNotEmpty())
                         }
                     }
                 )

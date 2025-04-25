@@ -58,6 +58,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -91,13 +92,12 @@ import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.NavigationBarSpacer
 import com.dot.gallery.feature_node.domain.model.AlbumState
-import com.dot.gallery.feature_node.domain.model.ExifAttributes
 import com.dot.gallery.feature_node.domain.model.LocationData
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaDateCaption
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
-import com.dot.gallery.feature_node.domain.model.rememberExifAttributes
 import com.dot.gallery.feature_node.domain.model.rememberLocationData
 import com.dot.gallery.feature_node.domain.model.rememberMediaDateCaption
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
@@ -115,6 +115,7 @@ import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.exif.CopyMediaSheet
 import com.dot.gallery.feature_node.presentation.exif.MetadataEditSheet
 import com.dot.gallery.feature_node.presentation.exif.MoveMediaSheet
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialog
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction
 import com.dot.gallery.feature_node.presentation.util.MapBoxURL
@@ -127,8 +128,6 @@ import com.dot.gallery.feature_node.presentation.util.launchUseAsIntent
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
-import com.dot.gallery.feature_node.presentation.util.rememberExifInterface
-import com.dot.gallery.feature_node.presentation.util.rememberExifMetadata
 import com.dot.gallery.feature_node.presentation.util.rememberMediaInfo
 import com.dot.gallery.feature_node.presentation.util.shareMedia
 import com.dot.gallery.feature_node.presentation.util.writeRequest
@@ -143,6 +142,7 @@ import kotlinx.coroutines.launch
 fun <T : Media> MediaViewDetails(
     albumsState: State<AlbumState>,
     vaultState: State<VaultState>,
+    metadataState: State<MediaMetadataState>,
     currentMedia: T?,
     handler: MediaHandleUseCase?,
     addMediaToVault: (Vault, T) -> Unit,
@@ -182,40 +182,72 @@ fun <T : Media> MediaViewDetails(
                 Column {
                     val context = LocalContext.current
                     val scope = rememberCoroutineScope()
-                    val exifInterface = rememberExifInterface(currentMedia, true)
-                    val exifMetadata = rememberExifMetadata(currentMedia, exifInterface)
-                    var exifAttributes by rememberExifAttributes(exifInterface)
+                    val metadata by rememberedDerivedState(metadataState.value, currentMedia) {
+                        metadataState.value.metadata.firstOrNull { it.mediaId == currentMedia.id }
+                    }
+
+                    /**
+                     * -1 - none
+                     * 0 - delete all
+                     * 1 - delete location
+                     */
+                    var exifDeleteMode by rememberSaveable {
+                        mutableIntStateOf(-1)
+                    }
                     val exifAttributesEditResult = rememberActivityResult(
                         onResultOk = {
                             scope.launch {
-                                if (handler!!.updateMediaExif(currentMedia, exifAttributes)) {
-                                    printDebug("Exif Attributes Updated")
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Exif Update failed",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                handler?.let {
+                                    when (exifDeleteMode) {
+                                        0 -> {
+                                            if (it.deleteMediaMetadata(currentMedia)) {
+                                                printDebug("Exif Attributes Updated")
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Exif Update failed",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+
+                                        1 -> {
+                                            if (it.deleteMediaGPSMetadata(currentMedia)) {
+                                                printDebug("Exif Attributes Updated")
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Exif Update failed",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+
+                                        else -> {
+                                            printDebug("No Exif Attributes Updated")
+                                        }
+                                    }
+                                    exifDeleteMode = -1
                                 }
                             }
                         }
                     )
 
-                    val dateCaption = rememberMediaDateCaption(exifMetadata, currentMedia)
-                    val metadataState = rememberAppBottomSheetState()
+                    val dateCaption = rememberMediaDateCaption(metadata, currentMedia)
+                    val metadataSheetState = rememberAppBottomSheetState()
                     val mediaInfoList = rememberMediaInfo(
                         media = currentMedia,
-                        exifMetadata = exifMetadata,
+                        exifMetadata = metadata,
                         onLabelClick = {
                             if (!currentMedia.readUriOnly) {
                                 scope.launch {
-                                    metadataState.show()
+                                    metadataSheetState.show()
                                 }
                             }
                         }
                     )
 
-                    val locationData = rememberLocationData(exifMetadata, currentMedia)
+                    val locationData = rememberLocationData(metadata)
                     var category by remember(currentMedia) {
                         mutableStateOf(currentMedia.getCategory)
                     }
@@ -281,7 +313,7 @@ fun <T : Media> MediaViewDetails(
                                             ),
                                             onClick = {
                                                 scope.launch {
-                                                    metadataState.show()
+                                                    metadataSheetState.show()
                                                 }
                                             }
                                         )
@@ -373,9 +405,7 @@ fun <T : Media> MediaViewDetails(
                                                     enabled = handler != null
                                                 ) {
                                                     scope.launch {
-                                                        exifAttributes = exifAttributes.copy(
-                                                            gpsLatLong = null
-                                                        )
+                                                        exifDeleteMode = 1
                                                         exifAttributesEditResult.launch(
                                                             currentMedia.writeRequest(context.contentResolver)
                                                         )
@@ -400,7 +430,7 @@ fun <T : Media> MediaViewDetails(
                                         )
                                     }
                                     AnimatedVisibility(
-                                        visible = exifMetadata?.lensDescription != null
+                                        visible = metadata?.lensDescription != null
                                     ) {
                                         ListItem(
                                             modifier = Modifier
@@ -408,7 +438,7 @@ fun <T : Media> MediaViewDetails(
                                                 .clip(RoundedCornerShape(2.dp))
                                                 .clickable {
                                                     scope.launch {
-                                                        exifAttributes = ExifAttributes()
+                                                        exifDeleteMode = 0
                                                         exifAttributesEditResult.launch(
                                                             currentMedia.writeRequest(context.contentResolver)
                                                         )
@@ -440,10 +470,11 @@ fun <T : Media> MediaViewDetails(
                         }
                     }
 
-                    if (metadataState.isVisible && handler != null) {
+                    if (metadataSheetState.isVisible && handler != null) {
                         MetadataEditSheet(
-                            state = metadataState,
+                            state = metadataSheetState,
                             media = currentMedia,
+                            metadata = metadata,
                             handle = handler
                         )
                     }

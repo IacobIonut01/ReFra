@@ -97,6 +97,7 @@ fun MainSearchBar(
         it.mediaFlow.collectAsStateWithLifecycle()
     }
     val state = mediaViewModel.searchMediaState.collectAsStateWithLifecycle()
+    val metadataState = mediaViewModel.metadataFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(state.value.media) {
@@ -282,6 +283,7 @@ fun MainSearchBar(
                         PinchZoomGridLayout(state = pinchState) {
                             MediaGridView(
                                 mediaState = state,
+                                metadataState = metadataState,
                                 paddingValues = pd,
                                 canScroll = canScroll,
                                 isScrolling = remember { mutableStateOf(false) },
