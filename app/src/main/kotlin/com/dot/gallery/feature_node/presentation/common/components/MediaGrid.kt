@@ -220,6 +220,12 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
             }
         }
         val scrollGestureActive = remember { mutableStateOf(false) }
+        LaunchedEffect(selectedMedia.value, scrollGestureActive) {
+            selectionState.update(selectedMedia.value.isNotEmpty())
+        }
+        val allKeys by rememberedDerivedState {
+            mappedData.filterIsInstance<MediaItem.MediaViewItem<T>>().map { it.key }
+        }
 
         LazyVerticalGrid(
             state = gridState,
@@ -235,7 +241,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                     scrollGestureActive = scrollGestureActive,
                     layoutDirection = LocalLayoutDirection.current,
                     contentPadding = paddingValues,
-                    updateSelectionState = selectionState::update
+                    allKeys = allKeys
                 ),
             columns = gridCells,
             contentPadding = paddingValues,
@@ -287,6 +293,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                             scope.launch {
                                 isChecked.value = !isChecked.value
                                 val list = mediaState.value.media.map { it.id }
+                                    .filter { id -> id in it.data }
                                 if (isChecked.value) {
                                     selectedMedia.add(list)
                                 } else selectedMedia.remove(list)
@@ -357,10 +364,14 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
         }
     }
     val scrollGestureActive = remember { mutableStateOf(false) }
+    LaunchedEffect(selectedMedia.value, scrollGestureActive) {
+        selectionState.update(selectedMedia.value.isNotEmpty())
+    }
 
     LazyVerticalGrid(
         state = gridState,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .photoGridDragHandler(
                 lazyGridState = gridState,
                 haptics = LocalHapticFeedback.current,
@@ -369,8 +380,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
                 autoScrollThreshold = with(LocalDensity.current) { 40.dp.toPx() },
                 scrollGestureActive = scrollGestureActive,
                 layoutDirection = LocalLayoutDirection.current,
-                contentPadding = paddingValues,
-                updateSelectionState = selectionState::update
+                contentPadding = paddingValues
             ),
         columns = gridCells,
         contentPadding = paddingValues,

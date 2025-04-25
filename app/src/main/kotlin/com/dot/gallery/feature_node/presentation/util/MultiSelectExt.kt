@@ -17,11 +17,6 @@ import com.dot.gallery.feature_node.domain.util.isIgnoredKey
 
 private val String?.mediaIdFromKey: Long?
     get() = this?.let {
-        printDebug(
-            "mediaIdFromKey: $it | ${
-                removePrefix("{").substringBefore(",").toLongOrNull()
-            } | ${removePrefix("media_").substringBefore("_").toLongOrNull()}"
-        )
         if (isHeaderKey || isIgnoredKey) null
         else if (it.startsWith("{")) removePrefix("{").substringBefore(",").toLongOrNull()
         else removePrefix("media_").substringBefore("_").toLongOrNull()
@@ -37,72 +32,83 @@ fun Modifier.photoGridDragHandler(
     scrollGestureActive: MutableState<Boolean>,
     layoutDirection: LayoutDirection,
     contentPadding: PaddingValues,
-    updateSelectionState: (Boolean) -> Unit
+    allKeys: List<String>
 ) = pointerInput(Unit) {
-    val padLeftPx = contentPadding.calculateLeftPadding(layoutDirection).toPx()
-    val padTopPx = contentPadding.calculateTopPadding().toPx()
+    // pre-compute the corresponding IDs
+    val mediaIdsInOrder = allKeys.mapNotNull { it.mediaIdFromKey }
 
-    fun LazyGridState.gridItemKeyAtPosition(rawOffset: Offset): Long? {
-        // bring the pointer from grid‑local → content‑local
-        val contentOffset = rawOffset - Offset(padLeftPx, padTopPx)
+    // padding in px
+    val padL = contentPadding.calculateLeftPadding(layoutDirection).toPx()
+    val padT = contentPadding.calculateTopPadding().toPx()
 
-        val info = layoutInfo.visibleItemsInfo.find { itemInfo ->
-            // subtract the item's own offset from your content-aligned point
-            itemInfo.size.toIntRect()
-                .contains(contentOffset.round() - itemInfo.offset)
-        }
-        return (info?.key as? String).mediaIdFromKey
+    // helper: find the raw key under the finger
+    fun LazyGridState.hitKeyAt(raw: Offset): String? {
+        val contentOffset = raw - Offset(padL, padT)
+        return layoutInfo.visibleItemsInfo
+            .find { info ->
+                info.size.toIntRect()
+                    .contains((contentOffset.round() - info.offset))
+            }
+            ?.key as? String
     }
 
-    var initialKey: Long? = null
-    var currentKey: Long? = null
+    var initialMediaIndex: Int? = null
+    var currentMediaIndex: Int? = null
+
     detectDragGesturesAfterLongPress(
-        onDragStart = { offset ->
+        onDragStart = { raw ->
             scrollGestureActive.value = true
-            lazyGridState.gridItemKeyAtPosition(offset)?.let { key ->
-                if (!selectedIds.value.contains(key)) {
+            lazyGridState.hitKeyAt(raw)?.let { key ->
+                val idx = allKeys.indexOf(key)
+                val id  = key.mediaIdFromKey
+                if (idx >= 0 && id != null && id !in selectedIds.value) {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    initialKey = key
-                    currentKey = key
-                    selectedIds.value += key
+                    initialMediaIndex = idx
+                    currentMediaIndex = idx
+                    selectedIds.value = selectedIds.value + id
                 }
             }
-            updateSelectionState(selectedIds.value.isNotEmpty())
         },
         onDragCancel = {
             scrollGestureActive.value = false
-            initialKey = null
+            initialMediaIndex = null
             autoScrollSpeed.value = 0f
         },
         onDragEnd = {
             scrollGestureActive.value = false
-            initialKey = null
+            initialMediaIndex = null
             autoScrollSpeed.value = 0f
         },
         onDrag = { change, _ ->
-            if (initialKey != null) {
-                val distFromBottom =
-                    lazyGridState.layoutInfo.viewportSize.height - change.position.y
-                val distFromTop = change.position.y
+            val raw = change.position
+            if (initialMediaIndex != null) {
+                // auto-scroll logic unchanged…
+                val distB = lazyGridState.layoutInfo.viewportSize.height - raw.y
+                val distT = raw.y
                 autoScrollSpeed.value = when {
-                    distFromBottom < autoScrollThreshold -> autoScrollThreshold - distFromBottom
-                    distFromTop < autoScrollThreshold -> -(autoScrollThreshold - distFromTop)
-                    else -> 0f
+                    distB < autoScrollThreshold -> autoScrollThreshold - distB
+                    distT < autoScrollThreshold -> -(autoScrollThreshold - distT)
+                    else                        -> 0f
                 }
 
-                lazyGridState.gridItemKeyAtPosition(change.position)?.let { key ->
-                    if (currentKey != key) {
-                        selectedIds.value = selectedIds.value
-                            .minus(initialKey!!..currentKey!!)
-                            .minus(currentKey!!..initialKey!!)
-                            .plus(initialKey!!..key)
-                            .plus(key..initialKey!!)
-                        currentKey = key
+                lazyGridState.hitKeyAt(raw)?.let { key ->
+                    val newIdx = allKeys.indexOf(key)
+                    if (newIdx >= 0 && newIdx != currentMediaIndex) {
+                        val start = initialMediaIndex!!
+                        val oldEnd = currentMediaIndex!!
+                        val oldRange = if (oldEnd >= start) start..oldEnd else oldEnd..start
+                        val newRange = if (newIdx >= start) start..newIdx else newIdx..start
+
+                        // map to real IDs
+                        val oldIds = oldRange.mapNotNull { mediaIdsInOrder.getOrNull(it) }.toSet()
+                        val newIds = newRange.mapNotNull { mediaIdsInOrder.getOrNull(it) }.toSet()
+
+                        // subtract oldRange, add newRange
+                        selectedIds.value = (selectedIds.value - oldIds) + newIds
+                        currentMediaIndex = newIdx
                     }
                 }
-
-                updateSelectionState(selectedIds.value.isNotEmpty())
             }
-        }
+        },
     )
 }
