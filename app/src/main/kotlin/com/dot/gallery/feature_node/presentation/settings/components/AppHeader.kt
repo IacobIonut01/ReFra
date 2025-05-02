@@ -5,7 +5,11 @@
 
 package com.dot.gallery.feature_node.presentation.settings.components
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,12 +24,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -64,13 +72,43 @@ fun SettingsAppHeader() {
 
     SupportSheet(state = supportState)
 
+    val colorPrimary = MaterialTheme.colorScheme.primaryContainer
+    val colorTertiary = MaterialTheme.colorScheme.tertiaryContainer
+
+    val transition = rememberInfiniteTransition()
+    val fraction by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 8_000),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    val cornerRadius = 24.dp
+
     Column(
         modifier = Modifier
             .padding(all = 16.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                shape = RoundedCornerShape(24.dp)
-            )
+            .drawWithCache {
+                val cx = size.width - size.width * fraction
+                val cy = size.height * fraction
+
+                val gradient = Brush.radialGradient(
+                    colors = listOf(colorPrimary, colorTertiary),
+                    center = Offset(cx, cy),
+                    radius = 800f
+                )
+
+                onDrawBehind {
+                    drawRoundRect(
+                        brush = gradient,
+                        cornerRadius = CornerRadius(
+                            cornerRadius.toPx(),
+                            cornerRadius.toPx()
+                        )
+                    )
+                }
+            }
             .padding(all = 24.dp)
             .fillMaxWidth()
     ) {
@@ -112,7 +150,7 @@ fun SettingsAppHeader() {
                 colors = ButtonDefaults.buttonColors(
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = .12f),
-                    containerColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                     disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = .12f),
                 ),
                 shape = RoundedCornerShape(8.dp),
@@ -133,7 +171,7 @@ fun SettingsAppHeader() {
                 colors = ButtonDefaults.buttonColors(
                     contentColor = MaterialTheme.colorScheme.onTertiary,
                     disabledContentColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = .12f),
-                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
                     disabledContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = .12f)
                 ),
                 shape = RoundedCornerShape(8.dp),
@@ -156,7 +194,14 @@ fun SettingsAppHeader() {
 @Preview
 @Composable
 fun Preview() {
-    GalleryTheme {
-        SettingsAppHeader()
+    Column {
+        GalleryTheme {
+            SettingsAppHeader()
+        }
+        GalleryTheme(
+            darkTheme = true
+        ) {
+            SettingsAppHeader()
+        }
     }
 }
