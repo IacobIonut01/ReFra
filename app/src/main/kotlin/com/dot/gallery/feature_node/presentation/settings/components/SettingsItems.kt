@@ -23,6 +23,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -45,6 +46,7 @@ import com.dot.gallery.core.SettingsEntity.Preference
 import com.dot.gallery.core.SettingsEntity.SeekPreference
 import com.dot.gallery.core.SettingsEntity.SwitchPreference
 import com.dot.gallery.core.SettingsType
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.ui.core.icons.RegularExpression
 import com.dot.gallery.ui.theme.GalleryTheme
 import kotlin.math.roundToLong
@@ -54,7 +56,7 @@ fun SettingsItem(
     item: SettingsEntity
 ) {
     var checked by remember(item.isChecked) {
-        mutableStateOf(item.isChecked ?: false)
+        mutableStateOf(item.isChecked == true)
     }
     val icon: @Composable () -> Unit = {
         require(item.icon != null) { "Icon at this stage cannot be null" }
@@ -106,36 +108,39 @@ fun SettingsItem(
         }
 
     var currentSeekValue by remember(item.currentValue) {
-        mutableStateOf(item.currentValue?.div(item.valueMultiplier))
+        mutableStateOf(item.currentValue?.div(item.valueMultiplier.toFloat()))
     }
     val seekTrailing: @Composable () -> Unit = {
         require(item.currentValue != null) { "Current value must not be null" }
-        val value = currentSeekValue?.roundToLong()?.times(item.valueMultiplier).toString()
-        val text = if (!item.seekSuffix.isNullOrEmpty()) "$value ${item.seekSuffix}" else value
+        val text by rememberedDerivedState {
+            val value = currentSeekValue?.times(item.valueMultiplier)?.roundToLong().toString()
+            if (!item.seekSuffix.isNullOrEmpty()) "$value ${item.seekSuffix}" else value
+        }
         Text(
             text = text,
             textAlign = TextAlign.End,
             modifier = Modifier.width(42.dp)
-
         )
     }
     val seekContent: @Composable () -> Unit = {
-        if (!item.summary.isNullOrEmpty()) {
-            summary()
+        Column {
+            if (!item.summary.isNullOrEmpty()) {
+                summary()
+            }
+            require(item.currentValue != null) { "Current value must not be null" }
+            require(item.minValue != null) { "Min value must not be null" }
+            require(item.maxValue != null) { "Max value must not be null" }
+            require(item.onSeek != null) { "onSeek must not be null" }
+            Slider(
+                value = currentSeekValue!!,
+                onValueChange = { currentSeekValue = it },
+                valueRange = item.minValue!!..item.maxValue!!,
+                onValueChangeFinished = {
+                    item.onSeek!!.invoke(currentSeekValue!! * item.valueMultiplier)
+                },
+                steps = item.step
+            )
         }
-        require(item.currentValue != null) { "Current value must not be null" }
-        require(item.minValue != null) { "Min value must not be null" }
-        require(item.maxValue != null) { "Max value must not be null" }
-        require(item.onSeek != null) { "onSeek must not be null" }
-        Slider(
-            value = currentSeekValue!!,
-            onValueChange = { currentSeekValue = it },
-            valueRange = item.minValue!!..item.maxValue!!,
-            onValueChangeFinished = {
-                item.onSeek!!.invoke(currentSeekValue!! * item.valueMultiplier)
-            },
-            steps = item.step
-        )
     }
     val supportingContent: (@Composable () -> Unit)? = when (item.type) {
         SettingsType.Default, SettingsType.Switch ->
@@ -208,55 +213,57 @@ fun SettingsItem(
 @Composable
 fun SettingsItemGroupPreview() =
     GalleryTheme {
-        Column(
-            modifier = Modifier.wrapContentHeight()
-        ) {
-            SettingsItem(
-                item = Preference(
-                    title = "Preview Alone Title",
-                    summary = "Preview Summary"
+        Surface {
+            Column(
+                modifier = Modifier.wrapContentHeight()
+            ) {
+                SettingsItem(
+                    item = Preference(
+                        title = "Preview Alone Title",
+                        summary = "Preview Summary"
+                    )
                 )
-            )
-            SettingsItem(
-                item = Header(
-                    title = "Preview Header Title"
+                SettingsItem(
+                    item = Header(
+                        title = "Preview Header Title"
+                    )
                 )
-            )
-            SettingsItem(
-                item = Preference(
-                    icon = Icons.Outlined.Settings,
-                    title = "Preview Top Title",
-                    summary = "Preview Summary",
-                    screenPosition = Position.Top
+                SettingsItem(
+                    item = Preference(
+                        icon = Icons.Outlined.Settings,
+                        title = "Preview Top Title",
+                        summary = "Preview Summary",
+                        screenPosition = Position.Top
+                    )
                 )
-            )
-            SettingsItem(
-                item = SeekPreference(
-                    icon = com.dot.gallery.ui.core.Icons.RegularExpression,
-                    title = "Preview Middle Title",
-                    summary = "Preview Summary\nSecond Line",
-                    currentValue = 330f,
-                    minValue = 1f,
-                    maxValue = 350f,
-                    step = 10,
-                    onSeek = {},
-                    seekSuffix = "MB",
-                    screenPosition = Position.Middle
+                SettingsItem(
+                    item = SeekPreference(
+                        icon = com.dot.gallery.ui.core.Icons.RegularExpression,
+                        title = "Preview Middle Title",
+                        summary = "Preview Summary",
+                        currentValue = 256f,
+                        minValue = 32f,
+                        maxValue = 512f,
+                        step = 16,
+                        onSeek = {},
+                        seekSuffix = "MB",
+                        screenPosition = Position.Middle
+                    )
                 )
-            )
-            SettingsItem(
-                item = SwitchPreference(
-                    title = "Preview Middle Title",
-                    summary = "Preview Summary\nSecond Line\nThird Line",
-                    screenPosition = Position.Middle
+                SettingsItem(
+                    item = SwitchPreference(
+                        title = "Preview Middle Title",
+                        summary = "Preview Summary\nSecond Line\nThird Line",
+                        screenPosition = Position.Middle
+                    )
                 )
-            )
-            SettingsItem(
-                item = Preference(
-                    title = "Preview Bottom Title",
-                    summary = "Preview Summary",
-                    screenPosition = Position.Bottom
+                SettingsItem(
+                    item = Preference(
+                        title = "Preview Bottom Title",
+                        summary = "Preview Summary",
+                        screenPosition = Position.Bottom
+                    )
                 )
-            )
+            }
         }
     }

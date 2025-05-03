@@ -335,6 +335,10 @@
     <string name="at_kbps">" at %1$s"</string>
     <string name="video_fps">%.1f fps</string>
     <string name="collecting_metadata">Collecting metadata...</string>
+    <string name="database">Database</string>
+    <string name="refresh_metadata">Refresh Metadata</string>
+    <string name="refresh_metadata_summary">If something feels wrong, refresh all stored media metadata</string>
+    <string name="metadata_refresh_toast">Refreshing metadata...</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

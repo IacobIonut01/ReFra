@@ -6,6 +6,7 @@
 package com.dot.gallery.feature_node.presentation.settings
 
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.work.WorkManager
 import com.dot.gallery.R
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings
@@ -68,6 +70,7 @@ import com.dot.gallery.core.Settings.Misc.rememberFullBrightnessView
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.forceMetadataCollect
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsAppHeader
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -87,7 +90,15 @@ fun SettingsScreen(
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val showLaunchScreenDialog = rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val settingsList = rememberSettingsList(navigate, showLaunchScreenDialog)
+    val context = LocalContext.current
+    val settingsList = rememberSettingsList(
+        navigate = navigate,
+        showLaunchScreenDialog = showLaunchScreenDialog,
+        launchMetadataRefresh = {
+            Toast.makeText(context, context.getString(R.string.metadata_refresh_toast), Toast.LENGTH_SHORT).show()
+            WorkManager.getInstance(context).forceMetadataCollect()
+        }
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -234,7 +245,8 @@ fun SettingsScreen(
 @Composable
 fun rememberSettingsList(
     navigate: (String) -> Unit,
-    showLaunchScreenDialog: MutableState<Boolean>
+    showLaunchScreenDialog: MutableState<Boolean>,
+    launchMetadataRefresh: () -> Unit
 ): SnapshotStateList<SettingsEntity> {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -479,6 +491,15 @@ fun rememberSettingsList(
         )
     }
 
+    val refreshMetadataPref = remember {
+        SettingsEntity.Preference(
+            title = context.getString(R.string.refresh_metadata),
+            summary = context.getString(R.string.refresh_metadata_summary),
+            onClick = { launchMetadataRefresh() },
+            screenPosition = Position.Alone
+        )
+    }
+
     return remember(
         arrayOf(
             forceTheme,
@@ -491,25 +512,19 @@ fun rememberSettingsList(
     ) {
         mutableStateListOf<SettingsEntity>().apply {
             /** ********************* **/
-            /** ********************* **/
             add(SettingsEntity.Header(title = context.getString(R.string.settings_theme_header)))
-            /** Theme Section Start **/
             /** Theme Section Start **/
             add(forceThemeValuePref)
             add(darkThemePref)
             add(amoledModePref)
             /** ********************* **/
-            /** ********************* **/
             add(SettingsEntity.Header(title = context.getString(R.string.settings_general)))
-            /** General Section Start **/
             /** General Section Start **/
             add(trashCanEnabledPref)
             add(secureModePref)
             add(allowVibrationsPref)
             /** ********************* **/
-            /** ********************* **/
             add(SettingsEntity.Header(title = context.getString(R.string.customization)))
-            /** Customization Section Start **/
             /** Customization Section Start **/
             add(dateHeaderPref)
             add(groupByMonthPref)
@@ -522,8 +537,6 @@ fun rememberSettingsList(
             add(autoPlayVideoPref)
             add(sharedElementsPref)
             /** ********************* **/
-            /** ********************* **/
-            /** Navigation Section Start **/
             /** Navigation Section Start **/
             add(SettingsEntity.Header(title = context.getString(R.string.navigation)))
             add(showOldNavbarPref)
@@ -532,8 +545,10 @@ fun rememberSettingsList(
             add(SettingsEntity.Header(title = context.getString(R.string.ai_category)))
             add(noClassificationPref)
             /** ********************* **/
+            /** Database Section Start **/
+            add(SettingsEntity.Header(title = context.getString(R.string.database)))
+            add(refreshMetadataPref)
             /** ********************* **/
-
         }
     }
 }

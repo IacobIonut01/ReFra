@@ -6,6 +6,9 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
@@ -18,6 +21,15 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
 
+fun WorkManager.forceMetadataCollect() {
+    val metadataWork = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
+        .setInputData(workDataOf("forceReload" to true))
+        .addTag("MetadataCollection_Force")
+        .build()
+
+    enqueueUniqueWork("MetadataCollection", ExistingWorkPolicy.APPEND, metadataWork)
+}
+
 @HiltWorker
 class MetadataCollectionWorker @AssistedInject constructor(
     private val database: InternalDatabase,
@@ -29,20 +41,20 @@ class MetadataCollectionWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         printDebug("Updating metadata...")
         setProgress(workDataOf("progress" to 1))
-        val oldMetadata = database.getMetadataDao().getFullMetadata().firstOrNull()
+        val forceReload = inputData.getBoolean("forceReload", false)
+        if (forceReload) {
+            printDebug("Force reloading metadata...")
+        }
         val oldMedia = database.getMediaDao().getMedia()
         val media = repository.getMedia().map { it.data ?: emptyList() }.firstOrNull()
-        val differentMedia = media?.fastFilter { newMedia ->
-            oldMedia.none { oldMediaItem ->
-                newMedia == oldMediaItem
+        val differentMedia = if (!forceReload) {
+            media?.fastFilter { newMedia ->
+                oldMedia.none { oldMediaItem ->
+                    newMedia == oldMediaItem
+                }
             }
-        }
-        val list = if (oldMetadata != null && media != null && media.size > oldMetadata.size) {
-            media
-        } else {
-            differentMedia
-        }
-        list?.let { diffMedia ->
+        } else media
+        differentMedia?.let { diffMedia ->
             printDebug("Updating metadata for ${diffMedia.size} items...")
             diffMedia.fastForEachIndexed { index, it ->
                 setProgress(workDataOf("progress" to ((index + 1) * 100 / diffMedia.size.toFloat()).roundToInt()))
