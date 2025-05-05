@@ -23,7 +23,7 @@ android {
         applicationId = "com.dot.gallery"
         minSdk = 30
         targetSdk = 36
-        versionCode = 32002
+        versionCode = 32004
         versionName = "3.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

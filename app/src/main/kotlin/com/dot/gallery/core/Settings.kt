@@ -303,7 +303,7 @@ object Settings {
         fun rememberAutoHideOnVideoPlay() =
             rememberPreference(key = AUTO_HIDE_ON_VIDEO_PLAY, defaultValue = true)
 
-        private val NO_CLASSIFICATION = booleanPreferencesKey("no_classification")
+        val NO_CLASSIFICATION = booleanPreferencesKey("no_classification")
 
         @Composable
         fun rememberNoClassification() =
@@ -339,7 +339,7 @@ object Settings {
         fun rememberWeeklyDateFormat() =
             rememberPreference(key = WEEKLY_DATE_FORMAT, defaultValue = Constants.WEEKLY_DATE_FORMAT)
 
-        fun getSetting(context: Context, key: Preferences.Key<String>) = context.dataStore.data.map { it[key] }
+        fun <T> getSetting(context: Context, key: Preferences.Key<T>, defaultValue: T) = context.dataStore.data.map { it[key] ?: defaultValue }
 
         private val VIDEO_AUTOPLAY = booleanPreferencesKey("video_autoplay")
 

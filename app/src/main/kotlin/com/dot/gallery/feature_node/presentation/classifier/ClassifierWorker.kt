@@ -13,6 +13,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaVersion
@@ -42,6 +43,11 @@ class ClassifierWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         withContext(Dispatchers.IO) {
             printWarning("ClassifierWorker retrieving media")
+            val noClassify = Settings.Misc.getSetting(appContext, Settings.Misc.NO_CLASSIFICATION, false).firstOrNull()
+            if (noClassify == true) {
+                printWarning("ClassifierWorker Classification is disabled")
+                return@withContext Result.success()
+            }
             val blacklisted = database.getBlacklistDao().getBlacklistedAlbumsAsync()
             var media = database.getMediaDao().getMedia()
                 .filterNot { item -> blacklisted.any { it.matchesMedia(item) } }
