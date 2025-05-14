@@ -17,6 +17,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -262,7 +263,18 @@ fun <T : Media> MediaViewDetails(
                     ) {
                         item {
                             DateHeader(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
+                                    .clickable(
+                                        enabled = !currentMedia.readUriOnly,
+                                        indication = null,
+                                        interactionSource = remember {
+                                            MutableInteractionSource()
+                                        }
+                                    ) {
+                                        scope.launch {
+                                            metadataSheetState.show()
+                                        }
+                                    },
                                 mediaDateCaption = dateCaption
                             )
                         }
