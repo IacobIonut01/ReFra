@@ -303,6 +303,25 @@
     <string name="auto_play_video_summary">查看媒体时自动播放视频</string>
     <string name="shared_elements">为媒体项目应用动画</string>
     <string name="shared_elements_summary">用共享元素过渡来作为媒体项目的点击/返回动画</string>
+    <string name="type_stylus">触控笔</string>
+    <string name="type_highlighter">萤光笔</string>
+    <string name="type_marker">记号笔</string>
+    <string name="type_erase">橡皮擦</string>
+    <string name="crop">裁剪</string>
+    <string name="adjust">调整</string>
+    <string name="filters">滤镜</string>
+    <string name="markup">标记</string>
+    <string name="type_size">尺寸</string>
+    <string name="encrypting_media">正在加密媒体……</string>
+    <string name="decrypt_vault">解密私密空间</string>
+    <string name="restore_vault_summary">当前保险库及其内容将被解密并恢复。\n此操作将使您的内容在图库中再次可用。</string>
+    <string name="restore_vault_title">确认解密吗？</string>
+    <string name="yes">确认</string>
+    <string name="vault_deletion_title">确认删除吗？</string>
+    <string name="vault_deletion_summary">当前保险库及其内容将被永久删除。\n此操作无法撤销。</string>
+    <string name="create_new_vault_title">创建新的私密空间？</string>
+    <string name="create_new_vault_summary">保险库将通过您的手机安全措施（密码或生物识别）进行访问。\n\n加密密钥可以在保险库内部获取，并用于恢复任何保险库。</string>
+    <string name="select_a_vault">请选择私密空间</string>
     <plurals name="item_count">
         <item quantity="other">%s 个项目</item>
     </plurals>
