@@ -20,7 +20,7 @@ jobs:
         run: chmod +x ./strip_permission.sh && ./strip_permission.sh
       - uses: actions/setup-java@v4
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           cache: 'gradle'
           java-version: 17
       - name: Setup Android SDK
@@ -62,7 +62,7 @@ jobs:
         run: echo "versionName=$(grep 'versionName' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
       - uses: actions/setup-java@v4
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           cache: 'gradle'
           java-version: 17
       - name: Setup Android SDK
