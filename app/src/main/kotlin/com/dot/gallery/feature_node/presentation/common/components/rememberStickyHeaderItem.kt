@@ -13,6 +13,7 @@ import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaItem
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
+import com.dot.gallery.feature_node.domain.model.isSmallHeaderKey
 
 @Composable
 fun <T: Media> rememberStickyHeaderItem(
@@ -32,12 +33,10 @@ fun <T: Media> rememberStickyHeaderItem(
         snapshotFlow { gridState.layoutInfo.visibleItemsInfo }
             .collect { visibleItems ->
                 val firstItem = visibleItems.firstOrNull()
-                val firstHeaderIndex = visibleItems.firstOrNull {
-                    it.key.isHeaderKey && !it.key.toString().contains("big")
-                }?.index
+                val firstHeaderIndex = visibleItems.firstOrNull { it.key.isSmallHeaderKey }?.index?.minus(1)
 
                 val item = firstHeaderIndex?.let(mappedData::getOrNull)
-                stickyHeaderLastItem.value = if (item != null && item is MediaItem.Header) {
+                stickyHeaderLastItem.value = if (item != null && item is MediaItem.Header<T>) {
                     val newItem = item.text
                         .replace("Today", stringToday)
                         .replace("Yesterday", stringYesterday)

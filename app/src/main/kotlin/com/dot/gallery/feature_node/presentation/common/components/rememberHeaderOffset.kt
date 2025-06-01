@@ -16,16 +16,16 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.IntOffset
 
 @Composable
-inline fun StickyHeaderGrid(
+fun StickyHeaderGrid(
     state: LazyGridState,
     modifier: Modifier,
-    crossinline headerMatcher: @DisallowComposableCalls (LazyGridItemInfo) -> Boolean,
-    crossinline searchBarOffset: @DisallowComposableCalls () -> Int,
-    crossinline toolbarOffset: @DisallowComposableCalls () -> Int,
+    headerMatcher: @DisallowComposableCalls (LazyGridItemInfo) -> Boolean,
+    searchBarOffset: @DisallowComposableCalls () -> Int,
+    toolbarOffset: @DisallowComposableCalls () -> Int,
     stickyHeader: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -125,7 +125,9 @@ inline fun <LazyState : ScrollableState, LazyItem> StickyHeaderLayout(
         content()
         Box(
             modifier = Modifier
-                .alpha(alphaAnimation)
+                .graphicsLayer {
+                    alpha = alphaAnimation
+                }
                 .offset { offsetAnimation }
         ) {
             stickyHeader()
