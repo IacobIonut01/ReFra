@@ -20,6 +20,8 @@ sealed class Screen(val route: String) {
 
         fun idAndAlbum() = "$route?mediaId={mediaId}&albumId={albumId}"
 
+        fun idAndAlbum(id: Long, albumId: Long) = "$route?mediaId=$id&albumId=$albumId"
+
         fun idAndQuery() = "$route?mediaId={mediaId}&query={query}"
 
         fun idAndCategory() = "$route?mediaId={mediaId}&category={category}"
@@ -31,6 +33,11 @@ sealed class Screen(val route: String) {
     data object FavoriteScreen : Screen("favorite_screen")
 
     data object SettingsScreen : Screen("settings_screen")
+    data object SettingsThemeScreen : Screen("settings_theme_screen")
+    data object SettingsGeneralScreen : Screen("settings_general_screen")
+    data object SettingsCustomizationScreen : Screen("settings_customization_screen")
+    data object SettingsSmartFeaturesScreen : Screen("settings_smart_features_screen")
+
     data object IgnoredScreen : Screen("ignored_screen")
     data object IgnoredSetupScreen : Screen("ignored_setup_screen")
 

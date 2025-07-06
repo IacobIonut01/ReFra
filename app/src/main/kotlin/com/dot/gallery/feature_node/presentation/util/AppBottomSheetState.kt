@@ -16,14 +16,27 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun rememberAppBottomSheetState(): AppBottomSheetState {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    return rememberSaveable(saver = AppBottomSheetState.Saver(density = LocalDensity.current)) {
+fun rememberAppBottomSheetState(
+    skipPartiallyExpanded: Boolean = true,
+    skipHiddenState: Boolean = false,
+    positionalThreshold: Dp = 56.dp,
+    velocityThreshold: Dp = 125.dp,
+): AppBottomSheetState {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+    val density = LocalDensity.current
+    val positionalThresholdToPx = { with(density) { positionalThreshold.toPx() } }
+    val velocityThresholdToPx = { with(density) { velocityThreshold.toPx() } }
+    return rememberSaveable(saver = AppBottomSheetState.Saver(
+        positionalThreshold = positionalThresholdToPx,
+        velocityThreshold = velocityThresholdToPx,
+        skipHiddenState = skipHiddenState
+    )) {
         AppBottomSheetState(sheetState)
     }
 }
@@ -60,16 +73,20 @@ class AppBottomSheetState(
         fun Saver(
             skipPartiallyExpanded: Boolean = true,
             confirmValueChange: (SheetValue) -> Boolean = { true },
-            density: Density
+            positionalThreshold: () -> Float,
+            velocityThreshold: () -> Float,
+            skipHiddenState: Boolean
         ) = Saver<AppBottomSheetState, Pair<SheetValue, Boolean>>(
             save = { Pair(it.sheetState.currentValue, it.isVisible) },
             restore = { savedValue ->
                 AppBottomSheetState(
                     SheetState(
                         skipPartiallyExpanded,
-                        density,
+                        positionalThreshold,
+                        velocityThreshold,
                         savedValue.first,
-                        confirmValueChange
+                        confirmValueChange,
+                        skipHiddenState,
                     ),
                     savedValue.second
                 )

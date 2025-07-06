@@ -8,7 +8,7 @@ import com.github.panpf.sketch.decode.internal.createScaledTransformed
 import com.github.panpf.sketch.request.RequestContext
 import com.github.panpf.sketch.source.DataSource
 import com.github.panpf.sketch.util.Size
-import com.github.panpf.sketch.util.computeScaleMultiplierWithOneSide
+import com.github.panpf.sketch.util.calculateScaleMultiplierWithOneSide
 import okio.buffer
 import kotlin.math.roundToInt
 
@@ -23,9 +23,9 @@ inline fun DataSource.getImageInfo(
         val size = if (requestContext.size == Size.Origin) {
             Size(originalSizeDecoded.width, originalSizeDecoded.height)
         } else {
-            val scale = computeScaleMultiplierWithOneSide(
+            val scale = calculateScaleMultiplierWithOneSide(
                 sourceSize = Size(originalSizeDecoded.width, originalSizeDecoded.height),
-                targetSize = requestContext.size,
+                targetSize = requestContext.size
             )
             Size(
                 width = (originalSizeDecoded.width * scale).roundToInt(),
@@ -52,9 +52,9 @@ inline fun DataSource.withCustomDecoder(
     val originalSizeDecoded = getSize(sourceData) ?: android.util.Size(0, 0)
     val originalSize = Size(originalSizeDecoded.width, originalSizeDecoded.height)
     val targetSize = requestContext.size
-    val scale = computeScaleMultiplierWithOneSide(
+    val scale = calculateScaleMultiplierWithOneSide(
         sourceSize = originalSize,
-        targetSize = targetSize,
+        targetSize = targetSize
     )
     if (scale != 1f) {
         transformeds = listOf(createScaledTransformed(scale))

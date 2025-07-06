@@ -69,3 +69,5 @@ data class IgnoredAlbum(
 fun Regex.matchesAlbum(album: Album): Boolean {
     return album.pathToThumbnail.matches(this) || album.relativePath.matches(this) || album.volume.matches(this)
 }
+fun IgnoredAlbum.shouldIgnore(media: Media, albumId: Long = -1L) =
+    matchesMedia(media) && (hiddenInTimeline && albumId == -1L || hiddenInAlbums && albumId != -1L)

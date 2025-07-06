@@ -6,20 +6,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.presentation.components.ModalSheet
@@ -28,6 +31,8 @@ import com.dot.gallery.feature_node.presentation.common.components.OptionPositio
 import com.dot.gallery.feature_node.presentation.common.components.OptionPosition.MIDDLE
 import com.dot.gallery.feature_node.presentation.common.components.OptionPosition.TOP
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
 
 @Composable
 fun OptionSheet(
@@ -62,18 +67,26 @@ fun OptionLayout(
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         optionList.forEachIndexed { index, item ->
-            val position: OptionPosition = if (index == 0) {
-                if (optionList.size == 1) ALONE
-                else TOP
-            } else if (index == optionList.size - 1) BOTTOM
-            else MIDDLE
+            val position: OptionPosition = remember(index, item) {
+                when (index) {
+                    0 -> {
+                        if (optionList.size == 1) ALONE
+                        else TOP
+                    }
+                    optionList.lastIndex -> BOTTOM
+                    else -> MIDDLE
+                }
+            }
             val summary: (@Composable () -> Unit)? = if (item.summary.isNullOrBlank()) null else {
                 {
                     Text(text = item.summary)
                 }
             }
             OptionButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .hazeSource(LocalHazeState.current),
+                icon = item.icon,
                 textContainer = {
                     Text(text = item.text)
                 },
@@ -97,6 +110,7 @@ fun OptionButton(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    icon: ImageVector? = null,
     textContainer: @Composable () -> Unit,
     summaryContainer: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
@@ -117,44 +131,56 @@ fun OptionButton(
         )
         .alpha(if (enabled) 1f else 0.4f)
         .padding(16.dp)
-    if (summaryContainer != null) {
-        Column(
-            modifier = mod,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            ProvideTextStyle(
-                value = MaterialTheme.typography.labelLarge.copy(
-                    color = contentColor,
-                    fontWeight = FontWeight.Bold
-                )
-            ) {
-                textContainer()
-            }
-            ProvideTextStyle(
-                value = MaterialTheme.typography.labelMedium.copy(
-                    color = contentColor,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Normal
-                )
-            ) {
-                summaryContainer()
-            }
+    Row(
+        modifier = mod,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.alpha(if (enabled) 1f else 0.4f)
+            )
         }
-    } else {
-        Box(
-            modifier = mod,
-            contentAlignment = Alignment.Center
-        ) {
-            ProvideTextStyle(
-                value = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
+        if (summaryContainer != null) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                textContainer()
+                ProvideTextStyle(
+                    value = MaterialTheme.typography.labelLarge.copy(
+                        color = contentColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    textContainer()
+                }
+                ProvideTextStyle(
+                    value = MaterialTheme.typography.labelMedium.copy(
+                        color = contentColor,
+                        fontWeight = FontWeight.Normal
+                    )
+                ) {
+                    summaryContainer()
+                }
+            }
+        } else {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                ProvideTextStyle(
+                    value = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
+                ) {
+                    textContainer()
+                }
             }
         }
     }
 }
 
 data class OptionItem(
+    val icon: ImageVector? = null,
     val text: String,
     val summary: String? = null,
     val onClick: (summary: String) -> Unit,

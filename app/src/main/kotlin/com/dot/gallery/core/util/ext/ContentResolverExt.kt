@@ -39,6 +39,55 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
+fun ContentResolver.querySteppedFlow(
+    uri: Uri,
+    projection: Array<String>? = null,
+    queryArgs: Bundle? = Bundle(),
+) = callbackFlow {
+    // Each query will have its own cancellationSignal.
+    // Before running any new query the old cancellationSignal must be cancelled
+    // to ensure the currently running query gets interrupted so that we don't
+    // send data across the channel if we know we received a newer set of data.
+    var cancellationSignal = CancellationSignal()
+    // ContentObserver.onChange can be called concurrently so make sure
+    // access to the cancellationSignal is synchronized.
+    val mutex = Mutex()
+    val modifiedArgs = queryArgs?.deepCopy()?.apply {
+        putString(ContentResolver.QUERY_ARG_SQL_LIMIT, "250")
+    }
+
+    val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            launch(Dispatchers.IO) {
+                mutex.withLock {
+                    cancellationSignal.cancel()
+                    cancellationSignal = CancellationSignal()
+                }
+                runCatching {
+                    trySend(query(uri, projection, queryArgs, cancellationSignal))
+                }
+            }
+        }
+    }
+
+    registerContentObserver(uri, true, observer)
+
+    // The first set of values must always be generated and cannot (shouldn't) be cancelled.
+    launch(Dispatchers.IO) {
+        runCatching {
+            trySend(query(uri, projection, modifiedArgs, null))
+            trySend(query(uri, projection, queryArgs, null))
+        }
+    }
+
+    awaitClose {
+        // Stop receiving content changes.
+        unregisterContentObserver(observer)
+        // Cancel any possibly running query.
+        cancellationSignal.cancel()
+    }
+}.conflate()
+
 fun ContentResolver.queryFlow(
     uri: Uri,
     projection: Array<String>? = null,

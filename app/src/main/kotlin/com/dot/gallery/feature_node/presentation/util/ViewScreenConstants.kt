@@ -14,7 +14,8 @@ object ViewScreenConstants {
 
     @Suppress("FunctionName")
     fun FullyExpanded(setHeight: (Dp) -> Unit) =
-        SheetDetent("fully-expanded") { _, sheetHeight ->
+        SheetDetent("fully-expanded") { containerHeight, sheetHeight ->
+            printWarning("Sheet height: $sheetHeight, container height: $containerHeight")
             setHeight(sheetHeight)
             sheetHeight
         }

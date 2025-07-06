@@ -14,17 +14,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.LocalMediaHandler
+import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
-import com.dot.gallery.feature_node.presentation.util.clear
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberIsMediaManager
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
@@ -32,11 +32,12 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun <T: Media> TrashedNavActions(
-    handler: MediaHandleUseCase,
     mediaState: State<MediaState<T>>,
-    selectedMedia: MutableState<Set<Long>>,
-    selectionState: MutableState<Boolean>,
 ) {
+    val handler = LocalMediaHandler.current
+    val selector = LocalMediaSelector.current
+    val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
+    val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()
     val selectedMediaList = mediaState.value.media.selectedMedia(selectedSet = selectedMedia)
     val scope = rememberCoroutineScope()
     val isMediaManager = rememberIsMediaManager()
@@ -46,8 +47,7 @@ fun <T: Media> TrashedNavActions(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = {
             if (it.resultCode == Activity.RESULT_OK) {
-                selectedMedia.clear()
-                selectionState.value = false
+                selector.clearSelection()
                 if (isMediaManager) {
                     scope.launch {
                         deleteSheetState.hide()

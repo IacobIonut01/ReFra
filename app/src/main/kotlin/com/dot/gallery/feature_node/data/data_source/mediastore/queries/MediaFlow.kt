@@ -20,16 +20,15 @@ import com.dot.gallery.core.util.and
 import com.dot.gallery.core.util.eq
 import com.dot.gallery.core.util.ext.mapEachRow
 import com.dot.gallery.core.util.ext.queryFlow
+import com.dot.gallery.core.util.ext.querySteppedFlow
 import com.dot.gallery.core.util.ext.tryGetLong
 import com.dot.gallery.core.util.ext.tryGetString
 import com.dot.gallery.core.util.join
 import com.dot.gallery.feature_node.data.data_source.mediastore.MediaQuery
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaType
-import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.presentation.util.getDate
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 /**
  * Media flow
@@ -43,7 +42,8 @@ import kotlinx.coroutines.flow.map
 class MediaFlow(
     private val contentResolver: ContentResolver,
     private val buckedId: Long,
-    private val mimeType: String? = null
+    private val mimeType: String? = null,
+    private val skipBatching: Boolean = false
 ) : QueryFlow<Media.UriMedia>() {
     init {
         assert(buckedId != MediaStoreBuckets.MEDIA_STORE_BUCKET_PLACEHOLDER.id) {
@@ -53,7 +53,12 @@ class MediaFlow(
 
     override fun flowCursor(): Flow<Cursor?> {
         val uri = MediaQuery.MediaStoreFileUri
-        val projection = MediaQuery.MediaProjection
+        val projection = when(buckedId) {
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id ->
+                MediaQuery.MediaProjectionTrash
+            else ->
+                MediaQuery.MediaProjection
+        }
         val imageOrVideo = PickerUtils.mediaTypeFromGenericMimeType(mimeType)?.let {
             when (it) {
                 MediaType.IMAGE -> MediaQuery.Selection.image
@@ -120,15 +125,25 @@ class MediaFlow(
                 }
             )
         }
-
-        return contentResolver.queryFlow(
+        return if (skipBatching) {
+             contentResolver.queryFlow(
+                uri,
+                projection,
+                queryArgs,
+            )
+        } else contentResolver.querySteppedFlow(
             uri,
             projection,
             queryArgs,
         )
     }
 
-    override fun flowData() = flowCursor().mapEachRow(MediaQuery.MediaProjection) { it, indexCache ->
+    override fun flowData() = flowCursor().mapEachRow(
+        when (buckedId) {
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id -> MediaQuery.MediaProjectionTrash
+            else -> MediaQuery.MediaProjection
+        }
+    ) { it, indexCache ->
         var i = 0
 
         val id = it.getLong(indexCache[i++])
@@ -143,8 +158,9 @@ class MediaFlow(
         val size = it.getLong(indexCache[i++])
         val mimeType = it.getString(indexCache[i++])
         val isFavorite = it.getInt(indexCache[i++])
-        val isTrashed = it.getInt(indexCache[i++])
-        val expiryTimestamp = it.tryGetLong(indexCache[i])
+        val isTrashAlbum = buckedId == MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id
+        val isTrashed = it.getInt(indexCache[if (isTrashAlbum) i++ else i])
+        val expiryTimestamp = if (isTrashAlbum) it.tryGetLong(indexCache[i]) else null
         val contentUri = if (mimeType.contains("image"))
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         else
@@ -169,5 +185,5 @@ class MediaFlow(
             size = size,
             mimeType = mimeType
         )
-    }.map { MediaOrder.Default.sortMedia(it) }
+    }
 }

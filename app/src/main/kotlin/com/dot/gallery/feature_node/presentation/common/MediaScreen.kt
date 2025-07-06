@@ -14,12 +14,12 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -37,29 +37,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.Constants.cellsList
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
+import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.NavigationActions
 import com.dot.gallery.core.presentation.components.NavigationButton
 import com.dot.gallery.core.presentation.components.SelectionSheet
-import com.dot.gallery.feature_node.domain.model.AlbumState
+import com.dot.gallery.core.toggleNavigationBar
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
-import com.dot.gallery.feature_node.presentation.util.clear
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
-import com.dot.gallery.feature_node.presentation.util.size
+import dev.chrisbanes.haze.LocalHazeStyle
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -70,27 +75,18 @@ fun <T: Media> MediaScreen(
     albumId: Long = remember { -1L },
     target: String? = remember { null },
     albumName: String,
-    handler: MediaHandleUseCase,
-    albumsState: State<AlbumState> = remember { mutableStateOf(AlbumState()) },
     mediaState: State<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
-    selectionState: MutableState<Boolean>,
-    selectedMedia: MutableState<Set<Long>>,
-    toggleSelection: (Int) -> Unit,
     allowHeaders: Boolean = true,
     showMonthlyHeader: Boolean = false,
     enableStickyHeaders: Boolean = true,
     allowNavBar: Boolean = false,
     customDateHeader: String? = null,
     customViewingNavigation: ((media: T) -> Unit)? = null,
-    navActionsContent: @Composable (RowScope.(expandedDropDown: MutableState<Boolean>, result: ActivityResultLauncher<IntentSenderRequest>) -> Unit),
+    navActionsContent: @Composable ((expandedDropDown: MutableState<Boolean>, result: ActivityResultLauncher<IntentSenderRequest>) -> Unit),
     emptyContent: @Composable () -> Unit = { EmptyMedia() },
     aboveGridContent: @Composable (() -> Unit)? = remember { null },
-    navigate: (route: String) -> Unit,
-    navigateUp: () -> Unit,
-    toggleNavbar: (Boolean) -> Unit,
     isScrolling: MutableState<Boolean> = remember { mutableStateOf(false) },
-    searchBarActive: MutableState<Boolean> = remember { mutableStateOf(false) },
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     onActivityResult: (result: ActivityResult) -> Unit,
@@ -115,10 +111,14 @@ fun <T: Media> MediaScreen(
             lastCellIndex = cellsList.indexOf(pinchState.currentCells)
         }
     }
+    val eventHandler = LocalEventHandler.current
+    val selector = LocalMediaSelector.current
+    val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()
+    val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
 
     LaunchedEffect(selectionState.value) {
         if (allowNavBar) {
-            toggleNavbar(!selectionState.value)
+            eventHandler.toggleNavigationBar(!selectionState.value)
         }
     }
 
@@ -142,6 +142,10 @@ fun <T: Media> MediaScreen(
                     exit = exitAnimation
                 ) {
                     LargeTopAppBar(
+                        modifier = Modifier.hazeEffect(
+                            state = LocalHazeState.current,
+                            style = LocalHazeStyle.current
+                        ),
                         title = {
                             TwoLinedDateToolbarTitle(
                                 albumName = albumName,
@@ -152,12 +156,6 @@ fun <T: Media> MediaScreen(
                             NavigationButton(
                                 albumId = albumId,
                                 target = target,
-                                navigateUp = navigateUp,
-                                clearSelection = {
-                                    selectionState.value = false
-                                    selectedMedia.clear()
-                                },
-                                selectionState = selectionState,
                                 alwaysGoBack = true,
                             )
                         },
@@ -167,7 +165,10 @@ fun <T: Media> MediaScreen(
                                 onActivityResult = onActivityResult
                             )
                         },
-                        scrollBehavior = scrollBehavior
+                        scrollBehavior = scrollBehavior,
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                        ),
                     )
                 }
                 AnimatedVisibility(
@@ -176,14 +177,7 @@ fun <T: Media> MediaScreen(
                     exit = exitAnimation
                 ) {
                     MainSearchBar(
-                        bottomPadding = paddingValues.calculateBottomPadding(),
-                        navigate = navigate,
-                        toggleNavbar = toggleNavbar,
-                        selectionState = remember(selectedMedia) {
-                            if (selectedMedia.size > 0) selectionState else null
-                        },
                         isScrolling = isScrolling,
-                        activeState = searchBarActive,
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
                     ) {
@@ -195,44 +189,45 @@ fun <T: Media> MediaScreen(
                 }
             }
         ) { it ->
-            PinchZoomGridLayout(state = pinchState) {
+            PinchZoomGridLayout(
+                state = pinchState,
+                modifier = Modifier.hazeSource(LocalHazeState.current)
+            ) {
                 MediaGridView(
+                    modifier = Modifier.padding(top = it.calculateTopPadding()),
                     mediaState = mediaState,
                     metadataState = metadataState,
-                    allowSelection = true,
-                    showSearchBar = showSearchBar,
-                    searchBarPaddingTop = remember(paddingValues) {
-                        paddingValues.calculateTopPadding()
-                    },
-                    enableStickyHeaders = enableStickyHeaders,
                     paddingValues = remember(paddingValues, it) {
                         PaddingValues(
-                            top = it.calculateTopPadding(),
                             bottom = paddingValues.calculateBottomPadding() + 128.dp
                         )
                     },
+                    searchBarPaddingTop = remember(paddingValues) {
+                        paddingValues.calculateTopPadding()
+                    },
+                    showSearchBar = showSearchBar,
+                    allowSelection = true,
                     canScroll = canScroll,
-                    selectionState = selectionState,
-                    selectedMedia = selectedMedia,
                     allowHeaders = allowHeaders,
+                    enableStickyHeaders = enableStickyHeaders,
                     showMonthlyHeader = showMonthlyHeader,
-                    toggleSelection = toggleSelection,
                     aboveGridContent = aboveGridContent,
                     isScrolling = isScrolling,
                     emptyContent = emptyContent,
                     sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope
-                ) {
-                    if (customViewingNavigation == null) {
-                        val albumRoute = "albumId=$albumId"
-                        val targetRoute = "target=$target"
-                        val param =
-                            if (target != null) targetRoute else albumRoute
-                        navigate(Screen.MediaViewScreen.route + "?mediaId=${it.id}&$param")
-                    } else {
-                        customViewingNavigation(it)
-                    }
-                }
+                    animatedContentScope = animatedContentScope,
+                    onMediaClick = {
+                        if (customViewingNavigation == null) {
+                            val albumRoute = "albumId=$albumId"
+                            val targetRoute = "target=$target"
+                            val param =
+                                if (target != null) targetRoute else albumRoute
+                            eventHandler.navigate(Screen.MediaViewScreen.route + "?mediaId=${it.id}&$param")
+                        } else {
+                            customViewingNavigation(it)
+                        }
+                    },
+                )
             }
         }
         AnimatedVisibility(
@@ -246,10 +241,7 @@ fun <T: Media> MediaScreen(
             SelectionSheet(
                 modifier = Modifier
                     .align(Alignment.BottomEnd),
-                selectedMedia = selectedMediaList,
-                selectionState = selectionState,
-                albumsState = albumsState,
-                handler = handler
+                selectedMedia = selectedMediaList
             )
         }
     }

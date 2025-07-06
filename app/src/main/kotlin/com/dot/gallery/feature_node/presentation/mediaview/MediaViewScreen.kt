@@ -12,6 +12,7 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -43,7 +44,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,9 +59,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.core.BottomSheet
 import com.composables.core.SheetDetent.Companion.FullyExpanded
 import com.composables.core.rememberBottomSheetState
@@ -69,34 +74,34 @@ import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.LocalMediaDistributor
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
+import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.util.swipe
-import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
-import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewActions2
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewAppBar
-import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewDetails
+import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewQuickBottomBar
+import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewSheetDetails
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayerController
 import com.dot.gallery.feature_node.presentation.util.FullBrightnessWindow
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.ProvideInsets
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.BOTTOM_BAR_HEIGHT
-import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.FullyExpanded
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.ImageOnly
 import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
-import com.dot.gallery.feature_node.presentation.util.normalize
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import com.dot.gallery.feature_node.presentation.util.rememberGestureNavigationEnabled
 import com.dot.gallery.feature_node.presentation.util.rememberNavigationBarHeight
@@ -104,9 +109,12 @@ import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsContro
 import com.dot.gallery.feature_node.presentation.util.setHdrMode
 import com.dot.gallery.feature_node.presentation.util.toggleSystemBars
 import com.dot.gallery.ui.theme.BlackScrim
+import com.dot.gallery.ui.theme.WhiterBlackScrim
+import com.dot.gallery.ui.theme.isDarkTheme
 import com.github.panpf.sketch.BitmapImage
 import com.github.panpf.sketch.request.ImageRequest
 import com.github.panpf.sketch.sketch
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -137,25 +145,24 @@ fun <T> rememberedDerivedState(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T : Media> MediaViewScreen(
-    navigateUp: () -> Unit,
     toggleRotate: () -> Unit,
     paddingValues: PaddingValues,
     isStandalone: Boolean = false,
     mediaId: Long,
     target: String? = null,
     mediaState: State<MediaState<out T>>,
-    albumsState: State<AlbumState> = remember { mutableStateOf(AlbumState()) },
-    metadataState: State<MediaMetadataState> = remember { mutableStateOf(MediaMetadataState()) },
-    handler: MediaHandleUseCase?,
     vaultState: State<VaultState>,
     addMedia: (Vault, T) -> Unit,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
     currentVault: Vault? = null,
-    navigate: (String) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) = ProvideInsets {
+    val eventHandler = LocalEventHandler.current
+    val distributor = LocalMediaDistributor.current
+    val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle()
+    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()
@@ -192,7 +199,7 @@ fun <T : Media> MediaViewScreen(
 
     val currentDateFormat by rememberDateHeaderFormat()
 
-    val currentDate by rememberedDerivedState {
+    val currentDate by rememberedDerivedState(currentMedia) {
         currentMedia?.definedTimestamp?.getDate(currentDateFormat) ?: ""
     }
     val canAutoPlay by rememberVideoAutoplay()
@@ -207,17 +214,16 @@ fun <T : Media> MediaViewScreen(
 
     BackHandler(!showUI) {
         windowInsetsController.toggleSystemBars(show = true)
-        navigateUp()
+        eventHandler.navigateUp()
     }
-    var sheetHeightDp by remember { mutableStateOf(1.dp) }
-    var lastSheetHeightDp by rememberSaveable { mutableFloatStateOf(0f) }
+    val window = LocalWindowInfo.current
+    val density = LocalDensity.current
+    val halfScreenHeight by remember(
+        window,
+        density
+    ) { mutableStateOf(Dp(window.containerSize.height / density.density / 4)) }
 
     val configuration = LocalConfiguration.current
-    var lastOrientation by rememberSaveable(configuration.orientation) {
-        mutableIntStateOf(
-            configuration.orientation
-        )
-    }
     val isLandscape = remember(configuration) {
         configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     }
@@ -241,83 +247,29 @@ fun <T : Media> MediaViewScreen(
     val imageOnlyDetent = remember(bottomBarHeightDefault, extraPaddingWithNavButtons) {
         ImageOnly { bottomBarHeightDefault + extraPaddingWithNavButtons }
     }
+    val expandedDetent = remember { FullyExpanded }
 
     val sheetState = rememberBottomSheetState(
         initialDetent = imageOnlyDetent,
-        detents = listOf(imageOnlyDetent, FullyExpanded { sheetHeightDp = it })
+        detents = listOf(imageOnlyDetent, expandedDetent),
+        positionalThreshold = { it },
+        velocityThreshold = { 1000.dp }
     )
 
     val userScrollEnabled by rememberedDerivedState { sheetState.currentDetent != FullyExpanded }
 
-    var storedNormalizationTarget by rememberSaveable(configuration.orientation) {
-        mutableFloatStateOf(0f)
-    }
-
-    val isNormalizationTargetSet by rememberedDerivedState(
-        bottomBarHeightDefault,
-        currentPage,
-        pagerState.currentPage,
-        configuration.orientation,
-        mediaState.value,
-        sheetHeightDp.value,
-        lastSheetHeightDp,
-        lastOrientation,
-        shouldForcePage
-    ) {
-        lastOrientation == configuration.orientation
-                && lastSheetHeightDp.dp == sheetHeightDp
-                && currentPage == pagerState.currentPage
-                && storedNormalizationTarget > 0f
-                && storedNormalizationTarget < 0.7f
-                && !mediaState.value.isLoading
-                && !shouldForcePage
-    }
-
-    LaunchedEffect(sheetHeightDp.value, configuration.orientation) {
-        if (!isNormalizationTargetSet) {
-            lastSheetHeightDp = sheetHeightDp.value
-            lastOrientation = configuration.orientation
-        }
-    }
-
-    val normalizationTarget by rememberedDerivedState(
-        isNormalizationTargetSet,
-        mediaState.value,
-        currentPage,
-        sheetState.offset,
-        storedNormalizationTarget
-    ) {
-        if (isNormalizationTargetSet) {
-            storedNormalizationTarget
-        } else {
-            val newOffset = sheetState.offset
-            if (newOffset > 0f && newOffset < 1f) {
-                storedNormalizationTarget = newOffset
-            }
-            storedNormalizationTarget
-        }
-    }
-
-    LaunchedEffect(shouldForcePage) {
-        if (!shouldForcePage) {
-            storedNormalizationTarget = sheetState.offset
-        }
-    }
-
-    val normalizedOffset by rememberedDerivedState(
-        normalizationTarget,
-        isNormalizationTargetSet
-    ) {
-        if (isNormalizationTargetSet) {
-            sheetState.offset.normalize(minValue = normalizationTarget)
-        } else 0f
+    val sheetProgress by rememberedDerivedState {
+        sheetState.progress(
+            imageOnlyDetent,
+            expandedDetent
+        )
     }
 
     LaunchedEffect(mediaState.value) {
         snapshotFlow { pagerState.currentPage }.collectLatest { page ->
             if (!mediaState.value.isLoading && mediaState.value.media.isEmpty() && !isStandalone) {
                 windowInsetsController.toggleSystemBars(show = true)
-                navigateUp()
+                eventHandler.navigateUp()
             }
             if (!mediaState.value.isLoading) {
                 currentPage = page
@@ -378,23 +330,20 @@ fun <T : Media> MediaViewScreen(
         }
 
     FullBrightnessWindow {
+        val isDarkTheme = isDarkTheme()
+        val allowBlur by rememberAllowBlur()
+        val backgroundColor by animateColorAsState(
+            if (allowBlur) Color.Black else {
+                if (isDarkTheme) Color.Black else Color.White
+            }
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(backgroundColor)
         ) {
             HorizontalPager(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        translationY =
-                            -((sheetHeightDp -
-                                    bottomBarHeightDefault -
-                                    bottomPadding -
-                                    extraPaddingWithNavButtons -
-                                    if (!isGestureEnabled && isLandscape) navigationBarHeight else 0.dp
-                                    ).toPx() * normalizedOffset)
-                    },
+                modifier = Modifier.fillMaxSize(),
                 userScrollEnabled = userScrollEnabled,
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(
@@ -429,16 +378,26 @@ fun <T : Media> MediaViewScreen(
                     with(sharedTransitionScope) {
                         MediaPreviewComponent(
                             modifier = Modifier
+                                .hazeSource(state = LocalHazeState.current)
                                 .mediaSharedElement(
                                     media = media!!,
                                     animatedVisibilityScope = animatedContentScope
-                                ),
+                                )
+                                .graphicsLayer {
+                                    translationY =
+                                        -((halfScreenHeight -
+                                                bottomBarHeightDefault -
+                                                bottomPadding -
+                                                extraPaddingWithNavButtons -
+                                                if (!isGestureEnabled && isLandscape) navigationBarHeight else 0.dp
+                                                ).toPx() * sheetProgress)
+                                },
                             media = media,
                             uiEnabled = showUI,
                             playWhenReady = canPlay,
                             onSwipeDown = {
                                 windowInsetsController.toggleSystemBars(show = true)
-                                navigateUp()
+                                eventHandler.navigateUp()
                             },
                             offset = offset,
                             onItemClick = {
@@ -459,8 +418,9 @@ fun <T : Media> MediaViewScreen(
                                         windowInsetsController.toggleSystemBars(false)
                                     }
                                 }
+                                val resources = LocalResources.current
                                 val width =
-                                    remember(context) { context.resources.displayMetrics.widthPixels }
+                                    remember(context) { resources.displayMetrics.widthPixels }
                                 Spacer(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -489,7 +449,7 @@ fun <T : Media> MediaViewScreen(
                                         )
                                         .swipe(onOffset = { offset = it }) {
                                             windowInsetsController.toggleSystemBars(show = true)
-                                            navigateUp()
+                                            eventHandler.navigateUp()
                                         }
                                 )
 
@@ -523,7 +483,7 @@ fun <T : Media> MediaViewScreen(
                                         )
                                         .swipe(onOffset = { offset = it }) {
                                             windowInsetsController.toggleSystemBars(show = true)
-                                            navigateUp()
+                                            eventHandler.navigateUp()
                                         }
                                 )
 
@@ -577,7 +537,7 @@ fun <T : Media> MediaViewScreen(
                         if (sheetState.currentDetent == FullyExpanded) {
                             sheetState.animateTo(imageOnlyDetent)
                         } else {
-                            navigateUp()
+                            eventHandler.navigateUp()
                         }
                     }
                 }
@@ -616,7 +576,7 @@ fun <T : Media> MediaViewScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     val actionsAlpha by animateFloatAsState(
-                        targetValue = 1f - normalizedOffset,
+                        targetValue = 1f - sheetProgress,
                         label = "MediaViewActions2Alpha"
                     )
                     AnimatedVisibility(
@@ -624,16 +584,23 @@ fun <T : Media> MediaViewScreen(
                         enter = enterAnimation,
                         exit = exitAnimation
                     ) {
+                        val allowBlur by rememberAllowBlur()
+                        val followTheme = remember(allowBlur) { !allowBlur }
+                        val gradientColor by animateColorAsState(
+                            if (followTheme) {
+                                if (isDarkTheme) BlackScrim else WhiterBlackScrim
+                            } else BlackScrim,
+                        )
                         Row(
                             modifier = Modifier
                                 .graphicsLayer {
                                     alpha = actionsAlpha
                                     translationY =
-                                        bottomBarHeightDefault.toPx() * normalizedOffset
+                                        bottomBarHeightDefault.toPx() * sheetProgress
                                 }
                                 .background(
                                     Brush.verticalGradient(
-                                        colors = listOf(Color.Transparent, BlackScrim)
+                                        colors = listOf(Color.Transparent, gradientColor)
                                     )
                                 )
                                 .padding(
@@ -644,9 +611,8 @@ fun <T : Media> MediaViewScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceEvenly,
                         ) {
-                            MediaViewActions2(
+                            MediaViewQuickBottomBar(
                                 currentMedia = currentMedia,
-                                handler = handler,
                                 showDeleteButton = !isReadOnly,
                                 enabled = showUI,
                                 deleteMedia = deleteMedia,
@@ -656,16 +622,14 @@ fun <T : Media> MediaViewScreen(
                         }
                     }
 
-                    MediaViewDetails(
+                    MediaViewSheetDetails(
                         albumsState = albumsState,
                         vaultState = vaultState,
                         metadataState = metadataState,
                         currentMedia = currentMedia,
-                        handler = handler,
                         addMediaToVault = addMedia,
                         restoreMedia = restoreMedia,
                         currentVault = currentVault,
-                        navigate = navigate,
                     )
                 }
             }

@@ -6,7 +6,6 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components.media
 
 import android.os.Build
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
@@ -72,7 +71,7 @@ fun <T: Media> ZoomablePagerImage(
     ProvideBatteryStatus {
         val allowBlur by Settings.Misc.rememberAllowBlur()
         val isPowerSavingMode = LocalBatteryStatus.current.isPowerSavingMode
-        AnimatedVisibility(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && allowBlur && !isPowerSavingMode) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && allowBlur && !isPowerSavingMode) {
             val blurAlpha by animateFloatAsState(
                 animationSpec = tween(DEFAULT_TOP_BAR_ANIMATION_DURATION),
                 targetValue = if (uiEnabled) 0.7f else 0f,
@@ -158,6 +157,7 @@ fun <T: Media> ZoomablePagerImage(
                 setExtra("realMimeType", media.mimeType)
             }
         )
+        val mediaUri = remember(media) { media.getUri().toString() }
 
         SketchZoomAsyncImage(
             zoomState = zoomState,
@@ -183,7 +183,7 @@ fun <T: Media> ZoomablePagerImage(
                 }
             },
             alignment = Alignment.Center,
-            uri = media.getUri().toString(),
+            uri = mediaUri,
             contentDescription = media.label
         )
     }

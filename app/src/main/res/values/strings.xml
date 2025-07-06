@@ -339,6 +339,17 @@
     <string name="refresh_metadata">Refresh Metadata</string>
     <string name="refresh_metadata_summary">If something feels wrong, refresh all stored media metadata</string>
     <string name="metadata_refresh_toast">Refreshing metadata...</string>
+    <string name="change_thumbnail">Change album cover</string>
+    <string name="delete_thumbnail">Remove custom album cover</string>
+    <string name="settings_theme">Themes</string>
+    <string name="settings_theme_summary">Customise your media gallery</string>
+    <string name="customization_summary">Optmise the app to your own preferences</string>
+    <string name="settings_misc">Miscellaneous</string>
+    <string name="settings_misc_summary">Various uncategorised settings</string>
+    <string name="settings_general_summary">Various general settings</string>
+    <string name="ai_category_summary">Control what Smart Features you want to use</string>
+    <string name="video_playback">Video Playback</string>
+    <string name="interface_settings">Interface</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

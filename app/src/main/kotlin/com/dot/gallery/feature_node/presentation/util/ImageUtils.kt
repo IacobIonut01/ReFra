@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -33,6 +34,7 @@ import androidx.core.graphics.scale
 import androidx.core.net.toFile
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.Settings.Misc.rememberExifDateFormat
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
@@ -167,8 +169,9 @@ fun <T: Media> rememberMediaInfo(
     onLabelClick: () -> Unit
 ): List<InfoRow> {
     val context = LocalContext.current
-    return remember(media) {
-        media.retrieveMetadata(context, exifMetadata, onLabelClick)
+    val exifDateFormat by rememberExifDateFormat()
+    return remember(media, exifDateFormat) {
+        media.retrieveMetadata(context, exifDateFormat, exifMetadata, onLabelClick)
     }
 }
 

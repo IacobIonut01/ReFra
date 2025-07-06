@@ -92,6 +92,16 @@ private val DarkColors = darkColorScheme(
     scrim = md_theme_dark_scrim,
 )
 
+@Composable
+fun isDarkTheme(): Boolean {
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val forceThemeValue by rememberForceTheme()
+    val isDarkMode by rememberIsDarkMode()
+    return remember(forceThemeValue, isDarkMode) {
+        if (forceThemeValue) isDarkMode else isSystemInDarkTheme
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GalleryTheme(

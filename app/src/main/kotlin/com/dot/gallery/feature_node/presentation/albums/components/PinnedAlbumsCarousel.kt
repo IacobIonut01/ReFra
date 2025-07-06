@@ -28,8 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -68,9 +68,11 @@ fun CarouselPinnedAlbums(
     val primaryTextColor = MaterialTheme.colorScheme.onSurface.toArgb()
     val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
     val containerColor = MaterialTheme.colorScheme.surface.toArgb()
-    val configuration = LocalConfiguration.current
-    val maxCarouselWidth =
-        with(LocalDensity.current) { configuration.screenWidthDp.dp.toPx() / 2.75f }
+    val density = LocalDensity.current
+    val windowInfo = LocalWindowInfo.current
+    val maxCarouselWidth = remember(density, windowInfo) {
+        with(density) { windowInfo.containerSize.width.dp.toPx() / 2.75f }
+    }
     AndroidView(
         modifier = modifier
             .fillMaxWidth()

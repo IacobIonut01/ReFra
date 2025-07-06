@@ -22,17 +22,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,12 +39,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.albumCellsList
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.Settings.Album.rememberLastSort
 import com.dot.gallery.core.presentation.components.EmptyAlbum
@@ -59,34 +57,34 @@ import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.FilterOption
 import com.dot.gallery.core.presentation.components.LoadingAlbum
 import com.dot.gallery.feature_node.domain.model.Album
-import com.dot.gallery.feature_node.domain.model.AlbumState
-import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
 import com.dot.gallery.feature_node.presentation.albums.components.CarouselPinnedAlbums
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
-import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun AlbumsScreen(
-    navigate: (route: String) -> Unit,
-    toggleNavbar: (Boolean) -> Unit,
-    mediaState: State<MediaState<Media.UriMedia>>,
-    albumsState: State<AlbumState>,
     paddingValues: PaddingValues,
     filterOptions: SnapshotStateList<FilterOption>,
     isScrolling: MutableState<Boolean>,
-    searchBarActive: MutableState<Boolean>,
     onAlbumClick: (Album) -> Unit,
     onAlbumLongClick: (Album) -> Unit,
     onMoveAlbumToTrash: (ActivityResultLauncher<IntentSenderRequest>, Album) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
+    val eventHandler = LocalEventHandler.current
+    val distributor = LocalMediaDistributor.current
+    val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle()
+    val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle()
+
     var lastCellIndex by rememberAlbumGridSize()
 
     val pinchState = rememberPinchZoomGridState(
@@ -118,20 +116,11 @@ fun AlbumsScreen(
         ),
         topBar = {
             MainSearchBar(
-                bottomPadding = paddingValues.calculateBottomPadding(),
-                navigate = navigate,
-                toggleNavbar = toggleNavbar,
                 isScrolling = isScrolling,
-                activeState = searchBarActive,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedContentScope = animatedContentScope,
             ) {
-                IconButton(onClick = { navigate(Screen.SettingsScreen.route) }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(R.string.settings_title)
-                    )
-                }
+                TimelineNavActions()
             }
         }
     ) { innerPaddingValues ->
@@ -141,7 +130,10 @@ fun AlbumsScreen(
                 bottom = paddingValues.calculateBottomPadding() + 16.dp + 64.dp
             )
         }
-        PinchZoomGridLayout(state = pinchState) {
+        PinchZoomGridLayout(
+            state = pinchState,
+            modifier = Modifier.hazeSource(LocalHazeState.current)
+        ) {
             LaunchedEffect(gridState.isScrollInProgress) {
                 isScrolling.value = gridState.isScrollInProgress
             }

@@ -8,8 +8,12 @@ package com.dot.gallery.feature_node.presentation.util
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.util.fastFilter
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +26,7 @@ import com.dot.gallery.feature_node.domain.model.MediaItem
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MediaOrder
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -33,7 +38,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun <T: Media> List<T>.selectedMedia(selectedSet: MutableState<Set<Long>>) =
+fun <T: Media> selectedMedia(
+    media: List<T>,
+    selectedSet: State<Set<Long>>
+): State<SnapshotStateList<T>> = rememberedDerivedState(media, selectedSet.value) {
+    media.fastFilter { selectedSet.value.contains(it.id) }.toMutableStateList()
+}
+
+@Composable
+fun <T: Media> List<T>.selectedMedia(selectedSet: State<Set<Long>>) =
     remember(this, selectedSet.value) { filter { selectedSet.value.contains(it.id) }.toMutableStateList() }
 
 val <T> MutableState<Set<T>>.size get() = value.size
@@ -181,9 +194,9 @@ suspend fun <T : Media> mapMediaToItem(
         }
     }
     groupedData.forEach { (date, data) ->
-        val dateHeader = MediaItem.Header<T>("header_$date", date, data.map { it.id }.toSet())
+        val dateHeader = MediaItem.Header<T>("header_$date", date, data.fastMap { it.id }.toSet())
         headers.add(dateHeader)
-        val groupedMedia = data.map {
+        val groupedMedia = data.fastMap {
             MediaItem.MediaViewItem("media_${it.id}_${it.label}", it)
         }
         if (groupByMonth) {

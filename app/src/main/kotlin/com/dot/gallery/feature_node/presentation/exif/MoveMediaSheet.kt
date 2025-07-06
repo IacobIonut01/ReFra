@@ -40,12 +40,12 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
 import com.dot.gallery.core.Constants.albumCellsList
+import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.domain.util.volume
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
@@ -64,9 +64,9 @@ fun <T: Media> MoveMediaSheet(
     sheetState: AppBottomSheetState,
     mediaList: List<T>,
     albumState: State<AlbumState>,
-    handler: MediaHandleUseCase,
     onFinish: () -> Unit,
 ) {
+    val handler = LocalMediaHandler.current
     val context = LocalContext.current
     val toastError = toastError()
 

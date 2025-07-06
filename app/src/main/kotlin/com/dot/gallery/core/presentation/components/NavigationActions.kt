@@ -18,7 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 
 @Composable
 fun RowScope.NavigationActions(
-    actions: @Composable (RowScope.(expandedDropDown: MutableState<Boolean>, result: ActivityResultLauncher<IntentSenderRequest>) -> Unit),
+    actions: @Composable ((expandedDropDown: MutableState<Boolean>, result: ActivityResultLauncher<IntentSenderRequest>) -> Unit),
     onActivityResult: (result: ActivityResult) -> Unit
 ) {
     val expandedDropDown = rememberSaveable { mutableStateOf(false) }

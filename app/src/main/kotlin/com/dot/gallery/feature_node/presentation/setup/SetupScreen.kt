@@ -1,13 +1,22 @@
 package com.dot.gallery.feature_node.presentation.setup
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FileOpen
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.PermMedia
+import androidx.compose.material.icons.rounded.SignalWifi4Bar
+import androidx.compose.material.icons.rounded.VideoFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -20,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,13 +67,15 @@ fun SetupScreen(
     LaunchedEffect(permissionGranted) {
         if (permissionGranted) {
             onPermissionGranted()
-        } else if (!firstLaunch) Toast.makeText(context,
-            context.getString(R.string.some_permissions_are_not_granted), Toast.LENGTH_LONG)
+        } else if (!firstLaunch) Toast.makeText(
+            context,
+            context.getString(R.string.some_permissions_are_not_granted), Toast.LENGTH_LONG
+        )
             .show()
     }
 
     SetupWizard(
-        painter = painterResource(R.drawable.ic_gallery_thumbnail),
+        painter = painterResource(R.drawable.monochrome_icon),
         title = stringResource(id = R.string.welcome),
         subtitle = appName,
         contentPadding = 0.dp,
@@ -91,16 +104,22 @@ fun SetupScreen(
                     .padding(horizontal = 16.dp),
                 text = stringResource(R.string.required)
             )
-            OptionLayout(
-                modifier = Modifier.fillMaxWidth(),
-                optionList = context.requiredPermissionsList.map { (title, summary) ->
+            val options = remember(context) {
+                context.requiredPermissionsList.map { (icon, title, summary) ->
                     OptionItem(
+                        icon = icon,
                         text = title,
                         summary = summary,
                         enabled = true,
-                        onClick = {  }
+                        onClick = { }
                     )
                 }
+            }
+            OptionLayout(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(0.8f),
+                optionList = options
             )
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -112,7 +131,9 @@ fun SetupScreen(
                 }
 
                 Text(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     text = stringResource(R.string.optional)
                 )
                 val grantedString = stringResource(R.string.granted)
@@ -121,6 +142,7 @@ fun SetupScreen(
                 val optionsList = remember(useMediaManager, isStorageManager) {
                     listOf(
                         OptionItem(
+                            icon = Icons.Rounded.PermMedia,
                             text = context.getString(R.string.permission_manage_media_title),
                             summary = if (!useMediaManager) context.getString(R.string.permission_manage_media_summary) else grantedString,
                             enabled = !useMediaManager,
@@ -133,8 +155,11 @@ fun SetupScreen(
                             contentColor = onSecondaryContainer
                         ),
                         OptionItem(
+                            icon = Icons.Rounded.FileOpen,
                             text = context.getString(R.string.permission_manage_files_title),
-                            summary = if (!isStorageManager && isManageFilesAllowed) context.getString(R.string.permission_manage_files_summary) else grantedString,
+                            summary = if (!isStorageManager && isManageFilesAllowed) context.getString(
+                                R.string.permission_manage_files_summary
+                            ) else grantedString,
                             enabled = !isStorageManager && isManageFilesAllowed,
                             onClick = {
                                 scope.launch {
@@ -149,7 +174,9 @@ fun SetupScreen(
                 }
 
                 OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .alpha(0.8f),
                     optionList = optionsList
                 )
             }
@@ -157,11 +184,32 @@ fun SetupScreen(
     )
 }
 
-private val Context.requiredPermissionsList: Array<Pair<String, String>> get() {
-    return arrayOf(
-        getString(R.string.read_media_images) to getString(R.string.read_media_images_summary),
-        getString(R.string.read_media_videos) to getString(R.string.read_media_videos_summary),
-        getString(R.string.access_media_location) to getString(R.string.access_media_location_summary),
-        getString(R.string.internet) to getString(R.string.internet_summary)
-    )
-}
+private val Context.requiredPermissionsList: Array<Triple<ImageVector, String, String>>
+    get() {
+        return arrayOf(
+            Triple(
+                Icons.Rounded.Image,
+                getString(R.string.read_media_images),
+                getString(R.string.read_media_images_summary)
+            ),
+            Triple(
+                Icons.Rounded.VideoFile,
+                getString(R.string.read_media_videos),
+                getString(R.string.read_media_videos_summary)
+            ),
+            Triple(
+                Icons.Rounded.LocationOn,
+                getString(R.string.access_media_location),
+                getString(R.string.access_media_location_summary)
+            ),
+            Triple(
+                Icons.Rounded.SignalWifi4Bar,
+                getString(R.string.internet),
+                getString(R.string.internet_summary)
+            )
+        ).apply {
+            if (packageManager.checkPermission(Manifest.permission.INTERNET, packageName) != PackageManager.PERMISSION_GRANTED) {
+                this.dropLast(1)
+            }
+        }
+    }

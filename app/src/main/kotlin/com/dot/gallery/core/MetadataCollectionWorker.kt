@@ -12,11 +12,15 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
+import com.dot.gallery.feature_node.domain.model.MediaVersion
 import com.dot.gallery.feature_node.domain.model.retrieveExtraMediaMetadata
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.presentation.util.isMetadataUpToDate
+import com.dot.gallery.feature_node.presentation.util.mediaStoreVersion
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
@@ -39,6 +43,11 @@ class MetadataCollectionWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        delay(1000)
+        if (database.isMetadataUpToDate(appContext)) {
+            printDebug("Metadata is up to date")
+            return Result.success()
+        }
         printDebug("Updating metadata...")
         setProgress(workDataOf("progress" to 1))
         val forceReload = inputData.getBoolean("forceReload", false)
@@ -46,7 +55,8 @@ class MetadataCollectionWorker @AssistedInject constructor(
             printDebug("Force reloading metadata...")
         }
         val oldMedia = database.getMediaDao().getMedia()
-        val media = repository.getMedia().map { it.data ?: emptyList() }.firstOrNull()
+        val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
+        printDebug("Retrieved ${media?.size ?: 0} media items from repository.")
         val differentMedia = if (!forceReload) {
             media?.fastFilter { newMedia ->
                 oldMedia.none { oldMediaItem ->
@@ -54,7 +64,17 @@ class MetadataCollectionWorker @AssistedInject constructor(
                 }
             }
         } else media
+        printDebug("Found ${differentMedia?.size ?: 0} new or updated media items.")
+        media?.let {
+            printDebug("Deleting forgotten metadata...")
+            database.getMetadataDao().deleteForgottenMetadata(it.fastMap { m -> m.id })
+        }
         differentMedia?.let { diffMedia ->
+            if (diffMedia.isEmpty()) {
+                printDebug("No new media to update metadata for.")
+                setProgress(workDataOf("progress" to 100))
+                return Result.success()
+            }
             printDebug("Updating metadata for ${diffMedia.size} items...")
             diffMedia.fastForEachIndexed { index, it ->
                 setProgress(workDataOf("progress" to ((index + 1) * 100 / diffMedia.size.toFloat()).roundToInt()))
@@ -63,10 +83,8 @@ class MetadataCollectionWorker @AssistedInject constructor(
                 }
             }
         }
-        media?.let {
-            database.getMetadataDao().deleteForgottenMetadata(it.fastMap { m -> m.id })
-        }
         printDebug("Metadata update complete")
+        database.getMetadataDao().setMediaVersion(MediaVersion(appContext.mediaStoreVersion))
         setProgress(workDataOf("progress" to 100))
         return Result.success()
     }

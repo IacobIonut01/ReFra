@@ -34,6 +34,7 @@ import com.dot.gallery.core.Settings.Misc.rememberExtendedDateFormat
 import com.dot.gallery.core.Settings.Misc.rememberWeeklyDateFormat
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaItem
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.getDate
 import my.nanihadesuka.compose.InternalLazyVerticalGridScrollbar
 import my.nanihadesuka.compose.ScrollbarLayoutSide
@@ -84,25 +85,23 @@ fun <T : Media> TimelineScroller(
                 val weeklyDateFormat by rememberWeeklyDateFormat()
                 val extendedDateFormat by rememberExtendedDateFormat()
 
-                val currentDate by remember(mappedData, index) {
-                    derivedStateOf {
-                        mappedData.getOrNull((index + 1).coerceAtMost(mappedData.size - 1))
-                            ?.let { item ->
-                                when (item) {
-                                    is MediaItem.MediaViewItem -> item.media.timestamp.getDate(
-                                        format = defaultDateFormat,
-                                        weeklyFormat = weeklyDateFormat,
-                                        extendedFormat = extendedDateFormat,
-                                        stringToday = stringToday,
-                                        stringYesterday = stringYesterday
-                                    )
+                val currentDate by rememberedDerivedState(mappedData, index) {
+                    mappedData.getOrNull(index.coerceAtMost(mappedData.size - 1))
+                        ?.let { item ->
+                            when (item) {
+                                is MediaItem.MediaViewItem -> item.media.timestamp.getDate(
+                                    format = defaultDateFormat,
+                                    weeklyFormat = weeklyDateFormat,
+                                    extendedFormat = extendedDateFormat,
+                                    stringToday = stringToday,
+                                    stringYesterday = stringYesterday
+                                )
 
-                                    is MediaItem.Header -> item.text
-                                }
+                                is MediaItem.Header -> item.text
                             }
-                    }
+                        }
                 }
-                val isScrolling by remember(state) { derivedStateOf { state.isScrollInProgress } }
+                val isScrolling by rememberedDerivedState(state) { state.isScrollInProgress }
                 val offset by animateDpAsState(
                     targetValue = if (isScrolling || isSelected) 24.dp else 72.dp,
                     label = "thumbOffset"

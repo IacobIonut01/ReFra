@@ -8,9 +8,17 @@ package com.dot.gallery
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.dot.gallery.core.MediaDistributor
+import com.dot.gallery.core.MetadataCollectionWorker
 import com.dot.gallery.core.decoder.supportHeifDecoder
 import com.dot.gallery.core.decoder.supportJxlDecoder
 import com.dot.gallery.core.decoder.supportVaultDecoder
+import com.dot.gallery.feature_node.domain.model.UIEvent
+import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.github.panpf.sketch.PlatformContext
 import com.github.panpf.sketch.SingletonSketch
 import com.github.panpf.sketch.Sketch
@@ -24,6 +32,10 @@ import com.github.panpf.sketch.request.supportPauseLoadWhenScrolling
 import com.github.panpf.sketch.request.supportSaveCellularTraffic
 import com.github.panpf.sketch.util.appCacheDirectory
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import okio.FileSystem
 import javax.inject.Inject
 
@@ -63,5 +75,40 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
+
+    @Inject
+    lateinit var workManager: WorkManager
+
+    @Inject
+    lateinit var eventHandler: EventHandler
+
+    @Inject
+    lateinit var repository: MediaRepository
+
+    @Inject
+    lateinit var mediaDistributor: MediaDistributor
+
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    override fun onCreate() {
+        super.onCreate()
+
+        workManager.enqueueUniqueWork(
+            uniqueWorkName = "MetadataCollection",
+            existingWorkPolicy = ExistingWorkPolicy.APPEND_OR_REPLACE,
+            request = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
+                .build()
+        )
+        appScope.launch {
+            eventHandler.updaterFlow.collect { event ->
+                when (event) {
+                    UIEvent.UpdateDatabase -> repository.updateInternalDatabase()
+                    UIEvent.NavigationUpEvent -> eventHandler.navigateUpAction()
+                    is UIEvent.NavigationRouteEvent -> eventHandler.navigateAction(event.route)
+                    is UIEvent.ToggleNavigationBarEvent -> eventHandler.toggleNavigationBarAction(event.isVisible)
+                }
+            }
+        }
+    }
 
 }

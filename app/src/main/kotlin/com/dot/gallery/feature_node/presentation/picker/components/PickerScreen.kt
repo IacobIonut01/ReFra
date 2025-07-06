@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -43,13 +42,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
+import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.PickerViewModel
-import com.dot.gallery.feature_node.presentation.util.clear
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
-import com.dot.gallery.feature_node.presentation.util.size
 import kotlinx.coroutines.launch
 
 @Composable
@@ -61,7 +60,6 @@ fun PickerScreen(
 ) {
     val scope = rememberCoroutineScope()
     var selectedAlbumIndex by remember { mutableLongStateOf(-1) }
-    val selectedMedia = remember { mutableStateOf(setOf<Long>()) }
     val mediaVM = hiltViewModel<PickerViewModel>().apply {
         this.allowedMedia = allowedMedia
     }
@@ -70,6 +68,8 @@ fun PickerScreen(
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
+    val selector = LocalMediaSelector.current
+    val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
 
     Column {
         LazyRow(
@@ -108,18 +108,19 @@ fun PickerScreen(
         ) {
             PickerMediaScreen(
                 mediaState = mediaVM.mediaState.value,
-                selectedMedia = selectedMedia,
                 allowSelection = allowSelection,
             )
             androidx.compose.animation.AnimatedVisibility(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(32.dp),
-                visible = !allowSelection || selectedMedia.value.isNotEmpty(),
+                visible = allowSelection || selectedMedia.value.isNotEmpty(),
                 enter = slideInVertically { it * 2 },
                 exit = slideOutVertically { it * 2 }
             ) {
-                val enabled = selectedMedia.value.isNotEmpty()
+                val enabled by rememberedDerivedState {
+                    selectedMedia.value.isNotEmpty()
+                }
                 val containerColor by animateColorAsState(
                     targetValue = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                     label = "containerColor"
@@ -133,7 +134,7 @@ fun PickerScreen(
                 ExtendedFloatingActionButton(
                     text = {
                         if (allowSelection)
-                            Text(text = "Add (${selectedMedia.size})")
+                            Text(text = "Add (${selectedMedia.value.size})")
                         else
                             Text(text = "Add")
                     },
@@ -145,7 +146,7 @@ fun PickerScreen(
                     },
                     containerColor = containerColor,
                     contentColor = contentColor,
-                    expanded = allowSelection,
+                    expanded = true,
                     onClick = {
                         if (enabled) {
                             scope.launch {
@@ -160,7 +161,7 @@ fun PickerScreen(
                         }
                 )
                 BackHandler(selectedMedia.value.isNotEmpty()) {
-                    selectedMedia.clear()
+                    selector.clearSelection()
                 }
             }
         }

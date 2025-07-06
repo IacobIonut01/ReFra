@@ -214,6 +214,10 @@ suspend fun InternalDatabase.isMediaUpToDate(context: Context): Boolean {
     return getMediaDao().isMediaVersionUpToDate(context.mediaStoreVersion)
 }
 
+suspend fun InternalDatabase.isMetadataUpToDate(context: Context): Boolean {
+    return getMetadataDao().isMediaVersionUpToDate(context.mediaStoreVersion)
+}
+
 @Composable
 fun toastError(message: String? = null): Toast {
     val context = LocalContext.current

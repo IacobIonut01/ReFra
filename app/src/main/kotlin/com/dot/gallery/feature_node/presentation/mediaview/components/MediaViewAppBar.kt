@@ -6,6 +6,7 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -29,10 +32,13 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.Constants
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.ui.theme.BlackScrim
+import com.dot.gallery.ui.theme.WhiterBlackScrim
+import com.dot.gallery.ui.theme.isDarkTheme
 
 @Composable
 fun MediaViewAppBar(
@@ -45,16 +51,24 @@ fun MediaViewAppBar(
     onGoBack: () -> Unit,
     onShowInfo: () -> Unit
 ) {
+    val allowBlur by rememberAllowBlur()
+    val isDarkTheme = isDarkTheme()
+    val followTheme = remember(allowBlur) { !allowBlur }
     AnimatedVisibility(
         visible = showUI,
-        enter = enterAnimation(Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION),
-        exit = exitAnimation(Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION)
+        enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+        exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION)
     ) {
+        val gradientColor by animateColorAsState(
+            if (followTheme) {
+                if (isDarkTheme) BlackScrim else WhiterBlackScrim
+            } else BlackScrim,
+        )
         Row(
             modifier = Modifier
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(BlackScrim, Color.Transparent)
+                        colors = listOf(gradientColor, Color.Transparent)
                     )
                 )
                 .padding(top = paddingValues.calculateTopPadding())
@@ -65,10 +79,14 @@ fun MediaViewAppBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
+            val contentColor by animateColorAsState(
+                targetValue = if (followTheme) MaterialTheme.colorScheme.onSurface else Color.White,
+                label = "AppBarContentColor"
+            )
             IconButton(onClick = onGoBack) {
                 Image(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    colorFilter = ColorFilter.tint(Color.White),
+                    colorFilter = ColorFilter.tint(contentColor),
                     contentDescription = "Go back",
                     modifier = Modifier
                         .height(48.dp)
@@ -87,7 +105,7 @@ fun MediaViewAppBar(
                         modifier = Modifier,
                         style = MaterialTheme.typography.titleSmall,
                         fontFamily = FontFamily.Monospace,
-                        color = Color.White,
+                        color = contentColor,
                         textAlign = TextAlign.End
                     )
                 }
@@ -101,7 +119,7 @@ fun MediaViewAppBar(
                     ) {
                         Image(
                             imageVector = Icons.Outlined.Info,
-                            colorFilter = ColorFilter.tint(Color.White),
+                            colorFilter = ColorFilter.tint(contentColor),
                             contentDescription = "info",
                             modifier = Modifier
                                 .height(48.dp)

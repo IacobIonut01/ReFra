@@ -9,6 +9,7 @@ import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.MediaMetadataCore
 import com.dot.gallery.feature_node.domain.model.MediaMetadataFlags
 import com.dot.gallery.feature_node.domain.model.MediaMetadataVideo
+import com.dot.gallery.feature_node.domain.model.MediaVersion
 import com.dot.gallery.feature_node.domain.model.toCore
 import com.dot.gallery.feature_node.domain.model.toFlags
 import com.dot.gallery.feature_node.domain.model.toVideo
@@ -16,6 +17,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MetadataDao {
+
+    @Upsert(entity = MediaVersion::class)
+    suspend fun setMediaVersion(version: MediaVersion)
+
+    @Query("SELECT EXISTS(SELECT * FROM media_version WHERE version = :version) LIMIT 1")
+    suspend fun isMediaVersionUpToDate(version: String): Boolean
 
     @Transaction
     fun addMetadata(mediaMetadata: MediaMetadata) {

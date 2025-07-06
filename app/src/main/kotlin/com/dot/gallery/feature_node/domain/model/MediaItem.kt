@@ -28,6 +28,9 @@ sealed class MediaItem<T: Media> {
 val Any.isHeaderKey: Boolean
     get() = this is String && this.startsWith("header_")
 
+val Any.isSmallHeaderKey: Boolean
+    get() = this is String && isHeaderKey && !isBigHeaderKey
+
 val Any.isBigHeaderKey: Boolean
     get() = this is String && this.startsWith("header_big_")
 

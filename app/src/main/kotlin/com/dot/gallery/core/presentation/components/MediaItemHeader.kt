@@ -24,8 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -34,10 +36,10 @@ fun MediaItemHeader(
     modifier: Modifier = Modifier,
     date: String,
     showAsBig: Boolean = false,
-    isCheckVisible: MutableState<Boolean>,
     isChecked: MutableState<Boolean>,
     onChecked: (() -> Unit)? = null
 ) {
+    val isCheckVisible by LocalMediaSelector.current.isSelectionActive.collectAsStateWithLifecycle()
     val smallModifier = remember(modifier) {
         modifier
             .padding(
@@ -78,13 +80,13 @@ fun MediaItemHeader(
                         onChecked?.invoke()
                     },
                     onClick = {
-                        if (isCheckVisible.value) onChecked?.invoke()
+                        if (isCheckVisible) onChecked?.invoke()
                     }
                 ) else Modifier
             )
         )
         AnimatedVisibility(
-            visible = isCheckVisible.value && !showAsBig && onChecked != null,
+            visible = isCheckVisible && !showAsBig && onChecked != null,
             enter = enterAnimation,
             exit = exitAnimation
         ) {

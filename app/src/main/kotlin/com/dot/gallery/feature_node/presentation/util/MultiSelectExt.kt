@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedback
@@ -26,7 +27,8 @@ private val String?.mediaIdFromKey: Long?
 fun Modifier.photoGridDragHandler(
     lazyGridState: LazyGridState,
     haptics: HapticFeedback,
-    selectedIds: MutableState<Set<Long>>,
+    selectedIds: State<Set<Long>>,
+    updateSelectedIds: (Set<Long>) -> Unit,
     autoScrollSpeed: MutableState<Float>,
     autoScrollThreshold: Float,
     scrollGestureActive: MutableState<Boolean>,
@@ -60,12 +62,12 @@ fun Modifier.photoGridDragHandler(
             scrollGestureActive.value = true
             lazyGridState.hitKeyAt(raw)?.let { key ->
                 val idx = allKeys.indexOf(key)
-                val id  = key.mediaIdFromKey
+                val id = key.mediaIdFromKey
                 if (idx >= 0 && id != null && id !in selectedIds.value) {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     initialMediaIndex = idx
                     currentMediaIndex = idx
-                    selectedIds.value = selectedIds.value + id
+                    updateSelectedIds(selectedIds.value + id)
                 }
             }
         },
@@ -82,13 +84,12 @@ fun Modifier.photoGridDragHandler(
         onDrag = { change, _ ->
             val raw = change.position
             if (initialMediaIndex != null) {
-                // auto-scroll logic unchanged…
                 val distB = lazyGridState.layoutInfo.viewportSize.height - raw.y
                 val distT = raw.y
                 autoScrollSpeed.value = when {
                     distB < autoScrollThreshold -> autoScrollThreshold - distB
                     distT < autoScrollThreshold -> -(autoScrollThreshold - distT)
-                    else                        -> 0f
+                    else -> 0f
                 }
 
                 lazyGridState.hitKeyAt(raw)?.let { key ->
@@ -104,7 +105,7 @@ fun Modifier.photoGridDragHandler(
                         val newIds = newRange.mapNotNull { mediaIdsInOrder.getOrNull(it) }.toSet()
 
                         // subtract oldRange, add newRange
-                        selectedIds.value = (selectedIds.value - oldIds) + newIds
+                        updateSelectedIds(selectedIds.value - oldIds + newIds)
                         currentMediaIndex = newIdx
                     }
                 }

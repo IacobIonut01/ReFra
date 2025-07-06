@@ -18,58 +18,38 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
-import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.favorites.components.EmptyFavorites
 import com.dot.gallery.feature_node.presentation.favorites.components.FavoriteNavActions
-import com.dot.gallery.feature_node.presentation.util.clear
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun FavoriteScreen(
     paddingValues: PaddingValues,
     albumName: String = stringResource(id = R.string.favorites),
-    handler: MediaHandleUseCase,
     mediaState: State<MediaState<UriMedia>>,
     metadataState: State<MediaMetadataState>,
-    albumsState: State<AlbumState>,
-    selectionState: MutableState<Boolean>,
-    selectedMedia: MutableState<Set<Long>>,
-    toggleFavorite: (ActivityResultLauncher<IntentSenderRequest>, List<UriMedia>, Boolean) -> Unit,
-    toggleSelection: (Int) -> Unit,
-    navigate: (route: String) -> Unit,
-    navigateUp: () -> Unit,
-    toggleNavbar: (Boolean) -> Unit,
+    clearSelection: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) = MediaScreen(
     paddingValues = paddingValues,
     target = TARGET_FAVORITES,
     albumName = albumName,
-    handler = handler,
-    albumsState = albumsState,
     mediaState = mediaState,
     metadataState = metadataState,
-    selectionState = selectionState,
-    selectedMedia = selectedMedia,
-    toggleSelection = toggleSelection,
     navActionsContent = { _: MutableState<Boolean>,
                           result: ActivityResultLauncher<IntentSenderRequest> ->
-        FavoriteNavActions(toggleFavorite, mediaState, selectedMedia, selectionState, result)
+        FavoriteNavActions(mediaState, result)
     },
     emptyContent = { EmptyFavorites() },
-    navigate = navigate,
-    navigateUp = navigateUp,
-    toggleNavbar = toggleNavbar,
     sharedTransitionScope = sharedTransitionScope,
     animatedContentScope = animatedContentScope,
 ) { result ->
     if (result.resultCode == Activity.RESULT_OK) {
-        selectedMedia.clear()
-        selectionState.value = false
+        clearSelection()
     }
 }

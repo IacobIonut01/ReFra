@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import androidx.core.database.getLongOrNull
 import androidx.core.os.bundleOf
+import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.PickerUtils
 import com.dot.gallery.core.util.Query
 import com.dot.gallery.core.util.and
@@ -16,11 +17,13 @@ import com.dot.gallery.core.util.eq
 import com.dot.gallery.core.util.ext.queryFlow
 import com.dot.gallery.core.util.ext.tryGetString
 import com.dot.gallery.core.util.join
+import com.dot.gallery.feature_node.data.data_source.AlbumThumbnailDao
 import com.dot.gallery.feature_node.data.data_source.mediastore.MediaQuery
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.MediaType
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 
 /**
  * Albums flow
@@ -33,6 +36,8 @@ import kotlinx.coroutines.flow.map
 class AlbumsFlow(
     private val context: Context,
     private val mimeType: String? = null,
+    private val thumbnailDao: AlbumThumbnailDao,
+    private val bucketId: Long? = null
 ) : QueryFlow<Album>() {
     override fun flowCursor(): Flow<Cursor?> {
         val uri = MediaQuery.MediaStoreFileUri
@@ -42,19 +47,41 @@ class AlbumsFlow(
                 MediaType.IMAGE -> MediaQuery.Selection.image
                 MediaType.VIDEO -> MediaQuery.Selection.video
             }
-        } ?: MediaQuery.Selection.imageOrVideo
+        } ?: when (bucketId) {
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_PHOTOS.id -> MediaQuery.Selection.image
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_VIDEOS.id -> MediaQuery.Selection.video
+            else -> MediaQuery.Selection.imageOrVideo
+        }
         val rawMimeType = mimeType?.takeIf { PickerUtils.isMimeTypeNotGeneric(it) }
         val mimeTypeQuery = rawMimeType?.let {
             MediaStore.Files.FileColumns.MIME_TYPE eq Query.ARG
+        }
+        val albumFilter = when (bucketId) {
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_FAVORITES.id -> MediaStore.Files.FileColumns.IS_FAVORITE eq 1
+
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id ->
+                MediaStore.Files.FileColumns.IS_TRASHED eq 1
+
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_TIMELINE.id,
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_PHOTOS.id,
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_VIDEOS.id -> null
+
+            null -> null
+
+            else -> MediaStore.Files.FileColumns.BUCKET_ID eq Query.ARG
         }
 
         // Join all the non-null queries
         val selection = listOfNotNull(
             mimeTypeQuery,
+            albumFilter,
             imageOrVideo,
         ).join(Query::and)
 
         val selectionArgs = listOfNotNull(
+            bucketId.takeIf {
+                MediaStoreBuckets.entries.toTypedArray().none { bucket -> it == bucket.id }
+            }?.toString(),
             rawMimeType,
         ).toTypedArray()
 
@@ -77,7 +104,8 @@ class AlbumsFlow(
         )
     }
 
-    override fun flowData() = flowCursor().map {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun flowData() = flowCursor().mapLatest { it ->
         mutableMapOf<Int, Album>().apply {
             it?.use {
                 val idIndex = it.getColumnIndex(MediaStore.Files.FileColumns._ID)
@@ -86,8 +114,10 @@ class AlbumsFlow(
                 val thumbnailPathIndex = it.getColumnIndex(MediaStore.Files.FileColumns.DATA)
                 val thumbnailRelativePathIndex =
                     it.getColumnIndex(MediaStore.Files.FileColumns.RELATIVE_PATH)
-                val thumbnailDateTakenIndex = it.getColumnIndex(MediaStore.Files.FileColumns.DATE_TAKEN)
-                val thumbnailDateIndex = it.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED)
+                val thumbnailDateTakenIndex =
+                    it.getColumnIndex(MediaStore.Files.FileColumns.DATE_TAKEN)
+                val thumbnailDateIndex =
+                    it.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED)
                 val sizeIndex = it.getColumnIndex(MediaStore.Files.FileColumns.SIZE)
                 val mimeTypeIndex = it.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
 

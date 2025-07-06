@@ -7,151 +7,111 @@
 
 package com.dot.gallery.feature_node.presentation.timeline.components
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisallowComposableCalls
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
-import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.MediaState
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
-import com.dot.gallery.feature_node.presentation.common.components.OptionItem
-import com.dot.gallery.feature_node.presentation.common.components.OptionSheet
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.navigate
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
-import com.dot.gallery.feature_node.presentation.util.clear
-import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
-import kotlinx.coroutines.launch
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 
+@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-inline fun <reified T: Media> TimelineNavActions(
-    albumId: Long,
-    handler: MediaHandleUseCase,
-    expandedDropDown: MutableState<Boolean>,
-    mediaState: State<MediaState<T>>,
-    selectedMedia: MutableState<Set<Long>>,
-    selectionState: MutableState<Boolean>,
-    crossinline navigate: @DisallowComposableCalls (route: String) -> Unit,
-    crossinline navigateUp: @DisallowComposableCalls () -> Unit
-) {
-    val scope = rememberCoroutineScope()
-    val result = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {
-            if (it.resultCode == Activity.RESULT_OK) {
-                selectedMedia.clear()
-                selectionState.value = false
-            }
-        }
-    )
-    val context = LocalContext.current
-    val appBottomSheetState = rememberAppBottomSheetState()
-    LaunchedEffect(appBottomSheetState.isVisible, expandedDropDown.value) {
-        scope.launch {
-            if (expandedDropDown.value) appBottomSheetState.show()
-            else appBottomSheetState.hide()
+fun TimelineNavActions() {
+    val eventHandler = LocalEventHandler.current
+    val tertiaryContainer = MaterialTheme.colorScheme.tertiaryFixed
+    val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryFixed
+    val allowBlur by rememberAllowBlur()
+    val errorContainer = MaterialTheme.colorScheme.primaryFixed
+    val onErrorContainer = MaterialTheme.colorScheme.onPrimaryFixed
+
+    val favoriteBackgroundModifier = remember(allowBlur) {
+        if (!allowBlur) {
+            Modifier.background(
+                color = errorContainer,
+                shape = RoundedCornerShape(100)
+            )
+        } else {
+            Modifier
         }
     }
-    val optionList = remember(selectionState.value) {
-        mutableListOf(
-            OptionItem(
-                text = if (selectionState.value)
-                    context.getString(R.string.unselect_all)
-                else
-                    context.getString(R.string.select_all),
-                onClick = {
-                    selectionState.value = !selectionState.value
-                    if (selectionState.value)
-                        selectedMedia.value.plus(mediaState.value.media.map { it.id })
-                    else
-                        selectedMedia.clear()
-                    expandedDropDown.value = false
-                }
-            )
-        ).apply {
-            if (albumId != -1L && T::class == Media.UriMedia::class) {
-                add(
-                    OptionItem(
-                        text = context.getString(R.string.move_album_to_trash),
-                        enabled = !selectionState.value,
-                        onClick = {
-                            scope.launch {
-                                handler.trashMedia(
-                                    result = result,
-                                    mediaList = mediaState.value.media as List<Media.UriMedia>,
-                                    trash = true
-                                )
-                                navigateUp()
-                            }
-                            expandedDropDown.value = false
-                        }
-                    )
+    IconButton(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .then(favoriteBackgroundModifier)
+            .hazeEffect(
+                state = LocalHazeState.current,
+                style = HazeMaterials.regular(
+                    containerColor = errorContainer
                 )
-            }
-            add(
-                OptionItem(
-                    text = context.getString(R.string.favorites),
-                    enabled = !selectionState.value,
-                    onClick = {
-                        navigate(Screen.FavoriteScreen.route)
-                        expandedDropDown.value = false
-                    }
-                )
-            )
-            add(
-                OptionItem(
-                    text = context.getString(R.string.trash),
-                    enabled = !selectionState.value,
-                    onClick = {
-                        navigate(Screen.TrashedScreen.route)
-                        expandedDropDown.value = false
-                    }
-                )
-            )
-        }
-    }
-    val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
-    val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryContainer
-    val settingsOption = remember(selectionState.value) {
-        mutableStateListOf(
-            OptionItem(
-                text = context.getString(R.string.settings_title),
-                enabled = !selectionState.value,
-                containerColor = tertiaryContainer,
-                contentColor = onTertiaryContainer,
-                onClick = {
-                    navigate(Screen.SettingsScreen.route)
-                    expandedDropDown.value = false
-                }
-            )
-        )
-    }
-    IconButton(onClick = { expandedDropDown.value = !expandedDropDown.value }) {
+            ),
+        onClick = { eventHandler.navigate(Screen.FavoriteScreen()) }
+    ) {
         Icon(
-            imageVector = Icons.Outlined.MoreVert,
-            contentDescription = stringResource(R.string.drop_down_cd)
+            imageVector = Icons.Rounded.Favorite,
+            contentDescription = stringResource(R.string.favorites),
+            tint = onErrorContainer
         )
     }
 
-    OptionSheet(
-        state = appBottomSheetState,
-        onDismiss = {
-            expandedDropDown.value = false
-        },
-        optionList = arrayOf(optionList, settingsOption)
-    )
+    val settingsInteractionSource = remember { MutableInteractionSource() }
+    val isPressed = settingsInteractionSource.collectIsPressedAsState()
+    val cornerRadius by animateDpAsState(targetValue = if (isPressed.value) 32.dp else 16.dp, label = "cornerRadius")
+
+    val settingsBackgroundModifier = remember(allowBlur) {
+        if (!allowBlur) {
+            Modifier.background(
+                color = tertiaryContainer,
+                shape = RoundedCornerShape(cornerRadius)
+            )
+        } else {
+            Modifier
+        }
+    }
+
+    IconButton(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(RoundedCornerShape(cornerRadius))
+            .then(settingsBackgroundModifier)
+            .hazeEffect(
+                state = LocalHazeState.current,
+                style = HazeMaterials.regular(
+                    containerColor = tertiaryContainer
+                )
+            ),
+        interactionSource = settingsInteractionSource,
+        onClick = { eventHandler.navigate(Screen.SettingsScreen()) }
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Settings,
+            contentDescription = stringResource(R.string.settings_title),
+            tint = onTertiaryContainer
+        )
+    }
 }
 

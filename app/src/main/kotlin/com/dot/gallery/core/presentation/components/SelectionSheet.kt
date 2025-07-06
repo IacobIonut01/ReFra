@@ -44,8 +44,6 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,35 +62,39 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
+import com.dot.gallery.core.LocalMediaDistributor
+import com.dot.gallery.core.LocalMediaHandler
+import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
-import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.exif.CopyMediaSheet
 import com.dot.gallery.feature_node.presentation.exif.MoveMediaSheet
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialog
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.shareMedia
 import com.dot.gallery.ui.theme.Shapes
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun <T: Media> SelectionSheet(
     modifier: Modifier = Modifier,
-    selectedMedia: SnapshotStateList<T>,
-    selectionState: MutableState<Boolean>,
-    albumsState: State<AlbumState>,
-    handler: MediaHandleUseCase
+    selectedMedia: SnapshotStateList<T>
 ) {
-    fun clearSelection() {
-        selectedMedia.clear()
-        selectionState.value = false
-    }
+    val albumsState = LocalMediaDistributor.current.albumsFlow.collectAsStateWithLifecycle()
+    val selector = LocalMediaSelector.current
+    val isSelectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()
 
+    val handler = LocalMediaHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var shouldMoveToTrash by rememberSaveable { mutableStateOf(true) }
@@ -101,7 +103,7 @@ fun <T: Media> SelectionSheet(
     val copySheetState = rememberAppBottomSheetState()
     val result = rememberActivityResult(
         onResultOk = {
-            clearSelection()
+            selector.clearSelection()
             if (trashSheetState.isVisible) {
                 scope.launch {
                     trashSheetState.hide()
@@ -120,10 +122,22 @@ fun <T: Media> SelectionSheet(
     }
     AnimatedVisibility(
         modifier = modifier,
-        visible = selectionState.value,
+        visible = isSelectionActive,
         enter = slideInVertically { it * 2 },
         exit = slideOutVertically { it * 2 }
     ) {
+        val allowBlur by rememberAllowBlur()
+        val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+        val backgroundModifier = remember (allowBlur) {
+            if (!allowBlur) {
+                Modifier.background(
+                    color = surfaceColor,
+                    shape = Shapes.extraLarge
+                )
+            } else {
+                Modifier
+            }
+        }
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -135,7 +149,13 @@ fun <T: Media> SelectionSheet(
                     elevation = 4.dp,
                     shape = Shapes.extraLarge
                 )
-                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+                .then(backgroundModifier)
+                .hazeEffect(
+                    state = LocalHazeState.current,
+                    style = HazeMaterials.regular(
+                        containerColor = surfaceColor
+                    )
+                )
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -146,7 +166,7 @@ fun <T: Media> SelectionSheet(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 IconButton(
-                    onClick = ::clearSelection,
+                    onClick = selector::clearSelection,
                     modifier = Modifier.size(24.dp),
                 ) {
                     Image(
@@ -161,12 +181,27 @@ fun <T: Media> SelectionSheet(
                     modifier = Modifier.weight(1f, fill = false)
                 )
             }
+            val surfaceColor = MaterialTheme.colorScheme.surface
+            val backgroundModifier = remember (allowBlur) {
+                if (!allowBlur) {
+                    Modifier.background(
+                        color = surfaceColor,
+                        shape = Shapes.large
+                    )
+                } else {
+                    Modifier
+                }
+            }
             Row(
                 modifier = Modifier
                     .then(sizeModifier)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = Shapes.large
+                    .then(backgroundModifier)
+                    .clip(Shapes.large)
+                    .hazeEffect(
+                        state = LocalHazeState.current,
+                        style = HazeMaterials.thick(
+                            containerColor = surfaceColor
+                        )
                     )
                     .horizontalScroll(rememberScrollState()),
                 verticalAlignment = Alignment.CenterVertically,
@@ -241,16 +276,14 @@ fun <T: Media> SelectionSheet(
             sheetState = moveSheetState,
             mediaList = selectedMedia,
             albumState = albumsState,
-            handler = handler,
-            onFinish = ::clearSelection
+            onFinish = selector::clearSelection
         )
 
         CopyMediaSheet(
             sheetState = copySheetState,
             mediaList = selectedMedia,
             albumsState = albumsState,
-            handler = handler,
-            onFinish = ::clearSelection
+            onFinish = selector::clearSelection
         )
     }
 

@@ -37,9 +37,12 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.formatMinSec
+import com.dot.gallery.feature_node.presentation.util.formatSize
 import com.dot.gallery.feature_node.presentation.util.toBitrateString
 import com.dot.gallery.ui.theme.Shapes
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun MediaInfoRow(
@@ -92,6 +95,7 @@ fun MediaInfoRow(
 
 fun Media.retrieveMetadata(
     context: Context,
+    exifDateFormat: String,
     mediaMetadata: MediaMetadata?,
     onLabelClick: () -> Unit
 ): List<InfoRow> {
@@ -110,17 +114,52 @@ fun Media.retrieveMetadata(
     info += InfoRow(
         icon = Icons.Outlined.Info,
         label = context.getString(R.string.path),
-        content = path
+        content = path.substringBeforeLast("/")
     )
 
     mediaMetadata?.let { md ->
         // 6) DateTimeOriginal
         md.dateTimeOriginal?.let {
+            val formattedDate = try {
+                val parser = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault())
+                val date = parser.parse(it)
+                if (date != null) {
+                    val formatter = SimpleDateFormat(exifDateFormat, Locale.getDefault())
+                    formatter.format(date)
+                } else it
+            } catch (_: Exception) {
+                it
+            }
             info += InfoRow(
                 icon = Icons.Outlined.CalendarToday,
                 label = context.getString(R.string.taken_on),
-                content = it
+                content = formattedDate
             )
+        }
+
+        fun formatExposureTime(exposure: String?): String? {
+            if (exposure == null) return null
+            val fractionPart = exposure.removeSuffix(" sec")
+            val parts = fractionPart.split("/")
+            if (parts.size != 2) return exposure
+            val numerator = parts[0].toDoubleOrNull() ?: return exposure
+            val denominator = parts[1].toDoubleOrNull() ?: return exposure
+            val value = numerator / denominator
+
+            var bestNumerator = 1
+            var bestDenominator = 1
+            var minDiff = Double.MAX_VALUE
+
+            for (den in 1..1000) {
+                val num = (value * den).toInt()
+                val diff = kotlin.math.abs(value - num.toDouble() / den)
+                if (diff < minDiff) {
+                    minDiff = diff
+                    bestNumerator = num
+                    bestDenominator = den
+                }
+            }
+            return "${bestNumerator}/${bestDenominator} sec"
         }
 
         // 7) Camera + settings
@@ -130,7 +169,7 @@ fun Media.retrieveMetadata(
         ).joinToString(" ")
         val camDetails = listOfNotNull(
             md.aperture,
-            md.exposureTime,
+            formatExposureTime(md.exposureTime),
             md.iso?.let { "ISO $it" }
         ).joinToString(" • ")
         if (cam.isNotBlank()) {
@@ -161,6 +200,9 @@ fun Media.retrieveMetadata(
                     md.imageResolutionY,
                     unit
                 )
+            }
+            if (size > 0) {
+                content += " • ${formatSize(size)}"
             }
             info += InfoRow(
                 icon = Icons.Outlined.ImageSearch,

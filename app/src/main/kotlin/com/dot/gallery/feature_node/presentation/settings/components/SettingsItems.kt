@@ -7,6 +7,7 @@ package com.dot.gallery.feature_node.presentation.settings.components
 
 import android.content.res.Configuration
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,17 +55,26 @@ import kotlin.math.roundToLong
 
 @Composable
 fun SettingsItem(
-    item: SettingsEntity
+    item: SettingsEntity,
+    tintIcon: Boolean = true,
+    customizeIcon: (@Composable (icon: ImageVector) -> Unit)? = null
 ) {
     var checked by remember(item.isChecked) {
         mutableStateOf(item.isChecked == true)
     }
     val icon: @Composable () -> Unit = {
         require(item.icon != null) { "Icon at this stage cannot be null" }
-        Icon(
+        customizeIcon?.let {
+            customizeIcon(item.icon!!)
+        } ?: Image(
             imageVector = item.icon!!,
             modifier = Modifier.size(24.dp),
-            contentDescription = null
+            contentDescription = null,
+            colorFilter = if (tintIcon) {
+                ColorFilter.tint(
+                    MaterialTheme.colorScheme.onSurface
+                )
+            } else null
         )
     }
     val summary: @Composable () -> Unit = {
@@ -71,31 +82,34 @@ fun SettingsItem(
         Text(text = item.summary!!)
     }
     val switch: @Composable () -> Unit = {
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+        )
     }
 
     val shape = remember(item.screenPosition) {
         when (item.screenPosition) {
             Position.Alone -> RoundedCornerShape(24.dp)
             Position.Bottom -> RoundedCornerShape(
-                topStart = 4.dp,
-                topEnd = 4.dp,
+                topStart = 8.dp,
+                topEnd = 8.dp,
                 bottomStart = 24.dp,
                 bottomEnd = 24.dp
             )
 
             Position.Middle -> RoundedCornerShape(
-                topStart = 4.dp,
-                topEnd = 4.dp,
-                bottomStart = 4.dp,
-                bottomEnd = 4.dp
+                topStart = 8.dp,
+                topEnd = 8.dp,
+                bottomStart = 8.dp,
+                bottomEnd = 8.dp
             )
 
             Position.Top -> RoundedCornerShape(
                 topStart = 24.dp,
                 topEnd = 24.dp,
-                bottomStart = 4.dp,
-                bottomEnd = 4.dp
+                bottomStart = 8.dp,
+                bottomEnd = 8.dp
             )
         }
     }
@@ -123,10 +137,11 @@ fun SettingsItem(
         )
     }
     val seekContent: @Composable () -> Unit = {
-        Column {
-            if (!item.summary.isNullOrEmpty()) {
-                summary()
-            }
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp)
+        ) {
             require(item.currentValue != null) { "Current value must not be null" }
             require(item.minValue != null) { "Min value must not be null" }
             require(item.maxValue != null) { "Max value must not be null" }
@@ -143,11 +158,10 @@ fun SettingsItem(
         }
     }
     val supportingContent: (@Composable () -> Unit)? = when (item.type) {
-        SettingsType.Default, SettingsType.Switch ->
+        SettingsType.Default, SettingsType.Switch, SettingsType.Seek ->
             if (!item.summary.isNullOrEmpty()) summary else null
 
-        SettingsType.Header -> null
-        SettingsType.Seek -> seekContent
+        else -> null
     }
     val trailingContent: (@Composable () -> Unit)? = when (item.type) {
         SettingsType.Switch -> switch
@@ -180,17 +194,7 @@ fun SettingsItem(
             targetValue = if (item.enabled) 1f else 0.4f,
             label = "alpha"
         )
-        ListItem(
-            headlineContent = {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 2.dp)
-                )
-            },
-            supportingContent = supportingContent,
-            trailingContent = trailingContent,
-            leadingContent = if (item.icon != null) icon else null,
+        Column(
             modifier = Modifier
                 .then(paddingModifier)
                 .padding(horizontal = 16.dp)
@@ -201,9 +205,25 @@ fun SettingsItem(
                 .then(clickableModifier)
                 .padding(8.dp)
                 .fillMaxWidth()
-                .alpha(alpha),
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-        )
+                .alpha(alpha)
+        ) {
+            ListItem(
+                headlineContent = {
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+                },
+                supportingContent = supportingContent,
+                trailingContent = trailingContent,
+                leadingContent = if (item.icon != null) icon else null,
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+            )
+            if (item.type == SettingsType.Seek) {
+                seekContent()
+            }
+        }
     }
 }
 

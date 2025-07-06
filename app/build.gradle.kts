@@ -1,5 +1,6 @@
+
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
-import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -93,18 +94,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += "-Xcontext-receivers"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
     }
     composeCompiler {
-        featureFlags = setOf(
-            ComposeFeatureFlag.OptimizeNonSkippingGroups
-        )
         includeSourceInformation = true
     }
     packaging {
@@ -156,6 +150,14 @@ android {
             (output as BaseVariantOutputImpl).outputFileName =
                 "Gallery-${versionName}-$versionCode-${productFlavors[0].name}" + mapsApiApplicationPrefix + ".apk"
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xcontext-receivers")
+        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
 }
 
@@ -282,6 +284,10 @@ dependencies {
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.task.vision)
     implementation(libs.tensorflow.lite.gpu)
+
+    // Haze
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
 
     // Tests
     testImplementation(libs.junit)

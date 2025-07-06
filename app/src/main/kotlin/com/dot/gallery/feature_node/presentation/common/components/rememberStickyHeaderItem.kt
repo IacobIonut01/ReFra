@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
@@ -27,13 +27,13 @@ fun <T: Media> rememberStickyHeaderItem(
     /**
      * Remember last known header item
      */
-    val stickyHeaderLastItem = remember { mutableStateOf<String?>(null) }
+    val stickyHeaderLastItem = rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(gridState, headers, mappedData) {
         snapshotFlow { gridState.layoutInfo.visibleItemsInfo }
             .collect { visibleItems ->
                 val firstItem = visibleItems.firstOrNull()
-                val firstHeaderIndex = visibleItems.firstOrNull { it.key.isSmallHeaderKey }?.index?.minus(1)
+                val firstHeaderIndex = visibleItems.firstOrNull { it.key.isSmallHeaderKey }?.index
 
                 val item = firstHeaderIndex?.let(mappedData::getOrNull)
                 stickyHeaderLastItem.value = if (item != null && item is MediaItem.Header<T>) {

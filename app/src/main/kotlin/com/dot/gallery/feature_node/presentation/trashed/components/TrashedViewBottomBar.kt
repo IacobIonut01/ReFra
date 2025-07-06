@@ -29,7 +29,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
-import com.dot.gallery.feature_node.presentation.mediaview.components.BottomBarColumn
+import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.MediaViewButton
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.ui.theme.BlackScrim
 import kotlinx.coroutines.launch
@@ -71,7 +71,7 @@ fun TrashedViewBottomBar(
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             // Restore Component
-            BottomBarColumn(
+            MediaViewButton(
                 currentMedia = currentMedia,
                 imageVector = Icons.Outlined.RestoreFromTrash,
                 title = stringResource(id = R.string.trash_restore)
@@ -82,7 +82,7 @@ fun TrashedViewBottomBar(
                 }
             }
             // Delete Component
-            BottomBarColumn(
+            MediaViewButton(
                 currentMedia = currentMedia,
                 imageVector = Icons.Outlined.DeleteOutline,
                 title = stringResource(id = R.string.trash_delete)

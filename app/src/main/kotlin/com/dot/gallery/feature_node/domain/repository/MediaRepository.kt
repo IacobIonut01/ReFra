@@ -12,6 +12,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.datastore.preferences.core.Preferences
 import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.domain.model.Album
+import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
@@ -31,6 +32,8 @@ interface MediaRepository {
 
     fun getMedia(): Flow<Resource<List<UriMedia>>>
 
+    fun getCompleteMedia(): Flow<Resource<List<UriMedia>>>
+
     fun getMediaByType(allowedMedia: AllowedMedia): Flow<Resource<List<UriMedia>>>
 
     fun getFavorites(mediaOrder: MediaOrder): Flow<Resource<List<UriMedia>>>
@@ -38,6 +41,8 @@ interface MediaRepository {
     fun getTrashed(): Flow<Resource<List<UriMedia>>>
 
     fun getAlbums(mediaOrder: MediaOrder): Flow<Resource<List<Album>>>
+
+    fun getAlbum(albumId: Long): Flow<Resource<Album>>
 
     suspend fun insertPinnedAlbum(pinnedAlbum: PinnedAlbum)
 
@@ -182,5 +187,15 @@ interface MediaRepository {
     fun getMetadata(): Flow<List<MediaMetadata>>
 
     fun getMetadata(media: Media): Flow<MediaMetadata>
+
+    suspend fun updateAlbumThumbnail(albumId: Long, thumbnail: Uri)
+
+    suspend fun deleteAlbumThumbnail(albumId: Long)
+
+    fun getAlbumThumbnail(albumId: Long): Flow<AlbumThumbnail?>
+
+    fun getAlbumThumbnails(): Flow<List<AlbumThumbnail>>
+
+    fun hasAlbumThumbnail(albumId: Long): Flow<Boolean>
 
 }

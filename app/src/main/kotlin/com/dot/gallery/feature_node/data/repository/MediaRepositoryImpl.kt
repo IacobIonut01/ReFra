@@ -40,6 +40,7 @@ import com.dot.gallery.feature_node.data.data_source.mediastore.queries.AlbumsFl
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaFlow
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaUriFlow
 import com.dot.gallery.feature_node.domain.model.Album
+import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
@@ -68,8 +69,8 @@ import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.VIDEOS
 import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
-import com.dot.gallery.feature_node.presentation.vault.scheduleMediaMigrationCheck
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -91,16 +92,26 @@ class MediaRepositoryImpl(
 
     override suspend fun updateInternalDatabase() {
         workManager.updateDatabase()
-        workManager.scheduleMediaMigrationCheck()
+        //workManager.scheduleMediaMigrationCheck()
     }
 
     /**
      * TODO: Add media reordering
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getMedia(): Flow<Resource<List<UriMedia>>> =
         MediaFlow(
             contentResolver = contentResolver,
             buckedId = MediaStoreBuckets.MEDIA_STORE_BUCKET_TIMELINE.id
+        ).flowData().map {
+            Resource.Success(MediaOrder.Date(OrderType.Descending).sortMedia(it))
+        }.flowOn(Dispatchers.IO)
+
+    override fun getCompleteMedia(): Flow<Resource<List<UriMedia>>> =
+        MediaFlow(
+            contentResolver = contentResolver,
+            buckedId = MediaStoreBuckets.MEDIA_STORE_BUCKET_TIMELINE.id,
+            skipBatching = true
         ).flowData().map {
             Resource.Success(MediaOrder.Date(OrderType.Descending).sortMedia(it))
         }.flowOn(Dispatchers.IO)
@@ -133,7 +144,7 @@ class MediaRepositoryImpl(
         ).flowData().map { Resource.Success(it) }.flowOn(Dispatchers.IO)
 
     override fun getAlbums(mediaOrder: MediaOrder): Flow<Resource<List<Album>>> =
-        AlbumsFlow(context).flowData().map {
+        AlbumsFlow(context, thumbnailDao = database.getAlbumThumbnailDao()).flowData().map {
             withContext(Dispatchers.IO) {
                 val data = it.toMutableList().apply {
                     replaceAll { album ->
@@ -142,6 +153,21 @@ class MediaRepositoryImpl(
                 }
 
                 Resource.Success(mediaOrder.sortAlbums(data))
+            }
+        }.flowOn(Dispatchers.IO)
+
+    override fun getAlbum(albumId: Long): Flow<Resource<Album>> =
+        AlbumsFlow(context, thumbnailDao = database.getAlbumThumbnailDao()).flowData().map {
+            withContext(Dispatchers.IO) {
+                val data = it.toMutableList().apply {
+                    replaceAll { album ->
+                        album.copy(isPinned = database.getPinnedDao().albumIsPinned(album.id))
+                    }
+                }
+                val album = data.firstOrNull { it.id == albumId }
+                    ?: return@withContext Resource.Error("Album not found")
+
+                Resource.Success(album)
             }
         }.flowOn(Dispatchers.IO)
 
@@ -182,7 +208,8 @@ class MediaRepositoryImpl(
     override fun getAlbumsWithType(allowedMedia: AllowedMedia): Flow<Resource<List<Album>>> =
         AlbumsFlow(
             context = context,
-            mimeType = allowedMedia.toStringAny()
+            mimeType = allowedMedia.toStringAny(),
+            thumbnailDao = database.getAlbumThumbnailDao()
         ).flowData().mapAsResource()
 
     override fun getMediaListByUris(
@@ -668,11 +695,24 @@ class MediaRepositoryImpl(
         }
     }
 
-    companion object {
-        private fun displayName(newName: String) = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, newName)
-        }
+    override suspend fun updateAlbumThumbnail(
+        albumId: Long,
+        thumbnail: Uri
+    ) = database.getAlbumThumbnailDao().updateAlbumThumbnail(AlbumThumbnail(albumId, thumbnail))
 
+    override suspend fun deleteAlbumThumbnail(albumId: Long) =
+        database.getAlbumThumbnailDao().deleteAlbumThumbnail(albumId)
+
+    override fun getAlbumThumbnail(albumId: Long): Flow<AlbumThumbnail?> =
+        database.getAlbumThumbnailDao().getAlbumThumbnail(albumId)
+
+    override fun hasAlbumThumbnail(albumId: Long): Flow<Boolean> =
+        database.getAlbumThumbnailDao().hasAlbumThumbnail(albumId)
+
+    override fun getAlbumThumbnails(): Flow<List<AlbumThumbnail>> =
+        database.getAlbumThumbnailDao().getAlbumThumbnailsFlow()
+
+    companion object {
         private fun relativePath(newPath: String) = ContentValues().apply {
             put(MediaStore.MediaColumns.RELATIVE_PATH, newPath)
         }

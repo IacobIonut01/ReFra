@@ -32,21 +32,30 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
+import com.dot.gallery.core.MediaDistributor
+import com.dot.gallery.core.MediaHandler
+import com.dot.gallery.core.MediaSelector
+import com.dot.gallery.core.MediaSelectorImpl
+import com.dot.gallery.core.util.SetupMediaProviders
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.picker.components.PickerScreen
 import com.dot.gallery.ui.theme.GalleryTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
 
-class PickerActivityContract : ActivityResultContract<Any?, List<Uri>>() {
+class PickerActivityContract(
+    private val mediaType: String = "*/*",
+    private val allowMultiple: Boolean = true
+) : ActivityResultContract<Any?, List<Uri>>() {
 
     override fun createIntent(context: Context, input: Any?): Intent {
         return Intent(context, PickerActivity::class.java).apply {
-            type = "*/*"
-            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            type = mediaType
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple)
         }
     }
 
@@ -69,6 +78,17 @@ class PickerActivityContract : ActivityResultContract<Any?, List<Uri>>() {
 @AndroidEntryPoint
 class PickerActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var eventHandler: EventHandler
+
+    @Inject
+    lateinit var mediaDistributor: MediaDistributor
+
+    @Inject
+    lateinit var mediaHandler: MediaHandler
+
+    val mediaSelector: MediaSelector = MediaSelectorImpl()
+
     private val exportAsMedia by lazy {
         intent.getBooleanExtra(EXPORT_AS_MEDIA, false)
     }
@@ -90,8 +110,15 @@ class PickerActivity : ComponentActivity() {
             else getString(R.string.photos_and_videos)
         }
         setContent {
-            GalleryTheme {
-                PickerRootScreen(title, type.allowedMedia, allowMultiple)
+            SetupMediaProviders(
+                eventHandler = eventHandler,
+                mediaDistributor = mediaDistributor,
+                mediaHandler = mediaHandler,
+                mediaSelector = mediaSelector
+            ) {
+                GalleryTheme {
+                    PickerRootScreen(title, type.allowedMedia, allowMultiple)
+                }
             }
         }
     }

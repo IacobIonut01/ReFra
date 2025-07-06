@@ -39,8 +39,10 @@ import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.Animation.navigateInAnimation
 import com.dot.gallery.core.Constants.Animation.navigateUpAnimation
+import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberForceTheme
 import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
+import com.dot.gallery.core.navigateUp
 import com.dot.gallery.feature_node.presentation.common.ChanneledViewModel
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
 import com.dot.gallery.feature_node.presentation.util.SecureWindow
@@ -52,10 +54,9 @@ import kotlinx.coroutines.Dispatchers
 fun VaultScreen(
     paddingValues: PaddingValues,
     toggleRotate: () -> Unit,
-    shouldSkipAuth: MutableState<Boolean>,
-    navigateUp: () -> Unit,
-    navigate: (String) -> Unit
+    shouldSkipAuth: MutableState<Boolean>
 ) = SecureWindow {
+    val eventHandler = LocalEventHandler.current
     val viewModel = hiltViewModel<VaultViewModel>()
     viewModel.attachToLifecycle()
     val navController = rememberNavController()
@@ -136,9 +137,9 @@ fun VaultScreen(
                     navigateUp = {
                         if (addNewVault) {
                             addNewVault = false
-                            if (vaultState.value.vaults.isEmpty()) navigateUp() else navPipe.navigateUp()
+                            if (vaultState.value.vaults.isEmpty()) eventHandler.navigateUp() else navPipe.navigateUp()
                         } else {
-                            navigateUp()
+                            eventHandler.navigateUp()
                         }
                     },
                     onCreate = {
@@ -154,7 +155,7 @@ fun VaultScreen(
                     if (!isAuthenticated && !addNewVault && vaultState.value.vaults.isNotEmpty()) {
                         if (biometricState.isSupported) {
                             biometricState.authenticate()
-                        } else navigateUp()
+                        } else eventHandler.navigateUp()
                     }
                 }
                 AnimatedVisibility(
@@ -164,7 +165,7 @@ fun VaultScreen(
                 ) {
                     val metadataState = viewModel.metadataFlow.collectAsStateWithLifecycle()
                     VaultDisplay(
-                        navigateUp = navigateUp,
+                        navigateUp = navPipe::navigateUp,
                         navigate = navPipe::navigate,
                         vaultState = vaultState,
                         currentVault = viewModel.currentVault,
@@ -202,7 +203,6 @@ fun VaultScreen(
                     viewModel.createMediaState(viewModel.currentVault.value)
                 }.collectAsStateWithLifecycle()
                 MediaViewScreen(
-                    navigateUp = navPipe::navigateUp,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -210,7 +210,6 @@ fun VaultScreen(
                     currentVault = viewModel.currentVault.value,
                     restoreMedia = viewModel::restoreMedia,
                     deleteMedia = viewModel::deleteMedia,
-                    handler = null,
                     vaultState = vaultState,
                     addMedia = { vault, media ->
                         viewModel.addMedia(
@@ -218,7 +217,6 @@ fun VaultScreen(
                             list = listOf(media.uri)
                         )
                     },
-                    navigate = navigate,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this@composable
                 )

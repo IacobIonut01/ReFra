@@ -3,8 +3,12 @@ package com.dot.gallery.feature_node.presentation.library
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +45,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,31 +65,37 @@ import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.albumCellsList
+import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberNoClassification
+import com.dot.gallery.core.navigate
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.library.components.dashedBorder
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.ui.core.icons.Encrypted
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun LibraryScreen(
-    navigate: (route: String) -> Unit,
-    toggleNavbar: (Boolean) -> Unit,
     paddingValues: PaddingValues,
     isScrolling: MutableState<Boolean>,
-    searchBarActive: MutableState<Boolean>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
+    val eventHandler = LocalEventHandler.current
     val viewModel = hiltViewModel<LibraryViewModel>()
     var lastCellIndex by rememberAlbumGridSize()
 
@@ -116,24 +125,55 @@ fun LibraryScreen(
         ),
         topBar = {
             MainSearchBar(
-                bottomPadding = paddingValues.calculateBottomPadding(),
-                navigate = navigate,
-                toggleNavbar = toggleNavbar,
                 isScrolling = isScrolling,
-                activeState = searchBarActive,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedContentScope = animatedContentScope
             ) {
-                IconButton(onClick = { navigate(Screen.SettingsScreen()) }) {
+                val tertiaryContainer = MaterialTheme.colorScheme.tertiaryFixed
+                val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryFixed
+                val allowBlur by rememberAllowBlur()
+                val settingsInteractionSource = remember { MutableInteractionSource() }
+                val isPressed = settingsInteractionSource.collectIsPressedAsState()
+                val cornerRadius by animateDpAsState(targetValue = if (isPressed.value) 32.dp else 16.dp, label = "cornerRadius")
+
+                val settingsBackgroundModifier = remember(allowBlur) {
+                    if (!allowBlur) {
+                        Modifier.background(
+                            color = tertiaryContainer,
+                            shape = RoundedCornerShape(cornerRadius)
+                        )
+                    } else {
+                        Modifier
+                    }
+                }
+
+                IconButton(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(cornerRadius))
+                        .then(settingsBackgroundModifier)
+                        .hazeEffect(
+                            state = LocalHazeState.current,
+                            style = HazeMaterials.regular(
+                                containerColor = tertiaryContainer
+                            )
+                        ),
+                    interactionSource = settingsInteractionSource,
+                    onClick = { eventHandler.navigate(Screen.SettingsScreen()) }
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(R.string.settings_title)
+                        contentDescription = stringResource(R.string.settings_title),
+                        tint = onTertiaryContainer
                     )
                 }
             }
         }
-    ) {
-        PinchZoomGridLayout(state = pinchState) {
+    ) { it ->
+        PinchZoomGridLayout(
+            state = pinchState,
+            modifier = Modifier.hazeSource(LocalHazeState.current)
+        ) {
             LaunchedEffect(gridState.isScrollInProgress) {
                 isScrolling.value = gridState.isScrollInProgress
             }
@@ -178,7 +218,7 @@ fun LibraryScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
-                                        navigate(Screen.TrashedScreen.route)
+                                        eventHandler.navigate(Screen.TrashedScreen.route)
                                     }
                             )
                             LibrarySmallItem(
@@ -190,7 +230,7 @@ fun LibraryScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
-                                        navigate(Screen.FavoriteScreen.route)
+                                        eventHandler.navigate(Screen.FavoriteScreen.route)
                                     }
                             )
                         }
@@ -207,7 +247,7 @@ fun LibraryScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
-                                        navigate(Screen.VaultScreen())
+                                        eventHandler.navigate(Screen.VaultScreen())
                                     },
                                 contentDescription = stringResource(R.string.vault)
                             )
@@ -218,7 +258,7 @@ fun LibraryScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
-                                        navigate(Screen.IgnoredScreen())
+                                        eventHandler.navigate(Screen.IgnoredScreen())
                                     }
                             )
                         }
@@ -247,7 +287,7 @@ fun LibraryScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            navigate(Screen.CategoriesScreen())
+                                            eventHandler.navigate(Screen.CategoriesScreen())
                                         }
                                 )
                             }
@@ -265,7 +305,7 @@ fun LibraryScreen(
                                         .padding(horizontal = 16.dp)
                                         .clip(RoundedCornerShape(16.dp))
                                         .clickable {
-                                            navigate(Screen.CategoryViewScreen.category(category!!))
+                                            eventHandler.navigate(Screen.CategoryViewScreen.category(category!!))
                                         },
                                     horizontalAlignment = Alignment.Start
                                 ) {
@@ -313,10 +353,8 @@ fun LibraryScreen(
                                                             animatedVisibilityScope = animatedContentScope
                                                         ),
                                                     media = it,
-                                                    selectedMedia = remember { mutableStateOf(setOf()) },
-                                                    selectionState = remember { mutableStateOf(false) },
                                                     onMediaClick = { media ->
-                                                        navigate(
+                                                        eventHandler.navigate(
                                                             Screen.MediaViewScreen.idAndCategory(
                                                                 media.id,
                                                                 category!!
@@ -324,13 +362,13 @@ fun LibraryScreen(
                                                         )
                                                     },
                                                     onItemSelect = {
-                                                        navigate(
+                                                        eventHandler.navigate(
                                                             Screen.CategoryViewScreen.category(
                                                                 category!!
                                                             )
                                                         )
                                                     },
-                                                    canClick = true
+                                                    canClick = { true }
                                                 )
                                             }
                                         }
@@ -351,7 +389,7 @@ fun LibraryScreen(
                                     .padding(16.dp)
                             ) {
                                 viewModel.startClassification()
-                                navigate(Screen.CategoriesScreen())
+                                eventHandler.navigate(Screen.CategoriesScreen())
                             }
                         }
                         item(

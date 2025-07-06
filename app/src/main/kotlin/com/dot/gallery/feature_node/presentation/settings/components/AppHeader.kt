@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -88,7 +89,8 @@ fun SettingsAppHeader() {
 
     Column(
         modifier = Modifier
-            .padding(all = 16.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
             .drawWithCache {
                 val cx = size.width - size.width * fraction
                 val cy = size.height * fraction
@@ -109,6 +111,10 @@ fun SettingsAppHeader() {
                     )
                 }
             }
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+                shape = RoundedCornerShape(cornerRadius)
+            )
             .padding(all = 24.dp)
             .fillMaxWidth()
     ) {

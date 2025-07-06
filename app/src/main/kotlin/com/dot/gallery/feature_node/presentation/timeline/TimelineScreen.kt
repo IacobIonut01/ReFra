@@ -5,90 +5,149 @@
 
 package com.dot.gallery.feature_node.presentation.timeline
 
-import android.app.Activity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.LazyGridPrefetchStrategy
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisallowComposableCalls
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.res.stringResource
-import com.dot.gallery.R
-import com.dot.gallery.feature_node.domain.model.AlbumState
-import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.MediaMetadataState
-import com.dot.gallery.feature_node.domain.model.MediaState
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
-import com.dot.gallery.feature_node.presentation.common.MediaScreen
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dokar.pinchzoomgrid.PinchZoomGridLayout
+import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
+import com.dot.gallery.core.Constants.cellsList
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.LocalMediaDistributor
+import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.Settings.Misc.rememberGridSize
+import com.dot.gallery.core.navigate
+import com.dot.gallery.core.presentation.components.EmptyMedia
+import com.dot.gallery.core.presentation.components.SelectionSheet
+import com.dot.gallery.core.toggleNavigationBar
+import com.dot.gallery.feature_node.domain.model.UIEvent
+import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
+import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
-import com.dot.gallery.feature_node.presentation.util.clear
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
+import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.selectedMedia
+import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
-inline fun <reified T: Media> TimelineScreen(
+fun TimelineScreen(
     paddingValues: PaddingValues,
-    albumId: Long = -1L,
-    albumName: String = stringResource(R.string.app_name),
-    handler: MediaHandleUseCase,
-    mediaState: State<MediaState<T>>,
-    metadataState: State<MediaMetadataState>,
-    albumsState: State<AlbumState>,
-    selectionState: MutableState<Boolean>,
-    selectedMedia: MutableState<Set<Long>>,
-    allowNavBar: Boolean = true,
-    allowHeaders: Boolean = true,
-    enableStickyHeaders: Boolean = true,
-    noinline toggleSelection: (Int) -> Unit,
-    noinline navigate: @DisallowComposableCalls (route: String) -> Unit,
-    noinline navigateUp: @DisallowComposableCalls () -> Unit,
-    noinline toggleNavbar: (Boolean) -> Unit,
     isScrolling: MutableState<Boolean>,
-    searchBarActive: MutableState<Boolean> = mutableStateOf(false),
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
-    MediaScreen(
-        paddingValues = paddingValues,
-        albumId = albumId,
-        target = null,
-        albumName = albumName,
-        handler = handler,
-        albumsState = albumsState,
-        mediaState = mediaState,
-        metadataState = metadataState,
-        selectionState = selectionState,
-        selectedMedia = selectedMedia,
-        toggleSelection = toggleSelection,
-        allowHeaders = allowHeaders,
-        showMonthlyHeader = true,
-        enableStickyHeaders = enableStickyHeaders,
-        allowNavBar = allowNavBar,
-        navActionsContent = { expandedDropDown: MutableState<Boolean>, _ ->
-            TimelineNavActions(
-                albumId = albumId,
-                handler = handler,
-                expandedDropDown = expandedDropDown,
-                mediaState = mediaState,
-                selectedMedia = selectedMedia,
-                selectionState = selectionState,
-                navigate = navigate,
-                navigateUp = navigateUp
-            )
-        },
-        navigate = navigate,
-        navigateUp = navigateUp,
-        toggleNavbar = toggleNavbar,
-        isScrolling = isScrolling,
-        searchBarActive = searchBarActive,
-        sharedTransitionScope = sharedTransitionScope,
-        animatedContentScope = animatedContentScope,
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            selectedMedia.clear()
-            selectionState.value = false
+    var canScroll by rememberSaveable { mutableStateOf(true) }
+    var lastCellIndex by rememberGridSize()
+    val eventHandler = LocalEventHandler.current
+    val distributor = LocalMediaDistributor.current
+    val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle()
+    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle()
+    val selector = LocalMediaSelector.current
+    val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()
+    val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
+
+    val pinchState = rememberPinchZoomGridState(
+        cellsList = cellsList,
+        initialCellsIndex = lastCellIndex,
+        gridState = rememberLazyGridState(
+            prefetchStrategy = remember { LazyGridPrefetchStrategy() }
+        )
+    )
+
+    LaunchedEffect(pinchState.isZooming) {
+        withContext(Dispatchers.IO) {
+            canScroll = !pinchState.isZooming
+            lastCellIndex = cellsList.indexOf(pinchState.currentCells)
         }
+    }
+
+    LaunchedEffect(selectionState.value) {
+        eventHandler.toggleNavigationBar(!selectionState.value)
+    }
+
+    Box(
+        modifier = Modifier
+            .padding(
+                start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
+                end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
+            )
+    ) {
+        Scaffold(
+            topBar = {
+                MainSearchBar(
+                    isScrolling = isScrolling,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
+                    menuItems = { TimelineNavActions() },
+                )
+            }
+        ) { it ->
+            PinchZoomGridLayout(
+                state = pinchState,
+                modifier = Modifier.hazeSource(LocalHazeState.current)
+            ) {
+                MediaGridView(
+                    mediaState = mediaState,
+                    metadataState = metadataState,
+                    paddingValues = remember(paddingValues, it) {
+                        PaddingValues(
+                            top = it.calculateTopPadding(),
+                            bottom = paddingValues.calculateBottomPadding() + 128.dp
+                        )
+                    },
+                    searchBarPaddingTop = remember(paddingValues) {
+                        paddingValues.calculateTopPadding()
+                    },
+                    showSearchBar = true,
+                    allowSelection = true,
+                    canScroll = canScroll,
+                    enableStickyHeaders = true,
+                    showMonthlyHeader = true,
+                    isScrolling = isScrolling,
+                    emptyContent = { EmptyMedia() },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
+                    onMediaClick = {
+                        eventHandler.navigate(Screen.MediaViewScreen.idAndAlbum(it.id, -1L))
+                    },
+                )
+            }
+        }
+        val selectedMediaList by selectedMedia(
+            media = mediaState.value.media,
+            selectedSet = selectedMedia
+        )
+        SelectionSheet(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            selectedMedia = selectedMediaList
+        )
     }
 }

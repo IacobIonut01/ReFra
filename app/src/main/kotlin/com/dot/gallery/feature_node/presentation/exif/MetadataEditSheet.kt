@@ -35,10 +35,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
+import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
@@ -55,9 +55,9 @@ import kotlinx.coroutines.launch
 fun <T: Media> MetadataEditSheet(
     state: AppBottomSheetState,
     media: T,
-    metadata: MediaMetadata?,
-    handle: MediaHandleUseCase
+    metadata: MediaMetadata?
 ) {
+    val handler = LocalMediaHandler.current
     val scope = rememberCoroutineScope { Dispatchers.IO }
     val context = LocalContext.current
     val cr = remember(context) { context.contentResolver }
@@ -70,10 +70,10 @@ fun <T: Media> MetadataEditSheet(
         scope.launch {
             var done: Boolean
             printDebug("Updating media image description to $imageDescription")
-            done = handle.updateMediaImageDescription(media, imageDescription ?: "")
+            done = handler.updateMediaImageDescription(media, imageDescription ?: "")
             printDebug("Updated : $done")
             if (newLabel != media.label && newLabel.isNotBlank()) {
-                done = handle.renameMedia(media, newLabel)
+                done = handler.renameMedia(media, newLabel)
             }
             if (done) {
                 MediaScannerConnection.scanFile(

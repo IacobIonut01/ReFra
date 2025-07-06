@@ -10,6 +10,7 @@ import androidx.compose.animation.SharedTransitionScope.PlaceHolderSize.Companio
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Album
@@ -19,22 +20,25 @@ context(SharedTransitionScope)
 @Composable
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun <T: Media> Modifier.mediaSharedElement(
+    allowAnimation: Boolean = true,
     media: T,
     animatedVisibilityScope: AnimatedVisibilityScope
-): Modifier = mediaSharedElement(key = media.idLessKey, animatedVisibilityScope = animatedVisibilityScope)
+): Modifier = mediaSharedElement(allowAnimation = allowAnimation, key = media.idLessKey, animatedVisibilityScope = animatedVisibilityScope)
 
 context(SharedTransitionScope)
 @Composable
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun Modifier.mediaSharedElement(
+    allowAnimation: Boolean = true,
     album: Album,
     animatedVisibilityScope: AnimatedVisibilityScope
-): Modifier = mediaSharedElement(key = album.idLessKey, animatedVisibilityScope = animatedVisibilityScope)
+): Modifier = mediaSharedElement(allowAnimation = allowAnimation, key = album.idLessKey, animatedVisibilityScope = animatedVisibilityScope)
 
 context(SharedTransitionScope)
 @Composable
 @OptIn(ExperimentalSharedTransitionApi::class)
 private fun Modifier.mediaSharedElement(
+    allowAnimation: Boolean = true,
     key: String,
     animatedVisibilityScope: AnimatedVisibilityScope
 ): Modifier {
@@ -43,7 +47,9 @@ private fun Modifier.mediaSharedElement(
         rememberSharedContentState(key = "media_$key"),
         animatedVisibilityScope = animatedVisibilityScope,
         placeHolderSize = contentSize,
-        boundsTransform = { _, _ -> tween(250) }
+        boundsTransform = { _, _ -> tween(350) }
     )
-    return if (shouldAnimate) boundsModifier else Modifier
+    return remember(shouldAnimate, allowAnimation) {
+        if (shouldAnimate && allowAnimation) boundsModifier else Modifier
+    }
 }

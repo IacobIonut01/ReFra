@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material3.AlertDialog
@@ -21,7 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -48,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
@@ -57,7 +56,6 @@ import com.dot.gallery.ui.core.Icons as GalleryIcons
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IgnoredScreen(
-    navigateUp: () -> Unit,
     startSetup: () -> Unit,
     albumsState: State<AlbumState>,
 ) {
@@ -78,12 +76,7 @@ fun IgnoredScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back_cd)
-                        )
-                    }
+                    NavigationBackButton()
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -100,7 +93,7 @@ fun IgnoredScreen(
                 item {
                     Text(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .padding(24.dp)
                             .background(
                                 color = MaterialTheme.colorScheme.surfaceContainer,
                                 shape = RoundedCornerShape(24.dp)
@@ -227,19 +220,20 @@ fun NoIgnoredAlbums(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         val alphas = floatArrayOf(0.6f, 0.4f, 0.2f)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp)),
+                .clip(RoundedCornerShape(16.dp)),
             verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             alphas.forEach {
                 Spacer(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .height(72.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = it),
                             shape = RoundedCornerShape(2.dp)
@@ -251,11 +245,11 @@ fun NoIgnoredAlbums(modifier: Modifier = Modifier) {
 
         Text(
             text = stringResource(R.string.no_ignored_albums),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleLarge ,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(32.dp)
         )
     }
 }

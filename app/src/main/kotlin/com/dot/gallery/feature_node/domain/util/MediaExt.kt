@@ -4,11 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.feature_node.domain.model.Album
+import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.github.panpf.zoomimage.subsampling.ContentImageSource
 import com.github.panpf.zoomimage.subsampling.SubsamplingImage
 import io.ktor.util.reflect.instanceOf
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
@@ -202,3 +204,11 @@ val Any.isBigHeaderKey: Boolean
 
 val Any.isIgnoredKey: Boolean
     get() = this is String && this.contains("aboveGrid")
+
+fun List<Album>.mapPinned(pinnedAlbums: List<PinnedAlbum>): List<Album> =
+    map { album -> album.copy(isPinned = pinnedAlbums.any { it.id == album.id }) }
+
+fun List<Album>.removeBlacklisted(blacklistedAlbums: List<IgnoredAlbum>): List<Album> =
+    toMutableList().apply {
+        removeAll { album -> blacklistedAlbums.any { it.matchesAlbum(album) && it.hiddenInAlbums } }
+    }

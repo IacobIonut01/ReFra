@@ -77,9 +77,11 @@ import com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter.Vari
 import com.dot.gallery.feature_node.presentation.edit.components.editor.EditorNavigator
 import com.dot.gallery.feature_node.presentation.edit.components.editor.ImageViewer
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.getEditImageCapableApps
 import com.dot.gallery.feature_node.presentation.util.goBack
 import com.dot.gallery.ui.theme.GalleryTheme
+import dev.chrisbanes.haze.hazeSource
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -148,6 +150,7 @@ fun EditScreen2(
     Box {
         Scaffold(
             modifier = Modifier
+                .hazeSource(LocalHazeState.current)
                 .animateContentSize()
                 .fillMaxSize()
                 .then(if (isSaving || cropState.isCropping) Modifier.blur(animatedBlurRadius) else Modifier),

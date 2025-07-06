@@ -66,11 +66,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideNavBar
 import com.dot.gallery.core.Settings.Misc.rememberOldNavbar
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.NavigationItem
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.ui.core.icons.Albums
+import dev.chrisbanes.haze.LocalHazeStyle
+import dev.chrisbanes.haze.hazeEffect
 
 @Composable
 fun rememberNavigationItems(): List<NavigationItem> {
@@ -237,14 +241,28 @@ fun GalleryNavBar(
     navigationItems: List<NavigationItem>,
     onClick: (route: String) -> Unit,
 ) {
+    val allowBlur by rememberAllowBlur()
+    val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+    val backgroundModifier = remember (allowBlur) {
+        if (!allowBlur) {
+            Modifier.background(
+                color = surfaceColor,
+                shape = RoundedCornerShape(100)
+            )
+        } else {
+            Modifier
+        }
+    }
     Row(
         modifier = Modifier
             .padding(horizontal = 32.dp, vertical = 32.dp)
             .then(modifier)
             .height(64.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                shape = RoundedCornerShape(percent = 100)
+            .clip(RoundedCornerShape(100))
+            .then(backgroundModifier)
+            .hazeEffect(
+                state = LocalHazeState.current,
+                style = LocalHazeStyle.current
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {

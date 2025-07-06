@@ -58,6 +58,9 @@ import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.navigate
+import com.dot.gallery.core.navigateUp
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.feature_node.presentation.library.NoCategories
@@ -67,10 +70,8 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoriesScreen(
-    navigateUp: () -> Unit,
-    navigate: (String) -> Unit,
-) {
+fun CategoriesScreen() {
+    val eventHandler = LocalEventHandler.current
     val viewModel = hiltViewModel<CategoriesViewModel>()
     val categories by viewModel.classifiedCategories.collectAsStateWithLifecycle()
     val categoriesWithMedia by viewModel.categoriesWithMedia.collectAsStateWithLifecycle()
@@ -107,7 +108,7 @@ fun CategoriesScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = navigateUp) {
+                        IconButton(onClick = eventHandler::navigateUp) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.back_cd)
@@ -152,13 +153,11 @@ fun CategoriesScreen(
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(16.dp)),
                                 media = item,
-                                selectedMedia = remember { mutableStateOf(setOf()) },
-                                selectionState = remember { mutableStateOf(false) },
                                 onMediaClick = {
-                                    navigate(Screen.CategoryViewScreen.category(item.category!!))
+                                    eventHandler.navigate(Screen.CategoryViewScreen.category(item.category!!))
                                 },
                                 onItemSelect = {},
-                                canClick = true
+                                canClick = { true }
                             )
 
                             Text(

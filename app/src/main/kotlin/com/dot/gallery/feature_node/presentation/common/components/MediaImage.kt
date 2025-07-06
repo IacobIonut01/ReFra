@@ -5,14 +5,14 @@
 
 package com.dot.gallery.feature_node.presentation.common.components
 
-import androidx.compose.animation.AnimatedVisibility
+import android.graphics.Bitmap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,10 +25,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,10 +35,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.semantics.onLongClick
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.Constants.Animation
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.CheckBox
 import com.dot.gallery.core.presentation.components.util.advancedShadow
 import com.dot.gallery.feature_node.domain.model.Media
@@ -54,21 +50,23 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.video.Vide
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
+import com.github.panpf.sketch.request.colorType
 import com.github.panpf.sketch.resize.Precision
 
 @Composable
 fun <T : Media> MediaImage(
     modifier: Modifier = Modifier,
     media: T,
-    metadata: State<MediaMetadata?> = remember { mutableStateOf(null) },
-    selectionState: MutableState<Boolean>,
-    selectedMedia: MutableState<Set<Long>>,
-    canClick: Boolean,
+    metadata: () -> MediaMetadata? = { null },
+    canClick: () -> Boolean,
     onMediaClick: (T) -> Unit,
     onItemSelect: (T) -> Unit,
 ) {
-    val isSelected by rememberedDerivedState(selectionState.value, selectedMedia, media) {
-        selectionState.value && selectedMedia.value.any { it == media.id }
+    val selector = LocalMediaSelector.current
+    val selectionState by selector.isSelectionActive.collectAsStateWithLifecycle()
+    val selectedMedia by selector.selectedMedia.collectAsStateWithLifecycle()
+    val isSelected by rememberedDerivedState(selectionState, selectedMedia, media) {
+        selectionState && selectedMedia.any { it == media.id }
     }
     val selectedSize by animateDpAsState(
         targetValue = if (isSelected) 12.dp else 0.dp,
@@ -94,24 +92,35 @@ fun <T : Media> MediaImage(
     val roundedShape = remember(selectedShapeSize) {
         RoundedCornerShape(selectedShapeSize)
     }
+    val request = ComposableImageRequest(media.getUri().toString()) {
+        precision(Precision.LESS_PIXELS)
+        this.colorType(Bitmap.Config.ARGB_4444)
+        this.resizeOnDraw()
+        this.sizeMultiplier(0.8f)
+        setExtra(
+            key = "mediaKey",
+            value = media.idLessKey,
+        )
+        setExtra(
+            key = "realMimeType",
+            value = media.mimeType,
+        )
+    }
     Box(
         modifier = Modifier
-            .semantics {
-                if (!selectionState.value) {
-                    onLongClick("Select") {
-                        onItemSelect(media)
-                        true
-                    }
-                }
-            }
-            .clickable(
-                enabled = canClick,
+            .combinedClickable(
+                enabled = canClick(),
                 onClick = {
-                    if (selectionState.value) {
+                    if (selectionState) {
                         onItemSelect(media)
                     } else {
                         onMediaClick(media)
                     }
+                },
+                onLongClick = if (selectionState) {
+                    null // No long click action when selection is active
+                } else {
+                    { onItemSelect(media) }
                 }
             )
             .aspectRatio(1f)
@@ -133,47 +142,26 @@ fun <T : Media> MediaImage(
                     shape = roundedShape,
                     color = strokeColor
                 ),
-            request = ComposableImageRequest(media.getUri().toString()) {
-                precision(Precision.LESS_PIXELS)
-                setExtra(
-                    key = "mediaKey",
-                    value = media.idLessKey,
-                )
-                setExtra(
-                    key = "realMimeType",
-                    value = media.mimeType,
-                )
-            },
+            request = request,
             filterQuality = FilterQuality.None,
             contentDescription = media.label,
             contentScale = ContentScale.Crop,
         )
 
-        AnimatedVisibility(
-            visible = remember(media) { media.isVideo },
-            enter = Animation.enterAnimation,
-            exit = Animation.exitAnimation,
-            modifier = Modifier.align(Alignment.TopEnd)
-        ) {
+        if (media.isVideo) {
             VideoDurationHeader(
                 modifier = Modifier
+                    .align(Alignment.TopEnd)
                     .padding(selectedSize / 1.5f)
                     .scale(scale),
                 media = media
             )
         }
 
-        AnimatedVisibility(
-            visible = remember(media) {
-                media.isFavorite
-            },
-            enter = Animation.enterAnimation,
-            exit = Animation.exitAnimation,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-        ) {
+        if (media.isFavorite) {
             Image(
                 modifier = Modifier
+                    .align(Alignment.BottomEnd)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
@@ -184,15 +172,10 @@ fun <T : Media> MediaImage(
             )
         }
 
-        AnimatedVisibility(
-            visible = metadata.value != null && metadata.value!!.isRelevant,
-            enter = Animation.enterAnimation,
-            exit = Animation.exitAnimation,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-        ) {
+        if (metadata() != null && metadata()!!.isRelevant) {
             Icon(
                 modifier = Modifier
+                    .align(Alignment.BottomStart)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
@@ -202,23 +185,27 @@ fun <T : Media> MediaImage(
                         shadowBlurRadius = 6.dp,
                         alpha = 0.3f
                     ),
-                imageVector = metadata.value!!.getIcon()!!,
+                imageVector = metadata()!!.getIcon()!!,
                 tint = Color.White,
                 contentDescription = null
             )
         }
 
-        AnimatedVisibility(
-            visible = selectionState.value,
-            enter = Animation.enterAnimation,
-            exit = Animation.exitAnimation
-        ) {
+        if (selectionState) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(4.dp)
             ) {
-                CheckBox(isChecked = isSelected)
+                val number by rememberedDerivedState {
+                    if (isSelected) {
+                        selectedMedia.indexOf(media.id) + 1
+                    } else null
+                }
+                CheckBox(
+                    isChecked = isSelected,
+                    number = number
+                )
             }
         }
     }

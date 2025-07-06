@@ -303,13 +303,10 @@ fun VaultDisplay(
             MediaGridView(
                 mediaState = mediaState,
                 metadataState = metadataState,
-                allowSelection = true,
-                showSearchBar = false,
-                enableStickyHeaders = false,
                 paddingValues = it,
+                showSearchBar = false,
+                allowSelection = true,
                 canScroll = canScroll,
-                showMonthlyHeader = false,
-                isScrolling = remember { mutableStateOf(false) },
                 aboveGridContent = {
                     Column {
                         Row(
@@ -362,7 +359,7 @@ fun VaultDisplay(
                                     )
                                 }
                             )
-                            
+
                             SuggestionChip(
                                 onClick = {
                                     scope.launch {
@@ -410,14 +407,15 @@ fun VaultDisplay(
                         }
                     }
                 },
-                onMediaClick = { encryptedMedia ->
-                    navigate(VaultScreens.EncryptedMediaViewScreen.id(encryptedMedia.id))
-                },
+                isScrolling = remember { mutableStateOf(false) },
                 emptyContent = {
                     EmptyMedia()
                 },
                 sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope
+                animatedContentScope = animatedContentScope,
+                onMediaClick = { encryptedMedia ->
+                    navigate(VaultScreens.EncryptedMediaViewScreen.id(encryptedMedia.id))
+                },
             )
         }
     }

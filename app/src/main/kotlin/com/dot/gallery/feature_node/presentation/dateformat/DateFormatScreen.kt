@@ -24,10 +24,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,6 +68,7 @@ import com.dot.gallery.core.Settings.Misc.rememberExtendedDateFormat
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberWeeklyDateFormat
 import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.ui.theme.GalleryTheme
 import java.text.SimpleDateFormat
@@ -76,9 +76,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun DateFormatScreen(
-    navigateUp: () -> Unit,
-) {
+fun DateFormatScreen() {
     var dateHeaderFormat by rememberDateHeaderFormat()
     var exifDateFormat by rememberExifDateFormat()
     var defaultDateFormat by rememberDefaultDateFormat()
@@ -94,13 +92,11 @@ fun DateFormatScreen(
                     Text(stringResource(R.string.date_format_settings))
                 },
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back_cd)
-                        )
-                    }
-                }
+                    NavigationBackButton()
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
         }
     ) { innerPadding ->
@@ -447,6 +443,6 @@ fun DateFormatPreview(
 @Composable
 private fun Preview() {
     GalleryTheme {
-        DateFormatScreen(navigateUp = {})
+        DateFormatScreen()
     }
 }

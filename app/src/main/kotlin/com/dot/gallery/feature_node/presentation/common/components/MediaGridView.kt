@@ -32,6 +32,8 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
@@ -40,9 +42,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridScope
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
@@ -50,24 +54,20 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.model.isIgnoredKey
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
-import com.dot.gallery.feature_node.presentation.util.clear
 import com.dot.gallery.feature_node.presentation.util.roundDpToPx
 import com.dot.gallery.feature_node.presentation.util.roundSpToPx
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T : Media> PinchZoomGridScope.MediaGridView(
+    modifier: Modifier = Modifier,
     mediaState: State<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
     paddingValues: PaddingValues = PaddingValues(0.dp),
     searchBarPaddingTop: Dp = 0.dp,
     showSearchBar: Boolean = remember { false },
     allowSelection: Boolean = remember { false },
-    selectionState: MutableState<Boolean> = remember { mutableStateOf(false) },
-    selectedMedia: MutableState<Set<Long>> = remember { mutableStateOf(emptySet()) },
-    toggleSelection: @DisallowComposableCalls (Int) -> Unit = {},
     canScroll: Boolean = true,
     allowHeaders: Boolean = true,
     enableStickyHeaders: Boolean = false,
@@ -83,33 +83,30 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
         (if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
         else mediaState.value.mappedMedia).toMutableStateList()
     }
+    val selector = LocalMediaSelector.current
+    val isSelectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()
 
     BackHandler(
-        enabled = selectionState.value && allowSelection,
-        onBack = {
-            selectionState.value = false
-            selectedMedia.clear()
-        }
+        enabled = isSelectionActive && allowSelection,
+        onBack = selector::clearSelection
     )
 
     /**
      * Workaround for a small bug
      * That shows the grid at the bottom after content is loaded
      */
-    val lastLoadingState by remember { mutableStateOf(mediaState.value.isLoading) }
+    var hasScrolledToTop by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(gridState, mediaState.value) {
         snapshotFlow { mediaState.value.isLoading }
-            .distinctUntilChanged()
             .collectLatest { isLoading ->
-                if (!isLoading && lastLoadingState) {
+                if (!isLoading  && !hasScrolledToTop) {
+                    hasScrolledToTop = true
                     gridState.scrollToItem(0)
                 }
             }
     }
 
-    AnimatedVisibility(
-        visible = enableStickyHeaders
-    ) {
+    if (enableStickyHeaders) {
         val headers by rememberedDerivedState(mediaState.value) {
             mediaState.value.headers.toMutableStateList()
         }
@@ -185,15 +182,13 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
             }
         ) {
             MediaGrid(
+                modifier = modifier,
                 gridState = gridState,
                 mediaState = mediaState,
                 metadataState = metadataState,
                 mappedData = mappedData,
                 paddingValues = paddingValues,
                 allowSelection = allowSelection,
-                selectionState = selectionState,
-                selectedMedia = selectedMedia,
-                toggleSelection = toggleSelection,
                 canScroll = canScroll,
                 allowHeaders = allowHeaders,
                 aboveGridContent = aboveGridContent,
@@ -204,20 +199,15 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
                 animatedContentScope = animatedContentScope
             )
         }
-    }
-    AnimatedVisibility(
-        visible = !enableStickyHeaders
-    ) {
+    } else {
         MediaGrid(
+            modifier = modifier,
             gridState = gridState,
             mediaState = mediaState,
             metadataState = metadataState,
             mappedData = mappedData,
             paddingValues = paddingValues,
             allowSelection = allowSelection,
-            selectionState = selectionState,
-            selectedMedia = selectedMedia,
-            toggleSelection = toggleSelection,
             canScroll = canScroll,
             allowHeaders = allowHeaders,
             aboveGridContent = aboveGridContent,

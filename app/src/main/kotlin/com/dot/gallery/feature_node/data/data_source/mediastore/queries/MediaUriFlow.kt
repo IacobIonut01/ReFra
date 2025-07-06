@@ -141,8 +141,7 @@ class MediaUriFlow(
             val size = it.getLong(indexCache[i++])
             val mimeType = it.getString(indexCache[i++])
             val isFavorite = it.getInt(indexCache[i++])
-            val isTrashed = it.getInt(indexCache[i++])
-            val expiryTimestamp = it.tryGetLong(indexCache[i])
+            val isTrashed = it.getInt(indexCache[i])
             val contentUri = if (mimeType.contains("image"))
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             else
@@ -159,7 +158,7 @@ class MediaUriFlow(
                 albumLabel = albumLabel ?: Build.MODEL,
                 timestamp = modifiedTimestamp,
                 takenTimestamp = takenTimestamp,
-                expiryTimestamp = expiryTimestamp,
+                expiryTimestamp = null,
                 fullDate = formattedDate,
                 duration = duration,
                 favorite = isFavorite,

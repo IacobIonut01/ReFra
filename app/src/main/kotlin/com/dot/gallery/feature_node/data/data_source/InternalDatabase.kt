@@ -9,6 +9,7 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataCore
@@ -32,9 +33,10 @@ import com.dot.gallery.feature_node.domain.util.Converters
         Vault::class,
         MediaMetadataCore::class,
         MediaMetadataVideo::class,
-        MediaMetadataFlags::class
+        MediaMetadataFlags::class,
+        AlbumThumbnail::class
     ],
-    version = 8,
+    version = 10,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -43,7 +45,9 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 4, to = 5),
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
-        AutoMigration(from = 7, to = 8)
+        AutoMigration(from = 7, to = 8),
+        AutoMigration(from = 8, to = 9),
+        AutoMigration(from = 9, to = 10),
     ]
 )
 @TypeConverters(Converters::class)
@@ -60,6 +64,8 @@ abstract class InternalDatabase : RoomDatabase() {
     abstract fun getVaultDao(): VaultDao
 
     abstract fun getMetadataDao(): MetadataDao
+
+    abstract fun getAlbumThumbnailDao(): AlbumThumbnailDao
 
     companion object {
         const val NAME = "internal_db"
