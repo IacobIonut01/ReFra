@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toRect
+import com.dot.gallery.feature_node.presentation.edit.components.core.SupportiveLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import android.graphics.Color as AndroidColor
@@ -45,24 +46,27 @@ fun AlphaBar(
     modifier: Modifier = Modifier,
     currentColor: Color,
     isSupportingPanel: Boolean,
+    supportingBarSize: Dp = 48.dp,
+    nonSupportingBarSize: Dp = 32.dp,
+    enabled: Boolean = true,
     setColor: (Float) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
     val pressOffset = remember { mutableStateOf(Offset.Zero) }
 
-    val initialAlpha = remember(currentColor) {
-        currentColor.alpha
+    val initialAlpha = remember(currentColor, enabled) {
+        currentColor.alpha * if (enabled) 1f else 0.2f
     }
 
     Canvas(
         modifier = modifier
             .then(
                 if (isSupportingPanel) Modifier
-                    .width(48.dp)
+                    .width(supportingBarSize)
                     .fillMaxHeight()
                 else Modifier
-                    .height(32.dp)
+                    .height(nonSupportingBarSize)
                     .fillMaxWidth()
             )
             .clip(RoundedCornerShape(20))
@@ -119,24 +123,157 @@ fun AlphaBar(
                 } else {
                     Offset(pressPos, 0f)
                 }
-                setColor(selectedAlpha)
+                if (enabled) setColor(selectedAlpha)
             }
 
-            drawRoundRect(
-                color = Color.White,
-                topLeft = if (isSupportingPanel) {
-                    Offset(0f, pressOffset.value.y - 8.dp.toPx())
-                } else {
-                    Offset(pressOffset.value.x - 8.dp.toPx(), 0f)
-                },
-                size = if (isSupportingPanel) {
-                    Size(size.width, size.width / 3)
-                } else {
-                    Size(size.height / 3, size.height)
-                },
-                cornerRadius = CornerRadius(20f, 20f),
-                style = Stroke(width = 3.dp.toPx())
+            if (enabled) {
+                drawRoundRect(
+                    color = Color.White,
+                    topLeft = if (isSupportingPanel) {
+                        Offset(0f, pressOffset.value.y - 8.dp.toPx())
+                    } else {
+                        Offset(pressOffset.value.x - 8.dp.toPx(), 0f)
+                    },
+                    size = if (isSupportingPanel) {
+                        Size(size.width, size.width / 3)
+                    } else {
+                        Size(size.height / 3, size.height)
+                    },
+                    cornerRadius = CornerRadius(20f, 20f),
+                    style = Stroke(width = 3.dp.toPx())
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun VibrancyBar(
+    modifier: Modifier = Modifier,
+    currentColor: Color,
+    isSupportingPanel: Boolean,
+    supportingBarSize: Dp = 48.dp,
+    nonSupportingBarSize: Dp = 32.dp,
+    enabled: Boolean = true,
+    setColor: (Float) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressOffset = remember { mutableStateOf(Offset.Zero) }
+
+    val hsv = remember(currentColor) {
+        val hsv = FloatArray(3)
+        AndroidColor.colorToHSV(currentColor.toArgb(), hsv)
+        hsv
+    }
+
+    val initialVibrancy = remember(hsv) { hsv[2] }
+    val currentHue = remember(hsv) { hsv[0] }
+    val currentSaturation = remember(hsv) { hsv[1] }
+    val currentAlpha =
+        remember(currentColor, enabled) { currentColor.alpha * if (enabled) 1f else 0.2f }
+
+    Canvas(
+        modifier = modifier
+            .then(
+                if (isSupportingPanel) Modifier
+                    .width(supportingBarSize)
+                    .fillMaxHeight()
+                else Modifier
+                    .height(nonSupportingBarSize)
+                    .fillMaxWidth()
             )
+            .clip(RoundedCornerShape(20))
+            .emitDragGesture(interactionSource)
+    ) {
+        val drawScopeSize = size
+
+        if (drawScopeSize.width > 0 && drawScopeSize.height > 0) {
+            val bitmap = createBitmap(size.width.toInt(), size.height.toInt())
+            val vibrancyCanvas = android.graphics.Canvas(bitmap)
+            val vibrancyPanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+            val vibrancyColors = IntArray(
+                if (isSupportingPanel) vibrancyPanel.height().toInt() else vibrancyPanel.width()
+                    .toInt()
+            )
+            for (i in vibrancyColors.indices) {
+                vibrancyColors[i] = AndroidColor.HSVToColor(
+                    (currentAlpha * 255).toInt(),
+                    floatArrayOf(
+                        currentHue,
+                        currentSaturation,
+                        i / (if (isSupportingPanel) vibrancyPanel.height() else vibrancyPanel.width())
+                    )
+                )
+            }
+            val linePaint = Paint()
+            linePaint.strokeWidth = 0F
+            for (i in vibrancyColors.indices) {
+                linePaint.color = vibrancyColors[i]
+                if (isSupportingPanel) {
+                    vibrancyCanvas.drawLine(
+                        0f,
+                        i.toFloat(),
+                        vibrancyPanel.right,
+                        i.toFloat(),
+                        linePaint
+                    )
+                } else {
+                    vibrancyCanvas.drawLine(
+                        i.toFloat(),
+                        0F,
+                        i.toFloat(),
+                        vibrancyPanel.bottom,
+                        linePaint
+                    )
+                }
+            }
+            drawBitmap(bitmap = bitmap, panel = vibrancyPanel)
+
+            val initialOffset = if (isSupportingPanel) {
+                initialVibrancy * drawScopeSize.height
+            } else {
+                initialVibrancy * drawScopeSize.width
+            }
+            pressOffset.value = if (isSupportingPanel) {
+                Offset(0f, initialOffset)
+            } else {
+                Offset(initialOffset, 0f)
+            }
+
+            fun pointToVibrancy(point: Float): Float {
+                val size = if (isSupportingPanel) vibrancyPanel.height() else vibrancyPanel.width()
+                val pos = point.coerceIn(0f..size)
+                return pos / size
+            }
+
+            scope.collectForPress(interactionSource) { pressPosition ->
+                val pressPos = if (isSupportingPanel) pressPosition.y else pressPosition.x
+                val selectedVibrancy = pointToVibrancy(pressPos)
+                pressOffset.value = if (isSupportingPanel) {
+                    Offset(0f, pressPos)
+                } else {
+                    Offset(pressPos, 0f)
+                }
+                if (enabled) setColor(selectedVibrancy)
+            }
+            if (enabled) {
+                drawRoundRect(
+                    color = Color.White,
+                    topLeft = if (isSupportingPanel) {
+                        Offset(0f, pressOffset.value.y - 8.dp.toPx())
+                    } else {
+                        Offset(pressOffset.value.x - 8.dp.toPx(), 0f)
+                    },
+                    size = if (isSupportingPanel) {
+                        Size(size.width, size.width / 3)
+                    } else {
+                        Size(size.height / 3, size.height)
+                    },
+                    cornerRadius = CornerRadius(20f, 20f),
+                    style = Stroke(width = 3.dp.toPx())
+                )
+            }
         }
     }
 }
@@ -146,7 +283,10 @@ fun SaturationBar(
     modifier: Modifier = Modifier,
     currentColor: Color,
     isSupportingPanel: Boolean,
-    setColor: (Float) -> Unit
+    supportingBarSize: Dp = 48.dp,
+    nonSupportingBarSize: Dp = 32.dp,
+    enabled: Boolean = true,
+    setColor: (Float) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
@@ -160,16 +300,17 @@ fun SaturationBar(
 
     val initialSaturation = remember(hsv) { hsv[1] }
     val currentHue = remember(hsv) { hsv[0] }
-    val currentAlpha = remember(currentColor) { currentColor.alpha }
+    val currentAlpha =
+        remember(currentColor, enabled) { currentColor.alpha * if (enabled) 1f else 0.2f }
 
     Canvas(
         modifier = modifier
             .then(
                 if (isSupportingPanel) Modifier
-                    .width(48.dp)
+                    .width(supportingBarSize)
                     .fillMaxHeight()
                 else Modifier
-                    .height(32.dp)
+                    .height(nonSupportingBarSize)
                     .fillMaxWidth()
             )
             .clip(RoundedCornerShape(20))
@@ -178,20 +319,21 @@ fun SaturationBar(
         val drawScopeSize = size
 
         if (drawScopeSize.width > 0 && drawScopeSize.height > 0) {
-            val bitmap = Bitmap.createBitmap(
-                size.width.toInt(),
-                size.height.toInt(),
-                Bitmap.Config.ARGB_8888
-            )
+            val bitmap = createBitmap(size.width.toInt(), size.height.toInt())
             val saturationCanvas = android.graphics.Canvas(bitmap)
             val saturationPanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
             val saturationColors = IntArray(
-                if (isSupportingPanel) saturationPanel.height().toInt() else saturationPanel.width().toInt()
+                if (isSupportingPanel) saturationPanel.height().toInt() else saturationPanel.width()
+                    .toInt()
             )
             for (i in saturationColors.indices) {
                 saturationColors[i] = AndroidColor.HSVToColor(
                     (currentAlpha * 255).toInt(),
-                    floatArrayOf(currentHue, i / (if (isSupportingPanel) saturationPanel.height() else saturationPanel.width()), 1f)
+                    floatArrayOf(
+                        currentHue,
+                        i / (if (isSupportingPanel) saturationPanel.height() else saturationPanel.width()),
+                        1f
+                    )
                 )
             }
             val linePaint = Paint()
@@ -199,9 +341,21 @@ fun SaturationBar(
             for (i in saturationColors.indices) {
                 linePaint.color = saturationColors[i]
                 if (isSupportingPanel) {
-                    saturationCanvas.drawLine(0f, i.toFloat(), saturationPanel.right, i.toFloat(), linePaint)
+                    saturationCanvas.drawLine(
+                        0f,
+                        i.toFloat(),
+                        saturationPanel.right,
+                        i.toFloat(),
+                        linePaint
+                    )
                 } else {
-                    saturationCanvas.drawLine(i.toFloat(), 0F, i.toFloat(), saturationPanel.bottom, linePaint)
+                    saturationCanvas.drawLine(
+                        i.toFloat(),
+                        0F,
+                        i.toFloat(),
+                        saturationPanel.bottom,
+                        linePaint
+                    )
                 }
             }
             drawBitmap(bitmap = bitmap, panel = saturationPanel)
@@ -218,7 +372,8 @@ fun SaturationBar(
             }
 
             fun pointToSaturation(point: Float): Float {
-                val size = if (isSupportingPanel) saturationPanel.height() else saturationPanel.width()
+                val size =
+                    if (isSupportingPanel) saturationPanel.height() else saturationPanel.width()
                 val pos = point.coerceIn(0f..size)
                 return pos / size
             }
@@ -231,25 +386,61 @@ fun SaturationBar(
                 } else {
                     Offset(pressPos, 0f)
                 }
-                setColor(selectedSaturation)
+                if (enabled) setColor(selectedSaturation)
             }
-
-            drawRoundRect(
-                color = Color.White,
-                topLeft = if (isSupportingPanel) {
-                    Offset(0f, pressOffset.value.y - 8.dp.toPx())
-                } else {
-                    Offset(pressOffset.value.x - 8.dp.toPx(), 0f)
-                },
-                size = if (isSupportingPanel) {
-                    Size(size.width, size.width / 3)
-                } else {
-                    Size(size.height / 3, size.height)
-                },
-                cornerRadius = CornerRadius(20f, 20f),
-                style = Stroke(width = 3.dp.toPx())
-            )
+            if (enabled) {
+                drawRoundRect(
+                    color = Color.White,
+                    topLeft = if (isSupportingPanel) {
+                        Offset(0f, pressOffset.value.y - 8.dp.toPx())
+                    } else {
+                        Offset(pressOffset.value.x - 8.dp.toPx(), 0f)
+                    },
+                    size = if (isSupportingPanel) {
+                        Size(size.width, size.width / 3)
+                    } else {
+                        Size(size.height / 3, size.height)
+                    },
+                    cornerRadius = CornerRadius(20f, 20f),
+                    style = Stroke(width = 3.dp.toPx())
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun HSVColorBars(
+    modifier: Modifier = Modifier,
+    currentColor: Color,
+    isSupportingPanel: Boolean,
+    enabled: Boolean = true,
+    onHueChange: (Float) -> Unit,
+    onSaturationChange: (Float) -> Unit,
+    onVibrancyChange: (Float) -> Unit,
+) {
+    SupportiveLayout(
+        modifier = modifier,
+        isSupportingPanel = isSupportingPanel
+    ) {
+        HueBar(
+            currentColor = currentColor,
+            isSupportingPanel = isSupportingPanel,
+            enabled = enabled,
+            setColor = onHueChange
+        )
+        SaturationBar(
+            currentColor = currentColor,
+            isSupportingPanel = isSupportingPanel,
+            enabled = enabled,
+            setColor = onSaturationChange
+        )
+        VibrancyBar(
+            currentColor = currentColor,
+            isSupportingPanel = isSupportingPanel,
+            enabled = enabled,
+            setColor = onVibrancyChange
+        )
     }
 }
 
@@ -275,7 +466,9 @@ fun HueBar(
 
     val currentSaturation = remember(hsv) { hsv[1] }
     val initialHue = remember(hsv) { hsv[0] }
-    val currentAlpha = remember(currentColor, enabled) { currentColor.alpha * if (enabled) 1f else 0.2f }
+    val vibrancy = remember(hsv) { hsv[2] }
+    val currentAlpha =
+        remember(currentColor, enabled) { currentColor.alpha * if (enabled) 1f else 0.2f }
 
     Canvas(
         modifier = Modifier
@@ -304,7 +497,7 @@ fun HueBar(
             for (i in hueColors.indices) {
                 hueColors[i] = AndroidColor.HSVToColor(
                     (currentAlpha * 255).toInt(),
-                    floatArrayOf(hue, currentSaturation, 1f)
+                    floatArrayOf(hue, currentSaturation, vibrancy)
                 )
                 hue += 360f / hueColors.size
             }

@@ -1,5 +1,7 @@
 package com.dot.gallery.feature_node.presentation.edit.components.markup
 
+import android.graphics.Color.HSVToColor
+import android.graphics.Color.colorToHSV
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -45,24 +47,42 @@ fun MarkupSelector(
     SupportiveLayout(
         isSupportingPanel = isSupportingPanel
     ) {
-        HueBar(
+        HSVColorBars(
             modifier = if (!isSupportingPanel) Modifier.padding(WindowInsets.horizontalSystemGesturesPadding()) else Modifier.padding(end = 8.dp),
-            isSupportingPanel = isSupportingPanel,
+            enabled = drawMode == DrawMode.Draw,
             currentColor = currentPathProperty.color,
-            enabled = drawMode == DrawMode.Draw
-        ) { hue ->
-            val hsv = FloatArray(3)
-            android.graphics.Color.colorToHSV(currentPathProperty.color.toArgb(), hsv)
-            hsv[0] = hue
-            val newColor = Color(
-                android.graphics.Color.HSVToColor(
-                    (currentPathProperty.color.alpha * 255).toInt(),
-                    hsv
+            isSupportingPanel = isSupportingPanel,
+            onHueChange = { hue ->
+                val hsv = FloatArray(3)
+                colorToHSV(currentPathProperty.color.toArgb(), hsv)
+                hsv[0] = hue
+                val newColor = Color(
+                    HSVToColor((currentPathProperty.color.alpha * 255).toInt(), hsv)
                 )
-            )
-            val pathProperties = currentPathProperty.copy(color = newColor)
-            setCurrentPathProperty(pathProperties)
-        }
+                val pathProperties = currentPathProperty.copy(color = newColor)
+                setCurrentPathProperty(pathProperties)
+            },
+            onVibrancyChange = { vibrancy ->
+                val hsv = FloatArray(3)
+                colorToHSV(currentPathProperty.color.toArgb(), hsv)
+                hsv[2] = vibrancy
+                val newColor = Color(
+                    HSVToColor((currentPathProperty.color.alpha * 255).toInt(), hsv)
+                )
+                val pathProperties = currentPathProperty.copy(color = newColor)
+                setCurrentPathProperty(pathProperties)
+            },
+            onSaturationChange = { saturation ->
+                val hsv = FloatArray(3)
+                colorToHSV(currentPathProperty.color.toArgb(), hsv)
+                hsv[1] = saturation
+                val newColor = Color(
+                    HSVToColor((currentPathProperty.color.alpha * 255).toInt(), hsv)
+                )
+                val pathProperties = currentPathProperty.copy(color = newColor)
+                setCurrentPathProperty(pathProperties)
+            }
+        )
 
         SupportiveLazyLayout(
             modifier = Modifier
