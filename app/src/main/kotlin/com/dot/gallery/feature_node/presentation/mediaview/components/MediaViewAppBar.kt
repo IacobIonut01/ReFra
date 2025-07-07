@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -36,10 +39,15 @@ import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.ui.theme.BlackScrim
 import com.dot.gallery.ui.theme.WhiterBlackScrim
 import com.dot.gallery.ui.theme.isDarkTheme
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun MediaViewAppBar(
     modifier: Modifier = Modifier,
@@ -83,13 +91,33 @@ fun MediaViewAppBar(
                 targetValue = if (followTheme) MaterialTheme.colorScheme.onSurface else Color.White,
                 label = "AppBarContentColor"
             )
-            IconButton(onClick = onGoBack) {
-                Image(
+            val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer.copy(0.5f)
+            val backgroundModifier = remember(allowBlur) {
+                if (!allowBlur) {
+                    Modifier.background(
+                        color = surfaceContainer,
+                        shape = CircleShape
+                    )
+                } else Modifier
+            }
+            IconButton(
+                modifier = modifier
+                    .padding(horizontal = 8.dp)
+                    .clip(CircleShape)
+                    .then(backgroundModifier)
+                    .hazeEffect(
+                        state = LocalHazeState.current,
+                        style = HazeMaterials.ultraThin(
+                            containerColor = surfaceContainer
+                        )
+                    ),
+                onClick = onGoBack
+            ) {
+                Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    colorFilter = ColorFilter.tint(contentColor),
                     contentDescription = "Go back",
-                    modifier = Modifier
-                        .height(48.dp)
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.height(48.dp)
                 )
             }
             Row(
