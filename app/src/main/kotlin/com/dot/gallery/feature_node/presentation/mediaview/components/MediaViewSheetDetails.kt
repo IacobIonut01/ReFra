@@ -7,7 +7,6 @@ package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -105,17 +104,12 @@ fun <T : Media> MediaViewSheetDetails(
     val handler = LocalMediaHandler.current
     val isBlurEnabled by rememberAllowBlur()
     val surfaceColor = MaterialTheme.colorScheme.surface
-    val surfaceColorVariant = MaterialTheme.colorScheme.surfaceVariant
-    val sheetBackgroundColor by animateColorAsState(
-        if (isBlurEnabled) surfaceColor.copy(alpha = 0.6f) else surfaceColor
-    )
-    val sheetCardBackgroundColor by animateColorAsState(
-        if (isBlurEnabled) surfaceColor.copy(alpha = 0.6f) else surfaceColorVariant
-    )
+    val surfaceColorVariant = MaterialTheme.colorScheme.surfaceContainer
+    val surfaceContainerHigh = MaterialTheme.colorScheme.surfaceContainerHigh
     val sheetCardBackgroundModifier = remember(isBlurEnabled) {
         if (!isBlurEnabled) {
             Modifier.background(
-                color = sheetCardBackgroundColor,
+                color = surfaceColorVariant,
                 shape = RoundedCornerShape(16.dp)
             )
         } else {
@@ -126,16 +120,16 @@ fun <T : Media> MediaViewSheetDetails(
         containerColor = surfaceColor
     )
     val sheetCardHazeStyle = HazeMaterials.thick(
-        containerColor = surfaceColor
+        containerColor = surfaceColorVariant
     )
 
     val sheetCardButtonHazeStyle = HazeMaterials.thin(
-        containerColor = surfaceColorVariant
+        containerColor = surfaceContainerHigh
     )
     val sheetBackgroundModifier = remember(isBlurEnabled) {
         if (!isBlurEnabled) {
             Modifier.background(
-                color = sheetBackgroundColor,
+                color = surfaceColor,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             )
         } else {
