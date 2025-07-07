@@ -69,4 +69,5 @@ interface MediaHandler {
     suspend fun deleteAlbumThumbnail(albumId: Long)
     suspend fun updateAlbumThumbnail(albumId: Long, newThumbnail: Uri)
     fun hasAlbumThumbnail(albumId: Long): Flow<Boolean>
+    suspend fun collectMetadataFor(media: Media)
 }

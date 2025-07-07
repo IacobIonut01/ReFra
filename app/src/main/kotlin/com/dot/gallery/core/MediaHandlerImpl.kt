@@ -135,4 +135,6 @@ class MediaHandlerImpl @Inject constructor(
     override fun hasAlbumThumbnail(albumId: Long): Flow<Boolean> =
         repository.hasAlbumThumbnail(albumId)
 
+    override suspend fun collectMetadataFor(media: Media) = repository.collectMetadataFor(media)
+
 }

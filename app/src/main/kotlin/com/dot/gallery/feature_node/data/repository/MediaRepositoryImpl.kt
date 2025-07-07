@@ -712,6 +712,12 @@ class MediaRepositoryImpl(
     override fun getAlbumThumbnails(): Flow<List<AlbumThumbnail>> =
         database.getAlbumThumbnailDao().getAlbumThumbnailsFlow()
 
+    override suspend fun collectMetadataFor(media: Media) {
+        context.retrieveExtraMediaMetadata(media)?.let { metadata ->
+            database.getMetadataDao().addMetadata(metadata)
+        }
+    }
+
     companion object {
         private fun relativePath(newPath: String) = ContentValues().apply {
             put(MediaStore.MediaColumns.RELATIVE_PATH, newPath)

@@ -198,4 +198,6 @@ interface MediaRepository {
 
     fun hasAlbumThumbnail(albumId: Long): Flow<Boolean>
 
+    suspend fun collectMetadataFor(media: Media)
+
 }

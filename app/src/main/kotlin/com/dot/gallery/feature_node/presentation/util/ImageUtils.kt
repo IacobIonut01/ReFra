@@ -19,6 +19,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -34,12 +35,15 @@ import androidx.core.graphics.scale
 import androidx.core.net.toFile
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Misc.rememberExifDateFormat
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.mediaview.components.retrieveMetadata
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 val sdcardRegex = "^/storage/[A-Z0-9]+-[A-Z0-9]+/.*$".toRegex()
@@ -147,12 +151,17 @@ fun rememberActivityResult(onResultCanceled: () -> Unit = {}, onResultOk: () -> 
     )
 
 
-fun <T: Media> T.writeRequest(
+fun <T : Media> T.writeRequest(
     contentResolver: ContentResolver,
-) = IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, arrayListOf(getUri())))
+) = IntentSenderRequest.Builder(
+    MediaStore.createWriteRequest(
+        contentResolver,
+        arrayListOf(getUri())
+    )
+)
     .build()
 
-fun <T: Media> List<T>.writeRequest(
+fun <T : Media> List<T>.writeRequest(
     contentResolver: ContentResolver,
 ) = IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, map { it.getUri() }))
     .build()
@@ -163,27 +172,35 @@ fun Uri.writeRequest(
     .build()
 
 @Composable
-fun <T: Media> rememberMediaInfo(
+fun <T : Media> rememberMediaInfo(
     media: T,
     exifMetadata: MediaMetadata?,
     onLabelClick: () -> Unit
 ): List<InfoRow> {
     val context = LocalContext.current
     val exifDateFormat by rememberExifDateFormat()
+    val handler = LocalMediaHandler.current
+    LaunchedEffect(exifMetadata) {
+        if (exifMetadata == null) {
+            withContext(Dispatchers.IO) {
+                handler.collectMetadataFor(media)
+            }
+        }
+    }
     return remember(media, exifDateFormat) {
         media.retrieveMetadata(context, exifDateFormat, exifMetadata, onLabelClick)
     }
 }
 
 @Composable
-fun <T: Media> rememberExifMetadata(media: T, exifInterface: ExifInterface?): ExifMetadata? {
+fun <T : Media> rememberExifMetadata(media: T, exifInterface: ExifInterface?): ExifMetadata? {
     return remember(media, exifInterface) {
         exifInterface?.let { ExifMetadata(it) }
     }
 }
 
 @Composable
-fun <T: Media> rememberExifInterface(media: T, useDirectPath: Boolean = false): ExifInterface? {
+fun <T : Media> rememberExifInterface(media: T, useDirectPath: Boolean = false): ExifInterface? {
     val context = LocalContext.current
     return remember(media) {
         if (useDirectPath) try {
@@ -231,7 +248,7 @@ fun Uri.authorizedUri(context: Context): Uri = if (this.toString()
     this.toFile()
 )
 
-fun <T: Media> Context.shareMedia(media: T) {
+fun <T : Media> Context.shareMedia(media: T) {
     val originalUri = media.getUri()
     val uri = if (originalUri.toString()
             .startsWith("content://")
@@ -248,7 +265,7 @@ fun <T: Media> Context.shareMedia(media: T) {
         .startChooser()
 }
 
-fun <T: Media> Context.shareMedia(mediaList: List<T>) {
+fun <T : Media> Context.shareMedia(mediaList: List<T>) {
     val mimeTypes =
         if (mediaList.find { it.duration != null } != null) {
             if (mediaList.find { it.duration == null } != null) "video/*,image/*" else "video/*"
