@@ -52,6 +52,7 @@ import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberFullBrightnessView
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
+import com.dot.gallery.core.Settings.Misc.rememberShowSelectionTitles
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.navigate
@@ -151,7 +152,7 @@ fun SettingsCustomizationScreen() {
             title = stringResource(R.string.set_default_screen),
             summary = summary,
             onClick = { showLaunchScreenDialog.value = true },
-            screenPosition = Position.Bottom
+            screenPosition = Position.Middle
         )
         if (showLaunchScreenDialog.value) {
             ModalBottomSheet(
@@ -258,6 +259,15 @@ fun SettingsCustomizationScreen() {
                 }
             }
         }
+        var showSelectionTitles by rememberShowSelectionTitles()
+        val showSelectionTitlesPref = rememberSwitchPreference(
+            showSelectionTitles,
+            title = stringResource(R.string.show_selection_titles),
+            summary = stringResource(R.string.show_selection_titles_summary),
+            isChecked = showSelectionTitles,
+            onCheck = { showSelectionTitles = it },
+            screenPosition = Position.Bottom
+        )
 
         val mediaViewHeader = remember(context) {
             SettingsEntity.Header(
@@ -387,12 +397,14 @@ fun SettingsCustomizationScreen() {
             autoPlayVideoPref,
             sharedElementsPref,
             showMediaDateHeaderPref,
+            showSelectionTitlesPref
         ) {
             mutableStateListOf(
                 timelineHeader,
                 groupByMonthPref,
                 hideTimelineOnAlbumPref,
                 forcedLastScreenPref,
+                showSelectionTitlesPref,
 
                 interfaceHeader,
                 allowBlurPref,

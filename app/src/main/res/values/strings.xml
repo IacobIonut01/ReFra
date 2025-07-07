@@ -352,6 +352,8 @@
     <string name="interface_settings">Interface</string>
     <string name="show_date_header">Show Media Date Header</string>
     <string name="show_date_header_summary">Show the media date in the media view top bar header.</string>
+    <string name="show_selection_titles">Display Selection Item\'s Title</string>
+    <string name="show_selection_titles_summary">Display in the selection sheet a title for each action</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

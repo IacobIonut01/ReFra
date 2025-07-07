@@ -358,6 +358,13 @@ object Settings {
         @Composable
         fun rememberShowMediaViewDateHeader() =
             rememberPreference(key = MEDIA_VIEW_DATE_HEADER, defaultValue = true)
+
+        private val SELECTION_TITLES = booleanPreferencesKey("selection_titles")
+
+        @Composable
+        fun rememberShowSelectionTitles() =
+            rememberPreference(key = SELECTION_TITLES, defaultValue = true)
+
     }
 }
 

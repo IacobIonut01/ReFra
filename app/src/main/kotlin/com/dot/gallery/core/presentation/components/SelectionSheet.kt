@@ -68,6 +68,7 @@ import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberShowSelectionTitles
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.presentation.exif.CopyMediaSheet
@@ -86,7 +87,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
-fun <T: Media> SelectionSheet(
+fun <T : Media> SelectionSheet(
     modifier: Modifier = Modifier,
     selectedMedia: SnapshotStateList<T>
 ) {
@@ -128,7 +129,7 @@ fun <T: Media> SelectionSheet(
     ) {
         val allowBlur by rememberAllowBlur()
         val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-        val backgroundModifier = remember (allowBlur) {
+        val backgroundModifier = remember(allowBlur) {
             if (!allowBlur) {
                 Modifier.background(
                     color = surfaceColor,
@@ -182,7 +183,7 @@ fun <T: Media> SelectionSheet(
                 )
             }
             val surfaceColor = MaterialTheme.colorScheme.surface
-            val backgroundModifier = remember (allowBlur) {
+            val backgroundModifier = remember(allowBlur) {
                 if (!allowBlur) {
                     Modifier.background(
                         color = surfaceColor,
@@ -310,15 +311,26 @@ private fun RowScope.SelectionBarColumn(
     onItemLongClick: (() -> Unit)? = null,
     onItemClick: () -> Unit,
 ) {
+    val showTitles by rememberShowSelectionTitles()
     val tintColor = MaterialTheme.colorScheme.onSurface
+    val minHeightSizeModifier = remember(showTitles) {
+        if (showTitles) Modifier.defaultMinSize(minHeight = 80.dp)
+        else Modifier.defaultMinSize(minHeight = 64.dp)
+    }
+    val minWidthSizeModifier = remember(tabletMode) {
+        if (showTitles) {
+            if (tabletMode) Modifier.defaultMinSize(minWidth = 80.dp)
+            else Modifier.weight(1f)
+        } else {
+            if (tabletMode) Modifier.defaultMinSize(minWidth = 64.dp)
+            else Modifier.weight(1f)
+        }
+    }
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .defaultMinSize(minHeight = 80.dp)
-            .then(
-                if (tabletMode) Modifier.defaultMinSize(minWidth = 80.dp)
-                else Modifier.weight(1f)
-            )
+            .then(minHeightSizeModifier)
+            .then(minWidthSizeModifier)
             .combinedClickable(
                 onClick = onItemClick,
                 onLongClick = onItemLongClick
@@ -334,14 +346,16 @@ private fun RowScope.SelectionBarColumn(
             modifier = Modifier
                 .height(32.dp)
         )
-        Spacer(modifier = Modifier.size(4.dp))
-        Text(
-            text = title,
-            modifier = Modifier,
-            fontWeight = FontWeight.Medium,
-            style = MaterialTheme.typography.bodyMedium,
-            color = tintColor,
-            textAlign = TextAlign.Center
-        )
+        if (showTitles) {
+            Spacer(modifier = Modifier.size(4.dp))
+            Text(
+                text = title,
+                modifier = Modifier,
+                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.bodyMedium,
+                color = tintColor,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
