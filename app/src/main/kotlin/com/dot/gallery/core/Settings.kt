@@ -352,6 +352,12 @@ object Settings {
         @Composable
         fun rememberSharedElements() =
             rememberPreference(key = SHARED_ELEMENTS, defaultValue = true)
+
+        private val MEDIA_VIEW_DATE_HEADER = booleanPreferencesKey("media_view_date_header")
+
+        @Composable
+        fun rememberShowMediaViewDateHeader() =
+            rememberPreference(key = MEDIA_VIEW_DATE_HEADER, defaultValue = true)
     }
 }
 

@@ -51,6 +51,7 @@ import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberFullBrightnessView
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
+import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.navigate
@@ -271,6 +272,16 @@ fun SettingsCustomizationScreen() {
             summary = stringResource(R.string.full_brightness_view_summary),
             isChecked = fullBrightnessView,
             onCheck = { fullBrightnessView = it },
+            screenPosition = Position.Middle
+        )
+
+        var showMediaDateHeader by rememberShowMediaViewDateHeader()
+        val showMediaDateHeaderPref = rememberSwitchPreference(
+            showMediaDateHeader,
+            title = stringResource(R.string.show_date_header),
+            summary = stringResource(R.string.show_date_header_summary),
+            isChecked = showMediaDateHeader,
+            onCheck = { showMediaDateHeader = it },
             screenPosition = Position.Bottom
         )
 
@@ -374,7 +385,8 @@ fun SettingsCustomizationScreen() {
             fullBrightnessViewPref,
             autoHideOnVideoPlayPref,
             autoPlayVideoPref,
-            sharedElementsPref
+            sharedElementsPref,
+            showMediaDateHeaderPref,
         ) {
             mutableStateListOf(
                 timelineHeader,
@@ -389,6 +401,7 @@ fun SettingsCustomizationScreen() {
                 mediaViewHeader,
                 dateHeaderPref,
                 fullBrightnessViewPref,
+                showMediaDateHeaderPref,
 
                 videoPlaybackHeader,
                 audioFocusPref,

@@ -79,6 +79,7 @@ import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
+import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.util.swipe
@@ -509,6 +510,7 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
             }
+            val allowShowingDate by rememberShowMediaViewDateHeader()
             MediaViewAppBar(
                 modifier = Modifier.padding(
                     start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
@@ -516,8 +518,8 @@ fun <T : Media> MediaViewScreen(
                 ),
                 showUI = showUI,
                 showInfo = showInfo,
-                showDate = remember(currentMedia) {
-                    currentMedia?.timestamp != 0L
+                showDate = remember(currentMedia, allowShowingDate) {
+                    currentMedia?.timestamp != 0L && allowShowingDate
                 },
                 currentDate = currentDate,
                 paddingValues = paddingValues,

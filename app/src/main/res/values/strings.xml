@@ -350,6 +350,8 @@
     <string name="ai_category_summary">Control what Smart Features you want to use</string>
     <string name="video_playback">Video Playback</string>
     <string name="interface_settings">Interface</string>
+    <string name="show_date_header">Show Media Date Header</string>
+    <string name="show_date_header_summary">Show the media date in the media view top bar header.</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>
