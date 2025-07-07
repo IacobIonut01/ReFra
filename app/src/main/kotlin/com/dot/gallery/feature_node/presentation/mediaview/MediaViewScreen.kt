@@ -364,8 +364,8 @@ fun <T : Media> MediaViewScreen(
                         index
                     )
                 }
-                val canPlay = remember(playWhenReady, currentMedia, media, currentPage) {
-                    mutableStateOf(playWhenReady && currentMedia == media && currentPage == index)
+                val canPlay = rememberedDerivedState(playWhenReady, currentMedia, media, currentPage) {
+                    playWhenReady && currentMedia == media && currentPage == index
                 }
                 AnimatedVisibility(
                     visible = media != null,

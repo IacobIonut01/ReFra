@@ -126,8 +126,10 @@ fun <T : Media> VideoPlayer(
     var exoPlayer by remember {
         mutableStateOf<ExoPlayer?>(null)
     }
-
-    LaunchedEffect(exoPlayer, exoPlayer?.playWhenReady, isPlaying.value) {
+    LaunchedEffect(playWhenReady, exoPlayer, exoPlayer?.playWhenReady, isPlaying.value) {
+        if (!playWhenReady.value) {
+            isPlaying.value = false
+        }
         exoPlayer?.playWhenReady = isPlaying.value
         if (isPlaying.value) {
             exoPlayer?.play()
