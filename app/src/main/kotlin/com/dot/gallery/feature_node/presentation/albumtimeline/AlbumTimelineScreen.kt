@@ -39,6 +39,7 @@ import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.Settings.Album.rememberHideTimelineOnAlbum
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
@@ -136,20 +137,21 @@ fun AlbumTimelineScreen(
                 state = pinchState,
                 modifier = Modifier.hazeSource(LocalHazeState.current)
             ) {
+                val hideTimelineOnAlbum by rememberHideTimelineOnAlbum()
                 MediaGridView(
                     modifier = Modifier.padding(top = it.calculateTopPadding()),
                     mediaState = mediaState,
                     metadataState = metadataState,
                     allowSelection = true,
                     showSearchBar = false,
-                    enableStickyHeaders = true,
+                    enableStickyHeaders = !hideTimelineOnAlbum,
                     paddingValues = remember(paddingValues) {
                         PaddingValues(
                             bottom = paddingValues.calculateBottomPadding() + 128.dp
                         )
                     },
                     canScroll = canScroll,
-                    allowHeaders = true,
+                    allowHeaders = !hideTimelineOnAlbum,
                     showMonthlyHeader = false,
                     aboveGridContent = null,
                     isScrolling = isScrolling,
