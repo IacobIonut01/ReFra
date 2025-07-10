@@ -16,6 +16,7 @@ import com.dot.gallery.core.MetadataCollectionWorker
 import com.dot.gallery.core.decoder.supportHeifDecoder
 import com.dot.gallery.core.decoder.supportJxlDecoder
 import com.dot.gallery.core.decoder.supportVaultDecoder
+import com.dot.gallery.core.decoder.supportVideoFrame2
 import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.EventHandler
@@ -27,7 +28,6 @@ import com.github.panpf.sketch.cache.MemoryCache
 import com.github.panpf.sketch.decode.supportAnimatedHeif
 import com.github.panpf.sketch.decode.supportAnimatedWebp
 import com.github.panpf.sketch.decode.supportSvg
-import com.github.panpf.sketch.decode.supportVideoFrame
 import com.github.panpf.sketch.request.supportPauseLoadWhenScrolling
 import com.github.panpf.sketch.request.supportSaveCellularTraffic
 import com.github.panpf.sketch.util.appCacheDirectory
@@ -47,7 +47,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
             supportSaveCellularTraffic()
             supportPauseLoadWhenScrolling()
             supportSvg()
-            supportVideoFrame()
+            supportVideoFrame2()
             supportAnimatedWebp()
             supportAnimatedHeif()
             supportHeifDecoder()
@@ -106,6 +106,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
                     UIEvent.NavigationUpEvent -> eventHandler.navigateUpAction()
                     is UIEvent.NavigationRouteEvent -> eventHandler.navigateAction(event.route)
                     is UIEvent.ToggleNavigationBarEvent -> eventHandler.toggleNavigationBarAction(event.isVisible)
+                    is UIEvent.SetFollowThemeEvent -> eventHandler.setFollowThemeAction(event.followTheme)
                 }
             }
         }

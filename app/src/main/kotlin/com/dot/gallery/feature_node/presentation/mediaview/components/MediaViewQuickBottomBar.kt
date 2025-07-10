@@ -4,18 +4,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
+import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.setFollowTheme
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.canMakeActions
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isTrashed
+import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.EditButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.FavoriteButton
@@ -24,6 +28,7 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.actionbutt
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.RestoreButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.ShareButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.TrashButton
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import kotlinx.coroutines.launch
 
@@ -38,7 +43,14 @@ fun <T : Media> MediaViewQuickBottomBar(
 ) {
     val handler = LocalMediaHandler.current
     val allowBlur by rememberAllowBlur()
-    val followTheme = remember(allowBlur) { !allowBlur }
+    val isVideo by rememberedDerivedState(currentMedia) {
+        currentMedia?.isVideo ?: false
+    }
+    val followTheme = remember(allowBlur, isVideo) { !allowBlur && !isVideo }
+    val eventHandler = LocalEventHandler.current
+    LaunchedEffect(followTheme) {
+        eventHandler.setFollowTheme(followTheme)
+    }
     if (currentMedia != null) {
         if (currentMedia.isTrashed) {
             val scope = rememberCoroutineScope()

@@ -5,4 +5,5 @@ sealed class UIEvent {
     data class NavigationRouteEvent(val route: String): UIEvent()
     data class ToggleNavigationBarEvent(val isVisible: Boolean): UIEvent()
     data object NavigationUpEvent: UIEvent()
+    data class SetFollowThemeEvent(val followTheme: Boolean): UIEvent()
 }

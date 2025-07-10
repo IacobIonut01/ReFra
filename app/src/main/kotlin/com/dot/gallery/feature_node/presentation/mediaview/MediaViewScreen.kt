@@ -523,6 +523,7 @@ fun <T : Media> MediaViewScreen(
                 },
                 currentDate = currentDate,
                 paddingValues = paddingValues,
+                currentMedia = currentMedia,
                 onShowInfo = {
                     scope.launch {
                         if (showUI) {

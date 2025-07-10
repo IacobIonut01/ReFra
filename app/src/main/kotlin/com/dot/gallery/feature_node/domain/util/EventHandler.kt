@@ -9,6 +9,7 @@ interface EventHandler {
     var navigateAction: (String) -> Unit
     var toggleNavigationBarAction: (Boolean) -> Unit
     var navigateUpAction: () -> Unit
+    var setFollowThemeAction: (Boolean) -> Unit
 
     fun pushEvent(event: UIEvent)
 

@@ -96,6 +96,9 @@ class MainActivity : AppCompatActivity() {
                         bottomBarState.value = isVisible
                     }
                     eventHandler.navigateUpAction = navController::navigateUp
+                    eventHandler.setFollowThemeAction = { followTheme ->
+                        systemBarFollowThemeState.value = followTheme
+                    }
                 }
                 LaunchedEffect(darkTheme, systemBarFollowThemeState.value) {
                     enableEdgeToEdge(

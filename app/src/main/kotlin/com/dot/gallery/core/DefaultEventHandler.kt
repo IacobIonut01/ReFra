@@ -17,6 +17,7 @@ class DefaultEventHandler : EventHandler {
     override var navigateAction: (String) -> Unit = {}
     override var toggleNavigationBarAction: (Boolean) -> Unit = {}
     override var navigateUpAction: () -> Unit = {}
+    override var setFollowThemeAction: (Boolean) -> Unit = {}
 
     override fun pushEvent(event: UIEvent) {
         updater.trySend(event)
@@ -27,3 +28,4 @@ class DefaultEventHandler : EventHandler {
 fun EventHandler.navigateUp() = pushEvent(UIEvent.NavigationUpEvent)
 fun EventHandler.navigate(route: String) = pushEvent(UIEvent.NavigationRouteEvent(route))
 fun EventHandler.toggleNavigationBar(show: Boolean) = pushEvent(UIEvent.ToggleNavigationBarEvent(show))
+fun EventHandler.setFollowTheme(followTheme: Boolean) = pushEvent(UIEvent.SetFollowThemeEvent(followTheme))
