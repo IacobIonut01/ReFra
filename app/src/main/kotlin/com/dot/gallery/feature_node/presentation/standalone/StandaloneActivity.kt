@@ -79,6 +79,9 @@ class StandaloneActivity : ComponentActivity() {
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     )
                 ) {
+                    LaunchedEffect(Unit) {
+                        eventHandler.navigateUpAction = { finish() }
+                    }
                     SetupMediaProviders(
                         eventHandler = eventHandler,
                         mediaDistributor = mediaDistributor,

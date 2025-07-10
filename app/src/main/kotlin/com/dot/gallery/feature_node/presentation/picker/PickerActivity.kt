@@ -110,6 +110,9 @@ class PickerActivity : ComponentActivity() {
             else getString(R.string.photos_and_videos)
         }
         setContent {
+            LaunchedEffect(Unit) {
+                eventHandler.navigateUpAction = { finish() }
+            }
             SetupMediaProviders(
                 eventHandler = eventHandler,
                 mediaDistributor = mediaDistributor,
