@@ -40,6 +40,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Settings.Misc.rememberAudioFocus
+import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.Media
@@ -126,8 +127,9 @@ fun <T : Media> VideoPlayer(
     var exoPlayer by remember {
         mutableStateOf<ExoPlayer?>(null)
     }
-    LaunchedEffect(playWhenReady, exoPlayer, exoPlayer?.playWhenReady, isPlaying.value) {
-        if (!playWhenReady.value) {
+    val canAutoPlay by rememberVideoAutoplay()
+    LaunchedEffect(canAutoPlay, playWhenReady, exoPlayer, exoPlayer?.playWhenReady, isPlaying.value) {
+        if (!playWhenReady.value && canAutoPlay) {
             isPlaying.value = false
         }
         exoPlayer?.playWhenReady = isPlaying.value
