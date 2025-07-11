@@ -6,10 +6,16 @@
 package com.dot.gallery.feature_node.presentation.settings.components
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -59,6 +65,9 @@ fun SettingsItem(
     tintIcon: Boolean = true,
     customizeIcon: (@Composable (icon: ImageVector) -> Unit)? = null
 ) {
+    val mutableInteractionSource = remember {
+        MutableInteractionSource()
+    }
     var checked by remember(item.isChecked) {
         mutableStateOf(item.isChecked == true)
     }
@@ -88,28 +97,38 @@ fun SettingsItem(
         )
     }
 
-    val shape = remember(item.screenPosition) {
+    val isPressed = mutableInteractionSource.collectIsPressedAsState()
+    val isFocused = mutableInteractionSource.collectIsFocusedAsState()
+    val isDragged = mutableInteractionSource.collectIsDraggedAsState()
+    val isHovered = mutableInteractionSource.collectIsHoveredAsState()
+    val isInteracting by rememberedDerivedState {
+        isPressed.value || isFocused.value || isDragged.value || isHovered.value
+    }
+    val fullCornerRadius by animateDpAsState(targetValue = if (isInteracting) 48.dp else 24.dp, label = "fullCornerRadius")
+    val normalCornerRadius by animateDpAsState(targetValue = if (isInteracting) 48.dp else 8.dp, label = "normalCornerRadius")
+
+    val shape by rememberedDerivedState(item.screenPosition, fullCornerRadius, normalCornerRadius) {
         when (item.screenPosition) {
-            Position.Alone -> RoundedCornerShape(24.dp)
+            Position.Alone -> RoundedCornerShape(fullCornerRadius)
             Position.Bottom -> RoundedCornerShape(
-                topStart = 8.dp,
-                topEnd = 8.dp,
-                bottomStart = 24.dp,
-                bottomEnd = 24.dp
+                topStart = normalCornerRadius,
+                topEnd = normalCornerRadius,
+                bottomStart = fullCornerRadius,
+                bottomEnd = fullCornerRadius
             )
 
             Position.Middle -> RoundedCornerShape(
-                topStart = 8.dp,
-                topEnd = 8.dp,
-                bottomStart = 8.dp,
-                bottomEnd = 8.dp
+                topStart = normalCornerRadius,
+                topEnd = normalCornerRadius,
+                bottomStart = normalCornerRadius,
+                bottomEnd = normalCornerRadius
             )
 
             Position.Top -> RoundedCornerShape(
-                topStart = 24.dp,
-                topEnd = 24.dp,
-                bottomStart = 8.dp,
-                bottomEnd = 8.dp
+                topStart = fullCornerRadius,
+                topEnd = fullCornerRadius,
+                bottomStart = normalCornerRadius,
+                bottomEnd = normalCornerRadius
             )
         }
     }
@@ -170,7 +189,10 @@ fun SettingsItem(
     }
     val clickableModifier =
         if (item.type != SettingsType.Seek && !item.isHeader)
-            Modifier.clickable(item.enabled) {
+            Modifier.clickable(
+                enabled = item.enabled,
+                interactionSource = mutableInteractionSource
+            ) {
                 if (item.type == SettingsType.Switch) {
                     item.onCheck?.let {
                         checked = !checked
