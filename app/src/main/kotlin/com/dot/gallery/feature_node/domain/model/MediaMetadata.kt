@@ -1,7 +1,9 @@
 package com.dot.gallery.feature_node.domain.model
 
 import android.content.Context
+import android.location.Geocoder
 import android.media.MediaMetadataRetriever
+import android.os.Build
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Exposure
 import androidx.compose.material.icons.outlined.MotionPhotosOn
@@ -16,6 +18,8 @@ import androidx.room.Relation
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
+import com.dot.gallery.feature_node.presentation.util.formattedAddress
+import com.dot.gallery.feature_node.presentation.util.getLocation
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import com.drew.metadata.exif.ExifSubIFDDirectory
@@ -40,6 +44,9 @@ data class MediaMetadataCore(
     val iso: String?,
     val gpsLatitude: Double?,
     val gpsLongitude: Double?,
+    val gpsLocationName: String?,
+    val gpsLocationNameCountry: String?,
+    val gpsLocationNameCity: String?,
     val imageWidth: Int,
     val imageHeight: Int,
     val imageResolutionX: Double?,
@@ -94,6 +101,9 @@ data class MediaMetadata(
     val iso: String?,
     val gpsLatitude: Double?,
     val gpsLongitude: Double?,
+    val gpsLocationName: String?,
+    val gpsLocationNameCountry: String?,
+    val gpsLocationNameCity: String?,
     val imageWidth: Int,
     val imageHeight: Int,
     val imageResolutionX: Double?,    // e.g. 72.0 PPI
@@ -191,6 +201,9 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
             var iso: String? = null
             var gpsLatitude: Double? = null
             var gpsLongitude: Double? = null
+            var gpsLocationName: String? = null
+            var gpsLocationCountry: String? = null
+            var gpsLocationCity: String? = null
             var imgW = 0;
             var imgH = 0
             var resX: Double? = null;
@@ -247,9 +260,9 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
                         if (iso == null)
                             iso = dir.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT)
                         if (imgW == 0)
-                            imgW = dir.getInteger(ExifSubIFDDirectory.TAG_EXIF_IMAGE_WIDTH) ?: imgW
+                            imgW = dir.getInteger(ExifSubIFDDirectory.TAG_EXIF_IMAGE_WIDTH) ?: 0
                         if (imgH == 0)
-                            imgH = dir.getInteger(ExifSubIFDDirectory.TAG_EXIF_IMAGE_HEIGHT) ?: imgH
+                            imgH = dir.getInteger(ExifSubIFDDirectory.TAG_EXIF_IMAGE_HEIGHT) ?: 0
                     }
 
                     // GPS directories
@@ -257,6 +270,20 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
                         dir.geoLocation?.let {
                             if (gpsLatitude == null) gpsLatitude = it.latitude
                             if (gpsLongitude == null) gpsLongitude = it.longitude
+                        }
+                    }
+
+                    // If GPS location is available, try to get the location name
+                    if (gpsLatitude != null) {
+                        val geocoder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && Geocoder.isPresent())
+                            Geocoder(this@retrieveExtraMediaMetadata) else null
+                        geocoder?.getLocation(
+                            gpsLatitude,
+                            gpsLongitude!!
+                        ) { address ->
+                            gpsLocationName = address?.formattedAddress
+                            gpsLocationCountry = address?.countryName
+                            gpsLocationCity = address?.locality
                         }
                     }
 
@@ -350,6 +377,9 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
                 iso = iso,
                 gpsLatitude = gpsLatitude,
                 gpsLongitude = gpsLongitude,
+                gpsLocationName = gpsLocationName,
+                gpsLocationNameCountry = gpsLocationCountry,
+                gpsLocationNameCity = gpsLocationCity,
                 imageWidth = imgW,
                 imageHeight = imgH,
                 imageResolutionX = resX,
@@ -383,6 +413,9 @@ fun MediaMetadata.toCore() = MediaMetadataCore(
     iso               = iso,
     gpsLatitude       = gpsLatitude,
     gpsLongitude      = gpsLongitude,
+    gpsLocationName   = gpsLocationName,
+    gpsLocationNameCountry= gpsLocationNameCountry,
+    gpsLocationNameCity   = gpsLocationNameCity,
     imageWidth        = imageWidth,
     imageHeight       = imageHeight,
     imageResolutionX  = imageResolutionX,
@@ -422,6 +455,9 @@ fun FullMediaMetadata.toMediaMetadata(): MediaMetadata {
         iso               = core.iso,
         gpsLatitude       = core.gpsLatitude,
         gpsLongitude      = core.gpsLongitude,
+        gpsLocationName   = core.gpsLocationName,
+        gpsLocationNameCountry= core.gpsLocationNameCountry,
+        gpsLocationNameCity   = core.gpsLocationNameCity,
         imageWidth        = core.imageWidth,
         imageHeight       = core.imageHeight,
         imageResolutionX  = core.imageResolutionX,

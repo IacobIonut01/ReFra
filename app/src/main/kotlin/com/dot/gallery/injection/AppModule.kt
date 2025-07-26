@@ -23,6 +23,8 @@ import com.dot.gallery.feature_node.data.repository.MediaRepositoryImpl
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.domain.util.EventHandler
+import com.dot.gallery.feature_node.presentation.search.SearchHelper
+import com.dot.gallery.feature_node.presentation.search.SearchHelperImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,6 +44,8 @@ object AppModule {
     @Singleton
     fun provideDatabase(app: Application): InternalDatabase =
         Room.databaseBuilder(app, InternalDatabase::class.java, InternalDatabase.NAME)
+            .fallbackToDestructiveMigrationOnDowngrade(true)
+            .fallbackToDestructiveMigration(false)
             .build()
 
     @Provides
@@ -92,5 +96,9 @@ object AppModule {
         database: InternalDatabase,
         keychainHolder: KeychainHolder
     ): MediaRepository = MediaRepositoryImpl(context, workManager, database, keychainHolder)
+
+    @Provides
+    @Singleton
+    fun provideSearchHelper(@ApplicationContext context: Context): SearchHelper = SearchHelperImpl(context)
 
 }

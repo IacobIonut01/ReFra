@@ -97,7 +97,6 @@ fun <T : Media> MediaViewSheetDetails(
     vaultState: State<VaultState>,
     metadataState: State<MediaMetadataState>,
     currentMedia: T?,
-    addMediaToVault: (Vault, T) -> Unit,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?
 ) {
@@ -509,7 +508,6 @@ fun <T : Media> MediaViewSheetDetails(
                             media = currentMedia,
                             albumsState = albumsState,
                             vaults = vaultState,
-                            addMedia = addMediaToVault,
                             restoreMedia = restoreMedia,
                             currentVault = currentVault
                         )

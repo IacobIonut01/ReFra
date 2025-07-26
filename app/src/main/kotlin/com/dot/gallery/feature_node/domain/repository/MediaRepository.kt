@@ -14,6 +14,7 @@ import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
+import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
@@ -199,5 +200,11 @@ interface MediaRepository {
     fun hasAlbumThumbnail(albumId: Long): Flow<Boolean>
 
     suspend fun collectMetadataFor(media: Media)
+
+    suspend fun addImageEmbedding(imageEmbedding: ImageEmbedding)
+
+    suspend fun getRecord(id: Long): ImageEmbedding?
+
+    fun getImageEmbeddings(): Flow<List<ImageEmbedding>>
 
 }

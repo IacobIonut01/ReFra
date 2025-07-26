@@ -46,10 +46,6 @@ sealed class Media : Parcelable, java.io.Serializable {
     val definedTimestamp: Long
         get() = takenTimestamp?.div(1000) ?: timestamp
 
-    override fun toString(): String {
-        return "$id, $path, $fullDate, $mimeType, $definedTimestamp"
-    }
-
     val key: String
         get() = "{$id, ${try { getUri() } catch (_: Exception) { path} }, $definedTimestamp}"
 

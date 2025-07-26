@@ -29,6 +29,7 @@
 -keep class com.drew.** { *; }
 -keep class java.io.** { *; }
 -keep class com.adobe.** { *; }
+-keep class ai.onnxruntime.** { *; }
 
 -dontwarn com.google.auto.value.AutoValue$Builder
 -dontwarn com.google.auto.value.AutoValue

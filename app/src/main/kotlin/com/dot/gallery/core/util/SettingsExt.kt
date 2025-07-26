@@ -5,7 +5,6 @@
 
 package com.dot.gallery.core.util
 
-import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -18,7 +17,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.dataStore
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -52,15 +50,15 @@ fun <T> rememberPreference(
 }
 
 @Composable
-inline fun <reified T: Parcelable>rememberPreference(
-    key: Preferences.Key<String>,
+inline fun <reified T> rememberPreferenceSerializable(
+    keyString: Preferences.Key<String>,
     defaultValue: T,
 ): MutableState<T> {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val state by remember {
         context.dataStore.data
-            .map { it[key] ?: Json.encodeToString(defaultValue) }
+            .map { it[keyString] ?: Json.encodeToString(defaultValue) }
     }.collectAsStateWithLifecycle(initialValue = Json.encodeToString(defaultValue))
 
     return remember(state) {
@@ -70,7 +68,7 @@ inline fun <reified T: Parcelable>rememberPreference(
                 set(value) {
                     coroutineScope.launch {
                         context.dataStore.edit {
-                            it[key] = Json.encodeToString(value)
+                            it[keyString] = Json.encodeToString(value)
                         }
                     }
                 }

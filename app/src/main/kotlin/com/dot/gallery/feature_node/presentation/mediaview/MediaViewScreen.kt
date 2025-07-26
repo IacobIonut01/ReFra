@@ -86,7 +86,6 @@ import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
-import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
@@ -152,8 +151,6 @@ fun <T : Media> MediaViewScreen(
     mediaId: Long,
     target: String? = null,
     mediaState: State<MediaState<out T>>,
-    vaultState: State<VaultState>,
-    addMedia: (Vault, T) -> Unit,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
     currentVault: Vault? = null,
@@ -162,6 +159,7 @@ fun <T : Media> MediaViewScreen(
 ) = ProvideInsets {
     val eventHandler = LocalEventHandler.current
     val distributor = LocalMediaDistributor.current
+    val vaultState = distributor.vaultsMediaFlow.collectAsStateWithLifecycle()
     val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle()
     val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -630,7 +628,6 @@ fun <T : Media> MediaViewScreen(
                         vaultState = vaultState,
                         metadataState = metadataState,
                         currentMedia = currentMedia,
-                        addMediaToVault = addMedia,
                         restoreMedia = restoreMedia,
                         currentVault = currentVault,
                     )

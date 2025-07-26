@@ -1,0 +1,738 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 12,
+    "identityHash": "26ff9ec9cc612eb24d80263f7bb14a7f",
+    "entities": [
+      {
+        "tableName": "pinned_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "blacklist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `wildcard` TEXT, `location` INTEGER NOT NULL DEFAULT 0, `matchedAlbums` TEXT NOT NULL DEFAULT '[]', PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wildcard",
+            "columnName": "wildcard",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "location",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "matchedAlbums",
+            "columnName": "matchedAlbums",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'[]'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "media",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uri` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `size` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uri",
+            "columnName": "uri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "path",
+            "columnName": "path",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relativePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "albumID",
+            "columnName": "albumID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "albumLabel",
+            "columnName": "albumLabel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiryTimestamp",
+            "columnName": "expiryTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "takenTimestamp",
+            "columnName": "takenTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fullDate",
+            "columnName": "fullDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mimeType",
+            "columnName": "mimeType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favorite",
+            "columnName": "favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trashed",
+            "columnName": "trashed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "media_version",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`version` TEXT NOT NULL, PRIMARY KEY(`version`))",
+        "fields": [
+          {
+            "fieldPath": "version",
+            "columnName": "version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "version"
+          ]
+        }
+      },
+      {
+        "tableName": "timeline_settings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `groupTimelineByMonth` INTEGER NOT NULL DEFAULT 0, `groupTimelineInAlbums` INTEGER NOT NULL DEFAULT 0, `timelineMediaOrder` TEXT NOT NULL DEFAULT '{\"orderType\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"},\"orderType_date\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"}}', `albumMediaOrder` TEXT NOT NULL DEFAULT '{\"orderType\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"},\"orderType_date\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"}}')",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "groupTimelineByMonth",
+            "columnName": "groupTimelineByMonth",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "groupTimelineInAlbums",
+            "columnName": "groupTimelineInAlbums",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "timelineMediaOrder",
+            "columnName": "timelineMediaOrder",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'{\"orderType\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"},\"orderType_date\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"}}'"
+          },
+          {
+            "fieldPath": "albumMediaOrder",
+            "columnName": "albumMediaOrder",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'{\"orderType\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"},\"orderType_date\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"}}'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "classified_media",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uri` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `size` INTEGER NOT NULL, `duration` TEXT, `category` TEXT, `score` REAL NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uri",
+            "columnName": "uri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "path",
+            "columnName": "path",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relativePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "albumID",
+            "columnName": "albumID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "albumLabel",
+            "columnName": "albumLabel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiryTimestamp",
+            "columnName": "expiryTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "takenTimestamp",
+            "columnName": "takenTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fullDate",
+            "columnName": "fullDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mimeType",
+            "columnName": "mimeType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favorite",
+            "columnName": "favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trashed",
+            "columnName": "trashed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "score",
+            "columnName": "score",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "encrypted_media",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uuid` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `size` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "path",
+            "columnName": "path",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relativePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "albumID",
+            "columnName": "albumID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "albumLabel",
+            "columnName": "albumLabel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiryTimestamp",
+            "columnName": "expiryTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "takenTimestamp",
+            "columnName": "takenTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fullDate",
+            "columnName": "fullDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mimeType",
+            "columnName": "mimeType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favorite",
+            "columnName": "favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trashed",
+            "columnName": "trashed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "vaults",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`uuid`))",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        }
+      },
+      {
+        "tableName": "media_metadata_core",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`mediaId` INTEGER NOT NULL, `imageDescription` TEXT, `dateTimeOriginal` TEXT, `manufacturerName` TEXT, `modelName` TEXT, `aperture` TEXT, `exposureTime` TEXT, `iso` TEXT, `gpsLatitude` REAL, `gpsLongitude` REAL, `gpsLocationName` TEXT, `gpsLocationNameCountry` TEXT, `gpsLocationNameCity` TEXT, `imageWidth` INTEGER NOT NULL, `imageHeight` INTEGER NOT NULL, `imageResolutionX` REAL, `imageResolutionY` REAL, `resolutionUnit` INTEGER, PRIMARY KEY(`mediaId`))",
+        "fields": [
+          {
+            "fieldPath": "mediaId",
+            "columnName": "mediaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imageDescription",
+            "columnName": "imageDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dateTimeOriginal",
+            "columnName": "dateTimeOriginal",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "manufacturerName",
+            "columnName": "manufacturerName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "modelName",
+            "columnName": "modelName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "aperture",
+            "columnName": "aperture",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "exposureTime",
+            "columnName": "exposureTime",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "iso",
+            "columnName": "iso",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "gpsLatitude",
+            "columnName": "gpsLatitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gpsLongitude",
+            "columnName": "gpsLongitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gpsLocationName",
+            "columnName": "gpsLocationName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "gpsLocationNameCountry",
+            "columnName": "gpsLocationNameCountry",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "gpsLocationNameCity",
+            "columnName": "gpsLocationNameCity",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageWidth",
+            "columnName": "imageWidth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imageHeight",
+            "columnName": "imageHeight",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imageResolutionX",
+            "columnName": "imageResolutionX",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "imageResolutionY",
+            "columnName": "imageResolutionY",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "resolutionUnit",
+            "columnName": "resolutionUnit",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "mediaId"
+          ]
+        }
+      },
+      {
+        "tableName": "media_metadata_video",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`mediaId` INTEGER NOT NULL, `durationMs` INTEGER, `videoWidth` INTEGER, `videoHeight` INTEGER, `frameRate` REAL, `bitRate` INTEGER, PRIMARY KEY(`mediaId`))",
+        "fields": [
+          {
+            "fieldPath": "mediaId",
+            "columnName": "mediaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "durationMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "videoWidth",
+            "columnName": "videoWidth",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "videoHeight",
+            "columnName": "videoHeight",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frameRate",
+            "columnName": "frameRate",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "bitRate",
+            "columnName": "bitRate",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "mediaId"
+          ]
+        }
+      },
+      {
+        "tableName": "media_metadata_flags",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`mediaId` INTEGER NOT NULL, `isNightMode` INTEGER NOT NULL, `isPanorama` INTEGER NOT NULL, `isPhotosphere` INTEGER NOT NULL, `isLongExposure` INTEGER NOT NULL, `isMotionPhoto` INTEGER NOT NULL, PRIMARY KEY(`mediaId`))",
+        "fields": [
+          {
+            "fieldPath": "mediaId",
+            "columnName": "mediaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isNightMode",
+            "columnName": "isNightMode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPanorama",
+            "columnName": "isPanorama",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPhotosphere",
+            "columnName": "isPhotosphere",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isLongExposure",
+            "columnName": "isLongExposure",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isMotionPhoto",
+            "columnName": "isMotionPhoto",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "mediaId"
+          ]
+        }
+      },
+      {
+        "tableName": "album_thumbnail",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`albumId` INTEGER NOT NULL, `thumbnailUri` TEXT NOT NULL, PRIMARY KEY(`albumId`))",
+        "fields": [
+          {
+            "fieldPath": "albumId",
+            "columnName": "albumId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "thumbnailUri",
+            "columnName": "thumbnailUri",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "albumId"
+          ]
+        }
+      },
+      {
+        "tableName": "image_embeddings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `date` INTEGER NOT NULL, `embedding` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "embedding",
+            "columnName": "embedding",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '26ff9ec9cc612eb24d80263f7bb14a7f')"
+    ]
+  }
+}

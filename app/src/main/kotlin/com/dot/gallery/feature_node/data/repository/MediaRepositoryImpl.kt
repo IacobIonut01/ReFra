@@ -42,6 +42,7 @@ import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaUri
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
+import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
 import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
@@ -144,7 +145,7 @@ class MediaRepositoryImpl(
         ).flowData().map { Resource.Success(it) }.flowOn(Dispatchers.IO)
 
     override fun getAlbums(mediaOrder: MediaOrder): Flow<Resource<List<Album>>> =
-        AlbumsFlow(context, thumbnailDao = database.getAlbumThumbnailDao()).flowData().map {
+        AlbumsFlow(context).flowData().map {
             withContext(Dispatchers.IO) {
                 val data = it.toMutableList().apply {
                     replaceAll { album ->
@@ -157,7 +158,7 @@ class MediaRepositoryImpl(
         }.flowOn(Dispatchers.IO)
 
     override fun getAlbum(albumId: Long): Flow<Resource<Album>> =
-        AlbumsFlow(context, thumbnailDao = database.getAlbumThumbnailDao()).flowData().map {
+        AlbumsFlow(context).flowData().map {
             withContext(Dispatchers.IO) {
                 val data = it.toMutableList().apply {
                     replaceAll { album ->
@@ -208,8 +209,7 @@ class MediaRepositoryImpl(
     override fun getAlbumsWithType(allowedMedia: AllowedMedia): Flow<Resource<List<Album>>> =
         AlbumsFlow(
             context = context,
-            mimeType = allowedMedia.toStringAny(),
-            thumbnailDao = database.getAlbumThumbnailDao()
+            mimeType = allowedMedia.toStringAny()
         ).flowData().mapAsResource()
 
     override fun getMediaListByUris(
@@ -716,6 +716,18 @@ class MediaRepositoryImpl(
         context.retrieveExtraMediaMetadata(media)?.let { metadata ->
             database.getMetadataDao().addMetadata(metadata)
         }
+    }
+
+    override suspend fun addImageEmbedding(imageEmbedding: ImageEmbedding) {
+        database.getImageEmbeddingDao().addImageEmbedding(imageEmbedding)
+    }
+
+    override suspend fun getRecord(id: Long): ImageEmbedding? {
+        return database.getImageEmbeddingDao().getRecord(id)
+    }
+
+    override fun getImageEmbeddings(): Flow<List<ImageEmbedding>> {
+        return database.getImageEmbeddingDao().getRecords()
     }
 
     companion object {

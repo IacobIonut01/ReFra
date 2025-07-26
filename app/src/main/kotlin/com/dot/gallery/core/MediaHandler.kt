@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.Vault
 import kotlinx.coroutines.flow.Flow
 
 interface MediaHandler {
@@ -70,4 +71,5 @@ interface MediaHandler {
     suspend fun updateAlbumThumbnail(albumId: Long, newThumbnail: Uri)
     fun hasAlbumThumbnail(albumId: Long): Flow<Boolean>
     suspend fun collectMetadataFor(media: Media)
+    suspend fun <T : Media> addMedia(vault: Vault, media: T)
 }

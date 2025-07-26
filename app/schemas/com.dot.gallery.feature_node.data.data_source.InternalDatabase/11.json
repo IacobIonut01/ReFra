@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "d60a26eb41564102a20f58066934cbe0",
+    "identityHash": "cb817b5162c214f4ed65f810d7eb814e",
     "entities": [
       {
         "tableName": "pinned_table",
@@ -67,7 +67,7 @@
       },
       {
         "tableName": "media",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uri` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uri` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `size` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -148,6 +148,12 @@
           {
             "fieldPath": "trashed",
             "columnName": "trashed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -230,7 +236,7 @@
       },
       {
         "tableName": "classified_media",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uri` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `duration` TEXT, `category` TEXT, `score` REAL NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uri` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `size` INTEGER NOT NULL, `duration` TEXT, `category` TEXT, `score` REAL NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -315,6 +321,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "size",
+            "columnName": "size",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "duration",
             "columnName": "duration",
             "affinity": "TEXT"
@@ -340,7 +352,7 @@
       },
       {
         "tableName": "encrypted_media",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uuid` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `uuid` TEXT NOT NULL, `path` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `albumID` INTEGER NOT NULL, `albumLabel` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiryTimestamp` INTEGER, `takenTimestamp` INTEGER, `fullDate` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `trashed` INTEGER NOT NULL, `size` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -421,6 +433,12 @@
           {
             "fieldPath": "trashed",
             "columnName": "trashed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -665,11 +683,41 @@
             "albumId"
           ]
         }
+      },
+      {
+        "tableName": "image_embeddings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `date` INTEGER NOT NULL, `embedding` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "embedding",
+            "columnName": "embedding",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd60a26eb41564102a20f58066934cbe0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cb817b5162c214f4ed65f810d7eb814e')"
     ]
   }
 }

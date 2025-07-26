@@ -7,6 +7,7 @@ import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
@@ -24,6 +25,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 fun WorkManager.updateDatabase() {
+    val searchIndexerWork = OneTimeWorkRequestBuilder<SearchIndexerUpdaterWorker>()
+        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+        .addTag("SearchIndexerUpdater")
+        .build()
+
+    enqueueUniqueWork("SearchIndexerUpdater", ExistingWorkPolicy.REPLACE, searchIndexerWork)
+
     val uniqueWork = OneTimeWorkRequestBuilder<DatabaseUpdaterWorker>()
         .setConstraints(
             Constraints.Builder()

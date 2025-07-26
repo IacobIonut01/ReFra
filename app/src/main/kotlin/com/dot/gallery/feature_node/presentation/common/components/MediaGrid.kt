@@ -110,7 +110,7 @@ fun <T : Media> PinchZoomGridScope.MediaGrid(
     }
     val bottomContent: @Composable () -> Unit = {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.padding(paddingValues).fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {

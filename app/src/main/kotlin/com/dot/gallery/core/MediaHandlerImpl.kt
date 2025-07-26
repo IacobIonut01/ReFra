@@ -8,6 +8,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.compose.runtime.compositionLocalOf
 import com.dot.gallery.core.Settings.Misc.getTrashEnabled
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.util.mediaPair
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +65,12 @@ class MediaHandlerImpl @Inject constructor(
             }
         } else {
             repository.deleteMedia(result, mediaList)
+        }
+    }
+
+    override suspend fun <T : Media> addMedia(vault: Vault, media: T) {
+        withContext(Dispatchers.IO) {
+            repository.addMedia(vault, media)
         }
     }
 

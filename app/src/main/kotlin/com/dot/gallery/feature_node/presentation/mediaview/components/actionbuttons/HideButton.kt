@@ -11,8 +11,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
+import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 fun <T : Media> HideButton(
     media: T,
     vaults: VaultState,
-    addMedia: (Vault, T) -> Unit,
     enabled: Boolean,
     followTheme: Boolean = false
 ) {
@@ -49,12 +48,13 @@ fun <T : Media> HideButton(
             sheetState.hide()
         }
     })
+    val handler = LocalMediaHandler.current
     SelectVaultSheet(
         state = sheetState,
         vaultState = vaults,
         onVaultSelected = { vault ->
             scope.launch {
-                addMedia(vault, media).also {
+                handler.addMedia(vault, media).also {
                     val intentSender =
                         MediaStore.createDeleteRequest(
                             context.contentResolver,

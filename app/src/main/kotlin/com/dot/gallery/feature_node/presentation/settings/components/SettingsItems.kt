@@ -62,7 +62,9 @@ import kotlin.math.roundToLong
 @Composable
 fun SettingsItem(
     item: SettingsEntity,
+    modifier: Modifier = Modifier,
     tintIcon: Boolean = true,
+    slimLayout: Boolean = false,
     customizeIcon: (@Composable (icon: ImageVector) -> Unit)? = null
 ) {
     val mutableInteractionSource = remember {
@@ -206,7 +208,7 @@ fun SettingsItem(
             text = item.title,
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(horizontal = 40.dp, vertical = 8.dp)
                 .padding(bottom = 8.dp)
@@ -217,7 +219,7 @@ fun SettingsItem(
             label = "alpha"
         )
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .then(paddingModifier)
                 .padding(horizontal = 16.dp)
                 .clip(shape)
@@ -225,7 +227,8 @@ fun SettingsItem(
                     color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
                 )
                 .then(clickableModifier)
-                .padding(8.dp)
+                .padding(horizontal = 8.dp)
+                .then(if (!slimLayout) Modifier.padding(vertical = 8.dp) else Modifier)
                 .fillMaxWidth()
                 .alpha(alpha)
         ) {

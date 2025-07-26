@@ -3,7 +3,6 @@ package com.dot.gallery.feature_node.domain.util
 import android.net.Uri
 import androidx.room.TypeConverter
 import com.dot.gallery.feature_node.domain.model.Media
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.UUID
 
@@ -37,4 +36,10 @@ object Converters {
 
     @TypeConverter
     fun toUUID(value: String): UUID = UUID.fromString(value)
+
+    @TypeConverter
+    fun fromFloatArray(array: FloatArray): String = Json.encodeToString(array)
+
+    @TypeConverter
+    fun toFloatArray(value: String): FloatArray = Json.decodeFromString(value)
 }

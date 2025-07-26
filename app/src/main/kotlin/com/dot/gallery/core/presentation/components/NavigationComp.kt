@@ -53,7 +53,6 @@ import com.dot.gallery.feature_node.presentation.albumtimeline.AlbumTimelineScre
 import com.dot.gallery.feature_node.presentation.classifier.CategoriesScreen
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewModel
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewScreen
-import com.dot.gallery.feature_node.presentation.common.MediaViewModel
 import com.dot.gallery.feature_node.presentation.dateformat.DateFormatScreen
 import com.dot.gallery.feature_node.presentation.favorites.FavoriteScreen
 import com.dot.gallery.feature_node.presentation.ignored.IgnoredScreen
@@ -61,6 +60,8 @@ import com.dot.gallery.feature_node.presentation.ignored.setup.IgnoredSetup
 import com.dot.gallery.feature_node.presentation.library.LibraryScreen
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.search.SearchScreen
+import com.dot.gallery.feature_node.presentation.search.SearchViewModel
 import com.dot.gallery.feature_node.presentation.settings.SettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsCustomizationScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsGeneralScreen
@@ -146,8 +147,6 @@ fun NavigationComp(
 
     // Preloaded viewModels
     val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
-
-    val vaultState = distributor.vaultsMediaFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
     val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
     LaunchedEffect(permissionState) {
@@ -157,6 +156,8 @@ fun NavigationComp(
     LaunchedEffect(groupTimelineByMonth) {
         distributor.groupByMonth = groupTimelineByMonth
     }
+
+    val searchViewModel = hiltViewModel<SearchViewModel>()
     SharedTransitionLayout {
         NavHost(
             navController = navController,
@@ -276,7 +277,6 @@ fun NavigationComp(
                 val albumId: Long = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("albumId") ?: -1L
                 }
-                val vm = hiltViewModel<MediaViewModel>()
                 val allAlbumsMediaState = distributor.albumsTimelinesMediaFlow.collectAsStateWithLifecycle()
                 val timelineState = distributor.timelineMediaFlow.collectAsStateWithLifecycle()
                 val albumMediaState = rememberedDerivedState {
@@ -291,8 +291,6 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     mediaId = mediaId,
                     mediaState = mediaState,
-                    addMedia = vm::addMedia,
-                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -316,19 +314,6 @@ fun NavigationComp(
                 val target: String? = remember(backStackEntry) {
                     backStackEntry.arguments?.getString("target")
                 }
-                val entryName = remember(target) {
-                    when (target) {
-                        TARGET_FAVORITES -> Screen.FavoriteScreen.route
-                        TARGET_TRASH -> Screen.TrashedScreen.route
-                        else -> Screen.TimelineScreen.route
-                    }
-                }
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(entryName)
-                }
-                val viewModel = hiltViewModel<MediaViewModel>(parentEntry).apply {
-                    this.target = target
-                }
                 val mediaState = remember(target) {
                     when (target) {
                         TARGET_FAVORITES -> distributor.favoritesMediaFlow
@@ -343,8 +328,6 @@ fun NavigationComp(
                     mediaId = mediaId,
                     target = target,
                     mediaState = mediaState,
-                    addMedia = viewModel::addMedia,
-                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -355,35 +338,19 @@ fun NavigationComp(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
                         defaultValue = -1
-                    },
-                    navArgument(name = "query") {
-                        type = NavType.BoolType
-                        defaultValue = true
                     }
                 )
             ) { backStackEntry ->
                 val mediaId: Long = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("mediaId") ?: -1
                 }
-                val query: Boolean = remember(backStackEntry) {
-                    backStackEntry.arguments?.getBoolean("query") != false
-                }
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Screen.TimelineScreen.route)
-                }
-                val viewModel = hiltViewModel<MediaViewModel>(parentEntry)
-                /*val mediaState = remember(query) {
-                    if (query) viewModel.searchMediaState else viewModel.mediaFlow
-                }.collectAsStateWithLifecycle(context = Dispatchers.IO)*/
-                val mediaState = viewModel.searchMediaState.collectAsStateWithLifecycle()
-
+                val searchResultsState = searchViewModel.searchResultsState.collectAsStateWithLifecycle()
+                val mediaState = remember(searchResultsState.value) { mutableStateOf(searchResultsState.value.results) }
                 MediaViewScreen(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
                     mediaState = mediaState,
-                    addMedia = viewModel::addMedia,
-                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -489,8 +456,6 @@ fun NavigationComp(
                     mediaId = mediaId,
                     target = "category_$category",
                     mediaState = mediaState,
-                    addMedia = viewModel::addMedia,
-                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -510,6 +475,15 @@ fun NavigationComp(
             }
             composable(Screen.SettingsSmartFeaturesScreen()) {
                 SettingsSmartFeaturesScreen()
+            }
+
+            composable(Screen.SearchScreen()) { backStackEntry ->
+                SearchScreen(
+                    viewModel = searchViewModel,
+                    isScrolling = isScrolling,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
             }
 
         }

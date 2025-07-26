@@ -24,7 +24,7 @@ android {
         applicationId = "com.dot.gallery"
         minSdk = 30
         targetSdk = 36
-        versionCode = 40012
+        versionCode = 40018
         versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -253,7 +253,7 @@ dependencies {
     implementation(libs.datastore.prefs)
 
     // Fuzzy Search
-    implementation(libs.fuzzywuzzy)
+    implementation(libs.fuzzywuzzy.kotlin)
 
     // Aire
     implementation(libs.aire)
@@ -284,6 +284,8 @@ dependencies {
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.task.vision)
     implementation(libs.tensorflow.lite.gpu)
+
+    implementation(libs.onnxruntime.android.qnn)
 
     // Haze
     implementation(libs.haze)

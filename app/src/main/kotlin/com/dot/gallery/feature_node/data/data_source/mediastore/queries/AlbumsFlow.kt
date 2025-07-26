@@ -17,7 +17,6 @@ import com.dot.gallery.core.util.eq
 import com.dot.gallery.core.util.ext.queryFlow
 import com.dot.gallery.core.util.ext.tryGetString
 import com.dot.gallery.core.util.join
-import com.dot.gallery.feature_node.data.data_source.AlbumThumbnailDao
 import com.dot.gallery.feature_node.data.data_source.mediastore.MediaQuery
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.MediaType
@@ -36,7 +35,6 @@ import kotlinx.coroutines.flow.mapLatest
 class AlbumsFlow(
     private val context: Context,
     private val mimeType: String? = null,
-    private val thumbnailDao: AlbumThumbnailDao,
     private val bucketId: Long? = null
 ) : QueryFlow<Album>() {
     override fun flowCursor(): Flow<Cursor?> {

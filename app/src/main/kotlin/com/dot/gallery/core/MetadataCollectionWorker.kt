@@ -44,13 +44,13 @@ class MetadataCollectionWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         delay(1000)
-        if (database.isMetadataUpToDate(appContext)) {
+        val forceReload = inputData.getBoolean("forceReload", false)
+        if (database.isMetadataUpToDate(appContext) && !forceReload) {
             printDebug("Metadata is up to date")
             return Result.success()
         }
         printDebug("Updating metadata...")
         setProgress(workDataOf("progress" to 1))
-        val forceReload = inputData.getBoolean("forceReload", false)
         if (forceReload) {
             printDebug("Force reloading metadata...")
         }

@@ -11,6 +11,7 @@ core = "1.36.0"
 coreSplashscreen = "1.0.1"
 fuzzywuzzy = "1.4.0"
 exifinterface = "1.4.1"
+fuzzywuzzyKotlin = "1.0.1"
 graphicsShapes = "1.0.1"
 haze = "1.6.4"
 hazeMaterials = "1.6.4"
@@ -32,6 +33,8 @@ material3 = "1.4.0-alpha16"
 media3Exoplayer = "1.7.1"
 metadataExtractor = "2.19.0"
 navigation-runtime-ktx = "2.9.0"
+onnxruntimeAndroidQnn = "1.22.0"
+onnxruntimeAndroidVersion = "1.22.0"
 pinchzoomgrid = "0.0.5"
 profileinstaller = "1.4.1"
 room = "2.7.2"
@@ -109,11 +112,14 @@ androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", vers
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltCommon" }
 
 # Room
+fuzzywuzzy-kotlin = { module = "com.github.jens-muenker:fuzzywuzzy-kotlin", version.ref = "fuzzywuzzyKotlin" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "hazeMaterials" }
 jxl-coder-coil = { module = "com.github.awxkee:jxl-coder-coil", version.ref = "jxlCoder" }
 lazycolumnscrollbar = { module = "com.github.nanihadesuka:LazyColumnScrollbar", version.ref = "lazycolumnscrollbar" }
 metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref = "metadataExtractor" }
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntimeAndroidVersion" }
+onnxruntime-android-qnn = { module = "com.microsoft.onnxruntime:onnxruntime-android-qnn", version.ref = "onnxruntimeAndroidQnn" }
 pinchzoomgrid = { module = "io.github.dokar3:pinchzoomgrid", version.ref = "pinchzoomgrid" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -154,6 +160,7 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflowLite" }
+tensorflow-lite-select-tf-ops = { module = "org.tensorflow:tensorflow-lite-select-tf-ops", version.ref = "tensorflowLite" }
 tensorflow-lite-task-vision = { module = "org.tensorflow:tensorflow-lite-task-vision", version.ref = "tensorflowLiteTaskVision" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 zoomimage-sketch = { module = "io.github.panpf.zoomimage:zoomimage-compose-sketch4", version.ref = "zoomimageViewSketch" }

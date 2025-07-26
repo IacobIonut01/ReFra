@@ -104,7 +104,7 @@ fun SettingsScreen() {
         settingsList = rememberDashboardSettings(),
         settingsBuilder = { setting, index ->
             SettingsItem(
-                setting,
+                item = setting,
                 customizeIcon = { icon ->
                     Icon(
                         imageVector = icon,

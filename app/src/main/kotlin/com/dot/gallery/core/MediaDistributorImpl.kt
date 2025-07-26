@@ -8,6 +8,7 @@ import com.dot.gallery.core.Settings.Misc.EXTENDED_DATE_FORMAT
 import com.dot.gallery.core.Settings.Misc.WEEKLY_DATE_FORMAT
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
+import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
@@ -139,7 +140,7 @@ class MediaDistributorImpl @Inject constructor(
         val data = newOrder.sortAlbums(result.data ?: emptyList()).map { album ->
             val thumbnail = thumbnails.find { it.albumId == album.id }
             if (thumbnail == null) return@map album
-            album.copy(uri = thumbnail.thumbnailUri,)
+            album.copy(uri = thumbnail.thumbnailUri)
         }
         val cleanData = data.removeBlacklisted(blacklistedAlbums).mapPinned(pinnedAlbums)
 
@@ -203,10 +204,12 @@ class MediaDistributorImpl @Inject constructor(
             error = result.message ?: "",
             isLoading = false
         )
+        val sorter = MediaOrder.Default
+        val data = (result.data ?: emptyList()).toMutableList().apply {
+            removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media) } }
+        }
         mapMediaToItem(
-            data = (result.data ?: emptyList()).toMutableList().apply {
-                removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media) } }
-            },
+            data = sorter.sortMedia(data),
             error = result.message ?: "",
             albumId = albumId,
             groupByMonth = settings?.groupTimelineByMonth == true,
@@ -258,5 +261,17 @@ class MediaDistributorImpl @Inject constructor(
             weeklyDateFormat = weeklyDateFormat
         )
     }.stateIn(appScope, SharingStarted.Eagerly, MediaState())
+
+    /**
+     * Search
+     */
+    override val imageEmbeddingsFlow: StateFlow<List<ImageEmbedding>> =
+        repository.getImageEmbeddings()
+            .stateIn(
+                scope = appScope,
+                started = SharingStarted.Eagerly,
+                initialValue = emptyList()
+            )
+
 
 }

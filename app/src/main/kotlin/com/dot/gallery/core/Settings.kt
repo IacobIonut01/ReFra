@@ -29,21 +29,25 @@ import androidx.core.content.edit
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.Settings.PREFERENCE_NAME
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.util.rememberPreference
+import com.dot.gallery.core.util.rememberPreferenceSerializable
+import com.dot.gallery.feature_node.domain.model.SearchHistory
 import com.dot.gallery.feature_node.domain.util.OrderType
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.printDebug
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
 
@@ -63,8 +67,8 @@ object Settings {
 
         @Composable
         fun rememberLastSort() =
-            rememberPreference(
-                key = LAST_SORT,
+            rememberPreferenceSerializable(
+                keyString = LAST_SORT,
                 defaultValue = LastSort(OrderType.Descending, FilterKind.DATE)
             )
 
@@ -128,11 +132,45 @@ object Settings {
     }
 
     object Search {
-        private val HISTORY = stringSetPreferencesKey("search_history")
+        val HISTORY_V2 = stringPreferencesKey("search_history_v2")
+
+        val EMPTY_HISTORY = Json.encodeToString(emptyList<SearchHistory>())
+
+        suspend fun addHistory(context: Context, query: String) {
+            context.dataStore.edit { preferences ->
+                val currentHistory = preferences[HISTORY_V2] ?: EMPTY_HISTORY
+                val historyList = Json.decodeFromString<List<SearchHistory>>(currentHistory).apply {
+                    filter { it.query != query }
+                }
+                val newHistory = SearchHistory(System.currentTimeMillis(), query)
+                val updatedHistory = (historyList + newHistory).sortedByDescending { it.timestamp }
+                preferences[HISTORY_V2] = Json.encodeToString(updatedHistory)
+            }
+        }
+
+        suspend fun removeHistory(context: Context, query: String) {
+            context.dataStore.edit { preferences ->
+                val currentHistory = preferences[HISTORY_V2] ?: EMPTY_HISTORY
+                val historyList = Json.decodeFromString<List<SearchHistory>>(currentHistory)
+                printDebug("Current history: $historyList")
+                printDebug("Removing query: $query")
+                val updatedHistory = historyList.toMutableList().apply {
+                    removeIf { searchHistory ->
+                        printDebug("Checking: ${searchHistory.query} == $query")
+                        searchHistory.query == query
+                    }
+                }
+                printDebug("Updated history: $updatedHistory")
+                preferences[HISTORY_V2] = Json.encodeToString(updatedHistory)
+            }
+        }
 
         @Composable
-        fun rememberSearchHistory() =
-            rememberPreference(key = HISTORY, defaultValue = emptySet())
+        fun rememberSearchHistory() = rememberPreferenceSerializable(
+            keyString = HISTORY_V2,
+            defaultValue = emptyList<SearchHistory>()
+        )
+
     }
 
     object Misc {
@@ -176,7 +214,8 @@ object Settings {
             val prefs = remember(context) {
                 context.getSharedPreferences("ui_settings", Context.MODE_PRIVATE)
             }
-            val windowSizeClass = if (context is Activity) calculateWindowSizeClass(context) else null
+            val windowSizeClass =
+                if (context is Activity) calculateWindowSizeClass(context) else null
             val defaultValue = remember(windowSizeClass) {
                 cellsList.indexOf(
                     GridCells.Fixed(
@@ -313,7 +352,10 @@ object Settings {
 
         @Composable
         fun rememberDateHeaderFormat() =
-            rememberPreference(key = DATE_HEADER_FORMAT, defaultValue = Constants.HEADER_DATE_FORMAT)
+            rememberPreference(
+                key = DATE_HEADER_FORMAT,
+                defaultValue = Constants.HEADER_DATE_FORMAT
+            )
 
         val EXIF_DATE_FORMAT = stringPreferencesKey("exif_date_format")
 
@@ -325,21 +367,31 @@ object Settings {
 
         @Composable
         fun rememberExtendedDateFormat() =
-            rememberPreference(key = EXTENDED_DATE_FORMAT, defaultValue = Constants.EXTENDED_DATE_FORMAT)
+            rememberPreference(
+                key = EXTENDED_DATE_FORMAT,
+                defaultValue = Constants.EXTENDED_DATE_FORMAT
+            )
 
         val DEFAULT_DATE_FORMAT = stringPreferencesKey("default_date_format")
 
         @Composable
         fun rememberDefaultDateFormat() =
-            rememberPreference(key = DEFAULT_DATE_FORMAT, defaultValue = Constants.DEFAULT_DATE_FORMAT)
+            rememberPreference(
+                key = DEFAULT_DATE_FORMAT,
+                defaultValue = Constants.DEFAULT_DATE_FORMAT
+            )
 
         val WEEKLY_DATE_FORMAT = stringPreferencesKey("weekly_date_format")
 
         @Composable
         fun rememberWeeklyDateFormat() =
-            rememberPreference(key = WEEKLY_DATE_FORMAT, defaultValue = Constants.WEEKLY_DATE_FORMAT)
+            rememberPreference(
+                key = WEEKLY_DATE_FORMAT,
+                defaultValue = Constants.WEEKLY_DATE_FORMAT
+            )
 
-        fun <T> getSetting(context: Context, key: Preferences.Key<T>, defaultValue: T) = context.dataStore.data.map { it[key] ?: defaultValue }
+        fun <T> getSetting(context: Context, key: Preferences.Key<T>, defaultValue: T) =
+            context.dataStore.data.map { it[key] ?: defaultValue }
 
         private val VIDEO_AUTOPLAY = booleanPreferencesKey("video_autoplay")
 

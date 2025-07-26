@@ -29,7 +29,6 @@ fun <T : Media> MediaViewSheetActions(
     media: T,
     albumsState: State<AlbumState>,
     vaults: State<VaultState>,
-    addMedia: (Vault, T) -> Unit,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?
 ) {
@@ -47,7 +46,6 @@ fun <T : Media> MediaViewSheetActions(
             HideButton(
                 media,
                 vaults = vaults.value,
-                addMedia = addMedia,
                 followTheme = true,
                 enabled = true
             )

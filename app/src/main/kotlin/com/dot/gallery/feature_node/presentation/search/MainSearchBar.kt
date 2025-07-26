@@ -40,10 +40,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
+import com.dot.gallery.core.navigate
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
+import com.dot.gallery.feature_node.presentation.util.Screen
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeEffect
 import kotlinx.coroutines.flow.collectLatest
@@ -56,7 +59,7 @@ fun MainSearchBar(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     menuItems: @Composable (RowScope.() -> Unit)? = null,
-) {
+) = with(sharedTransitionScope) {
     val isSelectionActive by LocalMediaSelector.current.isSelectionActive.collectAsStateWithLifecycle()
     val hideSearchBarSetting by rememberAutoHideSearchBar()
     var shouldHide by remember { mutableStateOf(if (hideSearchBarSetting) isScrolling.value else false) }
@@ -100,8 +103,13 @@ fun MainSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        val eventHandler = LocalEventHandler.current
         Row(
             modifier = Modifier
+                .sharedBounds(
+                    sharedContentState = rememberSharedContentState(key = "search_screen"),
+                    animatedVisibilityScope = animatedContentScope
+                )
                 .weight(1f)
                 .clip(RoundedCornerShape(100))
                 .then(backgroundModifier)
@@ -110,7 +118,7 @@ fun MainSearchBar(
                     style = LocalHazeStyle.current
                 )
                 .clickable {
-
+                    eventHandler.navigate(Screen.SearchScreen())
                 }
                 .padding(start = 16.dp, end = 4.dp)
                 .height(56.dp),

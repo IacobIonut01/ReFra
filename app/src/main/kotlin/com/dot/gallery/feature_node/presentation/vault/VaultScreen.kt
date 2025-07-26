@@ -210,13 +210,6 @@ fun VaultScreen(
                     currentVault = viewModel.currentVault.value,
                     restoreMedia = viewModel::restoreMedia,
                     deleteMedia = viewModel::deleteMedia,
-                    vaultState = vaultState,
-                    addMedia = { vault, media ->
-                        viewModel.addMedia(
-                            vault = vault,
-                            list = listOf(media.uri)
-                        )
-                    },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this@composable
                 )
