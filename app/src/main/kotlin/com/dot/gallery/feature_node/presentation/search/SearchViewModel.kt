@@ -45,6 +45,11 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val imageRecords = mediaDistributor.imageEmbeddingsFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList()
+        )
 
     private var _query = MutableStateFlow("")
     val query = _query.asStateFlow()

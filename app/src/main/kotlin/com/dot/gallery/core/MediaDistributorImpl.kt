@@ -282,7 +282,7 @@ class MediaDistributorImpl @Inject constructor(
         repository.getImageEmbeddings()
             .stateIn(
                 scope = appScope,
-                started = sharingMethod,
+                started = prioritySharingMethod,
                 initialValue = emptyList()
             )
 
