@@ -110,7 +110,7 @@ class MediaHandlerImpl @Inject constructor(
         description: String
     ): Boolean = repository.updateMediaImageDescription(media, description)
 
-    override fun saveImage(
+    override suspend fun saveImage(
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,
         mimeType: String,
@@ -118,7 +118,7 @@ class MediaHandlerImpl @Inject constructor(
         displayName: String
     ): Uri? = repository.saveImage(bitmap, format, mimeType, relativePath, displayName)
 
-    override fun overrideImage(
+    override suspend fun overrideImage(
         uri: Uri,
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,

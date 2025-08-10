@@ -111,7 +111,7 @@ interface MediaRepository {
         description: String
     ): Boolean
 
-    fun saveImage(
+    suspend fun saveImage(
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,
         mimeType: String,
@@ -119,7 +119,7 @@ interface MediaRepository {
         displayName: String
     ): Uri?
 
-    fun overrideImage(
+    suspend fun overrideImage(
         uri: Uri,
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,

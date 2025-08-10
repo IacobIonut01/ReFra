@@ -107,7 +107,7 @@ class MockedMediaHandler: MediaHandler {
         description: String
     ): Boolean = false
 
-    override fun saveImage(
+    override suspend fun saveImage(
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,
         mimeType: String,
@@ -115,7 +115,7 @@ class MockedMediaHandler: MediaHandler {
         displayName: String
     ): Uri? = null
 
-    override fun overrideImage(
+    override suspend fun overrideImage(
         uri: Uri,
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,

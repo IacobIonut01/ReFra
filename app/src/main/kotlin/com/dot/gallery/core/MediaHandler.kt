@@ -46,7 +46,7 @@ interface MediaHandler {
 
     suspend fun <T: Media> updateMediaImageDescription(media: T, description: String): Boolean
 
-    fun saveImage(
+    suspend fun saveImage(
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,
         mimeType: String,
@@ -54,7 +54,7 @@ interface MediaHandler {
         displayName: String
     ): Uri?
 
-    fun overrideImage(
+    suspend fun overrideImage(
         uri: Uri,
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,

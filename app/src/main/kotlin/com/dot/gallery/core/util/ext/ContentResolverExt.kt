@@ -16,19 +16,14 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Environment
-import android.os.FileUtils
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.util.Log
 import androidx.exifinterface.media.ExifInterface
-import com.dot.gallery.core.Constants
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
-import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
@@ -36,8 +31,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
+import java.io.OutputStream
 
 fun ContentResolver.querySteppedFlow(
     uri: Uri,
@@ -135,71 +130,18 @@ fun ContentResolver.queryFlow(
     }
 }.conflate()
 
-suspend fun <T : Media> ContentResolver.copyMedia(
-    from: T,
-    path: String
-) = withContext(Dispatchers.IO) {
-    val contentValues = ContentValues().apply {
-        put(MediaStore.MediaColumns.DISPLAY_NAME, from.label)
-        put(MediaStore.MediaColumns.MIME_TYPE, from.mimeType)
-        put(MediaStore.MediaColumns.RELATIVE_PATH, path)
-        put(MediaStore.MediaColumns.IS_PENDING, 1)
-    }
-    val volumeUri =
-        if (from.isVideo) MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-    try {
-        val outUri = insert(volumeUri, contentValues)
-        if (outUri != null) {
-            async {
-                openFileDescriptor(outUri, "w", null).use { target ->
-                    openFileDescriptor(from.getUri(), "r").use { from ->
-                        if (target != null && from != null) {
-                            try {
-                                FileUtils.copy(from.fileDescriptor, target.fileDescriptor)
-                            } catch (e: IOException) {
-                                if (e.message.toString().contains("ENOSPC")) {
-                                    Log.e(Constants.TAG, "No space left on device")
-                                } else {
-                                    Log.e(Constants.TAG, e.message.toString())
-                                }
-                                return@async
-                            }
-                        }
-                    }
-                }
-            }.await()
-            val updatedValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.IS_PENDING, 0)
-                put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
-            }
-            update(
-                outUri,
-                updatedValues,
-                null
-            ) > 0
-        } else false
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
-    }
-}
-
-fun ContentResolver.overrideImage(
+suspend fun ContentResolver.overrideImage(
     uri: Uri,
     bitmap: Bitmap,
     format: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG
-): Boolean {
-    val values = ContentValues().apply {
-        put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
-    }
-
-    return runCatching {
-        update(uri, values, null)
-        openOutputStream(uri)?.use { stream ->
-            if (!bitmap.compress(format, 100, stream))
-                throw IOException("Failed to save bitmap.")
-        } ?: throw IOException("Failed to open output stream.")
+): Boolean = withContext(Dispatchers.IO) {
+    runCatching {
+        update(uri, ContentValues().apply {
+            put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
+        }, null)
+        openOutputStream(uri)?.use { out ->
+            if (!bitmap.compress(format, 100, out)) throw IOException("Compression failed")
+        } ?: throw IOException("Stream open failed")
         update(
             uri,
             ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
@@ -210,184 +152,150 @@ fun ContentResolver.overrideImage(
     }
 }
 
-fun ContentResolver.restoreImage(
-    byteArray: ByteArray,
+suspend fun ContentResolver.restoreImage(
+    data: ByteArray,
     format: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG,
     mimeType: String = "image/png",
-    relativePath: String = Environment.DIRECTORY_PICTURES + "/Restored",
+    relativePath: String = "${Environment.DIRECTORY_PICTURES}/Restored",
     displayName: String
-): Uri? {
-    val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-    return saveImage(bitmap, format, mimeType, relativePath, displayName)
-}
+): Uri? = saveBitmap(
+    BitmapFactory.decodeByteArray(data, 0, data.size),
+    format,
+    mimeType,
+    relativePath,
+    displayName
+)
 
-fun ContentResolver.saveImage(
+suspend fun ContentResolver.saveImage(
     bitmap: Bitmap,
     format: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG,
     mimeType: String = "image/png",
     relativePath: String = Environment.DIRECTORY_PICTURES,
     displayName: String
-): Uri? {
-    val values = ContentValues().apply {
+): Uri? = saveBitmap(
+    bitmap,
+    format,
+    mimeType,
+    relativePath,
+    displayName
+)
+
+private suspend fun ContentResolver.saveBitmap(
+    bitmap: Bitmap,
+    format: Bitmap.CompressFormat,
+    mimeType: String,
+    relativePath: String,
+    displayName: String
+): Uri? = performInsertWrite(
+    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
         put(
             MediaStore.MediaColumns.RELATIVE_PATH,
-            if (relativePath.contains("DCIM") || relativePath.contains("Pictures")) relativePath
+            if (relativePath.contains("DCIM") || relativePath.contains("Pictures"))
+                relativePath
             else Environment.DIRECTORY_PICTURES + "/Edited"
         )
     }
-
-    var uri: Uri? = null
-
-    return runCatching {
-        insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)?.also {
-            uri = it // Keep uri reference so it can be removed on failure
-
-            openOutputStream(it)?.use { stream ->
-                if (!bitmap.compress(format, 95, stream))
-                    throw IOException("Failed to save bitmap.")
-            } ?: throw IOException("Failed to open output stream.")
-
-        } ?: throw IOException("Failed to create new MediaStore record.")
-    }.getOrElse {
-        uri?.let { orphanUri ->
-            // Don't leave an orphan entry in the MediaStore
-            delete(orphanUri, null, null)
-        }
-
-        return null
-    }
+) { out ->
+    if (!bitmap.compress(format, 95, out)) throw IOException("Compression failed")
 }
 
-fun ContentResolver.saveVideo(
-    bytes: ByteArray,
+suspend fun ContentResolver.saveVideo(
+    data: ByteArray,
     mimeType: String,
     relativePath: String = Environment.DIRECTORY_MOVIES,
     displayName: String
-): Uri? {
-    val values = ContentValues().apply {
+): Uri? = performInsertWrite(
+    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+    ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
         put(
             MediaStore.MediaColumns.RELATIVE_PATH,
-            if (relativePath.contains("DCIM") || relativePath.contains("Movies")) relativePath
+            if (relativePath.contains("DCIM") || relativePath.contains("Movies"))
+                relativePath
             else Environment.DIRECTORY_MOVIES + "/Edited"
         )
     }
+) { out ->
+    out.write(data)
+}
 
-    var uri: Uri? = null
-
-    return runCatching {
-        insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)?.also {
-            uri = it // Keep uri reference so it can be removed on failure
-
-            openOutputStream(it)?.use { stream ->
-                stream.write(bytes)
-            } ?: throw IOException("Failed to open output stream.")
-
-        } ?: throw IOException("Failed to create new MediaStore record.")
+private suspend fun ContentResolver.performInsertWrite(
+    baseUri: Uri,
+    values: ContentValues,
+    writeBlock: (OutputStream) -> Unit
+): Uri? = withContext(Dispatchers.IO) {
+    var tmp: Uri? = null
+    runCatching {
+        insert(baseUri, values)?.also { uri ->
+            tmp = uri
+            openOutputStream(uri)?.use(writeBlock)
+                ?: throw IOException("Stream open failed")
+        } ?: throw IOException("Insert returned null")
     }.getOrElse {
-        uri?.let { orphanUri ->
-            // Don't leave an orphan entry in the MediaStore
-            delete(orphanUri, null, null)
-        }
-
-        return null
+        tmp?.let { delete(it, null, null) }
+        null
     }
 }
 
-suspend fun <T : Media> Context.renameMedia(
-    media: T,
-    newName: String
-): Boolean = withContext(Dispatchers.IO) {
-    val contentValues = ContentValues().apply {
-        put(MediaStore.MediaColumns.DISPLAY_NAME, newName)
-    }
-    with(contentResolver) {
-        val uri = media.getUri()
-        val newPath = media.path.removeSuffix(media.label).plus(newName)
-        return@withContext runCatching {
-            val updated = update(
-                uri,
-                contentValues,
+suspend fun <T : Media> Context.renameMedia(media: T, newName: String): Boolean =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            contentResolver.update(
+                media.getUri(),
+                ContentValues().apply { put(MediaStore.MediaColumns.DISPLAY_NAME, newName) },
                 null
             ) > 0
+        }.onSuccess {
             MediaScannerConnection.scanFile(
-                this@renameMedia,
-                arrayOf(media.path.removeSuffix(media.label)),
+                this@renameMedia, arrayOf(media.path.removeSuffix(media.label)),
                 arrayOf(media.mimeType), null
             )
-            val newFile = File(newPath)
-            if (newFile.exists()) {
-                newFile.setLastModified(media.timestamp)
-            }
-            updated
         }.getOrElse {
             printWarning(it.message.toString())
             false
         }
     }
-}
 
 suspend fun <T : Media> Context.updateMedia(
     media: T,
     contentValues: ContentValues
 ): Boolean = withContext(Dispatchers.IO) {
-    with(contentResolver) {
-        val uri = media.getUri()
-        return@withContext runCatching {
-            val updated = update(
-                uri,
-                contentValues,
-                null
-            ) > 0
-            MediaScannerConnection.scanFile(
-                this@updateMedia,
-                arrayOf(media.path.removeSuffix(media.label)),
-                arrayOf(media.mimeType), null
-            )
-            updated
-        }.getOrElse {
-            printWarning(it.message.toString())
-            false
-        }
+    runCatching {
+        contentResolver.update(media.getUri(), contentValues, null) > 0
+    }.onSuccess {
+        MediaScannerConnection.scanFile(
+            this@updateMedia, arrayOf(media.path.removeSuffix(media.label)),
+            arrayOf(media.mimeType), null
+        )
+    }.getOrElse {
+        printWarning(it.message.toString())
+        false
     }
 }
 
-suspend inline fun <T : Media> Context.updateMediaExif(
+suspend fun <T : Media> Context.updateMediaExif(
     media: T,
-    crossinline action: suspend ExifInterface.(T) -> Unit,
-    crossinline postAction: suspend (T) -> Unit
-) = withContext(Dispatchers.IO) {
-    return@withContext try {
-        val uri = media.getUri()
-        contentResolver.openFileDescriptor(uri, "rw").use { imagePfd ->
-            runCatching {
-                if (imagePfd != null) {
-                    val exif = ExifInterface(imagePfd.fileDescriptor)
-                    exif.action(media)
-                    exif.saveAttributes()
-                    true
-                } else false
-            }.getOrElse {
-                it.printStackTrace()
-                false
+    action: suspend ExifInterface.(T) -> Unit,
+    postAction: suspend (T) -> Unit
+): Boolean = withContext(Dispatchers.IO) {
+    runCatching {
+        contentResolver.openFileDescriptor(media.getUri(), "rw")?.use { pfd ->
+            ExifInterface(pfd.fileDescriptor).apply {
+                action(media)
+                saveAttributes()
             }
-        }
-        updateMedia(
-            media = media,
-            contentValues = ContentValues().apply {
-                put(
-                    MediaStore.MediaColumns.DATE_MODIFIED,
-                    System.currentTimeMillis()
-                )
-            }
-        )
+        } ?: throw IOException("PFD null")
+        updateMedia(media, ContentValues().apply {
+            put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
+        })
         postAction(media)
         true
-    } catch (e: java.lang.Exception) {
-        e.printStackTrace()
+    }.getOrElse {
+        printWarning(it.message.toString())
         false
     }
 }

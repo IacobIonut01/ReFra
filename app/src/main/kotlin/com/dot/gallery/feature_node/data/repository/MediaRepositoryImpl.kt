@@ -342,7 +342,7 @@ class MediaRepositoryImpl(
         }
     )
 
-    override fun saveImage(
+    override suspend fun saveImage(
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,
         mimeType: String,
@@ -350,7 +350,7 @@ class MediaRepositoryImpl(
         displayName: String
     ) = contentResolver.saveImage(bitmap, format, mimeType, relativePath, displayName)
 
-    override fun overrideImage(
+    override suspend fun overrideImage(
         uri: Uri,
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,
@@ -475,7 +475,7 @@ class MediaRepositoryImpl(
                         ) != null
                     } else {
                         restored = contentResolver.saveVideo(
-                            bytes = encryptedMedia.bytes,
+                            data = encryptedMedia.bytes,
                             displayName = media.label,
                             mimeType = media.compatibleMimeType(),
                             relativePath = Environment.DIRECTORY_MOVIES + "/Restored"

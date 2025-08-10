@@ -255,7 +255,6 @@ class MediaDistributorImpl @Inject constructor(
      * Vault
      */
     override val vaultsMediaFlow: StateFlow<VaultState> = repository.getVaults()
-        
         .map { VaultState(it.data ?: emptyList(), isLoading = false) }
         .stateIn(appScope, started = sharingMethod, VaultState())
 
