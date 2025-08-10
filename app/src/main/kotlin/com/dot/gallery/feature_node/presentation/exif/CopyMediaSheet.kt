@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -39,7 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.SecureFlagPolicy
 import com.dot.gallery.R
-import com.dot.gallery.core.Constants
+import com.dot.gallery.core.Constants.Animation.enterAnimation
+import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
@@ -51,10 +51,7 @@ import com.dot.gallery.feature_node.domain.util.volume
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
-import com.dot.gallery.feature_node.presentation.util.toastError
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -69,10 +66,8 @@ fun <T: Media> CopyMediaSheet(
     onFinish: () -> Unit,
 ) {
     val handler = LocalMediaHandler.current
-    val toastError = toastError()
     val scope = rememberCoroutineScope()
     var progress by remember(mediaList) { mutableFloatStateOf(0f) }
-    var newPath by remember(mediaList) { mutableStateOf("") }
 
     val newAlbumSheetState = rememberAppBottomSheetState()
     val mutex = Mutex()
@@ -80,30 +75,22 @@ fun <T: Media> CopyMediaSheet(
     fun copyMedia(path: String) {
         scope.launch(Dispatchers.IO) {
             mutex.withLock {
-                newPath = path
-                async {
-                    mediaList.forEachIndexed { i, media ->
-                        if (handler.copyMedia(media, newPath)) {
-                            progress = (i + 1f) / mediaList.size
-                        }
-                    }
-                }.await()
-                newPath = ""
-                if (progress == 1f) {
-                    sheetState.hide()
-                    progress = 0f
-                    onFinish()
-                } else {
-                    toastError.show()
-                    delay(1000)
-                    sheetState.hide()
-                    progress = 0f
-                }
+                handler.copyMedia(
+                    *mediaList.map { it to path }.toTypedArray()
+                )
+
+                onFinish()
+                sheetState.hide()
+                progress = 1f
             }
         }
     }
 
-    if (sheetState.isVisible) {
+    AnimatedVisibility(
+        visible = sheetState.isVisible,
+        enter = enterAnimation,
+        exit = exitAnimation
+    ) {
         val prop = remember(progress) {
             val shouldDismiss = progress == 0f
             ModalBottomSheetProperties(
@@ -150,8 +137,8 @@ fun <T: Media> CopyMediaSheet(
                     modifier = Modifier
                         .padding(32.dp)
                         .align(Alignment.CenterHorizontally),
-                    enter = Constants.Animation.enterAnimation,
-                    exit = Constants.Animation.exitAnimation
+                    enter = enterAnimation,
+                    exit = exitAnimation
                 ) {
                     Box(
                         modifier = Modifier
@@ -173,8 +160,8 @@ fun <T: Media> CopyMediaSheet(
                 val albumSize by rememberAlbumGridSize()
                 AnimatedVisibility(
                     visible = progress == 0f,
-                    enter = Constants.Animation.enterAnimation,
-                    exit = Constants.Animation.exitAnimation
+                    enter = enterAnimation,
+                    exit = exitAnimation
                 ) {
                     LazyVerticalGrid(
                         state = rememberLazyGridState(),

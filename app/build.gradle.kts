@@ -24,7 +24,7 @@ android {
         applicationId = "com.dot.gallery"
         minSdk = 30
         targetSdk = 36
-        versionCode = 40018
+        versionCode = 40025
         versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -100,6 +100,9 @@ android {
     }
     composeCompiler {
         includeSourceInformation = true
+        stabilityConfigurationFiles = listOf(
+            rootProject.layout.projectDirectory.file("stability_config.conf")
+        )
     }
     packaging {
         resources {

@@ -118,7 +118,7 @@ fun <T: Media> ZoomablePagerImage(
             KeychainHolder(context)
         }
         LaunchedEffect(zoomState.subsampling) {
-            zoomState.subsampling.regionDecoders = listOf(EncryptedRegionDecoder.Factory(keychainHolder))
+            zoomState.subsampling.setRegionDecoders(listOf(EncryptedRegionDecoder.Factory(keychainHolder)))
             zoomState.setSubsamplingImage(media.asSubsamplingImage(context))
         }
         ZoomImage(

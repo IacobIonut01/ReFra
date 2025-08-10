@@ -26,10 +26,16 @@ fun <T> Cursor?.mapEachRow(
         cursor.getColumnIndexOrThrow(column)
     }.toTypedArray()
 
-    val data = mutableListOf<T>()
-    do {
-        data.add(mapping(cursor, indexCache))
-    } while (cursor.moveToNext())
+    val data = try {
+        buildList {
+            do {
+                add(mapping(cursor, indexCache))
+            } while (cursor.moveToNext())
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        emptyList()
+    }
 
     data.toList()
 } ?: emptyList()

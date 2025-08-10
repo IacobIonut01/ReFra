@@ -77,7 +77,10 @@ class MediaHandlerImpl @Inject constructor(
     override suspend fun <T : Media> copyMedia(
         from: T,
         path: String
-    ): Boolean = repository.copyMedia(from, path)
+    ) = repository.copyMedia(from, path)
+
+    override suspend fun <T : Media> copyMedia(vararg sets: Pair<T, String>) =
+        repository.copyMedia(*sets)
 
     override suspend fun <T : Media> deleteMedia(
         result: ActivityResultLauncher<IntentSenderRequest>,

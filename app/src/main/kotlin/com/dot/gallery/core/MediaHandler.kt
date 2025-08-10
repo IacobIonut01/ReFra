@@ -27,7 +27,9 @@ interface MediaHandler {
         trash: Boolean = true
     )
 
-    suspend fun <T: Media> copyMedia(from: T, path: String): Boolean
+    suspend fun <T: Media> copyMedia(from: T, path: String)
+
+    suspend fun <T: Media> copyMedia(vararg sets: Pair<T, String>)
 
     suspend fun <T: Media> deleteMedia(
         result: ActivityResultLauncher<IntentSenderRequest>,

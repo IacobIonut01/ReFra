@@ -21,7 +21,6 @@ import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.data.repository.MediaRepositoryImpl
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.search.SearchHelper
 import com.dot.gallery.feature_node.presentation.search.SearchHelperImpl
@@ -52,13 +51,6 @@ object AppModule {
     @Singleton
     fun provideKeychainHolder(@ApplicationContext context: Context): KeychainHolder =
         KeychainHolder(context)
-
-    @Provides
-    @Singleton
-    fun provideMediaHandleUseCase(
-        repository: MediaRepository,
-        @ApplicationContext context: Context
-    ): MediaHandleUseCase = MediaHandleUseCase(repository, context)
 
     @Provides
     @Singleton

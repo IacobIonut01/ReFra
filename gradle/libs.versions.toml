@@ -1,57 +1,54 @@
 [versions]
 adaptive = "1.1.0"
-agp = "8.11.0"
+agp = "8.11.1"
 aire = "0.15.5"
 avifCoderCoil = "2.1.2"
-benchmarkMacroJunit4 = "1.3.4"
+benchmarkMacroJunit4 = "1.4.0"
 biometric = "1.2.0-alpha05"
 appcompat = "1.7.1"
 composeVideo = "1.2.0"
-core = "1.36.0"
+core = "1.39.0"
 coreSplashscreen = "1.0.1"
-fuzzywuzzy = "1.4.0"
 exifinterface = "1.4.1"
 fuzzywuzzyKotlin = "1.0.1"
 graphicsShapes = "1.0.1"
-haze = "1.6.4"
-hazeMaterials = "1.6.4"
+haze = "1.6.9"
+hazeMaterials = "1.6.9"
 jxlCoder = "2.1.10"
 kotlin = "2.2.0"
 kotlinCoroutinesVersion = "1.10.2"
 ksp = "2.2.0-2.0.2"
 core-ktx = "1.16.0"
 junit = "4.13.2"
-androidx-test-ext-junit = "1.2.1"
-espresso-core = "3.6.1"
+androidx-test-ext-junit = "1.3.0"
+espresso-core = "3.7.0"
 lazycolumnscrollbar = "2.2.0"
-lifecycle-runtime = "2.9.1"
+lifecycle-runtime = "2.9.2"
 activity-compose = "1.10.1"
-hilt = "2.56.2"
+hilt = "2.57"
 hiltCommon = "1.2.0"
 material = "1.12.0"
-material3 = "1.4.0-alpha16"
-media3Exoplayer = "1.7.1"
+material3 = "1.5.0-alpha01"
+media3Exoplayer = "1.8.0"
 metadataExtractor = "2.19.0"
-navigation-runtime-ktx = "2.9.0"
+navigation-runtime-ktx = "2.9.3"
 onnxruntimeAndroidQnn = "1.22.0"
-onnxruntimeAndroidVersion = "1.22.0"
 pinchzoomgrid = "0.0.5"
 profileinstaller = "1.4.1"
 room = "2.7.2"
 accompanist = "0.37.3"
 datastore = "1.1.4"
-securityCrypto = "1.1.0-beta01"
-sketch = "4.1.0"
+securityCrypto = "1.1.0"
+sketch = "4.3.1"
 startupRuntime = "1.2.0"
 tensorflowLite = "2.16.1"
 tensorflowLiteTaskVision = "0.4.4"
 uiautomator = "2.3.0"
-composealpha = "1.9.0-beta01"
+composealpha = "1.9.0-rc01"
 kotlinxSerializationJson = "1.9.0"
-workRuntimeKtx = "2.10.2"
-zoomimageViewSketch = "1.3.0"
-rules = "1.6.1"
-lifecycleProcess = "2.9.1"
+workRuntimeKtx = "2.10.3"
+zoomimageViewSketch = "1.4.0-rc02"
+lifecycleProcess = "2.9.2"
 
 [libraries]
 # AndroidX
@@ -112,13 +109,11 @@ androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", vers
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltCommon" }
 
 # Room
-fuzzywuzzy-kotlin = { module = "com.github.jens-muenker:fuzzywuzzy-kotlin", version.ref = "fuzzywuzzyKotlin" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "hazeMaterials" }
 jxl-coder-coil = { module = "com.github.awxkee:jxl-coder-coil", version.ref = "jxlCoder" }
 lazycolumnscrollbar = { module = "com.github.nanihadesuka:LazyColumnScrollbar", version.ref = "lazycolumnscrollbar" }
 metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref = "metadataExtractor" }
-onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntimeAndroidVersion" }
 onnxruntime-android-qnn = { module = "com.microsoft.onnxruntime:onnxruntime-android-qnn", version.ref = "onnxruntimeAndroidQnn" }
 pinchzoomgrid = { module = "io.github.dokar3:pinchzoomgrid", version.ref = "pinchzoomgrid" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
@@ -151,7 +146,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
 # Fuzzy Search
-fuzzywuzzy = { module = "me.xdrop:fuzzywuzzy", version.ref = "fuzzywuzzy" }
+fuzzywuzzy-kotlin = { module = "com.github.jens-muenker:fuzzywuzzy-kotlin", version.ref = "fuzzywuzzyKotlin" }
 
 # Tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -160,11 +155,9 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflowLite" }
-tensorflow-lite-select-tf-ops = { module = "org.tensorflow:tensorflow-lite-select-tf-ops", version.ref = "tensorflowLite" }
 tensorflow-lite-task-vision = { module = "org.tensorflow:tensorflow-lite-task-vision", version.ref = "tensorflowLiteTaskVision" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 zoomimage-sketch = { module = "io.github.panpf.zoomimage:zoomimage-compose-sketch4", version.ref = "zoomimageViewSketch" }
-androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 
 [plugins]

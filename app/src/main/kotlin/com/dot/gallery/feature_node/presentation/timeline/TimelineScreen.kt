@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,7 +42,7 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.core.toggleNavigationBar
-import com.dot.gallery.feature_node.domain.model.UIEvent
+import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
@@ -68,7 +67,10 @@ fun TimelineScreen(
     var lastCellIndex by rememberGridSize()
     val eventHandler = LocalEventHandler.current
     val distributor = LocalMediaDistributor.current
-    val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle()
+    val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle(
+        context = Dispatchers.IO,
+        initialValue = MediaState()
+    )
     val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle()
     val selector = LocalMediaSelector.current
     val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()

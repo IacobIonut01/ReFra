@@ -156,8 +156,13 @@ class AlbumsFlow(
                             this.size += size
                         }
                     }
-
-                    it.moveToNext()
+                    try {
+                        it.moveToNext()
+                    } catch (e: Exception) {
+                        // Handle any exceptions that may occur while moving to the next row
+                        e.printStackTrace()
+                        break
+                    }
                 }
             }
         }.values.toList()

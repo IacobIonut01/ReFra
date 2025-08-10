@@ -6,11 +6,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
+import com.dot.gallery.core.workers.startClassification
+import com.dot.gallery.core.workers.stopClassification
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.util.update
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(
     private val repository: MediaRepository,
-    private val workManager: WorkManager,
-    val handler: MediaHandleUseCase,
+    private val workManager: WorkManager
 ) : ViewModel() {
 
     val classifiedCategories = repository.getClassifiedCategories()

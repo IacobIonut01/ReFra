@@ -6,7 +6,7 @@ import androidx.work.WorkManager
 import com.dot.gallery.feature_node.domain.model.LibraryIndicatorState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MediaOrder
-import com.dot.gallery.feature_node.presentation.classifier.startClassification
+import com.dot.gallery.core.workers.startClassification
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine

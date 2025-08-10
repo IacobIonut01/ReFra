@@ -11,6 +11,7 @@ import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface MediaDistributor {
@@ -37,11 +38,11 @@ interface MediaDistributor {
     /**
      * Media
      */
-    val timelineMediaFlow: StateFlow<MediaState<Media.UriMedia>>
+    val timelineMediaFlow: SharedFlow<MediaState<Media.UriMedia>>
     val albumsTimelinesMediaFlow: StateFlow<Map<Long, MediaState<Media.UriMedia>>>
     fun albumTimelineMediaFlow(albumId: Long): StateFlow<MediaState<Media.UriMedia>>
-    val favoritesMediaFlow: StateFlow<MediaState<Media.UriMedia>>
-    val trashMediaFlow: StateFlow<MediaState<Media.UriMedia>>
+    val favoritesMediaFlow: SharedFlow<MediaState<Media.UriMedia>>
+    val trashMediaFlow: SharedFlow<MediaState<Media.UriMedia>>
 
     /**
      * Media Metadata

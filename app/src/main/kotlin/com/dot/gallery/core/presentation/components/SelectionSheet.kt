@@ -12,6 +12,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +37,7 @@ import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -139,68 +140,100 @@ fun <T : Media> SelectionSheet(
                 Modifier
             }
         }
+        val shape = Shapes.extraLarge
         Column(
             modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 32.dp)
                 .navigationBarsPadding()
                 .then(sizeModifier)
                 .wrapContentHeight()
-                .clip(Shapes.extraLarge)
-                .shadow(
-                    elevation = 4.dp,
-                    shape = Shapes.extraLarge
-                )
-                .then(backgroundModifier)
-                .hazeEffect(
-                    state = LocalHazeState.current,
-                    style = HazeMaterials.regular(
-                        containerColor = surfaceColor
-                    )
-                )
-                .padding(16.dp),
+                .clip(shape)
+                .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
                 modifier = Modifier
-                    .then(sizeModifier)
-                    .height(24.dp),
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                IconButton(
-                    onClick = selector::clearSelection,
-                    modifier = Modifier.size(24.dp),
+                Row(
+                    modifier = Modifier
+                        .then(backgroundModifier)
+                        .clip(shape)
+                        .shadow(
+                            elevation = 4.dp,
+                            shape = shape
+                        )
+                        .hazeEffect(
+                            state = LocalHazeState.current,
+                            style = HazeMaterials.regular(
+                                containerColor = surfaceColor
+                            )
+                        )
+                        .clickable {
+                            scope.launch {
+                                selector.clearSelection()
+                            }
+                        }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Image(
+                        modifier = Modifier.size(24.dp),
                         imageVector = Icons.Outlined.Close,
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                         contentDescription = stringResource(R.string.selection_dialog_close_cd)
                     )
-                }
-                Text(
-                    text = stringResource(R.string.selected_s, selectedMedia.size),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-            }
-            val surfaceColor = MaterialTheme.colorScheme.surface
-            val backgroundModifier = remember(allowBlur) {
-                if (!allowBlur) {
-                    Modifier.background(
-                        color = surfaceColor,
-                        shape = Shapes.large
+                    Text(
+                        text = selectedMedia.size.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
-                } else {
-                    Modifier
+                }
+
+                Row(
+                    modifier = Modifier
+                        .then(backgroundModifier)
+                        .clip(shape)
+                        .shadow(
+                            elevation = 4.dp,
+                            shape = shape
+                        )
+                        .hazeEffect(
+                            state = LocalHazeState.current,
+                            style = HazeMaterials.thin(
+                                containerColor = surfaceColor
+                            )
+                        )
+                        .clickable {
+                            scope.launch {
+                                selector.clearSelection()
+                            }
+                        }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Image(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = Icons.Rounded.Add,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                        contentDescription = "Add actions"
+                    )
                 }
             }
             Row(
                 modifier = Modifier
                     .then(sizeModifier)
                     .then(backgroundModifier)
-                    .clip(Shapes.large)
+                    .clip(shape)
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = shape
+                    )
                     .hazeEffect(
                         state = LocalHazeState.current,
-                        style = HazeMaterials.thick(
+                        style = HazeMaterials.regular(
                             containerColor = surfaceColor
                         )
                     )
@@ -295,6 +328,7 @@ fun <T : Media> SelectionSheet(
             if (shouldMoveToTrash) TrashDialogAction.TRASH else TrashDialogAction.DELETE
         },
     ) {
+        selector.clearSelection()
         if (shouldMoveToTrash) {
             handler.trashMedia(result, it, true)
         } else {

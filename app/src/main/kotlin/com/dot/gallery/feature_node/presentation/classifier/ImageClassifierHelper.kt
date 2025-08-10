@@ -22,6 +22,8 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
 import androidx.compose.ui.util.fastFlatMap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.nnapi.NnApiDelegate
 import org.tensorflow.lite.support.image.ImageProcessor
@@ -91,41 +93,40 @@ class ImageClassifierHelper(
         }
     }
 
-    fun classify(image: Bitmap, rotation: Int = 0, onClassify: (List<Category>, Long) -> Unit) {
-        var compatibleImage = image
-        if (imageClassifier == null) {
-            setupImageClassifier()
+    suspend fun classify(image: Bitmap, rotation: Int = 0): Pair<List<Category>, Long>? = runCatching {
+        withContext(Dispatchers.IO) {
+            var compatibleImage = image
+            if (imageClassifier == null) {
+                setupImageClassifier()
+            }
+
+            // Inference time is the difference between the system time at the start and finish of the
+            // process
+            var inferenceTime = SystemClock.uptimeMillis()
+
+            // Create preprocessor for the image.
+            // See https://www.tensorflow.org/lite/inference_with_metadata/
+            //            lite_support#imageprocessor_architecture
+            val imageProcessor = ImageProcessor.Builder().build()
+
+            // Check compatible bitmap config
+            if (image.config != Bitmap.Config.ARGB_8888) {
+                // Create a new bitmap with ARGB_8888 config
+                compatibleImage = image.copy(Bitmap.Config.ARGB_8888, false)
+            }
+
+            // Preprocess the image and convert it into a TensorImage for classification.
+            val tensorImage = imageProcessor.process(TensorImage.fromBitmap(compatibleImage))
+
+            val imageProcessingOptions = ImageProcessingOptions.builder()
+                .setOrientation(getOrientationFromRotation(rotation))
+                .build()
+
+            val results = imageClassifier?.classify(tensorImage, imageProcessingOptions)
+            inferenceTime = SystemClock.uptimeMillis() - inferenceTime
+            return@withContext (results ?: emptyList()).fastFlatMap { it.categories } to inferenceTime
         }
-
-        // Inference time is the difference between the system time at the start and finish of the
-        // process
-        var inferenceTime = SystemClock.uptimeMillis()
-
-        // Create preprocessor for the image.
-        // See https://www.tensorflow.org/lite/inference_with_metadata/
-        //            lite_support#imageprocessor_architecture
-        val imageProcessor = ImageProcessor.Builder().build()
-
-        // Check compatible bitmap config
-        if (image.config != Bitmap.Config.ARGB_8888) {
-            // Create a new bitmap with ARGB_8888 config
-            compatibleImage = image.copy(Bitmap.Config.ARGB_8888, false)
-        }
-
-        // Preprocess the image and convert it into a TensorImage for classification.
-        val tensorImage = imageProcessor.process(TensorImage.fromBitmap(compatibleImage))
-
-        val imageProcessingOptions = ImageProcessingOptions.builder()
-            .setOrientation(getOrientationFromRotation(rotation))
-            .build()
-
-        val results = imageClassifier?.classify(tensorImage, imageProcessingOptions)
-        inferenceTime = SystemClock.uptimeMillis() - inferenceTime
-        onClassify(
-            (results ?: emptyList()).fastFlatMap { it.categories },
-            inferenceTime
-        )
-    }
+    }.getOrNull()
 
     // Receive the device rotation (Surface.x values range from 0->3) and return EXIF orientation
     // http://jpegclub.org/exif_orientation.html

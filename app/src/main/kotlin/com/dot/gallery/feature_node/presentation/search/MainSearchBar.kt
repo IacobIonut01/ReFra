@@ -107,6 +107,10 @@ fun MainSearchBar(
         Row(
             modifier = Modifier
                 .sharedBounds(
+                    sharedContentState = rememberSharedContentState(key = "search_screen_bounds"),
+                    animatedVisibilityScope = animatedContentScope
+                )
+                .sharedElement(
                     sharedContentState = rememberSharedContentState(key = "search_screen"),
                     animatedVisibilityScope = animatedContentScope
                 )

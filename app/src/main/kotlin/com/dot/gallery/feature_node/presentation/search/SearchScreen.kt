@@ -141,7 +141,7 @@ fun SearchScreen(
     val locations by viewModel.locations.collectAsStateWithLifecycle()
     Scaffold(
         modifier = Modifier.sharedBounds(
-            sharedContentState = rememberSharedContentState(key = "search_screen"),
+            sharedContentState = rememberSharedContentState(key = "search_screen_bounds"),
             animatedVisibilityScope = animatedContentScope
         ),
         topBar = {

@@ -75,7 +75,9 @@ class MockedMediaHandler: MediaHandler {
     override suspend fun <T : Media> copyMedia(
         from: T,
         path: String
-    ): Boolean = false
+    ) = Unit
+
+    override suspend fun <T : Media> copyMedia(vararg sets: Pair<T, String>) = Unit
 
     override suspend fun <T : Media> deleteMedia(
         result: ActivityResultLauncher<IntentSenderRequest>,

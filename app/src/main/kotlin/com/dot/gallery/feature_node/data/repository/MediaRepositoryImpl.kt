@@ -20,9 +20,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.work.WorkManager
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.dataStore
-import com.dot.gallery.core.updateDatabase
 import com.dot.gallery.core.util.MediaStoreBuckets
-import com.dot.gallery.core.util.ext.copyMedia
 import com.dot.gallery.core.util.ext.deleteGpsMetadata
 import com.dot.gallery.core.util.ext.deleteMetadata
 import com.dot.gallery.core.util.ext.mapAsResource
@@ -33,6 +31,8 @@ import com.dot.gallery.core.util.ext.saveVideo
 import com.dot.gallery.core.util.ext.updateImageDescription
 import com.dot.gallery.core.util.ext.updateMedia
 import com.dot.gallery.core.util.ext.updateMediaExif
+import com.dot.gallery.core.workers.copyMedia
+import com.dot.gallery.core.workers.updateDatabase
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder.Companion.VAULT_INFO_FILE_NAME
@@ -72,12 +72,15 @@ import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
@@ -91,8 +94,14 @@ class MediaRepositoryImpl(
 
     private val contentResolver = context.contentResolver
 
+    private var updateDatabaseMutex = Mutex()
     override suspend fun updateInternalDatabase() {
-        workManager.updateDatabase()
+        if (!updateDatabaseMutex.isLocked) {
+            updateDatabaseMutex.withLock {
+                delay(5000) // Delay to ensure the database is not updated too frequently
+                workManager.updateDatabase()
+            }
+        }
         //workManager.scheduleMediaMigrationCheck()
     }
 
@@ -271,10 +280,16 @@ class MediaRepositoryImpl(
     override suspend fun <T : Media> copyMedia(
         from: T,
         path: String
-    ): Boolean = contentResolver.copyMedia(
-        from = from,
-        path = path
-    )
+    ) {
+        workManager.copyMedia(
+            from = from as UriMedia,
+            path = path,
+        )
+    }
+
+    override suspend fun <T : Media> copyMedia(vararg sets: Pair<T, String>) {
+        workManager.copyMedia(*sets)
+    }
 
     override suspend fun <T : Media> renameMedia(
         media: T,

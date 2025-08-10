@@ -15,7 +15,6 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -30,8 +29,7 @@ import javax.inject.Inject
 class StandaloneViewModel @Inject constructor(
     @ApplicationContext
     private val applicationContext: Context,
-    private val repository: MediaRepository,
-    val handler: MediaHandleUseCase
+    private val repository: MediaRepository
 ) : ViewModel() {
 
     var reviewMode: Boolean = false

@@ -191,7 +191,10 @@ fun NavigationComp(
             composable(
                 route = Screen.TrashedScreen()
             ) {
-                val trashedMediaState = distributor.trashMediaFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
+                val trashedMediaState = distributor.trashMediaFlow.collectAsStateWithLifecycle(
+                    context = Dispatchers.IO,
+                    initialValue = MediaState()
+                )
                 TrashedGridScreen(
                     paddingValues = paddingValues,
                     mediaState = trashedMediaState,
@@ -204,7 +207,10 @@ fun NavigationComp(
             composable(
                 route = Screen.FavoriteScreen()
             ) {
-                val favoritesMediaState = distributor.favoritesMediaFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
+                val favoritesMediaState = distributor.favoritesMediaFlow.collectAsStateWithLifecycle(
+                    context = Dispatchers.IO,
+                    initialValue = MediaState()
+                )
                 FavoriteScreen(
                     paddingValues = paddingValues,
                     mediaState = favoritesMediaState,
@@ -278,7 +284,10 @@ fun NavigationComp(
                     backStackEntry.arguments?.getLong("albumId") ?: -1L
                 }
                 val allAlbumsMediaState = distributor.albumsTimelinesMediaFlow.collectAsStateWithLifecycle()
-                val timelineState = distributor.timelineMediaFlow.collectAsStateWithLifecycle()
+                val timelineState = distributor.timelineMediaFlow.collectAsStateWithLifecycle(
+                    context = Dispatchers.IO,
+                    initialValue = MediaState()
+                )
                 val albumMediaState = rememberedDerivedState {
                     allAlbumsMediaState.value[albumId] ?: MediaState()
                 }
@@ -320,7 +329,10 @@ fun NavigationComp(
                         TARGET_TRASH -> distributor.trashMediaFlow
                         else -> distributor.timelineMediaFlow
                     }
-                }.collectAsStateWithLifecycle()
+                }.collectAsStateWithLifecycle(
+                    context = Dispatchers.IO,
+                    initialValue = MediaState()
+                )
 
                 MediaViewScreen(
                     toggleRotate = toggleRotate,

@@ -1,4 +1,4 @@
-package com.dot.gallery.core
+package com.dot.gallery.core.workers
 
 import android.content.Context
 import androidx.compose.ui.util.fastMap
@@ -25,28 +25,29 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 fun WorkManager.updateDatabase() {
+    val workPolicy = ExistingWorkPolicy.KEEP
+    val constraints = Constraints.Builder()
+        .setRequiresStorageNotLow(true)
+        .build()
+
     val searchIndexerWork = OneTimeWorkRequestBuilder<SearchIndexerUpdaterWorker>()
+        .setConstraints(constraints)
         .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
         .addTag("SearchIndexerUpdater")
         .build()
 
-    enqueueUniqueWork("SearchIndexerUpdater", ExistingWorkPolicy.REPLACE, searchIndexerWork)
-
-    val uniqueWork = OneTimeWorkRequestBuilder<DatabaseUpdaterWorker>()
-        .setConstraints(
-            Constraints.Builder()
-                .setRequiresStorageNotLow(true)
-                .build()
-        )
+    val databaseUpdaterWork = OneTimeWorkRequestBuilder<DatabaseUpdaterWorker>()
+        .setConstraints(constraints)
         .build()
 
-    enqueueUniqueWork("DatabaseUpdaterWorker", ExistingWorkPolicy.KEEP, uniqueWork)
-
     val metadataWork = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
+        .setConstraints(constraints)
         .addTag("MetadataCollection")
         .build()
 
-    enqueueUniqueWork("MetadataCollection", ExistingWorkPolicy.KEEP, metadataWork)
+    enqueueUniqueWork("SearchIndexerUpdater", workPolicy, searchIndexerWork)
+    enqueueUniqueWork("DatabaseUpdaterWorker", workPolicy, databaseUpdaterWork)
+    enqueueUniqueWork("MetadataCollection", workPolicy, metadataWork)
 }
 
 @HiltWorker
@@ -57,15 +58,16 @@ class DatabaseUpdaterWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result {
-        delay(1000)
+    override suspend fun doWork(): Result = runCatching {
+        delay(5000)
         if (database.isMediaUpToDate(appContext)) {
             printDebug("Database is up to date")
             return Result.success()
         }
         withContext(Dispatchers.IO) {
             val mediaVersion = appContext.mediaStoreVersion
-            val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
+            val media =
+                repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
             media?.let {
                 printDebug("Database is not up to date. Updating to version $mediaVersion")
                 database.getMediaDao().setMediaVersion(MediaVersion(mediaVersion))
@@ -75,7 +77,10 @@ class DatabaseUpdaterWorker @AssistedInject constructor(
             }
         }
 
-        return Result.success()
+        return@runCatching Result.success()
+    }.getOrElse { exception ->
+        printDebug("Error updating database: ${exception.message}")
+        Result.failure()
     }
 }
 

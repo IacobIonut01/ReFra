@@ -31,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -38,21 +39,27 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Singleton
 
 val LocalMediaDistributor = compositionLocalOf<MediaDistributor> {
     error("No MediaDistributor provided!!! This is likely due to a missing Hilt injection in the Composable hierarchy.")
 }
 
+@Singleton
 class MediaDistributorImpl @Inject constructor(
     private val repository: MediaRepository,
     private val eventHandler: EventHandler,
     workManager: WorkManager
 ) : MediaDistributor {
+    
+    private val sharingMethod = SharingStarted.WhileSubscribed(5_000L)
+    private val prioritySharingMethod = SharingStarted.Eagerly
 
-    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
      * Common
@@ -67,7 +74,7 @@ class MediaDistributorImpl @Inject constructor(
         Triple(defaultDateFormat, extendedDateFormat, weeklyDateFormat)
     }.stateIn(
         scope = appScope,
-        started = SharingStarted.Eagerly,
+        started = sharingMethod,
         initialValue = Triple(
             first = Constants.DEFAULT_DATE_FORMAT,
             second = Constants.EXTENDED_DATE_FORMAT,
@@ -90,7 +97,7 @@ class MediaDistributorImpl @Inject constructor(
     override val settingsFlow: StateFlow<TimelineSettings?> = repository.getTimelineSettings()
         .stateIn(
             scope = appScope,
-            started = SharingStarted.Eagerly,
+            started = sharingMethod,
             initialValue = TimelineSettings()
         )
 
@@ -101,7 +108,7 @@ class MediaDistributorImpl @Inject constructor(
         repository.getBlacklistedAlbums()
             .stateIn(
                 scope = appScope,
-                started = SharingStarted.Eagerly,
+                started = sharingMethod,
                 initialValue = emptyList()
             )
 
@@ -109,7 +116,7 @@ class MediaDistributorImpl @Inject constructor(
         repository.getPinnedAlbums()
             .stateIn(
                 scope = appScope,
-                started = SharingStarted.Eagerly,
+                started = sharingMethod,
                 initialValue = emptyList()
             )
 
@@ -123,11 +130,12 @@ class MediaDistributorImpl @Inject constructor(
             }
         }
 
-    private val albumThumbnails = repository.getAlbumThumbnails().stateIn(
-        scope = appScope,
-        started = SharingStarted.Eagerly,
-        initialValue = emptyList()
-    )
+    private val albumThumbnails = repository.getAlbumThumbnails()
+        .stateIn(
+            scope = appScope,
+            started = prioritySharingMethod,
+            initialValue = emptyList()
+        )
 
     override val albumsFlow: StateFlow<AlbumState> = combine(
         repository.getAlbums(mediaOrder = albumOrder),
@@ -152,12 +160,12 @@ class MediaDistributorImpl @Inject constructor(
             isLoading = false,
             error = if (result is Resource.Error) result.message ?: "An error occurred" else ""
         )
-    }.stateIn(appScope, started = SharingStarted.WhileSubscribed(), AlbumState())
+    }.stateIn(appScope, started = prioritySharingMethod, AlbumState())
 
     /**
      * Media
      */
-    override val timelineMediaFlow: StateFlow<MediaState<Media.UriMedia>> =
+    override val timelineMediaFlow: SharedFlow<MediaState<Media.UriMedia>> =
         mediaFlow(-1L, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -174,17 +182,17 @@ class MediaDistributorImpl @Inject constructor(
                     }
                 ) { states -> states.toMap() }
             }
-        }.stateIn(appScope, SharingStarted.Eagerly, emptyMap())
+        }.stateIn(appScope, sharingMethod, emptyMap())
 
     override fun albumTimelineMediaFlow(albumId: Long): StateFlow<MediaState<Media.UriMedia>> =
         albumsTimelinesMediaFlow.map { it[albumId] ?: MediaState() }
-            .stateIn(appScope, SharingStarted.Eagerly, MediaState())
+            .stateIn(appScope, sharingMethod, MediaState())
 
 
-    override val favoritesMediaFlow: StateFlow<MediaState<Media.UriMedia>> =
+    override val favoritesMediaFlow: SharedFlow<MediaState<Media.UriMedia>> =
         mediaFlow(-1L, Constants.Target.TARGET_FAVORITES)
 
-    override val trashMediaFlow: StateFlow<MediaState<Media.UriMedia>> =
+    override val trashMediaFlow: SharedFlow<MediaState<Media.UriMedia>> =
         mediaFlow(-1L, Constants.Target.TARGET_TRASH)
 
 
@@ -220,7 +228,11 @@ class MediaDistributorImpl @Inject constructor(
     }.mapLatest {
         eventHandler.pushEvent(UIEvent.UpdateDatabase)
         it
-    }.stateIn(appScope, started = SharingStarted.Eagerly, MediaState())
+    }.shareIn(
+        scope = appScope,
+        started = sharingMethod,
+        replay = 1
+    )
 
     /**
      * Media Metadata
@@ -237,14 +249,15 @@ class MediaDistributorImpl @Inject constructor(
             isLoading = isRunning,
             isLoadingProgress = progress
         )
-    }.stateIn(appScope, started = SharingStarted.Eagerly, MediaMetadataState())
+    }.stateIn(appScope, started = sharingMethod, MediaMetadataState())
 
     /**
      * Vault
      */
     override val vaultsMediaFlow: StateFlow<VaultState> = repository.getVaults()
+        
         .map { VaultState(it.data ?: emptyList(), isLoading = false) }
-        .stateIn(appScope, started = SharingStarted.Eagerly, VaultState())
+        .stateIn(appScope, started = sharingMethod, VaultState())
 
     override fun vaultMediaFlow(vault: Vault?): StateFlow<MediaState<Media.UriMedia>> = combine(
         repository.getEncryptedMedia(vault),
@@ -260,7 +273,7 @@ class MediaDistributorImpl @Inject constructor(
             extendedDateFormat = extendedDateFormat,
             weeklyDateFormat = weeklyDateFormat
         )
-    }.stateIn(appScope, SharingStarted.Eagerly, MediaState())
+    }.stateIn(appScope, sharingMethod, MediaState())
 
     /**
      * Search
@@ -269,7 +282,7 @@ class MediaDistributorImpl @Inject constructor(
         repository.getImageEmbeddings()
             .stateIn(
                 scope = appScope,
-                started = SharingStarted.Eagerly,
+                started = sharingMethod,
                 initialValue = emptyList()
             )
 

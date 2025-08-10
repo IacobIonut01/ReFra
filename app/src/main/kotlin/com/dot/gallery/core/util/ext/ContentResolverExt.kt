@@ -173,7 +173,6 @@ suspend fun <T : Media> ContentResolver.copyMedia(
                 put(MediaStore.MediaColumns.IS_PENDING, 0)
                 put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
             }
-
             update(
                 outUri,
                 updatedValues,

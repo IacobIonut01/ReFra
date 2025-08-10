@@ -22,7 +22,6 @@ import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.domain.util.OrderType
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -36,8 +35,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumsViewModel @Inject constructor(
-    private val repository: MediaRepository,
-    val handler: MediaHandleUseCase
+    private val repository: MediaRepository
 ) : ViewModel() {
 
     fun onAlbumClick(navigate: (String) -> Unit): (Album) -> Unit = { album ->

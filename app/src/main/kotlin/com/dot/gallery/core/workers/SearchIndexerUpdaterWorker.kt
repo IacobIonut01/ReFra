@@ -1,6 +1,4 @@
-@file:Suppress("PrivatePropertyName")
-
-package com.dot.gallery.core
+package com.dot.gallery.core.workers
 
 import android.content.Context
 import android.graphics.ColorSpace
@@ -22,6 +20,7 @@ import com.github.panpf.sketch.request.ImageRequest
 import com.github.panpf.sketch.sketch
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
@@ -34,7 +33,8 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
 
     private val visionHelper by lazy { SearchVisionHelper(appContext) }
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = runCatching {
+        delay(5000)
         printDebug("Starting indexing media items")
         val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
         val records = repository.getImageEmbeddings().firstOrNull()
@@ -77,7 +77,9 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
         printDebug("Indexing completed for ${toBeIndexed.size} media items")
         setProgress(workDataOf("progress" to 100f))
         return Result.success()
+    }.getOrElse { exception ->
+        printWarning("SearchIndexerUpdaterWorker failed with exception: ${exception.message}")
+        return Result.failure()
     }
 
 }
-

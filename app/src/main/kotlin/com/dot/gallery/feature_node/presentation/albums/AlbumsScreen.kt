@@ -57,6 +57,7 @@ import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.FilterOption
 import com.dot.gallery.core.presentation.components.LoadingAlbum
 import com.dot.gallery.feature_node.domain.model.Album
+import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
 import com.dot.gallery.feature_node.presentation.albums.components.CarouselPinnedAlbums
@@ -67,6 +68,7 @@ import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -82,7 +84,10 @@ fun AlbumsScreen(
 ) {
     val eventHandler = LocalEventHandler.current
     val distributor = LocalMediaDistributor.current
-    val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle()
+    val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle(
+        context = Dispatchers.IO,
+        initialValue = MediaState()
+    )
     val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle()
 
     var lastCellIndex by rememberAlbumGridSize()

@@ -12,11 +12,11 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.dot.gallery.core.MediaDistributor
-import com.dot.gallery.core.MetadataCollectionWorker
 import com.dot.gallery.core.decoder.supportHeifDecoder
 import com.dot.gallery.core.decoder.supportJxlDecoder
 import com.dot.gallery.core.decoder.supportVaultDecoder
 import com.dot.gallery.core.decoder.supportVideoFrame2
+import com.dot.gallery.core.workers.MetadataCollectionWorker
 import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.EventHandler
@@ -35,6 +35,8 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import okio.FileSystem
 import javax.inject.Inject
@@ -100,9 +102,12 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
                 .build()
         )
         appScope.launch {
-            eventHandler.updaterFlow.collect { event ->
+            eventHandler.updaterFlow.collectLatest { event ->
                 when (event) {
-                    UIEvent.UpdateDatabase -> repository.updateInternalDatabase()
+                    UIEvent.UpdateDatabase -> {
+                        delay(1000L)
+                        repository.updateInternalDatabase()
+                    }
                     UIEvent.NavigationUpEvent -> eventHandler.navigateUpAction()
                     is UIEvent.NavigationRouteEvent -> eventHandler.navigateAction(event.route)
                     is UIEvent.ToggleNavigationBarEvent -> eventHandler.toggleNavigationBarAction(event.isVisible)

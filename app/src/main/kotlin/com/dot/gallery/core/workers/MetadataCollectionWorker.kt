@@ -1,4 +1,4 @@
-package com.dot.gallery.core
+package com.dot.gallery.core.workers
 
 import android.content.Context
 import androidx.compose.ui.util.fastFilter
@@ -42,8 +42,8 @@ class MetadataCollectionWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result {
-        delay(1000)
+    override suspend fun doWork(): Result = runCatching  {
+        delay(5000)
         val forceReload = inputData.getBoolean("forceReload", false)
         if (database.isMetadataUpToDate(appContext) && !forceReload) {
             printDebug("Metadata is up to date")
@@ -87,5 +87,8 @@ class MetadataCollectionWorker @AssistedInject constructor(
         database.getMetadataDao().setMediaVersion(MediaVersion(appContext.mediaStoreVersion))
         setProgress(workDataOf("progress" to 100))
         return Result.success()
+    }.getOrElse { exception ->
+        printDebug("MetadataCollectionWorker failed with exception: ${exception.message}")
+        return Result.failure()
     }
 }

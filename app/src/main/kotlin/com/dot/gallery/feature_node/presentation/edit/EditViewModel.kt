@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.editor.Adjustment
@@ -22,7 +23,6 @@ import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.domain.model.editor.SaveFormat
 import com.dot.gallery.feature_node.domain.model.editor.VariableFilter
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.domain.use_case.MediaHandleUseCase
 import com.dot.gallery.feature_node.presentation.edit.adjustments.Markup
 import com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter.Rotate
 import com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter.VariableFilterTypes
@@ -48,7 +48,7 @@ import javax.inject.Inject
 @HiltViewModel
 class EditViewModel @Inject constructor(
     private val repository: MediaRepository,
-    private val mediaHandler: MediaHandleUseCase,
+    private val mediaHandler: MediaHandler,
 ) : ViewModel() {
 
     private val _isEditingActive = MutableStateFlow(false)
