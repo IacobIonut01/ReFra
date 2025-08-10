@@ -15,13 +15,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.navigateUp
 
 @Composable
 fun NavigationBackButton(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack,
     contentDescription: String = stringResource(R.string.back_cd),
+    forcedAction: (() -> Unit)? = null
 ) {
     val eventHandler = LocalEventHandler.current
     IconButton(
@@ -31,7 +31,9 @@ fun NavigationBackButton(
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = CircleShape
             ),
-        onClick = eventHandler::navigateUp
+        onClick = {
+            forcedAction?.invoke() ?: eventHandler.navigateUpAction()
+        }
     ) {
         Icon(
             imageVector = icon,

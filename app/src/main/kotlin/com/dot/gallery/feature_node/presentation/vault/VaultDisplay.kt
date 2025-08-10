@@ -22,7 +22,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Restore
@@ -33,7 +32,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
@@ -67,9 +65,13 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.cellsList
+import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
+import com.dot.gallery.core.navigate
+import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.ModalSheet
+import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
@@ -90,8 +92,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun VaultDisplay(
-    navigateUp: () -> Unit,
-    navigate: (route: String) -> Unit,
+    globalNavigateUp: () -> Unit,
     vaultState: State<VaultState>,
     currentVault: MutableState<Vault?>,
     createMediaState: (Vault?) -> StateFlow<MediaState<Media.UriMedia>>,
@@ -107,6 +108,7 @@ fun VaultDisplay(
     animatedContentScope: AnimatedContentScope,
     metadataState: State<MediaMetadataState>,
 ) {
+    val eventHandler = LocalEventHandler.current
     val isRunning by workerIsRunning.collectAsStateWithLifecycle()
     val progress by workerProgress.collectAsStateWithLifecycle()
 
@@ -175,7 +177,7 @@ fun VaultDisplay(
     LaunchedEffect(vaultState.value) {
         if (vaultState.value.isLoading) return@LaunchedEffect
         if (vaultState.value.vaults.isNotEmpty()) return@LaunchedEffect
-        navigateUp()
+        eventHandler.navigateUp()
     }
 
     ModalSheet(
@@ -288,12 +290,9 @@ fun VaultDisplay(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back_cd)
-                        )
-                    }
+                    NavigationBackButton(
+                        forcedAction = globalNavigateUp,
+                    )
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -394,7 +393,7 @@ fun VaultDisplay(
                         val vault = currentVault.value ?: vaultState.value.vaults.firstOrNull()
                         vault?.let { it1 -> deleteVault(it1) }
                         if (vaultState.value.vaults.isEmpty()) {
-                            navigateUp()
+                            eventHandler.navigateUp()
                         }
                     }
                     RestoreVaultSheet(
@@ -403,18 +402,20 @@ fun VaultDisplay(
                         val vault = currentVault.value ?: vaultState.value.vaults.firstOrNull()
                         vault?.let { it1 -> restoreVault(it1) }
                         if (vaultState.value.vaults.isEmpty()) {
-                            navigateUp()
+                            eventHandler.navigateUp()
                         }
                     }
                 },
                 isScrolling = remember { mutableStateOf(false) },
                 emptyContent = {
-                    EmptyMedia()
+                    EmptyMedia(
+                        modifier = Modifier.padding(top = 64.dp),
+                    )
                 },
                 sharedTransitionScope = sharedTransitionScope,
                 animatedContentScope = animatedContentScope,
                 onMediaClick = { encryptedMedia ->
-                    navigate(VaultScreens.EncryptedMediaViewScreen.id(encryptedMedia.id))
+                    eventHandler.navigate(VaultScreens.EncryptedMediaViewScreen.id(encryptedMedia.id))
                 },
             )
         }

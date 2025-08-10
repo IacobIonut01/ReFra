@@ -1,10 +1,8 @@
 package com.dot.gallery.feature_node.presentation.vault
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +18,6 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.presentation.util.RepeatOnResume
 import com.dot.gallery.feature_node.presentation.util.mapMedia
 import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -78,13 +75,6 @@ open class VaultViewModel @Inject constructor(
             isLoadingProgress = progress
         )
     }.stateIn(viewModelScope, started = SharingStarted.Eagerly, MediaMetadataState())
-
-    @SuppressLint("ComposableNaming")
-    @Composable
-    fun attachToLifecycle() {
-        RepeatOnResume {
-        }
-    }
 
     fun createMediaState(vault: Vault?) = repository.getEncryptedMedia(vault)
         .mapMedia(
