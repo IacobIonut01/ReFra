@@ -12,7 +12,7 @@ import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.search.helpers.SearchVisionHelper
 import com.dot.gallery.feature_node.presentation.search.util.centerCrop
-import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import com.github.panpf.sketch.asBitmapOrNull
 import com.github.panpf.sketch.decode.BitmapColorSpace
@@ -35,17 +35,17 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = runCatching {
         delay(5000)
-        printDebug("Starting indexing media items")
+        printInfo("Starting indexing media items")
         val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
         val records = repository.getImageEmbeddings().firstOrNull()
         val toBeIndexed = media?.filter { mediaItem ->
             records?.none { it.id == mediaItem.id } ?: true
         } ?: emptyList()
         if (toBeIndexed.isEmpty()) {
-            printDebug("No media items to index")
+            printInfo("No media items to index")
             return Result.success()
         }
-        printDebug("Found ${toBeIndexed.size} media items to index")
+        printInfo("Found ${toBeIndexed.size} media items to index")
         setProgress(workDataOf("progress" to 0))
         visionHelper.setupVisionSession().use { session ->
             toBeIndexed.fastForEachIndexed { index, mediaItem ->
@@ -61,7 +61,7 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
                 if (bitmap != null) {
                     val rawBitmap = centerCrop(bitmap, 224)
                     val embedding = visionHelper.getImageEmbedding(session, rawBitmap)
-                    printDebug("Processed media item $index in ${System.currentTimeMillis() - startMillis} ms")
+                    printInfo("Processed media item $index in ${System.currentTimeMillis() - startMillis} ms")
                     repository.addImageEmbedding(
                         ImageEmbedding(
                             id = mediaItem.id,
@@ -70,11 +70,11 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
                         )
                     )
                 } else {
-                    printDebug("Failed to decode bitmap for media: ${mediaItem.id} at ${mediaItem.getUri()}")
+                    printInfo("Failed to decode bitmap for media: ${mediaItem.id} at ${mediaItem.getUri()}")
                 }
             }
         }
-        printDebug("Indexing completed for ${toBeIndexed.size} media items")
+        printInfo("Indexing completed for ${toBeIndexed.size} media items")
         setProgress(workDataOf("progress" to 100f))
         return Result.success()
     }.getOrElse { exception ->

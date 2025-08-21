@@ -8,11 +8,14 @@ package com.dot.gallery.feature_node.presentation.albumtimeline
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +48,7 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.NavigationButton
 import com.dot.gallery.core.presentation.components.SelectionSheet
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
@@ -58,7 +62,9 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun AlbumTimelineScreen(
     albumId: Long,
@@ -74,7 +80,7 @@ fun AlbumTimelineScreen(
     val distributor = LocalMediaDistributor.current
     val allAlbumsMediaState = distributor.albumsTimelinesMediaFlow.collectAsStateWithLifecycle()
     val mediaState = rememberedDerivedState { allAlbumsMediaState.value[albumId] ?: MediaState() }
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle()
+    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
     val selector = LocalMediaSelector.current
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
 
@@ -84,9 +90,13 @@ fun AlbumTimelineScreen(
         flingAnimationSpec = null
     )
 
+    val dpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
     val pinchState = rememberPinchZoomGridState(
         cellsList = cellsList,
-        initialCellsIndex = lastCellIndex
+        initialCellsIndex = lastCellIndex,
+        gridState = rememberLazyGridState(
+            cacheWindow = dpCacheWindow
+        )
     )
 
     LaunchedEffect(pinchState.isZooming) {

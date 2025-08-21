@@ -55,6 +55,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.feature_node.domain.model.Album
@@ -66,10 +69,10 @@ import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.ui.theme.Shapes
-import com.github.panpf.sketch.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun AlbumComponent(
     modifier: Modifier = Modifier,
@@ -230,12 +233,12 @@ fun AlbumComponent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AsyncImage(
+                    GlideImage(
                         modifier = Modifier
                             .size(98.dp)
                             .clip(Shapes.large),
                         contentScale = ContentScale.Crop,
-                        uri = album.uri.toString(),
+                        model = album.uri.toString(),
                         contentDescription = album.label
                     )
                     Text(
@@ -332,7 +335,7 @@ fun AlbumComponent(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun AlbumImage(
     modifier: Modifier = Modifier,
@@ -374,8 +377,8 @@ fun AlbumImage(
                 .padding(48.dp)
         )
     } else {
-        AsyncImage(
-            modifier = modifier
+        GlideImage(
+            modifier = Modifier
                 .fillMaxSize()
                 .border(
                     width = 1.dp,
@@ -395,9 +398,14 @@ fun AlbumImage(
                         }
                     }
                 ),
-            uri = album.uri.toString(),
+            model = album.uri,
             contentDescription = album.label,
             contentScale = ContentScale.Crop,
+            requestBuilderTransform = {
+                val newRequest = it.centerCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
+            }
         )
     }
 }

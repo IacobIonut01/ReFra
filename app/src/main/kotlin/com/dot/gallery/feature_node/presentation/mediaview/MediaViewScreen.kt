@@ -84,6 +84,7 @@ import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.getUri
@@ -161,7 +162,7 @@ fun <T : Media> MediaViewScreen(
     val distributor = LocalMediaDistributor.current
     val vaultState = distributor.vaultsMediaFlow.collectAsStateWithLifecycle()
     val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle()
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle()
+    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()

@@ -33,6 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
@@ -44,14 +46,15 @@ import com.dot.gallery.feature_node.presentation.util.MapBoxURL
 import com.dot.gallery.feature_node.presentation.util.connectivityState
 import com.dot.gallery.feature_node.presentation.util.launchMap
 import com.dot.gallery.ui.theme.Shapes
-import com.github.panpf.sketch.AsyncImage
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @Suppress("KotlinConstantConditions")
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalHazeMaterialsApi::class,
+    ExperimentalGlideComposeApi::class
+)
 @Composable
 fun LocationItem(
     modifier: Modifier = Modifier,
@@ -132,8 +135,8 @@ fun LocationItem(
                         connection.isConnected() && BuildConfig.MAPS_TOKEN != "DEBUG"
                     }
                 ) {
-                    AsyncImage(
-                        uri = MapBoxURL(
+                    GlideImage(
+                        model = MapBoxURL(
                             latitude = locationData.latitude,
                             longitude = locationData.longitude,
                             darkTheme = isSystemInDarkTheme()

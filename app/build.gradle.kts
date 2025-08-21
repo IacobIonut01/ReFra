@@ -24,7 +24,7 @@ android {
         applicationId = "com.dot.gallery"
         minSdk = 30
         targetSdk = 36
-        versionCode = 40025
+        versionCode = 40029
         versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -225,7 +225,7 @@ dependencies {
     // Kotlin Extensions and Coroutines support for Room
     implementation(libs.room.ktx)
 
-    // Coil
+    // Coders
     implementation(libs.jxl.coder.coil)
     implementation(libs.avif.coder.coil)
 
@@ -239,6 +239,10 @@ dependencies {
     implementation(libs.sketch.http.ktor)
     implementation(libs.sketch.svg)
     implementation(libs.sketch.video)
+
+    // Glide
+    implementation(libs.glide.compose)
+    ksp(libs.glide.ksp)
 
     // Exo Player
     implementation(libs.androidx.media3.exoplayer)
@@ -265,7 +269,7 @@ dependencies {
     implementation(libs.pinchzoomgrid)
 
     // Subsampling
-    implementation(libs.zoomimage.sketch)
+    implementation(libs.zoomimage.compose.glide)
 
     // Splashscreen
     implementation(libs.androidx.core.splashscreen)

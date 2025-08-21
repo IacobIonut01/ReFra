@@ -30,7 +30,7 @@ class SketchHeifDecoder(
 
         override fun create(requestContext: RequestContext, fetchResult: FetchResult): Decoder? {
             val mimeType = requestContext.request.extras?.get("realMimeType") as String? ?: return null
-            return if (HEIF_MIMETYPES.any { mimeType.contains(it) == true }) {
+            return if (HEIF_MIMETYPES.any { mimeType.contains(it) }) {
                 SketchHeifDecoder(requestContext, fetchResult.dataSource, fetchResult.mimeType!!)
             } else {
                 null

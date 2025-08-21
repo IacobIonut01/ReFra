@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.LazyGridPrefetchStrategy
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -42,6 +42,7 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.core.toggleNavigationBar
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
@@ -71,16 +72,17 @@ fun TimelineScreen(
         context = Dispatchers.IO,
         initialValue = MediaState()
     )
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle()
+    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
     val selector = LocalMediaSelector.current
     val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
 
+    val dpCacheWindow = LazyLayoutCacheWindow(aheadFraction = 2f, behindFraction = 2f)
     val pinchState = rememberPinchZoomGridState(
         cellsList = cellsList,
         initialCellsIndex = lastCellIndex,
         gridState = rememberLazyGridState(
-            prefetchStrategy = remember { LazyGridPrefetchStrategy() }
+            cacheWindow = dpCacheWindow
         )
     )
 

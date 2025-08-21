@@ -5,11 +5,9 @@
 
 package com.dot.gallery.feature_node.presentation.common.components
 
-import android.graphics.Bitmap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -32,11 +30,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.CheckBox
 import com.dot.gallery.core.presentation.components.util.advancedShadow
@@ -48,11 +47,8 @@ import com.dot.gallery.feature_node.domain.util.isFavorite
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoDurationHeader
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
-import com.github.panpf.sketch.AsyncImage
-import com.github.panpf.sketch.request.ComposableImageRequest
-import com.github.panpf.sketch.request.colorType
-import com.github.panpf.sketch.resize.Precision
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun <T : Media> MediaImage(
     modifier: Modifier = Modifier,
@@ -92,11 +88,10 @@ fun <T : Media> MediaImage(
     val roundedShape = remember(selectedShapeSize) {
         RoundedCornerShape(selectedShapeSize)
     }
-    val request = ComposableImageRequest(media.getUri().toString()) {
+/*    val request = ComposableImageRequest(media.getUri().toString()) {
         precision(Precision.LESS_PIXELS)
-        this.colorType(Bitmap.Config.ARGB_4444)
-        this.resizeOnDraw()
-        this.sizeMultiplier(0.8f)
+        colorType(Bitmap.Config.RGB_565)
+        sizeMultiplier(0.8f)
         setExtra(
             key = "mediaKey",
             value = media.idLessKey,
@@ -105,7 +100,9 @@ fun <T : Media> MediaImage(
             key = "realMimeType",
             value = media.mimeType,
         )
-    }
+        memoryCacheKey(media.idLessKey)
+        resultCacheKey(media.idLessKey)
+    }*/
     Box(
         modifier = Modifier
             .combinedClickable(
@@ -126,7 +123,34 @@ fun <T : Media> MediaImage(
             .aspectRatio(1f)
             .then(modifier)
     ) {
-        AsyncImage(
+
+        GlideImage(
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.Center)
+                .aspectRatio(1f)
+                .padding(selectedSize)
+                .clip(roundedShape)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = roundedShape
+                )
+                .border(
+                    width = strokeSize,
+                    shape = roundedShape,
+                    color = strokeColor
+                ),
+            model = media.getUri(),
+            contentDescription = media.label,
+            contentScale = ContentScale.Crop,
+            requestBuilderTransform = {
+                val newRequest = it.centerCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
+            }
+        )
+
+/*        AsyncImage(
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.Center)
@@ -146,7 +170,7 @@ fun <T : Media> MediaImage(
             filterQuality = FilterQuality.None,
             contentDescription = media.label,
             contentScale = ContentScale.Crop,
-        )
+        )*/
 
         if (media.isVideo) {
             VideoDurationHeader(
@@ -159,7 +183,7 @@ fun <T : Media> MediaImage(
         }
 
         if (media.isFavorite) {
-            Image(
+            Icon(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(selectedSize / 1.5f)
@@ -167,7 +191,7 @@ fun <T : Media> MediaImage(
                     .padding(8.dp)
                     .size(16.dp),
                 imageVector = Icons.Filled.Favorite,
-                colorFilter = ColorFilter.tint(Color.Red),
+                tint = Color.Red,
                 contentDescription = null
             )
         }

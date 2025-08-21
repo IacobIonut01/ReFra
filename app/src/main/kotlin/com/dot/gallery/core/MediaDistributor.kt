@@ -47,7 +47,7 @@ interface MediaDistributor {
     /**
      * Media Metadata
      */
-    val metadataFlow: StateFlow<MediaMetadataState>
+    val metadataFlow: SharedFlow<MediaMetadataState>
 
     /**
      * Vault

@@ -57,6 +57,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
@@ -71,12 +73,9 @@ import com.dot.gallery.feature_node.presentation.util.canBeTrashed
 import com.dot.gallery.feature_node.presentation.util.mediaPair
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.ui.theme.Shapes
-import com.github.panpf.sketch.AsyncImage
-import com.github.panpf.sketch.request.ComposableImageRequest
-import com.github.panpf.sketch.resize.Scale
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun <T: Media> TrashDialog(
     appBottomSheetState: AppBottomSheetState,
@@ -290,19 +289,9 @@ fun <T: Media> TrashDialog(
                                     }
                                 )
                         ) {
-                            AsyncImage(
+                            GlideImage(
                                 modifier = Modifier.fillMaxSize(),
-                                request = ComposableImageRequest(it.getUri().toString()) {
-                                    scale(Scale.CENTER_CROP)
-                                    setExtra(
-                                        key = "mediaKey",
-                                        value = it.idLessKey,
-                                    )
-                                    setExtra(
-                                        key = "realMimeType",
-                                        value = it.mimeType,
-                                    )
-                                },
+                                model = it.getUri(),
                                 contentDescription = it.label,
                                 contentScale = ContentScale.Crop
                             )

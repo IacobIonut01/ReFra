@@ -28,8 +28,10 @@ import com.github.panpf.sketch.cache.MemoryCache
 import com.github.panpf.sketch.decode.supportAnimatedHeif
 import com.github.panpf.sketch.decode.supportAnimatedWebp
 import com.github.panpf.sketch.decode.supportSvg
+import com.github.panpf.sketch.request.ImageOptions
+import com.github.panpf.sketch.request.saveCellularTraffic
 import com.github.panpf.sketch.request.supportPauseLoadWhenScrolling
-import com.github.panpf.sketch.request.supportSaveCellularTraffic
+import com.github.panpf.sketch.resize.Precision
 import com.github.panpf.sketch.util.appCacheDirectory
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +48,6 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
 
     override fun createSketch(context: PlatformContext): Sketch = Sketch.Builder(this).apply {
         components {
-            supportSaveCellularTraffic()
             supportPauseLoadWhenScrolling()
             supportSvg()
             supportVideoFrame2()
@@ -66,8 +67,18 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
                 .build()
         }
 
+        decodeParallelismLimited(maxOf(2, Runtime.getRuntime().availableProcessors().coerceAtMost(6)))
+
         resultCache(diskCache)
         downloadCache(diskCache)
+
+        globalImageOptions(
+            ImageOptions {
+                crossfade(false)
+                precision(Precision.LESS_PIXELS)
+                saveCellularTraffic(false)
+            }
+        )
     }.build()
 
     @Inject

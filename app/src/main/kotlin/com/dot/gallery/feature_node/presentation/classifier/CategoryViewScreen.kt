@@ -42,7 +42,6 @@ fun CategoryViewScreen(
         albumName = category,
         customDateHeader = stringResource(R.string.s_items,  mediaState.value.media.size),
         mediaState = mediaState,
-        metadataState = metadataState,
         target = "category_$category",
         navActionsContent = { expandedDropDown, result ->
         },

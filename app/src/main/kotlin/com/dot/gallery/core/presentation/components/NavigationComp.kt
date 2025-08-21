@@ -147,7 +147,6 @@ fun NavigationComp(
 
     // Preloaded viewModels
     val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
     LaunchedEffect(permissionState) {
         distributor.hasPermission.tryEmit(permissionState)
@@ -198,7 +197,6 @@ fun NavigationComp(
                 TrashedGridScreen(
                     paddingValues = paddingValues,
                     mediaState = trashedMediaState,
-                    metadataState = metadataState,
                     clearSelection = selector::clearSelection,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
@@ -214,7 +212,6 @@ fun NavigationComp(
                 FavoriteScreen(
                     paddingValues = paddingValues,
                     mediaState = favoritesMediaState,
-                    metadataState = metadataState,
                     clearSelection = selector::clearSelection,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this

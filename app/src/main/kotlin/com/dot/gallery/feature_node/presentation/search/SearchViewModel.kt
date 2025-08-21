@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.frosch2010.fuzzywuzzy_kotlin.FuzzySearch
@@ -16,12 +17,14 @@ import com.frosch2010.fuzzywuzzy_kotlin.ToStringFunction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,7 +62,12 @@ class SearchViewModel @Inject constructor(
 
     private val dateFormats = mediaDistributor.dateFormatsFlow
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val allMedia = mediaDistributor.timelineMediaFlow
+        .mapLatest { state ->
+            updateQueriedMedia(state)
+            state
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -67,8 +75,13 @@ class SearchViewModel @Inject constructor(
         )
 
     private val metadata = mediaDistributor.metadataFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = MediaMetadataState()
+        )
 
-    val locations = metadata.map { state ->
+    val locations = mediaDistributor.metadataFlow.map { state ->
         state.metadata
             .filter { it.gpsLocationNameCity != null && it.gpsLocationNameCountry != null }
             .groupBy { "${it.gpsLocationNameCity}, ${it.gpsLocationNameCountry}" }
@@ -113,6 +126,33 @@ class SearchViewModel @Inject constructor(
             searchJob?.cancel()
             _query.tryEmit("")
             _searchResultsState.tryEmit(SearchResultsState())
+        }
+    }
+
+    private fun updateQueriedMedia(newMediaState: MediaState<Media.UriMedia>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val query = _query.value
+            if (query.isEmpty()) return@launch
+            val resultsState = _searchResultsState.value
+            if (resultsState.hasSearched && !resultsState.isSearching) {
+                // Check resultsState and update any media that has changed based on the new MediaState
+                // If is deleted, remove it from results
+                // If is updated, update it in results
+                val updatedResults = resultsState.results.media.mapNotNull { mediaItem ->
+                    newMediaState.media.find { it.id == mediaItem.id }
+                }
+                if (updatedResults.isNotEmpty()) {
+                    _searchResultsState.tryEmit(
+                        resultsState.copy(
+                            results = MediaState(
+                                media = updatedResults,
+                                isLoading = false,
+                                error = resultsState.results.error
+                            )
+                        )
+                    )
+                }
+            }
         }
     }
 

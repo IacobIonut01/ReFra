@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.decoder.EncryptedRegionDecoder
@@ -40,18 +41,18 @@ import com.dot.gallery.feature_node.domain.util.asSubsamplingImage
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
-import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.rememberAsyncImagePainter
-import com.github.panpf.sketch.rememberAsyncImageState
 import com.github.panpf.sketch.request.ComposableImageRequest
-import com.github.panpf.sketch.request.ImageOptions
-import com.github.panpf.sketch.util.Size
-import com.github.panpf.zoomimage.SketchZoomAsyncImage
+import com.github.panpf.zoomimage.GlideZoomAsyncImage
 import com.github.panpf.zoomimage.ZoomImage
-import com.github.panpf.zoomimage.rememberSketchZoomState
+import com.github.panpf.zoomimage.compose.glide.ExperimentalGlideComposeApi
+import com.github.panpf.zoomimage.rememberGlideZoomState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalGlideComposeApi::class,
+    com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi::class
+)
 @Stable
 @Composable
 fun <T: Media> ZoomablePagerImage(
@@ -77,27 +78,22 @@ fun <T: Media> ZoomablePagerImage(
                 targetValue = if (uiEnabled) 0.7f else 0f,
                 label = "blurAlpha"
             )
-            AsyncImage(
+            GlideImage(
                 modifier = Modifier
                     .fillMaxSize()
                     .alpha(blurAlpha)
                     .blur(100.dp),
-                request = ComposableImageRequest(media.getUri().toString()) {
-                    crossfade(durationMillis = 200)
-                    size(Size.parseSize("600x600"))
-                    setExtra(
-                        key = "mediaKeySmall",
-                        value = media.idLessKey,
-                    )
-                    setExtra("realMimeType", media.mimeType)
-                },
+                model = media.getUri(),
                 contentDescription = null,
-                filterQuality = FilterQuality.None,
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                requestBuilderTransform = {
+                    it.override(600)
+                        .thumbnail(it.clone().sizeMultiplier(0.1f))
+                }
             )
         }
     }
-    val zoomState = rememberSketchZoomState()
+    val zoomState = rememberGlideZoomState()
     val scope = rememberCoroutineScope()
 
     if (media.isEncrypted) {
@@ -147,7 +143,7 @@ fun <T: Media> ZoomablePagerImage(
             contentDescription = media.label
         )
     } else {
-        val asyncState = rememberAsyncImageState(
+        /*val asyncState = rememberAsyncImageState(
             options = ImageOptions {
                 crossfade(durationMillis = 200)
                 setExtra(
@@ -156,12 +152,11 @@ fun <T: Media> ZoomablePagerImage(
                 )
                 setExtra("realMimeType", media.mimeType)
             }
-        )
-        val mediaUri = remember(media) { media.getUri().toString() }
+        )*/
 
-        SketchZoomAsyncImage(
+        GlideZoomAsyncImage(
             zoomState = zoomState,
-            state = asyncState,
+            model = media.getUri(),
             modifier = Modifier
                 .fillMaxSize()
                 .swipe(
@@ -183,7 +178,6 @@ fun <T: Media> ZoomablePagerImage(
                 }
             },
             alignment = Alignment.Center,
-            uri = mediaUri,
             contentDescription = media.label
         )
     }

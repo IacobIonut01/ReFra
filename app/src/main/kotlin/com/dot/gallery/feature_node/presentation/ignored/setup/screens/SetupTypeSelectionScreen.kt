@@ -54,6 +54,8 @@ import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.star
 import androidx.graphics.shapes.toPath
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.R
 import com.dot.gallery.core.presentation.components.SetupWizard
 import com.dot.gallery.feature_node.domain.model.Album
@@ -61,9 +63,9 @@ import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.presentation.ignored.setup.SelectAlbumSheet
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
-import com.github.panpf.sketch.AsyncImage
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun SetupTypeSelectionScreen(
     onGoBack: () -> Unit,
@@ -157,11 +159,10 @@ fun SetupTypeSelectionScreen(
                         }
                 ) {
                     this@Column.AnimatedVisibility(album != null) {
-                        AsyncImage(
-                            uri = album!!.uri.toString(),
+                        GlideImage(
+                            model = album!!.uri.toString(),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            clipToBounds = true,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

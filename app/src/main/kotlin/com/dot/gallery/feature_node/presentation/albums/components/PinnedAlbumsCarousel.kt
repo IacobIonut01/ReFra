@@ -41,20 +41,21 @@ import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.presentation.common.components.OptionItem
 import com.dot.gallery.feature_node.presentation.common.components.OptionSheet
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.ui.theme.Shapes
-import com.github.panpf.sketch.AsyncImage
-import com.github.panpf.sketch.loadImage
-import com.github.panpf.sketch.resize.Scale
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.MaskableFrameLayout
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun CarouselPinnedAlbums(
     modifier: Modifier = Modifier,
@@ -133,12 +134,12 @@ fun CarouselPinnedAlbums(
         optionList = arrayOf(optionList),
         headerContent = {
             if (currentAlbum != null) {
-                AsyncImage(
+                GlideImage(
                     modifier = Modifier
                         .size(98.dp)
                         .clip(Shapes.large),
                     contentScale = ContentScale.Crop,
-                    uri = currentAlbum!!.uri.toString(),
+                    model = currentAlbum!!.uri.toString(),
                     contentDescription = currentAlbum!!.label
                 )
                 Text(
@@ -197,9 +198,10 @@ private class PinnedAlbumsAdapter(
                 GradientDrawable.Orientation.BOTTOM_TOP,
                 intArrayOf(containerColor, Color.TRANSPARENT)
             )
-            albumImage.loadImage(album.uri.toString()) {
-                scale(Scale.CENTER_CROP)
-            }
+            Glide.with(albumImage)
+                .load(album.uri)
+                .centerCrop()
+                .into(albumImage)
             albumImage.isClickable = true
             albumImage.setOnClickListener {
                 onAlbumClick.invoke(album)

@@ -12,11 +12,14 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +48,7 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.navigate
@@ -68,7 +72,9 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun <T: Media> MediaScreen(
     paddingValues: PaddingValues = PaddingValues(0.dp),
@@ -76,7 +82,6 @@ fun <T: Media> MediaScreen(
     target: String? = remember { null },
     albumName: String,
     mediaState: State<MediaState<T>>,
-    metadataState: State<MediaMetadataState>,
     allowHeaders: Boolean = true,
     showMonthlyHeader: Boolean = false,
     enableStickyHeaders: Boolean = true,
@@ -100,9 +105,13 @@ fun <T: Media> MediaScreen(
     )
     var lastCellIndex by rememberGridSize()
 
+    val dpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
     val pinchState = rememberPinchZoomGridState(
         cellsList = cellsList,
-        initialCellsIndex = lastCellIndex
+        initialCellsIndex = lastCellIndex,
+        gridState = rememberLazyGridState(
+            cacheWindow = dpCacheWindow
+        )
     )
 
     LaunchedEffect(pinchState.isZooming) {
@@ -113,10 +122,12 @@ fun <T: Media> MediaScreen(
     }
     val eventHandler = LocalEventHandler.current
     val selector = LocalMediaSelector.current
+    val distributor = LocalMediaDistributor.current
     val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
+    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
 
-    LaunchedEffect(selectionState.value) {
+        LaunchedEffect(selectionState.value) {
         if (allowNavBar) {
             eventHandler.toggleNavigationBar(!selectionState.value)
         }

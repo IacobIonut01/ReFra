@@ -19,7 +19,6 @@ import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.trashed.components.AutoDeleteFooter
@@ -32,7 +31,6 @@ fun <T: Media> TrashedGridScreen(
     paddingValues: PaddingValues,
     albumName: String = stringResource(id = R.string.trash),
     mediaState: State<MediaState<T>>,
-    metadataState: State<MediaMetadataState>,
     clearSelection: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
@@ -41,7 +39,6 @@ fun <T: Media> TrashedGridScreen(
     target = TARGET_TRASH,
     albumName = albumName,
     mediaState = mediaState,
-    metadataState = metadataState,
     allowHeaders = false,
     enableStickyHeaders = false,
     navActionsContent = { _: MutableState<Boolean>,

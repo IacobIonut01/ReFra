@@ -237,7 +237,7 @@ class MediaDistributorImpl @Inject constructor(
     /**
      * Media Metadata
      */
-    override val metadataFlow: StateFlow<MediaMetadataState> = combine(
+    override val metadataFlow: SharedFlow<MediaMetadataState> = combine(
         repository.getMetadata(),
         workManager.getWorkInfosForUniqueWorkFlow("MetadataCollection")
             .map { it.lastOrNull()?.state == WorkInfo.State.RUNNING },
@@ -249,7 +249,7 @@ class MediaDistributorImpl @Inject constructor(
             isLoading = isRunning,
             isLoadingProgress = progress
         )
-    }.stateIn(appScope, started = sharingMethod, MediaMetadataState())
+    }.shareIn(appScope, started = sharingMethod)
 
     /**
      * Vault

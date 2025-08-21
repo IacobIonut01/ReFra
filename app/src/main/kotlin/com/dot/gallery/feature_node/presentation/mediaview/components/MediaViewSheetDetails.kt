@@ -7,7 +7,6 @@ package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -52,6 +51,8 @@ import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
@@ -84,13 +85,12 @@ import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberMediaInfo
 import com.dot.gallery.feature_node.presentation.util.writeRequest
-import com.github.panpf.sketch.rememberAsyncImagePainter
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun <T : Media> MediaViewSheetDetails(
     albumsState: State<AlbumState>,
@@ -480,10 +480,8 @@ fun <T : Media> MediaViewSheetDetails(
                                             enter = enterAnimation,
                                             exit = exitAnimation
                                         ) {
-                                            Image(
-                                                painter = rememberAsyncImagePainter(
-                                                    mediaCategoryThumbnail!!.uri.toString()
-                                                ),
+                                            GlideImage(
+                                                model = mediaCategoryThumbnail!!.uri,
                                                 contentDescription = null,
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier

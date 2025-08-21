@@ -27,7 +27,7 @@ class SketchJxlDecoder(
 
         override fun create(requestContext: RequestContext, fetchResult: FetchResult): Decoder? {
             val mimeType = requestContext.request.extras?.get("realMimeType") as String? ?: return null
-            return if (mimeType.contains(JXL_MIMETYPE) == true) {
+            return if (mimeType.contains(JXL_MIMETYPE)) {
                 SketchJxlDecoder(requestContext, fetchResult.dataSource)
             } else {
                 null

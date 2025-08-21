@@ -1,34 +1,34 @@
 [versions]
 adaptive = "1.1.0"
-agp = "8.11.1"
+agp = "8.12.1"
 aire = "0.15.5"
 avifCoderCoil = "2.1.2"
 benchmarkMacroJunit4 = "1.4.0"
 biometric = "1.2.0-alpha05"
 appcompat = "1.7.1"
 composeVideo = "1.2.0"
-core = "1.39.0"
+core = "1.41.0"
 coreSplashscreen = "1.0.1"
 exifinterface = "1.4.1"
 fuzzywuzzyKotlin = "1.0.1"
 graphicsShapes = "1.0.1"
-haze = "1.6.9"
-hazeMaterials = "1.6.9"
+haze = "1.6.10"
+hazeMaterials = "1.6.10"
 jxlCoder = "2.1.10"
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 kotlinCoroutinesVersion = "1.10.2"
-ksp = "2.2.0-2.0.2"
-core-ktx = "1.16.0"
+ksp = "2.2.10-2.0.2"
+core-ktx = "1.17.0"
 junit = "4.13.2"
 androidx-test-ext-junit = "1.3.0"
 espresso-core = "3.7.0"
 lazycolumnscrollbar = "2.2.0"
 lifecycle-runtime = "2.9.2"
 activity-compose = "1.10.1"
-hilt = "2.57"
+hilt = "2.57.1"
 hiltCommon = "1.2.0"
 material = "1.12.0"
-material3 = "1.5.0-alpha01"
+material3 = "1.5.0-alpha02"
 media3Exoplayer = "1.8.0"
 metadataExtractor = "2.19.0"
 navigation-runtime-ktx = "2.9.3"
@@ -44,11 +44,13 @@ startupRuntime = "1.2.0"
 tensorflowLite = "2.16.1"
 tensorflowLiteTaskVision = "0.4.4"
 uiautomator = "2.3.0"
-composealpha = "1.9.0-rc01"
+composealpha = "1.10.0-alpha01"
 kotlinxSerializationJson = "1.9.0"
 workRuntimeKtx = "2.10.3"
-zoomimageViewSketch = "1.4.0-rc02"
+zoomimage = "1.4.0"
 lifecycleProcess = "2.9.2"
+glide-compose = "1.0.0-beta01"
+glide-ksp = "4.16.0"
 
 [libraries]
 # AndroidX
@@ -127,7 +129,7 @@ datastore-prefs = { group = "androidx.datastore", name = "datastore-preferences"
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
 
-# Zoomable
+# Sketch
 sketch-animated-gif = { module = "io.github.panpf.sketch4:sketch-animated-gif", version.ref = "sketch" }
 sketch-animated-heif = { module = "io.github.panpf.sketch4:sketch-animated-heif", version.ref = "sketch" }
 sketch-animated-webp = { module = "io.github.panpf.sketch4:sketch-animated-webp", version.ref = "sketch" }
@@ -148,6 +150,13 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 # Fuzzy Search
 fuzzywuzzy-kotlin = { module = "com.github.jens-muenker:fuzzywuzzy-kotlin", version.ref = "fuzzywuzzyKotlin" }
 
+# Glide
+glide-compose = { module = "com.github.bumptech.glide:compose", version.ref = "glide-compose" }
+glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide-ksp" }
+
+# Zoomable
+zoomimage-compose-glide = { module = "io.github.panpf.zoomimage:zoomimage-compose-glide", version.ref = "zoomimage" }
+
 # Tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
@@ -157,7 +166,6 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflowLite" }
 tensorflow-lite-task-vision = { module = "org.tensorflow:tensorflow-lite-task-vision", version.ref = "tensorflowLiteTaskVision" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
-zoomimage-sketch = { module = "io.github.panpf.zoomimage:zoomimage-compose-sketch4", version.ref = "zoomimageViewSketch" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 
 [plugins]
