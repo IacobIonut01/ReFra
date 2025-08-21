@@ -7,7 +7,6 @@ package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,8 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation.enterAnimation
@@ -58,7 +56,7 @@ fun MediaViewAppBar(
     showInfo: Boolean,
     showDate: Boolean,
     currentMedia: Media?,
-    currentDate: String,
+    currentDate: AnnotatedString,
     paddingValues: PaddingValues,
     onGoBack: () -> Unit,
     onShowInfo: () -> Unit
@@ -127,39 +125,44 @@ fun MediaViewAppBar(
                     modifier = Modifier.height(48.dp)
                 )
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+
+            AnimatedVisibility(
+                visible = showDate,
+                enter = enterAnimation,
+                exit = exitAnimation
             ) {
-                AnimatedVisibility(
-                    visible = showDate,
-                    enter = enterAnimation,
-                    exit = exitAnimation
+                Text(
+                    text = currentDate,
+                    modifier = Modifier,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = contentColor,
+                    textAlign = TextAlign.Center
+                )
+            }
+            AnimatedVisibility(
+                visible = showInfo,
+                enter = enterAnimation,
+                exit = exitAnimation
+            ) {
+                IconButton(
+                    modifier = modifier
+                        .padding(horizontal = 8.dp)
+                        .clip(CircleShape)
+                        .then(backgroundModifier)
+                        .hazeEffect(
+                            state = LocalHazeState.current,
+                            style = HazeMaterials.ultraThin(
+                                containerColor = surfaceContainer
+                            )
+                        ),
+                    onClick = onShowInfo
                 ) {
-                    Text(
-                        text = currentDate.uppercase(),
-                        modifier = Modifier,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = contentColor,
-                        textAlign = TextAlign.End
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = "info",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.height(48.dp)
                     )
-                }
-                AnimatedVisibility(
-                    visible = showInfo,
-                    enter = enterAnimation,
-                    exit = exitAnimation
-                ) {
-                    IconButton(
-                        onClick = onShowInfo
-                    ) {
-                        Image(
-                            imageVector = Icons.Outlined.Info,
-                            colorFilter = ColorFilter.tint(contentColor),
-                            contentDescription = "info",
-                            modifier = Modifier
-                                .height(48.dp)
-                        )
-                    }
                 }
             }
         }

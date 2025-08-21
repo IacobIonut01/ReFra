@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.dateformat
 
 import android.content.res.Configuration
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,11 +22,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,41 +54,57 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.composeunstyled.LocalTextStyle
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
+import com.dot.gallery.core.DefaultEventHandler
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberDefaultDateFormat
 import com.dot.gallery.core.Settings.Misc.rememberExifDateFormat
 import com.dot.gallery.core.Settings.Misc.rememberExtendedDateFormat
+import com.dot.gallery.core.Settings.Misc.rememberExtendedDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberWeeklyDateFormat
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.ui.theme.GalleryTheme
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalHazeMaterialsApi::class
+)
 @Composable
 fun DateFormatScreen() {
     var dateHeaderFormat by rememberDateHeaderFormat()
+    var extendedDateHeaderFormat by rememberExtendedDateHeaderFormat()
     var exifDateFormat by rememberExifDateFormat()
     var defaultDateFormat by rememberDefaultDateFormat()
     var extendedDateFormat by rememberExtendedDateFormat()
     var weeklyDateFormat by rememberWeeklyDateFormat()
 
     val currentMillis = remember { System.currentTimeMillis() / 1000 }
+    val textStyle = LocalTextStyle.current
 
     Scaffold(
         topBar = {
@@ -121,7 +142,8 @@ fun DateFormatScreen() {
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(32.dp),
+                        .blur(32.dp)
+                        .hazeSource(LocalHazeState.current),
                     contentScale = ContentScale.Crop
                 )
                 Spacer(
@@ -133,28 +155,221 @@ fun DateFormatScreen() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center)
-                        .padding(end = 8.dp),
+                        .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
+                    val allowBlur by rememberAllowBlur()
+                    val followTheme = remember(allowBlur) { !allowBlur }
+                    val contentColor by animateColorAsState(
+                        targetValue = if (followTheme) MaterialTheme.colorScheme.onSurface else Color.White,
+                        label = "AppBarContentColor"
+                    )
+                    val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer.copy(0.5f)
+                    val backgroundModifier = remember(allowBlur) {
+                        if (!allowBlur) {
+                            Modifier.background(
+                                color = surfaceContainer,
+                                shape = CircleShape
+                            )
+                        } else Modifier
+                    }
+                    val currentDate by rememberedDerivedState(
+                        currentMillis,
+                        dateHeaderFormat
+                    ) {
+                        buildAnnotatedString {
+                            val date = currentMillis.getDate(dateHeaderFormat)
+                            if (date.isNotEmpty()) {
+                                val top = date.substringBefore("\n")
+                                val bottom = date.substringAfter("\n")
+                                withStyle(
+                                    style = textStyle.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    ).toSpanStyle()
+                                ) {
+                                    appendLine(top)
+                                }
+                                withStyle(
+                                    style = textStyle.copy(
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 14.sp
+                                    ).toSpanStyle()
+                                ) {
+                                    append(bottom)
+                                }
+                            }
+                        }
+                    }
+                    IconButton(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clip(CircleShape)
+                            .then(backgroundModifier)
+                            .hazeEffect(
+                                state = LocalHazeState.current,
+                                style = HazeMaterials.ultraThin(
+                                    containerColor = surfaceContainer
+                                )
+                            ),
+                        onClick = {  }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = "Go back",
+                            tint = contentColor,
+                            modifier = Modifier.height(48.dp)
+                        )
+                    }
                     Text(
-                        text = currentMillis.getDate(dateFormat).uppercase(),
+                        text = currentDate,
                         modifier = Modifier,
                         style = MaterialTheme.typography.titleSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color.White,
-                        textAlign = TextAlign.End
+                        color = contentColor,
+                        textAlign = TextAlign.Center
                     )
                     IconButton(
-                        onClick = { },
-                        enabled = false
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clip(CircleShape)
+                            .then(backgroundModifier)
+                            .hazeEffect(
+                                state = LocalHazeState.current,
+                                style = HazeMaterials.ultraThin(
+                                    containerColor = surfaceContainer
+                                )
+                            ),
+                        onClick = {  }
                     ) {
-                        Image(
+                        Icon(
                             imageVector = Icons.Outlined.Info,
-                            colorFilter = ColorFilter.tint(Color.White),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .height(48.dp)
+                            contentDescription = "info",
+                            tint = contentColor,
+                            modifier = Modifier.height(48.dp)
+                        )
+                    }
+                }
+            }
+
+            DateFormatPreview(
+                modifier = Modifier,
+                title = stringResource(R.string.extended_date_header_title),
+                location = stringResource(R.string.media_view),
+                dateFormat = extendedDateHeaderFormat,
+                onDateFormatChange = { extendedDateHeaderFormat = it },
+                defaultDateFormat = Constants.EXTENDED_HEADER_DATE_FORMAT,
+            ) { dateFormat ->
+                Image(
+                    painter = painterResource(R.drawable.image_sample_2),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(32.dp)
+                        .hazeSource(LocalHazeState.current),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = Color.Black.copy(alpha = 0.1f))
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    val allowBlur by rememberAllowBlur()
+                    val followTheme = remember(allowBlur) { !allowBlur }
+                    val contentColor by animateColorAsState(
+                        targetValue = if (followTheme) MaterialTheme.colorScheme.onSurface else Color.White,
+                        label = "AppBarContentColor"
+                    )
+                    val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer.copy(0.5f)
+                    val backgroundModifier = remember(allowBlur) {
+                        if (!allowBlur) {
+                            Modifier.background(
+                                color = surfaceContainer,
+                                shape = CircleShape
+                            )
+                        } else Modifier
+                    }
+                    val currentDate by rememberedDerivedState(
+                        currentMillis,
+                        extendedDateHeaderFormat
+                    ) {
+                        buildAnnotatedString {
+                            val date = currentMillis.getDate(extendedDateHeaderFormat)
+                            if (date.isNotEmpty()) {
+                                val top = date.substringBefore("\n")
+                                val bottom = date.substringAfter("\n")
+                                withStyle(
+                                    style = textStyle.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    ).toSpanStyle()
+                                ) {
+                                    appendLine(top)
+                                }
+                                withStyle(
+                                    style = textStyle.copy(
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 14.sp
+                                    ).toSpanStyle()
+                                ) {
+                                    append(bottom)
+                                }
+                            }
+                        }
+                    }
+                    IconButton(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clip(CircleShape)
+                            .then(backgroundModifier)
+                            .hazeEffect(
+                                state = LocalHazeState.current,
+                                style = HazeMaterials.ultraThin(
+                                    containerColor = surfaceContainer
+                                )
+                            ),
+                        onClick = {  }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = "Go back",
+                            tint = contentColor,
+                            modifier = Modifier.height(48.dp)
+                        )
+                    }
+                    Text(
+                        text = currentDate,
+                        modifier = Modifier,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = contentColor,
+                        textAlign = TextAlign.Center
+                    )
+                    IconButton(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clip(CircleShape)
+                            .then(backgroundModifier)
+                            .hazeEffect(
+                                state = LocalHazeState.current,
+                                style = HazeMaterials.ultraThin(
+                                    containerColor = surfaceContainer
+                                )
+                            ),
+                        onClick = {  }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = "info",
+                            tint = contentColor,
+                            modifier = Modifier.height(48.dp)
                         )
                     }
                 }
@@ -437,12 +652,15 @@ fun DateFormatPreview(
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL,
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
     device = "spec:parent=pixel_6"
 )
 @Composable
 private fun Preview() {
     GalleryTheme {
-        DateFormatScreen()
+        CompositionLocalProvider(LocalEventHandler provides DefaultEventHandler()) {
+            DateFormatScreen()
+        }
     }
 }

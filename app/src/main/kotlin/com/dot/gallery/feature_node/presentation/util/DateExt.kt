@@ -16,12 +16,13 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
+import androidx.compose.ui.text.intl.Locale as ComposeLocale
 
 fun Long.getDateExt(): DateExt {
-    val mediaDate = Calendar.getInstance(Locale.US)
+    val mediaDate = Calendar.getInstance(ComposeLocale.getCurrentAndroid())
     mediaDate.timeInMillis = this * 1000L
     return DateExt(
-        month = mediaDate.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, Locale.US)!!,
+        month = mediaDate.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, ComposeLocale.getCurrentAndroid())!!,
         day = mediaDate.get(Calendar.DAY_OF_MONTH),
         year = mediaDate.get(Calendar.YEAR)
     )
@@ -42,28 +43,46 @@ fun getDateHeader(startDate: DateExt, endDate: DateExt): String {
 
 fun getMonth(extendedFormat: String, defaultFormat: String, date: String): String {
     return try {
-        val dateFormatExtended = SimpleDateFormat(extendedFormat, Locale.US).parse(date)
-        val cal = Calendar.getInstance(Locale.US).apply { timeInMillis = dateFormatExtended!!.time }
-        val month = cal.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, Locale.US)!!
+        val dateFormatExtended = SimpleDateFormat(extendedFormat, ComposeLocale.getCurrentAndroid()).parse(date)
+        val cal = Calendar.getInstance(ComposeLocale.getCurrentAndroid()).apply { timeInMillis = dateFormatExtended!!.time }
+        val month = cal.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, ComposeLocale.getCurrentAndroid())!!
         val year = cal.get(Calendar.YEAR)
         "$month $year"
     } catch (e: ParseException) {
         try {
-            val dateFormat = SimpleDateFormat(defaultFormat, Locale.US).parse(date)
-            val cal = Calendar.getInstance(Locale.US).apply { timeInMillis = dateFormat!!.time }
-            cal.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, Locale.US)!!
+            val dateFormat = SimpleDateFormat(defaultFormat, ComposeLocale.getCurrentAndroid()).parse(date)
+            val cal = Calendar.getInstance(ComposeLocale.getCurrentAndroid()).apply { timeInMillis = dateFormat!!.time }
+            cal.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, ComposeLocale.getCurrentAndroid())!!
         } catch (e: ParseException) {
             ""
         }
     }
 }
 
+fun ComposeLocale.Companion.getCurrentAndroid(): Locale {
+    return ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0] ?: Locale.getDefault()
+}
+
 fun Long.getDate(
     format: CharSequence,
 ): String {
-    val mediaDate = Calendar.getInstance(Locale.US)
+    val mediaDate = Calendar.getInstance(ComposeLocale.getCurrentAndroid())
     mediaDate.timeInMillis = this * 1000L
     return DateFormat.format(format, mediaDate).toString()
+}
+
+fun Long.getMediaAppBarDate(
+    format: CharSequence,
+    extendedFormat: CharSequence,
+): String {
+    val locale = ComposeLocale.getCurrentAndroid()
+    val mediaDate = Calendar.getInstance(locale)
+    mediaDate.timeInMillis = this * 1000L
+    return if (mediaDate.get(Calendar.YEAR) < Calendar.getInstance(locale).get(Calendar.YEAR)) {
+        DateFormat.format(extendedFormat, mediaDate).toString()
+    } else {
+        DateFormat.format(format, mediaDate).toString()
+    }
 }
 
 fun Long.getDate(
@@ -73,7 +92,7 @@ fun Long.getDate(
     stringToday: String,
     stringYesterday: String
 ): String {
-    val locale = ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0] ?: Locale.getDefault()
+    val locale = ComposeLocale.getCurrentAndroid()
     val currentDate = Calendar.getInstance(locale)
     currentDate.timeInMillis = System.currentTimeMillis()
     val mediaDate = Calendar.getInstance(locale)
@@ -112,9 +131,9 @@ fun Long.getDate(
 }
 
 fun Long.getMonth(): String {
-    val currentDate = Calendar.getInstance(Locale.US).apply { timeInMillis = System.currentTimeMillis() }
-    val mediaDate = Calendar.getInstance(Locale.US).apply { timeInMillis = this@getMonth * 1000L }
-    val month = mediaDate.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, Locale.US)!!
+    val currentDate = Calendar.getInstance(ComposeLocale.getCurrentAndroid()).apply { timeInMillis = System.currentTimeMillis() }
+    val mediaDate = Calendar.getInstance(ComposeLocale.getCurrentAndroid()).apply { timeInMillis = this@getMonth * 1000L }
+    val month = mediaDate.getDisplayName(Calendar.MONTH, Calendar.LONG_FORMAT, ComposeLocale.getCurrentAndroid())!!
     val year = mediaDate.get(Calendar.YEAR)
     return if (currentDate.get(Calendar.YEAR) != mediaDate.get(Calendar.YEAR))
         "$month $year"
@@ -126,7 +145,7 @@ fun Long.formatMinSec(): String {
         "00:00"
     } else {
         String.format(
-            Locale.getDefault(),
+            ComposeLocale.getCurrentAndroid(),
             "%02d:%02d",
             TimeUnit.MILLISECONDS.toMinutes(this),
             TimeUnit.MILLISECONDS.toSeconds(this) -

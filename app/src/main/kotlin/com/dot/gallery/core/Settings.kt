@@ -357,6 +357,15 @@ object Settings {
                 defaultValue = Constants.HEADER_DATE_FORMAT
             )
 
+        val EXTENDED_DATE_HEADER_FORMAT = stringPreferencesKey("extended_date_header_format")
+
+        @Composable
+        fun rememberExtendedDateHeaderFormat() =
+            rememberPreference(
+                key = EXTENDED_DATE_HEADER_FORMAT,
+                defaultValue = Constants.EXTENDED_HEADER_DATE_FORMAT
+            )
+
         val EXIF_DATE_FORMAT = stringPreferencesKey("exif_date_format")
 
         @Composable

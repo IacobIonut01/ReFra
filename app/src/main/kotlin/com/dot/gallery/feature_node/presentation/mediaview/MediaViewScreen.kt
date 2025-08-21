@@ -63,13 +63,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.core.BottomSheet
 import com.composables.core.SheetDetent.Companion.FullyExpanded
 import com.composables.core.rememberBottomSheetState
+import com.composeunstyled.LocalTextStyle
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
@@ -79,6 +84,7 @@ import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
+import com.dot.gallery.core.Settings.Misc.rememberExtendedDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.navigateUp
@@ -101,7 +107,7 @@ import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.ProvideInsets
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.BOTTOM_BAR_HEIGHT
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.ImageOnly
-import com.dot.gallery.feature_node.presentation.util.getDate
+import com.dot.gallery.feature_node.presentation.util.getMediaAppBarDate
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import com.dot.gallery.feature_node.presentation.util.rememberGestureNavigationEnabled
@@ -198,9 +204,39 @@ fun <T : Media> MediaViewScreen(
     }
 
     val currentDateFormat by rememberDateHeaderFormat()
-
-    val currentDate by rememberedDerivedState(currentMedia) {
-        currentMedia?.definedTimestamp?.getDate(currentDateFormat) ?: ""
+    val currentExtendedDateFormat by rememberExtendedDateHeaderFormat()
+    val textStyle = LocalTextStyle.current
+    val currentDate by rememberedDerivedState(
+        currentMedia,
+        currentDateFormat,
+        currentExtendedDateFormat
+    ) {
+        buildAnnotatedString {
+            val date = currentMedia?.definedTimestamp?.getMediaAppBarDate(
+                currentDateFormat,
+                currentExtendedDateFormat
+            ) ?: ""
+            if (date.isNotEmpty()) {
+                val top = date.substringBefore("\n")
+                val bottom = date.substringAfter("\n")
+                withStyle(
+                    style = textStyle.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    ).toSpanStyle()
+                ) {
+                    appendLine(top)
+                }
+                withStyle(
+                    style = textStyle.copy(
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp
+                    ).toSpanStyle()
+                ) {
+                    append(bottom)
+                }
+            }
+        }
     }
     val canAutoPlay by rememberVideoAutoplay()
     val playWhenReady by rememberedDerivedState(
@@ -364,9 +400,10 @@ fun <T : Media> MediaViewScreen(
                         index
                     )
                 }
-                val canPlay = rememberedDerivedState(playWhenReady, currentMedia, media, currentPage) {
-                    playWhenReady && currentMedia == media && currentPage == index
-                }
+                val canPlay =
+                    rememberedDerivedState(playWhenReady, currentMedia, media, currentPage) {
+                        playWhenReady && currentMedia == media && currentPage == index
+                    }
                 AnimatedVisibility(
                     visible = media != null,
                     enter = enterAnimation,
