@@ -14,8 +14,6 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,12 +27,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -112,13 +107,7 @@ fun AlbumsScreen(
         )
     }
 
-    var finalPaddingValues by remember(paddingValues) { mutableStateOf(paddingValues) }
-
     Scaffold(
-        modifier = Modifier.padding(
-            start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
-            end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
-        ),
         topBar = {
             MainSearchBar(
                 isScrolling = isScrolling,
@@ -129,12 +118,6 @@ fun AlbumsScreen(
             }
         }
     ) { innerPaddingValues ->
-        LaunchedEffect(innerPaddingValues) {
-            finalPaddingValues = PaddingValues(
-                top = innerPaddingValues.calculateTopPadding(),
-                bottom = paddingValues.calculateBottomPadding() + 16.dp + 64.dp
-            )
-        }
         PinchZoomGridLayout(
             state = pinchState,
             modifier = Modifier.hazeSource(LocalHazeState.current)
@@ -148,7 +131,10 @@ fun AlbumsScreen(
                     .padding(horizontal = 8.dp)
                     .fillMaxSize(),
                 columns = gridCells,
-                contentPadding = finalPaddingValues,
+                contentPadding = PaddingValues(
+                    top = innerPaddingValues.calculateTopPadding(),
+                    bottom = innerPaddingValues.calculateBottomPadding() + 16.dp + 64.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
