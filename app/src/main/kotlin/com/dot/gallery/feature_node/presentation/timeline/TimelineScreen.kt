@@ -151,6 +151,7 @@ fun TimelineScreen(
         )
         SelectionSheet(
             modifier = Modifier.align(Alignment.BottomEnd),
+            allMedia = mediaState.value,
             selectedMedia = selectedMediaList
         )
     }

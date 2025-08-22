@@ -8,6 +8,7 @@ package com.dot.gallery.core.presentation.components
 import android.app.Activity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
@@ -33,11 +34,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Deselect
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -74,8 +76,10 @@ import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberShowSelectionTitles
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.exif.CopyMediaSheet
 import com.dot.gallery.feature_node.presentation.exif.MoveMediaSheet
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialog
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -92,6 +96,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun <T : Media> BoxScope.SelectionSheet(
     modifier: Modifier = Modifier,
+    allMedia: MediaState<T>,
     selectedMedia: SnapshotStateList<T>
 ) {
     val albumsState = LocalMediaDistributor.current.albumsFlow.collectAsStateWithLifecycle()
@@ -169,13 +174,17 @@ fun <T : Media> BoxScope.SelectionSheet(
                     text =  selectedMedia.size.toString()
                 )
 
-                SelectionAddon(
+                SelectAllAddon(
+                    allMedia = allMedia
+                )
+
+                /*SelectionAddon(
                     onClick = {
 
                     },
                     imageVector = Icons.Outlined.Add,
                     contentDescription = "Add actions"
-                )
+                )*/
             }
             Row(
                 modifier = Modifier
@@ -290,6 +299,57 @@ fun <T : Media> BoxScope.SelectionSheet(
             handler.deleteMedia(result, it)
         }
     }
+}
+
+@Composable
+fun <T: Media> SelectAllAddon(
+    allMedia: MediaState<T>,
+) {
+    val scope = rememberCoroutineScope()
+    val selector = LocalMediaSelector.current
+    val selectedMedia by selector.selectedMedia.collectAsStateWithLifecycle()
+    val selectedAll by rememberedDerivedState(selectedMedia, allMedia) {
+        selectedMedia.size == allMedia.media.size && allMedia.media.isNotEmpty()
+    }
+    val selectAllText = if (selectedAll) {
+        stringResource(R.string.clear_selection)
+    } else {
+        stringResource(R.string.select_all)
+    }
+    val selectAllContentDesc = if (selectedAll) {
+        stringResource(R.string.clear_selection)
+    } else {
+        stringResource(R.string.select_all)
+    }
+
+    val selectAllIcon = if (selectedAll) {
+        Icons.Outlined.Deselect
+    } else {
+        Icons.Outlined.SelectAll
+    }
+
+    val selectAllContainerColor by animateColorAsState(
+        targetValue = if (selectedAll) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+    )
+    val selectAllContentColor by animateColorAsState(
+        targetValue = if (selectedAll) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurface
+    )
+
+    SelectionAddon(
+        onClick = {
+            scope.launch {
+                if (selectedAll) selector.clearSelection()
+                else selector.addToSelection(allMedia.media.map { it.id })
+            }
+        },
+        text = selectAllText,
+        imageVector = selectAllIcon,
+        contentDescription = selectAllContentDesc,
+        contentColor = selectAllContentColor,
+        containerColor = selectAllContainerColor
+    )
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)

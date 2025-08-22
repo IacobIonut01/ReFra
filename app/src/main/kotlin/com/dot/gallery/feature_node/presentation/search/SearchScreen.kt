@@ -494,6 +494,7 @@ fun SearchScreen(
             )
             SelectionSheet(
                 modifier = Modifier.align(Alignment.BottomEnd),
+                allMedia = searchResults.results,
                 selectedMedia = selectedMediaList
             )
         }
