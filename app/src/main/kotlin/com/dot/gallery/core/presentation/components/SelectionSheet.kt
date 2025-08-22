@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -32,12 +33,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -56,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -88,7 +90,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
-fun <T : Media> SelectionSheet(
+fun <T : Media> BoxScope.SelectionSheet(
     modifier: Modifier = Modifier,
     selectedMedia: SnapshotStateList<T>
 ) {
@@ -148,79 +150,32 @@ fun <T : Media> SelectionSheet(
                 .then(sizeModifier)
                 .wrapContentHeight()
                 .clip(shape)
-                .padding(vertical = 16.dp),
+                .padding(vertical = 16.dp)
+                .align(Alignment.BottomEnd),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .then(backgroundModifier)
-                        .clip(shape)
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = shape
-                        )
-                        .hazeEffect(
-                            state = LocalHazeState.current,
-                            style = HazeMaterials.regular(
-                                containerColor = surfaceColor
-                            )
-                        )
-                        .clickable {
-                            scope.launch {
-                                selector.clearSelection()
-                            }
+                SelectionAddon(
+                    onClick = {
+                        scope.launch {
+                            selector.clearSelection()
                         }
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Image(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Outlined.Close,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-                        contentDescription = stringResource(R.string.selection_dialog_close_cd)
-                    )
-                    Text(
-                        text = selectedMedia.size.toString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                }
+                    },
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.selection_dialog_close_cd),
+                    text =  selectedMedia.size.toString()
+                )
 
-                Row(
-                    modifier = Modifier
-                        .then(backgroundModifier)
-                        .clip(shape)
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = shape
-                        )
-                        .hazeEffect(
-                            state = LocalHazeState.current,
-                            style = HazeMaterials.thin(
-                                containerColor = surfaceColor
-                            )
-                        )
-                        .clickable {
-                            scope.launch {
-                                selector.clearSelection()
-                            }
-                        }
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Image(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Rounded.Add,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-                        contentDescription = "Add actions"
-                    )
-                }
+                SelectionAddon(
+                    onClick = {
+
+                    },
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = "Add actions"
+                )
             }
             Row(
                 modifier = Modifier
@@ -333,6 +288,64 @@ fun <T : Media> SelectionSheet(
             handler.trashMedia(result, it, true)
         } else {
             handler.deleteMedia(result, it)
+        }
+    }
+}
+
+@OptIn(ExperimentalHazeMaterialsApi::class)
+@Composable
+fun SelectionAddon(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    imageVector: ImageVector,
+    contentDescription: String,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+    text: String? = null,
+) {
+    val allowBlur by rememberAllowBlur()
+    val backgroundModifier = remember(allowBlur) {
+        if (!allowBlur) {
+            Modifier.background(
+                color = containerColor,
+                shape = Shapes.extraLarge
+            )
+        } else {
+            Modifier
+        }
+    }
+    val shape = Shapes.extraLarge
+    Row(
+        modifier = modifier
+            .then(backgroundModifier)
+            .clip(shape)
+            .shadow(
+                elevation = 4.dp,
+                shape = shape
+            )
+            .hazeEffect(
+                state = LocalHazeState.current,
+                style = HazeMaterials.thin(
+                    containerColor = containerColor
+                )
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Image(
+            modifier = Modifier.size(24.dp),
+            imageVector = imageVector,
+            colorFilter = ColorFilter.tint(contentColor),
+            contentDescription = contentDescription
+        )
+        if (text != null) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                color = contentColor,
+                modifier = Modifier.weight(1f, fill = false)
+            )
         }
     }
 }
