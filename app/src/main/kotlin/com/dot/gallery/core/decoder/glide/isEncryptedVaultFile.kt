@@ -1,7 +1,6 @@
 package com.dot.gallery.core.decoder.glide
 
 import android.content.Context
-import androidx.core.net.toFile
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.Media
@@ -27,12 +26,3 @@ fun decryptVaultFile(file: File, context: Context): EncryptedMediaStream {
         isVideo = isVideo
     )
 }
-
-/**
- * For URIs that point to your internal files (file://...), convert to File.
- * If you also store encrypted media under content:// you can extend this to copy to temp and decrypt.
- */
-fun uriToLocalFile(uriString: String): File? = kotlin.runCatching {
-    val uri = android.net.Uri.parse(uriString)
-    if (uri.scheme == "file") uri.toFile() else null
-}.getOrNull()
