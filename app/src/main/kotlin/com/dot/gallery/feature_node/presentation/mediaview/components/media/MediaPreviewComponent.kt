@@ -23,6 +23,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayer
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
 
 @Stable
 @NonRestartableComposable
@@ -38,6 +40,9 @@ fun <T: Media> MediaPreviewComponent(
     videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
 ) {
     AnimatedVisibility(
+        modifier = Modifier
+            .fillMaxSize()
+            .hazeSource(state = LocalHazeState.current),
         visible = media != null,
     ) {
         Box(
@@ -60,6 +65,7 @@ fun <T: Media> MediaPreviewComponent(
             }
 
             AnimatedVisibility(
+                modifier = Modifier.fillMaxSize(),
                 visible = !media.isVideo,
                 enter = fadeIn(),
                 exit = fadeOut()

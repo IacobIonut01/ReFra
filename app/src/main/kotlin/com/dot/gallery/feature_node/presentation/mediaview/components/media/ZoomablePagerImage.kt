@@ -8,6 +8,7 @@ package com.dot.gallery.feature_node.presentation.mediaview.components.media
 import android.os.Build
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,7 +56,7 @@ import kotlinx.coroutines.launch
 )
 @Stable
 @Composable
-fun <T: Media> ZoomablePagerImage(
+fun <T: Media> BoxScope.ZoomablePagerImage(
     modifier: Modifier = Modifier,
     media: T,
     uiEnabled: Boolean,
@@ -143,17 +144,6 @@ fun <T: Media> ZoomablePagerImage(
             contentDescription = media.label
         )
     } else {
-        /*val asyncState = rememberAsyncImageState(
-            options = ImageOptions {
-                crossfade(durationMillis = 200)
-                setExtra(
-                    key = "mediaKeyPreview",
-                    value = media.idLessKey,
-                )
-                setExtra("realMimeType", media.mimeType)
-            }
-        )*/
-
         GlideZoomAsyncImage(
             zoomState = zoomState,
             model = media.getUri(),

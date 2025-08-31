@@ -103,7 +103,6 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewS
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayerController
 import com.dot.gallery.feature_node.presentation.util.FullBrightnessWindow
-import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.ProvideInsets
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.BOTTOM_BAR_HEIGHT
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.ImageOnly
@@ -121,7 +120,6 @@ import com.dot.gallery.ui.theme.isDarkTheme
 import com.github.panpf.sketch.BitmapImage
 import com.github.panpf.sketch.request.ImageRequest
 import com.github.panpf.sketch.sketch
-import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -173,7 +171,7 @@ fun <T : Media> MediaViewScreen(
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()
 
-    val initialPage by rememberedDerivedState(mediaId, mediaState.value) {
+    val initialPage = remember(mediaId, mediaState.value.media) {
         mediaState.value.media.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
     }
     var currentPage by rememberSaveable(initialPage) { mutableIntStateOf(initialPage) }
@@ -415,7 +413,6 @@ fun <T : Media> MediaViewScreen(
                     with(sharedTransitionScope) {
                         MediaPreviewComponent(
                             modifier = Modifier
-                                .hazeSource(state = LocalHazeState.current)
                                 .mediaSharedElement(
                                     media = media!!,
                                     animatedVisibilityScope = animatedContentScope
