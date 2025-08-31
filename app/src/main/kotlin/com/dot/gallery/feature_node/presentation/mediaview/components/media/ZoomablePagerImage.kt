@@ -141,7 +141,8 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
                 }
             },
             alignment = Alignment.Center,
-            contentDescription = media.label
+            contentDescription = media.label,
+            scrollBar = null
         )
     } else {
         GlideZoomAsyncImage(
@@ -168,7 +169,8 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
                 }
             },
             alignment = Alignment.Center,
-            contentDescription = media.label
+            contentDescription = media.label,
+            scrollBar = null
         )
     }
 }
