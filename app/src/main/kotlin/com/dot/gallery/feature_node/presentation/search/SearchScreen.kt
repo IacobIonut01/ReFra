@@ -197,7 +197,11 @@ fun SearchScreen(
                             modifier = Modifier
                                 .fillMaxWidth(),
                             value = query,
-                            onValueChange = { viewModel.setQuery(it, apply = false) },
+                            onValueChange = { newQuery ->
+                                if (newQuery != " ") {
+                                    viewModel.setQuery(newQuery, apply = false)
+                                }
+                            },
                             shape = CircleShape,
                             colors = OutlinedTextFieldDefaults.colors(
                                 unfocusedBorderColor = outlineColor,
@@ -229,6 +233,7 @@ fun SearchScreen(
                                             color = MaterialTheme.colorScheme.surfaceContainer,
                                             shape = CircleShape
                                         ),
+                                    enabled = query.isNotBlank(),
                                     onClick = {
                                         viewModel.setQuery(query, apply = true)
                                         viewModel.addHistory(query)
