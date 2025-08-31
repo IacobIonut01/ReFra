@@ -171,7 +171,9 @@ fun <T : Media> MediaViewScreen(
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()
 
-    val initialPage = remember(mediaId, mediaState.value.media) {
+    var initialPageSetup by rememberSaveable { mutableStateOf(false) }
+
+    val initialPage = rememberSaveable(mediaId, mediaState.value) {
         mediaState.value.media.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
     }
     var currentPage by rememberSaveable(initialPage) { mutableIntStateOf(initialPage) }
@@ -197,6 +199,7 @@ fun <T : Media> MediaViewScreen(
                     pagerState.scrollToPage(initialPage)
                 }
                 shouldForcePage = false
+                initialPageSetup = true
             }
         }
     }
@@ -403,7 +406,7 @@ fun <T : Media> MediaViewScreen(
                         playWhenReady && currentMedia == media && currentPage == index
                     }
                 AnimatedVisibility(
-                    visible = media != null,
+                    visible = media != null && initialPageSetup,
                     enter = enterAnimation,
                     exit = exitAnimation
                 ) {
