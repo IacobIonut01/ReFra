@@ -156,6 +156,40 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    fun setMimeTypeQuery(mimeType: String, hideExplicitQuery: Boolean = false) {
+        if (hideExplicitQuery) {
+            _query.value = if (mimeType.startsWith("image")) "Images" else "Videos"
+        } else {
+            _query.value = mimeType
+        }
+        val searchQuery = if (mimeType.contains("/*")) {
+            mimeType.substringBefore("/*")
+        } else {
+            mimeType
+        }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            val allMedia = allMedia.value.media
+            val filteredMedia = allMedia.filter { it.mimeType.startsWith(searchQuery) }
+            val mediaState = mapMediaToItem(
+                data = filteredMedia,
+                error = "",
+                albumId = -1L,
+                defaultDateFormat = dateFormats.value.first,
+                extendedDateFormat = dateFormats.value.second,
+                weeklyDateFormat = dateFormats.value.third
+            )
+            _searchResultsState.tryEmit(
+                SearchResultsState(
+                    hasSearched = true,
+                    isSearching = false,
+                    progress = 1f,
+                    results = mediaState
+                )
+            )
+        }
+    }
+
     fun setQuery(query: String, apply: Boolean = true) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch(Dispatchers.IO) {
@@ -174,6 +208,12 @@ class SearchViewModel @Inject constructor(
                 )
             )
             val allMedia = allMedia.value.media
+
+            if (query.matches(Regex("^[a-zA-Z0-9!#$&^_.+-]+/[a-zA-Z0-9!#$&-^_.+*]*$"))) {
+                setMimeTypeQuery(query)
+                return@launch
+            }
+
             if (allMedia.find { it.albumLabel == query } != null) {
                 // If the query matches an album label, filter by that album
                 val filteredMedia = allMedia.filter { it.albumLabel == query }

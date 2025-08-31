@@ -356,6 +356,10 @@
     <string name="show_selection_titles_summary">Display in the selection sheet a title for each action</string>
     <string name="extended_date_header_title">Extended Date Header</string>
     <string name="clear_selection">Remove All</string>
+    <string name="selfies">Selfies</string>
+    <string name="screenshots">Screenshots</string>
+    <string name="search_images_videos"><![CDATA[Search images & videos]]></string>
+    <string name="suggestions">Suggestions</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

@@ -5,6 +5,10 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -59,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -125,28 +130,29 @@ fun SearchScreen(
                     }.take(5)
         }
     }
-    val suggestionItems = remember {
+    val context = LocalContext.current
+    val suggestionItems = remember(context) {
         listOf(
-            SettingsEntity.Header("Suggestions"),
+            SettingsEntity.Header(context.getString(R.string.suggestions)),
             SettingsEntity.Preference(
-                title = "Screenshots",
+                title = context.getString(R.string.screenshots),
                 icon = Icons.Outlined.Screenshot,
                 onClick = {
-                    viewModel.setQuery("Screenshots", apply = true)
+                    viewModel.setQuery(context.getString(R.string.screenshots), apply = true)
                 }
             ),
             SettingsEntity.Preference(
-                title = "Videos",
+                title = context.getString(R.string.videos),
                 icon = Icons.Outlined.PlayCircle,
                 onClick = {
-                    viewModel.setQuery("Videos", apply = true)
+                    viewModel.setMimeTypeQuery("video/", hideExplicitQuery = true)
                 }
             ),
             SettingsEntity.Preference(
-                title = "Selfies",
+                title = context.getString(R.string.selfies),
                 icon = Icons.Outlined.Portrait,
                 onClick = {
-                    viewModel.setQuery("Selfies", apply = true)
+                    viewModel.setQuery(context.getString(R.string.selfies), apply = true)
                 }
             ),
         )
@@ -216,34 +222,52 @@ fun SearchScreen(
                                 onSearch = {
                                     viewModel.setQuery(query, apply = true)
                                     viewModel.addHistory(query)
+                                },
+                                onDone = {
+                                    viewModel.setQuery(query, apply = true)
+                                    viewModel.addHistory(query)
+                                },
+                                onGo = {
+                                    viewModel.setQuery(query, apply = true)
+                                    viewModel.addHistory(query)
+                                },
+                                onSend = {
+                                    viewModel.setQuery(query, apply = true)
+                                    viewModel.addHistory(query)
                                 }
                             ),
                             placeholder = {
                                 Text(
-                                    text = "Search images & videos",
+                                    text = stringResource(R.string.search_images_videos),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                 )
                             },
+                            singleLine = true,
                             trailingIcon = {
-                                IconButton(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceContainer,
-                                            shape = CircleShape
-                                        ),
-                                    enabled = query.isNotBlank(),
-                                    onClick = {
-                                        viewModel.setQuery(query, apply = true)
-                                        viewModel.addHistory(query)
-                                    }
+                                AnimatedVisibility(
+                                    visible = query.isNotBlank() && !searchResults.isSearching && !searchResults.hasSearched,
+                                    enter = fadeIn() + slideInHorizontally { it },
+                                    exit = fadeOut() + slideOutHorizontally { it }
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Search,
-                                        contentDescription = "Search",
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    IconButton(
+                                        modifier = Modifier
+                                            .padding(horizontal = 8.dp)
+                                            .background(
+                                                color = MaterialTheme.colorScheme.surfaceContainer,
+                                                shape = CircleShape
+                                            ),
+                                        onClick = {
+                                            viewModel.setQuery(query, apply = true)
+                                            viewModel.addHistory(query)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Search,
+                                            contentDescription = stringResource(id = R.string.search_images_videos),
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
                                 }
                             }
                         )
@@ -415,7 +439,7 @@ fun SearchScreen(
                         )
                         Icon(
                             imageVector = Icons.Outlined.Search,
-                            contentDescription = "Search",
+                            contentDescription = stringResource(id = R.string.search_images_videos),
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
