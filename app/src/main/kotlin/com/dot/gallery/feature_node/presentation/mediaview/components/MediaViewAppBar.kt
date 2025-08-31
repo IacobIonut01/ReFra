@@ -85,7 +85,7 @@ fun MediaViewAppBar(
                     )
                 )
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(start = 5.dp, end = if (showInfo) 8.dp else 16.dp)
+                .padding(start = 8.dp, end = if (showInfo) 8.dp else 16.dp)
                 .padding(vertical = 8.dp)
                 .then(modifier)
                 .fillMaxWidth(),
