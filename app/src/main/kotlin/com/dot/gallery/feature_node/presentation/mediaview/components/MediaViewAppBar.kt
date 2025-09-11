@@ -7,17 +7,23 @@ package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,11 +61,13 @@ fun MediaViewAppBar(
     showUI: Boolean,
     showInfo: Boolean,
     showDate: Boolean,
+    isLocked: Boolean,
     currentMedia: Media?,
     currentDate: AnnotatedString,
     paddingValues: PaddingValues,
     onGoBack: () -> Unit,
-    onShowInfo: () -> Unit
+    onShowInfo: () -> Unit,
+    onLock: () -> Unit
 ) {
     val allowBlur by rememberAllowBlur()
     val isDarkTheme = isDarkTheme()
@@ -126,18 +134,45 @@ fun MediaViewAppBar(
                 )
             }
 
-            AnimatedVisibility(
-                visible = showDate,
-                enter = enterAnimation,
-                exit = exitAnimation
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = currentDate,
-                    modifier = Modifier,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = contentColor,
-                    textAlign = TextAlign.Center
-                )
+                this@Row.AnimatedVisibility(
+                    visible = showDate,
+                    enter = enterAnimation,
+                    exit = exitAnimation
+                ) {
+                    Text(
+                        text = currentDate,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .combinedClickable(
+                                onClick = {},
+                                onLongClick = { onLock() }
+                            )
+                            .padding(horizontal = 4.dp),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = contentColor,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                this@Row.AnimatedVisibility(
+                    visible = isLocked,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = "Locked",
+                        modifier = Modifier.height(20.dp)
+                    )
+                }
             }
             AnimatedVisibility(
                 visible = showInfo,

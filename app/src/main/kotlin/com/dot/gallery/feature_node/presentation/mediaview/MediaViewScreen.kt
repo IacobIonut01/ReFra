@@ -291,6 +291,9 @@ fun <T : Media> MediaViewScreen(
     )
 
     val userScrollEnabled by rememberedDerivedState { sheetState.currentDetent != FullyExpanded }
+    var isLocked by rememberSaveable { mutableStateOf(false) }
+    // Override back button/gesture when locked
+    BackHandler(enabled = isLocked) { }
 
     val sheetProgress by rememberedDerivedState {
         sheetState.progress(
@@ -378,7 +381,7 @@ fun <T : Media> MediaViewScreen(
         ) {
             HorizontalPager(
                 modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = userScrollEnabled,
+                userScrollEnabled = if (isLocked) false else userScrollEnabled,
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(
                     state = pagerState,
@@ -430,8 +433,10 @@ fun <T : Media> MediaViewScreen(
                             uiEnabled = showUI,
                             playWhenReady = canPlay,
                             onSwipeDown = {
-                                windowInsetsController.toggleSystemBars(show = true)
-                                eventHandler.navigateUp()
+                                if (!isLocked) {
+                                    windowInsetsController.toggleSystemBars(show = true)
+                                    eventHandler.navigateUp()
+                                }
                             },
                             offset = offset,
                             onItemClick = {
@@ -550,6 +555,7 @@ fun <T : Media> MediaViewScreen(
                 showDate = remember(currentMedia, allowShowingDate) {
                     currentMedia?.timestamp != 0L && allowShowingDate
                 },
+                isLocked = isLocked,
                 currentDate = currentDate,
                 paddingValues = paddingValues,
                 currentMedia = currentMedia,
@@ -572,6 +578,9 @@ fun <T : Media> MediaViewScreen(
                             eventHandler.navigateUp()
                         }
                     }
+                },
+                onLock = {
+                    isLocked = !isLocked
                 }
             )
             LaunchedEffect(showUI) {
