@@ -35,7 +35,10 @@ class BaselineProfileGenerator {
 
     @Test
     fun generate() {
-        rule.collect("com.dot.gallery") {
+        rule.collect(
+            packageName = "com.dot.gallery",
+            includeInStartupProfile = true
+        ) {
             // This block defines the app's critical user journey. Here we are interested in
             // optimizing for app startup. But you can also navigate and scroll
             // through your most important UI.

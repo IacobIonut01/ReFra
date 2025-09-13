@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
@@ -6,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.smarttoolfactory.cropper"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 30
@@ -25,16 +27,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     composeCompiler {
         includeSourceInformation = true
     }
 
     buildFeatures {
         compose = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

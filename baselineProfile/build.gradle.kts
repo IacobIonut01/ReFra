@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.ManagedVirtualDevice
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.test")
@@ -35,20 +36,16 @@ android {
         }
     }
     namespace = "com.dot.baselineprofile"
-    compileSdk = 34
+    compileSdk = 36
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 36
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,11 +53,18 @@ android {
     targetProjectPath = ":app"
 
     testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api31") {
-            device = "Pixel 6"
-            apiLevel = 31
-            systemImageSource = "aosp"
+        create<ManagedVirtualDevice>("pixel9proxl") {
+            device = "Pixel 9 Pro XL"
+            apiLevel = 36
+            systemImageSource = "google_apis_playstore"
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 
@@ -69,6 +73,7 @@ android {
 baselineProfile {
     //managedDevices += "pixel6Api31"
     useConnectedDevices = true
+    
 }
 
 dependencies {
