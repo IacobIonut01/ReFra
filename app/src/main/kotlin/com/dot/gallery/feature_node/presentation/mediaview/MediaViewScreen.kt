@@ -198,6 +198,8 @@ fun <T : Media> MediaViewScreen(
                 shouldForcePage = false
                 initialPageSetup = true
             }
+        } else {
+            initialPageSetup = true
         }
     }
 
