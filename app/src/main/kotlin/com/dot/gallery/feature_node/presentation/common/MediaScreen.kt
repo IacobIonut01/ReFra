@@ -127,7 +127,7 @@ fun <T: Media> MediaScreen(
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
     val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
 
-        LaunchedEffect(selectionState.value) {
+    LaunchedEffect(selectionState.value) {
         if (allowNavBar) {
             eventHandler.toggleNavigationBar(!selectionState.value)
         }
