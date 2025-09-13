@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onVisibilityChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -403,11 +404,18 @@ fun <T : Media> MediaViewScreen(
                         index
                     )
                 }
-                val canPlay =
-                    rememberedDerivedState(playWhenReady, currentMedia, media, currentPage) {
-                        playWhenReady && currentMedia == media && currentPage == index
-                    }
+                val canPlay = rememberSaveable(media) {
+                    mutableStateOf(false)
+                }
+                var canAnimateContent by rememberSaveable(media) {
+                    mutableStateOf(true)
+                }
                 AnimatedVisibility(
+                    modifier = Modifier
+                        .onVisibilityChanged { isVisible ->
+                            canPlay.value = (if (media?.isVideo == true) isVisible && playWhenReady else false)
+                            canAnimateContent = isVisible
+                        },
                     visible = media != null && initialPageSetup,
                     enter = enterAnimation,
                     exit = exitAnimation
@@ -419,6 +427,7 @@ fun <T : Media> MediaViewScreen(
                         MediaPreviewComponent(
                             modifier = Modifier
                                 .mediaSharedElement(
+                                    allowAnimation = canAnimateContent,
                                     media = media!!,
                                     animatedVisibilityScope = animatedContentScope
                                 )
