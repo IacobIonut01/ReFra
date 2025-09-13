@@ -209,6 +209,15 @@ fun Media.retrieveMetadata(
                 label = context.getString(R.string.dimensions),
                 content = content
             )
+        } else {
+            // If no dimensions, just show size if available
+            if (size > 0) {
+                info += InfoRow(
+                    icon = Icons.Outlined.Info,
+                    label = context.getString(R.string.type_size),
+                    content = formatSize(size)
+                )
+            }
         }
 
         // 9) Video fields
