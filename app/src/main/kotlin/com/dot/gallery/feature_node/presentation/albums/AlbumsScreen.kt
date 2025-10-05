@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,8 +46,10 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.Settings.Album.rememberLastSort
+import com.dot.gallery.core.Settings.Album.rememberLastViewType
 import com.dot.gallery.core.presentation.components.EmptyAlbum
 import com.dot.gallery.core.presentation.components.Error
 import com.dot.gallery.core.presentation.components.FilterButton
@@ -55,6 +60,7 @@ import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
+import com.dot.gallery.feature_node.presentation.albums.components.AlbumRowComponent
 import com.dot.gallery.feature_node.presentation.albums.components.CarouselPinnedAlbums
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
@@ -91,11 +97,12 @@ fun AlbumsScreen(
         cellsList = albumCellsList,
         initialCellsIndex = lastCellIndex
     )
+    val listState = rememberLazyListState()
+    var viewType by rememberLastViewType()
 
     LaunchedEffect(pinchState.isZooming) {
         lastCellIndex = albumCellsList.indexOf(pinchState.currentCells)
     }
-
     val lastSort by rememberLastSort()
     LaunchedEffect(lastSort) {
         val selectedFilter = filterOptions.first { it.filterKind == lastSort.kind }
@@ -118,142 +125,275 @@ fun AlbumsScreen(
             }
         }
     ) { innerPaddingValues ->
-        PinchZoomGridLayout(
-            state = pinchState,
-            modifier = Modifier.hazeSource(LocalHazeState.current)
-        ) {
-            LaunchedEffect(gridState.isScrollInProgress) {
-                isScrolling.value = gridState.isScrollInProgress
-            }
-            LazyVerticalGrid(
-                state = gridState,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .fillMaxSize(),
-                columns = gridCells,
-                contentPadding = PaddingValues(
-                    top = innerPaddingValues.calculateTopPadding(),
-                    bottom = innerPaddingValues.calculateBottomPadding() + 16.dp + 64.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item(
-                    span = { GridItemSpan(maxLineSpan) },
-                    key = "pinnedAlbums"
-                ) {
-                    AnimatedVisibility(
-                        visible = albumsState.value.albumsPinned.isNotEmpty(),
-                        enter = enterAnimation,
-                        exit = exitAnimation
+        when (viewType) {
+            Settings.Album.ViewType.GRID -> {
+                with(sharedTransitionScope) {
+                    PinchZoomGridLayout(
+                        state = pinchState,
+                        modifier = Modifier.hazeSource(LocalHazeState.current)
                     ) {
-                        Column {
-                            Text(
-                                modifier = Modifier
-                                    .pinchItem(key = "pinnedAlbums")
-                                    .padding(horizontal = 8.dp)
-                                    .padding(vertical = 24.dp),
-                                text = stringResource(R.string.pinned_albums_title),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                            CarouselPinnedAlbums(
-                                albumList = albumsState.value.albumsPinned,
-                                onAlbumClick = onAlbumClick,
-                                onAlbumLongClick = onAlbumLongClick
-                            )
+                        LaunchedEffect(gridState.isScrollInProgress) {
+                            isScrolling.value = gridState.isScrollInProgress
+                        }
+                        LazyVerticalGrid(
+                            state = gridState,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .fillMaxSize(),
+                            columns = gridCells,
+                            contentPadding = PaddingValues(
+                                top = innerPaddingValues.calculateTopPadding(),
+                                bottom = innerPaddingValues.calculateBottomPadding() + 16.dp + 64.dp
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item(
+                                span = { GridItemSpan(maxLineSpan) },
+                                key = "pinnedAlbums"
+                            ) {
+                                AnimatedVisibility(
+                                    visible = albumsState.value.albumsPinned.isNotEmpty(),
+                                    enter = enterAnimation,
+                                    exit = exitAnimation
+                                ) {
+                                    Column {
+                                        Text(
+                                            modifier = Modifier
+                                                .pinchItem(key = "pinnedAlbums")
+                                                .padding(horizontal = 8.dp)
+                                                .padding(vertical = 24.dp),
+                                            text = stringResource(R.string.pinned_albums_title),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        CarouselPinnedAlbums(
+                                            albumList = albumsState.value.albumsPinned,
+                                            onAlbumClick = onAlbumClick,
+                                            onAlbumLongClick = onAlbumLongClick
+                                        )
+                                    }
+                                }
+                            }
+                            item(
+                                span = { GridItemSpan(maxLineSpan) },
+                                key = "filterButton"
+                            ) {
+                                AnimatedVisibility(
+                                    visible = albumsState.value.albumsUnpinned.isNotEmpty(),
+                                    enter = enterAnimation,
+                                    exit = exitAnimation
+                                ) {
+                                    FilterButton(
+                                        modifier = Modifier.pinchItem(key = "filterButton"),
+                                        filterOptions = filterOptions.toTypedArray(),
+                                        viewType = viewType,
+                                        onViewTypeChange = { viewType = it }
+                                    )
+                                }
+                            }
+                            items(
+                                items = albumsState.value.albumsUnpinned,
+                                key = { item -> item.toString() }
+                            ) { item ->
+                                val trashResult = rememberActivityResult()
+                                with(sharedTransitionScope) {
+                                    AlbumComponent(
+                                        modifier = Modifier
+                                            .pinchItem(key = item.toString())
+                                            .animateItem(),
+                                        thumbnailModifier = Modifier
+                                            .mediaSharedElement(
+                                                album = item,
+                                                animatedVisibilityScope = animatedContentScope
+                                            ),
+                                        album = item,
+                                        onItemClick = onAlbumClick,
+                                        onTogglePinClick = onAlbumLongClick,
+                                        onMoveAlbumToTrash = {
+                                            onMoveAlbumToTrash(trashResult, it)
+                                        }
+                                    )
+                                }
+                            }
+
+                            item(
+                                span = { GridItemSpan(maxLineSpan) },
+                                key = "albumDetails"
+                            ) {
+                                AnimatedVisibility(
+                                    visible = mediaState.value.media.isNotEmpty() && albumsState.value.albums.isNotEmpty(),
+                                    enter = enterAnimation,
+                                    exit = exitAnimation
+                                ) {
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .pinchItem(key = "albumDetails")
+                                            .padding(horizontal = 8.dp)
+                                            .padding(vertical = 24.dp),
+                                        text = stringResource(
+                                            R.string.images_videos,
+                                            mediaState.value.media.size
+                                        ),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+
+                            item(
+                                span = { GridItemSpan(maxLineSpan) },
+                                key = "emptyAlbums"
+                            ) {
+                                AnimatedVisibility(
+                                    visible = albumsState.value.albums.isEmpty() && albumsState.value.error.isEmpty(),
+                                    enter = enterAnimation,
+                                    exit = exitAnimation
+                                ) {
+                                    EmptyAlbum()
+                                }
+                            }
+
+                            item(
+                                span = { GridItemSpan(maxLineSpan) },
+                                key = "loadingAlbums"
+                            ) {
+                                AnimatedVisibility(
+                                    visible = albumsState.value.isLoading,
+                                    enter = enterAnimation,
+                                    exit = exitAnimation
+                                ) {
+                                    LoadingAlbum()
+                                }
+                            }
                         }
                     }
                 }
-                item(
-                    span = { GridItemSpan(maxLineSpan) },
-                    key = "filterButton"
-                ) {
-                    AnimatedVisibility(
-                        visible = albumsState.value.albumsUnpinned.isNotEmpty(),
-                        enter = enterAnimation,
-                        exit = exitAnimation
-                    ) {
-                        FilterButton(
-                            modifier = Modifier.pinchItem(key = "filterButton"),
-                            filterOptions = filterOptions.toTypedArray()
-                        )
+            }
+
+            Settings.Album.ViewType.LIST -> {
+                with(sharedTransitionScope) {
+                    LaunchedEffect(listState.isScrollInProgress) {
+                        isScrolling.value = listState.isScrollInProgress
                     }
-                }
-                items(
-                    items = albumsState.value.albumsUnpinned,
-                    key = { item -> item.toString() }
-                ) { item ->
-                    val trashResult = rememberActivityResult()
-                    with(sharedTransitionScope) {
-                        AlbumComponent(
-                            modifier = Modifier
-                                .pinchItem(key = item.toString())
-                                .animateItem(),
-                            thumbnailModifier = Modifier
-                                .mediaSharedElement(
-                                    album = item,
-                                    animatedVisibilityScope = animatedContentScope
-                                ),
-                            album = item,
-                            onItemClick = onAlbumClick,
-                            onTogglePinClick = onAlbumLongClick,
-                            onMoveAlbumToTrash = {
-                                onMoveAlbumToTrash(trashResult, it)
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .hazeSource(LocalHazeState.current)
+                            .padding(horizontal = 8.dp)
+                            .fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            top = innerPaddingValues.calculateTopPadding(),
+                            bottom = innerPaddingValues.calculateBottomPadding() + 16.dp + 64.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        item("pinnedAlbums") {
+                            AnimatedVisibility(
+                                visible = albumsState.value.albumsPinned.isNotEmpty(),
+                                enter = enterAnimation,
+                                exit = exitAnimation
+                            ) {
+                                Column {
+                                    Text(
+                                        modifier = Modifier
+                                            .padding(horizontal = 8.dp)
+                                            .padding(vertical = 24.dp),
+                                        text = stringResource(R.string.pinned_albums_title),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    CarouselPinnedAlbums(
+                                        albumList = albumsState.value.albumsPinned,
+                                        onAlbumClick = onAlbumClick,
+                                        onAlbumLongClick = onAlbumLongClick
+                                    )
+                                }
                             }
-                        )
-                    }
-                }
+                        }
 
-                item(
-                    span = { GridItemSpan(maxLineSpan) },
-                    key = "albumDetails"
-                ) {
-                    AnimatedVisibility(
-                        visible = mediaState.value.media.isNotEmpty() && albumsState.value.albums.isNotEmpty(),
-                        enter = enterAnimation,
-                        exit = exitAnimation
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .pinchItem(key = "albumDetails")
-                                .padding(horizontal = 8.dp)
-                                .padding(vertical = 24.dp),
-                            text = stringResource(
-                                R.string.images_videos,
-                                mediaState.value.media.size
-                            ),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+                        item("filterButton") {
+                            AnimatedVisibility(
+                                visible = albumsState.value.albumsUnpinned.isNotEmpty(),
+                                enter = enterAnimation,
+                                exit = exitAnimation
+                            ) {
+                                FilterButton(
+                                    modifier = Modifier,
+                                    filterOptions = filterOptions.toTypedArray(),
+                                    viewType = viewType,
+                                    onViewTypeChange = { viewType = it }
+                                )
+                            }
+                        }
 
-                item(
-                    span = { GridItemSpan(maxLineSpan) },
-                    key = "emptyAlbums"
-                ) {
-                    AnimatedVisibility(
-                        visible = albumsState.value.albums.isEmpty() && albumsState.value.error.isEmpty(),
-                        enter = enterAnimation,
-                        exit = exitAnimation
-                    ) {
-                        EmptyAlbum()
-                    }
-                }
+                        items(
+                            items = albumsState.value.albumsUnpinned,
+                            key = { it.toString() }
+                        ) { item ->
+                            val trashResult = rememberActivityResult()
+                            with(sharedTransitionScope) {
+                                AlbumRowComponent(
+                                    modifier = Modifier
+                                        .animateItem(),
+                                    thumbnailModifier = Modifier
+                                        .mediaSharedElement(
+                                            album = item,
+                                            animatedVisibilityScope = animatedContentScope
+                                        ),
+                                    album = item,
+                                    onItemClick = onAlbumClick,
+                                    onTogglePinClick = onAlbumLongClick,
+                                    onMoveAlbumToTrash = {
+                                        onMoveAlbumToTrash(trashResult, it)
+                                    }
+                                )
+                            }
+                        }
 
-                item(
-                    span = { GridItemSpan(maxLineSpan) },
-                    key = "loadingAlbums"
-                ) {
-                    AnimatedVisibility(
-                        visible = albumsState.value.isLoading,
-                        enter = enterAnimation,
-                        exit = exitAnimation
-                    ) {
-                        LoadingAlbum()
+                        item(key = "albumDetails") {
+                            AnimatedVisibility(
+                                visible = mediaState.value.media.isNotEmpty() && albumsState.value.albums.isNotEmpty(),
+                                enter = enterAnimation,
+                                exit = exitAnimation
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp)
+                                        .padding(vertical = 24.dp),
+                                    text = stringResource(
+                                        R.string.images_videos,
+                                        mediaState.value.media.size
+                                    ),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        item(key = "emptyAlbums") {
+                            AnimatedVisibility(
+                                visible = albumsState.value.albums.isEmpty() && albumsState.value.error.isEmpty(),
+                                enter = enterAnimation,
+                                exit = exitAnimation
+                            ) {
+                                EmptyAlbum()
+                            }
+                        }
+
+                        item(key = "loadingAlbums") {
+                            AnimatedVisibility(
+                                visible = albumsState.value.isLoading,
+                                enter = enterAnimation,
+                                exit = exitAnimation
+                            ) {
+                                LoadingAlbum()
+                            }
+                        }
                     }
                 }
             }

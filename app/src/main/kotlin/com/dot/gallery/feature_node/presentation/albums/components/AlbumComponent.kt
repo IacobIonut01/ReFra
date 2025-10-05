@@ -14,12 +14,15 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -332,6 +335,176 @@ fun AlbumComponent(
             )
         }
 
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun AlbumRowComponent(
+    modifier: Modifier = Modifier,
+    thumbnailModifier: Modifier = Modifier,
+    album: Album,
+    isEnabled: Boolean = true,
+    onItemClick: (Album) -> Unit,
+    onMoveAlbumToTrash: ((Album) -> Unit)? = null,
+    onTogglePinClick: ((Album) -> Unit)? = null,
+    onToggleIgnoreClick: ((Album) -> Unit)? = null
+) {
+    val scope = rememberCoroutineScope()
+    val appBottomSheetState = rememberAppBottomSheetState()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .alpha(if (isEnabled) 1f else 0.4f)
+            .height(64.dp)
+            .padding(horizontal = 8.dp),
+    ) {
+        if (onTogglePinClick != null) {
+            val trashTitle = stringResource(R.string.move_album_to_trash)
+            val pinTitle = stringResource(R.string.pin)
+            val ignoredTitle = stringResource(id = R.string.add_to_ignored)
+            val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
+            val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
+            val primaryContainer = MaterialTheme.colorScheme.primaryContainer
+            val onPrimaryContainer = MaterialTheme.colorScheme.onPrimaryContainer
+            val optionList = remember {
+                mutableListOf(
+                    OptionItem(
+                        text = trashTitle,
+                        containerColor = primaryContainer,
+                        contentColor = onPrimaryContainer,
+                        enabled = onMoveAlbumToTrash != null,
+                        onClick = {
+                            scope.launch {
+                                appBottomSheetState.hide()
+                                onMoveAlbumToTrash?.invoke(album)
+                            }
+                        }
+                    ),
+                    OptionItem(
+                        text = pinTitle,
+                        containerColor = secondaryContainer,
+                        contentColor = onSecondaryContainer,
+                        onClick = {
+                            scope.launch {
+                                appBottomSheetState.hide()
+                                onTogglePinClick(album)
+                            }
+                        }
+                    )
+                )
+            }
+            LaunchedEffect(onToggleIgnoreClick) {
+                if (onToggleIgnoreClick != null) {
+                    optionList.add(
+                        OptionItem(
+                            text = ignoredTitle,
+                            onClick = {
+                                scope.launch {
+                                    appBottomSheetState.hide()
+                                    onToggleIgnoreClick(album)
+                                }
+                            }
+                        )
+                    )
+                }
+            }
+
+            OptionSheet(
+                state = appBottomSheetState,
+                optionList = arrayOf(optionList),
+                headerContent = {
+                    GlideImage(
+                        modifier = Modifier
+                            .size(98.dp)
+                            .clip(Shapes.large),
+                        contentScale = ContentScale.Crop,
+                        model = album.uri.toString(),
+                        contentDescription = album.label
+                    )
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontStyle = MaterialTheme.typography.titleLarge.fontStyle,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                    letterSpacing = MaterialTheme.typography.titleLarge.letterSpacing
+                                )
+                            ) {
+                                append(album.label)
+                            }
+                            append("\n")
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontStyle = MaterialTheme.typography.bodyMedium.fontStyle,
+                                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                                    letterSpacing = MaterialTheme.typography.bodyMedium.letterSpacing
+                                )
+                            ) {
+                                append(stringResource(R.string.s_items, album.count) + " (${formatSize(album.size)})")
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            )
+        }
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+        ) {
+            AlbumImage(
+                modifier = thumbnailModifier,
+                album = album,
+                isEnabled = isEnabled,
+                onItemClick = onItemClick,
+                onItemLongClick = if (onTogglePinClick != null) {
+                    {
+                        scope.launch {
+                            appBottomSheetState.show()
+                        }
+                    }
+                } else null
+            )
+            if (album.isOnSdcard) {
+                Icon(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(24.dp)
+                        .align(Alignment.BottomEnd),
+                    imageVector = Icons.Outlined.SdCard,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = album.label,
+                maxLines = 1,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = pluralStringResource(
+                    id = R.plurals.item_count,
+                    count = album.count.toInt(),
+                    album.count
+                ) + " (${formatSize(album.size)})",
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
+        }
     }
 }
 

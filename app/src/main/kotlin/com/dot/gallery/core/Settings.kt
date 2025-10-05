@@ -57,6 +57,7 @@ object Settings {
 
     object Album {
         private val LAST_SORT = stringPreferencesKey("album_last_sort_obj")
+        private val LAST_VIEW = stringPreferencesKey("album_last_view_obj")
 
         @Serializable
         @Parcelize
@@ -65,11 +66,24 @@ object Settings {
             val kind: FilterKind
         ) : Parcelable
 
+        @Serializable
+        @Parcelize
+        enum class ViewType : Parcelable {
+            GRID, LIST
+        }
+
         @Composable
         fun rememberLastSort() =
             rememberPreferenceSerializable(
                 keyString = LAST_SORT,
                 defaultValue = LastSort(OrderType.Descending, FilterKind.DATE)
+            )
+
+        @Composable
+        fun rememberLastViewType() =
+            rememberPreferenceSerializable(
+                keyString = LAST_VIEW,
+                defaultValue = ViewType.GRID
             )
 
         @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
