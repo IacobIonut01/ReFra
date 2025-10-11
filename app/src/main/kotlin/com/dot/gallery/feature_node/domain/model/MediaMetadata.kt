@@ -3,7 +3,6 @@ package com.dot.gallery.feature_node.domain.model
 import android.content.Context
 import android.location.Geocoder
 import android.media.MediaMetadataRetriever
-import android.os.Build
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Exposure
 import androidx.compose.material.icons.outlined.MotionPhotosOn
@@ -19,7 +18,8 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.formattedAddress
-import com.dot.gallery.feature_node.presentation.util.getLocation
+import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printWarning
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import com.drew.metadata.exif.ExifSubIFDDirectory
@@ -31,6 +31,8 @@ import kotlinx.serialization.Serializable
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.Locale
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @Entity(tableName = "media_metadata_core")
 data class MediaMetadataCore(
@@ -185,11 +187,13 @@ fun MediaMetadata.getIcon(): ImageVector? {
     }
 }
 
-suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
+@Suppress("DEPRECATION")
+suspend fun Context.retrieveExtraMediaMetadata(geocoder: Geocoder?, media: Media): MediaMetadata? =
     withContext(Dispatchers.IO) {
         runCatching {
             val uri = media.getUri()
             val label = media.label
+            printDebug("Retrieving extra metadata for ${media.id} - $uri")
 
             // placeholders
             var imageDescription: String? = null
@@ -231,7 +235,8 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
                     // EXIF0 directories (image description, make, model, resolution)
                     meta.getDirectoriesOfType(ExifIFD0Directory::class.java).forEach { dir ->
                         if (imageDescription == null)
-                            imageDescription = dir.getString(ExifIFD0Directory.TAG_IMAGE_DESCRIPTION)
+                            imageDescription =
+                                dir.getString(ExifIFD0Directory.TAG_IMAGE_DESCRIPTION)
                         if (manufacturerName == null)
                             manufacturerName = dir.getString(ExifIFD0Directory.TAG_MAKE)
                         if (modelName == null)
@@ -271,21 +276,23 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
                             if (gpsLatitude == null) gpsLatitude = it.latitude
                             if (gpsLongitude == null) gpsLongitude = it.longitude
                         }
-                    }
-
-                    // If GPS location is available, try to get the location name
-                    if (gpsLatitude != null) {
-                        val geocoder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && Geocoder.isPresent())
-                            Geocoder(this@retrieveExtraMediaMetadata) else null
-                        geocoder?.getLocation(
-                            gpsLatitude,
-                            gpsLongitude!!
-                        ) { address ->
-                            gpsLocationName = address?.formattedAddress
-                            gpsLocationCountry = address?.countryName
-                            gpsLocationCity = address?.locality
+                    }.also {
+                        // If GPS location is available, try to get the location name
+                        if (gpsLatitude != null && gpsLongitude != null) {
+                            if (geocoder != null) {
+                                suspendCoroutine {
+                                    val address = geocoder.getFromLocation(gpsLatitude, gpsLongitude, 1).orEmpty().firstOrNull()
+                                    gpsLocationName = address?.formattedAddress
+                                    gpsLocationCountry = address?.countryName
+                                    gpsLocationCity = address?.locality
+                                    it.resume(Unit)
+                                }
+                            } else {
+                                printWarning("MetadataReader: Geocoder not available")
+                            }
                         }
                     }
+
 
                     // XMP directories for your feature flags
                     val xmps = meta.getDirectoriesOfType(XmpDirectory::class.java)
@@ -395,7 +402,9 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
                 isPhotosphere = isPhotosphere,
                 isLongExposure = isLongExposure,
                 isMotionPhoto = isMotionPhoto
-            )
+            ).also {
+                printDebug("Retrieved metadata for ${media.id} - $uri\n$it")
+            }
         }.getOrElse {
             it.printStackTrace()
             null
@@ -403,41 +412,41 @@ suspend fun Context.retrieveExtraMediaMetadata(media: Media): MediaMetadata? =
     }
 
 fun MediaMetadata.toCore() = MediaMetadataCore(
-    mediaId           = mediaId,
-    imageDescription  = imageDescription,
-    dateTimeOriginal  = dateTimeOriginal,
-    manufacturerName  = manufacturerName,
-    modelName         = modelName,
-    aperture          = aperture,
-    exposureTime      = exposureTime,
-    iso               = iso,
-    gpsLatitude       = gpsLatitude,
-    gpsLongitude      = gpsLongitude,
-    gpsLocationName   = gpsLocationName,
-    gpsLocationNameCountry= gpsLocationNameCountry,
-    gpsLocationNameCity   = gpsLocationNameCity,
-    imageWidth        = imageWidth,
-    imageHeight       = imageHeight,
-    imageResolutionX  = imageResolutionX,
-    imageResolutionY  = imageResolutionY,
-    resolutionUnit    = resolutionUnit
+    mediaId = mediaId,
+    imageDescription = imageDescription,
+    dateTimeOriginal = dateTimeOriginal,
+    manufacturerName = manufacturerName,
+    modelName = modelName,
+    aperture = aperture,
+    exposureTime = exposureTime,
+    iso = iso,
+    gpsLatitude = gpsLatitude,
+    gpsLongitude = gpsLongitude,
+    gpsLocationName = gpsLocationName,
+    gpsLocationNameCountry = gpsLocationNameCountry,
+    gpsLocationNameCity = gpsLocationNameCity,
+    imageWidth = imageWidth,
+    imageHeight = imageHeight,
+    imageResolutionX = imageResolutionX,
+    imageResolutionY = imageResolutionY,
+    resolutionUnit = resolutionUnit
 )
 
 fun MediaMetadata.toVideo() = MediaMetadataVideo(
-    mediaId    = mediaId,
+    mediaId = mediaId,
     durationMs = durationMs,
     videoWidth = videoWidth,
-    videoHeight= videoHeight,
-    frameRate  = frameRate,
-    bitRate    = bitRate
+    videoHeight = videoHeight,
+    frameRate = frameRate,
+    bitRate = bitRate
 )
 
 fun MediaMetadata.toFlags() = MediaMetadataFlags(
-    mediaId       = mediaId,
-    isNightMode   = isNightMode,
-    isPanorama    = isPanorama,
+    mediaId = mediaId,
+    isNightMode = isNightMode,
+    isPanorama = isPanorama,
     isPhotosphere = isPhotosphere,
-    isLongExposure= isLongExposure,
+    isLongExposure = isLongExposure,
     isMotionPhoto = isMotionPhoto
 )
 
@@ -445,33 +454,33 @@ fun FullMediaMetadata.toMediaMetadata(): MediaMetadata {
     val v = video
     val f = flags
     return MediaMetadata(
-        mediaId           = core.mediaId,
-        imageDescription  = core.imageDescription,
-        dateTimeOriginal  = core.dateTimeOriginal,
-        manufacturerName  = core.manufacturerName,
-        modelName         = core.modelName,
-        aperture          = core.aperture,
-        exposureTime      = core.exposureTime,
-        iso               = core.iso,
-        gpsLatitude       = core.gpsLatitude,
-        gpsLongitude      = core.gpsLongitude,
-        gpsLocationName   = core.gpsLocationName,
-        gpsLocationNameCountry= core.gpsLocationNameCountry,
-        gpsLocationNameCity   = core.gpsLocationNameCity,
-        imageWidth        = core.imageWidth,
-        imageHeight       = core.imageHeight,
-        imageResolutionX  = core.imageResolutionX,
-        imageResolutionY  = core.imageResolutionY,
-        resolutionUnit    = core.resolutionUnit,
-        durationMs        = v?.durationMs,
-        videoWidth        = v?.videoWidth,
-        videoHeight       = v?.videoHeight,
-        frameRate         = v?.frameRate,
-        bitRate           = v?.bitRate,
-        isNightMode       = f?.isNightMode   ?: false,
-        isPanorama        = f?.isPanorama    ?: false,
-        isPhotosphere     = f?.isPhotosphere ?: false,
-        isLongExposure    = f?.isLongExposure?: false,
-        isMotionPhoto     = f?.isMotionPhoto ?: false
+        mediaId = core.mediaId,
+        imageDescription = core.imageDescription,
+        dateTimeOriginal = core.dateTimeOriginal,
+        manufacturerName = core.manufacturerName,
+        modelName = core.modelName,
+        aperture = core.aperture,
+        exposureTime = core.exposureTime,
+        iso = core.iso,
+        gpsLatitude = core.gpsLatitude,
+        gpsLongitude = core.gpsLongitude,
+        gpsLocationName = core.gpsLocationName,
+        gpsLocationNameCountry = core.gpsLocationNameCountry,
+        gpsLocationNameCity = core.gpsLocationNameCity,
+        imageWidth = core.imageWidth,
+        imageHeight = core.imageHeight,
+        imageResolutionX = core.imageResolutionX,
+        imageResolutionY = core.imageResolutionY,
+        resolutionUnit = core.resolutionUnit,
+        durationMs = v?.durationMs,
+        videoWidth = v?.videoWidth,
+        videoHeight = v?.videoHeight,
+        frameRate = v?.frameRate,
+        bitRate = v?.bitRate,
+        isNightMode = f?.isNightMode ?: false,
+        isPanorama = f?.isPanorama ?: false,
+        isPhotosphere = f?.isPhotosphere ?: false,
+        isLongExposure = f?.isLongExposure ?: false,
+        isMotionPhoto = f?.isMotionPhoto ?: false
     )
 }

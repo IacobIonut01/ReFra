@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,6 +33,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFirstOrNull
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -40,20 +42,21 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.CheckBox
 import com.dot.gallery.core.presentation.components.util.advancedShadow
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.MediaMetadata
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.getIcon
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isFavorite
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoDurationHeader
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun <T : Media> MediaImage(
     modifier: Modifier = Modifier,
     media: T,
-    metadata: () -> MediaMetadata? = { null },
+    metadataState: State<MediaMetadataState>,
     canClick: () -> Boolean,
     onMediaClick: (T) -> Unit,
     onItemSelect: (T) -> Unit,
@@ -64,6 +67,10 @@ fun <T : Media> MediaImage(
     val isSelected by rememberedDerivedState(selectionState, selectedMedia, media) {
         selectionState && selectedMedia.any { it == media.id }
     }
+    val metadata by rememberedDerivedState(metadataState.value) {
+        metadataState.value.metadata.fastFirstOrNull { it.mediaId == media.id }
+    }
+
     val selectedSize by animateDpAsState(
         targetValue = if (isSelected) 12.dp else 0.dp,
         label = "selectedSize"
@@ -88,23 +95,10 @@ fun <T : Media> MediaImage(
     val roundedShape = remember(selectedShapeSize) {
         RoundedCornerShape(selectedShapeSize)
     }
-/*    val request = ComposableImageRequest(media.getUri().toString()) {
-        precision(Precision.LESS_PIXELS)
-        colorType(Bitmap.Config.RGB_565)
-        sizeMultiplier(0.8f)
-        setExtra(
-            key = "mediaKey",
-            value = media.idLessKey,
-        )
-        setExtra(
-            key = "realMimeType",
-            value = media.mimeType,
-        )
-        memoryCacheKey(media.idLessKey)
-        resultCacheKey(media.idLessKey)
-    }*/
+
     Box(
         modifier = Modifier
+            .clip(roundedShape)
             .combinedClickable(
                 enabled = canClick(),
                 onClick = {
@@ -147,30 +141,9 @@ fun <T : Media> MediaImage(
                 val newRequest = it.centerCrop()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                 newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
+                    .signature(GlideInvalidation.signature(media))
             }
         )
-
-/*        AsyncImage(
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.Center)
-                .aspectRatio(1f)
-                .padding(selectedSize)
-                .clip(roundedShape)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = roundedShape
-                )
-                .border(
-                    width = strokeSize,
-                    shape = roundedShape,
-                    color = strokeColor
-                ),
-            request = request,
-            filterQuality = FilterQuality.None,
-            contentDescription = media.label,
-            contentScale = ContentScale.Crop,
-        )*/
 
         if (media.isVideo) {
             VideoDurationHeader(
@@ -196,7 +169,7 @@ fun <T : Media> MediaImage(
             )
         }
 
-        if (metadata() != null && metadata()!!.isRelevant) {
+        if (metadata != null && metadata!!.isRelevant) {
             Icon(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -209,7 +182,7 @@ fun <T : Media> MediaImage(
                         shadowBlurRadius = 6.dp,
                         alpha = 0.3f
                     ),
-                imageVector = metadata()!!.getIcon()!!,
+                imageVector = metadata!!.getIcon()!!,
                 tint = Color.White,
                 contentDescription = null
             )

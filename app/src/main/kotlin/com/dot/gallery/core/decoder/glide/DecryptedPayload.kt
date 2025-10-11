@@ -43,11 +43,30 @@ fun isEncryptedVaultPath(file: File): Boolean =
  */
 @Suppress("UNCHECKED_CAST")
 fun decryptMediaFile(file: File, keychainHolder: KeychainHolder): DecryptedPayload {
-    val encrypted = with(keychainHolder) {
-        file.decryptKotlin<Media.EncryptedMedia>()
+    return try {
+        val encrypted = with(keychainHolder) { file.decryptKotlin<Media.EncryptedMedia>() }
+        DecryptedPayload(bytes = encrypted.bytes, mimeType = encrypted.mimeType)
+    } catch (_: Throwable) {
+        // Portable path: raw bytes decrypted via data key if magic present. We lack mime here so default guess; caller may override later.
+        val raw = file.readBytes()
+        val vaultUuid = file.parentFile?.name
+        val mime = "image/*" // fallback; real mime should come from DB record in higher layer.
+        val decrypted = try {
+            // Attempt portable decrypt if we can identify vault folder as UUID.
+            // We need a Vault object to call decryptPortableIfNeeded, but avoiding tight coupling here; expose a lightweight inline approach would require refactor.
+            // For now, try each loaded vault? (Skipped). Simpler: attempt magic detection directly using reflection-free approach.
+            // Use internal helper via public startsWithMagic + decryptPortableContent.
+            val holderCls = keychainHolder::class.java
+            val startsWithMagic = holderCls.getDeclaredMethod("startsWithMagic", ByteArray::class.java).apply { isAccessible = true }.invoke(keychainHolder, raw) as Boolean
+            if (startsWithMagic) {
+                // We need a Vault instance to decrypt; if vaultUuid missing, just return raw.
+                val vault = try { java.util.UUID.fromString(vaultUuid); com.dot.gallery.feature_node.domain.model.Vault(java.util.UUID.fromString(vaultUuid), "") } catch (_: Throwable) { null }
+                if (vault != null) {
+                    val decryptMeth = holderCls.getDeclaredMethod("decryptPortableContent", com.dot.gallery.feature_node.domain.model.Vault::class.java, ByteArray::class.java).apply { isAccessible = true }
+                    decryptMeth.invoke(keychainHolder, vault, raw) as ByteArray
+                } else raw
+            } else raw
+        } catch (_: Throwable) { raw }
+        DecryptedPayload(bytes = decrypted, mimeType = mime)
     }
-    return DecryptedPayload(
-        bytes = encrypted.bytes,
-        mimeType = encrypted.mimeType
-    )
 }

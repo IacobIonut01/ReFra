@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.favorites.components.EmptyFavorites
@@ -30,6 +31,7 @@ fun FavoriteScreen(
     paddingValues: PaddingValues,
     albumName: String = stringResource(id = R.string.favorites),
     mediaState: State<MediaState<UriMedia>>,
+    metadataState: State<MediaMetadataState>,
     clearSelection: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
@@ -38,6 +40,7 @@ fun FavoriteScreen(
     target = TARGET_FAVORITES,
     albumName = albumName,
     mediaState = mediaState,
+    metadataState = metadataState,
     navActionsContent = { _: MutableState<Boolean>,
                           result: ActivityResultLauncher<IntentSenderRequest> ->
         FavoriteNavActions(mediaState, result)

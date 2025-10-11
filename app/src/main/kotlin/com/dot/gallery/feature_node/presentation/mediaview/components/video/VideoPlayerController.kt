@@ -264,17 +264,23 @@ fun VideoPlayerController(
                             )
                         },
                         onValueChange = {
-                            if (player.isPlaying) {
-                                player.pause()
-                            }
+                            // Pause only if currently playing; keep track for resume decision
                             sliderValue = it
                         },
                         onValueChangeFinished = {
                             scope.launch {
-                                if (player.currentPosition != sliderValue.toLong()) {
-                                    player.seekTo(sliderValue.toLong())
-                                    delay(50)
-                                    player.play()
+                                val target = sliderValue.toLong()
+                                val wasPlaying = isPlaying.value
+                                if (player.currentPosition != target) {
+                                    player.seekTo(target)
+                                }
+                                // If user had been playing, resume; otherwise remain paused
+                                if (wasPlaying) {
+                                    player.playWhenReady = true
+                                    isPlaying.value = true
+                                } else {
+                                    player.playWhenReady = false
+                                    isPlaying.value = false
                                 }
                             }
                         },
@@ -294,7 +300,16 @@ fun VideoPlayerController(
         }
 
         IconButton(
-            onClick = { isPlaying.value = !isPlaying.value },
+            onClick = {
+                val newState = !isPlaying.value
+                isPlaying.value = newState
+                if (newState) {
+                    player.playWhenReady = true
+                    player.play()
+                } else {
+                    player.pause()
+                }
+            },
             modifier = Modifier
                 .align(Alignment.Center)
                 .size(64.dp)

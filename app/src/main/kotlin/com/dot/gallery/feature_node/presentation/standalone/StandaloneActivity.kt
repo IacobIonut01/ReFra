@@ -23,12 +23,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.core.MediaSelector
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.util.SetupMediaProviders
+import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -47,10 +49,13 @@ class StandaloneActivity : ComponentActivity() {
 
     @Inject
     lateinit var eventHandler: EventHandler
+
     @Inject
     lateinit var mediaDistributor: MediaDistributor
+
     @Inject
     lateinit var mediaHandler: MediaHandler
+
     @Inject
     lateinit var mediaSelector: MediaSelector
 
@@ -72,7 +77,17 @@ class StandaloneActivity : ComponentActivity() {
         setShowWhenLocked(isSecure)
         setContent {
             GalleryTheme {
-                val hazeState = rememberHazeState()
+                val allowBlur by rememberAllowBlur()
+                val hazeState = rememberHazeState(
+                    blurEnabled = allowBlur
+                )
+                val viewModel =
+                    hiltViewModel<StandaloneViewModel, StandaloneViewModel.Factory> { factory ->
+                        factory.create(
+                            reviewMode = action.contains("REVIEW", true),
+                            dataList = uriList.toList()
+                        )
+                    }
                 CompositionLocalProvider(
                     LocalHazeState provides hazeState,
                     LocalHazeStyle provides HazeMaterials.thin(
@@ -82,6 +97,13 @@ class StandaloneActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         eventHandler.navigateUpAction = { finish() }
                     }
+                    LaunchedEffect(eventHandler) {
+                        eventHandler.updaterFlow.collect {
+                            if (it == UIEvent.NavigationUpEvent) {
+                                finish()
+                            }
+                        }
+                    }
                     SetupMediaProviders(
                         eventHandler = eventHandler,
                         mediaDistributor = mediaDistributor,
@@ -89,18 +111,21 @@ class StandaloneActivity : ComponentActivity() {
                         mediaSelector = mediaSelector
                     ) {
                         Scaffold(
-                            modifier = Modifier.hazeSource(LocalHazeState.current)
+                            modifier = Modifier.hazeSource(hazeState)
                         ) { paddingValues ->
-                            val viewModel = hiltViewModel<StandaloneViewModel>()
-                            LaunchedEffect(Unit) {
-                                viewModel.reviewMode = action.lowercase().contains("review")
-                                viewModel.dataList = uriList.toList()
-                            }
                             val vaults = viewModel.vaults.collectAsStateWithLifecycle()
                             val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
+                            val albumsState = viewModel.albumsState.collectAsStateWithLifecycle()
+                            val metadataState =
+                                viewModel.metadataState.collectAsStateWithLifecycle()
                             val staticState by remember { mutableStateOf(true) }
-                            SharedTransitionLayout {
-                                AnimatedContent(staticState, label = "standalone") { staticState ->
+                            SharedTransitionLayout(
+                                modifier = Modifier.hazeSource(hazeState)
+                            ) {
+                                AnimatedContent(
+                                    targetState = staticState,
+                                    label = "standalone"
+                                ) { staticState ->
                                     if (staticState) {
                                         MediaViewScreen(
                                             toggleRotate = ::toggleOrientation,
@@ -108,6 +133,9 @@ class StandaloneActivity : ComponentActivity() {
                                             isStandalone = true,
                                             mediaId = viewModel.mediaId,
                                             mediaState = mediaState,
+                                            vaultState = vaults,
+                                            albumsState = albumsState,
+                                            metadataState = metadataState,
                                             sharedTransitionScope = this@SharedTransitionLayout,
                                             animatedContentScope = this
                                         )

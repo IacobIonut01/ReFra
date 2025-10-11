@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
-import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridScope
@@ -140,7 +139,6 @@ fun <T : Media> PinchZoomGridScope.MediaGrid(
             MediaGridContentWithHeaders(
                 modifier = modifier,
                 mediaState = mediaState,
-                metadataState = metadataState,
                 mappedData = mappedData,
                 paddingValues = paddingValues,
                 allowSelection = allowSelection,
@@ -148,20 +146,21 @@ fun <T : Media> PinchZoomGridScope.MediaGrid(
                 onMediaClick = onMediaClick,
                 topContent = topContent,
                 sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope
+                animatedContentScope = animatedContentScope,
+                metadataState = metadataState
             )
         } else {
             MediaGridContent(
                 modifier = modifier,
                 mediaState = mediaState,
-                metadataState = metadataState,
                 paddingValues = paddingValues,
                 allowSelection = allowSelection,
                 canScroll = canScroll,
                 onMediaClick = onMediaClick,
                 topContent = topContent,
                 sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope
+                animatedContentScope = animatedContentScope,
+                metadataState = metadataState
             )
         }
     }
@@ -302,9 +301,6 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                     }
                 } else if (it is MediaItem.MediaViewItem) {
                     with(sharedTransitionScope) {
-                        val metadata by rememberedDerivedState(metadataState.value, it.media) {
-                            metadataState.value.metadata.fastFirstOrNull { mtd -> mtd.mediaId == it.media.id }
-                        }
                         MediaImage(
                             modifier = Modifier
                                 .mediaSharedElement(
@@ -318,9 +314,9 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                                 )
                                 .pinchItem(key = it.key),
                             media = it.media,
-                            metadata = { metadata },
                             canClick = { canScroll },
                             onMediaClick = { onMediaClick(it) },
+                            metadataState = metadataState,
                             onItemSelect = {
                                 if (allowSelection) {
                                     feedbackManager.vibrate()
@@ -414,9 +410,6 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
             contentType = { item -> item.mimeType }
         ) { media ->
             with(sharedTransitionScope) {
-                val metadata = remember(metadataState.value, media) {
-                    mutableStateOf(metadataState.value.metadata.firstOrNull { mtd -> mtd.mediaId == media.id })
-                }
                 MediaImage(
                     modifier = Modifier
                         .mediaSharedElement(
@@ -430,7 +423,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContent(
                         )
                         .pinchItem(key = media.key),
                     media = media,
-                    metadata = { metadata.value },
+                    metadataState = metadataState,
                     canClick = { canScroll },
                     onMediaClick = { onMediaClick(it) },
                     onItemSelect = {

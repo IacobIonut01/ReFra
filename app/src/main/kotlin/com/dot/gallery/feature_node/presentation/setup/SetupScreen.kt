@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PermMedia
 import androidx.compose.material.icons.rounded.SignalWifi4Bar
 import androidx.compose.material.icons.rounded.VideoFile
@@ -206,6 +207,11 @@ private val Context.requiredPermissionsList: Array<Triple<ImageVector, String, S
                 Icons.Rounded.SignalWifi4Bar,
                 getString(R.string.internet),
                 getString(R.string.internet_summary)
+            ),
+            Triple(
+                Icons.Rounded.Notifications,
+                getString(R.string.post_notifications),
+                getString(R.string.post_notifications_summary)
             )
         ).apply {
             if (packageManager.checkPermission(Manifest.permission.INTERNET, packageName) != PackageManager.PERMISSION_GRANTED) {

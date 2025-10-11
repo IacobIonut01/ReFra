@@ -29,6 +29,18 @@ sealed class Screen(val route: String) {
         fun idAndCategory() = "$route?mediaId={mediaId}&category={category}"
 
         fun idAndCategory(id: Long, category: String) = "$route?mediaId=$id&category=$category"
+
+        fun idAndLocation() = "$route?mediaId={mediaId}&gpsLocationNameCity={gpsLocationNameCity}&gpsLocationNameCountry={gpsLocationNameCountry}"
+
+        fun idAndLocation(id: Long, gpsLocationNameCity: String, gpsLocationNameCountry: String) = "$route?mediaId=$id&gpsLocationNameCity=$gpsLocationNameCity&gpsLocationNameCountry=$gpsLocationNameCountry"
+    }
+
+    data object LocationTimelineScreen : Screen("location_timeline_screen") {
+
+        fun location() = "$route?gpsLocationNameCity={gpsLocationNameCity}&gpsLocationNameCountry={gpsLocationNameCountry}"
+
+        fun location(gpsLocationNameCity: String, gpsLocationNameCountry: String) = "$route?gpsLocationNameCity=$gpsLocationNameCity&gpsLocationNameCountry=$gpsLocationNameCountry"
+
     }
 
     data object TrashedScreen : Screen("trashed_screen")

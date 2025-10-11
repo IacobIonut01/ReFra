@@ -68,7 +68,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.composables.core.BottomSheet
 import com.composables.core.SheetDetent.Companion.FullyExpanded
 import com.composables.core.rememberBottomSheetState
@@ -78,7 +78,6 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
@@ -87,14 +86,17 @@ import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.util.swipe
+import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
+import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
+import com.dot.gallery.feature_node.presentation.mediaview.MediaViewViewModel.MediaViewEvent
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewAppBar
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewQuickBottomBar
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewSheetDetails
@@ -154,24 +156,25 @@ fun <T : Media> MediaViewScreen(
     mediaId: Long,
     target: String? = null,
     mediaState: State<MediaState<out T>>,
+    metadataState: State<MediaMetadataState>,
+    albumsState: State<AlbumState>,
+    vaultState: State<VaultState>,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
     currentVault: Vault? = null,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) = ProvideInsets {
+    val viewModel = hiltViewModel<MediaViewViewModel>()
     val eventHandler = LocalEventHandler.current
-    val distributor = LocalMediaDistributor.current
-    val vaultState = distributor.vaultsMediaFlow.collectAsStateWithLifecycle()
-    val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle()
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()
 
     var initialPageSetup by rememberSaveable { mutableStateOf(false) }
 
-    val initialPage = rememberSaveable(mediaId, mediaState.value) {
+    // Use only primitive ids/sizes as saveable keys (avoid passing full media list object)
+    val initialPage = rememberSaveable(mediaId, mediaState.value.media.size) {
         mediaState.value.media.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
     }
     var currentPage by rememberSaveable(initialPage) { mutableIntStateOf(initialPage) }
@@ -248,6 +251,9 @@ fun <T : Media> MediaViewScreen(
     val showInfo by rememberedDerivedState { currentMedia?.trashed == 0 && !isReadOnly }
 
     var showUI by rememberSaveable { mutableStateOf(true) }
+    // Key rotation helpers by media id, not whole media object (prevents Serializable fallback of Media inside internal Pair)
+    val newRotationValue = rememberSaveable(currentMedia?.id ?: -1L) { mutableIntStateOf(0) }
+    val showRotationHelper = rememberSaveable(currentMedia?.id ?: -1L) { mutableStateOf(false) }
 
     BackHandler(!showUI) {
         windowInsetsController.toggleSystemBars(show = true)
@@ -369,6 +375,14 @@ fun <T : Media> MediaViewScreen(
             paddingValues.calculateBottomPadding()
         }
 
+    LaunchedEffect(Unit) {
+        viewModel.uiEvents.collect { event ->
+            when (event) {
+                MediaViewEvent.ScrollToFirstPage -> pagerState.animateScrollToPage(0)
+            }
+        }
+    }
+
     FullBrightnessWindow {
         val isDarkTheme = isDarkTheme()
         val allowBlur by rememberAllowBlur()
@@ -404,16 +418,13 @@ fun <T : Media> MediaViewScreen(
                         index
                     )
                 }
-                val canPlay = rememberSaveable(media) {
-                    mutableStateOf(false)
-                }
-                var canAnimateContent by rememberSaveable(media) {
-                    mutableStateOf(true)
-                }
+                val canPlay = rememberSaveable(media) { mutableStateOf(false) }
+                var canAnimateContent by rememberSaveable(media) { mutableStateOf(true) }
                 AnimatedVisibility(
                     modifier = Modifier
                         .onVisibilityChanged { isVisible ->
-                            canPlay.value = (if (media?.isVideo == true) isVisible && playWhenReady else false)
+                            canPlay.value =
+                                (if (media?.isVideo == true) isVisible && playWhenReady else false)
                             canAnimateContent = isVisible
                         },
                     visible = media != null && initialPageSetup,
@@ -450,6 +461,13 @@ fun <T : Media> MediaViewScreen(
                                 }
                             },
                             offset = offset,
+                            rotationDisabled = isLocked,
+                            onImageRotated = { newRotation ->
+                                showRotationHelper.value =
+                                    media?.isImage == true && newRotation != 0 && newRotation != 360
+                                newRotationValue.intValue =
+                                    (if (showRotationHelper.value) newRotation else 0)
+                            },
                             onItemClick = {
                                 if (sheetState.currentDetent == imageOnlyDetent) {
                                     showUI = !showUI
@@ -570,6 +588,10 @@ fun <T : Media> MediaViewScreen(
                 currentDate = currentDate,
                 paddingValues = paddingValues,
                 currentMedia = currentMedia,
+                showRotationHelper = showRotationHelper,
+                rotateImage = {
+                    viewModel.rotateImage(currentMedia!!, newRotationValue.intValue)
+                },
                 onShowInfo = {
                     scope.launch {
                         if (showUI) {
@@ -632,7 +654,6 @@ fun <T : Media> MediaViewScreen(
                         enter = enterAnimation,
                         exit = exitAnimation
                     ) {
-                        val allowBlur by rememberAllowBlur()
                         val followTheme = remember(allowBlur) { !allowBlur }
                         val gradientColor by animateColorAsState(
                             if (followTheme) {

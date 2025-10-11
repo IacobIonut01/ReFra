@@ -24,7 +24,7 @@ android {
         applicationId = "com.dot.gallery"
         minSdk = 30
         targetSdk = 36
-        versionCode = 40039
+        versionCode = 40070
         versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -57,6 +57,7 @@ android {
                 "CONTENT_AUTHORITY",
                 "\"com.dot.gallery.debug.media_provider\""
             )
+            buildConfigField("Boolean", "ENABLE_INDEXING", "false")
         }
         getByName("release") {
             manifestPlaceholders += mapOf(
@@ -74,6 +75,7 @@ android {
             buildConfigField("Boolean", "ALLOW_ALL_FILES_ACCESS", allowAllFilesAccess)
             buildConfigField("String", "MAPS_TOKEN", getApiKey())
             buildConfigField("String", "CONTENT_AUTHORITY", "\"com.dot.gallery.media_provider\"")
+            buildConfigField("Boolean", "ENABLE_INDEXING", "true")
         }
         create("staging") {
             initWith(getByName("release"))
@@ -87,6 +89,7 @@ android {
                 "CONTENT_AUTHORITY",
                 "\"com.dot.staging.debug.media_provider\""
             )
+            buildConfigField("Boolean", "ENABLE_INDEXING", "false")
         }
     }
 
@@ -159,8 +162,7 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
-        freeCompilerArgs.add("-Xcontext-receivers")
-        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 
@@ -247,10 +249,10 @@ dependencies {
     // Exo Player
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.ui.compose)
     implementation(libs.androidx.media3.session)
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.exoplayer.hls)
-    implementation(libs.compose.video)
 
     // Exif Interface
     implementation(libs.androidx.exifinterface)
@@ -287,11 +289,7 @@ dependencies {
     // Composable - Scrollbar
     implementation(libs.lazycolumnscrollbar)
 
-    // TensorFlow Lite
-    implementation(libs.tensorflow.lite)
-    implementation(libs.tensorflow.lite.task.vision)
-    implementation(libs.tensorflow.lite.gpu)
-
+    // ONNX Runtime
     implementation(libs.onnxruntime.android.qnn)
 
     // Haze

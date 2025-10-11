@@ -9,6 +9,7 @@ package com.dot.gallery.core
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Parcelable
 import android.provider.MediaStore
@@ -108,7 +109,7 @@ object Settings {
             }
             val orientation = LocalConfiguration.current.orientation
             val isLandscape by rememberedDerivedState(orientation, windowSizeClass) {
-                orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ||
+                orientation == Configuration.ORIENTATION_LANDSCAPE ||
                         windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Expanded
             }
             val key by rememberedDerivedState {
@@ -243,7 +244,7 @@ object Settings {
 
             val orientation = LocalConfiguration.current.orientation
             val isLandscape by rememberedDerivedState(orientation, windowSizeClass) {
-                orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ||
+                orientation == Configuration.ORIENTATION_LANDSCAPE ||
                         windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Expanded
             }
 
@@ -445,6 +446,7 @@ object Settings {
 
 sealed class SettingsType {
     data object Seek : SettingsType()
+    data object Progress : SettingsType()
     data object Switch : SettingsType()
     data object Header : SettingsType()
     data object Default : SettingsType()
@@ -473,6 +475,7 @@ sealed class SettingsEntity(
     open val valueMultiplier: Int = 1,
     open val seekSuffix: String? = null,
     open val onSeek: ((Float) -> Unit)? = null,
+    open val progress: Float? = null,
     open val screenPosition: Position = Position.Alone
 ) {
     val isHeader = type == SettingsType.Header
@@ -547,5 +550,22 @@ sealed class SettingsEntity(
         seekSuffix = seekSuffix,
         onSeek = onSeek,
         type = SettingsType.Seek
+    )
+
+    data class ProgressPreference(
+        override val icon: ImageVector? = null,
+        override val title: String,
+        override val summary: String? = null,
+        override val enabled: Boolean = true,
+        override val screenPosition: Position = Position.Alone,
+        override val progress: Float? = null,
+    ) : SettingsEntity(
+        icon = icon,
+        title = title,
+        summary = summary,
+        enabled = enabled,
+        screenPosition = screenPosition,
+        progress = progress,
+        type = SettingsType.Progress
     )
 }

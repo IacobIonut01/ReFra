@@ -9,12 +9,18 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dot.gallery.core.MediaDistributor
+import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -22,48 +28,25 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @Suppress("UNCHECKED_CAST")
-@HiltViewModel
-class StandaloneViewModel @Inject constructor(
-    @ApplicationContext
+@HiltViewModel(assistedFactory = StandaloneViewModel.Factory::class)
+class StandaloneViewModel @AssistedInject constructor(
+    @param:ApplicationContext
     private val applicationContext: Context,
-    private val repository: MediaRepository
+    private val repository: MediaRepository,
+    distributor: MediaDistributor,
+    @Assisted private val reviewMode: Boolean,
+    @Assisted private val dataList: List<Uri>
 ) : ViewModel() {
 
-    var reviewMode: Boolean = false
-        set(value) {
-            field = value
-            mediaState =
-                repository.getMediaListByUris(dataList, reviewMode)
-                    .map {
-                        val data = it.data
-                        if (data != null) {
-                            mediaId = data.first().id
-                            MediaState(media = data, isLoading = false)
-                        } else {
-                            mediaFromUris()
-                        }
-                    }
-                    .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
-        }
-    var dataList: List<Uri> = emptyList()
-        set(value) {
-            field = value
-            mediaState =
-                repository.getMediaListByUris(value, reviewMode)
-                    .map {
-                        val data = it.data
-                        if (data != null) {
-                            mediaId = data.first().id
-                            MediaState(media = data, isLoading = false)
-                        } else {
-                            mediaFromUris()
-                        }
-                    }
-                    .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
-        }
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            reviewMode: Boolean,
+            dataList: List<Uri>
+        ): StandaloneViewModel
+    }
 
     var mediaId: Long = -1
 
@@ -80,9 +63,15 @@ class StandaloneViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
 
 
-    val vaults = repository.getVaults().map { it.data ?: emptyList() }
-        .map { VaultState(it, isLoading = false) }
+    val vaults = distributor.vaultsMediaFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, VaultState())
+
+    val albumsState = distributor.albumsFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AlbumState())
+
+    val metadataState = distributor.metadataFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, MediaMetadataState())
+
 
     fun addMedia(vault: Vault, media: UriMedia) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -91,11 +80,10 @@ class StandaloneViewModel @Inject constructor(
     }
 
     private fun <T: Media> mediaFromUris(): MediaState<T> {
-        val list = mutableListOf<T>()
-        dataList.forEach {
-            Media.createFromUri(applicationContext, it)?.let { it1 -> list.add(it1 as T) }
+        val mediaList = dataList.mapNotNull {
+            Media.createFromUri(applicationContext, it) as T?
         }
-        return MediaState(media = list, isLoading = false)
+        return MediaState(media = mediaList, isLoading = false)
     }
 
 }

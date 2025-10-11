@@ -23,6 +23,9 @@ interface VaultDao {
     @Upsert
     suspend fun insertVault(vault: Vault)
 
+    @Query("SELECT * FROM vaults WHERE uuid = :uuid LIMIT 1")
+    suspend fun getVault(uuid: UUID): Vault?
+
     @Delete
     suspend fun deleteVaultInfo(vault: Vault)
 

@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,13 +36,13 @@ import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.core.toggleNavigationBar
+import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
@@ -61,18 +62,14 @@ import kotlinx.coroutines.withContext
 fun TimelineScreen(
     paddingValues: PaddingValues,
     isScrolling: MutableState<Boolean>,
+    mediaState: State<MediaState<Media.UriMedia>>,
+    metadataState: State<MediaMetadataState>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
     var canScroll by rememberSaveable { mutableStateOf(true) }
     var lastCellIndex by rememberGridSize()
     val eventHandler = LocalEventHandler.current
-    val distributor = LocalMediaDistributor.current
-    val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle(
-        context = Dispatchers.IO,
-        initialValue = MediaState()
-    )
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
     val selector = LocalMediaSelector.current
     val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()

@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -21,11 +22,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,6 +51,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,8 +65,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
@@ -88,13 +85,10 @@ import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
-import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.common.components.SettingsOptionLayout
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
-import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
-import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
@@ -108,6 +102,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SearchScreen(
     isScrolling: MutableState<Boolean>,
+    metadataState: State<MediaMetadataState>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     viewModel: SearchViewModel,
@@ -158,7 +153,6 @@ fun SearchScreen(
         )
     }
     val searchIndexerState by viewModel.searchIndexerState.collectAsStateWithLifecycle()
-    val locations by viewModel.locations.collectAsStateWithLifecycle()
     Scaffold(
         modifier = Modifier.sharedBounds(
             sharedContentState = rememberSharedContentState(key = "search_screen_bounds"),
@@ -176,7 +170,6 @@ fun SearchScreen(
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val eventHandler = LocalEventHandler.current
                         IconButton(
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
@@ -356,71 +349,6 @@ fun SearchScreen(
                             optionList = suggestionItems,
                             slimLayout = true
                         )
-
-                        if (locations.isNotEmpty()) {
-                            item {
-                                SettingsItem(
-                                    modifier = Modifier.animateItem(),
-                                    item = SettingsEntity.Header("Locations"),
-                                )
-                            }
-                        }
-                        item {
-                            LazyRow(
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                                    .clip(RoundedCornerShape(16.dp)),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                items(
-                                    items = locations,
-                                    key = { it }
-                                ) { (media, location) ->
-                                    with(sharedTransitionScope) {
-                                        Column(
-                                            modifier = Modifier.width(116.dp),
-                                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                        ) {
-                                            MediaImage(
-                                                modifier = Modifier
-                                                    .size(116.dp)
-                                                    .clip(RoundedCornerShape(16.dp))
-                                                    .mediaSharedElement(
-                                                        media = media,
-                                                        animatedVisibilityScope = animatedContentScope
-                                                    ),
-                                                media = media,
-                                                onMediaClick = { media ->
-                                                    /*eventHandler.navigate(
-                                                        Screen.MediaViewScreen.idAndCategory(
-                                                            media.id,
-                                                            category!!
-                                                        )
-                                                    )*/
-                                                },
-                                                onItemSelect = {
-                                                    /*eventHandler.navigate(
-                                                        Screen.CategoryViewScreen.category(
-                                                            category!!
-                                                        )
-                                                    )*/
-                                                },
-                                                canClick = { true }
-                                            )
-                                            Text(
-                                                text = location,
-                                                style = MaterialTheme.typography.titleSmall,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                textAlign = TextAlign.Center,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.MiddleEllipsis
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
                 AnimatedVisibility(
@@ -430,6 +358,7 @@ fun SearchScreen(
                 ) {
                     Box(
                         modifier = Modifier
+                            .animateContentSize()
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.Center,
@@ -479,6 +408,14 @@ fun SearchScreen(
                         }
                         val mediaState = rememberedDerivedState { searchResults.results }
                         MediaGridView(
+                            modifier = Modifier
+                                .animateContentSize()
+                                .padding(12.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                                    shape = RoundedCornerShape(32.dp)
+                                )
+                                .clip(RoundedCornerShape(32.dp)),
                             mediaState = mediaState,
                             metadataState = metadataState,
                             allowSelection = true,

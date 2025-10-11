@@ -17,9 +17,8 @@ import com.dot.gallery.core.decoder.supportJxlDecoder
 import com.dot.gallery.core.decoder.supportVaultDecoder
 import com.dot.gallery.core.decoder.supportVideoFrame2
 import com.dot.gallery.core.workers.MetadataCollectionWorker
-import com.dot.gallery.feature_node.domain.model.UIEvent
+import com.dot.gallery.core.workers.TempVaultCleanupWorker
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.github.panpf.sketch.PlatformContext
 import com.github.panpf.sketch.SingletonSketch
 import com.github.panpf.sketch.Sketch
@@ -34,12 +33,6 @@ import com.github.panpf.sketch.request.supportPauseLoadWhenScrolling
 import com.github.panpf.sketch.resize.Precision
 import com.github.panpf.sketch.util.appCacheDirectory
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import okio.FileSystem
 import javax.inject.Inject
 
@@ -93,15 +86,11 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
     lateinit var workManager: WorkManager
 
     @Inject
-    lateinit var eventHandler: EventHandler
-
-    @Inject
     lateinit var repository: MediaRepository
 
     @Inject
     lateinit var mediaDistributor: MediaDistributor
 
-    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     override fun onCreate() {
         super.onCreate()
@@ -112,20 +101,9 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
             request = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
                 .build()
         )
-        appScope.launch {
-            eventHandler.updaterFlow.collectLatest { event ->
-                when (event) {
-                    UIEvent.UpdateDatabase -> {
-                        delay(1000L)
-                        repository.updateInternalDatabase()
-                    }
-                    UIEvent.NavigationUpEvent -> eventHandler.navigateUpAction()
-                    is UIEvent.NavigationRouteEvent -> eventHandler.navigateAction(event.route)
-                    is UIEvent.ToggleNavigationBarEvent -> eventHandler.toggleNavigationBarAction(event.isVisible)
-                    is UIEvent.SetFollowThemeEvent -> eventHandler.setFollowThemeAction(event.followTheme)
-                }
-            }
-        }
+
+        // Schedule periodic cleanup of stale decrypted temp files.
+        TempVaultCleanupWorker.schedule(workManager)
     }
 
 }

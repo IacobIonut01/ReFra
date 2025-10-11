@@ -20,7 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -36,7 +36,6 @@ import com.dot.gallery.core.Constants.Animation.navigateUpAnimation
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
@@ -45,6 +44,7 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.util.OnLifecycleEvent
 import com.dot.gallery.core.presentation.components.util.permissionGranted
+import com.dot.gallery.core.presentation.vm.NavigationViewModel
 import com.dot.gallery.core.toggleNavigationBar
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.albums.AlbumsScreen
@@ -58,6 +58,8 @@ import com.dot.gallery.feature_node.presentation.favorites.FavoriteScreen
 import com.dot.gallery.feature_node.presentation.ignored.IgnoredScreen
 import com.dot.gallery.feature_node.presentation.ignored.setup.IgnoredSetup
 import com.dot.gallery.feature_node.presentation.library.LibraryScreen
+import com.dot.gallery.feature_node.presentation.location.LocationTimelineScreen
+import com.dot.gallery.feature_node.presentation.location.LocationsViewModel
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.SearchScreen
@@ -74,7 +76,6 @@ import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.vault.VaultScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalPermissionsApi::class)
 @Stable
@@ -88,6 +89,7 @@ fun NavigationComp(
     toggleRotate: () -> Unit,
     isScrolling: MutableState<Boolean>
 ) {
+    val navViewModel = hiltViewModel<NavigationViewModel>()
     val searchBarActive = rememberSaveable {
         mutableStateOf(false)
     }
@@ -142,18 +144,21 @@ fun NavigationComp(
         }
     }
     val selector = LocalMediaSelector.current
-    val distributor = LocalMediaDistributor.current
     val eventHandler = LocalEventHandler.current
 
     // Preloaded viewModels
-    val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle(context = Dispatchers.IO)
+    val allAlbumsMediaState = navViewModel.allAlbumsMediaState.collectAsStateWithLifecycle()
+    val albumsState = navViewModel.albumsState.collectAsStateWithLifecycle()
+    val timelineState = navViewModel.timelineMediaState.collectAsStateWithLifecycle()
+    val metadataState = navViewModel.metadataState.collectAsStateWithLifecycle()
+    val vaultState = navViewModel.vaultState.collectAsStateWithLifecycle()
 
     LaunchedEffect(permissionState) {
-        distributor.hasPermission.tryEmit(permissionState)
+        navViewModel.updatePermissionGranted(permissionState)
     }
 
     LaunchedEffect(groupTimelineByMonth) {
-        distributor.groupByMonth = groupTimelineByMonth
+        navViewModel.updateGroupByMonth(groupTimelineByMonth)
     }
 
     val searchViewModel = hiltViewModel<SearchViewModel>()
@@ -184,19 +189,19 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     isScrolling = isScrolling,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedContentScope = this
+                    animatedContentScope = this,
+                    mediaState = timelineState,
+                    metadataState = metadataState
                 )
             }
             composable(
                 route = Screen.TrashedScreen()
             ) {
-                val trashedMediaState = distributor.trashMediaFlow.collectAsStateWithLifecycle(
-                    context = Dispatchers.IO,
-                    initialValue = MediaState()
-                )
+                val trashedMediaState = navViewModel.trashedMediaState.collectAsStateWithLifecycle()
                 TrashedGridScreen(
                     paddingValues = paddingValues,
                     mediaState = trashedMediaState,
+                    metadataState = metadataState,
                     clearSelection = selector::clearSelection,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
@@ -205,13 +210,12 @@ fun NavigationComp(
             composable(
                 route = Screen.FavoriteScreen()
             ) {
-                val favoritesMediaState = distributor.favoritesMediaFlow.collectAsStateWithLifecycle(
-                    context = Dispatchers.IO,
-                    initialValue = MediaState()
-                )
+                val favoritesMediaState =
+                    navViewModel.favoriteMediaState.collectAsStateWithLifecycle()
                 FavoriteScreen(
                     paddingValues = paddingValues,
                     mediaState = favoritesMediaState,
+                    metadataState = metadataState,
                     clearSelection = selector::clearSelection,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
@@ -256,6 +260,8 @@ fun NavigationComp(
                     albumId = argumentAlbumId,
                     albumName = argumentAlbumName,
                     paddingValues = paddingValues,
+                    allAlbumsMediaState = allAlbumsMediaState,
+                    metadataState = metadataState,
                     isScrolling = isScrolling,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
@@ -280,16 +286,13 @@ fun NavigationComp(
                 val albumId: Long = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("albumId") ?: -1L
                 }
-                val allAlbumsMediaState = distributor.albumsTimelinesMediaFlow.collectAsStateWithLifecycle()
-                val timelineState = distributor.timelineMediaFlow.collectAsStateWithLifecycle(
-                    context = Dispatchers.IO,
-                    initialValue = MediaState()
-                )
-                val albumMediaState = rememberedDerivedState {
+                val albumMediaState = rememberedDerivedState(allAlbumsMediaState.value) {
                     allAlbumsMediaState.value[albumId] ?: MediaState()
                 }
                 val mediaState by rememberedDerivedState(albumId) {
-                    if (albumId != -1L) { albumMediaState } else timelineState
+                    if (albumId != -1L) {
+                        albumMediaState
+                    } else timelineState
                 }
 
                 MediaViewScreen(
@@ -297,6 +300,9 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     mediaId = mediaId,
                     mediaState = mediaState,
+                    metadataState = metadataState,
+                    albumsState = albumsState,
+                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -322,14 +328,11 @@ fun NavigationComp(
                 }
                 val mediaState = remember(target) {
                     when (target) {
-                        TARGET_FAVORITES -> distributor.favoritesMediaFlow
-                        TARGET_TRASH -> distributor.trashMediaFlow
-                        else -> distributor.timelineMediaFlow
+                        TARGET_FAVORITES -> navViewModel.favoriteMediaState
+                        TARGET_TRASH -> navViewModel.trashedMediaState
+                        else -> navViewModel.timelineMediaState
                     }
-                }.collectAsStateWithLifecycle(
-                    context = Dispatchers.IO,
-                    initialValue = MediaState()
-                )
+                }.collectAsStateWithLifecycle()
 
                 MediaViewScreen(
                     toggleRotate = toggleRotate,
@@ -337,6 +340,9 @@ fun NavigationComp(
                     mediaId = mediaId,
                     target = target,
                     mediaState = mediaState,
+                    metadataState = metadataState,
+                    albumsState = albumsState,
+                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -353,13 +359,18 @@ fun NavigationComp(
                 val mediaId: Long = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("mediaId") ?: -1
                 }
-                val searchResultsState = searchViewModel.searchResultsState.collectAsStateWithLifecycle()
-                val mediaState = remember(searchResultsState.value) { mutableStateOf(searchResultsState.value.results) }
+                val searchResultsState =
+                    searchViewModel.searchResultsState.collectAsStateWithLifecycle()
+                val mediaState =
+                    remember(searchResultsState.value) { mutableStateOf(searchResultsState.value.results) }
                 MediaViewScreen(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
                     mediaState = mediaState,
+                    metadataState = metadataState,
+                    albumsState = albumsState,
+                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -403,6 +414,7 @@ fun NavigationComp(
                 LibraryScreen(
                     paddingValues = paddingValues,
                     isScrolling = isScrolling,
+                    metadataState = metadataState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -411,7 +423,7 @@ fun NavigationComp(
             composable(
                 route = Screen.CategoriesScreen()
             ) {
-                CategoriesScreen()
+                CategoriesScreen(metadataState = metadataState)
             }
 
             composable(
@@ -428,6 +440,7 @@ fun NavigationComp(
                 }
                 CategoryViewScreen(
                     category = category,
+                    metadataState = metadataState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -465,6 +478,9 @@ fun NavigationComp(
                     mediaId = mediaId,
                     target = "category_$category",
                     mediaState = mediaState,
+                    metadataState = metadataState,
+                    albumsState = albumsState,
+                    vaultState = vaultState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -486,10 +502,78 @@ fun NavigationComp(
                 SettingsSmartFeaturesScreen()
             }
 
-            composable(Screen.SearchScreen()) { backStackEntry ->
+            composable(Screen.SearchScreen()) {
                 SearchScreen(
                     viewModel = searchViewModel,
+                    metadataState = metadataState,
                     isScrolling = isScrolling,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
+            }
+
+            composable(Screen.LocationTimelineScreen.location()) { backStackEntry ->
+                val gpsLocationNameCity: String = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("gpsLocationNameCity", "null").toString()
+                }
+                val gpsLocationNameCountry: String = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("gpsLocationNameCountry", "null").toString()
+                }
+
+                val locationsViewModel =
+                    hiltViewModel<LocationsViewModel, LocationsViewModel.Factory>(
+                        key = "LocationViewModel",
+                        creationCallback = { factory ->
+                            factory.create(gpsLocationNameCity, gpsLocationNameCountry)
+                        }
+                    )
+                val mediaState = locationsViewModel.mediaState.collectAsStateWithLifecycle()
+
+                LocationTimelineScreen(
+                    gpsLocationNameCity = gpsLocationNameCity,
+                    gpsLocationNameCountry = gpsLocationNameCountry,
+                    mediaState = mediaState,
+                    metadataState = metadataState,
+                    paddingValues = paddingValues,
+                    isScrolling = isScrolling,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
+            }
+
+            composable(Screen.MediaViewScreen.idAndLocation()) { backStackEntry ->
+                val mediaId: Long = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("mediaId")?.toLongOrNull() ?: -1
+                }
+                val gpsLocationNameCity: String = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("gpsLocationNameCity", "null").toString()
+                }
+                val gpsLocationNameCountry: String = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("gpsLocationNameCountry", "null").toString()
+                }
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(Screen.LocationTimelineScreen.location())
+                }
+
+                val locationsViewModel =
+                    hiltViewModel<LocationsViewModel, LocationsViewModel.Factory>(
+                        viewModelStoreOwner = parentEntry,
+                        key = "LocationViewModel",
+                        creationCallback = { factory ->
+                            factory.create(gpsLocationNameCity, gpsLocationNameCountry)
+                        }
+                    )
+                val mediaState = locationsViewModel.mediaState.collectAsStateWithLifecycle()
+
+                MediaViewScreen(
+                    toggleRotate = toggleRotate,
+                    paddingValues = paddingValues,
+                    mediaId = mediaId,
+                    mediaState = mediaState,
+                    metadataState = metadataState,
+                    albumsState = albumsState,
+                    vaultState = vaultState,
+                    target = "location_${gpsLocationNameCity}_$gpsLocationNameCountry",
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )

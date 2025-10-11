@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Geocoder
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
@@ -35,7 +36,6 @@ import com.dot.gallery.core.workers.copyMedia
 import com.dot.gallery.core.workers.updateDatabase
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.data.data_source.KeychainHolder.Companion.VAULT_INFO_FILE_NAME
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.AlbumsFlow
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaFlow
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaUriFlow
@@ -68,7 +68,6 @@ import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.BOTH
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.PHOTOS
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.VIDEOS
 import com.dot.gallery.feature_node.presentation.util.printError
-import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -83,13 +82,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.UUID
 
 class MediaRepositoryImpl(
     private val context: Context,
     private val workManager: WorkManager,
     private val database: InternalDatabase,
-    private val keychainHolder: KeychainHolder
+    private val keychainHolder: KeychainHolder,
+    private val geocoder: Geocoder?
 ) : MediaRepository {
 
     private val contentResolver = context.contentResolver
@@ -174,7 +173,7 @@ class MediaRepositoryImpl(
                         album.copy(isPinned = database.getPinnedDao().albumIsPinned(album.id))
                     }
                 }
-                val album = data.firstOrNull { it.id == albumId }
+                val album = data.firstOrNull { it -> it.id == albumId }
                     ?: return@withContext Resource.Error("Album not found")
 
                 Resource.Success(album)
@@ -223,12 +222,13 @@ class MediaRepositoryImpl(
 
     override fun getMediaListByUris(
         listOfUris: List<Uri>,
-        reviewMode: Boolean
+        reviewMode: Boolean,
+        onlyMatching: Boolean
     ): Flow<Resource<List<UriMedia>>> =
         MediaUriFlow(
             contentResolver = contentResolver,
             uris = listOfUris,
-            reviewMode = reviewMode
+            onlyMatchingUris = onlyMatching
         ).flowData().mapAsResource(errorOnEmpty = true, errorMessage = "Media could not be opened")
 
     override suspend fun <T : Media> toggleFavorite(
@@ -312,7 +312,7 @@ class MediaRepositoryImpl(
             media = media,
             action = { deleteGpsMetadata() },
             postAction = {
-                context.retrieveExtraMediaMetadata(it)?.let { metadata ->
+                context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }
@@ -323,7 +323,7 @@ class MediaRepositoryImpl(
             media = media,
             action = { deleteMetadata() },
             postAction = {
-                context.retrieveExtraMediaMetadata(it)?.let { metadata ->
+                context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }
@@ -336,7 +336,7 @@ class MediaRepositoryImpl(
         media = media,
         action = { updateImageDescription(description) },
         postAction = {
-            context.retrieveExtraMediaMetadata(it)?.let { metadata ->
+            context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
                 database.getMetadataDao().addMetadata(metadata)
             }
         }
@@ -376,11 +376,13 @@ class MediaRepositoryImpl(
 
     override suspend fun createVault(
         vault: Vault,
+        transferable: Boolean,
         onSuccess: () -> Unit,
         onFailed: (reason: String) -> Unit
     ) = withContext(Dispatchers.IO) {
         keychainHolder.writeVaultInfo(
             vault = vault,
+            transferable = transferable,
             onSuccess = {
                 launch(Dispatchers.IO) {
                     database.getVaultDao().insertVault(vault)
@@ -434,21 +436,42 @@ class MediaRepositoryImpl(
         withContext(Dispatchers.IO) {
             with(keychainHolder) {
                 keychainHolder.checkVaultFolder(vault)
-                val output = vault.mediaFile(media.id)
-                if (output.exists()) output.delete()
-                val encryptedMedia =
-                    getBytes(media.getUri())?.let { bytes -> media.toEncryptedMedia(bytes) }
+                val output = vault.mediaFile(media.id).apply { if (exists()) delete() }
+                val rawBytes = getBytes(media.getUri())
+                val encryptedMedia = rawBytes?.let { bytes -> media.toEncryptedMedia(bytes) }
+                suspend fun doEncrypt(): Boolean {
+                    val em = encryptedMedia ?: return false
+                    if (isTransferable(vault)) {
+                        val portableBytes = encryptPortableContent(vault, em.bytes)
+                        output.writeBytes(portableBytes)
+                    } else {
+                        output.encryptKotlin(em)
+                    }
+                    output.setLastModified(System.currentTimeMillis())
+                    database.getVaultDao().addMediaToVault(em.migrate(vault.uuid))
+                    return true
+                }
                 return@withContext try {
-                    encryptedMedia?.let {
-                        output.encryptKotlin(it)
-                        output.setLastModified(System.currentTimeMillis())
-                        database.getVaultDao().addMediaToVault(it.migrate(vault.uuid))
-                        true
-                    } == true
+                    doEncrypt()
                 } catch (e: Exception) {
-                    e.printStackTrace()
-                    printError("Failed to add file: ${media.label}")
-                    false
+                    // If MasterKey mismatch (restored device), AEADBadTagException or GeneralSecurityException will surface.
+                    val isAead = e::class.simpleName?.contains("AEADBadTag", true) == true ||
+                            e.message?.contains("MAC verification failed", true) == true
+                    if (!isTransferable(vault) && isAead) {
+                        // Force convert vault to portable mode and retry once.
+                        writeVaultInfo(vault, transferable = true, force = true)
+                        try {
+                            doEncrypt()
+                        } catch (e2: Exception) {
+                            e2.printStackTrace()
+                            printError("Failed to add file after portable fallback: ${media.label}")
+                            false
+                        }
+                    } else {
+                        e.printStackTrace()
+                        printError("Failed to add file: ${media.label}")
+                        false
+                    }
                 }
             }
         }
@@ -570,8 +593,30 @@ class MediaRepositoryImpl(
         }
     }
 
+    override suspend fun importPortableVault(
+        vault: Vault,
+        base64Key: String,
+        force: Boolean
+    ): Boolean = withContext(Dispatchers.IO) {
+        keychainHolder.importPortableVault(vault, base64Key, force).also { success ->
+            if (success) {
+                // Ensure DB entry exists
+                if (database.getVaultDao().getVault(vault.uuid) == null) {
+                    database.getVaultDao().insertVault(vault)
+                }
+            }
+        }
+    }
+
+    override suspend fun migrateVaultToPortable(
+        vault: Vault,
+        onProgress: (current: Int, total: Int) -> Unit
+    ): Boolean = withContext(Dispatchers.IO) {
+        keychainHolder.migrateVaultToPortable(vault, onProgress)
+    }
+
     override suspend fun migrateVault() {
-        withContext(Dispatchers.IO) {
+        /*withContext(Dispatchers.IO) {
             printInfo("Vault Migration started")
             val databaseStoredVaults = database.getVaultDao().getVaults().firstOrNull()
             val databaseStoredEncryptedMedia = database.getVaultDao().getAllMedia().firstOrNull()
@@ -642,7 +687,7 @@ class MediaRepositoryImpl(
             }
 
             printInfo("Vault Migration finished")
-        }
+        }*/
     }
 
     override suspend fun restoreVault(vault: Vault) {
@@ -728,7 +773,7 @@ class MediaRepositoryImpl(
         database.getAlbumThumbnailDao().getAlbumThumbnailsFlow()
 
     override suspend fun collectMetadataFor(media: Media) {
-        context.retrieveExtraMediaMetadata(media)?.let { metadata ->
+        context.retrieveExtraMediaMetadata(geocoder, media)?.let { metadata ->
             database.getMetadataDao().addMetadata(metadata)
         }
     }

@@ -43,7 +43,7 @@ class SearchViewModel @Inject constructor(
     mediaDistributor: MediaDistributor,
     workManager: WorkManager,
     private val searchHelper: SearchHelper,
-    @ApplicationContext
+    @param:ApplicationContext
     private val context: Context
 ) : ViewModel() {
 
@@ -80,17 +80,6 @@ class SearchViewModel @Inject constructor(
             started = SharingStarted.Eagerly,
             initialValue = MediaMetadataState()
         )
-
-    val locations = mediaDistributor.metadataFlow.map { state ->
-        state.metadata
-            .filter { it.gpsLocationNameCity != null && it.gpsLocationNameCountry != null }
-            .groupBy { "${it.gpsLocationNameCity}, ${it.gpsLocationNameCountry}" }
-            .mapNotNull { (location, items) ->
-                val media = allMedia.value.media.find { it.id == items.first().mediaId }
-                if (media != null) media to location else null
-            }
-            .sortedBy { it.second }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val searchIndexerState = combine(
         workManager.getWorkInfosForUniqueWorkFlow("SearchIndexerUpdater")

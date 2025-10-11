@@ -8,6 +8,8 @@ package com.dot.gallery.injection
 import android.app.Application
 import android.content.ContentResolver
 import android.content.Context
+import android.location.Geocoder
+import android.os.Build
 import androidx.room.Room
 import androidx.work.WorkManager
 import com.dot.gallery.core.DefaultEventHandler
@@ -24,6 +26,11 @@ import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.search.SearchHelper
 import com.dot.gallery.feature_node.presentation.search.SearchHelperImpl
+import com.dot.gallery.core.decryption.DecryptManager
+import com.dot.gallery.core.decryption.MediaMetadataSidecarCache
+import com.dot.gallery.core.memory.AdaptiveDecryptConfig
+import com.dot.gallery.core.metrics.MetricsCollector
+import com.dot.gallery.core.memory.ByteArrayPool
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -77,8 +84,9 @@ object AppModule {
     @Singleton
     fun provideMediaHandler(
         @ApplicationContext context: Context,
-        mediaRepository: MediaRepository
-    ): MediaHandler = MediaHandlerImpl(mediaRepository, context)
+        mediaRepository: MediaRepository,
+        workManager: WorkManager,
+    ): MediaHandler = MediaHandlerImpl(mediaRepository, context, workManager)
 
     @Provides
     @Singleton
@@ -86,11 +94,37 @@ object AppModule {
         @ApplicationContext context: Context,
         workManager: WorkManager,
         database: InternalDatabase,
-        keychainHolder: KeychainHolder
-    ): MediaRepository = MediaRepositoryImpl(context, workManager, database, keychainHolder)
+        keychainHolder: KeychainHolder,
+        geocoder: Geocoder?,
+    ): MediaRepository = MediaRepositoryImpl(context, workManager, database, keychainHolder, geocoder)
 
     @Provides
     @Singleton
     fun provideSearchHelper(@ApplicationContext context: Context): SearchHelper = SearchHelperImpl(context)
+
+    @Provides
+    @Singleton
+    fun provideGeocoder(@ApplicationContext context: Context): Geocoder? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && Geocoder.isPresent()) Geocoder(context) else null
+
+    @Provides
+    @Singleton
+    fun provideDecryptManager(@ApplicationContext context: Context, metrics: MetricsCollector): DecryptManager = DecryptManager(context, metrics)
+
+    @Provides
+    @Singleton
+    fun provideMediaMetadataSidecarCache(@ApplicationContext context: Context): MediaMetadataSidecarCache = MediaMetadataSidecarCache(context)
+
+    @Provides
+    @Singleton
+    fun provideAdaptiveDecryptConfig(app: Application): AdaptiveDecryptConfig = AdaptiveDecryptConfig(app)
+
+    @Provides
+    @Singleton
+    fun provideMetricsCollector(): MetricsCollector = MetricsCollector()
+
+    @Provides
+    @Singleton
+    fun provideByteArrayPool(): ByteArrayPool = ByteArrayPool()
 
 }

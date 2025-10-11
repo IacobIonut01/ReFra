@@ -23,12 +23,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -37,11 +36,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.SecureFlagPolicy
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.albumCellsList
-import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.Album
@@ -49,6 +48,7 @@ import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.volume
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import kotlinx.coroutines.Dispatchers
@@ -65,9 +65,10 @@ fun <T: Media> CopyMediaSheet(
     mediaList: List<T>,
     onFinish: () -> Unit,
 ) {
-    val handler = LocalMediaHandler.current
     val scope = rememberCoroutineScope()
-    var progress by remember(mediaList) { mutableFloatStateOf(0f) }
+    val viewModel: CopyMediaViewModel = hiltViewModel()
+    val progress by viewModel.progress.collectAsState()
+    val isActive by viewModel.isActive.collectAsState()
 
     val newAlbumSheetState = rememberAppBottomSheetState()
     val mutex = Mutex()
@@ -75,14 +76,20 @@ fun <T: Media> CopyMediaSheet(
     fun copyMedia(path: String) {
         scope.launch(Dispatchers.IO) {
             mutex.withLock {
-                handler.copyMedia(
-                    *mediaList.map { it to path }.toTypedArray()
-                )
-
-                onFinish()
-                sheetState.hide()
-                progress = 1f
+                viewModel.enqueueCopy(*mediaList.map { it to path }.toTypedArray()) {
+                    scope.launch {
+                        sheetState.show()
+                    }
+                }
             }
+        }
+    }
+
+    LaunchedEffect(isActive) {
+        if (isActive) {
+            sheetState.show()
+        } else {
+            sheetState.hide()
         }
     }
 
@@ -91,13 +98,13 @@ fun <T: Media> CopyMediaSheet(
         enter = enterAnimation,
         exit = exitAnimation
     ) {
-        val prop = remember(progress) {
-            val shouldDismiss = progress == 0f
-            ModalBottomSheetProperties(
-                securePolicy = SecureFlagPolicy.Inherit,
-                shouldDismissOnBackPress = shouldDismiss
-            )
+        val shouldDismiss by rememberedDerivedState(progress) {
+            progress == 0f
         }
+        val prop = ModalBottomSheetProperties(
+            securePolicy = SecureFlagPolicy.Inherit,
+            shouldDismissOnBackPress = shouldDismiss
+        )
         ModalBottomSheet(
             sheetState = sheetState.sheetState,
             onDismissRequest = {

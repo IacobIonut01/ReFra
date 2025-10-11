@@ -4,12 +4,14 @@ import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +49,8 @@ interface MediaDistributor {
     /**
      * Media Metadata
      */
-    val metadataFlow: SharedFlow<MediaMetadataState>
+    val metadataFlow: Flow<MediaMetadataState>
+    val locationsMediaFlow: Flow<List<LocationMedia>>
 
     /**
      * Vault
@@ -61,4 +64,8 @@ interface MediaDistributor {
     val imageEmbeddingsFlow: StateFlow<List<ImageEmbedding>>
 
 
+    fun locationBasedMedia(
+        gpsLocationNameCity: String,
+        gpsLocationNameCountry: String
+    ): Flow<MediaState<Media.UriMedia>>
 }

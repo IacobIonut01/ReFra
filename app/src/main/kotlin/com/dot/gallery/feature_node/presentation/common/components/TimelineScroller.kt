@@ -85,21 +85,43 @@ fun <T : Media> TimelineScroller(
                 val weeklyDateFormat by rememberWeeklyDateFormat()
                 val extendedDateFormat by rememberExtendedDateFormat()
 
-                val currentDate by rememberedDerivedState(mappedData, index) {
-                    mappedData.getOrNull(index.coerceAtMost(mappedData.size - 1))
-                        ?.let { item ->
-                            when (item) {
-                                is MediaItem.MediaViewItem -> item.media.timestamp.getDate(
-                                    format = defaultDateFormat,
-                                    weeklyFormat = weeklyDateFormat,
-                                    extendedFormat = extendedDateFormat,
-                                    stringToday = stringToday,
-                                    stringYesterday = stringYesterday
-                                )
+                val firstItemIndexOnScreen by rememberedDerivedState {
+                    state.firstVisibleItemIndex
+                }
 
-                                is MediaItem.Header -> item.text
-                            }
+                // Nearest previous (or if none, next) header lookup.
+                val currentDate by rememberedDerivedState(mappedData, firstItemIndexOnScreen) {
+                    // 1. Try walk backwards to find the most recent header.
+                    var i = firstItemIndexOnScreen
+                    while (i >= 0) {
+                        when (val item = mappedData.getOrNull(i)) {
+                            is MediaItem.Header<*> -> return@rememberedDerivedState item.text
+                            else -> { /* Ignore other item types. */ }
                         }
+                        i--
+                    }
+                    // 2. If no previous header, search forward (rare edge case).
+                    var j = firstItemIndexOnScreen + 1
+                    while (j < mappedData.size) {
+                        when (val item = mappedData.getOrNull(j)) {
+                            is MediaItem.Header<*> -> return@rememberedDerivedState item.text
+                            else -> { /* Ignore other item types. */ }
+                        }
+                        j++
+                    }
+                    // 3. Fallback: format the first visible media item if present.
+                    val fallback = mappedData.getOrNull(firstItemIndexOnScreen)
+                    when (fallback) {
+                        is MediaItem.MediaViewItem -> fallback.media.timestamp.getDate(
+                            format = defaultDateFormat,
+                            weeklyFormat = weeklyDateFormat,
+                            extendedFormat = extendedDateFormat,
+                            stringToday = stringToday,
+                            stringYesterday = stringYesterday
+                        )
+                        is MediaItem.Header<*> -> fallback.text
+                        else -> null
+                    }
                 }
                 val isScrolling by rememberedDerivedState(state) { state.isScrollInProgress }
                 val offset by animateDpAsState(

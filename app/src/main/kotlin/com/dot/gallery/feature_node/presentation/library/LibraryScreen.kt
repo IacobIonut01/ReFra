@@ -3,6 +3,7 @@ package com.dot.gallery.feature_node.presentation.library
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,8 +19,10 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -43,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -53,14 +57,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.R
@@ -70,15 +80,21 @@ import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberNoClassification
 import com.dot.gallery.core.navigate
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.library.components.dashedBorder
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.ui.core.icons.Encrypted
+import com.dot.gallery.ui.theme.BlackScrim
+import com.dot.gallery.ui.theme.WhiterBlackScrim
+import com.dot.gallery.ui.theme.isDarkTheme
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -87,11 +103,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(
+    ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class,
+    ExperimentalGlideComposeApi::class
+)
 @Composable
 fun LibraryScreen(
     paddingValues: PaddingValues,
     isScrolling: MutableState<Boolean>,
+    metadataState: State<MediaMetadataState>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
@@ -109,6 +129,8 @@ fun LibraryScreen(
             lastCellIndex = albumCellsList.indexOf(pinchState.currentCells)
         }
     }
+
+    val locations by viewModel.locations.collectAsStateWithLifecycle()
 
     val indicatorState by viewModel.indicatorState.collectAsStateWithLifecycle()
     val classifiedCategories by viewModel.classifiedCategories.collectAsStateWithLifecycle()
@@ -134,7 +156,10 @@ fun LibraryScreen(
                 val allowBlur by rememberAllowBlur()
                 val settingsInteractionSource = remember { MutableInteractionSource() }
                 val isPressed = settingsInteractionSource.collectIsPressedAsState()
-                val cornerRadius by animateDpAsState(targetValue = if (isPressed.value) 32.dp else 16.dp, label = "cornerRadius")
+                val cornerRadius by animateDpAsState(
+                    targetValue = if (isPressed.value) 32.dp else 16.dp,
+                    label = "cornerRadius"
+                )
 
                 val settingsBackgroundModifier = remember(allowBlur) {
                     if (!allowBlur) {
@@ -264,6 +289,80 @@ fun LibraryScreen(
                         }
                     }
                 }
+
+
+                if (locations.isNotEmpty()) {
+                    item(
+                        span = { GridItemSpan(maxLineSpan) },
+                        key = "LocationsList"
+                    ) {
+                        LazyRow(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 8.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(
+                                items = locations,
+                                key = { it.toString() }
+                            ) { (media, location) ->
+                                with(sharedTransitionScope) {
+                                    val isDarkTheme = isDarkTheme()
+                                    val allowBlur by rememberAllowBlur()
+                                    val followTheme = remember(allowBlur) { !allowBlur }
+                                    val gradientColor by animateColorAsState(
+                                        if (followTheme) {
+                                            if (isDarkTheme) BlackScrim else WhiterBlackScrim
+                                        } else BlackScrim,
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .width(164.dp)
+                                            .height(256.dp)
+                                            .clip(RoundedCornerShape(24.dp))
+                                            .clickable {
+                                                val gpsLocationNameCity = location.substringBefore(",")
+                                                val gpsLocationNameCountry = location.substringAfterLast(", ")
+                                                eventHandler.navigate(Screen.LocationTimelineScreen.location(
+                                                    gpsLocationNameCity = gpsLocationNameCity,
+                                                    gpsLocationNameCountry = gpsLocationNameCountry
+                                                ))
+                                            },
+                                    ) {
+                                        GlideImage(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                            model = media.getUri(),
+                                            contentDescription = location,
+                                            requestBuilderTransform = {
+                                                it.signature(GlideInvalidation.signature(media))
+                                            }
+                                        )
+                                        Text(
+                                            modifier = Modifier
+                                                .align(Alignment.BottomCenter)
+                                                .fillMaxWidth()
+                                                .background(
+                                                    Brush.verticalGradient(
+                                                        colors = listOf(Color.Transparent, gradientColor)
+                                                    )
+                                                )
+                                                .padding(24.dp),
+                                            text = location,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.SemiBold,
+                                            textAlign = TextAlign.Center,
+                                            overflow = TextOverflow.MiddleEllipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (!noClassification) {
                     if (!noCategoriesFound) {
                         item(
@@ -305,7 +404,11 @@ fun LibraryScreen(
                                         .padding(horizontal = 16.dp)
                                         .clip(RoundedCornerShape(16.dp))
                                         .clickable {
-                                            eventHandler.navigate(Screen.CategoryViewScreen.category(category!!))
+                                            eventHandler.navigate(
+                                                Screen.CategoryViewScreen.category(
+                                                    category!!
+                                                )
+                                            )
                                         },
                                     horizontalAlignment = Alignment.Start
                                 ) {
@@ -368,7 +471,8 @@ fun LibraryScreen(
                                                             )
                                                         )
                                                     },
-                                                    canClick = { true }
+                                                    canClick = { true },
+                                                    metadataState = metadataState,
                                                 )
                                             }
                                         }

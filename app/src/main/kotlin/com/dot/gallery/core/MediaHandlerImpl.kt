@@ -6,7 +6,9 @@ import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.runtime.compositionLocalOf
+import androidx.work.WorkManager
 import com.dot.gallery.core.Settings.Misc.getTrashEnabled
+import com.dot.gallery.core.workers.rotateImage
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -23,7 +25,8 @@ val LocalMediaHandler = compositionLocalOf<MediaHandler> {
 
 class MediaHandlerImpl @Inject constructor(
     private val repository: MediaRepository,
-    private val context: Context
+    private val context: Context,
+    private val workManager: WorkManager
 ) : MediaHandler {
     override suspend fun <T : Media> toggleFavorite(
         result: ActivityResultLauncher<IntentSenderRequest>,
@@ -73,6 +76,11 @@ class MediaHandlerImpl @Inject constructor(
             repository.addMedia(vault, media)
         }
     }
+
+    override fun <T : Media> rotateImage(
+        media: T,
+        degrees: Int
+    ) = workManager.rotateImage(media, degrees)
 
     override suspend fun <T : Media> copyMedia(
         from: T,

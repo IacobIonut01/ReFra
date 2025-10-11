@@ -66,7 +66,7 @@ interface MediaRepository {
 
     fun getAlbumsWithType(allowedMedia: AllowedMedia): Flow<Resource<List<Album>>>
 
-    fun getMediaListByUris(listOfUris: List<Uri>, reviewMode: Boolean): Flow<Resource<List<UriMedia>>>
+    fun getMediaListByUris(listOfUris: List<Uri>, reviewMode: Boolean, onlyMatching: Boolean = false): Flow<Resource<List<UriMedia>>>
 
     suspend fun <T: Media> toggleFavorite(
         result: ActivityResultLauncher<IntentSenderRequest>,
@@ -132,6 +132,7 @@ interface MediaRepository {
 
     suspend fun createVault(
         vault: Vault,
+        transferable: Boolean = false,
         onSuccess: () -> Unit,
         onFailed: (reason: String) -> Unit
     )
@@ -157,6 +158,17 @@ interface MediaRepository {
     ): Boolean
 
     suspend fun getUnmigratedVaultMediaSize(): Int
+
+    suspend fun importPortableVault(
+        vault: Vault,
+        base64Key: String,
+        force: Boolean = false
+    ): Boolean
+
+    suspend fun migrateVaultToPortable(
+        vault: Vault,
+        onProgress: (current: Int, total: Int) -> Unit = { _, _ -> }
+    ): Boolean
 
     suspend fun migrateVault()
 

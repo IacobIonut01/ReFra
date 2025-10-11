@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+@file:Suppress("DEPRECATION")
+
 package com.dot.gallery.core.presentation.components
 
 import android.widget.Toast

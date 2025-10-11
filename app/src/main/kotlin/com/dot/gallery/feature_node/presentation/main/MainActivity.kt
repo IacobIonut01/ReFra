@@ -6,12 +6,16 @@
 package com.dot.gallery.feature_node.presentation.main
 
 import android.graphics.Color
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +41,8 @@ import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
 import com.dot.gallery.core.presentation.components.AppBarContainer
 import com.dot.gallery.core.presentation.components.NavigationComp
 import com.dot.gallery.core.util.SetupMediaProviders
+import com.dot.gallery.feature_node.domain.model.UIEvent
+import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.toggleOrientation
@@ -46,8 +52,11 @@ import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -55,6 +64,8 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var eventHandler: EventHandler
+    @Inject
+    lateinit var repository: MediaRepository
     @Inject
     lateinit var mediaDistributor: MediaDistributor
     @Inject
@@ -68,6 +79,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         enforceSecureFlag()
+        requestNotificationPermissionIfNeeded()
         enableEdgeToEdge()
         setContent {
             GalleryTheme {
@@ -85,7 +97,7 @@ class MainActivity : AppCompatActivity() {
                 val darkTheme by remember(forcedTheme, localDarkTheme, systemDarkTheme) {
                     mutableStateOf(if (forcedTheme) localDarkTheme else systemDarkTheme)
                 }
-                LaunchedEffect(navController) {
+                LaunchedEffect(eventHandler, navController) {
                     eventHandler.navigateAction = {
                         navController.navigate(it) {
                             launchSingleTop = true
@@ -98,6 +110,28 @@ class MainActivity : AppCompatActivity() {
                     eventHandler.navigateUpAction = navController::navigateUp
                     eventHandler.setFollowThemeAction = { followTheme ->
                         systemBarFollowThemeState.value = followTheme
+                    }
+                }
+                LaunchedEffect(eventHandler) {
+                    withContext(Dispatchers.Main.immediate) {
+                        eventHandler.updaterFlow.collectLatest { event ->
+                            when (event) {
+                                UIEvent.UpdateDatabase -> {
+                                    delay(1000L)
+                                    repository.updateInternalDatabase()
+                                }
+
+                                UIEvent.NavigationUpEvent -> eventHandler.navigateUpAction()
+                                is UIEvent.NavigationRouteEvent -> eventHandler.navigateAction(event.route)
+                                is UIEvent.ToggleNavigationBarEvent -> eventHandler.toggleNavigationBarAction(
+                                    event.isVisible
+                                )
+
+                                is UIEvent.SetFollowThemeEvent -> eventHandler.setFollowThemeAction(
+                                    event.followTheme
+                                )
+                            }
+                        }
                     }
                 }
                 LaunchedEffect(darkTheme, systemBarFollowThemeState.value) {
@@ -159,6 +193,20 @@ class MainActivity : AppCompatActivity() {
                     window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 }
             }
+        }
+    }
+
+    private val requestNotifPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* no-op: user choice respected */ }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (android.os.Build.VERSION.SDK_INT < 33) return
+        val granted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            requestNotifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 

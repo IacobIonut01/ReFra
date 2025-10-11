@@ -41,13 +41,13 @@ import kotlin.random.Random
  * @property contentResolver
  * @property mimeType
  * @property uris
- * @property reviewMode
+ * @property onlyMatchingUris If true, only media that matches the provided uris will be returned
  */
 class MediaUriFlow(
     private val contentResolver: ContentResolver,
     private val mimeType: String? = null,
     private val uris: List<Uri>,
-    private val reviewMode: Boolean = false
+    private val onlyMatchingUris: Boolean = false,
 ) : QueryFlow<Media.UriMedia>() {
 
     private var buckedId: Long = MediaStoreBuckets.MEDIA_STORE_BUCKET_TIMELINE.id
@@ -171,21 +171,48 @@ class MediaUriFlow(
                 try {
                     ContentUris.parseId(it)
                 } catch (e: NumberFormatException) {
+                    e.printStackTrace()
                     Random.nextInt(1000000, 2000000)
                 }
             }
-            if (reviewMode) {
-                flow.map { mediaList ->
-                    mediaList.filter { media ->
-                        ids.contains(media.id) && !media.isTrashed
-                    }
+            if (onlyMatchingUris) {
+                return flow.map { mediaList ->
+                    mediaList.filter { media -> ids.contains(media.id) && !media.isTrashed }
                 }
             } else {
+                val bucketId = getBucketIdFromFirstUri()
                 flow.map { mediaList ->
                     mediaList.filter { media ->
-                        ids.contains(media.id)
+                        bucketId?.let {
+                            media.albumID == bucketId && !media.isTrashed
+                        } ?: ids.contains(media.id) && !media.isTrashed
                     }
                 }
             }
         }
+
+    private fun getBucketIdFromFirstUri(): Long? {
+        val firstUri = uris.firstOrNull() ?: return null
+        val id = try {
+            ContentUris.parseId(firstUri)
+        } catch (e: NumberFormatException) {
+            e.printStackTrace()
+            return null
+        }
+        val projection = arrayOf(MediaStore.Files.FileColumns.BUCKET_ID)
+        val selection = "${MediaStore.Files.FileColumns._ID} = ?"
+        val selectionArgs = arrayOf(id.toString())
+        contentResolver.query(
+            MediaQuery.MediaStoreFileUri,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                return cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID))
+            }
+        }
+        return null
+    }
 }

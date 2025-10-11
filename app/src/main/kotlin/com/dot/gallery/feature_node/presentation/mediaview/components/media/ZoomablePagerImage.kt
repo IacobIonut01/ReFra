@@ -41,6 +41,7 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.asSubsamplingImage
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isEncrypted
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.github.panpf.sketch.rememberAsyncImagePainter
 import com.github.panpf.sketch.request.ComposableImageRequest
@@ -60,12 +61,14 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
     modifier: Modifier = Modifier,
     media: T,
     uiEnabled: Boolean,
+    rotationDisabled: Boolean,
+    onImageRotated: (newRotation: Int) -> Unit,
     onItemClick: () -> Unit,
     onSwipeDown: () -> Unit
 ) {
     val feedbackManager = rememberFeedbackManager()
-    var isRotating by rememberSaveable { mutableStateOf(false) }
-    var currentRotation by rememberSaveable { mutableIntStateOf(0) }
+    var isRotating by rememberSaveable(media) { mutableStateOf(false) }
+    var currentRotation by rememberSaveable(media) { mutableIntStateOf(0) }
     val rotationAnimation by animateFloatAsState(
         targetValue = if (isRotating) 90f else 0f,
         label = "rotationAnimation"
@@ -89,6 +92,7 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
                 contentScale = ContentScale.Crop,
                 requestBuilderTransform = {
                     it.override(600)
+                        .signature(GlideInvalidation.signature(media))
                         .thumbnail(it.clone().sizeMultiplier(0.1f))
                 }
             )
@@ -131,13 +135,16 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
                 }.then(modifier),
             onTap = { onItemClick() },
             onLongPress = {
-                scope.launch {
-                    isRotating = true
-                    feedbackManager.vibrate()
-                    currentRotation += 90
-                    delay(350)
-                    zoomState.zoomable.rotate(currentRotation)
-                    isRotating = false
+                if (!rotationDisabled) {
+                    scope.launch {
+                        isRotating = true
+                        feedbackManager.vibrate()
+                        currentRotation += 90
+                        onImageRotated(currentRotation)
+                        delay(350)
+                        zoomState.zoomable.rotate(currentRotation)
+                        isRotating = false
+                    }
                 }
             },
             alignment = Alignment.Center,
@@ -159,17 +166,24 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
                 .then(modifier),
             onTap = { onItemClick() },
             onLongPress = {
-                scope.launch {
-                    isRotating = true
-                    feedbackManager.vibrate()
-                    currentRotation += 90
-                    delay(350)
-                    zoomState.zoomable.rotate(currentRotation)
-                    isRotating = false
+                if (!rotationDisabled) {
+                    scope.launch {
+                        isRotating = true
+                        feedbackManager.vibrate()
+                        currentRotation += 90
+                        onImageRotated(currentRotation)
+                        delay(350)
+                        zoomState.zoomable.rotate(currentRotation)
+                        isRotating = false
+                    }
                 }
             },
             alignment = Alignment.Center,
             contentDescription = media.label,
+            requestBuilderTransform = {
+                it.signature(GlideInvalidation.signature(media))
+                    .thumbnail(it.clone().sizeMultiplier(0.1f))
+            },
             scrollBar = null
         )
     }

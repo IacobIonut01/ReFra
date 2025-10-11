@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.MediaItemHeader
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaItem
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
@@ -48,6 +50,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun <T: Media> PickerMediaScreen(
     mediaState: StateFlow<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     allowSelection: Boolean,
 ) {
     val scope = rememberCoroutineScope()
@@ -137,6 +140,7 @@ fun <T: Media> PickerMediaScreen(
                         modifier = Modifier.animateItem(),
                         media = item.media,
                         canClick = { true },
+                        metadataState = metadataState,
                         onMediaClick = {
                             feedbackManager.vibrate()
                             val id = it.id

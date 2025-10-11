@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -178,6 +179,23 @@ fun SettingsItem(
             )
         }
     }
+    val progressContent: @Composable () -> Unit = {
+        require(item.type == SettingsType.Progress) { "Progress content can only be used with progress type" }
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp)
+        ) {
+            if (item.progress == null) {
+                LinearProgressIndicator()
+            } else {
+                LinearProgressIndicator(
+                    progress = { item.progress!!.coerceIn(0f, 100f) / 100f },
+                    drawStopIndicator = { }
+                )
+            }
+        }
+    }
     val supportingContent: (@Composable () -> Unit)? = when (item.type) {
         SettingsType.Default, SettingsType.Switch, SettingsType.Seek ->
             if (!item.summary.isNullOrEmpty()) summary else null
@@ -187,6 +205,15 @@ fun SettingsItem(
     val trailingContent: (@Composable () -> Unit)? = when (item.type) {
         SettingsType.Switch -> switch
         SettingsType.Seek -> seekTrailing
+        SettingsType.Progress -> if (item.progress != null) {
+            {
+                Text(
+                    text = "${item.progress!!.coerceIn(0f, 100f).roundToLong()}%",
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.width(42.dp)
+                )
+            }
+        } else null
         else -> null
     }
     val clickableModifier =
@@ -248,6 +275,9 @@ fun SettingsItem(
             if (item.type == SettingsType.Seek) {
                 seekContent()
             }
+            if (item.type == SettingsType.Progress) {
+                progressContent()
+            }
         }
     }
 }
@@ -299,6 +329,13 @@ fun SettingsItemGroupPreview() =
                     item = SwitchPreference(
                         title = "Preview Middle Title",
                         summary = "Preview Summary\nSecond Line\nThird Line",
+                        screenPosition = Position.Middle
+                    )
+                )
+                SettingsItem(
+                    item = SettingsEntity.ProgressPreference(
+                        title = "Preview Middle Title",
+                        progress = 45f,
                         screenPosition = Position.Middle
                     )
                 )

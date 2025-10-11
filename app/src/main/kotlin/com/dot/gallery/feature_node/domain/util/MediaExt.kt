@@ -12,9 +12,6 @@ import com.github.panpf.zoomimage.subsampling.ContentImageSource
 import com.github.panpf.zoomimage.subsampling.SubsamplingImage
 import io.ktor.util.reflect.instanceOf
 import kotlinx.serialization.json.Json
-import java.io.ByteArrayInputStream
-import java.io.ObjectInputStream
-import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -98,6 +95,7 @@ val Media.getCategory: String?
         this.category
     } else null
 
+/*
 @Suppress("UNCHECKED_CAST")
 fun <T : Serializable> fromByteArray(byteArray: ByteArray): T {
     ByteArrayInputStream(byteArray).use { byteArrayInputStream ->
@@ -106,6 +104,7 @@ fun <T : Serializable> fromByteArray(byteArray: ByteArray): T {
         }
     }
 }
+*/
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> fromKotlinByteArray(byteArray: ByteArray): T =

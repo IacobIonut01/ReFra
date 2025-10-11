@@ -6,17 +6,19 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dot.gallery.R
-import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
+import com.dot.gallery.feature_node.presentation.vault.VaultViewModel
 import com.dot.gallery.feature_node.presentation.vault.components.SelectVaultSheet
 import kotlinx.coroutines.launch
 
@@ -48,25 +50,30 @@ fun <T : Media> HideButton(
             sheetState.hide()
         }
     })
-    val handler = LocalMediaHandler.current
+    val vaultViewModel = hiltViewModel<VaultViewModel>()
     SelectVaultSheet(
         state = sheetState,
         vaultState = vaults,
         onVaultSelected = { vault ->
             scope.launch {
-                handler.addMedia(vault, media).also {
-                    val intentSender =
-                        MediaStore.createDeleteRequest(
-                            context.contentResolver,
-                            listOf(media.getUri())
-                        ).intentSender
-                    val senderRequest: IntentSenderRequest =
-                        IntentSenderRequest.Builder(intentSender)
-                            .setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION, 0)
-                            .build()
-                    result.launch(senderRequest)
-                }
+                vaultViewModel.hideAndRequestDeletion(vault, media.getUri())
             }
         }
     )
+
+    // Collect deletion batches emitted by ViewModel
+    LaunchedEffect(Unit) {
+        vaultViewModel.pendingDeletions.collect { leftovers ->
+            if (leftovers.isNotEmpty()) {
+                val intentSender = MediaStore.createDeleteRequest(
+                    context.contentResolver,
+                    leftovers
+                ).intentSender
+                val senderRequest: IntentSenderRequest = IntentSenderRequest.Builder(intentSender)
+                    .setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION, 0)
+                    .build()
+                result.launch(senderRequest)
+            }
+        }
+    }
 }

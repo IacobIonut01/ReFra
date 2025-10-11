@@ -7,7 +7,7 @@ import com.awxkee.aire.Aire
 import com.dot.gallery.feature_node.domain.model.editor.VariableFilter
 
 data class Saturation(
-    @FloatRange(from = 0.0, to = 2.0)
+    @param:FloatRange(from = 0.0, to = 2.0)
     override val value: Float = 1f
 ) : VariableFilter {
     override val maxValue = 2f

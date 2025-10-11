@@ -6,13 +6,15 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.navigateUp
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.clear
@@ -22,6 +24,7 @@ import com.dot.gallery.feature_node.presentation.util.clear
 fun CategoryViewScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
+    metadataState: State<MediaMetadataState>,
     category: String
 ) {
     val eventHandler = LocalEventHandler.current
@@ -36,12 +39,12 @@ fun CategoryViewScreen(
     }
 
     val mediaState = viewModel.mediaByCategory.collectAsStateWithLifecycle()
-    val metadataState = viewModel.metadataFlow.collectAsStateWithLifecycle()
 
     MediaScreen(
         albumName = category,
         customDateHeader = stringResource(R.string.s_items,  mediaState.value.media.size),
         mediaState = mediaState,
+        metadataState = metadataState,
         target = "category_$category",
         navActionsContent = { expandedDropDown, result ->
         },

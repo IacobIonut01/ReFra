@@ -62,6 +62,7 @@ import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.presentation.ignored.setup.SelectAlbumSheet
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import kotlinx.coroutines.launch
 
@@ -160,10 +161,13 @@ fun SetupTypeSelectionScreen(
                 ) {
                     this@Column.AnimatedVisibility(album != null) {
                         GlideImage(
-                            model = album!!.uri.toString(),
+                            model = album!!.uri,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            requestBuilderTransform = {
+                                it.signature(GlideInvalidation.signature(album!!))
+                            }
                         )
                     }
 

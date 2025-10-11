@@ -48,6 +48,7 @@ import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.presentation.common.components.OptionItem
 import com.dot.gallery.feature_node.presentation.common.components.OptionSheet
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.ui.theme.Shapes
 import com.google.android.material.carousel.CarouselLayoutManager
@@ -139,8 +140,11 @@ fun CarouselPinnedAlbums(
                         .size(98.dp)
                         .clip(Shapes.large),
                     contentScale = ContentScale.Crop,
-                    model = currentAlbum!!.uri.toString(),
-                    contentDescription = currentAlbum!!.label
+                    model = currentAlbum!!.uri,
+                    contentDescription = currentAlbum!!.label,
+                    requestBuilderTransform = {
+                        it.signature(GlideInvalidation.signature(currentAlbum!!))
+                    }
                 )
                 Text(
                     text = buildAnnotatedString {

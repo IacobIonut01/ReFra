@@ -3,10 +3,11 @@ package com.dot.gallery.feature_node.presentation.library
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.dot.gallery.core.MediaDistributor
+import com.dot.gallery.core.workers.startClassification
 import com.dot.gallery.feature_node.domain.model.LibraryIndicatorState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MediaOrder
-import com.dot.gallery.core.workers.startClassification
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -17,8 +18,12 @@ import javax.inject.Inject
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     repository: MediaRepository,
+    mediaDistributor: MediaDistributor,
     private val workManager: WorkManager
 ) : ViewModel() {
+
+    val locations = mediaDistributor.locationsMediaFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val indicatorState = combine(
         repository.getTrashed(),

@@ -21,10 +21,9 @@ import java.io.File
 import java.util.UUID
 import kotlin.random.Random
 
-
 @Serializable
 @Parcelize
-sealed class Media : Parcelable, java.io.Serializable {
+sealed class Media : Parcelable {
 
 
     abstract val id: Long
@@ -240,8 +239,16 @@ sealed class Media : Parcelable, java.io.Serializable {
         fun createFromUri(context: Context?, uri: Uri): UriMedia? {
             if (uri.path == null) return null
             val extension = uri.toString().substringAfterLast(".")
-            var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension).toString()
+            var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
             var duration: String? = null
+            var timestamp = 0L
+            uri.path?.let { File(it) }?.let {
+                timestamp = try {
+                    it.lastModified()
+                } catch (_: Exception) {
+                    0L
+                }
+            }
             if (context != null) {
                 try {
                     val retriever = MediaMetadataRetriever().apply {
@@ -253,19 +260,16 @@ sealed class Media : Parcelable, java.io.Serializable {
                     if (isVideo) {
                         duration =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        if (timestamp == 0L) {
+                            timestamp = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)?.toLongOrNull() ?: 0L
+                        }
                     }
-                    if (mimeType.isEmpty()) {
-                        mimeType = if (isVideo) "video/*" else "image/*"
+                    val originMimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
+                    if (mimeType == null) {
+                        mimeType = if (isVideo) originMimeType else "image/*"
                     }
-                } catch (_: Exception) {
-                }
-            }
-            var timestamp = 0L
-            uri.path?.let { File(it) }?.let {
-                timestamp = try {
-                    it.lastModified()
-                } catch (_: Exception) {
-                    0L
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
             var formattedDate = ""
@@ -282,7 +286,7 @@ sealed class Media : Parcelable, java.io.Serializable {
                 albumLabel = "",
                 timestamp = timestamp,
                 fullDate = formattedDate,
-                mimeType = mimeType,
+                mimeType = mimeType ?: "null",
                 duration = duration,
                 favorite = 0,
                 size = 0,

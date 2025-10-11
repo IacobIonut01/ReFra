@@ -69,6 +69,7 @@ import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogA
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction.RESTORE
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction.TRASH
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.canBeTrashed
 import com.dot.gallery.feature_node.presentation.util.mediaPair
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
@@ -293,7 +294,10 @@ fun <T: Media> TrashDialog(
                                 modifier = Modifier.fillMaxSize(),
                                 model = it.getUri(),
                                 contentDescription = it.label,
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                requestBuilderTransform = { builder ->
+                                    builder.signature(GlideInvalidation.signature(it))
+                                }
                             )
                         }
                     }

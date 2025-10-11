@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -87,20 +87,20 @@ fun VaultScreen(
     CompositionLocalProvider(
         LocalEventHandler provides localEventHandler
     ) {
-        val eventHandler = LocalEventHandler.current
         var isAuthenticated by remember { mutableStateOf(shouldSkipAuth.value) }
         val biometricState = rememberBiometricState(
             title = stringResource(R.string.biometric_authentication),
             subtitle = stringResource(R.string.unlock_your_vault),
             onSuccess = {
                 isAuthenticated = true
-                eventHandler.navigate(VaultScreens.VaultDisplay())
+                localEventHandler.navigate(VaultScreens.VaultDisplay())
             },
             onFailed = {
                 isAuthenticated = false
             }
         )
-
+        val albumState = viewModel.albumsState.collectAsStateWithLifecycle()
+        val metadataState = viewModel.metadataState.collectAsStateWithLifecycle()
         val vaultState = viewModel.vaultState.collectAsStateWithLifecycle()
         val startDestination by remember(vaultState.value) {
             derivedStateOf { vaultState.value.getStartScreen() }
@@ -152,12 +152,8 @@ fun VaultScreen(
                 composable(VaultScreens.VaultSetup()) {
                     VaultSetup(
                         navigateUp = {
-                            if (addNewVault) {
-                                addNewVault = false
-                                if (vaultState.value.vaults.isEmpty()) globalEventHandler.navigateUp() else localEventHandler.navigateUp()
-                            } else {
-                                eventHandler.navigateUp()
-                            }
+                            addNewVault = false
+                            if (vaultState.value.vaults.isEmpty()) globalEventHandler.navigateUp() else localEventHandler.navigateUp()
                         },
                         onCreate = {
                             addNewVault = false
@@ -172,7 +168,7 @@ fun VaultScreen(
                         if (!isAuthenticated && !addNewVault && vaultState.value.vaults.isNotEmpty()) {
                             if (biometricState.isSupported) {
                                 biometricState.authenticate()
-                            } else eventHandler.navigateUp()
+                            } else localEventHandler.navigateUp()
                         }
                     }
                     AnimatedVisibility(
@@ -180,13 +176,11 @@ fun VaultScreen(
                         enter = enterAnimation,
                         exit = exitAnimation
                     ) {
-                        val metadataState = viewModel.metadataFlow.collectAsStateWithLifecycle()
                         VaultDisplay(
                             globalNavigateUp = globalEventHandler::navigateUp,
                             vaultState = vaultState,
                             currentVault = viewModel.currentVault,
                             createMediaState = viewModel::createMediaState,
-                            addMediaListToVault = viewModel::addMedia,
                             deleteLeftovers = viewModel::deleteLeftovers,
                             deleteVault = viewModel::deleteVault,
                             setVault = { vault -> viewModel.setVault(vault) {} },
@@ -223,6 +217,9 @@ fun VaultScreen(
                         paddingValues = paddingValues,
                         mediaId = mediaId,
                         mediaState = mediaState,
+                        vaultState = vaultState,
+                        albumsState = albumState,
+                        metadataState = metadataState,
                         currentVault = viewModel.currentVault.value,
                         restoreMedia = viewModel::restoreMedia,
                         deleteMedia = viewModel::deleteMedia,

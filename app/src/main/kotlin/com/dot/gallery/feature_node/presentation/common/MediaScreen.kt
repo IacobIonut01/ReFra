@@ -48,7 +48,6 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.navigate
@@ -82,6 +81,7 @@ fun <T: Media> MediaScreen(
     target: String? = remember { null },
     albumName: String,
     mediaState: State<MediaState<T>>,
+    metadataState: State<MediaMetadataState>,
     allowHeaders: Boolean = true,
     showMonthlyHeader: Boolean = false,
     enableStickyHeaders: Boolean = true,
@@ -122,10 +122,8 @@ fun <T: Media> MediaScreen(
     }
     val eventHandler = LocalEventHandler.current
     val selector = LocalMediaSelector.current
-    val distributor = LocalMediaDistributor.current
     val selectionState = selector.isSelectionActive.collectAsStateWithLifecycle()
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
 
     LaunchedEffect(selectionState.value) {
         if (allowNavBar) {

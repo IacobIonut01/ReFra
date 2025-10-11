@@ -27,6 +27,7 @@ import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -388,7 +389,7 @@ fun rememberIsMediaManager(): Boolean {
 
 @Composable
 fun rememberWindowInsetsController(): WindowInsetsControllerCompat {
-    val window = with(LocalContext.current as Activity) { return@with window }
+    val window = with(LocalActivity.current) { return@with this!!.window!! }
     return remember { WindowCompat.getInsetsController(window, window.decorView) }
 }
 

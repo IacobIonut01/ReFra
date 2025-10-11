@@ -6,9 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
+import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.workers.startClassification
 import com.dot.gallery.core.workers.stopClassification
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -24,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(
     private val repository: MediaRepository,
+    private val distributor: MediaDistributor,
     private val workManager: WorkManager
 ) : ViewModel() {
 
@@ -54,6 +57,12 @@ class CategoriesViewModel @Inject constructor(
 
     val selectionState = mutableStateOf(false)
     val selectedMedia = mutableStateListOf<Media.ClassifiedMedia>()
+
+    val metadataState = distributor.metadataFlow.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        MediaMetadataState()
+    )
 
     fun toggleSelection(mediaState: MediaState<Media.ClassifiedMedia>, index: Int) {
         viewModelScope.launch(Dispatchers.IO) {

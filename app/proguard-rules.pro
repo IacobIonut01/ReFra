@@ -35,3 +35,10 @@
 -dontwarn com.google.auto.value.AutoValue
 -dontwarn org.tensorflow.lite.gpu.GpuDelegateFactory$Options$GpuBackend
 -dontwarn org.tensorflow.lite.gpu.GpuDelegateFactory$Options
+
+# Keep custom Glide decoders and model loaders (HEIF/JXL/Encrypted)
+-keep class com.dot.gallery.core.decoder.glide.** { *; }
+-keep class com.radzivon.bartoshyk.avif.** { *; }
+-keep class com.awxkee.jxlcoder.** { *; }
+-dontwarn com.radzivon.bartoshyk.avif.**
+-dontwarn com.awxkee.jxlcoder.**

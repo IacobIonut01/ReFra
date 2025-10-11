@@ -22,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
 fun WorkManager.updateDatabase() {
@@ -42,6 +44,7 @@ fun WorkManager.updateDatabase() {
 
     val metadataWork = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
         .setConstraints(constraints)
+        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
         .addTag("MetadataCollection")
         .build()
 
@@ -60,6 +63,7 @@ class DatabaseUpdaterWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = runCatching {
         delay(5000)
+    if (!currentCoroutineContext().isActive || isStopped) return Result.success()
         if (database.isMediaUpToDate(appContext)) {
             printDebug("Database is up to date")
             return Result.success()
@@ -73,7 +77,6 @@ class DatabaseUpdaterWorker @AssistedInject constructor(
                 database.getMediaDao().setMediaVersion(MediaVersion(mediaVersion))
                 database.getMediaDao().updateMedia(it)
                 database.getClassifierDao().deleteDeclassifiedImages(it.fastMap { m -> m.id })
-                delay(5000)
             }
         }
 

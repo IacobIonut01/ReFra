@@ -61,6 +61,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.core.net.toUri
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
@@ -92,7 +94,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
     ExperimentalFoundationApi::class
 )
 @Composable
@@ -102,7 +105,6 @@ fun VaultDisplay(
     currentVault: MutableState<Vault?>,
     createMediaState: (Vault?) -> StateFlow<MediaState<Media.UriMedia>>,
     onCreateVaultClick: () -> Unit,
-    addMediaListToVault: (vault: Vault, mediaList: List<Uri>) -> Unit,
     deleteLeftovers: (result: ActivityResultLauncher<IntentSenderRequest>, uris: List<Uri>) -> Unit,
     setVault: (Vault) -> Unit,
     deleteVault: (Vault) -> Unit,
@@ -116,13 +118,7 @@ fun VaultDisplay(
     val eventHandler = LocalEventHandler.current
     val isRunning by workerIsRunning.collectAsStateWithLifecycle()
     val progress by workerProgress.collectAsStateWithLifecycle()
-
-    @Suppress("LocalVariableName")
-    var _mediaState by remember(currentVault.value, isRunning, progress) {
-        mutableStateOf(createMediaState(currentVault.value))
-    }
-
-    val mediaState = _mediaState.collectAsStateWithLifecycle()
+    val mediaState = createMediaState(currentVault.value).collectAsStateWithLifecycle()
 
     LaunchedEffect(vaultState.value, currentVault.value) {
         currentVault.value?.let { setVault(it) } ?: run {
@@ -132,7 +128,9 @@ fun VaultDisplay(
 
     var lastCellIndex by rememberGridSize()
 
-    val dpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
+    val dpCacheWindow = remember {
+        LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
+    }
     val pinchState = rememberPinchZoomGridState(
         cellsList = cellsList,
         initialCellsIndex = lastCellIndex,
@@ -156,25 +154,25 @@ fun VaultDisplay(
     val bottomSheetState = rememberAppBottomSheetState()
 
     var toAddMedia by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    val vaultViewModel = hiltViewModel<VaultViewModel>()
 
     val pickerLauncher = rememberLauncherForActivityResult(PickerActivityContract()) { uriList ->
         scope.launch {
             if (uriList.isNotEmpty()) {
+                val uriList = uriList.map { it.toUri() }
                 toAddMedia = uriList
-                addMediaListToVault(currentVault.value!!, uriList)
+                vaultViewModel.encryptAndRequestDeletion(currentVault.value!!, uriList)
             }
         }
     }
     val postEncryptLauncher = rememberActivityResult()
 
-    LaunchedEffect(isRunning) {
-        if (isRunning) {
-            bottomSheetState.show()
-        } else {
-            bottomSheetState.hide()
-            if (toAddMedia.isNotEmpty()) {
-                deleteLeftovers(postEncryptLauncher, toAddMedia)
+    LaunchedEffect(Unit) {
+        vaultViewModel.pendingDeletions.collect { leftovers ->
+            if (leftovers.isNotEmpty()) {
+                deleteLeftovers(postEncryptLauncher, leftovers)
                 toAddMedia = emptyList()
+                bottomSheetState.hide()
             }
         }
     }
@@ -187,6 +185,14 @@ fun VaultDisplay(
         if (vaultState.value.isLoading) return@LaunchedEffect
         if (vaultState.value.vaults.isNotEmpty()) return@LaunchedEffect
         eventHandler.navigateUp()
+    }
+
+    LaunchedEffect(isRunning) {
+        if (isRunning) {
+            bottomSheetState.show()
+        } else {
+            bottomSheetState.hide()
+        }
     }
 
     ModalSheet(

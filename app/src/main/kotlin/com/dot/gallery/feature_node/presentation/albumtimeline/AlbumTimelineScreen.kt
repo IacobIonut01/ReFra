@@ -25,6 +25,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +41,6 @@ import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Album.rememberHideTimelineOnAlbum
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
@@ -48,6 +48,7 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.NavigationButton
 import com.dot.gallery.core.presentation.components.SelectionSheet
+import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
@@ -71,16 +72,15 @@ fun AlbumTimelineScreen(
     albumName: String,
     paddingValues: PaddingValues,
     isScrolling: MutableState<Boolean>,
+    allAlbumsMediaState: State<Map<Long, MediaState<Media.UriMedia>>>,
+    metadataState: State<MediaMetadataState>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
     var canScroll by rememberSaveable { mutableStateOf(true) }
     var lastCellIndex by rememberGridSize()
     val eventHandler = LocalEventHandler.current
-    val distributor = LocalMediaDistributor.current
-    val allAlbumsMediaState = distributor.albumsTimelinesMediaFlow.collectAsStateWithLifecycle()
-    val mediaState = rememberedDerivedState { allAlbumsMediaState.value[albumId] ?: MediaState() }
-    val metadataState = distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
+    val mediaState = rememberedDerivedState(allAlbumsMediaState.value) { allAlbumsMediaState.value[albumId] ?: MediaState() }
     val selector = LocalMediaSelector.current
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
 

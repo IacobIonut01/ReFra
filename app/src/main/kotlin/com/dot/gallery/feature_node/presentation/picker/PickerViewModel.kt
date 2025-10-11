@@ -8,12 +8,14 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.core.Constants
+import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.util.mapMedia
@@ -26,7 +28,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 open class PickerViewModel @Inject constructor(
-    private val repository: MediaRepository
+    private val repository: MediaRepository,
+    distributor: MediaDistributor
 ) : ViewModel() {
 
     private val defaultDateFormat = repository.getSetting(Settings.Misc.DEFAULT_DATE_FORMAT, Constants.DEFAULT_DATE_FORMAT)
@@ -53,7 +56,7 @@ open class PickerViewModel @Inject constructor(
                     val error = if (mediaResult is Resource.Error) mediaResult.message
                         ?: "An error occurred" else ""
                     if (error.isNotEmpty()) {
-                        return@combine Resource.Error<List<Media>>(message = error)
+                        return@combine Resource.Error(message = error)
                     }
                     Resource.Success<List<Media>>(data)
                 }.mapMedia(
@@ -79,7 +82,7 @@ open class PickerViewModel @Inject constructor(
             val error = if (mediaResult is Resource.Error) mediaResult.message
                 ?: "An error occurred" else ""
             if (error.isNotEmpty()) {
-                return@combine Resource.Error<List<Media>>(message = error)
+                return@combine Resource.Error(message = error)
             }
             Resource.Success<List<Media>>(data)
         }.mapMedia(
@@ -113,6 +116,9 @@ open class PickerViewModel @Inject constructor(
             AlbumState(albums = albums, error = error)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), AlbumState())
     }
+
+    val metadataState = distributor.metadataFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, MediaMetadataState())
 
 
     private val emptyAlbum = Album(

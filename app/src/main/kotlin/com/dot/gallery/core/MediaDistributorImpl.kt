@@ -30,11 +30,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import com.dot.gallery.feature_node.domain.model.LocationMedia
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -237,7 +239,7 @@ class MediaDistributorImpl @Inject constructor(
     /**
      * Media Metadata
      */
-    override val metadataFlow: SharedFlow<MediaMetadataState> = combine(
+    override val metadataFlow: Flow<MediaMetadataState> = combine(
         repository.getMetadata(),
         workManager.getWorkInfosForUniqueWorkFlow("MetadataCollection")
             .map { it.lastOrNull()?.state == WorkInfo.State.RUNNING },
@@ -249,7 +251,48 @@ class MediaDistributorImpl @Inject constructor(
             isLoading = isRunning,
             isLoadingProgress = progress
         )
-    }.shareIn(appScope, started = sharingMethod)
+    }
+
+    override fun locationBasedMedia(
+        gpsLocationNameCity: String,
+        gpsLocationNameCountry: String
+    ): Flow<MediaState<Media.UriMedia>> = combine(
+        repository.getMetadata(),
+        repository.getCompleteMedia()
+    ) { metadata, media ->
+        val filteredMetadata = metadata.filter {
+            it.gpsLocationNameCity != null && it.gpsLocationNameCountry != null
+        }.filter {
+            it.gpsLocationNameCity == gpsLocationNameCity && it.gpsLocationNameCountry == gpsLocationNameCountry
+        }
+        val filteredMedia = media.data.orEmpty().filter {
+            filteredMetadata.find { metadataObj -> metadataObj.mediaId == it.id } != null
+        }
+        return@combine mapMediaToItem(
+            data = filteredMedia,
+            error = media.message ?: "",
+            albumId = -1L,
+            defaultDateFormat = dateFormatsFlow.value.first,
+            extendedDateFormat = dateFormatsFlow.value.second,
+            weeklyDateFormat = dateFormatsFlow.value.third
+        )
+    }
+
+    override val locationsMediaFlow: Flow<List<LocationMedia>> = combine(
+        repository.getMetadata(),
+        timelineMediaFlow
+    ) { metadata, timelineState ->
+        metadata
+            .filter { it.gpsLocationNameCity != null && it.gpsLocationNameCountry != null }
+            .groupBy { "${it.gpsLocationNameCity}, ${it.gpsLocationNameCountry}" }
+            .mapNotNull { (location, items) ->
+                val media = timelineState.media
+                    .sortedByDescending { it.definedTimestamp }
+                    .find { it.id == items.first().mediaId }
+                if (media != null) LocationMedia(media = media, location = location) else null
+            }
+            .sortedBy { it.location }
+    }
 
     /**
      * Vault

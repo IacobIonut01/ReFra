@@ -197,7 +197,7 @@
     <string name="individual_album_selection">Pemilihan Album Individual</string>
     <string name="wildcard_creator">Pembuat Wildcard</string>
     <string name="wildcard_summary">Karakter pengganti akan digunakan untuk mencocokkan nama album atau jalurnya. Karakter pengganti dapat diperlakukan sebagai pola regex.</string>
-    <string name="wildcard_summary_first"></string>
+    <string name="wildcard_summary_first">Wildcard: %1$s\nMatched albums: %2$s</string>
     <string name="matched_albums">"Album yang cocok: %1$s"</string>
     <string name="go_back">Kembali</string>
     <string name="continue_string">Melanjutkan</string>

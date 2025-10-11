@@ -9,7 +9,6 @@ import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.ContentResolver
 import android.content.Context
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
@@ -19,7 +18,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -33,18 +31,13 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toFile
-import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.BuildConfig
-import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Misc.rememberExifDateFormat
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.mediaview.components.retrieveMetadata
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.IOException
 
 val sdcardRegex = "^/storage/[A-Z0-9]+-[A-Z0-9]+/.*$".toRegex()
 
@@ -179,65 +172,9 @@ fun <T : Media> rememberMediaInfo(
 ): List<InfoRow> {
     val context = LocalContext.current
     val exifDateFormat by rememberExifDateFormat()
-    val handler = LocalMediaHandler.current
-    LaunchedEffect(exifMetadata) {
-        if (exifMetadata == null) {
-            withContext(Dispatchers.IO) {
-                handler.collectMetadataFor(media)
-            }
-        }
-    }
-    return remember(media, exifDateFormat) {
+    return remember(exifMetadata, media, exifDateFormat) {
         media.retrieveMetadata(context, exifDateFormat, exifMetadata, onLabelClick)
     }
-}
-
-@Composable
-fun <T : Media> rememberExifMetadata(media: T, exifInterface: ExifInterface?): ExifMetadata? {
-    return remember(media, exifInterface) {
-        exifInterface?.let { ExifMetadata(it) }
-    }
-}
-
-@Composable
-fun <T : Media> rememberExifInterface(media: T, useDirectPath: Boolean = false): ExifInterface? {
-    val context = LocalContext.current
-    return remember(media) {
-        if (useDirectPath) try {
-            ExifInterface(media.path)
-        } catch (_: IOException) {
-            null
-        }
-        else getExifInterface(context, media.getUri())
-    }
-}
-
-@Throws(IOException::class)
-fun getExifInterface(context: Context, uri: Uri): ExifInterface? {
-    if (uri.isFromApps()) return null
-    return try {
-        ExifInterface(context.uriToPath(uri).toString())
-    } catch (_: IOException) {
-        null
-    }
-}
-
-fun Context.uriToPath(uri: Uri?): String? {
-    if (uri == null) return null
-    val proj = arrayOf(MediaStore.MediaColumns.DATA)
-    var path: String? = null
-    val cursor: Cursor? = contentResolver.query(uri, proj, null, null, null)
-    if (cursor != null && cursor.count != 0) {
-        cursor.moveToFirst()
-        path = try {
-            val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-            cursor.getString(columnIndex)
-        } catch (_: IllegalArgumentException) {
-            null
-        }
-    }
-    cursor?.close()
-    return path ?: FileUtils(this).getPath(uri)
 }
 
 fun Uri.authorizedUri(context: Context): Uri = if (this.toString()

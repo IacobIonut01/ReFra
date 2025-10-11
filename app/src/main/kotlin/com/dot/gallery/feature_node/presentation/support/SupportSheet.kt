@@ -38,6 +38,7 @@ import com.dot.gallery.feature_node.presentation.common.components.OptionLayout
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import kotlinx.coroutines.launch
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupportSheet(

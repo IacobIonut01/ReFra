@@ -78,6 +78,7 @@ import com.dot.gallery.feature_node.domain.util.isTrashed
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.exif.MetadataEditSheet
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.printDebug
@@ -100,6 +101,9 @@ fun <T : Media> MediaViewSheetDetails(
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?
 ) {
+    val metadata by rememberedDerivedState(metadataState.value) {
+        metadataState.value.metadata.find { it.mediaId == currentMedia?.id }
+    }
     val handler = LocalMediaHandler.current
     val isBlurEnabled by rememberAllowBlur()
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -170,9 +174,6 @@ fun <T : Media> MediaViewSheetDetails(
             if (currentMedia != null) {
                 val context = LocalContext.current
                 val scope = rememberCoroutineScope()
-                val metadata by rememberedDerivedState(metadataState.value, currentMedia) {
-                    metadataState.value.metadata.firstOrNull { it.mediaId == currentMedia.id }
-                }
 
                 /**
                  * -1 - none
@@ -486,7 +487,10 @@ fun <T : Media> MediaViewSheetDetails(
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .size(48.dp)
-                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .clip(RoundedCornerShape(16.dp)),
+                                                requestBuilderTransform = {
+                                                    it.signature(GlideInvalidation.signature(mediaCategoryThumbnail!!))
+                                                }
                                             )
                                         }
                                     },

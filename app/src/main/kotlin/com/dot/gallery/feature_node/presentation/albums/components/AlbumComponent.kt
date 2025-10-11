@@ -57,6 +57,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -67,6 +68,7 @@ import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.presentation.common.components.OptionItem
 import com.dot.gallery.feature_node.presentation.common.components.OptionSheet
 import com.dot.gallery.feature_node.presentation.picker.PickerActivityContract
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.formatSize
 import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
@@ -107,7 +109,8 @@ fun AlbumComponent(
         val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryContainer
         var isSelectingThumbnail by rememberSaveable { mutableStateOf(false) }
         val handler = LocalMediaHandler.current
-        val hasThumbnail by handler.hasAlbumThumbnail(album.id).collectAsStateWithLifecycle(initialValue = false)
+        val hasThumbnail by handler.hasAlbumThumbnail(album.id)
+            .collectAsStateWithLifecycle(initialValue = false)
 
         val pickerLauncher = rememberLauncherForActivityResult(
             PickerActivityContract(
@@ -117,7 +120,7 @@ fun AlbumComponent(
         ) { uriList ->
             scope.launch {
                 if (uriList.isNotEmpty()) {
-                    val newThumbnailUri = uriList.firstOrNull()
+                    val newThumbnailUri = uriList.map { it.toUri() }.firstOrNull()
                     if (newThumbnailUri != null) {
                         handler.updateAlbumThumbnail(album.id, newThumbnailUri)
                         delay(100)
@@ -241,7 +244,10 @@ fun AlbumComponent(
                             .size(98.dp)
                             .clip(Shapes.large),
                         contentScale = ContentScale.Crop,
-                        model = album.uri.toString(),
+                        model = album.uri,
+                        requestBuilderTransform = {
+                            it.signature(GlideInvalidation.signature(album))
+                        },
                         contentDescription = album.label
                     )
                     Text(
@@ -519,7 +525,10 @@ fun AlbumImage(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed = interactionSource.collectIsPressedAsState()
-    val cornerRadius by animateDpAsState(targetValue = if (isPressed.value) 32.dp else 16.dp, label = "cornerRadius")
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isPressed.value) 32.dp else 16.dp,
+        label = "cornerRadius"
+    )
     val feedbackManager = rememberFeedbackManager()
     if (album.id == -200L && album.count == 0L) {
         Icon(
@@ -578,6 +587,7 @@ fun AlbumImage(
                 val newRequest = it.centerCrop()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                 newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
+                    .signature(GlideInvalidation.signature(album))
             }
         )
     }

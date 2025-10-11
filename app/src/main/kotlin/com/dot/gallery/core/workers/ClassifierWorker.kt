@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaVersion
@@ -25,10 +26,13 @@ import com.github.panpf.sketch.BitmapImage
 import com.github.panpf.sketch.SingletonSketch
 import com.github.panpf.sketch.decode.BitmapColorSpace
 import com.github.panpf.sketch.request.ImageRequest
+import com.github.panpf.sketch.resize.Precision
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 
 @HiltWorker
 class ClassifierWorker @AssistedInject constructor(
@@ -36,7 +40,7 @@ class ClassifierWorker @AssistedInject constructor(
     private val repository: MediaRepository,
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters
-) : CoroutineWorker(appContext, workerParams), ImageClassifierHelper.ClassifierListener {
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result = runCatching {
         printWarning("ClassifierWorker retrieving media")
@@ -83,18 +87,22 @@ class ClassifierWorker @AssistedInject constructor(
         setProgress(workDataOf("progress" to 0))
 
         printWarning("ClassifierWorker Setting up image classifier")
-        val helper = ImageClassifierHelper(
-            context = appContext,
-            imageClassifierListener = this@ClassifierWorker
-        )
+        val helper = ImageClassifierHelper(context = appContext)
+        val session = helper.setupClassificationSession()
         printWarning("ClassifierWorker Setting up sketch")
         val sketch = SingletonSketch.get(appContext)
         printWarning("ClassifierWorker Starting image classification for ${media.size} items")
+        val throttler = ProgressThrottler()
+        val total = media.size
         media.fastForEachIndexed { index, item ->
-            printWarning("ClassifierWorker Processing item $index")
-            setProgress(workDataOf("progress" to (index / (media.size - 1).toFloat()) * 100f))
+            if (!currentCoroutineContext().isActive || isStopped) return@fastForEachIndexed
+            // Guard single-item division and throttle duplicate emits
+            val pct: Int =
+                if (total <= 1) 100 else ((index.toFloat() / (total - 1).toFloat()) * 100f).toInt()
+            throttler.emit(pct) { setProgress(workDataOf("progress" to it)) }
             val request = ImageRequest(appContext, item.uri.toString()) {
                 colorSpace(BitmapColorSpace(ColorSpace.Named.SRGB))
+                resize(224, 224, precision = Precision.EXACTLY)
             }
             val result = sketch.execute(request)
             val bitmap = (result.image as? BitmapImage)?.bitmap
@@ -105,8 +113,8 @@ class ClassifierWorker @AssistedInject constructor(
                 return@fastForEachIndexed
             }
             runCatching {
-                val classification = helper.classify(bitmap)
-                classification?.let { (results, time) ->
+                val classification = helper.classifyImage(session, bitmap)
+                classification.let { (results, time) ->
                     printWarning("ClassifierWorker Classification [in $time ms] results: $results")
                     if (results.isEmpty()) {
                         printWarning("ClassifierWorker No results obtained, inserting as null")
@@ -114,7 +122,7 @@ class ClassifierWorker @AssistedInject constructor(
                     printWarning("ClassifierWorker Inserting media into database")
                     database.getClassifierDao().insertClassifiedMedia(
                         Media.ClassifiedMedia(
-                            category = if (results.isNotEmpty()) results.first().displayName else null,
+                            category = if (results.isNotEmpty()) results.first().label else null,
                             score = if (results.isNotEmpty()) results.first().score else 0f,
                             id = item.id,
                             label = item.label,
@@ -134,23 +142,22 @@ class ClassifierWorker @AssistedInject constructor(
                             duration = item.duration
                         )
                     )
-                } ?: throw IllegalStateException("Classification result is null")
+                }
             }.getOrElse {
                 printWarning("ClassifierWorker Error classifying item $index: ${it.message}")
                 it.printStackTrace()
                 return@fastForEachIndexed
             }
         }
-        helper.clearImageClassifier()
-        setProgress(workDataOf("progress" to 100f))
+        if (currentCoroutineContext().isActive) {
+            setProgress(workDataOf("progress" to 100))
+        } else {
+            printWarning("ClassifierWorker cancelled before completion")
+        }
         return Result.success()
     }.getOrElse { exception ->
         printWarning("ClassifierWorker failed with exception: ${exception.message}")
         return Result.failure()
-    }
-
-    override fun onError(error: String) {
-        printWarning("ClassifierWorker ImageClassifierHelper Error: $error")
     }
 
 }

@@ -13,6 +13,7 @@ import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
@@ -23,8 +24,10 @@ import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import java.util.UUID
 
 class MockedEventHandler: EventHandler {
     override val updaterFlow: Flow<UIEvent> = emptyFlow()
@@ -49,9 +52,14 @@ class MockedMediaDistributor: MediaDistributor {
     override val favoritesMediaFlow: StateFlow<MediaState<Media.UriMedia>> = MutableStateFlow(MediaState())
     override val trashMediaFlow: StateFlow<MediaState<Media.UriMedia>> = MutableStateFlow(MediaState())
     override val metadataFlow: StateFlow<MediaMetadataState> = MutableStateFlow(MediaMetadataState())
+    override val locationsMediaFlow: SharedFlow<List<LocationMedia>> = MutableStateFlow(emptyList())
     override val vaultsMediaFlow: StateFlow<VaultState> = MutableStateFlow(VaultState())
     override fun vaultMediaFlow(vault: Vault?): StateFlow<MediaState<Media.UriMedia>> = MutableStateFlow(MediaState())
     override val imageEmbeddingsFlow: StateFlow<List<ImageEmbedding>> = MutableStateFlow(emptyList())
+    override fun locationBasedMedia(
+        gpsLocationNameCity: String,
+        gpsLocationNameCountry: String
+    ): Flow<MediaState<Media.UriMedia>> = emptyFlow()
 }
 
 class MockedMediaHandler: MediaHandler {
@@ -132,6 +140,10 @@ class MockedMediaHandler: MediaHandler {
     override fun hasAlbumThumbnail(albumId: Long): Flow<Boolean> = emptyFlow()
     override suspend fun collectMetadataFor(media: Media) = Unit
     override suspend fun <T : Media> addMedia(vault: Vault, media: T) = Unit
+    override fun <T : Media> rotateImage(
+        media: T,
+        degrees: Int
+    ): UUID = UUID.randomUUID()
 }
 
 class MockedMediaSelector: MediaSelector {

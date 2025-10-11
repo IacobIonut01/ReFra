@@ -31,12 +31,38 @@ class EncryptedGenericImageDecoder(
         options: Options
     ): Resource<Bitmap>? {
         val bytes = source.bytes
-        val orientation = runCatching {
-            ExifInterface(ByteArrayInputStream(bytes))
-                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
-        }.getOrDefault(ExifInterface.ORIENTATION_UNDEFINED)
-        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
+        // First pass bounds decode for sampling.
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        val targetW = if (width > 0) width else bounds.outWidth
+        val targetH = if (height > 0) height else bounds.outHeight
+        val inSample = computeInSampleSize(bounds.outWidth, bounds.outHeight, targetW, targetH)
+        val decodeOpts = BitmapFactory.Options().apply {
+            inSampleSize = inSample
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+        // Only instantiate ExifInterface if size large enough to plausibly contain orientation,
+        // avoiding noisy ExifInterface logs about missing thumbnails on very small images.
+        val orientation = if (bytes.size > 512) {
+            runCatching {
+                ExifInterface(ByteArrayInputStream(bytes))
+                    .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
+            }.getOrDefault(ExifInterface.ORIENTATION_UNDEFINED)
+        } else ExifInterface.ORIENTATION_UNDEFINED
+        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOpts) ?: return null
         val oriented = ExifOrientationHelper(orientation).applyToBitmap(bitmap) ?: bitmap
         return BitmapResource.obtain(oriented, bitmapPool)
+    }
+
+    private fun computeInSampleSize(srcW: Int, srcH: Int, reqW: Int, reqH: Int): Int {
+        var inSample = 1
+        if (srcH > reqH || srcW > reqW) {
+            var halfH = srcH / 2
+            var halfW = srcW / 2
+            while (halfH / inSample >= reqH && halfW / inSample >= reqW) {
+                inSample *= 2
+            }
+        }
+        return inSample.coerceAtLeast(1)
     }
 }

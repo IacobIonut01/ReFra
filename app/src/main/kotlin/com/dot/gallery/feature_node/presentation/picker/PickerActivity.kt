@@ -38,19 +38,23 @@ import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.MediaSelectorImpl
 import com.dot.gallery.core.util.SetupMediaProviders
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.picker.components.PickerScreen
 import com.dot.gallery.ui.theme.GalleryTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class PickerActivityContract(
     private val mediaType: String = "*/*",
     private val allowMultiple: Boolean = true
-) : ActivityResultContract<Any?, List<Uri>>() {
+) : ActivityResultContract<Any?, List<String>>() {
 
     override fun createIntent(context: Context, input: Any?): Intent {
         return Intent(context, PickerActivity::class.java).apply {
@@ -59,18 +63,18 @@ class PickerActivityContract(
         }
     }
 
-    override fun parseResult(resultCode: Int, intent: Intent?): List<Uri> {
+    override fun parseResult(resultCode: Int, intent: Intent?): List<String> {
         if (resultCode != Activity.RESULT_OK || intent == null) {
             return emptyList()
         }
 
 
-        return mutableListOf<Uri>().apply {
+        return mutableListOf<String>().apply {
             intent.clipData?.let { clipData ->
                 for (i in 0 until clipData.itemCount) {
-                    add(clipData.getItemAt(i).uri)
+                    add(clipData.getItemAt(i).uri.toString())
                 }
-            } ?: intent.data?.let { add(it) }
+            } ?: intent.data?.let { add(it.toString()) }
         }
     }
 }
@@ -112,6 +116,26 @@ class PickerActivity : ComponentActivity() {
         setContent {
             LaunchedEffect(Unit) {
                 eventHandler.navigateUpAction = { finish() }
+            }
+            LaunchedEffect(eventHandler) {
+                withContext(Dispatchers.Main.immediate) {
+                    eventHandler.updaterFlow.collectLatest { event ->
+                        when (event) {
+                            UIEvent.UpdateDatabase -> {
+                            }
+
+                            UIEvent.NavigationUpEvent -> eventHandler.navigateUpAction()
+                            is UIEvent.NavigationRouteEvent -> eventHandler.navigateAction(event.route)
+                            is UIEvent.ToggleNavigationBarEvent -> eventHandler.toggleNavigationBarAction(
+                                event.isVisible
+                            )
+
+                            is UIEvent.SetFollowThemeEvent -> eventHandler.setFollowThemeAction(
+                                event.followTheme
+                            )
+                        }
+                    }
+                }
             }
             SetupMediaProviders(
                 eventHandler = eventHandler,

@@ -7,7 +7,7 @@ import com.awxkee.aire.Aire
 import com.dot.gallery.feature_node.domain.model.editor.VariableFilter
 
 data class Brightness(
-    @FloatRange(from = -1.0, to = 1.0)
+    @param:FloatRange(from = -1.0, to = 1.0)
     override val value: Float = 0f
 ) : VariableFilter {
     override val maxValue = 1f

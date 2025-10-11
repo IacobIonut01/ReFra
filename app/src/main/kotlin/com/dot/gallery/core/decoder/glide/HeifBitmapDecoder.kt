@@ -1,6 +1,7 @@
 package com.dot.gallery.core.decoder.glide
 
 import android.graphics.Bitmap
+import android.util.Log
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
@@ -20,18 +21,20 @@ class HeifBitmapDecoder(
     private val coder = HeifCoder()
 
     override fun handles(source: InputStream, options: Options): Boolean {
-        // Light sniff: read header without consuming full stream
-        source.mark(32)
-        val header = ByteArray(16)
+        // Robust ISO BMFF brand sniff (HEIF/AVIF). Layout: size(4) + 'ftyp'(4) + brand(4)
+        source.mark(64) // plenty for initial box
+        val header = ByteArray(128)
         val read = source.read(header)
         source.reset()
-        if (read <= 0) return false
-        val headerStr = header.decodeToString()
-        // We fallback to mime detection via option if provided; else naive heuristics
-        return headerStr.contains("ftypheic") ||
-                headerStr.contains("ftypheix") ||
-                headerStr.contains("ftypmif1") ||
-                headerStr.contains("ftypavif")
+        if (read < 12) return false
+        val brand = HeifSniffer.findBrand(header, read)
+        val ok = brand != null
+        if (!ok) {
+            Log.d("HeifBitmapDecoder", "handles()=false brand=null sample=${HeifSniffer.hexSample(header, read)}")
+        } else {
+            Log.d("HeifBitmapDecoder", "handles()=true brand=$brand")
+        }
+        return ok
     }
 
     override fun decode(
@@ -40,11 +43,12 @@ class HeifBitmapDecoder(
         height: Int,
         options: Options
     ): Resource<Bitmap>? {
-        val allBytes = source.readBytes()
-        val size = coder.getSize(allBytes)
+        val allBytes = source.readBytes() // TODO: consider bounded read / streaming if memory pressure observed
+        val size = coder.getSize(allBytes) // returns null only on invalid data
         val targetW = if (width > 0) width else size!!.width
         val targetH = if (height > 0) height else size!!.height
         val bmp = coder.decodeSampled(allBytes, targetW, targetH)
+        Log.d("HeifBitmapDecoder", "decode() size=${size?.width}x${size?.height} -> ${bmp.width}x${bmp.height}")
         return BitmapResource.obtain(bmp, bitmapPool)
     }
 }
