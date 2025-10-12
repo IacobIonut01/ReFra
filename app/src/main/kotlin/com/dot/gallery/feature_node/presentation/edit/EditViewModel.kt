@@ -210,7 +210,7 @@ class EditViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _uri.value = uri
             val mediaList =
-                repository.getMediaListByUris(listOf(uri), reviewMode = false).firstOrNull()?.data
+                repository.getMediaListByUris(listOf(uri), reviewMode = false, onlyMatching = true).firstOrNull()?.data
                     ?: emptyList()
             _canOverride.value = mediaList.isNotEmpty()
             if (mediaList.isNotEmpty()) {
