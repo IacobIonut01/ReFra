@@ -1,0 +1,41 @@
+Improvements
+
+- Faster media grid loading & smoother scrolling (downsampling, buffer reuse, single‑flight decrypt, adaptive thresholds)
+- Reduced memory & GC pressure (temp spill for large decrypts, ByteArrayPool, sidecar metadata cache, decrypt LRU)
+- Redesigned UI with large‑screen accessibility enhancements
+- Reliable audio focus toggle (player rebuild logic)
+- Deferred & safe original media deletion after successful vault operations
+- Unified all‑workers progress screen
+- Streamlined copy progress (ViewModel + Flow)
+- Enhanced media info panel (richer technical metadata)
+- More resilient vault operations (missing URIs skipped, portable vault migration fallback)
+- Album screen layout toggle (GridView ⇆ ColumnView)
+- Revamped VideoPlayer with latest Media3-Compose components
+
+New Features
+
+- Encrypted media streaming architecture (EncryptedMediaSource, streaming video groundwork)
+- Image rotation action
+- Image lock mode (prevent scrolling/swiping)
+- Sidecar metadata caching + scheduled cleanup
+- Adaptive decrypt threshold
+- Workers progress screen
+- Byte‑level aggregated copy progress
+- Audio focus user preference
+- Metrics instrumentation (internal) [removed logging claims]
+- Unified deletion handoff via worker output
+- Updated & merged translations
+
+Bug Fixes
+
+- Fixed Vault not encrypting or decrypting correctly
+- Premature deletion during encrypt/hide eliminated
+- ENOENT playback errors removed (no empty Uri before decrypt ready)
+- Play/pause icon desync after paused seek fixed
+- Large redundant decrypted byte[] allocations avoided
+- FileNotFoundException from missing MediaStore items prevented
+- Audio focus OFF no longer pauses external audio apps
+- Playback position preserved across orientation changes
+- UI stall on large encrypted video start reduced (async decrypt)
+- Duplicate decrypts on rapid scroll prevented (single‑flight)
+- Copy worker progress no longer jumps instantly or appears frozen
