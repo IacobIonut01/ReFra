@@ -31,7 +31,7 @@ import com.dot.gallery.feature_node.domain.util.isTrashed
 import com.dot.gallery.feature_node.presentation.util.getDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.random.Random
+import com.dot.gallery.feature_node.presentation.util.printWarning
 
 /**
  * Media uri flow
@@ -167,14 +167,12 @@ class MediaUriFlow(
                 mimeType = mimeType
             )
         }.let { flow ->
-            val ids = uris.map {
-                try {
-                    ContentUris.parseId(it)
-                } catch (e: NumberFormatException) {
-                    e.printStackTrace()
-                    Random.nextInt(1000000, 2000000)
-                }
-            }
+            // Derive candidate media IDs from provided URIs. These may be either
+            // MediaStore content:// URIs or file:// URIs that represent encrypted
+            // vault files whose filenames follow the pattern <originalId>.enc
+            val ids: List<Long> = uris.mapNotNull { uri ->
+                parseCandidateId(uri)
+            }.distinct()
             if (onlyMatchingUris) {
                 return flow.map { mediaList ->
                     mediaList.filter { media -> ids.contains(media.id) && !media.isTrashed }
@@ -193,6 +191,9 @@ class MediaUriFlow(
 
     private fun getBucketIdFromFirstUri(): Long? {
         val firstUri = uris.firstOrNull() ?: return null
+        // Bucket lookup only makes sense for MediaStore content URIs. File based
+        // (encrypted) URIs won't have a bucket; skip early.
+        if (firstUri.scheme != ContentResolver.SCHEME_CONTENT) return null
         val id = try {
             ContentUris.parseId(firstUri)
         } catch (e: NumberFormatException) {
@@ -214,5 +215,38 @@ class MediaUriFlow(
             }
         }
         return null
+    }
+
+    /**
+     * Attempt to derive a stable numeric media ID from a supplied URI.
+     *  - For content:// URIs we delegate to [ContentUris.parseId].
+     *  - For file:// URIs pointing to encrypted vault files we strip a trailing
+     *    ".enc" extension and parse the remaining filename as a Long.
+     * Returns null (instead of a random fabricated ID) if parsing fails so the
+     * caller can simply exclude the unmatched entry. This prevents accidental
+     * association with unrelated media rows and avoids decryption failures due
+     * to ID skew.
+     */
+    private fun parseCandidateId(uri: Uri): Long? {
+        return if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
+            try {
+                ContentUris.parseId(uri)
+            } catch (e: NumberFormatException) {
+                // Unexpected malformed content URI; exclude.
+                printWarning("MediaUriFlow: Failed to parse content URI id: $uri -> ${e.message}")
+                null
+            }
+        } else {
+            // file:// or other scheme; check for encrypted vault naming pattern
+            val name = uri.lastPathSegment ?: return null
+            val numericPart = if (name.endsWith(".enc", ignoreCase = true)) {
+                name.removeSuffix(".enc")
+            } else name
+            numericPart.toLongOrNull().also { parsed ->
+                if (parsed == null) {
+                    printWarning("MediaUriFlow: Unable to derive id from URI filename '$name'")
+                }
+            }
+        }
     }
 }
