@@ -243,8 +243,8 @@ fun <T : Media> VideoPlayer(
 
             val player = exoPlayer ?: ExoPlayer.Builder(context).build().also { exoPlayer = it }
 
-            val usage = if (audioFocus) C.USAGE_NOTIFICATION else C.USAGE_MEDIA
-            val contentType = if (audioFocus) C.AUDIO_CONTENT_TYPE_SONIFICATION else C.AUDIO_CONTENT_TYPE_MOVIE
+            val usage = if (!audioFocus) C.USAGE_NOTIFICATION else C.USAGE_MEDIA
+            val contentType = if (!audioFocus) C.AUDIO_CONTENT_TYPE_SONIFICATION else C.AUDIO_CONTENT_TYPE_MOVIE
 
             val attrs = AudioAttributes.Builder()
                 .setUsage(usage)
