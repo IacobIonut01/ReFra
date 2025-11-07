@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.CheckBox
 import com.dot.gallery.core.presentation.components.util.advancedShadow
@@ -138,10 +139,13 @@ fun <T : Media> MediaImage(
             contentDescription = media.label,
             contentScale = ContentScale.Crop,
             requestBuilderTransform = {
-                val newRequest = it.centerCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
+                var newRequest = it.centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL)
+                newRequest = newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
                     .signature(GlideInvalidation.signature(media))
+                if (media.label.contains(".gif", ignoreCase = true)) {
+                    newRequest = newRequest.decode(GifDrawable::class.java)
+                }
+                newRequest
             }
         )
 

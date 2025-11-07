@@ -30,6 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.decoder.EncryptedRegionDecoder
@@ -181,8 +182,15 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
             alignment = Alignment.Center,
             contentDescription = media.label,
             requestBuilderTransform = {
-                it.signature(GlideInvalidation.signature(media))
+                var builder = it
+                    .signature(GlideInvalidation.signature(media))
                     .thumbnail(it.clone().sizeMultiplier(0.1f))
+
+                if (media.label.contains(".gif", ignoreCase = true)) {
+                    builder = builder.decode(GifDrawable::class.java)
+                }
+
+                builder
             },
             scrollBar = null
         )
