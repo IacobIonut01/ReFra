@@ -8,7 +8,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.BuildConfig
-import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.getUri
@@ -55,15 +54,12 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
         printInfo("Found ${toBeIndexed.size} media items to index")
         setProgress(workDataOf("progress" to 0))
         visionHelper.setupVisionSession().use { session ->
-            val throttler = ProgressThrottler()
             val total = toBeIndexed.size
             toBeIndexed.fastForEachIndexed { index, mediaItem ->
                 if (!currentCoroutineContext().isActive || isStopped) return@use
                 val startMillis = System.currentTimeMillis()
-                // Progress calculation guarded for single-item case
-                val pct: Int =
-                    if (total <= 1) 100 else ((index.toFloat() / (total - 1).toFloat()) * 100f).toInt()
-                throttler.emit(pct) { setProgress(workDataOf("progress" to it)) }
+                val pct = if (total <= 1) 100f else ((index.toFloat() / (total - 1).toFloat()) * 100f)
+                setProgress(workDataOf("progress" to pct))
                 val request = ImageRequest(appContext, mediaItem.getUri().toString()) {
                     colorSpace(BitmapColorSpace(ColorSpace.Named.SRGB))
                     size(224, 224)
@@ -84,13 +80,12 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
                 } else {
                     printInfo("Failed to decode bitmap for media: ${mediaItem.id} at ${mediaItem.getUri()}")
                 }
-                // Cooperative yield to avoid starving other coroutines
                 yield()
             }
         }
         if (currentCoroutineContext().isActive) {
             printInfo("Indexing completed for ${toBeIndexed.size} media items")
-            setProgress(workDataOf("progress" to 100))
+            setProgress(workDataOf("progress" to 100f))
         } else {
             printWarning("Indexing cancelled before completion")
         }

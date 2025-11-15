@@ -51,7 +51,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -102,7 +101,6 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SearchScreen(
     isScrolling: MutableState<Boolean>,
-    metadataState: State<MediaMetadataState>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     viewModel: SearchViewModel,
@@ -125,29 +123,29 @@ fun SearchScreen(
                     }.take(5)
         }
     }
-    val context = LocalContext.current
-    val suggestionItems = remember(context) {
+    val resources = LocalResources.current
+    val suggestionItems = remember(resources) {
         listOf(
-            SettingsEntity.Header(context.getString(R.string.suggestions)),
+            SettingsEntity.Header(resources.getString(R.string.suggestions)),
             SettingsEntity.Preference(
-                title = context.getString(R.string.screenshots),
+                title = resources.getString(R.string.screenshots),
                 icon = Icons.Outlined.Screenshot,
                 onClick = {
-                    viewModel.setQuery(context.getString(R.string.screenshots), apply = true)
+                    viewModel.setQuery(resources.getString(R.string.screenshots), apply = true)
                 }
             ),
             SettingsEntity.Preference(
-                title = context.getString(R.string.videos),
+                title = resources.getString(R.string.videos),
                 icon = Icons.Outlined.PlayCircle,
                 onClick = {
                     viewModel.setMimeTypeQuery("video/", hideExplicitQuery = true)
                 }
             ),
             SettingsEntity.Preference(
-                title = context.getString(R.string.selfies),
+                title = resources.getString(R.string.selfies),
                 icon = Icons.Outlined.Portrait,
                 onClick = {
-                    viewModel.setQuery(context.getString(R.string.selfies), apply = true)
+                    viewModel.setQuery(resources.getString(R.string.selfies), apply = true)
                 }
             ),
         )
@@ -280,7 +278,7 @@ fun SearchScreen(
             ) {
                 AnimatedVisibility(
                     modifier = Modifier.padding(vertical = 16.dp),
-                    visible = searchIndexerState.isIndexing && searchIndexerState.progress > 0.1f && searchIndexerState.progress < 100f,
+                    visible = searchIndexerState.isIndexing,
                     enter = enterAnimation,
                     exit = exitAnimation
                 ) {
@@ -308,16 +306,27 @@ fun SearchScreen(
                                 Text(
                                     text = "Search indexer is running. Results may not be accurate."
                                 )
-                                LinearProgressIndicator(
-                                    progress = { searchIndexerState.progress / 100f },
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    trackColor = MaterialTheme.colorScheme.primaryContainer.copy(
-                                        alpha = 0.5f
-                                    ),
-                                    drawStopIndicator = {},
-                                    gapSize = 0.dp,
-                                    strokeCap = StrokeCap.Round
-                                )
+                                if (searchIndexerState.progress == 0f) {
+                                    LinearProgressIndicator(
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        trackColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                                            alpha = 0.5f
+                                        ),
+                                        gapSize = 0.dp,
+                                        strokeCap = StrokeCap.Round
+                                    )
+                                } else {
+                                    LinearProgressIndicator(
+                                        progress = { searchIndexerState.progress / 100f },
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        trackColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                                            alpha = 0.5f
+                                        ),
+                                        drawStopIndicator = {},
+                                        gapSize = 0.dp,
+                                        strokeCap = StrokeCap.Round
+                                    )
+                                }
                             }
                         },
                         colors = ListItemDefaults.colors(

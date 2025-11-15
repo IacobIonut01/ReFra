@@ -82,9 +82,9 @@ class SearchViewModel @Inject constructor(
         )
 
     val searchIndexerState = combine(
-        workManager.getWorkInfosForUniqueWorkFlow("SearchIndexerUpdater")
+        workManager.getWorkInfosByTagFlow("SearchIndexerUpdater")
             .map { it.lastOrNull()?.state == WorkInfo.State.RUNNING },
-        workManager.getWorkInfosForUniqueWorkFlow("SearchIndexerUpdater")
+        workManager.getWorkInfosByTagFlow("SearchIndexerUpdater")
             .map { it.lastOrNull()?.progress?.getFloat("progress", 0f) ?: 0f }
     ) { isRunning, progress ->
         SearchIndexerState(

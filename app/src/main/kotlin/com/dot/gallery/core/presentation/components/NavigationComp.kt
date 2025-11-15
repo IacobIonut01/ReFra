@@ -505,7 +505,6 @@ fun NavigationComp(
             composable(Screen.SearchScreen()) {
                 SearchScreen(
                     viewModel = searchViewModel,
-                    metadataState = metadataState,
                     isScrolling = isScrolling,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
