@@ -37,9 +37,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldDefaults
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
@@ -127,7 +129,11 @@ fun EditScreen2(
     redoLastPath: () -> Unit
 ) = GalleryTheme(darkTheme = true, ignoreUserPreference = true) {
     val context = LocalContext.current
-    val navigator = rememberSupportingPaneScaffoldNavigator()
+    val navigator = rememberSupportingPaneScaffoldNavigator(
+        adaptStrategies = SupportingPaneScaffoldDefaults.adaptStrategies(
+            supportingPaneAdaptStrategy = AdaptStrategy.Hide
+        )
+    )
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -194,6 +200,7 @@ fun EditScreen2(
                             setDrawType = setDrawType,
                             currentPathProperty = currentPathProperty,
                             setCurrentPathProperty = setCurrentPathProperty,
+                            isSupportingPanel = false
                         )
                     }
                     val showingEditorScreen = remember(navBackStackEntry) {
