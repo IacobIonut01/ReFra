@@ -122,12 +122,12 @@ fun <T : Media> MediaViewSheetDetails(
     val sheetHazeStyle = HazeMaterials.thin(
         containerColor = surfaceColor
     )
-    val sheetCardHazeStyle = HazeMaterials.thick(
-        containerColor = surfaceColorVariant
+    val sheetCardHazeStyle = HazeMaterials.regular(
+        containerColor = surfaceColor
     )
 
-    val sheetCardButtonHazeStyle = HazeMaterials.thin(
-        containerColor = surfaceContainerHigh
+    val sheetCardButtonHazeStyle = HazeMaterials.thick(
+        containerColor = surfaceColorVariant
     )
     val sheetBackgroundModifier = remember(isBlurEnabled) {
         if (!isBlurEnabled) {
