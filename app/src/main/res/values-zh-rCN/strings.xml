@@ -93,10 +93,10 @@
     <string name="secure_mode_summary">退出时隐藏应用预览</string>
     <string name="rotate_screen_cd">旋转屏幕</string>
     <string name="size_dp">%1$s dp</string>
-    <string name="change_album_size">更改相册卡片大小</string>
+    <string name="change_album_size">更改相册卡片尺寸</string>
     <string name="reset">重置</string>
     <string name="customization">自定义</string>
-    <string name="album_card_size_title">相册卡片大小</string>
+    <string name="album_card_size_title">相册卡片尺寸</string>
     <string name="album_card_size_summary">手动选择您的相册卡片尺寸</string>
     <string name="set_wallpaper">壁纸</string>
     <string name="set_wallpaper_error">没有可用的应用，无法设置壁纸！</string>
@@ -106,7 +106,7 @@
     <string name="amoled_mode_summary">增强对比度，适合 AMOLED 屏幕</string>
     <string name="location_chip">位置：%s</string>
     <string name="media_details">详细信息</string>
-    <string name="album_card_size">相册卡片大小</string>
+    <string name="album_card_size">相册卡片尺寸</string>
     <string name="edit_metadata">编辑元数据</string>
     <string name="dialog_to_trash">移至回收站</string>
     <string name="dialog_delete">永久删除</string>
@@ -311,8 +311,13 @@
     <string name="adjust">调整</string>
     <string name="filters">滤镜</string>
     <string name="markup">标记</string>
-    <string name="type_size">尺寸</string>
+    <string name="type_size">大小</string>
     <string name="encrypting_media">正在加密媒体……</string>
+    <string name="vault_encrypt_notification_title">加密媒体</string>
+    <string name="vault_decrypt_notification_title">解密媒体</string>
+    <string name="vault_operation_in_progress">%1$d%% 已完成</string>
+    <string name="vault_notification_channel_name">私密空间操作</string>
+    <string name="vault_notification_channel_description">加密/解密任务的进度</string>
     <string name="decrypt_vault">解密私密空间</string>
     <string name="restore_vault_summary">当前保险库及其内容将被解密并恢复。\n此操作将使您的内容在图库中再次可用。</string>
     <string name="restore_vault_title">确认解密吗？</string>
@@ -360,6 +365,12 @@
     <string name="screenshots">截图</string>
     <string name="search_images_videos"><![CDATA[搜索图片和视频]]></string>
     <string name="suggestions">建议</string>
+    <string name="post_notifications">通知</string>
+    <string name="post_notifications_summary">允许应用显示通知</string>
+    <string name="search">搜索</string>
+    <string name="search_media">搜索媒体</string>
+    <string name="rotate">旋转</string>
+    <string name="locked">已锁</string>
     <plurals name="item_count">
         <item quantity="other">%s 个项目</item>
     </plurals>

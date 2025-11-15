@@ -49,7 +49,7 @@
     <string name="pinned_albums_title">Pinned Albums</string>
     <string name="unpin">Unpin</string>
     <string name="pin">Pin</string>
-    <string name="nav_timeline">Timeline</string>
+    <string name="nav_timeline">Linha Cronológica</string>
     <string name="location_cd">Media Location</string>
     <string name="location_map_cd">Location Map</string>
     <string name="app_dev">by %s</string>
@@ -100,7 +100,7 @@
     <string name="album_card_size_summary">Manually pick your album card size</string>
     <string name="set_wallpaper">Wallpaper</string>
     <string name="set_wallpaper_error">Can\'t set wallpaper, no app available!</string>
-    <string name="monthly_timeline_title">Monthly Timeline</string>
+    <string name="monthly_timeline_title">Cronograma Mensal</string>
     <string name="monthly_timeline_summary">Group the timeline monthly instead of per date (Restarts the app)</string>
     <string name="amoled_mode_title">Use Amoled Mode</string>
     <string name="amoled_mode_summary">Higher contrast, best suited for Amoled Screens</string>
@@ -313,6 +313,11 @@
     <string name="markup">Markup</string>
     <string name="type_size">Size</string>
     <string name="encrypting_media">Encrypting media...</string>
+    <string name="vault_encrypt_notification_title">Encrypting media</string>
+    <string name="vault_decrypt_notification_title">Decrypting media</string>
+    <string name="vault_operation_in_progress">%1$d%% completed</string>
+    <string name="vault_notification_channel_name">Vault Operations</string>
+    <string name="vault_notification_channel_description">Progress of encryption / decryption tasks</string>
     <string name="decrypt_vault">Decrypt Vault</string>
     <string name="restore_vault_summary">The current vault and its content will be decrypted and restored.\nThis action will make your content accessible again in the Gallery.</string>
     <string name="restore_vault_title">Confirm Decryption?</string>
@@ -360,6 +365,12 @@
     <string name="screenshots">Screenshots</string>
     <string name="search_images_videos"><![CDATA[Search images & videos]]></string>
     <string name="suggestions">Suggestions</string>
+    <string name="post_notifications">Notifications</string>
+    <string name="post_notifications_summary">Allows the app to display notifications</string>
+    <string name="search">Search</string>
+    <string name="search_media">Search media</string>
+    <string name="rotate">Rotate</string>
+    <string name="locked">Locked</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

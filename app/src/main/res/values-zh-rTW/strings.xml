@@ -93,11 +93,11 @@
     <string name="secure_mode_summary">離開應用程式時隱藏畫面預覽</string>
     <string name="rotate_screen_cd">旋轉螢幕</string>
     <string name="size_dp">%1$sdp</string>
-    <string name="change_album_size">變更相簿卡片大小</string>
+    <string name="change_album_size">變更相簿卡片尺寸</string>
     <string name="reset">重設</string>
     <string name="customization">自訂</string>
-    <string name="album_card_size_title">相簿卡片大小</string>
-    <string name="album_card_size_summary">手動選取相簿卡片大小</string>
+    <string name="album_card_size_title">相簿卡片尺寸</string>
+    <string name="album_card_size_summary">手動選取相簿卡片尺寸</string>
     <string name="set_wallpaper">桌布</string>
     <string name="set_wallpaper_error">無法設定桌布，無可用應用程式！</string>
     <string name="monthly_timeline_title">月時間軸</string>
@@ -311,8 +311,13 @@
     <string name="adjust">調整</string>
     <string name="filters">濾鏡</string>
     <string name="markup">標記</string>
-    <string name="type_size">尺寸</string>
+    <string name="type_size">大小</string>
     <string name="encrypting_media">媒體加密中</string>
+    <string name="vault_encrypt_notification_title">加密媒體</string>
+    <string name="vault_decrypt_notification_title">解密媒體</string>
+    <string name="vault_operation_in_progress">%1$d%% 已完成</string>
+    <string name="vault_notification_channel_name">私密空間操作</string>
+    <string name="vault_notification_channel_description">加密/解密任務的進度</string>
     <string name="decrypt_vault">解密私密空間</string>
     <string name="restore_vault_summary">目前私密空間及其內容將被解密並還原。\n此動作將使您的內容在相簿中再次可用。</string>
     <string name="restore_vault_title">確認解密？</string>
@@ -360,6 +365,12 @@
     <string name="screenshots">截圖</string>
     <string name="search_images_videos"><![CDATA[搜尋圖片和影片]]></string>
     <string name="suggestions">建議</string>
+    <string name="post_notifications">通知</string>
+    <string name="post_notifications_summary">允許應用程式顯示通知</string>
+    <string name="search">搜尋</string>
+    <string name="search_media">搜尋媒體</string>
+    <string name="rotate">旋轉</string>
+    <string name="locked">已鎖定</string>
     <plurals name="item_count">
         <item quantity="other">%s 個項目</item>
     </plurals>

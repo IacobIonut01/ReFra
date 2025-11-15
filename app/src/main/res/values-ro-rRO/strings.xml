@@ -55,9 +55,9 @@
     <string name="app_dev">de %s</string>
     <string name="app_dev_name">IacobIonut01</string>
     <string name="donate">Donează</string>
-    <string name="github">Github</string>
+    <string name="github">GitHub</string>
     <string name="donate_button_cd">Butonul de donație</string>
-    <string name="github_button_cd">Butonul Github</string>
+    <string name="github_button_cd">Butonul GitHub</string>
     <string name="donate_url">https://www.paypal.com/paypalme/iacobionut01</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
     <string name="use_as">Utilizare ca</string>
@@ -177,7 +177,7 @@
     <string name="change_playback_speed_cd">Schimbă viteza de redare</string>
     <string name="location_new_album">Locație: Stocare Internă/%1$s</string>
     <string name="permission_manage_files_title">Gestionează toate fișierele</string>
-    <string name="permission_manage_files_summary">"Permite aplicației să creeze, să modifice și să șteargă fișiere și albume care au fost restricționate anterior de sistem. (Include albumele din afara dosarelor Pictures și DCIM și cele de pe cardul SD"</string>
+    <string name="permission_manage_files_summary">"Permite aplicației să creeze, să modifice și să șteargă fișiere și albume care au fost restricționate anterior de sistem. (Include albumele din afara dosarelor Pictures și DCIM și cele de pe cardul SD)"</string>
     <string name="allow_to_manage_files">Permite gestionarea tuturor fișierelor</string>
     <string name="vault">Seif</string>
     <string name="tools">Instrumente</string>
@@ -229,7 +229,7 @@
     <string name="setup_type_regex_example_title">Exemple</string>
     <string name="setup_type_regex_example_first_title">Match any album directly under the Music folder:</string>
     <string name="setup_type_regex_first_subtitle">.*/Music/[^/]+/?$</string>
-    <string name="setup_type_regex_example_second_title">Potrivește orice album sub dosarul cu muzică și subdosarele sale:</string>
+    <string name="setup_type_regex_example_second_title">Potrivește orice album sub dosarul cu muzică și sub-dosarele sale:</string>
     <string name="setup_type_regex_example_second_subtitle">.*/Music/.+/[^/]+/?$</string>
     <string name="setup_type_regex_example_third_title">Match any album starting with Album_ in the Music folder:</string>
     <string name="setup_type_regex_example_third_subtitle">.*/Music/Album_[^/]+/?$</string>
@@ -313,6 +313,11 @@
     <string name="markup">Markup</string>
     <string name="type_size">Size</string>
     <string name="encrypting_media">Encrypting media...</string>
+    <string name="vault_encrypt_notification_title">Encrypting media</string>
+    <string name="vault_decrypt_notification_title">Decrypting media</string>
+    <string name="vault_operation_in_progress">%1$d%% completed</string>
+    <string name="vault_notification_channel_name">Vault Operations</string>
+    <string name="vault_notification_channel_description">Progress of encryption / decryption tasks</string>
     <string name="decrypt_vault">Decrypt Vault</string>
     <string name="restore_vault_summary">The current vault and its content will be decrypted and restored.\nThis action will make your content accessible again in the Gallery.</string>
     <string name="restore_vault_title">Confirm Decryption?</string>
@@ -360,6 +365,12 @@
     <string name="screenshots">Screenshots</string>
     <string name="search_images_videos"><![CDATA[Search images & videos]]></string>
     <string name="suggestions">Suggestions</string>
+    <string name="post_notifications">Notifications</string>
+    <string name="post_notifications_summary">Allows the app to display notifications</string>
+    <string name="search">Search</string>
+    <string name="search_media">Search media</string>
+    <string name="rotate">Rotate</string>
+    <string name="locked">Locked</string>
     <plurals name="item_count">
         <item quantity="one">%s articol</item>
         <item quantity="few">%s articole</item>

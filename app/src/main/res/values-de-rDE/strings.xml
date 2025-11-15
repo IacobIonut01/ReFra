@@ -313,6 +313,11 @@
     <string name="markup">Markieren</string>
     <string name="type_size">Größe</string>
     <string name="encrypting_media">Medien verschlüsseln...</string>
+    <string name="vault_encrypt_notification_title">Verschlüssele Medien</string>
+    <string name="vault_decrypt_notification_title">Entschlüssele Medien</string>
+    <string name="vault_operation_in_progress">%1$d%% abgeschlossen</string>
+    <string name="vault_notification_channel_name">Tresoroperationen</string>
+    <string name="vault_notification_channel_description">Fortschritt der Verschlüsselungs-/Entschlüsselungsaufgaben</string>
     <string name="decrypt_vault">Tresor entschlüsseln</string>
     <string name="restore_vault_summary">Der aktuelle Tresor und sein Inhalt werden entschlüsselt und wiederhergestellt.\nDurch diese Aktion werden deine Inhalte in der Galerie wieder zugänglich.</string>
     <string name="restore_vault_title">Entschlüsselung bestätigen?</string>
@@ -360,6 +365,12 @@
     <string name="screenshots">Screenshots</string>
     <string name="search_images_videos"><![CDATA[Fotos & Videos suchen]]></string>
     <string name="suggestions">Vorschläge</string>
+    <string name="post_notifications">Benachrichtigungen</string>
+    <string name="post_notifications_summary">Ermöglicht der App, Benachrichtigungen anzuzeigen</string>
+    <string name="search">Suche</string>
+    <string name="search_media">Medien durchsuchen</string>
+    <string name="rotate">Drehen</string>
+    <string name="locked">Gesperrt</string>
     <plurals name="item_count">
         <item quantity="one">%s Datei</item>
         <item quantity="other">%s Elemente</item>
