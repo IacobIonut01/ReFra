@@ -35,11 +35,10 @@ import com.dot.gallery.feature_node.domain.model.editor.CropState
 import com.dot.gallery.feature_node.domain.model.editor.DrawMode
 import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupPainter
-import com.dot.gallery.feature_node.presentation.util.rememberBitmapPainter
 import com.dot.gallery.feature_node.presentation.util.resizeBitmap
 import com.dot.gallery.feature_node.presentation.util.safeSystemGesturesPadding
-import com.github.panpf.zoomimage.ZoomImage
-import com.github.panpf.zoomimage.compose.rememberZoomState
+import com.github.panpf.zoomimage.GlideZoomAsyncImage
+import com.github.panpf.zoomimage.compose.glide.ExperimentalGlideComposeApi
 import com.smarttoolfactory.cropper.ImageCropper
 import com.smarttoolfactory.cropper.model.AspectRatio
 import com.smarttoolfactory.cropper.model.OutlineType
@@ -48,6 +47,7 @@ import com.smarttoolfactory.cropper.settings.CropDefaults
 import com.smarttoolfactory.cropper.settings.CropOutlineProperty
 
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ImageViewer(
     modifier: Modifier = Modifier,
@@ -98,8 +98,6 @@ fun ImageViewer(
             enter = enterAnimation,
             exit = exitAnimation
         ) {
-            val painter by rememberBitmapPainter(resizedBitmap!!)
-            val zoomState = rememberZoomState()
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -109,10 +107,9 @@ fun ImageViewer(
                 contentAlignment = Alignment.Center
             ) {
                 if (!showMarkup) {
-                    ZoomImage(
-                        zoomState = zoomState,
+                    GlideZoomAsyncImage(
                         modifier = Modifier.fillMaxSize(),
-                        painter = painter,
+                        model = resizedBitmap!!,
                         contentDescription = null,
                         scrollBar = null,
                         colorFilter = previewMatrix?.let { ColorFilter.colorMatrix(it) },
@@ -120,7 +117,7 @@ fun ImageViewer(
                     )
                 } else {
                     MarkupPainter(
-                        painter = painter,
+                        bitmap = resizedBitmap!!,
                         paths = paths,
                         addPath = addPath,
                         clearPathsUndone = clearPathsUndone,

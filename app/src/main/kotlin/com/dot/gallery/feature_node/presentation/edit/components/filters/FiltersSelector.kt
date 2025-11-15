@@ -3,7 +3,6 @@ package com.dot.gallery.feature_node.presentation.edit.components.filters
 import android.graphics.Bitmap
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,11 +38,12 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.feature_node.domain.model.editor.Adjustment
 import com.dot.gallery.feature_node.domain.model.editor.ImageFilter
 import com.dot.gallery.feature_node.presentation.edit.adjustments.filters.ImageFilterTypes
 import com.dot.gallery.feature_node.presentation.edit.components.core.SupportiveLazyLayout
-import com.dot.gallery.feature_node.presentation.util.rememberBitmapPainter
 import com.dot.gallery.feature_node.presentation.util.safeSystemGesturesPadding
 
 @Composable
@@ -58,6 +58,7 @@ fun WindowInsets.Companion.horizontalSystemGesturesPadding(): PaddingValues {
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun FiltersSelector(
     modifier: Modifier = Modifier,
@@ -66,7 +67,6 @@ fun FiltersSelector(
     appliedAdjustments: List<Adjustment> = emptyList(),
     onClick: (ImageFilter) -> Unit = {},
 ) {
-    val painter by rememberBitmapPainter(bitmap)
     val noFilterApplied by remember(appliedAdjustments) {
         derivedStateOf {
             appliedAdjustments.none { it is ImageFilter }
@@ -108,7 +108,7 @@ fun FiltersSelector(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Image(
+                    GlideImage(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(16.dp))
@@ -120,7 +120,7 @@ fun FiltersSelector(
                             .clickable {
                                 if (!isSelected) onClick(imageFilter)
                             },
-                        painter = painter,
+                        model = bitmap,
                         colorFilter = remember(imageFilter) {
                             imageFilter.colorMatrix()?.let { ColorFilter.colorMatrix(it) }
                         },
@@ -171,7 +171,7 @@ fun FiltersSelector(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Image(
+                    GlideImage(
                         modifier = Modifier
                             .size(100.dp)
                             .clip(RoundedCornerShape(16.dp))
@@ -183,7 +183,7 @@ fun FiltersSelector(
                             .clickable {
                                 if (!isSelected) onClick(imageFilter)
                             },
-                        painter = painter,
+                        model = bitmap,
                         colorFilter = remember(imageFilter) {
                             imageFilter.colorMatrix()?.let { ColorFilter.colorMatrix(it) }
                         },

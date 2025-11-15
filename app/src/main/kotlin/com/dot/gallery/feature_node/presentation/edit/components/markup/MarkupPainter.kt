@@ -3,7 +3,6 @@ package com.dot.gallery.feature_node.presentation.edit.components.markup
 import android.graphics.Bitmap
 import android.graphics.Paint
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -23,10 +22,11 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.feature_node.domain.model.editor.DrawMode
 import com.dot.gallery.feature_node.domain.model.editor.PainterMotionEvent
 import com.dot.gallery.feature_node.domain.model.editor.PathProperties
@@ -38,10 +38,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MarkupPainter(
     modifier: Modifier = Modifier,
-    painter: Painter,
+    bitmap: Bitmap,
     paths: List<Pair<Path, PathProperties>>,
     addPath: (Path, PathProperties) -> Unit,
     clearPathsUndone: () -> Unit,
@@ -85,8 +86,8 @@ fun MarkupPainter(
         }
     }
 
-    Image(
-        painter = painter,
+    GlideImage(
+        model = bitmap,
         contentDescription = null,
         modifier = Modifier
             .wrapContentSize()

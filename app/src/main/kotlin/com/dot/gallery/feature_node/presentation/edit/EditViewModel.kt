@@ -9,9 +9,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bumptech.glide.Glide
 import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
@@ -29,10 +31,6 @@ import com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter.Vari
 import com.dot.gallery.feature_node.presentation.util.overlayBitmaps
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printError
-import com.github.panpf.sketch.BitmapImage
-import com.github.panpf.sketch.request.ImageRequest
-import com.github.panpf.sketch.sketch
-import com.github.panpf.sketch.util.Size
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -225,23 +223,17 @@ class EditViewModel @Inject constructor(
 
     private fun setOriginalBitmap(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val request = ImageRequest(context, activeMedia.value?.uri.toString()) {
-                size(Size.Origin)
-                activeMedia.value?.let { media ->
-                    setExtra(
-                        key = "mediaKeyPreview",
-                        value = media.idLessKey,
-                    )
-                }
-            }
-            val result = context.sketch.execute(request)
-            val bitmap = (result.image as? BitmapImage)?.bitmap
+            val result = Glide.with(context)
+                .load(activeMedia.value?.uri)
+                .submit()
+                .get()
+            val bitmap = result.toBitmap()
             _originalBitmap.value = bitmap
             _targetBitmap.value = bitmap
             if (_currentBitmap.value == null) {
                 _currentBitmap.value = bitmap
             }
-            bitmaps.add(0, bitmap!! to null)
+            bitmaps.add(0, bitmap to null)
             _isSaving.value = false
         }
     }
