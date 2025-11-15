@@ -33,11 +33,19 @@ import androidx.core.graphics.scale
 import androidx.core.net.toFile
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.core.Settings.Misc.rememberExifDateFormat
+import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
+import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.presentation.mediaview.components.retrieveMetadata
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 val sdcardRegex = "^/storage/[A-Z0-9]+-[A-Z0-9]+/.*$".toRegex()
 
@@ -215,4 +223,168 @@ fun <T : Media> Context.shareMedia(mediaList: List<T>) {
         shareCompat.addStream(it.getUri())
     }
     shareCompat.startChooser()
+}
+
+/**
+ * Share encrypted media from vault by temporarily decrypting it
+ */
+suspend fun <T : Media> Context.shareEncryptedMedia(
+    media: T,
+    vault: Vault,
+    keychainHolder: KeychainHolder
+) = withContext(Dispatchers.IO) {
+    try {
+        // Create temporary file for decrypted content
+        val tempFile = createDecryptedTempFile(media, keychainHolder)
+        
+        // Create content URI for the temp file
+        val tempUri = FileProvider.getUriForFile(
+            this@shareEncryptedMedia,
+            BuildConfig.CONTENT_AUTHORITY,
+            tempFile
+        )
+        
+        // Share the decrypted file
+        withContext(Dispatchers.Main) {
+            val shareIntent = ShareCompat
+                .IntentBuilder(this@shareEncryptedMedia)
+                .setType(media.mimeType)
+                .addStream(tempUri)
+                .createChooserIntent()
+                .apply {
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+            
+            startActivity(shareIntent)
+        }
+        
+    } catch (e: Exception) {
+        e.printStackTrace()
+        // Fallback to regular sharing if decryption fails
+        withContext(Dispatchers.Main) {
+            shareMedia(media)
+        }
+    }
+}
+
+/**
+ * Share multiple media items, handling both encrypted and non-encrypted media
+ */
+suspend fun <T : Media> Context.shareMediaWithVaultSupport(
+    mediaList: List<T>,
+    currentVault: Vault? = null
+) = withContext(Dispatchers.IO) {
+    try {
+        val keychainHolder = if (currentVault != null) KeychainHolder(this@shareMediaWithVaultSupport) else null
+        val shareStreams = mutableListOf<Uri>()
+        
+        for (media in mediaList) {
+            if (media.isEncrypted && currentVault != null && keychainHolder != null) {
+                // Handle encrypted media by creating temp decrypted file
+                try {
+                    val tempFile = createDecryptedTempFile(media, keychainHolder)
+                    val tempUri = FileProvider.getUriForFile(
+                        this@shareMediaWithVaultSupport,
+                        BuildConfig.CONTENT_AUTHORITY,
+                        tempFile
+                    )
+                    shareStreams.add(tempUri)
+                } catch (e: Exception) {
+                    // If decryption fails, skip this media or use original URI
+                    e.printStackTrace()
+                    shareStreams.add(media.getUri())
+                }
+            } else {
+                // Handle regular media
+                val originalUri = media.getUri()
+                val uri = if (originalUri.toString().startsWith("content://")) {
+                    originalUri
+                } else {
+                    FileProvider.getUriForFile(
+                        this@shareMediaWithVaultSupport,
+                        BuildConfig.CONTENT_AUTHORITY,
+                        originalUri.toFile()
+                    )
+                }
+                shareStreams.add(uri)
+            }
+        }
+        
+        if (shareStreams.isNotEmpty()) {
+            // Determine appropriate mime type
+            val mimeTypes = if (mediaList.find { it.duration != null } != null) {
+                if (mediaList.find { it.duration == null } != null) "video/*,image/*" else "video/*"
+            } else "image/*"
+            
+            withContext(Dispatchers.Main) {
+                val shareBuilder = ShareCompat
+                    .IntentBuilder(this@shareMediaWithVaultSupport)
+                    .setType(mimeTypes)
+                
+                shareStreams.forEach { uri ->
+                    shareBuilder.addStream(uri)
+                }
+                
+                val shareIntent = shareBuilder.createChooserIntent().apply {
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                
+                startActivity(shareIntent)
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        // Fallback to regular sharing
+        withContext(Dispatchers.Main) {
+            shareMedia(mediaList)
+        }
+    }
+}
+
+/**
+ * Create a temporary decrypted file from encrypted vault media
+ */
+private fun <T : Media> createDecryptedTempFile(
+    media: T,
+    keychainHolder: KeychainHolder
+): File {
+    // Get the encrypted file
+    val encryptedFile = media.getUri().toFile()
+    
+    // Decrypt the media
+    val encryptedMedia = with(keychainHolder) {
+        encryptedFile.decryptKotlin<EncryptedMedia>()
+    }
+    
+    // Create temp file with appropriate extension
+    val extension = when {
+        media.mimeType.startsWith("image/") -> when (media.mimeType) {
+            "image/jpeg" -> ".jpg"
+            "image/png" -> ".png"
+            "image/gif" -> ".gif"
+            "image/webp" -> ".webp"
+            else -> ".jpg"
+        }
+        media.mimeType.startsWith("video/") -> when (media.mimeType) {
+            "video/mp4" -> ".mp4"
+            "video/avi" -> ".avi"
+            "video/mov" -> ".mov"
+            "video/webm" -> ".webm"
+            else -> ".vid"
+        }
+        else -> ".mp4"
+    }
+    
+    val tempFile = File.createTempFile(
+        "shared_${media.label.replace("[^a-zA-Z0-9]".toRegex(), "_")}_",
+        extension
+    )
+    
+    // Write decrypted bytes to temp file
+    FileOutputStream(tempFile).use { outputStream ->
+        outputStream.write(encryptedMedia.bytes)
+        outputStream.flush()
+    }
+    
+    return tempFile
 }

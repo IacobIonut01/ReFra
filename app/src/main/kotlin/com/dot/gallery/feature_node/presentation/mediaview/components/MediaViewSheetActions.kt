@@ -40,7 +40,12 @@ fun <T : Media> MediaViewSheetActions(
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         // Share Component
-        ShareButton(media, followTheme = true, enabled = true)
+        ShareButton(
+            media = media, 
+            followTheme = true, 
+            enabled = true,
+            currentVault = currentVault
+        )
         // Hide
         if (media.isLocalContent) {
             HideButton(

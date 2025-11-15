@@ -86,6 +86,7 @@ import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.shareMedia
+import com.dot.gallery.feature_node.presentation.util.shareMediaWithVaultSupport
 import com.dot.gallery.ui.theme.Shapes
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -211,7 +212,10 @@ fun <T : Media> BoxScope.SelectionSheet(
                     tabletMode = tabletMode,
                     title = stringResource(R.string.share)
                 ) {
-                    context.shareMedia(selectedMedia)
+                    scope.launch {
+                        // Use enhanced sharing that handles encrypted media if vault context available
+                        context.shareMediaWithVaultSupport(selectedMedia, currentVault = null)
+                    }
                 }
                 // Favorite Component
                 SelectionBarColumn(

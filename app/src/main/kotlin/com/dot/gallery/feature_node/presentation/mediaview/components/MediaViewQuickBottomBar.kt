@@ -83,7 +83,8 @@ fun <T : Media> MediaViewQuickBottomBar(
             ShareButton(
                 media = currentMedia,
                 enabled = enabled,
-                followTheme = followTheme
+                followTheme = followTheme,
+                currentVault = currentVault
             )
             // Favorite Component
             if (currentMedia.canMakeActions) {
