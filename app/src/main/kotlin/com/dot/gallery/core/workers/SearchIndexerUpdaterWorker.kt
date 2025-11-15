@@ -38,8 +38,9 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
     private val visionHelper by lazy { SearchVisionHelper(appContext) }
 
     override suspend fun doWork(): Result = runCatching {
+        setProgress(workDataOf("progress" to -1f))
+        delay(2000)
         if (!BuildConfig.ENABLE_INDEXING) return Result.success()
-        delay(5000)
         if (!currentCoroutineContext().isActive) return Result.success()
         printInfo("Starting indexing media items")
         val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
@@ -52,7 +53,7 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
             return Result.success()
         }
         printInfo("Found ${toBeIndexed.size} media items to index")
-        setProgress(workDataOf("progress" to 0))
+        setProgress(workDataOf("progress" to 0f))
         visionHelper.setupVisionSession().use { session ->
             val total = toBeIndexed.size
             toBeIndexed.fastForEachIndexed { index, mediaItem ->
