@@ -7,7 +7,9 @@ package com.dot.gallery.feature_node.presentation.mediaview
 
 import android.content.res.Configuration
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -259,6 +261,7 @@ fun <T : Media> MediaViewScreen(
         windowInsetsController.toggleSystemBars(show = true)
         eventHandler.navigateUp()
     }
+    val activity = LocalActivity.current
     val window = LocalWindowInfo.current
     val density = LocalDensity.current
     val halfScreenHeight by remember(
@@ -457,7 +460,11 @@ fun <T : Media> MediaViewScreen(
                             onSwipeDown = {
                                 if (!isLocked) {
                                     windowInsetsController.toggleSystemBars(show = true)
-                                    eventHandler.navigateUp()
+                                    runCatching {
+                                        (activity as ComponentActivity).onBackPressedDispatcher.onBackPressed()
+                                    }.getOrElse {
+                                        eventHandler.navigateUp()
+                                    }
                                 }
                             },
                             offset = offset,

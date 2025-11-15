@@ -1,5 +1,7 @@
 package com.dot.gallery.core.presentation.components
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -15,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.feature_node.presentation.util.printError
 
 @Composable
 fun NavigationBackButton(
@@ -24,6 +27,7 @@ fun NavigationBackButton(
     forcedAction: (() -> Unit)? = null
 ) {
     val eventHandler = LocalEventHandler.current
+    val activity = LocalActivity.current
     IconButton(
         modifier = modifier
             .padding(horizontal = 8.dp)
@@ -32,7 +36,13 @@ fun NavigationBackButton(
                 shape = CircleShape
             ),
         onClick = {
-            forcedAction?.invoke() ?: eventHandler.navigateUpAction()
+            runCatching {
+                (activity as ComponentActivity).onBackPressedDispatcher.onBackPressed()
+            }.getOrElse { e ->
+                printError("Failed to navigate back via onBackPressedDispatcher. Using event handler as fallback")
+                e.printStackTrace()
+                forcedAction?.invoke() ?: eventHandler.navigateUpAction()
+            }
         }
     ) {
         Icon(
