@@ -371,6 +371,7 @@
     <string name="search_media">Search media</string>
     <string name="rotate">Rotate</string>
     <string name="locked">Locked</string>
+    <string name="decrypt_failed_tap_to_retry">Decrypt failed. Tap to retry.</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>
