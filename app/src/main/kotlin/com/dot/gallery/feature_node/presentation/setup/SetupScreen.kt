@@ -28,14 +28,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
@@ -49,6 +52,7 @@ import com.dot.gallery.feature_node.presentation.util.launchManageFiles
 import com.dot.gallery.feature_node.presentation.util.launchManageMedia
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -58,6 +62,7 @@ fun SetupScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val resources = LocalResources.current
     var firstLaunch by remember { mutableStateOf(true) }
     var permissionGranted by remember { mutableStateOf(false) }
     val mediaPermissions = rememberMultiplePermissionsState(Constants.PERMISSIONS) {
@@ -70,7 +75,7 @@ fun SetupScreen(
             onPermissionGranted()
         } else if (!firstLaunch) Toast.makeText(
             context,
-            context.getString(R.string.some_permissions_are_not_granted), Toast.LENGTH_LONG
+            resources.getString(R.string.some_permissions_are_not_granted), Toast.LENGTH_LONG
         )
             .show()
     }
@@ -144,8 +149,8 @@ fun SetupScreen(
                     listOf(
                         OptionItem(
                             icon = Icons.Rounded.PermMedia,
-                            text = context.getString(R.string.permission_manage_media_title),
-                            summary = if (!useMediaManager) context.getString(R.string.permission_manage_media_summary) else grantedString,
+                            text = resources.getString(R.string.permission_manage_media_title),
+                            summary = if (!useMediaManager) resources.getString(R.string.permission_manage_media_summary) else grantedString,
                             enabled = !useMediaManager,
                             onClick = {
                                 scope.launch {
@@ -157,8 +162,8 @@ fun SetupScreen(
                         ),
                         OptionItem(
                             icon = Icons.Rounded.FileOpen,
-                            text = context.getString(R.string.permission_manage_files_title),
-                            summary = if (!isStorageManager && isManageFilesAllowed) context.getString(
+                            text = resources.getString(R.string.permission_manage_files_title),
+                            summary = if (!isStorageManager && isManageFilesAllowed) resources.getString(
                                 R.string.permission_manage_files_summary
                             ) else grantedString,
                             enabled = !isStorageManager && isManageFilesAllowed,
@@ -171,6 +176,36 @@ fun SetupScreen(
                             containerColor = secondaryContainer,
                             contentColor = onSecondaryContainer
                         )
+                    ).toMutableList()
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    var isGranted by rememberSaveable(context) {
+                        mutableStateOf(
+                            ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            ) == PackageManager.PERMISSION_GRANTED
+                        )
+                    }
+                    val notificationPermission = rememberPermissionState(
+                        permission = Manifest.permission.POST_NOTIFICATIONS,
+                        onPermissionResult = { isGranted = it }
+                    )
+                    optionsList.add(
+                        OptionItem(
+                            icon = Icons.Rounded.Notifications,
+                            text = resources.getString(R.string.post_notifications),
+                            summary = if (!isGranted) resources.getString(R.string.post_notifications_summary) else grantedString,
+                            enabled = !isGranted,
+                            onClick = {
+                                scope.launch {
+                                    notificationPermission.launchPermissionRequest()
+                                }
+                            },
+                            containerColor = secondaryContainer,
+                            contentColor = onSecondaryContainer
+                        ),
                     )
                 }
 
@@ -207,14 +242,13 @@ private val Context.requiredPermissionsList: Array<Triple<ImageVector, String, S
                 Icons.Rounded.SignalWifi4Bar,
                 getString(R.string.internet),
                 getString(R.string.internet_summary)
-            ),
-            Triple(
-                Icons.Rounded.Notifications,
-                getString(R.string.post_notifications),
-                getString(R.string.post_notifications_summary)
             )
         ).apply {
-            if (packageManager.checkPermission(Manifest.permission.INTERNET, packageName) != PackageManager.PERMISSION_GRANTED) {
+            if (packageManager.checkPermission(
+                    Manifest.permission.INTERNET,
+                    packageName
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 this.dropLast(1)
             }
         }
