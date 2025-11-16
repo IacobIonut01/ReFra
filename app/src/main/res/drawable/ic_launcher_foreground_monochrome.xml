@@ -3,20 +3,25 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Outline only -->
     <path
-        android:fillAlpha="0.2"
         android:pathData="M42.2,35.9h23.5c4.1,0 7.5,3.3 7.5,7.5V67c0,4.1 -3.4,7.5 -7.5,7.5H42.2c-4.1,0 -7.5,-3.3 -7.5,-7.5V43.4C34.7,39.3 38.1,35.9 42.2,35.9z"
-        android:fillColor="#68A4F2"/>
+        android:strokeWidth="2"
+        android:strokeColor="#000000" />
+
+    <!-- Back mountain (filled) -->
     <path
-        android:fillAlpha="0.7"
-        android:pathData="M66,74.5l-16.6,0c-3.6,0 -5.4,-4.4 -2.8,-6.9c4.6,-4.4 8.3,-8 13.3,-12.8c1.6,-1.5 4.1,-1.5 5.6,0c2.9,2.8 5.4,5.2 7.8,7.5l0,4.9C73.3,71.2 70,74.5 66,74.5z"
-        android:fillColor="#172339"/>
+        android:fillColor="#000000"
+        android:pathData="M66,74.5l-16.6,0c-3.6,0 -5.4,-4.4 -2.8,-6.9c4.6,-4.4 8.3,-8 13.3,-12.8c1.6,-1.5 4.1,-1.5 5.6,0c2.9,2.8 5.4,5.2 7.8,7.5l0,4.9C73.3,71.2 70,74.5 66,74.5z" />
+
+    <!-- Sun (filled) -->
     <path
-        android:fillAlpha="0.8"
-        android:pathData="M40.2,44.9c0,-2 1.6,-3.6 3.6,-3.6s3.6,1.6 3.6,3.6s-1.6,3.6 -3.6,3.6S40.2,46.9 40.2,44.9"
-        android:fillColor="#FFC005"/>
+        android:fillColor="#000000"
+        android:pathData="M40.2,44.9c0,-2 1.6,-3.6 3.6,-3.6s3.6,1.6 3.6,3.6s-1.6,3.6 -3.6,3.6S40.2,46.9 40.2,44.9" />
+
+    <!-- Front mountain (filled) -->
     <path
-        android:fillAlpha="1"
-        android:pathData="M34.7,67.1c0,4.1 3.3,7.4 7.4,7.4H49h7.8l-8.3,-8.7l-5.7,-6c-1.4,-1.4 -3.7,-1.4 -5.1,0L34.7,63V67.1z"
-        android:fillColor="#2E3E5F"/>
+        android:fillColor="#000000"
+        android:pathData="M34.7,67.1c0,4.1 3.3,7.4 7.4,7.4H49h7.8l-8.3,-8.7l-5.7,-6c-1.4,-1.4 -3.7,-1.4 -5.1,0L34.7,63V67.1z" />
 </vector>
