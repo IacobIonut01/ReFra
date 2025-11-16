@@ -100,9 +100,14 @@ class VaultOperationWorker @AssistedInject constructor(
                 val vaultJson =
                     inputData.getString(KEY_VAULT) ?: return@withContext Result.failure()
                 val vault = Json.decodeFromString<Vault>(vaultJson)
-                val mediaList =
-                    repository.getMediaListByUris(mediaUris, reviewMode = false, onlyMatching = true).firstOrNull()?.data
-                        ?: return@withContext Result.failure()
+                
+                val allVaultMedia = repository.getEncryptedMedia(vault).firstOrNull()?.data 
+                    ?: return@withContext Result.failure()
+                
+                val mediaList = allVaultMedia.filter { media -> 
+                    mediaUris.contains(media.uri)
+                }
+                
                 val total = mediaList.size.coerceAtLeast(1)
                 if (mediaList.isEmpty()) return@withContext Result.success()
                 mediaList.forEachIndexed { index, media ->
