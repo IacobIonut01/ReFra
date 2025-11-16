@@ -26,6 +26,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -52,7 +53,7 @@ fun OptionSheet(
     state: AppBottomSheetState,
     onDismiss: (() -> Unit)? = null,
     headerContent: @Composable (ColumnScope.() -> Unit)? = null,
-    vararg optionList: List<OptionItem>
+    vararg optionList: SnapshotStateList<OptionItem>
 ) {
     ModalSheet(
         sheetState = state,
@@ -218,7 +219,7 @@ fun LazyListScope.SettingsOptionLayout(
 @Composable
 fun OptionLayout(
     modifier: Modifier = Modifier,
-    optionList: List<OptionItem>
+    optionList: SnapshotStateList<OptionItem>
 ) {
     Column(
         modifier = modifier,

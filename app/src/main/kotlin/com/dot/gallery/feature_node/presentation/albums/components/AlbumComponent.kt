@@ -40,11 +40,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -221,17 +223,17 @@ fun AlbumComponent(
             }
         }
 
+        val options = remember(isSelectingThumbnail) {
+            (if (isSelectingThumbnail) {
+                changeThumbnailOptions
+            } else {
+                optionList
+            }).toMutableStateList()
+        }
+
         OptionSheet(
             state = appBottomSheetState,
-            optionList = remember(isSelectingThumbnail) {
-                arrayOf(
-                    if (isSelectingThumbnail) {
-                        changeThumbnailOptions
-                    } else {
-                        optionList
-                    }
-                )
-            },
+            optionList = arrayOf(options),
             headerContent = {
                 BackHandler(isSelectingThumbnail) {
                     isSelectingThumbnail = false
@@ -374,7 +376,7 @@ fun AlbumRowComponent(
             val primaryContainer = MaterialTheme.colorScheme.primaryContainer
             val onPrimaryContainer = MaterialTheme.colorScheme.onPrimaryContainer
             val optionList = remember {
-                mutableListOf(
+                mutableStateListOf(
                     OptionItem(
                         text = trashTitle,
                         containerColor = primaryContainer,

@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -158,11 +159,12 @@ fun SupportSheet(
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
                 )
+                val options = remember(showCryptoOptions) {
+                    (if (showCryptoOptions) cryptoOptions else mainOptions).toMutableStateList()
+                }
                 OptionLayout(
                     modifier = Modifier.fillMaxWidth(),
-                    optionList = remember(showCryptoOptions) {
-                        if (showCryptoOptions) cryptoOptions else mainOptions
-                    }
+                    optionList = options
                 )
             }
         }

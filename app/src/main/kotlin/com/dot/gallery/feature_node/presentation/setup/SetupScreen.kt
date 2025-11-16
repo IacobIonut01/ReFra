@@ -25,11 +25,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -119,7 +121,7 @@ fun SetupScreen(
                         enabled = true,
                         onClick = { }
                     )
-                }
+                }.toMutableStateList()
             }
             OptionLayout(
                 modifier = Modifier
@@ -146,7 +148,7 @@ fun SetupScreen(
                 val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
                 val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
                 val optionsList = remember(useMediaManager, isStorageManager) {
-                    listOf(
+                    mutableStateListOf(
                         OptionItem(
                             icon = Icons.Rounded.PermMedia,
                             text = resources.getString(R.string.permission_manage_media_title),
@@ -172,11 +174,10 @@ fun SetupScreen(
                                     context.launchManageFiles()
                                 }
                             },
-
                             containerColor = secondaryContainer,
                             contentColor = onSecondaryContainer
                         )
-                    ).toMutableList()
+                    )
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -192,21 +193,27 @@ fun SetupScreen(
                         permission = Manifest.permission.POST_NOTIFICATIONS,
                         onPermissionResult = { isGranted = it }
                     )
-                    optionsList.add(
-                        OptionItem(
-                            icon = Icons.Rounded.Notifications,
-                            text = resources.getString(R.string.post_notifications),
-                            summary = if (!isGranted) resources.getString(R.string.post_notifications_summary) else grantedString,
-                            enabled = !isGranted,
-                            onClick = {
-                                scope.launch {
-                                    notificationPermission.launchPermissionRequest()
-                                }
-                            },
-                            containerColor = secondaryContainer,
-                            contentColor = onSecondaryContainer
-                        ),
-                    )
+                    LaunchedEffect(
+                        useMediaManager, isStorageManager, isGranted
+                    ) {
+                        optionsList.removeIf { item -> item.icon == Icons.Rounded.Notifications }
+                        optionsList.add(
+                            0,
+                            OptionItem(
+                                icon = Icons.Rounded.Notifications,
+                                text = resources.getString(R.string.post_notifications),
+                                summary = if (!isGranted) resources.getString(R.string.post_notifications_summary) else grantedString,
+                                enabled = !isGranted,
+                                onClick = {
+                                    scope.launch {
+                                        notificationPermission.launchPermissionRequest()
+                                    }
+                                },
+                                containerColor = secondaryContainer,
+                                contentColor = onSecondaryContainer
+                            ),
+                        )
+                    }
                 }
 
                 OptionLayout(
