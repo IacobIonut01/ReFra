@@ -62,6 +62,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.Settings.Misc.rememberTrashConfirmationEnabled
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
@@ -78,15 +79,26 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
-fun <T: Media> TrashDialog(
+fun <T : Media> TrashDialog(
     appBottomSheetState: AppBottomSheetState,
     data: List<T>,
     action: TrashDialogAction,
     onConfirm: suspend (List<T>) -> Unit
 ) {
-    val dataCopy = data.toMutableStateList()
+    val dataCopy = remember(data) {
+        data.toMutableStateList()
+    }
     var confirmed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    val requireConfirmation by rememberTrashConfirmationEnabled()
+    LaunchedEffect(appBottomSheetState.isVisible, requireConfirmation, action) {
+        if (appBottomSheetState.isVisible && !requireConfirmation && action == TRASH) {
+            confirmed = true
+            onConfirm.invoke(dataCopy)
+            appBottomSheetState.hide()
+        }
+    }
     BackHandler(
         appBottomSheetState.isVisible && !confirmed
     ) {
@@ -95,7 +107,7 @@ fun <T: Media> TrashDialog(
             appBottomSheetState.hide()
         }
     }
-    if (appBottomSheetState.isVisible) {
+    if (appBottomSheetState.isVisible && (requireConfirmation || action != TRASH)) {
         LaunchedEffect(appBottomSheetState.isVisible) {
             confirmed = false
         }

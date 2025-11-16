@@ -6,10 +6,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.Settings.Misc.rememberTrashConfirmationEnabled
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
@@ -18,6 +20,14 @@ import com.dot.gallery.feature_node.presentation.settings.components.rememberSwi
 fun SettingsGeneralScreen() {
     @Composable
     fun settings(): SnapshotStateList<SettingsEntity> {
+        val res = LocalResources.current
+
+        val trashSectionPref = remember(res) {
+            SettingsEntity.Header(
+                title = res.getString(R.string.trash)
+            )
+        }
+
         var trashCanEnabled by Settings.Misc.rememberTrashEnabled()
         val trashCanEnabledPref = rememberSwitchPreference(
             trashCanEnabled,
@@ -27,6 +37,23 @@ fun SettingsGeneralScreen() {
             onCheck = { trashCanEnabled = it },
             screenPosition = Position.Top
         )
+
+        var trashConfirmationEnabled by rememberTrashConfirmationEnabled()
+        val trashConfirmationEnabledPref = rememberSwitchPreference(
+            trashConfirmationEnabled,
+            title = stringResource(R.string.settings_trash_confirmation_title),
+            summary = stringResource(R.string.settings_trash_confirmation_summary),
+            isChecked = trashConfirmationEnabled,
+            onCheck = { trashConfirmationEnabled = it },
+            screenPosition = Position.Bottom
+        )
+
+        val otherSectionPref = remember(res) {
+            SettingsEntity.Header(
+                title = res.getString(R.string.other)
+            )
+        }
+
         var secureMode by Settings.Misc.rememberSecureMode()
         val secureModePref = rememberSwitchPreference(
             secureMode,
@@ -34,7 +61,7 @@ fun SettingsGeneralScreen() {
             summary = stringResource(R.string.secure_mode_summary),
             isChecked = secureMode,
             onCheck = { secureMode = it },
-            screenPosition = Position.Middle
+            screenPosition = Position.Top
         )
 
         var allowVibrations by Settings.Misc.rememberAllowVibrations()
@@ -47,9 +74,12 @@ fun SettingsGeneralScreen() {
             screenPosition = Position.Bottom
         )
 
-        return remember(trashCanEnabledPref, secureModePref, allowVibrationsPref) {
+        return remember(trashCanEnabledPref, trashConfirmationEnabledPref, secureModePref, allowVibrationsPref) {
             mutableStateListOf(
+                trashSectionPref,
                 trashCanEnabledPref,
+                trashConfirmationEnabledPref,
+                otherSectionPref,
                 secureModePref,
                 allowVibrationsPref
             )

@@ -209,6 +209,12 @@ object Settings {
         fun getTrashEnabled(context: Context) =
             context.dataStore.data.map { it[ENABLE_TRASH] ?: true }
 
+        private val ENABLE_TRASH_CONFIRMATION = booleanPreferencesKey("enable_trashcan_confirmation")
+
+        @Composable
+        fun rememberTrashConfirmationEnabled() =
+            rememberPreference(key = ENABLE_TRASH_CONFIRMATION, defaultValue = true)
+
         private val LAST_SCREEN = stringPreferencesKey("last_screen")
 
         @Composable
