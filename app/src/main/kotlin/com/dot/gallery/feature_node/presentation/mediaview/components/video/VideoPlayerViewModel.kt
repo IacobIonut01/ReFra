@@ -255,7 +255,7 @@ class VideoPlayerViewModel @AssistedInject constructor(
             .setUsage(usage)
             .setContentType(contentType)
             .build()
-        player.setAudioAttributes(attrs, /* handleAudioFocus = */ true)
+        player.setAudioAttributes(attrs, /* handleAudioFocus = */ wantsFocus)
     }
 
     fun retryDecryption() {
