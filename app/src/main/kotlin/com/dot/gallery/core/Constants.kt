@@ -56,7 +56,6 @@ object Constants {
     private val PERMISSION_T = PERMISSION_COMMON.toMutableList().apply {
         addAll(
             listOf(
-                Manifest.permission.POST_NOTIFICATIONS,
                 Manifest.permission.READ_MEDIA_IMAGES,
                 Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.ACCESS_MEDIA_LOCATION
