@@ -45,4 +45,5 @@
       - MD5: `73:FC:3C:60:14:D3:69:6D:1B:DA:34:F1:BF:5A:33:3C`
 - Will you add [X] feature?
     - Please open a new feature request under 'Issues' tab and if the feature will be considered useful and possible can be added.
-
+- Can you remove permission [X]?
+    - Several permissions (e.g. Internet connectivity, location) are for showing a map preview of your current photo location data. If you do not need this feature, you can download a `nomaps` release from the [Releases page](https://github.com/IacobIonut01/Gallery/releases).
