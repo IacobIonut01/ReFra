@@ -101,7 +101,7 @@ fun <T : Media> MediaViewSheetDetails(
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?
 ) {
-    val metadata by rememberedDerivedState(metadataState.value) {
+    val metadata by rememberedDerivedState(metadataState.value, currentMedia) {
         metadataState.value.metadata.find { it.mediaId == currentMedia?.id }
     }
     val handler = LocalMediaHandler.current
