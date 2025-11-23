@@ -30,8 +30,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.ImageSearch
@@ -492,50 +490,7 @@ fun LibraryScreen(
                                     .pinchItem(key = "NoCategories")
                                     .padding(16.dp)
                             ) {
-                                viewModel.startClassification()
                                 eventHandler.navigate(Screen.CategoriesScreen())
-                            }
-                        }
-                        item(
-                            span = { GridItemSpan(maxLineSpan) },
-                            key = "Classification_Disclaimer"
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                                    .padding(bottom = 16.dp)
-                            ) {
-                                LibrarySmallItem(
-                                    modifier = Modifier
-                                        .animateItem()
-                                        .pinchItem(key = "Classification_Disclaimer"),
-                                    title = stringResource(R.string.disclaimer),
-                                    subtitle = stringResource(R.string.disclaimer_classification),
-                                    icon = Icons.Default.Info,
-                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-
-                        item(
-                            span = { GridItemSpan(maxLineSpan) },
-                            key = "Classification_Disable"
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            ) {
-                                LibrarySmallItem(
-                                    modifier = Modifier
-                                        .animateItem()
-                                        .pinchItem(key = "Classification_Disable")
-                                        .clickable {
-                                            noClassification = true
-                                        },
-                                    title = stringResource(R.string.classification_unwanted),
-                                    subtitle = stringResource(R.string.classification_unwanted_summary),
-                                    icon = Icons.Default.QuestionMark,
-                                    contentColor = MaterialTheme.colorScheme.error,
-                                )
                             }
                         }
                     }
