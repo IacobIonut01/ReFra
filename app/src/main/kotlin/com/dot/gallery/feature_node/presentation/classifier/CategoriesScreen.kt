@@ -2,12 +2,14 @@ package com.dot.gallery.feature_node.presentation.classifier
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,18 +19,18 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.outlined.Scanner
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -60,8 +62,9 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.Settings.Misc.rememberNoClassification
 import com.dot.gallery.core.navigate
-import com.dot.gallery.core.navigateUp
+import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
@@ -112,12 +115,7 @@ fun CategoriesScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = eventHandler::navigateUp) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.back_cd)
-                            )
-                        }
+                        NavigationBackButton()
                     },
                     scrollBehavior = scrollBehavior
                 )
@@ -142,6 +140,39 @@ fun CategoriesScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+
+                    item(
+                        span = { GridItemSpan(maxLineSpan) }
+                    ) {
+                        var noClassification by rememberNoClassification()
+                        Row(
+                            modifier = Modifier
+                                .padding(bottom = 16.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    shape = RoundedCornerShape(100)
+                                )
+                                .clip(RoundedCornerShape(100))
+                                .clickable { noClassification = !noClassification }
+                                .padding(
+                                    horizontal = 24.dp,
+                                    vertical = 16.dp
+                                ),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.categorise_your_media),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+
+                            Switch(
+                                checked = !noClassification,
+                                onCheckedChange = { noClassification = !it }
+                            )
+                        }
+                    }
 
                     items(
                         items = categoriesWithMedia,
@@ -234,6 +265,14 @@ fun CategoriesScreen(
                                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 containerColor = Color.Transparent,
                                 modifier = Modifier.animateItem()
+                            )
+
+                            LibrarySmallItem(
+                                modifier = Modifier.animateItem(),
+                                title = stringResource(R.string.classification_unwanted),
+                                subtitle = stringResource(R.string.classification_unwanted_summary2),
+                                icon = Icons.Default.QuestionMark,
+                                contentColor = MaterialTheme.colorScheme.error,
                             )
                         }
                     }

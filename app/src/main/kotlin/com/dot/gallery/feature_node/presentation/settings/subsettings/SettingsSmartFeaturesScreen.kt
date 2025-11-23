@@ -11,26 +11,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.work.WorkManager
 import com.dot.gallery.R
+import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.navigate
 import com.dot.gallery.core.workers.forceMetadataCollect
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
+import com.dot.gallery.feature_node.presentation.util.Screen
 
 @Composable
 fun SettingsSmartFeaturesScreen() {
     @Composable
     fun settings(): SnapshotStateList<SettingsEntity> {
         val context = LocalContext.current
+        val handler = LocalEventHandler.current
         var noClassification by Settings.Misc.rememberNoClassification()
-        val noClassificationPref = rememberSwitchPreference(
+        val noClassificationPref = rememberPreference(
             noClassification,
-            title = stringResource(R.string.no_classification),
-            summary = stringResource(R.string.no_classification_summary),
-            isChecked = noClassification,
-            onCheck = { noClassification = it },
+            title = stringResource(R.string.categories),
+            summary = stringResource(R.string.categorise_your_media),
+            onClick = {
+                handler.navigate(Screen.CategoriesScreen())
+            },
             screenPosition = Position.Alone
         )
 

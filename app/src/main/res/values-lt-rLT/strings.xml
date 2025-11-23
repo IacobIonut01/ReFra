@@ -371,6 +371,7 @@
     <string name="search_media">Search media</string>
     <string name="rotate">Rotate</string>
     <string name="locked">Locked</string>
+    <string name="classification_unwanted_summary2"><![CDATA[If you would like to opt-out from this feature, you can disable it from here. If you however change your mind, you can always enable it back from Settings > Smart Features]]></string>
     <plurals name="item_count">
         <item quantity="one">%s elementas</item>
         <item quantity="few">%s elementai</item>
