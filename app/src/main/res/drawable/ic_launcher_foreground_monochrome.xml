@@ -7,7 +7,7 @@
     <!-- Outline only -->
     <path
         android:pathData="M42.2,35.9h23.5c4.1,0 7.5,3.3 7.5,7.5V67c0,4.1 -3.4,7.5 -7.5,7.5H42.2c-4.1,0 -7.5,-3.3 -7.5,-7.5V43.4C34.7,39.3 38.1,35.9 42.2,35.9z"
-        android:strokeWidth="2"
+        android:strokeWidth="3"
         android:strokeColor="#000000" />
 
     <!-- Back mountain (filled) -->
