@@ -363,8 +363,8 @@
     <string name="clear_selection">Remove All</string>
     <string name="selfies">Selfies</string>
     <string name="screenshots">Zrzuty ekranu</string>
-    <string name="search_images_videos"><![CDATA[Search images & videos]]></string>
-    <string name="suggestions">Suggestions</string>
+    <string name="search_images_videos"><![CDATA[Szukaj obrazy i filmy]]></string>
+    <string name="suggestions">Sugestie</string>
     <string name="post_notifications">Powiadomienia</string>
     <string name="post_notifications_summary">Allows the app to display notifications</string>
     <string name="search">Search</string>
@@ -373,8 +373,8 @@
     <string name="locked">Locked</string>
     <string name="decrypt_failed_tap_to_retry">Decrypt failed. Tap to retry.</string>
     <string name="other">Other</string>
-    <string name="settings_trash_confirmation_title">Require confirmation on trash</string>
-    <string name="settings_trash_confirmation_summary">Enable to require an extra confirmation before moving your media to the trash</string>
+    <string name="settings_trash_confirmation_title">Wymagaj potwierdzenia usunięcia</string>
+    <string name="settings_trash_confirmation_summary">Włącz opcję wymagu dodatkowego potwierdzenia przed przeniesieniem multimediów do kosza</string>
     <plurals name="item_count">
         <item quantity="one">%s pozycja</item>
         <item quantity="few">%s pozycji</item>
