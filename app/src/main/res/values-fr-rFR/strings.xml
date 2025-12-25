@@ -84,7 +84,7 @@
     <string name="photo">Photo</string>
     <string name="video">Vidéo</string>
     <string name="close">Fermer</string>
-    <string name="manage_media_title">Permettre à Gallerie de gérer vos médias</string>
+    <string name="manage_media_title">Permettre à Galerie de gérer vos médias</string>
     <string name="manage_media_summary">Ce paramètre permet d\'ignorer toute boîte de dialogue de confirmation supplémentaire lors de l\'exécution de diverses actions telles que le marquage en tant que favori.</string>
     <string name="skip">Ignorer</string>
     <string name="allow">Autoriser</string>
@@ -348,7 +348,7 @@
     <string name="delete_thumbnail">Remove custom album cover</string>
     <string name="settings_theme">Thèmes</string>
     <string name="settings_theme_summary">Personnalise ta galerie</string>
-    <string name="customization_summary">Optmise the app to your own preferences</string>
+    <string name="customization_summary">Optimiser l\'application avec vos préférences</string>
     <string name="settings_misc">Miscellaneous</string>
     <string name="settings_misc_summary">Various uncategorised settings</string>
     <string name="settings_general_summary">Various general settings</string>
@@ -362,7 +362,7 @@
     <string name="extended_date_header_title">Extended Date Header</string>
     <string name="clear_selection">Remove All</string>
     <string name="selfies">Selfies</string>
-    <string name="screenshots">Screenshots</string>
+    <string name="screenshots">Captures d\'écran</string>
     <string name="search_images_videos"><![CDATA[Rechercher des images et vidéos]]></string>
     <string name="suggestions">Suggestions</string>
     <string name="post_notifications">Notifications</string>
