@@ -360,7 +360,7 @@
     <string name="show_selection_titles">Display Selection Item\'s Title</string>
     <string name="show_selection_titles_summary">Display in the selection sheet a title for each action</string>
     <string name="extended_date_header_title">Extended Date Header</string>
-    <string name="clear_selection">Remove All</string>
+    <string name="clear_selection">Odznacz wszystko</string>
     <string name="selfies">Selfies</string>
     <string name="screenshots">Zrzuty ekranu</string>
     <string name="search_images_videos"><![CDATA[Szukaj obrazy i filmy]]></string>
