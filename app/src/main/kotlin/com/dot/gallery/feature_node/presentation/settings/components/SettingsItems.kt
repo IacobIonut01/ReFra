@@ -1,14 +1,9 @@
-/*
- * SPDX-FileCopyrightText: 2023 IacobIacob01
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package com.dot.gallery.feature_node.presentation.settings.components
 
-import android.content.res.Configuration
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,57 +11,79 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material.icons.outlined.WavingHand
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.dot.gallery.core.Position
+import com.dot.gallery.core.PreferenceType
 import com.dot.gallery.core.SettingsEntity
-import com.dot.gallery.core.SettingsEntity.Header
-import com.dot.gallery.core.SettingsEntity.Preference
-import com.dot.gallery.core.SettingsEntity.SeekPreference
-import com.dot.gallery.core.SettingsEntity.SwitchPreference
-import com.dot.gallery.core.SettingsType
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
-import com.dot.gallery.ui.core.icons.RegularExpression
-import com.dot.gallery.ui.theme.GalleryTheme
+import com.dot.gallery.feature_node.presentation.util.PreviewHost
+import com.dot.gallery.feature_node.presentation.util.maybeApply
+import com.github.panpf.sketch.AsyncImage
 import kotlin.math.roundToLong
 
+/**
+ * A single preference item, which can be of type default, switch or seek.
+ * @param item The preference item data.
+ * @param modifier The modifier to be applied to the item.
+ * @param tintIcon Whether to tint the icon with the current content color.
+ * @param slimLayout Whether to use a more compact layout.
+ * @param backgroundColor The background color of the item.
+ * @param customIcon A custom composable to display the icon.
+ */
 @Composable
 fun SettingsItem(
     item: SettingsEntity,
     modifier: Modifier = Modifier,
     tintIcon: Boolean = true,
     slimLayout: Boolean = false,
-    customizeIcon: (@Composable (icon: ImageVector) -> Unit)? = null
+    applyPaddings: Boolean = true,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    borderModifier: @Composable (Shape) -> Modifier = { Modifier },
+    customIcon: (@Composable (icon: ImageVector?, iconUri: String?, iconRes: Int?) -> Unit)? = null
 ) {
     val mutableInteractionSource = remember {
         MutableInteractionSource()
@@ -74,29 +91,87 @@ fun SettingsItem(
     var checked by remember(item.isChecked) {
         mutableStateOf(item.isChecked == true)
     }
+
+    @Composable
+    fun summaryContent() {
+        val summaryText = item.summaryAnnotated ?: item.summary?.let { AnnotatedString(it) }
+        summaryText?.let {
+            Text(
+                modifier = Modifier.maybeApply(
+                    condition = !item.horizontalLayout,
+                    modifier = Modifier.padding(top = 2.dp)
+                ),
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+
+    @Composable
+    fun rightTextContent() {
+        val rightTextValue = item.rightTextAnnotated ?: item.rightText?.let { AnnotatedString(it) }
+        rightTextValue?.let {
+            Text(
+                text = it,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+
+    @Composable
+    fun iconComponent() {
+        val imageVector = item.icon
+        val imageUri = item.iconUri
+        val imageRes = item.iconRes
+        if (imageUri != null) {
+            AsyncImage(
+                uri = imageUri,
+                modifier = Modifier.size(48.dp).clip(CircleShape).background(color = Color.White)
+                    .padding(4.dp),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                colorFilter = if (tintIcon) ColorFilter.tint(MaterialTheme.colorScheme.onSurface) else null
+            )
+        } else if (imageVector != null) {
+            Image(
+                imageVector = imageVector,
+                modifier = Modifier.size(24.dp),
+                contentDescription = null,
+                colorFilter = if (tintIcon) ColorFilter.tint(MaterialTheme.colorScheme.onSurface) else null
+            )
+        } else if (imageRes != null) {
+            Image(
+                painter = painterResource(imageRes),
+                modifier = Modifier.size(24.dp),
+                contentDescription = null,
+                colorFilter = if (tintIcon) ColorFilter.tint(MaterialTheme.colorScheme.onSurface) else null
+            )
+        }
+    }
+
     val icon: @Composable () -> Unit = {
-        require(item.icon != null) { "Icon at this stage cannot be null" }
-        customizeIcon?.let {
-            customizeIcon(item.icon!!)
-        } ?: Image(
-            imageVector = item.icon!!,
-            modifier = Modifier.size(24.dp),
-            contentDescription = null,
-            colorFilter = if (tintIcon) {
-                ColorFilter.tint(
-                    MaterialTheme.colorScheme.onSurface
-                )
-            } else null
-        )
+        require(item.icon != null || item.iconUri != null || item.iconRes != null) { "Icon at this stage cannot be null" }
+        customIcon?.let {
+            customIcon(item.icon, item.iconUri, item.iconRes)
+        } ?: iconComponent()
     }
     val summary: @Composable () -> Unit = {
-        require(!item.summary.isNullOrEmpty()) { "Summary at this stage cannot be null or empty" }
-        Text(text = item.summary!!)
+        require(!item.summary.isNullOrEmpty() || item.summaryAnnotated != null) { "Summary at this stage cannot be null or empty" }
+        summaryContent()
     }
     val switch: @Composable () -> Unit = {
         Switch(
+            modifier = Modifier.padding(start = 16.dp),
             checked = checked,
-            onCheckedChange = null,
+            onCheckedChange = { isChecked ->
+                item.onCheck?.let {
+                    checked = isChecked
+                    it(isChecked)
+                }
+            },
         )
     }
 
@@ -107,8 +182,14 @@ fun SettingsItem(
     val isInteracting by rememberedDerivedState {
         isPressed.value || isFocused.value || isDragged.value || isHovered.value
     }
-    val fullCornerRadius by animateDpAsState(targetValue = if (isInteracting) 48.dp else 24.dp, label = "fullCornerRadius")
-    val normalCornerRadius by animateDpAsState(targetValue = if (isInteracting) 48.dp else 8.dp, label = "normalCornerRadius")
+    val fullCornerRadius by animateDpAsState(
+        targetValue = if (isInteracting) 48.dp else 24.dp,
+        label = "fullCornerRadius"
+    )
+    val normalCornerRadius by animateDpAsState(
+        targetValue = if (isInteracting) 48.dp else 8.dp,
+        label = "normalCornerRadius"
+    )
 
     val shape by rememberedDerivedState(item.screenPosition, fullCornerRadius, normalCornerRadius) {
         when (item.screenPosition) {
@@ -179,67 +260,65 @@ fun SettingsItem(
             )
         }
     }
-    val progressContent: @Composable () -> Unit = {
-        require(item.type == SettingsType.Progress) { "Progress content can only be used with progress type" }
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
-        ) {
-            if (item.progress == null) {
-                LinearProgressIndicator()
-            } else {
-                LinearProgressIndicator(
-                    progress = { item.progress!!.coerceIn(0f, 100f) / 100f },
-                    drawStopIndicator = { }
-                )
-            }
-        }
-    }
     val supportingContent: (@Composable () -> Unit)? = when (item.type) {
-        SettingsType.Default, SettingsType.Switch, SettingsType.Seek ->
-            if (!item.summary.isNullOrEmpty()) summary else null
+        PreferenceType.Default, PreferenceType.Switch, PreferenceType.Seek ->
+            if (!item.summary.isNullOrEmpty() || item.summaryAnnotated != null) summary else null
 
         else -> null
     }
+
+    val rightTextTrailing: @Composable () -> Unit = {
+        if (item.rightText != null || item.rightTextAnnotated != null) {
+            rightTextContent()
+        }
+    }
+
     val trailingContent: (@Composable () -> Unit)? = when (item.type) {
-        SettingsType.Switch -> switch
-        SettingsType.Seek -> seekTrailing
-        SettingsType.Progress -> if (item.progress != null) {
-            {
-                Text(
-                    text = "${item.progress!!.coerceIn(0f, 100f).roundToLong()}%",
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.width(42.dp)
-                )
-            }
-        } else null
-        else -> null
+        PreferenceType.Switch -> switch
+        PreferenceType.Seek -> seekTrailing
+        else -> {
+            if (item.rightText.isNullOrEmpty() && item.rightTextAnnotated == null) null
+            else rightTextTrailing
+        }
     }
     val clickableModifier =
-        if (item.type != SettingsType.Seek && !item.isHeader)
+        if (item.type != PreferenceType.Seek && !item.isHeader && (item.onClick != null || item.onCheck != null))
             Modifier.clickable(
                 enabled = item.enabled,
-                interactionSource = mutableInteractionSource
-            ) {
-                if (item.type == SettingsType.Switch) {
-                    item.onCheck?.let {
-                        checked = !checked
-                        it(checked)
-                    }
-                } else item.onClick?.invoke()
-            }
+                interactionSource = mutableInteractionSource,
+                indication = LocalIndication.current,
+                onClick = {
+                    if (item.type == PreferenceType.Switch) {
+                        item.onCheck?.let {
+                            checked = !checked
+                            it(checked)
+                        }
+                    } else item.onClick?.invoke()
+                },
+            )
         else Modifier
     if (item.isHeader) {
-        Text(
-            text = item.title,
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.titleSmall,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 40.dp, vertical = 8.dp)
-                .padding(bottom = 8.dp)
-        )
+        if (item.titleAnnotated != null) {
+            Text(
+                text = item.titleAnnotated!!,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 40.dp, vertical = 8.dp)
+                    .padding(bottom = 8.dp)
+            )
+        } else {
+            Text(
+                text = item.title,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 40.dp, vertical = 8.dp)
+                    .padding(bottom = 8.dp)
+            )
+        }
     } else {
         val alpha by animateFloatAsState(
             targetValue = if (item.enabled) 1f else 0.4f,
@@ -248,104 +327,271 @@ fun SettingsItem(
         Column(
             modifier = modifier
                 .then(paddingModifier)
-                .padding(horizontal = 16.dp)
+                .maybeApply(
+                    condition = applyPaddings,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
                 .clip(shape)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+                    color = backgroundColor
                 )
+                .then(borderModifier(shape))
                 .then(clickableModifier)
                 .padding(horizontal = 8.dp)
-                .then(if (!slimLayout) Modifier.padding(vertical = 8.dp) else Modifier)
+                .then(if (!slimLayout) Modifier.padding(vertical = 4.dp) else Modifier)
                 .fillMaxWidth()
                 .alpha(alpha)
         ) {
-            ListItem(
-                headlineContent = {
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 2.dp)
-                    )
-                },
-                supportingContent = supportingContent,
-                trailingContent = trailingContent,
-                leadingContent = if (item.icon != null) icon else null,
-                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-            )
-            if (item.type == SettingsType.Seek) {
-                seekContent()
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (item.icon != null || item.iconUri != null || item.iconRes != null) {
+                    Box(
+                        modifier = Modifier.padding(end = 16.dp)
+                    ) {
+                        icon()
+                    }
+                }
+
+                if (item.horizontalLayout) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(
+                                if (item.icon != null) Modifier.padding(end = 16.dp) else Modifier
+                            ),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        supportingContent?.invoke()
+                        Text(
+                            text = item.titleAnnotated ?: AnnotatedString(item.title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(
+                                if (item.icon != null || item.iconUri != null) Modifier.padding(end = 16.dp) else Modifier
+                            ),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = item.titleAnnotated ?: AnnotatedString(item.title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        supportingContent?.invoke()
+                    }
+                }
+                trailingContent?.invoke()
             }
-            if (item.type == SettingsType.Progress) {
-                progressContent()
+            if (item.type == PreferenceType.Seek) {
+                seekContent()
             }
         }
     }
 }
 
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
-)
 @Composable
-fun SettingsItemGroupPreview() =
-    GalleryTheme {
-        Surface {
-            Column(
-                modifier = Modifier.wrapContentHeight()
+fun CustomCircleIcon(
+    iconVector: ImageVector?,
+    iconUri: String?,
+    iconRes: Int?,
+    containerColor: Color = MaterialTheme.colorScheme.tertiary,
+    contentColor: Color = MaterialTheme.colorScheme.onTertiary
+) {
+    val modifier = Modifier
+        .size(48.dp)
+        .background(
+            color = containerColor,
+            shape = CircleShape
+        )
+        .padding(12.dp)
+    if (iconRes != null) {
+        Icon(
+            modifier = modifier,
+            painter = painterResource(iconRes),
+            contentDescription = null,
+            tint = contentColor
+        )
+    } else if (iconVector != null) {
+        Icon(
+            modifier = modifier,
+            imageVector = iconVector,
+            contentDescription = null,
+            tint = contentColor
+        )
+    } else if (iconUri != null) {
+        AsyncImage(
+            modifier = modifier,
+            uri = iconUri,
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(contentColor)
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsItemPreview() {
+    PreviewHost {
+        LazyColumn(
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surface
+                )
+                .fillMaxSize(),
+            contentPadding = PaddingValues(top = 16.dp)
+        ) {
+            settings(
+                preferenceItemBuilder = { item, modifier ->
+                    SettingsItem(
+                        item = item,
+                        modifier = modifier
+                    )
+                }
             ) {
-                SettingsItem(
-                    item = Preference(
-                        title = "Preview Alone Title",
-                        summary = "Preview Summary"
-                    )
+                Header(title = "This is a header")
+                Preference(title = "This is a preference")
+                Preference(
+                    title = "[Disabled] Preference",
+                    enabled = false
                 )
-                SettingsItem(
-                    item = Header(
-                        title = "Preview Header Title"
-                    )
+                Preference(
+                    title = "This is a preference with a summary",
+                    summary = "This is a summary"
                 )
-                SettingsItem(
-                    item = Preference(
-                        icon = Icons.Outlined.Settings,
-                        title = "Preview Top Title",
-                        summary = "Preview Summary",
-                        screenPosition = Position.Top
-                    )
+                Preference(
+                    title = "Payments",
+                    summary = "Service",
+                    horizontalLayout = true
                 )
-                SettingsItem(
-                    item = SeekPreference(
-                        icon = com.dot.gallery.ui.core.Icons.RegularExpression,
-                        title = "Preview Middle Title",
-                        summary = "Preview Summary",
-                        currentValue = 256f,
-                        minValue = 32f,
-                        maxValue = 512f,
-                        step = 16,
-                        onSeek = {},
-                        seekSuffix = "MB",
-                        screenPosition = Position.Middle
-                    )
+                Preference(
+                    title = "Payments",
+                    summary = "Service",
+                    rightText = "£120"
                 )
-                SettingsItem(
-                    item = SwitchPreference(
-                        title = "Preview Middle Title",
-                        summary = "Preview Summary\nSecond Line\nThird Line",
-                        screenPosition = Position.Middle
-                    )
+                Preference(
+                    title = "Preference with icon",
+                    icon = Icons.Outlined.WavingHand
                 )
-                SettingsItem(
-                    item = SettingsEntity.ProgressPreference(
-                        title = "Preview Middle Title",
-                        progress = 45f,
-                        screenPosition = Position.Middle
-                    )
+                Preference(
+                    "Preference with icon and summary",
+                    icon = Icons.Outlined.WavingHand,
+                    summary = "This is a summary"
                 )
-                SettingsItem(
-                    item = Preference(
-                        title = "Preview Bottom Title",
-                        summary = "Preview Summary",
-                        screenPosition = Position.Bottom
-                    )
+                Preference(
+                    "Preference with icon and long summary",
+                    icon = Icons.Outlined.WavingHand,
+                    summary = "This is a very long summary that should be truncated when it exceeds two lines in length. Let's see how it looks!"
+                )
+                Preference(
+                    "[Disabled] Preference with icon and summary",
+                    icon = Icons.Outlined.WavingHand,
+                    summary = "This is a summary",
+                    enabled = false
+                )
+
+                Header(title = "This is another header")
+                SwitchPreference(
+                    title = "This is a switch preference",
+                    isChecked = true,
+                    onCheck = {}
+                )
+                SwitchPreference(
+                    title = "[Disabled] This is a switch preference",
+                    isChecked = false,
+                    onCheck = {},
+                    enabled = false
+                )
+                SwitchPreference(
+                    title = "This is a switch preference with a summary",
+                    summary = "This is a summary",
+                    isChecked = true,
+                    onCheck = {}
+                )
+                SwitchPreference(
+                    title = "This is a switch preference with icon",
+                    icon = Icons.Outlined.WavingHand,
+                    isChecked = false,
+                    onCheck = {},
+                )
+                SwitchPreference(
+                    title = "This is a switch preference with icon and summary",
+                    summary = "This is a summary",
+                    icon = Icons.Outlined.WavingHand,
+                    isChecked = true,
+                    onCheck = {}
+                )
+                SwitchPreference(
+                    title = "[Disabled] This is a switch preference with icon and summary",
+                    summary = "This is a summary",
+                    icon = Icons.Outlined.WavingHand,
+                    isChecked = true,
+                    enabled = false,
+                    onCheck = {}
+                )
+
+                Header(title = "AnnotatedString Examples")
+                Preference(
+                    title = buildAnnotatedString {
+                        append("Title with ")
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Blue,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
+                            append("highlighted")
+                        }
+                        append(" text")
+                    }
+                )
+                Preference(
+                    title = buildAnnotatedString { append("AnnotatedString Summary") },
+                    summary = buildAnnotatedString {
+                        append("Summary with ")
+                        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                            append("underlined")
+                        }
+                        append(" text and ")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("bold")
+                        }
+                        append(" text")
+                    }
+                )
+                Preference(
+                    title = buildAnnotatedString { append("AnnotatedString Right Text") },
+                    rightText = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = Color.Red)) {
+                            append("£")
+                        }
+                        append("120")
+                    }
+                )
+                SwitchPreference(
+                    title = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = Color.Green)) {
+                            append("Switch")
+                        }
+                        append(" with ")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("AnnotatedString")
+                        }
+                    },
+                    isChecked = true,
+                    onCheck = {}
                 )
             }
         }
     }
+}
