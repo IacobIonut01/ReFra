@@ -371,10 +371,10 @@
     <string name="search_media">Поиск медиа</string>
     <string name="rotate">Повернуть</string>
     <string name="locked">Заблокировано</string>
-    <string name="decrypt_failed_tap_to_retry">Decrypt failed. Tap to retry.</string>
-    <string name="other">Other</string>
+    <string name="decrypt_failed_tap_to_retry">Расшифровка не удалась. Нажмите, чтобы повторить.</string>
+    <string name="other">Другое</string>
     <string name="settings_trash_confirmation_title">Запрашивать подтверждение</string>
-    <string name="settings_trash_confirmation_summary">Enable to require an extra confirmation before moving your media to the trash</string>
+    <string name="settings_trash_confirmation_summary">Включите требование дополнительного подтверждения перед перемещением медиа в корзину</string>
     <plurals name="item_count">
         <item quantity="one">%s элемент</item>
         <item quantity="few">%s эл.</item>
