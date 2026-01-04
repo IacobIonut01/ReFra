@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.DefaultEventHandler
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.core.MediaSelector
@@ -47,8 +48,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class StandaloneActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var eventHandler: EventHandler
+    private val eventHandler: EventHandler = DefaultEventHandler()
 
     @Inject
     lateinit var mediaDistributor: MediaDistributor
