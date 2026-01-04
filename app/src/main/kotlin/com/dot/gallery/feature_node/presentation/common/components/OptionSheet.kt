@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -34,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
@@ -80,7 +82,7 @@ fun LazyListScope.SettingsOptionLayout(
 ) {
     itemsIndexed(
         items = optionList,
-        key = { index, item -> item.toString() }
+        key = { _, item -> item.toString() }
     ) { index, item ->
         val position: Position = remember(index, item) {
             when (index) {
@@ -223,7 +225,7 @@ fun OptionLayout(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(1.dp)
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         optionList.forEachIndexed { index, item ->
             val position: OptionPosition = remember(index, item) {
@@ -291,27 +293,30 @@ fun OptionButton(
         )
         .alpha(if (enabled) 1f else 0.4f)
         .padding(16.dp)
+        .padding(vertical = 4.dp)
     Row(
         modifier = mod,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.alpha(if (enabled) 1f else 0.4f)
+                modifier = Modifier
+                    .alpha(if (enabled) 1f else 0.4f)
+                    .padding(start = 4.dp, end = 12.dp)
             )
         }
         if (summaryContainer != null) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 ProvideTextStyle(
-                    value = MaterialTheme.typography.labelLarge.copy(
+                    value = MaterialTheme.typography.bodyMedium.copy(
                         color = contentColor,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 ) {
                     textContainer()
@@ -352,31 +357,31 @@ data class OptionItem(
 object OptionShape {
 
     val Top = RoundedCornerShape(
-        topEnd = 12.dp,
-        topStart = 12.dp,
-        bottomEnd = 1.dp,
-        bottomStart = 1.dp
+        topEnd = 24.dp,
+        topStart = 24.dp,
+        bottomEnd = 2.dp,
+        bottomStart = 2.dp
     )
 
     val Middle = RoundedCornerShape(
-        topEnd = 1.dp,
-        topStart = 1.dp,
-        bottomEnd = 1.dp,
-        bottomStart = 1.dp
+        topEnd = 2.dp,
+        topStart = 2.dp,
+        bottomEnd = 2.dp,
+        bottomStart = 2.dp
     )
 
     val Bottom = RoundedCornerShape(
-        topEnd = 1.dp,
-        topStart = 1.dp,
-        bottomEnd = 12.dp,
-        bottomStart = 12.dp
+        topEnd = 2.dp,
+        topStart = 2.dp,
+        bottomEnd = 24.dp,
+        bottomStart = 24.dp
     )
 
     val Alone = RoundedCornerShape(
-        topEnd = 12.dp,
-        topStart = 12.dp,
-        bottomEnd = 12.dp,
-        bottomStart = 12.dp
+        topEnd = 24.dp,
+        topStart = 24.dp,
+        bottomEnd = 24.dp,
+        bottomStart = 24.dp
     )
 }
 
@@ -389,4 +394,113 @@ fun OptionPosition.shape(): RoundedCornerShape = when (this) {
     MIDDLE -> OptionShape.Middle
     BOTTOM -> OptionShape.Bottom
     ALONE -> OptionShape.Alone
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OptionLayoutAlonePreview() {
+    MaterialTheme {
+        Box(Modifier.padding(16.dp)) {
+            val list = remember {
+                mutableStateListOf(
+                    OptionItem(
+                        text = "Alone Option",
+                        onClick = {}
+                    )
+                )
+            }
+            OptionLayout(optionList = list)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OptionLayoutTwoItemsPreview() {
+    MaterialTheme {
+        Box(Modifier.padding(16.dp)) {
+            val list = remember {
+                mutableStateListOf(
+                    OptionItem(
+                        text = "Top Option",
+                        onClick = {}
+                    ),
+                    OptionItem(
+                        text = "Bottom Option",
+                        onClick = {}
+                    )
+                )
+            }
+            OptionLayout(optionList = list)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OptionLayoutMultipleItemsPreview() {
+    MaterialTheme {
+        Box(Modifier.padding(16.dp)) {
+            val list = remember {
+                mutableStateListOf(
+                    OptionItem(
+                        text = "Top Option",
+                        onClick = {}
+                    ),
+                    OptionItem(
+                        text = "Middle Option",
+                        onClick = {}
+                    ),
+                    OptionItem(
+                        text = "Bottom Option",
+                        onClick = {}
+                    )
+                )
+            }
+            OptionLayout(optionList = list)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OptionLayoutMixedPreview() {
+    MaterialTheme {
+        Box(Modifier.padding(16.dp)) {
+            val customContainerColor = MaterialTheme.colorScheme.primaryContainer
+            val customContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            val list = remember(customContainerColor, customContentColor) {
+                mutableStateListOf(
+                    OptionItem(
+                        icon = Icons.Outlined.Delete,
+                        text = "Option with Icon",
+                        onClick = {}
+                    ),
+                    OptionItem(
+                        text = "Option with Summary",
+                        summary = "This is a summary",
+                        onClick = {}
+                    ),
+                    OptionItem(
+                        icon = Icons.Outlined.Delete,
+                        text = "Option with Summary and icon",
+                        summary = "This is a summary",
+                        onClick = {}
+                    ),
+                    OptionItem(
+                        text = "Disabled Option",
+                        enabled = false,
+                        onClick = {}
+                    ),
+                    OptionItem(
+                        text = "Custom Colors",
+                        containerColor = customContainerColor,
+                        contentColor = customContentColor,
+                        onClick = {}
+                    )
+                )
+            }
+            OptionLayout(optionList = list)
+        }
+    }
 }
