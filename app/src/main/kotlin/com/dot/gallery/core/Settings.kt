@@ -20,12 +20,14 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.core.content.edit
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -450,14 +452,6 @@ object Settings {
     }
 }
 
-sealed class SettingsType {
-    data object Seek : SettingsType()
-    data object Progress : SettingsType()
-    data object Switch : SettingsType()
-    data object Header : SettingsType()
-    data object Default : SettingsType()
-}
-
 sealed class Position {
     data object Top : Position()
     data object Middle : Position()
@@ -465,11 +459,24 @@ sealed class Position {
     data object Alone : Position()
 }
 
+sealed class PreferenceType {
+    data object Seek : PreferenceType()
+    data object Switch : PreferenceType()
+    data object Header : PreferenceType()
+    data object Default : PreferenceType()
+}
+
 sealed class SettingsEntity(
     open val icon: ImageVector? = null,
+    open val iconUri: String? = null,
+    open val iconRes: Int? = null,
     open val title: String,
+    open val titleAnnotated: AnnotatedString? = null,
     open val summary: String? = null,
-    val type: SettingsType = SettingsType.Default,
+    open val summaryAnnotated: AnnotatedString? = null,
+    open val rightText: String? = null,
+    open val rightTextAnnotated: AnnotatedString? = null,
+    val type: PreferenceType = PreferenceType.Default,
     open val enabled: Boolean = true,
     open val isChecked: Boolean? = null,
     open val onCheck: ((Boolean) -> Unit)? = null,
@@ -481,58 +488,122 @@ sealed class SettingsEntity(
     open val valueMultiplier: Int = 1,
     open val seekSuffix: String? = null,
     open val onSeek: ((Float) -> Unit)? = null,
-    open val progress: Float? = null,
-    open val screenPosition: Position = Position.Alone
+    open val screenPosition: Position = Position.Alone,
+    open val horizontalLayout: Boolean = false,
 ) {
-    val isHeader = type == SettingsType.Header
+    val isHeader = type == PreferenceType.Header
 
+    @Stable
     data class Header(
-        override val title: String
+        override val title: String,
+        override val titleAnnotated: AnnotatedString? = null,
     ) : SettingsEntity(
         title = title,
-        type = SettingsType.Header
+        titleAnnotated = titleAnnotated,
+        type = PreferenceType.Header
     )
 
+    @Stable
     data class Preference(
         override val icon: ImageVector? = null,
+        override val iconUri: String? = null,
+        override val iconRes: Int? = null,
         override val title: String,
+        override val titleAnnotated: AnnotatedString? = null,
         override val summary: String? = null,
+        override val summaryAnnotated: AnnotatedString? = null,
+        override val rightText: String? = null,
+        override val rightTextAnnotated: AnnotatedString? = null,
         override val enabled: Boolean = true,
         override val screenPosition: Position = Position.Alone,
+        override val horizontalLayout: Boolean = false,
         override val onClick: (() -> Unit)? = null,
     ) : SettingsEntity(
         icon = icon,
+        iconUri = iconUri,
+        iconRes = iconRes,
         title = title,
+        titleAnnotated = titleAnnotated,
         summary = summary,
+        summaryAnnotated = summaryAnnotated,
+        rightText = rightText,
+        rightTextAnnotated = rightTextAnnotated,
         enabled = enabled,
         screenPosition = screenPosition,
+        horizontalLayout = horizontalLayout,
         onClick = onClick,
-        type = SettingsType.Default
+        type = PreferenceType.Default
     )
 
+    @Stable
+    data class PreferenceExtra(
+        override val icon: ImageVector? = null,
+        override val iconUri: String? = null,
+        override val iconRes: Int? = null,
+        override val title: String,
+        override val titleAnnotated: AnnotatedString? = null,
+        override val summary: String? = null,
+        override val summaryAnnotated: AnnotatedString? = null,
+        override val rightText: String? = null,
+        override val rightTextAnnotated: AnnotatedString? = null,
+        override val enabled: Boolean = true,
+        override val screenPosition: Position = Position.Alone,
+        override val horizontalLayout: Boolean = false,
+        override val onClick: (() -> Unit)? = null,
+    ) : SettingsEntity(
+        icon = icon,
+        iconUri = iconUri,
+        iconRes = iconRes,
+        title = title,
+        titleAnnotated = titleAnnotated,
+        summary = summary,
+        summaryAnnotated = summaryAnnotated,
+        rightText = rightText,
+        rightTextAnnotated = rightTextAnnotated,
+        enabled = enabled,
+        screenPosition = screenPosition,
+        horizontalLayout = horizontalLayout,
+        onClick = onClick,
+        type = PreferenceType.Default
+    )
+
+    @Stable
     data class SwitchPreference(
         override val icon: ImageVector? = null,
+        override val iconUri: String? = null,
+        override val iconRes: Int? = null,
         override val title: String,
+        override val titleAnnotated: AnnotatedString? = null,
         override val summary: String? = null,
+        override val summaryAnnotated: AnnotatedString? = null,
         override val enabled: Boolean = true,
         override val screenPosition: Position = Position.Alone,
         override val isChecked: Boolean = false,
         override val onCheck: ((Boolean) -> Unit)? = null,
     ) : SettingsEntity(
         icon = icon,
+        iconUri = iconUri,
+        iconRes = iconRes,
         title = title,
+        titleAnnotated = titleAnnotated,
         summary = summary,
+        summaryAnnotated = summaryAnnotated,
         enabled = enabled,
         isChecked = isChecked,
         onCheck = onCheck,
         screenPosition = screenPosition,
-        type = SettingsType.Switch
+        type = PreferenceType.Switch
     )
 
+    @Stable
     data class SeekPreference(
         override val icon: ImageVector? = null,
+        override val iconUri: String? = null,
+        override val iconRes: Int? = null,
         override val title: String,
+        override val titleAnnotated: AnnotatedString? = null,
         override val summary: String? = null,
+        override val summaryAnnotated: AnnotatedString? = null,
         override val enabled: Boolean = true,
         override val screenPosition: Position = Position.Alone,
         override val minValue: Float? = null,
@@ -544,8 +615,12 @@ sealed class SettingsEntity(
         override val onSeek: ((Float) -> Unit)? = null,
     ) : SettingsEntity(
         icon = icon,
+        iconUri = iconUri,
+        iconRes = iconRes,
         title = title,
+        titleAnnotated = titleAnnotated,
         summary = summary,
+        summaryAnnotated = summaryAnnotated,
         enabled = enabled,
         screenPosition = screenPosition,
         minValue = minValue,
@@ -555,23 +630,6 @@ sealed class SettingsEntity(
         valueMultiplier = valueMultiplier,
         seekSuffix = seekSuffix,
         onSeek = onSeek,
-        type = SettingsType.Seek
-    )
-
-    data class ProgressPreference(
-        override val icon: ImageVector? = null,
-        override val title: String,
-        override val summary: String? = null,
-        override val enabled: Boolean = true,
-        override val screenPosition: Position = Position.Alone,
-        override val progress: Float? = null,
-    ) : SettingsEntity(
-        icon = icon,
-        title = title,
-        summary = summary,
-        enabled = enabled,
-        screenPosition = screenPosition,
-        progress = progress,
-        type = SettingsType.Progress
+        type = PreferenceType.Seek
     )
 }

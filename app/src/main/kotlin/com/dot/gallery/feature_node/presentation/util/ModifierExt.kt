@@ -57,3 +57,10 @@ fun Modifier.fadingEdge(brush: Brush) = this
         drawContent()
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
     }
+
+/**
+ * Conditionally applies a [Modifier] based on a [condition].
+ */
+fun Modifier.maybeApply(condition: Boolean, modifier: Modifier): Modifier {
+    return if (condition) this.then(modifier) else this
+}

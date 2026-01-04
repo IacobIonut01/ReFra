@@ -5,30 +5,25 @@
 
 package com.dot.gallery.feature_node.presentation.settings
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.SettingsSuggest
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.navigate
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
+import com.dot.gallery.feature_node.presentation.settings.components.CustomCircleIcon
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsAppHeader
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
@@ -105,17 +100,13 @@ fun SettingsScreen() {
         settingsBuilder = { setting, index ->
             SettingsItem(
                 item = setting,
-                customizeIcon = { icon ->
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = setting.title,
-                        tint = onBackgroundColors[index],
-                        modifier = Modifier
-                            .background(
-                                color = backgroundColors[index],
-                                shape = CircleShape
-                            )
-                            .padding(8.dp)
+                customIcon = { icon, iconUri, iconRes ->
+                    CustomCircleIcon(
+                        iconVector = icon,
+                        iconUri = iconUri,
+                        iconRes = iconRes,
+                        containerColor = backgroundColors[index],
+                        contentColor = onBackgroundColors[index]
                     )
                 }
             )

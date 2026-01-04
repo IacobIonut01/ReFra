@@ -49,6 +49,7 @@ import com.dot.gallery.feature_node.presentation.settings.components.SettingsIte
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.hazeSource
+import kotlin.collections.lastIndex
 
 @Composable
 fun OptionSheet(
