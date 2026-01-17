@@ -2,9 +2,9 @@
 <resources>
     <string name="app_name">Galerija</string>
     <string name="nav_albums">Albumai</string>
-    <string name="searchbar_title"><![CDATA[Ieškoti nuotraukos ar vaizdo įrašo]]></string>
-    <string name="header_today">Šiandien</string>
-    <string name="header_yesterday">Vakar</string>
+    <string name="searchbar_title"><![CDATA[Ieškokite nuotraukas ir vaizdo įrašus]]></string>
+    <string name="header_today">šiandien</string>
+    <string name="header_yesterday">vakar</string>
     <string name="request_permissions">Prašyti leidimų</string>
     <string name="filter">Rūšiuoti pagal</string>
     <string name="filter_recent">Naujausią</string>
@@ -378,7 +378,7 @@
     <plurals name="item_count">
         <item quantity="one">%s elementas</item>
         <item quantity="few">%s elementai</item>
-        <item quantity="many">%s elementų</item>
+        <item quantity="many">%s elemento</item>
         <item quantity="other">%s elementų</item>
     </plurals>
 </resources>
