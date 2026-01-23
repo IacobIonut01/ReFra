@@ -198,6 +198,9 @@ class MediaRepositoryImpl(
     override fun getBlacklistedAlbums(): Flow<List<IgnoredAlbum>> =
         database.getBlacklistDao().getBlacklistedAlbums()
 
+    override suspend fun getBlacklistedAlbumsAsync(): List<IgnoredAlbum> =
+        database.getBlacklistDao().getBlacklistedAlbumsAsync()
+
     override fun getMediaByAlbumId(albumId: Long): Flow<Resource<List<UriMedia>>> =
         MediaFlow(
             contentResolver = contentResolver,

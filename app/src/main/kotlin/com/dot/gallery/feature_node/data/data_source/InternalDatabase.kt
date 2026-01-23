@@ -38,7 +38,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AlbumThumbnail::class,
         ImageEmbedding::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -51,7 +51,8 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 8, to = 9),
         AutoMigration(from = 9, to = 10),
         AutoMigration(from = 10, to = 11),
-        AutoMigration(from = 11, to = 12)
+        AutoMigration(from = 11, to = 12),
+        // Migration 12 to 13 is handled manually in IgnoredAlbumMigration.kt
     ]
 )
 @TypeConverters(Converters::class)

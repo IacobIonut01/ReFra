@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 13,
-    "identityHash": "26ff9ec9cc612eb24d80263f7bb14a7f",
+    "identityHash": "2b64b3e250d8dae20e3cec3ab97553ac",
     "entities": [
       {
         "tableName": "pinned_table",
@@ -24,7 +24,7 @@
       },
       {
         "tableName": "blacklist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT NOT NULL, `wildcard` TEXT, `location` INTEGER NOT NULL DEFAULT 0, `matchedAlbums` TEXT NOT NULL DEFAULT '[]', PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `label` TEXT, `wildcard` TEXT, `albumIds` TEXT NOT NULL DEFAULT '[]', `location` INTEGER NOT NULL DEFAULT 0, `matchedAlbums` TEXT NOT NULL DEFAULT '[]', PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -35,13 +35,19 @@
           {
             "fieldPath": "label",
             "columnName": "label",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "wildcard",
             "columnName": "wildcard",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "albumIds",
+            "columnName": "albumIds",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'[]'"
           },
           {
             "fieldPath": "location",
@@ -732,7 +738,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '26ff9ec9cc612eb24d80263f7bb14a7f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2b64b3e250d8dae20e3cec3ab97553ac')"
     ]
   }
 }

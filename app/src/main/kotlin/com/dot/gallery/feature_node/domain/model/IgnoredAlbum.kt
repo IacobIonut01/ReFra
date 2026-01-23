@@ -14,8 +14,10 @@ import kotlinx.parcelize.Parcelize
 data class IgnoredAlbum(
     @PrimaryKey(autoGenerate = false)
     val id: Long,
-    val label: String,
+    val label: String? = null,
     val wildcard: String? = null,
+    @ColumnInfo(defaultValue = "[]")
+    val albumIds: List<Long> = emptyList(),
     @ColumnInfo(defaultValue = ALBUMS_ONLY.toString())
     val location: Int = ALBUMS_ONLY,
     @ColumnInfo(defaultValue = "[]")
@@ -51,8 +53,16 @@ data class IgnoredAlbum(
         volume: String,
         shouldRemove: Boolean
     ): Boolean {
+        if (!shouldRemove) return false
+        
+        // Check if ID matches directly
         val matchesId = this.id == id
-        if (matchesId) return shouldRemove
+        if (matchesId) return true
+        
+        // Check if ID is in the albumIds list
+        if (albumIds.isNotEmpty() && albumIds.contains(id)) return true
+        
+        // Check regex pattern
         val regex = wildcard?.toRegex()
         return regex?.let {
             path.matches(it) || relativePath.matches(it) || volume.matches(it)
