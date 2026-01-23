@@ -464,6 +464,7 @@ sealed class PreferenceType {
     data object Switch : PreferenceType()
     data object Header : PreferenceType()
     data object Default : PreferenceType()
+    data object Album : PreferenceType()
 }
 
 sealed class SettingsEntity(
@@ -631,5 +632,32 @@ sealed class SettingsEntity(
         seekSuffix = seekSuffix,
         onSeek = onSeek,
         type = PreferenceType.Seek
+    )
+
+    @Stable
+    data class AlbumPreference(
+        override val title: String,
+        override val titleAnnotated: AnnotatedString? = null,
+        override val summary: String? = null,
+        override val summaryAnnotated: AnnotatedString? = null,
+        override val enabled: Boolean = true,
+        override val screenPosition: Position = Position.Alone,
+        override val onClick: (() -> Unit)? = null,
+        val albumUri: Any? = null,
+        val secondaryAlbumUri: Any? = null,
+        val albumLabel: String? = null,
+        val albumCount: Int = 0,
+        val matchedAlbumsCount: Int = 0,
+        val isMultiple: Boolean = false,
+        val isWildcard: Boolean = false,
+    ) : SettingsEntity(
+        title = title,
+        titleAnnotated = titleAnnotated,
+        summary = summary,
+        summaryAnnotated = summaryAnnotated,
+        enabled = enabled,
+        screenPosition = screenPosition,
+        onClick = onClick,
+        type = PreferenceType.Album
     )
 }

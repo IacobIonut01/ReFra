@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2023 IacobIacob01
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package com.dot.gallery.feature_node.presentation.albums
 
 import androidx.activity.result.ActivityResultLauncher
@@ -19,6 +14,7 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.FilterOption
 import com.dot.gallery.feature_node.domain.model.Album
+import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -44,6 +40,30 @@ class AlbumsViewModel @Inject constructor(
 
     val onAlbumLongClick: (Album) -> Unit = { album ->
         toggleAlbumPin(album, !album.isPinned)
+    }
+    
+    fun addAlbumToIgnored(album: Album) {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Get existing ignored albums to generate unique label
+            val existingIgnored = repository.getBlacklistedAlbumsAsync()
+            val existingCount = existingIgnored.count { it.label?.startsWith("Single") == true }
+            
+            var labelNumber = existingCount + 1
+            var generatedLabel = "Single #$labelNumber"
+            while (existingIgnored.any { it.label == generatedLabel }) {
+                labelNumber++
+                generatedLabel = "Single #$labelNumber"
+            }
+            
+            repository.addBlacklistedAlbum(
+                IgnoredAlbum(
+                    id = album.id,
+                    label = generatedLabel,
+                    location = IgnoredAlbum.ALBUMS_AND_TIMELINE,
+                    matchedAlbums = listOf(album.label)
+                )
+            )
+        }
     }
 
     fun moveAlbumToTrash(result: ActivityResultLauncher<IntentSenderRequest>, album: Album) {

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FolderCopy
+import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,16 +55,22 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.PreferenceType
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.PreviewHost
 import com.dot.gallery.feature_node.presentation.util.maybeApply
+import com.dot.gallery.ui.core.Icons as GalleryIcons
+import com.dot.gallery.ui.core.icons.RegularExpression
 import com.github.panpf.sketch.AsyncImage
 import kotlin.math.roundToLong
 
@@ -397,6 +406,422 @@ fun SettingsItem(
                 seekContent()
             }
         }
+    }
+}
+
+/**
+ * A preference item that displays an album thumbnail.
+ * Used for displaying ignored albums with their cover images.
+ */
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun AlbumPreferenceItem(
+    item: SettingsEntity.AlbumPreference,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+) {
+    val mutableInteractionSource = remember { MutableInteractionSource() }
+
+    val isPressed = mutableInteractionSource.collectIsPressedAsState()
+    val isFocused = mutableInteractionSource.collectIsFocusedAsState()
+    val isDragged = mutableInteractionSource.collectIsDraggedAsState()
+    val isHovered = mutableInteractionSource.collectIsHoveredAsState()
+    val isInteracting by rememberedDerivedState {
+        isPressed.value || isFocused.value || isDragged.value || isHovered.value
+    }
+    val fullCornerRadius by animateDpAsState(
+        targetValue = if (isInteracting) 48.dp else 24.dp,
+        label = "fullCornerRadius"
+    )
+    val normalCornerRadius by animateDpAsState(
+        targetValue = if (isInteracting) 48.dp else 8.dp,
+        label = "normalCornerRadius"
+    )
+
+    val shape by rememberedDerivedState(item.screenPosition, fullCornerRadius, normalCornerRadius) {
+        when (item.screenPosition) {
+            Position.Alone -> RoundedCornerShape(fullCornerRadius)
+            Position.Bottom -> RoundedCornerShape(
+                topStart = normalCornerRadius,
+                topEnd = normalCornerRadius,
+                bottomStart = fullCornerRadius,
+                bottomEnd = fullCornerRadius
+            )
+            Position.Middle -> RoundedCornerShape(
+                topStart = normalCornerRadius,
+                topEnd = normalCornerRadius,
+                bottomStart = normalCornerRadius,
+                bottomEnd = normalCornerRadius
+            )
+            Position.Top -> RoundedCornerShape(
+                topStart = fullCornerRadius,
+                topEnd = fullCornerRadius,
+                bottomStart = normalCornerRadius,
+                bottomEnd = normalCornerRadius
+            )
+        }
+    }
+
+    val paddingModifier = when (item.screenPosition) {
+        Position.Alone -> Modifier.padding(bottom = 16.dp)
+        Position.Bottom -> Modifier.padding(top = 1.dp, bottom = 16.dp)
+        Position.Middle -> Modifier.padding(vertical = 1.dp)
+        Position.Top -> Modifier.padding(bottom = 1.dp)
+    }
+
+    val clickableModifier = if (item.onClick != null) {
+        Modifier.clickable(
+            enabled = item.enabled,
+            interactionSource = mutableInteractionSource,
+            indication = LocalIndication.current,
+            onClick = { item.onClick.invoke() }
+        )
+    } else Modifier
+
+    val alpha by animateFloatAsState(
+        targetValue = if (item.enabled) 1f else 0.4f,
+        label = "alpha"
+    )
+
+    Row(
+        modifier = modifier
+            .then(paddingModifier)
+            .padding(horizontal = 16.dp)
+            .clip(shape)
+            .background(color = backgroundColor)
+            .then(clickableModifier)
+            .padding(12.dp)
+            .fillMaxWidth()
+            .alpha(alpha),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Album Thumbnail(s) - Stacked for multiple albums
+        Box(
+            modifier = Modifier.size(56.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (item.isMultiple && item.albumUri != null && item.secondaryAlbumUri != null) {
+                // Stacked thumbnails for multiple albums (paper stack effect)
+                // Back thumbnail (secondary) - offset to top-left with dark scrim
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .offset(x = (-4).dp, y = (-4).dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                ) {
+                    GlideImage(
+                        model = item.secondaryAlbumUri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        requestBuilderTransform = {
+                            it.centerCrop()
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        }
+                    )
+                    // Dark scrim overlay on back thumbnail
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    )
+                }
+                // Front thumbnail (primary) - offset to bottom-right
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .offset(x = 4.dp, y = 4.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                ) {
+                    GlideImage(
+                        model = item.albumUri,
+                        contentDescription = item.albumLabel,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        requestBuilderTransform = {
+                            it.centerCrop()
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        }
+                    )
+                }
+                // +N badge showing total matched albums count
+                if (item.matchedAlbumsCount > 1) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "+${item.matchedAlbumsCount}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            } else {
+                // Single thumbnail or fallback icons
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        item.albumUri != null -> {
+                            GlideImage(
+                                model = item.albumUri,
+                                contentDescription = item.albumLabel,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                                requestBuilderTransform = {
+                                    it.centerCrop()
+                                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                }
+                            )
+                        }
+                        item.isWildcard -> {
+                            Icon(
+                                imageVector = GalleryIcons.RegularExpression,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        else -> {
+                            Icon(
+                                imageVector = Icons.Outlined.PhotoAlbum,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Text content
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = item.titleAnnotated ?: AnnotatedString(item.title),
+                style = MaterialTheme.typography.titleMedium,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (!item.summary.isNullOrEmpty() || item.summaryAnnotated != null) {
+                Text(
+                    modifier = Modifier.padding(top = 2.dp),
+                    text = item.summaryAnnotated ?: AnnotatedString(item.summary ?: ""),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+// ========== AlbumPreferenceItem Previews ==========
+
+@Preview(showBackground = true, name = "Single Album")
+@Composable
+private fun AlbumPreferenceItemSinglePreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "Camera",
+                summary = "DCIM/Camera",
+                albumLabel = "Camera",
+                albumUri = null,
+                isWildcard = false,
+                isMultiple = false,
+                screenPosition = Position.Alone
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Multiple Albums - Stacked")
+@Composable
+private fun AlbumPreferenceItemStackedPreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "Screenshots, Camera, Downloads",
+                summary = "Hidden from albums",
+                albumLabel = "Screenshots",
+                albumUri = null,
+                secondaryAlbumUri = null,
+                isWildcard = false,
+                isMultiple = true,
+                matchedAlbumsCount = 3,
+                screenPosition = Position.Alone
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Regex/Wildcard")
+@Composable
+private fun AlbumPreferenceItemWildcardPreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "^Screenshot.*",
+                summary = "Matches 5 albums",
+                albumLabel = null,
+                albumUri = null,
+                isWildcard = true,
+                isMultiple = false,
+                matchedAlbumsCount = 5,
+                screenPosition = Position.Alone
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Large Badge Count")
+@Composable
+private fun AlbumPreferenceItemLargeBadgePreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "Backup Albums",
+                summary = "Hidden from timeline",
+                albumLabel = "Backup",
+                albumUri = null,
+                secondaryAlbumUri = null,
+                isWildcard = false,
+                isMultiple = true,
+                matchedAlbumsCount = 25,
+                screenPosition = Position.Alone
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Position Top")
+@Composable
+private fun AlbumPreferenceItemTopPositionPreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "First Album",
+                summary = "Top position in list",
+                albumLabel = "First Album",
+                albumUri = null,
+                isWildcard = false,
+                isMultiple = false,
+                screenPosition = Position.Top
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Position Middle")
+@Composable
+private fun AlbumPreferenceItemMiddlePositionPreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "Middle Album",
+                summary = "Middle position in list",
+                albumLabel = "Middle Album",
+                albumUri = null,
+                isWildcard = false,
+                isMultiple = false,
+                screenPosition = Position.Middle
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Position Bottom")
+@Composable
+private fun AlbumPreferenceItemBottomPositionPreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "Last Album",
+                summary = "Bottom position in list",
+                albumLabel = "Last Album",
+                albumUri = null,
+                isWildcard = false,
+                isMultiple = false,
+                screenPosition = Position.Bottom
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Disabled")
+@Composable
+private fun AlbumPreferenceItemDisabledPreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "Disabled Album",
+                summary = "Cannot be clicked",
+                albumLabel = "Disabled",
+                albumUri = null,
+                isWildcard = false,
+                isMultiple = false,
+                screenPosition = Position.Alone,
+                enabled = false
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "No Summary")
+@Composable
+private fun AlbumPreferenceItemNoSummaryPreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "Album Without Summary",
+                summary = null,
+                albumLabel = "Plain Album",
+                albumUri = null,
+                isWildcard = false,
+                isMultiple = false,
+                screenPosition = Position.Alone
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Long Title")
+@Composable
+private fun AlbumPreferenceItemLongTitlePreview() {
+    PreviewHost {
+        AlbumPreferenceItem(
+            item = SettingsEntity.AlbumPreference(
+                title = "This Is A Very Long Album Name That Should Be Truncated",
+                summary = "Pictures/Very Long Folder Name/Subfolder",
+                albumLabel = "Long Name Album",
+                albumUri = null,
+                isWildcard = false,
+                isMultiple = false,
+                screenPosition = Position.Alone
+            )
+        )
     }
 }
 

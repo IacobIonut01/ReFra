@@ -83,6 +83,10 @@ fun LazyGridScope.settings(
                     screenPosition = position
                 )
 
+                is SettingsEntity.AlbumPreference -> item.copy(
+                    screenPosition = position
+                )
+
                 else -> item
             }
         }
@@ -151,6 +155,10 @@ fun LazyListScope.settings(
                 )
 
                 is SettingsEntity.SeekPreference -> item.copy(
+                    screenPosition = position
+                )
+
+                is SettingsEntity.AlbumPreference -> item.copy(
                     screenPosition = position
                 )
 
@@ -458,6 +466,34 @@ class SettingsOptionsScope {
             isChecked = isChecked,
             onCheck = onCheck,
             enabled = enabled
+        )
+    }
+
+    fun AlbumPreference(
+        title: String,
+        summary: String? = null,
+        albumUri: Any? = null,
+        secondaryAlbumUri: Any? = null,
+        albumLabel: String? = null,
+        albumCount: Int = 0,
+        matchedAlbumsCount: Int = 0,
+        isMultiple: Boolean = false,
+        isWildcard: Boolean = false,
+        enabled: Boolean = true,
+        onClick: (() -> Unit)? = null
+    ) {
+        items += SettingsEntity.AlbumPreference(
+            title = title,
+            summary = summary,
+            albumUri = albumUri,
+            secondaryAlbumUri = secondaryAlbumUri,
+            albumLabel = albumLabel,
+            albumCount = albumCount,
+            matchedAlbumsCount = matchedAlbumsCount,
+            isMultiple = isMultiple,
+            isWildcard = isWildcard,
+            enabled = enabled,
+            onClick = onClick
         )
     }
 

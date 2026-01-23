@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.SdCard
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -154,7 +155,7 @@ fun AlbumComponent(
                 )
             )
         }
-        val optionList = remember {
+        val optionList = remember(onMoveAlbumToTrash, onTogglePinClick, onToggleIgnoreClick) {
             mutableListOf(
                 OptionItem(
                     icon = Icons.Outlined.Delete,
@@ -189,7 +190,22 @@ fun AlbumComponent(
                     contentColor = onTertiaryContainer,
                     onClick = { isSelectingThumbnail = true }
                 ),
-            )
+            ).apply {
+                if (onToggleIgnoreClick != null) {
+                    add(
+                        OptionItem(
+                            icon = Icons.Outlined.VisibilityOff,
+                            text = ignoredTitle,
+                            onClick = {
+                                scope.launch {
+                                    appBottomSheetState.hide()
+                                    onToggleIgnoreClick(album)
+                                }
+                            }
+                        )
+                    )
+                }
+            }
         }
         val deleteThumbnailTitle = stringResource(R.string.delete_thumbnail)
         LaunchedEffect(onDeleteAlbumThumbnailClick) {
@@ -207,23 +223,8 @@ fun AlbumComponent(
                 )
             }
         }
-        LaunchedEffect(onToggleIgnoreClick) {
-            if (onToggleIgnoreClick != null) {
-                optionList.add(
-                    OptionItem(
-                        text = ignoredTitle,
-                        onClick = {
-                            scope.launch {
-                                appBottomSheetState.hide()
-                                onToggleIgnoreClick(album)
-                            }
-                        }
-                    )
-                )
-            }
-        }
 
-        val options = remember(isSelectingThumbnail) {
+        val options = remember(isSelectingThumbnail, optionList) {
             (if (isSelectingThumbnail) {
                 changeThumbnailOptions
             } else {
@@ -375,7 +376,7 @@ fun AlbumRowComponent(
             val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
             val primaryContainer = MaterialTheme.colorScheme.primaryContainer
             val onPrimaryContainer = MaterialTheme.colorScheme.onPrimaryContainer
-            val optionList = remember {
+            val optionList = remember(onMoveAlbumToTrash, onTogglePinClick, onToggleIgnoreClick) {
                 mutableStateListOf(
                     OptionItem(
                         text = trashTitle,
@@ -400,21 +401,21 @@ fun AlbumRowComponent(
                             }
                         }
                     )
-                )
-            }
-            LaunchedEffect(onToggleIgnoreClick) {
-                if (onToggleIgnoreClick != null) {
-                    optionList.add(
-                        OptionItem(
-                            text = ignoredTitle,
-                            onClick = {
-                                scope.launch {
-                                    appBottomSheetState.hide()
-                                    onToggleIgnoreClick(album)
+                ).apply {
+                    if (onToggleIgnoreClick != null) {
+                        add(
+                            OptionItem(
+                                icon = Icons.Outlined.VisibilityOff,
+                                text = ignoredTitle,
+                                onClick = {
+                                    scope.launch {
+                                        appBottomSheetState.hide()
+                                        onToggleIgnoreClick(album)
+                                    }
                                 }
-                            }
+                            )
                         )
-                    )
+                    }
                 }
             }
 

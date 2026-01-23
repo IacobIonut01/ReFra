@@ -21,6 +21,7 @@ import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.MediaSelectorImpl
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import com.dot.gallery.feature_node.data.data_source.migration.MIGRATION_12_13
 import com.dot.gallery.feature_node.data.repository.MediaRepositoryImpl
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.EventHandler
@@ -50,6 +51,7 @@ object AppModule {
     @Singleton
     fun provideDatabase(app: Application): InternalDatabase =
         Room.databaseBuilder(app, InternalDatabase::class.java, InternalDatabase.NAME)
+            .addMigrations(MIGRATION_12_13)
             .fallbackToDestructiveMigrationOnDowngrade(true)
             .fallbackToDestructiveMigration(false)
             .build()

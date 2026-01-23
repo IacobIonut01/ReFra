@@ -44,7 +44,6 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.albumCellsList
-import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
@@ -74,16 +73,15 @@ import kotlinx.coroutines.Dispatchers
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun AlbumsScreen(
-    paddingValues: PaddingValues,
     filterOptions: SnapshotStateList<FilterOption>,
     isScrolling: MutableState<Boolean>,
     onAlbumClick: (Album) -> Unit,
     onAlbumLongClick: (Album) -> Unit,
     onMoveAlbumToTrash: (ActivityResultLauncher<IntentSenderRequest>, Album) -> Unit,
+    onIgnoreAlbum: (Album) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
-    val eventHandler = LocalEventHandler.current
     val distributor = LocalMediaDistributor.current
     val mediaState = distributor.timelineMediaFlow.collectAsStateWithLifecycle(
         context = Dispatchers.IO,
@@ -212,7 +210,8 @@ fun AlbumsScreen(
                                         onTogglePinClick = onAlbumLongClick,
                                         onMoveAlbumToTrash = {
                                             onMoveAlbumToTrash(trashResult, it)
-                                        }
+                                        },
+                                        onToggleIgnoreClick = onIgnoreAlbum
                                     )
                                 }
                             }
@@ -346,6 +345,7 @@ fun AlbumsScreen(
                                     album = item,
                                     onItemClick = onAlbumClick,
                                     onTogglePinClick = onAlbumLongClick,
+                                    onToggleIgnoreClick = onIgnoreAlbum,
                                     onMoveAlbumToTrash = {
                                         onMoveAlbumToTrash(trashResult, it)
                                     }

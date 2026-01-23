@@ -42,4 +42,10 @@ object Converters {
 
     @TypeConverter
     fun toFloatArray(value: String): FloatArray = Json.decodeFromString(value)
+
+    @TypeConverter
+    fun fromLongList(list: List<Long>?): String = Json.encodeToString(list ?: emptyList())
+
+    @TypeConverter
+    fun toLongList(value: String?): List<Long> = Json.decodeFromString(value ?: "[]")
 }

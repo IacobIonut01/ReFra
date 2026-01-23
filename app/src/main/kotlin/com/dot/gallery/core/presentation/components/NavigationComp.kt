@@ -56,7 +56,6 @@ import com.dot.gallery.feature_node.presentation.classifier.CategoryViewScreen
 import com.dot.gallery.feature_node.presentation.dateformat.DateFormatScreen
 import com.dot.gallery.feature_node.presentation.favorites.FavoriteScreen
 import com.dot.gallery.feature_node.presentation.ignored.IgnoredScreen
-import com.dot.gallery.feature_node.presentation.ignored.setup.IgnoredSetup
 import com.dot.gallery.feature_node.presentation.library.LibraryScreen
 import com.dot.gallery.feature_node.presentation.location.LocationTimelineScreen
 import com.dot.gallery.feature_node.presentation.location.LocationsViewModel
@@ -226,12 +225,12 @@ fun NavigationComp(
             ) {
                 val albumsViewModel = hiltViewModel<AlbumsViewModel>()
                 AlbumsScreen(
-                    paddingValues = paddingValues,
                     isScrolling = isScrolling,
                     onAlbumClick = albumsViewModel.onAlbumClick(eventHandler::navigate),
                     onAlbumLongClick = albumsViewModel.onAlbumLongClick,
                     filterOptions = albumsViewModel.rememberFilters(),
                     onMoveAlbumToTrash = albumsViewModel::moveAlbumToTrash,
+                    onIgnoreAlbum = albumsViewModel::addAlbumToIgnored,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -384,17 +383,7 @@ fun NavigationComp(
                 route = Screen.IgnoredScreen()
             ) {
                 IgnoredScreen(
-                    startSetup = { eventHandler.navigate(Screen.IgnoredSetupScreen()) },
                     albumsState = albumsState
-                )
-            }
-
-            composable(
-                route = Screen.IgnoredSetupScreen()
-            ) {
-                IgnoredSetup(
-                    onCancel = eventHandler::navigateUp,
-                    albumState = albumsState
                 )
             }
 
