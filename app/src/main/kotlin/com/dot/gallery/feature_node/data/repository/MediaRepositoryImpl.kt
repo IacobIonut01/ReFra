@@ -28,6 +28,7 @@ import com.dot.gallery.core.util.ext.mapAsResource
 import com.dot.gallery.core.util.ext.overrideImage
 import com.dot.gallery.core.util.ext.renameMedia
 import com.dot.gallery.core.util.ext.saveImage
+import com.dot.gallery.core.util.ext.saveRawImage
 import com.dot.gallery.core.util.ext.saveVideo
 import com.dot.gallery.core.util.ext.updateImageDescription
 import com.dot.gallery.core.util.ext.updateMedia
@@ -61,6 +62,7 @@ import com.dot.gallery.feature_node.domain.util.compatibleBitmapFormat
 import com.dot.gallery.feature_node.domain.util.compatibleMimeType
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.domain.util.isRawFile
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.migrate
 import com.dot.gallery.feature_node.domain.util.toEncryptedMedia
@@ -510,7 +512,16 @@ class MediaRepositoryImpl(
                     val output = vault.mediaFile(media.id)
                     val encryptedMedia = output.decryptKotlin<EncryptedMedia>()
                     val restored: Boolean
-                    if (media.isImage) {
+                    if (media.isRawFile) {
+                        // Raw formats (GIF, WebP, etc.) must be written as raw bytes
+                        // to preserve animation and avoid quality loss
+                        restored = contentResolver.saveRawImage(
+                            data = encryptedMedia.bytes,
+                            displayName = media.label,
+                            mimeType = media.mimeType,
+                            relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                        ) != null
+                    } else if (media.isImage) {
                         restored = saveImage(
                             bitmap = BitmapFactory.decodeByteArray(
                                 encryptedMedia.bytes,
