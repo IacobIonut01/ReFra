@@ -21,24 +21,27 @@ class CopyMediaViewModel @Inject constructor(
     private val workInfosFlow = workManager.getWorkInfosByTagFlow("MediaCopyWorker")
 
     val isActive: StateFlow<Boolean> = workInfosFlow
-        .map { list -> list.any { it.state == WorkInfo.State.RUNNING } }
+        .map { list -> list.any { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     val progress: StateFlow<Float> = workInfosFlow
         .map { list ->
-            val relevant = list.filter { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED || it.state.isFinished }
-            if (relevant.isEmpty()) return@map 0f
-            val progressValues = relevant.map { it.progress.getInt("progress", 0) }
+            // Only consider work that is currently running or enqueued
+            val activeWork = list.filter { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }
+            
+            // If no active work, return 0 to show the album selection UI
+            if (activeWork.isEmpty()) return@map 0f
+            
+            val progressValues = activeWork.map { it.progress.getInt("progress", 0) }
             val avg = if (progressValues.isNotEmpty()) progressValues.sum() / progressValues.size else 0
-            val pct = avg.coerceIn(0, 100)
-            // If all finished and at least one had progress, force 100%
-            val allFinished = relevant.all { it.state.isFinished }
-            if (allFinished) 1f else pct / 100f
+            avg.coerceIn(0, 100) / 100f
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0f)
 
     fun <T: Media> enqueueCopy(vararg sets: Pair<T, String>, onStarted: () -> Unit = {}) {
         if (sets.isEmpty()) return
+        // Prune old finished work before starting new work
+        workManager.pruneWork()
         workManager.copyMedia(*sets)
         onStarted()
     }
