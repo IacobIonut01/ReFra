@@ -58,4 +58,40 @@ interface MetadataDao {
     @Transaction
     @Query("SELECT * FROM media_metadata_core WHERE mediaId = :id")
     fun getFullMetadata(id: Long): Flow<FullMediaMetadata>
+
+    @Query("SELECT * FROM media_metadata_core WHERE mediaId = :id")
+    suspend fun getCoreMetadata(id: Long): MediaMetadataCore?
+
+    @Query("UPDATE media_metadata_core SET imageDescription = :description WHERE mediaId = :mediaId")
+    suspend fun updateImageDescription(mediaId: Long, description: String)
+
+    @Transaction
+    suspend fun upsertImageDescription(mediaId: Long, description: String, imageWidth: Int, imageHeight: Int) {
+        val existing = getCoreMetadata(mediaId)
+        if (existing != null) {
+            updateImageDescription(mediaId, description)
+        } else {
+            // Create minimal core entry with just the description
+            upsertCore(MediaMetadataCore(
+                mediaId = mediaId,
+                imageDescription = description,
+                dateTimeOriginal = null,
+                manufacturerName = null,
+                modelName = null,
+                aperture = null,
+                exposureTime = null,
+                iso = null,
+                gpsLatitude = null,
+                gpsLongitude = null,
+                gpsLocationName = null,
+                gpsLocationNameCountry = null,
+                gpsLocationNameCity = null,
+                imageWidth = imageWidth,
+                imageHeight = imageHeight,
+                imageResolutionX = null,
+                imageResolutionY = null,
+                resolutionUnit = null
+            ))
+        }
+    }
 }

@@ -113,10 +113,10 @@ class MediaHandlerImpl @Inject constructor(
         media: T
     ): Boolean = repository.deleteMediaGPSMetadata(media)
 
-    override suspend fun <T : Media> updateMediaImageDescription(
+    override suspend fun <T : Media> updateMediaDescription(
         media: T,
         description: String
-    ): Boolean = repository.updateMediaImageDescription(media, description)
+    ): Boolean = repository.updateMediaDescription(media, description)
 
     override suspend fun saveImage(
         bitmap: Bitmap,

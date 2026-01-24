@@ -123,6 +123,7 @@
     <string name="remove_metadata">Remove Metadata</string>
     <string name="remove_location">Remove Location</string>
     <string name="description">Description</string>
+    <string name="video_description_local_only">Video descriptions are stored locally and won\'t be written to the file</string>
     <string name="move_to_another_album">Move to another album</string>
     <string name="move">Move</string>
     <string name="some_permissions_are_not_granted">Some permissions are not granted!</string>

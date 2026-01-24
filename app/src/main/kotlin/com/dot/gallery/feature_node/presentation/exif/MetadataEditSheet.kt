@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.exif
 
 import android.media.MediaScannerConnection
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,9 +13,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -39,7 +43,6 @@ import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
-import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.printDebug
@@ -70,7 +73,7 @@ fun <T: Media> MetadataEditSheet(
         scope.launch {
             var done: Boolean
             printDebug("Updating media image description to $imageDescription")
-            done = handler.updateMediaImageDescription(media, imageDescription ?: "")
+            done = handler.updateMediaDescription(media, imageDescription ?: "")
             printDebug("Updated : $done")
             if (newLabel != media.label && newLabel.isNotBlank()) {
                 done = handler.renameMedia(media, newLabel)
@@ -108,8 +111,7 @@ fun <T: Media> MetadataEditSheet(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = if (media.isVideo) stringResource(R.string.update_file_name)
-                    else stringResource(R.string.edit_metadata),
+                    text = stringResource(R.string.edit_metadata),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge,
@@ -139,29 +141,47 @@ fun <T: Media> MetadataEditSheet(
                     )
                 )
 
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = media.isImage
-                ) {
-                    TextField(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxWidth()
-                            .height(112.dp),
-                        value = imageDescription ?: "",
-                        onValueChange = { newValue ->
-                            imageDescription = newValue
-                        },
-                        label = {
-                            Text(text = stringResource(R.string.description))
-                        },
-                        shape = Shapes.large,
-                        colors = TextFieldDefaults.colors(
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            errorIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent
-                        )
+                TextField(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                        .height(112.dp),
+                    value = imageDescription ?: "",
+                    onValueChange = { newValue ->
+                        imageDescription = newValue
+                    },
+                    label = {
+                        Text(text = stringResource(R.string.description))
+                    },
+                    shape = Shapes.large,
+                    colors = TextFieldDefaults.colors(
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent
                     )
+                )
+
+                // Show info message for videos that description is stored locally only
+                AnimatedVisibility(visible = media.isVideo) {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.video_description_local_only),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 Row(

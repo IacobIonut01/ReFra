@@ -108,7 +108,7 @@ interface MediaRepository {
 
     suspend fun <T: Media> deleteMediaGPSMetadata(media: T): Boolean
 
-    suspend fun <T: Media> updateMediaImageDescription(
+    suspend fun <T: Media> updateMediaDescription(
         media: T,
         description: String
     ): Boolean
