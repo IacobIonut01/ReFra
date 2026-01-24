@@ -24,6 +24,11 @@ sealed class MediaOrder(open val orderType: OrderType) {
         override val orderType: OrderType
     ) : MediaOrder(orderType)
 
+    @Serializable
+    data class DateModified(
+        @SerialName("orderType_date_modified")
+        override val orderType: OrderType
+    ) : MediaOrder(orderType)
 
     @Serializable
     data class Expiry(
@@ -36,6 +41,7 @@ sealed class MediaOrder(open val orderType: OrderType) {
             OrderType.Ascending -> {
                 when (this) {
                     is Date -> media.sortedBy { it.definedTimestamp }
+                    is DateModified -> media.sortedBy { it.timestamp }
                     is Label -> media.sortedBy { it.label.lowercase() }
                     is Expiry -> media.sortedBy { it.expiryTimestamp ?: it.definedTimestamp }
                 }
@@ -44,6 +50,7 @@ sealed class MediaOrder(open val orderType: OrderType) {
             OrderType.Descending -> {
                 when (this) {
                     is Date -> media.sortedByDescending { it.definedTimestamp }
+                    is DateModified -> media.sortedByDescending { it.timestamp }
                     is Label -> media.sortedByDescending { it.label.lowercase() }
                     is Expiry -> media.sortedByDescending { it.expiryTimestamp ?: it.definedTimestamp }
                 }
@@ -56,6 +63,7 @@ sealed class MediaOrder(open val orderType: OrderType) {
             OrderType.Ascending -> {
                 when (this) {
                     is Date -> albums.sortedBy { it.timestamp }
+                    is DateModified -> albums.sortedBy { it.timestamp }
                     is Label -> albums.sortedBy { it.label.lowercase() }
                     else -> albums
                 }
@@ -64,6 +72,7 @@ sealed class MediaOrder(open val orderType: OrderType) {
             OrderType.Descending -> {
                 when (this) {
                     is Date -> albums.sortedByDescending { it.timestamp }
+                    is DateModified -> albums.sortedByDescending { it.timestamp }
                     is Label -> albums.sortedByDescending { it.label.lowercase() }
                     else -> albums
                 }

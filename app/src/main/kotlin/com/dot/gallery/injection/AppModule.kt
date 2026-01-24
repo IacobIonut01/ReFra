@@ -73,10 +73,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideMediaDistributor(
+        @ApplicationContext context: Context,
         workManager: WorkManager,
         repository: MediaRepository,
         eventHandler: EventHandler
-    ): MediaDistributor = MediaDistributorImpl(repository, eventHandler, workManager)
+    ): MediaDistributor = MediaDistributorImpl(context, repository, eventHandler, workManager)
 
     @Provides
     @Singleton

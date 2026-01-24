@@ -42,6 +42,7 @@ import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.Settings.Album.rememberAlbumMediaSort
 import com.dot.gallery.core.Settings.Album.rememberHideTimelineOnAlbum
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.navigate
@@ -51,6 +52,7 @@ import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
+import com.dot.gallery.feature_node.presentation.albumtimeline.components.AlbumSortDropdown
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
@@ -80,9 +82,15 @@ fun AlbumTimelineScreen(
     var canScroll by rememberSaveable { mutableStateOf(true) }
     var lastCellIndex by rememberGridSize()
     val eventHandler = LocalEventHandler.current
-    val mediaState = rememberedDerivedState(allAlbumsMediaState.value) { allAlbumsMediaState.value[albumId] ?: MediaState() }
+    val baseMediaState = rememberedDerivedState(allAlbumsMediaState.value) { allAlbumsMediaState.value[albumId] ?: MediaState() }
     val selector = LocalMediaSelector.current
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
+
+    // Sort preferences - saved to DataStore, read by MediaDistributor
+    var albumMediaSort by rememberAlbumMediaSort()
+
+    // Media state is already sorted by MediaDistributor based on albumMediaSort
+    val mediaState = baseMediaState
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = rememberTopAppBarState(),
@@ -134,7 +142,12 @@ fun AlbumTimelineScreen(
                         )
                     },
                     actions = {
-
+                        AlbumSortDropdown(
+                            currentSort = albumMediaSort,
+                            onSortChange = { newSort ->
+                                albumMediaSort = newSort
+                            }
+                        )
                     },
                     scrollBehavior = scrollBehavior,
                     colors = TopAppBarDefaults.topAppBarColors(

@@ -1,11 +1,13 @@
 package com.dot.gallery.core
 
+import android.content.Context
 import androidx.compose.runtime.compositionLocalOf
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.dot.gallery.core.Settings.Misc.DEFAULT_DATE_FORMAT
 import com.dot.gallery.core.Settings.Misc.EXTENDED_DATE_FORMAT
 import com.dot.gallery.core.Settings.Misc.WEEKLY_DATE_FORMAT
+import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
@@ -26,6 +28,7 @@ import com.dot.gallery.feature_node.domain.util.mapPinned
 import com.dot.gallery.feature_node.domain.util.removeBlacklisted
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.dot.gallery.feature_node.presentation.util.mediaFlow
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,6 +56,7 @@ val LocalMediaDistributor = compositionLocalOf<MediaDistributor> {
 
 @Singleton
 class MediaDistributorImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: MediaRepository,
     private val eventHandler: EventHandler,
     workManager: WorkManager
@@ -62,6 +66,13 @@ class MediaDistributorImpl @Inject constructor(
     private val prioritySharingMethod = SharingStarted.Eagerly
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * Album Media Sort preference flow
+     */
+    private val albumMediaSortFlow: StateFlow<Settings.Album.LastSort> = 
+        Settings.Album.getAlbumMediaSortFlow(context)
+            .stateIn(appScope, SharingStarted.Eagerly, Settings.Album.LastSort(OrderType.Descending, FilterKind.DATE))
 
     /**
      * Common
@@ -199,13 +210,24 @@ class MediaDistributorImpl @Inject constructor(
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    @Suppress("UNCHECKED_CAST")
     private fun mediaFlow(albumId: Long, target: String?) = combine(
         repository.mediaFlow(albumId, target),
         settingsFlow,
         blacklistedAlbumsFlow,
         dateFormatsFlow,
-        hasPermission
-    ) { result, settings, blacklistedAlbums, (defaultDateFormat, extendedDateFormat, weeklyDateFormat), hasPermission ->
+        hasPermission,
+        albumMediaSortFlow
+    ) { values ->
+        val result = values[0] as Resource<List<Media.UriMedia>>
+        val settings = values[1] as TimelineSettings?
+        val blacklistedAlbums = values[2] as List<IgnoredAlbum>
+        val dateFormats = values[3] as Triple<String, String, String>
+        val hasPermission = values[4] as Boolean
+        val albumSort = values[5] as Settings.Album.LastSort
+        
+        val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
+        
         if (!hasPermission) return@combine MediaState(
             error = "No permission to access media",
             isLoading = false
@@ -214,7 +236,16 @@ class MediaDistributorImpl @Inject constructor(
             error = result.message ?: "",
             isLoading = false
         )
-        val sorter = MediaOrder.Default
+        // Use custom sort for album timelines, default sort for favorites/trash
+        val sorter = if (target == null && albumId > 0) {
+            when (albumSort.kind) {
+                FilterKind.DATE -> MediaOrder.Date(albumSort.orderType)
+                FilterKind.DATE_MODIFIED -> MediaOrder.DateModified(albumSort.orderType)
+                FilterKind.NAME -> MediaOrder.Label(albumSort.orderType)
+            }
+        } else {
+            MediaOrder.Default
+        }
         val data = (result.data ?: emptyList()).toMutableList().apply {
             removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media, albumId) } }
         }

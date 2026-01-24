@@ -151,5 +151,5 @@ data class FilterOption(
 )
 
 enum class FilterKind {
-    DATE, NAME
+    DATE, DATE_MODIFIED, NAME
 }
