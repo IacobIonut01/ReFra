@@ -411,15 +411,13 @@ fun <T : Media> MediaViewScreen(
                     snapPositionalThreshold = 0.3f
                 ),
                 key = { index ->
-                    mediaState.value.media.getOrNull(index) ?: "empty"
+                    mediaState.value.media.getOrNull(index)?.id ?: "empty_$index"
                 },
                 pageSpacing = 16.dp,
                 beyondViewportPageCount = 0
             ) { index ->
-                val media by rememberedDerivedState(mediaState.value) {
-                    mediaState.value.media.getOrNull(
-                        index
-                    )
+                val media by rememberedDerivedState(mediaState.value, index) {
+                    mediaState.value.media.getOrNull(index)
                 }
                 val canPlay = rememberSaveable(media) { mutableStateOf(false) }
                 var canAnimateContent by rememberSaveable(media) { mutableStateOf(true) }
