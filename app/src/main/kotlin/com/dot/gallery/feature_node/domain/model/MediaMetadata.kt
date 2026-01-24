@@ -352,6 +352,20 @@ suspend fun Context.retrieveExtraMediaMetadata(geocoder: Geocoder?, media: Media
                         }
                     }
                 }
+
+                // Fallback: if dimensions still not found, use BitmapFactory
+                if (imgW == 0 || imgH == 0) {
+                    contentResolver.openInputStream(uri)?.use { fallbackStream ->
+                        val options = android.graphics.BitmapFactory.Options().apply {
+                            inJustDecodeBounds = true
+                        }
+                        android.graphics.BitmapFactory.decodeStream(fallbackStream, null, options)
+                        if (options.outWidth > 0 && options.outHeight > 0) {
+                            imgW = options.outWidth
+                            imgH = options.outHeight
+                        }
+                    }
+                }
             } else if (media.isVideo) {
                 val retriever = MediaMetadataRetriever().apply {
                     setDataSource(applicationContext, uri)
