@@ -21,9 +21,21 @@ import com.github.panpf.sketch.source.FileDataSource
 import com.github.panpf.sketch.util.Rect
 
 fun ComponentRegistry.Builder.supportVaultDecoder(): ComponentRegistry.Builder = apply {
+    addDecoder(EncryptedRawImageDecoder.Factory())
     addDecoder(EncryptedBitmapFactoryDecoder.Factory())
     addDecoder(EncryptedVideoFrameDecoder.Factory())
 }
+
+/**
+ * Raw image formats that need special handling for animation or quality preservation.
+ * These are handled by EncryptedRawImageDecoder instead of EncryptedBitmapFactoryDecoder.
+ */
+private val RAW_IMAGE_MIME_TYPES = listOf(
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+    "image/bmp"
+)
 
 open class EncryptedBitmapFactoryDecoder(
     requestContext: RequestContext,
@@ -45,6 +57,8 @@ open class EncryptedBitmapFactoryDecoder(
             val mimeType = requestContext.request.extras?.get("realMimeType") as String? ?: return null
             val dataSource = fetchResult.dataSource as? FileDataSource ?: return null
             val path = dataSource.getFile().path
+            // Don't handle raw image formats - let EncryptedRawImageDecoder handle them for animation support
+            if (mimeType in RAW_IMAGE_MIME_TYPES) return null
             return if (path.toString().contains(BuildConfig.APPLICATION_ID) && mimeType.startsWith("image"))
                 EncryptedBitmapFactoryDecoder(requestContext, dataSource)
             else null

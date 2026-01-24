@@ -26,6 +26,7 @@ import com.github.panpf.sketch.cache.DiskCache
 import com.github.panpf.sketch.cache.MemoryCache
 import com.github.panpf.sketch.decode.supportAnimatedHeif
 import com.github.panpf.sketch.decode.supportAnimatedWebp
+import com.github.panpf.sketch.decode.supportGif
 import com.github.panpf.sketch.decode.supportSvg
 import com.github.panpf.sketch.request.ImageOptions
 import com.github.panpf.sketch.request.saveCellularTraffic
@@ -43,6 +44,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
         components {
             supportPauseLoadWhenScrolling()
             supportSvg()
+            supportGif()
             supportVideoFrame2()
             supportAnimatedWebp()
             supportAnimatedHeif()
