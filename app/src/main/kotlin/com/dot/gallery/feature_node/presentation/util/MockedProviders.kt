@@ -110,7 +110,7 @@ class MockedMediaHandler: MediaHandler {
         media: T
     ): Boolean = false
 
-    override suspend fun <T : Media> updateMediaImageDescription(
+    override suspend fun <T : Media> updateMediaDescription(
         media: T,
         description: String
     ): Boolean = false

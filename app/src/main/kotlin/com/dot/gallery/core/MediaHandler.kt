@@ -45,7 +45,7 @@ interface MediaHandler {
 
     suspend fun <T: Media> deleteMediaGPSMetadata(media: T): Boolean
 
-    suspend fun <T: Media> updateMediaImageDescription(media: T, description: String): Boolean
+    suspend fun <T: Media> updateMediaDescription(media: T, description: String): Boolean
 
     suspend fun saveImage(
         bitmap: Bitmap,

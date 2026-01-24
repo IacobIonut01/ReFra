@@ -61,6 +61,7 @@ import com.dot.gallery.feature_node.domain.util.compatibleBitmapFormat
 import com.dot.gallery.feature_node.domain.util.compatibleMimeType
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.migrate
 import com.dot.gallery.feature_node.domain.util.toEncryptedMedia
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
@@ -332,18 +333,40 @@ class MediaRepositoryImpl(
             }
         )
 
-    override suspend fun <T : Media> updateMediaImageDescription(
+    override suspend fun <T : Media> updateMediaDescription(
         media: T,
         description: String
-    ): Boolean = context.updateMediaExif(
-        media = media,
-        action = { updateImageDescription(description) },
-        postAction = {
-            context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
-                database.getMetadataDao().addMetadata(metadata)
+    ): Boolean {
+        return if (media.isVideo) {
+            // For videos, store description in the local database only
+            // Video files don't support EXIF metadata like images do
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    database.getMetadataDao().upsertImageDescription(
+                        mediaId = media.id,
+                        description = description,
+                        imageWidth = 0,
+                        imageHeight = 0
+                    )
+                    true
+                }.getOrElse {
+                    printWarning("Failed to update video description in database: ${it.message}")
+                    false
+                }
             }
+        } else {
+            // For images, update EXIF metadata in the file
+            context.updateMediaExif(
+                media = media,
+                action = { updateImageDescription(description) },
+                postAction = {
+                    context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
+                        database.getMetadataDao().addMetadata(metadata)
+                    }
+                }
+            )
         }
-    )
+    }
 
     override suspend fun saveImage(
         bitmap: Bitmap,
