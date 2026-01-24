@@ -216,7 +216,7 @@ class MediaDistributorImpl @Inject constructor(
         )
         val sorter = MediaOrder.Default
         val data = (result.data ?: emptyList()).toMutableList().apply {
-            removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media) } }
+            removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media, albumId) } }
         }
         mapMediaToItem(
             data = sorter.sortMedia(data),
