@@ -46,6 +46,7 @@ import com.dot.gallery.feature_node.domain.util.OrderType
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -61,6 +62,7 @@ object Settings {
     object Album {
         private val LAST_SORT = stringPreferencesKey("album_last_sort_obj")
         private val LAST_VIEW = stringPreferencesKey("album_last_view_obj")
+        private val ALBUM_MEDIA_SORT = stringPreferencesKey("album_media_sort_obj")
 
         @Serializable
         @Parcelize
@@ -75,10 +77,24 @@ object Settings {
             GRID, LIST
         }
 
+        fun getAlbumMediaSortFlow(context: Context): Flow<LastSort> =
+            context.dataStore.data.map { prefs ->
+                prefs[ALBUM_MEDIA_SORT]?.let {
+                    runCatching { Json.decodeFromString<LastSort>(it) }.getOrNull()
+                } ?: LastSort(OrderType.Descending, FilterKind.DATE)
+            }
+
         @Composable
         fun rememberLastSort() =
             rememberPreferenceSerializable(
                 keyString = LAST_SORT,
+                defaultValue = LastSort(OrderType.Descending, FilterKind.DATE)
+            )
+
+        @Composable
+        fun rememberAlbumMediaSort() =
+            rememberPreferenceSerializable(
+                keyString = ALBUM_MEDIA_SORT,
                 defaultValue = LastSort(OrderType.Descending, FilterKind.DATE)
             )
 

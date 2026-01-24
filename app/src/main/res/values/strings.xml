@@ -268,6 +268,12 @@
     <string name="created">Created</string>
     <string name="filter_type_date">Date</string>
     <string name="filter_type_name">Name</string>
+    <string name="sort">Sort</string>
+    <string name="sort_by_date_taken">Date taken</string>
+    <string name="sort_by_date_modified">Date modified</string>
+    <string name="sort_by_file_name">File name</string>
+    <string name="sort_ascending">Ascending</string>
+    <string name="sort_descending">Descending</string>
     <string name="images_videos"><![CDATA[%1$s Images & Videos]]></string>
     <string name="auto_hide_searchbar">Hide search bar on scroll</string>
     <string name="auto_hide_searchbar_summary">Automatically hide the search bar or the top bar of the screen while scrolling</string>

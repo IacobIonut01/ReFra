@@ -107,6 +107,7 @@ fun AlbumsScreen(
         selectedFilter.onClick(
             when (selectedFilter.filterKind) {
                 FilterKind.DATE -> MediaOrder.Date(lastSort.orderType)
+                FilterKind.DATE_MODIFIED -> MediaOrder.DateModified(lastSort.orderType)
                 FilterKind.NAME -> MediaOrder.Label(lastSort.orderType)
             }
         )
