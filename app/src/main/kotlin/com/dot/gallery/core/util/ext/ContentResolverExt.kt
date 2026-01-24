@@ -226,6 +226,31 @@ suspend fun ContentResolver.saveVideo(
     out.write(data)
 }
 
+/**
+ * Saves raw image bytes without bitmap conversion.
+ * Use this for formats like GIF, WebP that would lose animation/quality if converted.
+ */
+suspend fun ContentResolver.saveRawImage(
+    data: ByteArray,
+    mimeType: String,
+    relativePath: String = Environment.DIRECTORY_PICTURES,
+    displayName: String
+): Uri? = performInsertWrite(
+    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+        put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+        put(
+            MediaStore.MediaColumns.RELATIVE_PATH,
+            if (relativePath.contains("DCIM") || relativePath.contains("Pictures"))
+                relativePath
+            else Environment.DIRECTORY_PICTURES + "/Restored"
+        )
+    }
+) { out ->
+    out.write(data)
+}
+
 private suspend fun ContentResolver.performInsertWrite(
     baseUri: Uri,
     values: ContentValues,
