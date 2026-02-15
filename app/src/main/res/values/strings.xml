@@ -111,11 +111,11 @@
     <string name="dialog_to_trash">Moving to Trash</string>
     <string name="dialog_delete">Deleting Permanently</string>
     <string name="s_items">%1$s items</string>
-    <string name="trashing_items">Trashing %1$s items..</string>
+    <string name="trashing_items">Trashing %1$s items...</string>
     <string name="deleting_items">Deleting %1$s items...</string>
     <string name="long_press_to_remove">Long press to remove</string>
     <string name="dialog_from_trash">Restoring from Trash</string>
-    <string name="restoring_items">Restoring %1$s items..</string>
+    <string name="restoring_items">Restoring %1$s items...</string>
     <string name="trash_incompatible_title">Some items cannot be trashed!</string>
     <string name="trash_incompatible_summary">Such items will be deleted permanently instead.</string>
     <string name="error_toast">An error occurred!</string>
