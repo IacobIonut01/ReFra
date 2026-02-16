@@ -38,10 +38,10 @@ import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupByMonth
 import com.dot.gallery.core.navigate
-import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.util.OnLifecycleEvent
 import com.dot.gallery.core.presentation.components.util.permissionGranted
 import com.dot.gallery.core.presentation.vm.NavigationViewModel
@@ -50,7 +50,11 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.albums.AlbumsScreen
 import com.dot.gallery.feature_node.presentation.albums.AlbumsViewModel
 import com.dot.gallery.feature_node.presentation.albumtimeline.AlbumTimelineScreen
+import com.dot.gallery.feature_node.presentation.classifier.AddCategoryScreen
+import com.dot.gallery.feature_node.presentation.classifier.CategoriesSettingsScreen
+import com.dot.gallery.feature_node.presentation.classifier.EditCategoryScreen
 import com.dot.gallery.feature_node.presentation.classifier.CategoriesScreen
+import com.dot.gallery.feature_node.presentation.location.LocationsScreen
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewModel
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewScreen
 import com.dot.gallery.feature_node.presentation.dateformat.DateFormatScreen
@@ -101,6 +105,7 @@ fun NavigationComp(
         permissionState = it.all { item -> item.value }
     }
     var lastStartScreen by rememberLastScreen()
+    val forcedLastScreen by rememberForcedLastScreen()
     val startDest by rememberSaveable(permissionState, lastStartScreen) {
         mutableStateOf(
             if (permissionState) {
@@ -113,7 +118,8 @@ fun NavigationComp(
     }
     OnLifecycleEvent { _, event ->
         if (event == Lifecycle.Event.ON_STOP) {
-            if (currentDest == Screen.TimelineScreen() || currentDest == Screen.AlbumsScreen()) {
+            // Only update lastStartScreen if user hasn't set a forced default screen
+            if (!forcedLastScreen && (currentDest == Screen.TimelineScreen() || currentDest == Screen.AlbumsScreen() || currentDest == Screen.LibraryScreen())) {
                 lastStartScreen = currentDest
             }
         }
@@ -412,7 +418,55 @@ fun NavigationComp(
             composable(
                 route = Screen.CategoriesScreen()
             ) {
-                CategoriesScreen(metadataState = metadataState)
+                CategoriesScreen()
+            }
+
+            composable(
+                route = Screen.CategoriesSettingsScreen()
+            ) {
+                CategoriesSettingsScreen()
+            }
+
+            composable(
+                route = Screen.LocationsScreen()
+            ) {
+                LocationsScreen(metadataState = metadataState)
+            }
+
+            composable(
+                route = Screen.AddCategoryScreen()
+            ) {
+                AddCategoryScreen(
+                    paddingValues = paddingValues,
+                    isScrolling = isScrolling,
+                    metadataState = metadataState,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this,
+                    onNavigateBack = { navController.navigateUp() }
+                )
+            }
+            
+            composable(
+                route = Screen.EditCategoryScreen.route(),
+                arguments = listOf(
+                    navArgument(name = "categoryId") {
+                        type = NavType.LongType
+                        defaultValue = -1
+                    }
+                )
+            ) { backStackEntry ->
+                val categoryId = remember(backStackEntry) {
+                    backStackEntry.arguments?.getLong("categoryId") ?: -1
+                }
+                EditCategoryScreen(
+                    categoryId = categoryId,
+                    paddingValues = paddingValues,
+                    isScrolling = isScrolling,
+                    metadataState = metadataState,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this,
+                    onNavigateBack = { navController.navigateUp() }
+                )
             }
 
             composable(
@@ -429,6 +483,27 @@ fun NavigationComp(
                 }
                 CategoryViewScreen(
                     category = category,
+                    metadataState = metadataState,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
+            }
+
+            // New ID-based category view route
+            composable(
+                route = Screen.CategoryViewScreen.categoryId(),
+                arguments = listOf(
+                    navArgument(name = "categoryId") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    }
+                )
+            ) { backStackEntry ->
+                val categoryId: Long = remember(backStackEntry) {
+                    backStackEntry.arguments?.getLong("categoryId") ?: -1L
+                }
+                CategoryViewScreen(
+                    categoryId = categoryId,
                     metadataState = metadataState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
@@ -466,6 +541,46 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     mediaId = mediaId,
                     target = "category_$category",
+                    mediaState = mediaState,
+                    metadataState = metadataState,
+                    albumsState = albumsState,
+                    vaultState = vaultState,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
+            }
+
+            composable(
+                route = Screen.MediaViewScreen.idAndCategoryId(),
+                arguments = listOf(
+                    navArgument(name = "mediaId") {
+                        type = NavType.LongType
+                        defaultValue = -1
+                    },
+                    navArgument(name = "categoryId") {
+                        type = NavType.LongType
+                        defaultValue = -1
+                    }
+                )
+            ) { backStackEntry ->
+                val mediaId: Long = remember(backStackEntry) {
+                    backStackEntry.arguments?.getLong("mediaId") ?: -1
+                }
+                val categoryId: Long = remember(backStackEntry) {
+                    backStackEntry.arguments?.getLong("categoryId") ?: -1
+                }
+
+                val viewModel = hiltViewModel<CategoryViewModel>().apply {
+                    setCategoryId(categoryId)
+                }
+                val mediaState = viewModel.mediaByCategoryId
+                    .collectAsStateWithLifecycle(MediaState())
+
+                MediaViewScreen(
+                    toggleRotate = toggleRotate,
+                    paddingValues = paddingValues,
+                    mediaId = mediaId,
+                    target = "categoryId_$categoryId",
                     mediaState = mediaState,
                     metadataState = metadataState,
                     albumsState = albumsState,
