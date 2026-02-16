@@ -1,7 +1,7 @@
 # Gallery
 > An Android Gallery app built with Jetpack Compose.
 > 
-> The goal of this project is to create and bring the Gallery app everyone wants, with the features everyone needs. FOSS
+> The goal of this project is to create and bring the Gallery app everyone wants, with the features everyone needs. Gallery is FOSS.
 
 ![Downloads](https://img.shields.io/github/downloads/IacobIonut01/Gallery/total?color=%23247EE0&label=Downloads)
 [![CI](https://github.com/IacobIonut01/Gallery/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/IacobIonut01/Gallery/actions/workflows/nightly.yml)
@@ -27,23 +27,23 @@
     height="80" />](https://github.com/IacobIonut01/Gallery/releases/latest)
 
 ## Support
-- Translate the project using the link from above
+- Translate the project using the link above
 - Donations:
     - Use the links on the right side of the repo (Sponsor me)
     - More options available in-app (Settings -> Donate)
 ## Frequent Questions
-- Why Google Play version is 'Paid'?
+- Why is the Google Play version 'Paid'?
     - It's just another way to support the project while getting back automatic updates via Google Play
-- Why Android 11 is the minimum version required?
+- Why is Android 11 the minimum version required?
     - Some Media features and APIs require Android 11 as a minimum version [Trash feature, most APIs used in the app]
-- Will you support lower android versions?
-    - While this is not a priority right now, I do have in mind to include support for lower Android versions at a cost of reduced features. If anyone volntueers to do so before me can request a pull request.
+- Will you support lower Android versions?
+    - While this is not a priority right now, I do have in mind to include support for lower Android versions at a cost of reduced features. If anyone volunteers to do so before me, they can submit a pull request.
 - Can I verify the downloaded APK file?
     - Checksums of APKs are provided in the release notes. The signing certificate fingerprint is listed below:
       - SHA-256: `78:46:05:DD:50:75:BE:05:82:78:A5:42:5C:BD:E5:21:31:62:CB:B4:59:1B:44:28:F4:4E:75:E0:8C:C6:43:8A`
       - SHA-1: `AD:93:69:27:F2:3B:33:99:FC:C0:B2:8A:25:44:C8:1C:AA:42:B0:9A`
       - MD5: `73:FC:3C:60:14:D3:69:6D:1B:DA:34:F1:BF:5A:33:3C`
 - Will you add [X] feature?
-    - Please open a new feature request under 'Issues' tab and if the feature will be considered useful and possible can be added.
+    - Please open a new feature request under 'Issues' tab. If the feature will be considered useful and possible, it can be added.
 - Can you remove permission [X]?
     - Several permissions (e.g. Internet connectivity, location) are for showing a map preview of your current photo location data. If you do not need this feature, you can download a `nomaps` release from the [Releases page](https://github.com/IacobIonut01/Gallery/releases).
