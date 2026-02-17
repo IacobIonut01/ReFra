@@ -18,7 +18,6 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <!-- Remove unwanted permissions from being added -->
-    <uses-permission android:name="android.permission.INTERNET" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove"/>
 
     <!-- Required to access media for SDK < 33 -->

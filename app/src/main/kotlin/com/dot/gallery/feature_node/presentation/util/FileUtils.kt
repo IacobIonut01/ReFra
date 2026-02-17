@@ -26,6 +26,7 @@ import java.util.UUID
 import kotlin.math.log10
 import kotlin.math.min
 import kotlin.math.pow
+import androidx.core.net.toUri
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun String.sentenceCase(): String = lowercase().replaceFirstChar { it.uppercase() }
@@ -58,7 +59,6 @@ fun File.formattedFileSize(context: Context): String {
 }
 
 class FileUtils(var context: Context) {
-    @SuppressLint("NewApi")
     fun getPath(uri: Uri): String? {
         val selection: String?
         val selectionArgs: Array<String>?
@@ -104,7 +104,7 @@ class FileUtils(var context: Context) {
                 for (contentUriPrefix in contentUriPrefixesToTry) {
                     return try {
                         val contentUri = ContentUris.withAppendedId(
-                            Uri.parse(contentUriPrefix),
+                            contentUriPrefix.toUri(),
                             id.toLong()
                         )
                         getDataColumn(context, contentUri, null, null)

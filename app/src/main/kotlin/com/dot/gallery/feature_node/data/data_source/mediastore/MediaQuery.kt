@@ -1,12 +1,18 @@
 package com.dot.gallery.feature_node.data.data_source.mediastore
 
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
+import androidx.core.net.toUri
 import com.dot.gallery.core.util.eq
 import com.dot.gallery.core.util.or
 
 object MediaQuery {
-    val MediaStoreFileUri: Uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    val MediaStoreFileUri: Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    } else {
+        MediaStore.Files.getContentUri("external")
+    }
     val MediaProjection = arrayOf(
         MediaStore.Files.FileColumns._ID,
         MediaStore.Files.FileColumns.DATA,
