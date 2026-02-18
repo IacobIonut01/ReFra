@@ -209,7 +209,7 @@ fun VaultDisplay(
             ) {
                 CircularProgressIndicator(
                     progress = {
-                        progress.fastCoerceAtLeast(0f)
+                        progress.fastCoerceAtLeast(0f) / 100
                     },
                     strokeWidth = 4.dp,
                     strokeCap = StrokeCap.Round,
