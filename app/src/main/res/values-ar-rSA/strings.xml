@@ -101,7 +101,7 @@
     <string name="set_wallpaper">خلفية</string>
     <string name="set_wallpaper_error">لا يمكن ضبط الخلفية، لا يوجد تطبيق متاح!</string>
     <string name="monthly_timeline_title">الخط الزمني الشهري</string>
-    <string name="monthly_timeline_summary">Group the timeline monthly instead of per date (Restarts the app)</string>
+    <string name="monthly_timeline_summary">جمّع الخط الزمني شهريًا بدلاً من كل تاريخ (يعيد تشغيل التطبيق)</string>
     <string name="amoled_mode_title">استخدام وضع Amoled</string>
     <string name="amoled_mode_summary">تباين أعلى، الأنسب لشاشات AMOLED</string>
     <string name="location_chip">الموقع: %s</string>
@@ -145,10 +145,10 @@
     <string name="fancy_blur_summary">ضبابية الخلفية في طريقة عرض الوسائط</string>
     <string name="old_navbar">استخدم تصفح ماتيريال</string>
     <string name="old_navbar_summary">أظهر واجهة مستخدم شريط التنقل القديم (مع قضبان للشاشات الأكبر)</string>
-    <string name="hide_timeline_for_albums">Hide timeline for albums</string>
-    <string name="hide_timeline_for_album_summary">Hides date headers when opening an album</string>
-    <string name="allow_vibrations">Allow vibrations</string>
-    <string name="allow_vibrations_summary">Allow sending feedback as vibrations while performing some actions or gestures</string>
+    <string name="hide_timeline_for_albums">أخفِ الخط الزمني للألبومات</string>
+    <string name="hide_timeline_for_album_summary">أخفِ رؤوس التواريخ عند فتح ألبوم</string>
+    <string name="allow_vibrations">اسمح بالاهتزازات</string>
+    <string name="allow_vibrations_summary">اسمح بإرسال ملاحظات على شكل اهتزازات أثناء تنفيذ بعض الإجراءات أو الإيماءات</string>
     <string name="album_name">اسم الألبوم</string>
     <string name="create_new_album">أنشئ ألبوم جديد</string>
     <string name="copy">انسخ</string>
