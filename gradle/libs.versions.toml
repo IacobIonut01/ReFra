@@ -47,7 +47,7 @@ workRuntimeKtx = "2.11.0"
 zoomimage = "1.4.0"
 lifecycleProcess = "2.9.4"
 glide-compose = "1.0.0-beta01"
-glide-ksp = "5.0.4"
+glide-ksp = "5.0.5"
 
 [libraries]
 # AndroidX
