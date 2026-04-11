@@ -371,6 +371,10 @@
     <string name="search_media">搜索媒体</string>
     <string name="rotate">旋转</string>
     <string name="locked">已锁</string>
+    <string name="decrypt_failed_tap_to_retry">解密失败。点击重试。</string>
+    <string name="other">其他</string>
+    <string name="settings_trash_confirmation_title">回收站需要确认</string>
+    <string name="settings_trash_confirmation_summary">开启以在将您的媒体移动到回收站之前需求额外确认</string>
     <plurals name="item_count">
         <item quantity="other">%s 个项目</item>
     </plurals>

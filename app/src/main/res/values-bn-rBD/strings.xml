@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Gallery</string>
-    <string name="nav_albums">Albums</string>
-    <string name="searchbar_title"><![CDATA[Search photos & videos]]></string>
-    <string name="header_today">Today</string>
+    <string name="app_name">গ্যালারি</string>
+    <string name="nav_albums">অ্যালবাম সমূহ</string>
+    <string name="searchbar_title"><![CDATA[ছবি ও ভিডিও খুঁজুন]]></string>
+    <string name="header_today">আজকে</string>
     <string name="header_yesterday">Yesterday</string>
     <string name="request_permissions">Request permissions</string>
-    <string name="filter">Filter</string>
+    <string name="filter">ফিল্টার</string>
     <string name="filter_recent">Recent</string>
     <string name="filter_nameAZ">Name (A-Z)</string>
     <string name="filter_nameZA">Name (Z-A)</string>
@@ -15,7 +15,7 @@
     <string name="trash">Trash</string>
     <string name="pause_video">Pause video</string>
     <string name="play_video">Play video</string>
-    <string name="favorites">Favorites</string>
+    <string name="favorites">পছন্দ সমূহ</string>
     <string name="no_media_title">Seems empty here</string>
     <string name="no_media_cd">No media found</string>
     <string name="empty_trash_title">Squeaky Clean</string>
@@ -371,6 +371,10 @@
     <string name="search_media">Search media</string>
     <string name="rotate">Rotate</string>
     <string name="locked">Locked</string>
+    <string name="decrypt_failed_tap_to_retry">Decrypt failed. Tap to retry.</string>
+    <string name="other">Other</string>
+    <string name="settings_trash_confirmation_title">Require confirmation on trash</string>
+    <string name="settings_trash_confirmation_summary">Enable to require an extra confirmation before moving your media to the trash</string>
     <plurals name="item_count">
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>

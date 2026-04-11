@@ -371,6 +371,10 @@
     <string name="search_media">Medien durchsuchen</string>
     <string name="rotate">Drehen</string>
     <string name="locked">Gesperrt</string>
+    <string name="decrypt_failed_tap_to_retry">Decrypt failed. Tap to retry.</string>
+    <string name="other">Other</string>
+    <string name="settings_trash_confirmation_title">Require confirmation on trash</string>
+    <string name="settings_trash_confirmation_summary">Aktiviere diese Option, um eine zusätzliche Bestätigung vor dem Verschieben Ihrer Medien in den Papierkorb zu verlangen</string>
     <plurals name="item_count">
         <item quantity="one">%s Datei</item>
         <item quantity="other">%s Elemente</item>

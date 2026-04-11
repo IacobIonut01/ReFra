@@ -371,6 +371,10 @@
     <string name="search_media">Medya ara</string>
     <string name="rotate">Döndür</string>
     <string name="locked">Kilitli</string>
+    <string name="decrypt_failed_tap_to_retry">Şifre çözülemedi. Tekrar denemek için dokunun.</string>
+    <string name="other">Diğer</string>
+    <string name="settings_trash_confirmation_title">Çöpe atarken onayla</string>
+    <string name="settings_trash_confirmation_summary">Medyayı çöp kutusuna taşımadan önce ek onay istenmesini etkinleştirin</string>
     <plurals name="item_count">
         <item quantity="one">%s öğe</item>
         <item quantity="other">%s öğeler</item>

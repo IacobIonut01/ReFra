@@ -371,6 +371,10 @@
     <string name="search_media">Пошук медіа</string>
     <string name="rotate">Обернути</string>
     <string name="locked">Заблоковано</string>
+    <string name="decrypt_failed_tap_to_retry">Не вдалося розшифрувати. Натисніть, щоб повторити.</string>
+    <string name="other">Інше</string>
+    <string name="settings_trash_confirmation_title">Вимагати підтвердження видалення</string>
+    <string name="settings_trash_confirmation_summary">Увімкнути необхідність додаткового підтвердження перед переміщенням медіафайлів у кошик</string>
     <plurals name="item_count">
         <item quantity="one">%s елемент</item>
         <item quantity="few">%s елементи</item>

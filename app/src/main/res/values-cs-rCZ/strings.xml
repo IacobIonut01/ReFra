@@ -371,6 +371,10 @@
     <string name="search_media">Search media</string>
     <string name="rotate">Rotate</string>
     <string name="locked">Locked</string>
+    <string name="decrypt_failed_tap_to_retry">Decrypt failed. Tap to retry.</string>
+    <string name="other">Other</string>
+    <string name="settings_trash_confirmation_title">Require confirmation on trash</string>
+    <string name="settings_trash_confirmation_summary">Enable to require an extra confirmation before moving your media to the trash</string>
     <plurals name="item_count">
         <item quantity="one">%s položka</item>
         <item quantity="few">%s položky</item>
