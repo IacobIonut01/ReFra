@@ -83,7 +83,7 @@ fun SetupScreen(
     }
 
     SetupWizard(
-        painter = painterResource(R.drawable.monochrome_icon),
+        painter = painterResource(R.drawable.ic_launcher_foreground_monochrome),
         title = stringResource(id = R.string.welcome),
         subtitle = appName,
         contentPadding = 0.dp,
