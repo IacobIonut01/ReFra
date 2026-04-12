@@ -54,12 +54,21 @@ fun <T: Media> MediaPreviewComponent(
             .hazeSource(state = LocalHazeState.current),
         visible = media != null,
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize().then(containerModifier).offset { offset },
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Non-translating blurred background
+            if (!media!!.isVideo && !isPanorama && !isPhotosphere) {
+                BlurredMediaBackground(
+                    media = media,
+                    uiEnabled = uiEnabled
+                )
+            }
+            // Translating content
+            Box(
+                modifier = Modifier.fillMaxSize().then(containerModifier).offset { offset },
+            ) {
             AnimatedVisibility(
                 modifier = Modifier.fillMaxSize(),
-                visible = media!!.isVideo,
+                visible = media.isVideo,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -107,6 +116,7 @@ fun <T: Media> MediaPreviewComponent(
                     onItemClick = onItemClick,
                     currentVault = currentVault
                 )
+            }
             }
         }
     }

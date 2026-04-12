@@ -12,11 +12,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -163,6 +165,7 @@ fun <T : Media> MediaViewSheetDetails(
     }
     Column(
         modifier = Modifier
+            .widthIn(max = 600.dp)
             .fillMaxWidth()
             .clip(
                 RoundedCornerShape(
@@ -274,11 +277,13 @@ fun <T : Media> MediaViewSheetDetails(
                         .clip(RoundedCornerShape(16.dp))
                         .padding(horizontal = 16.dp)
                         .clip(RoundedCornerShape(16.dp)),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
                         Column(
                             modifier = Modifier
+                                .widthIn(max = 600.dp)
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
                                 .then(sheetCardBackgroundModifier)
@@ -434,6 +439,8 @@ fun <T : Media> MediaViewSheetDetails(
                             MotionPhotoShotsSection(
                                 state = motionPhotoState,
                                 modifier = Modifier
+                                    .widthIn(max = 600.dp)
+                                    .fillMaxWidth()
                                     .clip(RoundedCornerShape(16.dp))
                                     .then(sheetCardBackgroundModifier)
                                     .hazeEffect(
@@ -447,6 +454,7 @@ fun <T : Media> MediaViewSheetDetails(
                     item {
                         Column(
                             modifier = Modifier
+                                .widthIn(max = 600.dp)
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
                                 .then(sheetCardBackgroundModifier)

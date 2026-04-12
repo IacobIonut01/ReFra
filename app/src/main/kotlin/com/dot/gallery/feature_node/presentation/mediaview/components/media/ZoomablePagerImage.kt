@@ -53,27 +53,12 @@ import com.github.panpf.zoomimage.rememberGlideZoomState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalGlideComposeApi::class,
-    com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi::class
-)
-@Stable
+@OptIn(com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi::class)
 @Composable
-fun <T: Media> BoxScope.ZoomablePagerImage(
-    modifier: Modifier = Modifier,
+fun <T: Media> BlurredMediaBackground(
     media: T,
     uiEnabled: Boolean,
-    rotationDisabled: Boolean,
-    onImageRotated: (newRotation: Int) -> Unit,
-    onItemClick: () -> Unit,
-    onSwipeDown: () -> Unit
 ) {
-    val feedbackManager = rememberFeedbackManager()
-    var isRotating by rememberSaveable(media) { mutableStateOf(false) }
-    var currentRotation by rememberSaveable(media) { mutableIntStateOf(0) }
-    val rotationAnimation by animateFloatAsState(
-        targetValue = if (isRotating) 90f else 0f,
-        label = "rotationAnimation"
-    )
     ProvideBatteryStatus {
         val allowBlur by Settings.Misc.rememberAllowBlur()
         val isPowerSavingMode = LocalBatteryStatus.current.isPowerSavingMode
@@ -99,6 +84,29 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
             )
         }
     }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class,
+    com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi::class
+)
+@Stable
+@Composable
+fun <T: Media> BoxScope.ZoomablePagerImage(
+    modifier: Modifier = Modifier,
+    media: T,
+    uiEnabled: Boolean,
+    rotationDisabled: Boolean,
+    onImageRotated: (newRotation: Int) -> Unit,
+    onItemClick: () -> Unit,
+    onSwipeDown: () -> Unit
+) {
+    val feedbackManager = rememberFeedbackManager()
+    var isRotating by rememberSaveable(media) { mutableStateOf(false) }
+    var currentRotation by rememberSaveable(media) { mutableIntStateOf(0) }
+    val rotationAnimation by animateFloatAsState(
+        targetValue = if (isRotating) 90f else 0f,
+        label = "rotationAnimation"
+    )
     val zoomState = rememberGlideZoomState()
     val scope = rememberCoroutineScope()
 
