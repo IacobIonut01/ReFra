@@ -83,8 +83,8 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
                     label.startsWith("$type #") && label !in existingLabels
                 } ?: false
                 
-                val newLabel = if (isValidLabel && oldLabel != null) {
-                    oldLabel
+                val newLabel = if (isValidLabel) {
+                    oldLabel!!
                 } else {
                     generateUniqueLabel(type, existingLabels)
                 }

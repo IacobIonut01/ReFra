@@ -2,7 +2,7 @@ package com.dot.gallery.core.decoder
 
 import android.graphics.Bitmap
 import com.github.panpf.sketch.asImage
-import com.github.panpf.sketch.decode.DecodeResult
+import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.decode.ImageInfo
 import com.github.panpf.sketch.decode.internal.createScaledTransformed
 import com.github.panpf.sketch.request.RequestContext
@@ -45,7 +45,7 @@ inline fun DataSource.withCustomDecoder(
     mimeType: String,
     getSize: (ByteArray) -> android.util.Size?,
     decodeSampled: (ByteArray, Int, Int) -> Bitmap
-): DecodeResult = openSource().use { src ->
+): ImageData = openSource().use { src ->
     val sourceData = src.buffer().readByteArray()
 
     var transformeds: List<String>? = null
@@ -85,7 +85,7 @@ inline fun DataSource.withCustomDecoder(
     }
 
     val resize = requestContext.computeResize(imageInfo.size)
-    DecodeResult(
+    ImageData(
         image = decodedImage.asImage(),
         imageInfo = imageInfo,
         dataFrom = dataFrom,

@@ -3,7 +3,7 @@ package com.dot.gallery.core.decoder
 import com.awxkee.jxlcoder.JxlCoder
 import com.dot.gallery.core.decoder.SketchJxlDecoder.Factory.Companion.JXL_MIMETYPE
 import com.github.panpf.sketch.ComponentRegistry
-import com.github.panpf.sketch.decode.DecodeResult
+import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.decode.Decoder
 import com.github.panpf.sketch.decode.ImageInfo
 import com.github.panpf.sketch.fetch.FetchResult
@@ -51,7 +51,7 @@ class SketchJxlDecoder(
 
     }
 
-    override fun decode(): DecodeResult {
+    override fun decode(): ImageData {
         return dataSource.withCustomDecoder(
             requestContext = requestContext,
             mimeType = JXL_MIMETYPE,

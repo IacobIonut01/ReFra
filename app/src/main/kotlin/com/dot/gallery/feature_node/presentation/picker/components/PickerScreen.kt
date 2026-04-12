@@ -279,6 +279,7 @@ fun PickerScreen(
                             },
                             label = "contentAnimation"
                         ) { state ->
+                            val contentScope = this@AnimatedContent
                             when (state) {
                                 is PickerNavState.AlbumDetail -> {
                                     PickerMediaScreen(
@@ -305,7 +306,7 @@ fun PickerScreen(
                                                 albums = albumsState.albums.filter { it.id != -1L },
                                                 onAlbumClick = { album -> selectedAlbum = album },
                                                 sharedTransitionScope = this@SharedTransitionLayout,
-                                                animatedContentScope = this@AnimatedContent
+                                                animatedContentScope = contentScope
                                             )
                                         }
                                     }

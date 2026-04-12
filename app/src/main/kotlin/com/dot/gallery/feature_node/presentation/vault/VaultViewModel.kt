@@ -41,7 +41,7 @@ open class VaultViewModel @Inject constructor(
     private val repository: MediaRepository,
     distributor: MediaDistributor,
     private val workManager: WorkManager,
-    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: Context
+    @param:dagger.hilt.android.qualifiers.ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val defaultDateFormat =

@@ -11,7 +11,6 @@ import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import androidx.core.os.bundleOf
 import com.dot.gallery.core.Constants
 import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.PickerUtils
@@ -108,13 +107,9 @@ class MediaFlow(
         }
 
         val queryArgs = Bundle().apply {
-            putAll(
-                bundleOf(
-                    ContentResolver.QUERY_ARG_SQL_SELECTION to selection?.build(),
-                    ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs,
-                    ContentResolver.QUERY_ARG_SQL_SORT_ORDER to sortOrder,
-                )
-            )
+            putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection?.build())
+            putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs)
+            putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, sortOrder)
 
             // Exclude trashed media unless we want data for the trashed album
             putInt(

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.dot.gallery.core.decoder
 
 import android.graphics.Bitmap
@@ -12,7 +14,7 @@ import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.github.panpf.sketch.asImage
 import com.github.panpf.sketch.decode.DecodeConfig
-import com.github.panpf.sketch.decode.DecodeResult
+import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.decode.Decoder
 import com.github.panpf.sketch.decode.ImageInfo
 import com.github.panpf.sketch.drawable.AnimatableDrawable
@@ -83,7 +85,6 @@ class EncryptedRawImageDecoder(
         }
     }
     
-    @Suppress("DEPRECATION")
     private fun readGifImageInfo(bytes: ByteArray): ImageInfo {
         val movie = Movie.decodeByteArray(bytes, 0, bytes.size)
         return if (movie != null) {
@@ -133,7 +134,7 @@ class EncryptedRawImageDecoder(
         return (bytes[16].toInt() and 0x02) != 0
     }
 
-    override fun decode(): DecodeResult {
+    override fun decode(): ImageData {
         val bytes = getDecryptedBytes()
         
         return when (mimeType) {
@@ -143,8 +144,7 @@ class EncryptedRawImageDecoder(
         }
     }
     
-    @Suppress("DEPRECATION")
-    private fun decodeGif(bytes: ByteArray): DecodeResult {
+    private fun decodeGif(bytes: ByteArray): ImageData {
         val request = requestContext.request
         
         val movie = Movie.decodeByteArray(bytes, 0, bytes.size)
@@ -170,7 +170,7 @@ class EncryptedRawImageDecoder(
         }
         
         val resize = requestContext.computeResize(imageInfo.size)
-        return DecodeResult(
+        return ImageData(
             image = animatableDrawable.asImage(),
             imageInfo = imageInfo,
             dataFrom = dataSource.dataFrom,
@@ -180,7 +180,7 @@ class EncryptedRawImageDecoder(
         )
     }
     
-    private fun decodeWebP(bytes: ByteArray): DecodeResult {
+    private fun decodeWebP(bytes: ByteArray): ImageData {
         val isAnimated = isAnimatedWebP(bytes)
         
         return if (isAnimated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -191,7 +191,7 @@ class EncryptedRawImageDecoder(
     }
     
     @RequiresApi(Build.VERSION_CODES.P)
-    private fun decodeAnimatedWebP(bytes: ByteArray): DecodeResult {
+    private fun decodeAnimatedWebP(bytes: ByteArray): ImageData {
         val request = requestContext.request
         
         val source = ImageDecoder.createSource(ByteBuffer.wrap(bytes))
@@ -216,7 +216,7 @@ class EncryptedRawImageDecoder(
             }
             
             val resize = requestContext.computeResize(imageInfo.size)
-            return DecodeResult(
+            return ImageData(
                 image = scaledDrawable.asImage(),
                 imageInfo = imageInfo,
                 dataFrom = dataSource.dataFrom,
@@ -230,7 +230,7 @@ class EncryptedRawImageDecoder(
         }
     }
     
-    private fun decodeStaticBitmap(bytes: ByteArray): DecodeResult {
+    private fun decodeStaticBitmap(bytes: ByteArray): ImageData {
         val request = requestContext.request
         val decodeConfig = DecodeConfig(request, mimeType, isOpaque = false)
         val config = decodeConfig.colorType.safeToSoftware()
@@ -243,7 +243,7 @@ class EncryptedRawImageDecoder(
             ?: throw IllegalStateException("Failed to decode bitmap for $mimeType")
         
         val resize = requestContext.computeResize(imageInfo.size)
-        return DecodeResult(
+        return ImageData(
             image = bitmap.asImage(),
             imageInfo = imageInfo,
             dataFrom = dataSource.dataFrom,

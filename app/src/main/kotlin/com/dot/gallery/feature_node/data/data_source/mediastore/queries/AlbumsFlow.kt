@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.core.database.getLongOrNull
-import androidx.core.os.bundleOf
 import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.PickerUtils
 import com.dot.gallery.core.util.Query
@@ -86,13 +85,9 @@ class AlbumsFlow(
         val sortOrder = MediaStore.Files.FileColumns.DATE_MODIFIED + " DESC"
 
         val queryArgs = Bundle().apply {
-            putAll(
-                bundleOf(
-                    ContentResolver.QUERY_ARG_SQL_SELECTION to selection?.build(),
-                    ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs,
-                    ContentResolver.QUERY_ARG_SQL_SORT_ORDER to sortOrder,
-                )
-            )
+            putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection?.build())
+            putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs)
+            putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, sortOrder)
         }
 
         return context.contentResolver.queryFlow(
