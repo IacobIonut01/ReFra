@@ -1,4 +1,4 @@
-# Gallery
+# ReFra
 > An Android Gallery app built with Jetpack Compose.
 > 
 > The goal of this project is to create and bring the Gallery app everyone wants, with the features everyone needs. FOSS
@@ -32,6 +32,10 @@
     - Use the links on the right side of the repo (Sponsor me)
     - More options available in-app (Settings -> Donate)
 ## Frequent Questions
+- Why 'ReFra'?
+    - Refra is a short form of 'refraction', which is the bending of light when it passes through different mediums. This app aims to refract our perception of media files, making them more accessible and easier to manage.
+- What is the `nomaps` variant?
+    - The `nomaps` variant is a version of the app that does not include the maps features - Map Preview, Location Map Viewer. This is useful for users who do not need this feature and want to remove unecessary permissions like INTERNET access.
 - Why Google Play version is 'Paid'?
     - It's just another way to support the project while getting back automatic updates via Google Play
 - Why Android 11 is the minimum version required?
