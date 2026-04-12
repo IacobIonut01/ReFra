@@ -19,6 +19,10 @@ Improvements
 
 - Compact media viewer action buttons (48dp circles with tooltips)
 - Reduced bottom bar height (100dp → 64dp) for more viewing space
+- Improved Add/Edit category screens with best-match accuracy slider
+- Locations map: consistent back button, better blur styling
+- Media viewer sheet cards constrained to 600dp max width on wide screens
+- Blur background stays fixed while swiping between media
 - Enhanced settings with swipe-to-delete and long-press actions
 - Updated build toolchain: Gradle 9.3.1, AGP 9.1.0, Kotlin 2.3.20
 - Dependency updates: Compose 1.10.6, Media3 1.10.0, Hilt 2.59.2, and more
@@ -27,6 +31,8 @@ Bug Fixes
 
 - Fixed light mode video player buttons being invisible (#675)
 - Fixed search crash on exit or query change (#801)
+- Fixed color palette phone preview breaking in landscape
+- Fixed locations map state types (mutableDoubleStateOf)
 - Improved media distribution with permission-aware album loading
 
 Updated translations across 40+ languages
