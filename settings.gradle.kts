@@ -7,12 +7,31 @@ pluginManagement {
         mavenLocal()
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        maven("https://jitpack.io")
+        maven("https://api.mapbox.com/downloads/v2/releases/maven") {
+            content {
+                includeGroupByRegex("com\\.mapbox\\..*")
+            }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+            credentials {
+                username = "mapbox"
+                password = providers.gradleProperty("MAPBOX_DOWNLOADS_TOKEN").get()
+            }
+        }
+        maven("https://jitpack.io") {
+            content {
+                excludeGroupByRegex("com\\.mapbox\\..*")
+            }
+        }
         mavenLocal()
     }
 }
@@ -21,3 +40,4 @@ include(":app")
 include(":baselineprofile")
 include(":libs:gesture")
 include(":libs:cropper")
+include(":libs:panoramaviewer")

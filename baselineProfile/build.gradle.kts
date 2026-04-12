@@ -1,9 +1,7 @@
-import com.android.build.api.dsl.ManagedVirtualDevice
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.test")
-    id("org.jetbrains.kotlin.android")
     id("androidx.baselineprofile")
 }
 
@@ -52,8 +50,8 @@ android {
 
     targetProjectPath = ":app"
 
-    testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel9proxl") {
+    testOptions.managedDevices.localDevices {
+        create("pixel9proxl") {
             device = "Pixel 9 Pro XL"
             apiLevel = 36
             systemImageSource = "google_apis_playstore"
