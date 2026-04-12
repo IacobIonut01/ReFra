@@ -28,9 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -68,6 +66,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -699,212 +699,205 @@ private fun PortraitPreviewContent() {
 @Composable
 private fun LandscapePreviewContent() {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val h = maxHeight
-        val w = maxWidth
+        // Render at a virtual size with comfortable dp values, then scale down
+        val virtualW = 600.dp
+        val virtualH = 300.dp
+        val scale = minOf(
+            maxWidth.value / virtualW.value,
+            maxHeight.value / virtualH.value
+        )
 
-        val fontSize = (h.value * 0.022f).sp
-        val searchFontSize = (h.value * 0.018f).sp
-        val btnSize = h * 0.065f
-        val iconSize = h * 0.035f
-        val sidePad = w * 0.03f
-        val navBarH = h * 0.075f
-        val navPillW = h * 0.09f
-        val navPillH = h * 0.045f
-        val navIconSize = h * 0.04f
-        val navSpacing = w * 0.018f
+        Box(
+            modifier = Modifier
+                .requiredSize(virtualW, virtualH)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin(0f, 0f)
+                }
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Status bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 32.dp)
+                        .padding(top = 10.dp, bottom = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "12:30",
+                        fontSize = 8.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(width = 10.dp, height = 6.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
+                    )
+                }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Status bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = sidePad, end = sidePad, top = h * 0.04f),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                // Search bar + buttons at top right
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(28.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Search,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.search),
+                                fontSize = 8.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Surface(
+                        modifier = Modifier.size(28.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryFixed
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Rounded.Favorite,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryFixed,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
+                    Surface(
+                        modifier = Modifier.size(28.dp),
+                        shape = RoundedCornerShape(5.dp),
+                        color = MaterialTheme.colorScheme.tertiaryFixed
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onTertiaryFixed,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
+                }
+
+                // "Today" header
                 Text(
-                    text = "12:30",
-                    fontSize = fontSize,
-                    lineHeight = fontSize,
+                    text = "Today",
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Medium
+                    modifier = Modifier.padding(start = 24.dp, top = 6.dp, bottom = 4.dp)
                 )
+
+                // Photo grid (square cells) with floating nav bar
                 Box(
                     modifier = Modifier
-                        .requiredSize(width = h * 0.04f, height = h * 0.02f)
-                        .clip(RoundedCornerShape(1.dp))
-                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
-                )
-            }
-
-            // Search bar + buttons at top right
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = h * 0.02f, end = sidePad),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .requiredWidth(w * 0.09f)
-                        .requiredHeight(btnSize),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainer
+                        .weight(1f)
+                        .fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = w * 0.008f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.requiredSize(iconSize)
-                        )
-                        Spacer(modifier = Modifier.requiredWidth(w * 0.004f))
-                        Text(
-                            text = stringResource(R.string.search),
-                            fontSize = searchFontSize,
-                            lineHeight = searchFontSize,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.requiredWidth(w * 0.008f))
-                Surface(
-                    modifier = Modifier.requiredSize(btnSize),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryFixed
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Rounded.Favorite,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryFixed,
-                            modifier = Modifier.requiredSize(iconSize)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.requiredWidth(w * 0.008f))
-                Surface(
-                    modifier = Modifier.requiredSize(btnSize),
-                    shape = RoundedCornerShape(h * 0.015f),
-                    color = MaterialTheme.colorScheme.tertiaryFixed
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiaryFixed,
-                            modifier = Modifier.requiredSize(iconSize)
-                        )
-                    }
-                }
-            }
-
-            // "Today" header
-            Text(
-                text = "Today",
-                fontSize = fontSize,
-                lineHeight = fontSize,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(
-                    start = sidePad,
-                    top = h * 0.03f,
-                    bottom = h * 0.02f
-                )
-            )
-
-            // Photo grid (square cells) with floating nav bar
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = w * 0.008f)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
-                ) {
-                    repeat(3) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(1.dp)
-                        ) {
-                            repeat(8) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .aspectRatio(1f)
-                                        .clip(RoundedCornerShape(1.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                                )
+                        repeat(3) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                repeat(8) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                            .clip(RoundedCornerShape(2.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                    )
+                                }
                             }
                         }
                     }
-                }
 
-                // GalleryNavBar floating at bottom right
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = sidePad, bottom = h * 0.02f)
-                        .requiredHeight(navBarH),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainer
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = navSpacing),
-                        horizontalArrangement = Arrangement.spacedBy(navSpacing),
-                        verticalAlignment = Alignment.CenterVertically
+                    // GalleryNavBar floating at bottom right
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = 8.dp)
+                            .height(28.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer
                     ) {
-                        // Timeline (selected)
-                        Box(
-                            modifier = Modifier
-                                .requiredWidth(navPillW)
-                                .requiredHeight(navPillH)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.secondaryContainer),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Timeline (selected)
+                            Box(
+                                modifier = Modifier
+                                    .width(28.dp)
+                                    .height(14.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Photo,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(10.dp)
+                                )
+                            }
+                            // Albums
                             Icon(
-                                imageVector = Icons.Outlined.Photo,
+                                imageVector = com.dot.gallery.ui.core.Icons.Albums,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.requiredSize(navIconSize)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(10.dp)
+                            )
+                            // Library
+                            Icon(
+                                imageVector = Icons.Outlined.PhotoLibrary,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(10.dp)
                             )
                         }
-                        // Albums
-                        Icon(
-                            imageVector = com.dot.gallery.ui.core.Icons.Albums,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.requiredSize(navIconSize)
-                        )
-                        // Library
-                        Icon(
-                            imageVector = Icons.Outlined.PhotoLibrary,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.requiredSize(navIconSize)
-                        )
                     }
                 }
-            }
 
-            // Home indicator
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(vertical = h * 0.015f)
-                    .requiredWidth(w * 0.12f)
-                    .requiredHeight(h * 0.008f)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
-            )
+                // Home indicator
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 6.dp)
+                        .width(36.dp)
+                        .height(2.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
+                )
+            }
         }
     }
 }
