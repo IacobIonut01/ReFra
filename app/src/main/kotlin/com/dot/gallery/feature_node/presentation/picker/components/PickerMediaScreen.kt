@@ -4,6 +4,9 @@
  */
 package com.dot.gallery.feature_node.presentation.picker.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,6 +42,7 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.photoGridDragHandler
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.ui.theme.Dimens
@@ -47,11 +51,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T: Media> PickerMediaScreen(
     mediaState: StateFlow<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
     allowSelection: Boolean,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
     val scope = rememberCoroutineScope()
     val stringToday = stringResource(id = R.string.header_today)
@@ -136,8 +143,16 @@ fun <T: Media> PickerMediaScreen(
                 }
 
                 is MediaItem.MediaViewItem -> {
+                    val sharedElementModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                        with(sharedTransitionScope) {
+                            Modifier.mediaSharedElement(
+                                media = item.media,
+                                animatedVisibilityScope = animatedVisibilityScope
+                            )
+                        }
+                    } else Modifier
                     MediaImage(
-                        modifier = Modifier.animateItem(),
+                        modifier = Modifier.animateItem().then(sharedElementModifier),
                         media = item.media,
                         canClick = { true },
                         metadataState = metadataState,

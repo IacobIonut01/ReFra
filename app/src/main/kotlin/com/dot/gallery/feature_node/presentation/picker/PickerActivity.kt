@@ -14,21 +14,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
@@ -150,7 +137,7 @@ class PickerActivity : ComponentActivity() {
         }
     }
 
-    @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalPermissionsApi::class)
     @Composable
     fun PickerRootScreen(title: String, allowedMedia: AllowedMedia, allowMultiple: Boolean) {
         val mediaPermissions =
@@ -160,34 +147,14 @@ class PickerActivity : ComponentActivity() {
                 mediaPermissions.launchMultiplePermissionRequest()
             }
         }
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(text = title) },
-                    navigationIcon = {
-                        IconButton(onClick = ::finish) {
-                            Icon(
-                                imageVector = Icons.Outlined.Close,
-                                contentDescription = getString(R.string.close)
-                            )
-                        }
-                    }
-                )
-            }
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(top = it.calculateTopPadding()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                PickerScreen(
-                    allowedMedia = allowedMedia,
-                    allowSelection = allowMultiple,
-                    sendMediaAsResult = ::sendMediaAsResult,
-                    sendMediaAsMediaResult = ::sendMediaAsMediaResult
-                )
-            }
-        }
+        PickerScreen(
+            title = title,
+            allowedMedia = allowedMedia,
+            allowSelection = allowMultiple,
+            onClose = ::finish,
+            sendMediaAsResult = ::sendMediaAsResult,
+            sendMediaAsMediaResult = ::sendMediaAsMediaResult
+        )
     }
 
     private fun sendMediaAsMediaResult(selectedMedia: List<Media>) {

@@ -84,6 +84,7 @@
     <string name="photo">Photo</string>
     <string name="video">Video</string>
     <string name="close">Close</string>
+    <string name="navigate_up">Navigate up</string>
     <string name="manage_media_title">Allow ReFra to Manage your Media</string>
     <string name="manage_media_summary">This setting just skips any extra confirmation dialogs while performing various actions like marking as favorite.</string>
     <string name="skip">Skip</string>
