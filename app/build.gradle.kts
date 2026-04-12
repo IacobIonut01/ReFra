@@ -1,12 +1,10 @@
 
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kspAndroid)
     alias(libs.plugins.roomPlugin)
     alias(libs.plugins.hiltAndroid)
@@ -89,7 +87,7 @@ android {
                 "CONTENT_AUTHORITY",
                 "\"com.dot.staging.debug.media_provider\""
             )
-            buildConfigField("Boolean", "ENABLE_INDEXING", "false")
+            buildConfigField("Boolean", "ENABLE_INDEXING", "true")
         }
     }
 
@@ -101,20 +99,10 @@ android {
         compose = true
         buildConfig = true
     }
-    composeCompiler {
-        includeSourceInformation = true
-        stabilityConfigurationFiles = listOf(
-            rootProject.layout.projectDirectory.file("stability_config.conf")
-        )
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
-    }
-
-    room {
-        schemaDirectory("$projectDir/schemas/")
     }
 
     dependenciesInfo {
@@ -151,12 +139,17 @@ android {
         }
     }
 
-    applicationVariants.all {
-        outputs.forEach { output ->
-            (output as BaseVariantOutputImpl).outputFileName =
-                "Gallery-${versionName}-$versionCode-${productFlavors[0].name}" + mapsApiApplicationPrefix + ".apk"
-        }
-    }
+}
+
+room {
+    schemaDirectory("$projectDir/schemas/")
+}
+
+composeCompiler {
+    includeSourceInformation = true
+    stabilityConfigurationFiles = listOf(
+        rootProject.layout.projectDirectory.file("stability_config.conf")
+    )
 }
 
 kotlin {
@@ -170,6 +163,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     runtimeOnly(libs.androidx.profileinstaller)
     implementation(project(":libs:cropper"))
+    implementation(project(":libs:panoramaviewer"))
     "baselineProfile"(project(mapOf("path" to ":baselineprofile")))
 
     // Core
@@ -209,6 +203,9 @@ dependencies {
     // Kotlin - Coroutines
     implementation(libs.kotlinx.coroutines.core)
     runtimeOnly(libs.kotlinx.coroutines.android)
+
+    // Kotlin - Immutable Collections
+    implementation(libs.kotlinx.collections.immutable)
 
     implementation(libs.kotlinx.serialization.json)
 
@@ -296,9 +293,16 @@ dependencies {
     implementation(libs.haze)
     implementation(libs.haze.materials)
 
+    // Mapbox
+    implementation(libs.mapbox.navigation.core)
+    implementation(libs.mapbox.navigation.ui.maps)
+    implementation(libs.mapbox.navigation.ui.components)
+    implementation(libs.mapbox.maps.compose)
+
     // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.espresso.core)
     debugImplementation(libs.compose.ui.tooling)
     debugRuntimeOnly(libs.compose.ui.test.manifest)
 }
