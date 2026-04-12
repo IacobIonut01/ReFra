@@ -26,7 +26,7 @@ fun LibrarySmallItem(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String? = null,
-    icon: ImageVector,
+    icon: ImageVector?,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     containerColor: Color = contentColor.copy(alpha = 0.1f),
     useIndicator: Boolean = false,
@@ -38,9 +38,8 @@ fun LibrarySmallItem(
             containerColor = containerColor,
             headlineColor = contentColor
         ),
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .then(modifier),
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp)),
         headlineContent = {
             Text(
                 text = title,
@@ -49,13 +48,15 @@ fun LibrarySmallItem(
                 maxLines = 1
             )
         },
-        leadingContent = {
-            Icon(
-                imageVector = icon,
-                tint = contentColor,
-                contentDescription = contentDescription
-            )
-        },
+        leadingContent = if (icon != null) {
+            {
+                Icon(
+                    imageVector = icon,
+                    tint = contentColor,
+                    contentDescription = contentDescription
+                )
+            }
+        } else null,
         supportingContent = if (subtitle == null) null else {
             {
                 Text(

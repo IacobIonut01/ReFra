@@ -1,43 +1,47 @@
+/*
+ * SPDX-FileCopyrightText: 2023 IacobIacob01
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.dot.gallery.feature_node.presentation.classifier
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material.icons.outlined.Scanner
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,8 +51,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,223 +66,233 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.R
-import com.dot.gallery.core.Constants.Animation.enterAnimation
-import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.Settings.Misc.rememberNoClassification
+import com.dot.gallery.core.LocalMediaDistributor
+import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.NavigationBackButton
-import com.dot.gallery.feature_node.domain.model.MediaMetadataState
-import com.dot.gallery.feature_node.presentation.common.components.MediaImage
+import com.dot.gallery.feature_node.data.data_source.CategoryWithMediaCount
+import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaState
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
-import com.dot.gallery.feature_node.presentation.library.NoCategories
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
+import com.dot.gallery.feature_node.presentation.library.components.dashedBorder
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
-import java.util.Locale
+import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
+import com.dot.gallery.ui.theme.BlackScrim
+import com.dot.gallery.ui.theme.WhiterBlackScrim
+import com.dot.gallery.ui.theme.isDarkTheme
+import dev.chrisbanes.haze.LocalHazeStyle
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.Dispatchers
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun CategoriesScreen(
-    metadataState: State<MediaMetadataState>,
+    viewModel: CategoriesViewModel = hiltViewModel<CategoriesViewModel>()
 ) {
     val eventHandler = LocalEventHandler.current
-    val viewModel = hiltViewModel<CategoriesViewModel>()
-    val categories by viewModel.classifiedCategories.collectAsStateWithLifecycle()
-    val categoriesWithMedia by viewModel.categoriesWithMedia.collectAsStateWithLifecycle()
-    val classifiedCount by viewModel.classifiedMediaCount.collectAsStateWithLifecycle()
+    val distributor = LocalMediaDistributor.current
 
-    val categoriesIsEmpty by remember {
-        derivedStateOf { categories.isEmpty() }
-    }
+    // Get categories from the ViewModel
+    val categoriesWithCount by viewModel.categoriesWithCount.collectAsStateWithLifecycle()
 
-    var canScroll by rememberSaveable { mutableStateOf(true) }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
-        state = rememberTopAppBarState(),
-        canScroll = { canScroll }
+    // Get media for thumbnails
+    val mediaState by distributor.timelineMediaFlow.collectAsStateWithLifecycle(
+        context = Dispatchers.IO,
+        initialValue = MediaState()
     )
 
+    val totalMediaCount by remember(categoriesWithCount) {
+        derivedStateOf { categoriesWithCount.sumOf { it.mediaCount } }
+    }
+
+    var lastCellIndex by rememberAlbumGridSize()
+    var canScroll by rememberSaveable { mutableStateOf(true) }
+
     val pinchState = rememberPinchZoomGridState(
-        cellsList = listOf(GridCells.Fixed(3)),
-        initialCellsIndex = 0
+        cellsList = albumCellsList,
+        initialCellsIndex = lastCellIndex
     )
 
     LaunchedEffect(pinchState.isZooming) {
         canScroll = !pinchState.isZooming
+        lastCellIndex = albumCellsList.indexOf(pinchState.currentCells)
     }
 
-    Box {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                TopAppBar(
-                    title = {
-                        TwoLinedDateToolbarTitle(
-                            albumName = stringResource(R.string.categories),
-                            dateHeader = stringResource(R.string.classified_media, classifiedCount)
-                        )
-                    },
-                    navigationIcon = {
-                        NavigationBackButton()
-                    },
-                    scrollBehavior = scrollBehavior
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        state = rememberTopAppBarState(),
+        canScroll = { canScroll },
+        flingAnimationSpec = null
+    )
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            LargeTopAppBar(
+                modifier = Modifier.hazeEffect(
+                    state = LocalHazeState.current,
+                    style = LocalHazeStyle.current
+                ),
+                title = {
+                    TwoLinedDateToolbarTitle(
+                        albumName = stringResource(R.string.categories),
+                        dateHeader = stringResource(R.string.classified_media, totalMediaCount)
+                    )
+                },
+                navigationIcon = {
+                    NavigationBackButton()
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                ),
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { eventHandler.navigate(Screen.AddCategoryScreen()) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add_category),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-        ) { paddings ->
-            PinchZoomGridLayout(state = pinchState) {
-                LazyVerticalGrid(
-                    state = gridState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .animateContentSize(),
-                    columns = gridCells,
-                    contentPadding = remember(paddings) {
-                        PaddingValues(
-                            top = paddings.calculateTopPadding() + 24.dp,
-                            bottom = paddings.calculateBottomPadding() + 128.dp,
-                            start = 24.dp,
-                            end = 24.dp
-                        )
-                    },
-                    userScrollEnabled = canScroll,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+        }
+    ) { paddingValues ->
+        PinchZoomGridLayout(
+            state = pinchState,
+            modifier = Modifier.hazeSource(LocalHazeState.current)
+        ) {
+            LazyVerticalGrid(
+                state = gridState,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxSize(),
+                columns = gridCells,
+                contentPadding = PaddingValues(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = paddingValues.calculateBottomPadding() + 128.dp
+                ),
+                userScrollEnabled = canScroll,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Settings button at the top
+                item(
+                    span = { GridItemSpan(maxLineSpan) },
+                    key = "settings_button"
                 ) {
+                    LibrarySmallItem(
+                        title = stringResource(R.string.categories_settings),
+                        subtitle = stringResource(R.string.categories_settings_subtitle),
+                        icon = Icons.Outlined.Settings,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp)
+                            .pinchItem(key = "settings_button")
+                            .clickable {
+                                eventHandler.navigate(Screen.CategoriesSettingsScreen())
+                            }
+                    )
+                }
 
-                    item(
-                        span = { GridItemSpan(maxLineSpan) }
-                    ) {
-                        var noClassification by rememberNoClassification()
-                        Row(
-                            modifier = Modifier
-                                .padding(bottom = 16.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    shape = RoundedCornerShape(100)
-                                )
-                                .clip(RoundedCornerShape(100))
-                                .clickable { noClassification = !noClassification }
-                                .padding(
-                                    horizontal = 24.dp,
-                                    vertical = 16.dp
-                                ),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.categorise_your_media),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-
-                            Switch(
-                                checked = !noClassification,
-                                onCheckedChange = { noClassification = !it }
-                            )
+                // Category grid items
+                items(
+                    items = categoriesWithCount,
+                    key = { it.id }
+                ) { categoryWithCount ->
+                    val thumbnailMedia = remember(categoryWithCount.thumbnailMediaId, mediaState.media) {
+                        categoryWithCount.thumbnailMediaId?.let { thumbId ->
+                            mediaState.media.find { it.id == thumbId }
                         }
                     }
 
-                    items(
-                        items = categoriesWithMedia,
-                        key = { it.category!! }
-                    ) { item ->
-                        Column(
-                            modifier = Modifier.animateItem(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            MediaImage(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(16.dp)),
-                                media = item,
-                                onMediaClick = {
-                                    eventHandler.navigate(Screen.CategoryViewScreen.category(item.category!!))
-                                },
-                                onItemSelect = {},
-                                metadataState = metadataState,
-                                canClick = { true }
+                    CategoryGridItem(
+                        categoryWithCount = categoryWithCount,
+                        media = thumbnailMedia,
+                        onClick = {
+                            eventHandler.navigate(
+                                Screen.CategoryViewScreen.categoryId(categoryWithCount.id)
                             )
+                        },
+                        onLongClick = {
+                            eventHandler.navigate(
+                                Screen.EditCategoryScreen.categoryId(categoryWithCount.id)
+                            )
+                        },
+                        modifier = Modifier
+                            .pinchItem(key = categoryWithCount.id.toString())
+                            .animateItem()
+                    )
+                }
 
-                            Text(
-                                text = item.category!!,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.Center,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
+                // Empty state
+                if (categoriesWithCount.isEmpty()) {
                     item(
-                        key = "Categories_scan",
-                        span = { GridItemSpan(maxLineSpan) }
+                        span = { GridItemSpan(maxLineSpan) },
+                        key = "empty_state"
                     ) {
-                        val isRunning by viewModel.isRunning.collectAsStateWithLifecycle()
-                        val progress by viewModel.progress.collectAsStateWithLifecycle()
-
+                        val brush = Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary,
+                                MaterialTheme.colorScheme.tertiary,
+                            )
+                        )
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .animateItem()
-                                .animateContentSize(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                                .padding(16.dp)
+                                .dashedBorder(
+                                    brush = brush,
+                                    shape = RoundedCornerShape(24.dp),
+                                    gapLength = 8.dp
+                                )
+                                .clip(RoundedCornerShape(24.dp))
+                                .clickable {
+                                    eventHandler.navigate(Screen.AddCategoryScreen())
+                                }
+                                .padding(32.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-
-                            if (categoriesIsEmpty) {
-                                NoCategories {
-                                    viewModel.startClassification()
-                                }
-                            }
-
-                            if (!categoriesIsEmpty || isRunning) {
-                                ScannerButton(
-                                    isRunning = isRunning,
-                                    indicatorCounter = progress,
-                                    contentColor = MaterialTheme.colorScheme.tertiary,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .animateItem()
-                                        .combinedClickable(
-                                            onLongClick = {
-                                                if (isRunning) viewModel.stopClassification()
-                                            },
-                                            onClick = {
-                                                if (!isRunning) viewModel.startClassification()
-                                            }
-                                        )
-                                )
-                            }
-
-                            if (!categoriesIsEmpty && !isRunning) {
-                                LibrarySmallItem(
-                                    title = stringResource(R.string.delete_all_categories),
-                                    subtitle = stringResource(R.string.delete_all_categories_summary),
-                                    icon = Icons.Default.Delete,
-                                    contentColor = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier
-                                        .animateItem()
-                                        .clickable(onClick = viewModel::deleteClassifications)
-                                )
-                            }
-
-                            LibrarySmallItem(
-                                title = stringResource(R.string.disclaimer),
-                                subtitle = stringResource(R.string.disclaimer_classification),
-                                icon = Icons.Default.Info,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                containerColor = Color.Transparent,
-                                modifier = Modifier.animateItem()
+                            Image(
+                                painter = rememberVectorPainter(image = Icons.Outlined.ImageSearch),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .drawWithContent {
+                                        with(drawContext.canvas.nativeCanvas) {
+                                            val checkPoint = saveLayer(null, null)
+                                            drawContent()
+                                            drawRect(
+                                                brush = brush,
+                                                blendMode = BlendMode.SrcIn
+                                            )
+                                            restoreToCount(checkPoint)
+                                        }
+                                    }
                             )
-
-                            LibrarySmallItem(
-                                modifier = Modifier.animateItem(),
-                                title = stringResource(R.string.classification_unwanted),
-                                subtitle = stringResource(R.string.classification_unwanted_summary2),
-                                icon = Icons.Default.QuestionMark,
-                                contentColor = MaterialTheme.colorScheme.error,
+                            Text(
+                                text = stringResource(R.string.no_categories_found),
+                                style = MaterialTheme.typography.titleMedium.copy(brush = brush),
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -282,93 +302,102 @@ fun CategoriesScreen(
     }
 }
 
-
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun ScannerButton(
-    modifier: Modifier = Modifier,
-    contentColor: Color = MaterialTheme.colorScheme.onTertiaryContainer,
-    indicatorCounter: Float = 0f,
-    isRunning: Boolean = false
+private fun CategoryGridItem(
+    categoryWithCount: CategoryWithMediaCount,
+    media: Media.UriMedia?,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    ListItem(
-        colors = ListItemDefaults.colors(
-            containerColor = contentColor.copy(alpha = 0.1f),
-            headlineColor = contentColor
-        ),
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .then(modifier),
-        headlineContent = {
-            val scanningMediaText = stringResource(R.string.scanning_media)
-            val scanForNewCategoriesText = stringResource(R.string.scan_for_new_categories)
-            val text = remember(isRunning) {
-                if (isRunning) scanningMediaText else scanForNewCategoriesText
-            }
-            Text(
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed = interactionSource.collectIsPressedAsState()
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isPressed.value) 32.dp else 16.dp,
+        label = "cornerRadius"
+    )
+    val feedbackManager = rememberFeedbackManager()
+    val isDarkTheme = isDarkTheme()
+    val allowBlur by rememberAllowBlur()
+    val followTheme = remember(allowBlur) { !allowBlur }
+    val gradientColor by animateColorAsState(
+        if (followTheme) {
+            if (isDarkTheme) BlackScrim else WhiterBlackScrim
+        } else BlackScrim,
+    )
+
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(cornerRadius))
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = onClick,
+                onLongClick = {
+                    feedbackManager.vibrate()
+                    onLongClick()
+                }
+            )
+    ) {
+        if (media != null) {
+            GlideImage(
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                model = media.getUri(),
+                contentDescription = categoryWithCount.name,
+                requestBuilderTransform = {
+                    it.signature(GlideInvalidation.signature(media))
+                }
+            )
+        } else {
+            Box(
                 modifier = Modifier
-                    .then(if (isRunning) Modifier.padding(top = 8.dp) else Modifier),
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ImageSearch,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            gradientColor
+                        )
+                    )
+                )
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = categoryWithCount.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1
             )
-        },
-        leadingContent = {
-            Icon(
-                imageVector = Icons.Outlined.Scanner,
-                tint = contentColor,
-                contentDescription = stringResource(R.string.scan_for_new_categories)
-            )
-        },
-        trailingContent = {
-            AnimatedVisibility(
-                visible = isRunning,
-                enter = enterAnimation,
-                exit = exitAnimation
-            ) {
+            if (categoryWithCount.mediaCount > 0) {
                 Text(
-                    text = remember(indicatorCounter) {
-                        String.format(
-                            Locale.getDefault(),
-                            "%.1f",
-                            indicatorCounter.coerceIn(0f..100f)
-                        ) + "%"
-                    },
+                    text = stringResource(R.string.category_media_count, categoryWithCount.mediaCount),
                     style = MaterialTheme.typography.bodySmall,
-                    color = contentColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(end = 4.dp)
+                    color = Color.White.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
                 )
             }
-        },
-        supportingContent = if (isRunning) {
-            {
-                Column(
-                    modifier = Modifier.padding(vertical = 16.dp)
-                ) {
-                    AnimatedVisibility(
-                        visible = indicatorCounter < 100f
-                    ) {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth(),
-                            progress = { (indicatorCounter / 100f).coerceAtLeast(0f) },
-                            color = contentColor,
-                        )
-                    }
-
-                    AnimatedVisibility(
-                        visible = indicatorCounter == 100f
-                    ) {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = contentColor,
-                        )
-                    }
-                }
-            }
-        } else null
-    )
+        }
+    }
 }

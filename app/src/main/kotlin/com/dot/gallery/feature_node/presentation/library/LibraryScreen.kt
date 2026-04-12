@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +27,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,7 +37,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -80,7 +78,6 @@ import com.dot.gallery.core.Settings.Misc.rememberNoClassification
 import com.dot.gallery.core.navigate
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.util.getUri
-import com.dot.gallery.feature_node.presentation.common.components.MediaImage
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.library.components.dashedBorder
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
@@ -88,7 +85,6 @@ import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
-import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.ui.core.icons.Encrypted
 import com.dot.gallery.ui.theme.BlackScrim
 import com.dot.gallery.ui.theme.WhiterBlackScrim
@@ -131,10 +127,16 @@ fun LibraryScreen(
     val locations by viewModel.locations.collectAsStateWithLifecycle()
 
     val indicatorState by viewModel.indicatorState.collectAsStateWithLifecycle()
-    val classifiedCategories by viewModel.classifiedCategories.collectAsStateWithLifecycle()
-    val mostPopularCategories by viewModel.mostPopularCategory.collectAsStateWithLifecycle()
-    val mostPopularCategoriesKeys by rememberedDerivedState { mostPopularCategories.keys.toList() }
-    val noCategoriesFound by rememberedDerivedState { classifiedCategories.isEmpty() }
+
+    // New category system
+    val topCategories by viewModel.topCategories.collectAsStateWithLifecycle()
+    val totalCategoryCount by viewModel.totalCategoryCount.collectAsStateWithLifecycle()
+    val noCategoriesFound by rememberedDerivedState { topCategories.isEmpty() }
+
+    // Locations
+    val noLocationsFound by rememberedDerivedState { locations.isEmpty() }
+    val totalLocationsCount by rememberedDerivedState { locations.size }
+    val topLocations by rememberedDerivedState { locations.take(10) }
 
     var noClassification by rememberNoClassification()
 
@@ -288,8 +290,36 @@ fun LibraryScreen(
                     }
                 }
 
-
-                if (locations.isNotEmpty()) {
+                // Locations section
+                if (!noLocationsFound) {
+                    item(
+                        span = { GridItemSpan(maxLineSpan) },
+                        key = "LocationsHeader"
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .animateItem()
+                                .pinchItem(key = "LocationsHeader")
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            LibrarySmallItem(
+                                title = stringResource(R.string.locations),
+                                icon = null,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                useIndicator = true,
+                                indicatorCounter = totalLocationsCount,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        eventHandler.navigate(Screen.LocationsScreen())
+                                    }
+                            )
+                        }
+                    }
+                    // Locations carousel
                     item(
                         span = { GridItemSpan(maxLineSpan) },
                         key = "LocationsList"
@@ -320,12 +350,16 @@ fun LibraryScreen(
                                             .height(256.dp)
                                             .clip(RoundedCornerShape(24.dp))
                                             .clickable {
-                                                val gpsLocationNameCity = location.substringBefore(",")
-                                                val gpsLocationNameCountry = location.substringAfterLast(", ")
-                                                eventHandler.navigate(Screen.LocationTimelineScreen.location(
-                                                    gpsLocationNameCity = gpsLocationNameCity,
-                                                    gpsLocationNameCountry = gpsLocationNameCountry
-                                                ))
+                                                val gpsLocationNameCity =
+                                                    location.substringBefore(",")
+                                                val gpsLocationNameCountry =
+                                                    location.substringAfterLast(", ")
+                                                eventHandler.navigate(
+                                                    Screen.LocationTimelineScreen.location(
+                                                        gpsLocationNameCity = gpsLocationNameCity,
+                                                        gpsLocationNameCountry = gpsLocationNameCountry
+                                                    )
+                                                )
                                             },
                                     ) {
                                         GlideImage(
@@ -343,7 +377,10 @@ fun LibraryScreen(
                                                 .fillMaxWidth()
                                                 .background(
                                                     Brush.verticalGradient(
-                                                        colors = listOf(Color.Transparent, gradientColor)
+                                                        colors = listOf(
+                                                            Color.Transparent,
+                                                            gradientColor
+                                                        )
                                                     )
                                                 )
                                                 .padding(24.dp),
@@ -363,24 +400,26 @@ fun LibraryScreen(
 
                 if (!noClassification) {
                     if (!noCategoriesFound) {
+                        // "See all categories" header below carousel
                         item(
                             span = { GridItemSpan(maxLineSpan) },
-                            key = "ClassifiedCategories"
+                            key = "CategoriesHeader"
                         ) {
                             Column(
                                 modifier = Modifier
                                     .animateItem()
-                                    .pinchItem(key = "ClassifiedCategories")
+                                    .pinchItem(key = "CategoriesHeader")
                                     .padding(horizontal = 16.dp)
-                                    .padding(top = 16.dp),
+                                    .padding(top = 8.dp),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 LibrarySmallItem(
-                                    title = "All Categories",
-                                    icon = Icons.Outlined.ImageSearch,
-                                    contentColor = MaterialTheme.colorScheme.primary,
+                                    title = stringResource(R.string.categories),
+                                    icon = null,
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
+                                    containerColor = MaterialTheme.colorScheme.surface,
                                     useIndicator = true,
-                                    indicatorCounter = classifiedCategories.size,
+                                    indicatorCounter = totalCategoryCount,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
@@ -389,88 +428,116 @@ fun LibraryScreen(
                                 )
                             }
                         }
-                        if (mostPopularCategories.isNotEmpty()) {
-                            items(
-                                span = { GridItemSpan(maxLineSpan) },
-                                items = mostPopularCategoriesKeys,
-                                key = { it!! }
-                            ) { category ->
-                                Column(
-                                    modifier = Modifier
-                                        .animateItem()
-                                        .pinchItem(key = "MostPopularCategory_$category")
-                                        .padding(horizontal = 16.dp)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .clickable {
-                                            eventHandler.navigate(
-                                                Screen.CategoryViewScreen.category(
-                                                    category!!
-                                                )
-                                            )
-                                        },
-                                    horizontalAlignment = Alignment.Start
-                                ) {
-                                    val medias by remember {
-                                        derivedStateOf {
-                                            mostPopularCategories.getOrDefault(
-                                                category,
-                                                emptyList()
-                                            ).sortedByDescending { it.definedTimestamp }
-                                        }
-                                    }
-                                    ListItem(
-                                        modifier = Modifier
-                                            .padding(end = 4.dp)
-                                            .padding(bottom = 8.dp),
-                                        headlineContent = {
-                                            Text(
-                                                text = category!!,
-                                                style = MaterialTheme.typography.titleMedium
-                                            )
-                                        },
-                                        trailingContent = {
-                                            Text(
-                                                text = medias.size.toString(),
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        }
-                                    )
-                                    LazyRow(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(16.dp)),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        items(
-                                            items = medias,
-                                            key = { it }
+                        // Categories carousel first
+                        item(
+                            span = { GridItemSpan(maxLineSpan) },
+                            key = "CategoriesList"
+                        ) {
+                            LazyRow(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 8.dp)
+                                    .clip(RoundedCornerShape(16.dp)),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(
+                                    items = topCategories,
+                                    key = { categoryMedia -> "category_${categoryMedia.category.id}" }
+                                ) { (category, thumbnailMedia) ->
+                                    with(sharedTransitionScope) {
+                                        val isDarkTheme = isDarkTheme()
+                                        val allowBlur by rememberAllowBlur()
+                                        val followTheme = remember(allowBlur) { !allowBlur }
+                                        val gradientColor by animateColorAsState(
+                                            if (followTheme) {
+                                                if (isDarkTheme) BlackScrim else WhiterBlackScrim
+                                            } else BlackScrim,
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .width(164.dp)
+                                                .height(256.dp)
+                                                .clip(RoundedCornerShape(24.dp))
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        eventHandler.navigate(
+                                                            Screen.CategoryViewScreen.categoryId(
+                                                                category.id
+                                                            )
+                                                        )
+                                                    },
+                                                    onLongClick = {
+                                                        eventHandler.navigate(
+                                                            Screen.EditCategoryScreen.categoryId(
+                                                                category.id
+                                                            )
+                                                        )
+                                                    }
+                                                ),
                                         ) {
-                                            with(sharedTransitionScope) {
-                                                MediaImage(
+                                            if (thumbnailMedia != null) {
+                                                GlideImage(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Crop,
+                                                    model = thumbnailMedia.getUri(),
+                                                    contentDescription = category.name,
+                                                    requestBuilderTransform = {
+                                                        it.signature(
+                                                            GlideInvalidation.signature(
+                                                                thumbnailMedia
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                            } else {
+                                                Box(
                                                     modifier = Modifier
-                                                        .size(116.dp)
-                                                        .clip(RoundedCornerShape(16.dp))
-                                                        .mediaSharedElement(
-                                                            media = it,
-                                                            animatedVisibilityScope = animatedContentScope
-                                                        ),
-                                                    media = it,
-                                                    onMediaClick = { media ->
-                                                        eventHandler.navigate(
-                                                            Screen.MediaViewScreen.idAndCategory(
-                                                                media.id,
-                                                                category!!
+                                                        .fillMaxSize()
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.ImageSearch,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(48.dp),
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                                            alpha = 0.5f
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                            Column(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomCenter)
+                                                    .fillMaxWidth()
+                                                    .background(
+                                                        Brush.verticalGradient(
+                                                            colors = listOf(
+                                                                Color.Transparent,
+                                                                gradientColor
                                                             )
                                                         )
-                                                    },
-                                                    onItemSelect = {
-                                                        eventHandler.navigate(
-                                                            Screen.CategoryViewScreen.category(
-                                                                category!!
-                                                            )
-                                                        )
-                                                    },
-                                                    canClick = { true },
-                                                    metadataState = metadataState,
+                                                    )
+                                                    .padding(16.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Text(
+                                                    text = category.name,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    textAlign = TextAlign.Center,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    maxLines = 1
+                                                )
+                                                Text(
+                                                    text = stringResource(
+                                                        R.string.category_media_count,
+                                                        category.mediaCount
+                                                    ),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color.White.copy(alpha = 0.7f),
+                                                    textAlign = TextAlign.Center
                                                 )
                                             }
                                         }
