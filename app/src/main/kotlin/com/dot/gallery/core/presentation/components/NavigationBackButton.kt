@@ -12,6 +12,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,8 @@ fun NavigationBackButton(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack,
     contentDescription: String = stringResource(R.string.back_cd),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    containerModifier: Modifier = Modifier,
     forcedAction: (() -> Unit)? = null
 ) {
     val eventHandler = LocalEventHandler.current
@@ -31,8 +34,9 @@ fun NavigationBackButton(
     IconButton(
         modifier = modifier
             .padding(horizontal = 8.dp)
+            .then(containerModifier)
             .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = containerColor,
                 shape = CircleShape
             ),
         onClick = {

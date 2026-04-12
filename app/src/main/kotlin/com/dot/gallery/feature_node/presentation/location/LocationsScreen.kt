@@ -11,6 +11,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +28,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -39,15 +39,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -62,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -93,7 +90,6 @@ import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.navigate
-import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.GeoMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
@@ -319,9 +315,9 @@ private fun MapLocationsContent(
     }
 
     // Saveable state for configuration changes
-    var savedLat by rememberSaveable { mutableStateOf(30.0) }
-    var savedLng by rememberSaveable { mutableStateOf(10.0) }
-    var savedZoom by rememberSaveable { mutableStateOf(2.0) }
+    var savedLat by rememberSaveable { mutableDoubleStateOf(30.0) }
+    var savedLng by rememberSaveable { mutableDoubleStateOf(10.0) }
+    var savedZoom by rememberSaveable { mutableDoubleStateOf(2.0) }
     var selectedMediaId by rememberSaveable { mutableLongStateOf(-1L) }
 
     val selectedGeoMedia = remember(selectedMediaId, sortedGeoMedia) {
@@ -691,32 +687,22 @@ private fun MapLocationsContent(
 
             // Back button
             @OptIn(ExperimentalHazeMaterialsApi::class)
-            FloatingActionButton(
-                onClick = { eventHandler.navigateUp() },
+            NavigationBackButton(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .statusBarsPadding()
-                    .padding(16.dp)
-                    .size(48.dp)
+                    .padding(8.dp),
+                containerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surfaceContainer,
+                containerModifier = if (allowBlur) Modifier
                     .clip(CircleShape)
                     .hazeEffect(
                         state = sheetHazeState,
-                        style = HazeMaterials.ultraThin(
+                        style = HazeMaterials.regular(
                             containerColor = MaterialTheme.colorScheme.surface
                         )
-                    ),
-                shape = CircleShape,
-                containerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 4.dp
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back_cd),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
+                    )
+                else Modifier
+            )
 
             // Loading indicator
             if (metadataState.value.isLoading) {
@@ -779,7 +765,7 @@ private fun MapLocationsContent(
         val surfaceColor = MaterialTheme.colorScheme.surface
 
         @OptIn(ExperimentalHazeMaterialsApi::class)
-        val sheetHazeStyle = HazeMaterials.thin(
+        val sheetHazeStyle = HazeMaterials.regular(
             containerColor = surfaceColor
         )
         val sheetBackgroundModifier = remember(allowBlur, surfaceColor) {
