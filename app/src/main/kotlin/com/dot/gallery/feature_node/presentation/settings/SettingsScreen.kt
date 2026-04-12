@@ -40,7 +40,7 @@ fun SettingsScreen() {
             title = stringResource(R.string.settings_theme),
             summary = stringResource(R.string.settings_theme_summary),
             onClick = {
-                eventHandler.navigate(Screen.SettingsThemeScreen())
+                eventHandler.navigate(Screen.ColorPaletteScreen())
             },
             screenPosition = Position.Top
         )

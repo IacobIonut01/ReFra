@@ -199,7 +199,9 @@ class SettingsOptionsScope {
         rightText: String? = null,
         enabled: Boolean = true,
         horizontalLayout: Boolean = false,
-        onClick: (() -> Unit)? = null
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
+        onSwipeToDelete: (() -> Unit)? = null
     ) {
         items += SettingsEntity.Preference(
             title = title,
@@ -207,7 +209,9 @@ class SettingsOptionsScope {
             rightText = rightText,
             enabled = enabled,
             horizontalLayout = horizontalLayout,
-            onClick = onClick
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onSwipeToDelete = onSwipeToDelete
         )
     }
 
@@ -218,7 +222,10 @@ class SettingsOptionsScope {
         rightText: String? = null,
         enabled: Boolean = true,
         horizontalLayout: Boolean = false,
-        onClick: (() -> Unit)? = null
+        tag: Any? = null,
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
+        onSwipeToDelete: (() -> Unit)? = null
     ) {
         items += SettingsEntity.Preference(
             title = title,
@@ -227,7 +234,10 @@ class SettingsOptionsScope {
             rightText = rightText,
             enabled = enabled,
             horizontalLayout = horizontalLayout,
-            onClick = onClick
+            tag = tag,
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onSwipeToDelete = onSwipeToDelete
         )
     }
 
@@ -238,7 +248,9 @@ class SettingsOptionsScope {
         rightText: String? = null,
         enabled: Boolean = true,
         horizontalLayout: Boolean = false,
-        onClick: (() -> Unit)? = null
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
+        onSwipeToDelete: (() -> Unit)? = null
     ) {
         items += SettingsEntity.Preference(
             title = title,
@@ -247,7 +259,9 @@ class SettingsOptionsScope {
             rightText = rightText,
             enabled = enabled,
             horizontalLayout = horizontalLayout,
-            onClick = onClick
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onSwipeToDelete = onSwipeToDelete
         )
     }
 
@@ -258,7 +272,9 @@ class SettingsOptionsScope {
         rightText: String? = null,
         enabled: Boolean = true,
         horizontalLayout: Boolean = false,
-        onClick: (() -> Unit)? = null
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
+        onSwipeToDelete: (() -> Unit)? = null
     ) {
         items += SettingsEntity.Preference(
             title = title,
@@ -267,7 +283,9 @@ class SettingsOptionsScope {
             rightText = rightText,
             enabled = enabled,
             horizontalLayout = horizontalLayout,
-            onClick = onClick
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onSwipeToDelete = onSwipeToDelete
         )
     }
 
@@ -376,7 +394,9 @@ class SettingsOptionsScope {
         rightText: AnnotatedString? = null,
         enabled: Boolean = true,
         horizontalLayout: Boolean = false,
-        onClick: (() -> Unit)? = null
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
+        onSwipeToDelete: (() -> Unit)? = null
     ) {
         items += SettingsEntity.Preference(
             title = title.text,
@@ -390,7 +410,9 @@ class SettingsOptionsScope {
             rightTextAnnotated = rightText,
             enabled = enabled,
             horizontalLayout = horizontalLayout,
-            onClick = onClick
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onSwipeToDelete = onSwipeToDelete
         )
     }
 
@@ -403,7 +425,9 @@ class SettingsOptionsScope {
         rightText: AnnotatedString? = null,
         enabled: Boolean = true,
         horizontalLayout: Boolean = false,
-        onClick: (() -> Unit)? = null
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
+        onSwipeToDelete: (() -> Unit)? = null
     ) {
         items += SettingsEntity.Preference(
             title = title,
@@ -416,7 +440,9 @@ class SettingsOptionsScope {
             rightTextAnnotated = rightText,
             enabled = enabled,
             horizontalLayout = horizontalLayout,
-            onClick = onClick
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onSwipeToDelete = onSwipeToDelete
         )
     }
 
@@ -429,7 +455,9 @@ class SettingsOptionsScope {
         rightText: String? = null,
         enabled: Boolean = true,
         horizontalLayout: Boolean = false,
-        onClick: (() -> Unit)? = null
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
+        onSwipeToDelete: (() -> Unit)? = null
     ) {
         items += SettingsEntity.Preference(
             title = title,
@@ -441,7 +469,9 @@ class SettingsOptionsScope {
             rightText = rightText,
             enabled = enabled,
             horizontalLayout = horizontalLayout,
-            onClick = onClick
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onSwipeToDelete = onSwipeToDelete
         )
     }
 

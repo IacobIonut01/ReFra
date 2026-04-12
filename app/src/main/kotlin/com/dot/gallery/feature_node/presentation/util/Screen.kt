@@ -29,6 +29,11 @@ sealed class Screen(val route: String) {
         fun idAndCategory() = "$route?mediaId={mediaId}&category={category}"
 
         fun idAndCategory(id: Long, category: String) = "$route?mediaId=$id&category=$category"
+        
+        // New ID-based category navigation
+        fun idAndCategoryId() = "$route?mediaId={mediaId}&categoryId={categoryId}"
+
+        fun idAndCategoryId(id: Long, categoryId: Long) = "$route?mediaId=$id&categoryId=$categoryId"
 
         fun idAndLocation() = "$route?mediaId={mediaId}&gpsLocationNameCity={gpsLocationNameCity}&gpsLocationNameCountry={gpsLocationNameCountry}"
 
@@ -48,6 +53,7 @@ sealed class Screen(val route: String) {
 
     data object SettingsScreen : Screen("settings_screen")
     data object SettingsThemeScreen : Screen("settings_theme_screen")
+    data object ColorPaletteScreen : Screen("color_palette_screen")
     data object SettingsGeneralScreen : Screen("settings_general_screen")
     data object SettingsCustomizationScreen : Screen("settings_customization_screen")
     data object SettingsSmartFeaturesScreen : Screen("settings_smart_features_screen")
@@ -61,13 +67,35 @@ sealed class Screen(val route: String) {
     data object LibraryScreen : Screen("library_screen")
 
     data object CategoriesScreen : Screen("categories_screen")
+    
+    data object CategoriesSettingsScreen : Screen("categories_settings_screen")
+    
+    data object LocationsScreen : Screen("locations_screen")
 
     data object CategoryViewScreen : Screen("category_view_screen") {
 
         fun category() = "$route?category={category}"
 
         fun category(string: String) = "$route?category=$string"
+        
+        // New ID-based routing for the new category system
+        fun categoryId() = "$route?categoryId={categoryId}"
+        
+        fun categoryId(id: Long) = "$route?categoryId=$id"
 
+    }
+    
+    data object CategoryEditScreen : Screen("category_edit_screen") {
+        fun categoryId() = "$route?categoryId={categoryId}"
+        
+        fun categoryId(id: Long) = "$route?categoryId=$id"
+    }
+
+    data object AddCategoryScreen : Screen("add_category_screen")
+    
+    data object EditCategoryScreen : Screen("edit_category_screen") {
+        fun route() = "$route?categoryId={categoryId}"
+        fun categoryId(id: Long) = "$route?categoryId=$id"
     }
 
     data object DateFormatScreen : Screen("date_format_screen")

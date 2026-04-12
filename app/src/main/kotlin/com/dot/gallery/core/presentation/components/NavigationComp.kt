@@ -68,6 +68,7 @@ import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedStat
 import com.dot.gallery.feature_node.presentation.search.SearchScreen
 import com.dot.gallery.feature_node.presentation.search.SearchViewModel
 import com.dot.gallery.feature_node.presentation.settings.SettingsScreen
+import com.dot.gallery.feature_node.presentation.settings.subsettings.ColorPaletteScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsCustomizationScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsGeneralScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSmartFeaturesScreen
@@ -595,6 +596,9 @@ fun NavigationComp(
             }
             composable(Screen.SettingsThemeScreen()) {
                 SettingsThemesScreen()
+            }
+            composable(Screen.ColorPaletteScreen()) {
+                ColorPaletteScreen()
             }
             composable(Screen.SettingsGeneralScreen()) {
                 SettingsGeneralScreen()

@@ -49,7 +49,6 @@ import com.dot.gallery.feature_node.presentation.settings.components.SettingsIte
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlin.collections.lastIndex
 
 @Composable
 fun OptionSheet(
@@ -138,7 +137,7 @@ fun LazyListScope.SettingsOptionLayout(
 
             SwipeToDismissBox(
                 state = swipeToDismissBoxState,
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .animateItem(),
                 enableDismissFromStartToEnd = false,
@@ -202,7 +201,7 @@ fun LazyListScope.SettingsOptionLayout(
                 },
                 content = {
                     SettingsItem(
-                        modifier = Modifier.animateItem(),
+                        modifier = modifier.animateItem(),
                         item = newItem,
                         slimLayout = slimLayout
                     )
@@ -210,7 +209,7 @@ fun LazyListScope.SettingsOptionLayout(
             )
         } else {
             SettingsItem(
-                modifier = Modifier.animateItem(),
+                modifier = modifier.animateItem(),
                 item = newItem,
                 slimLayout = slimLayout
             )

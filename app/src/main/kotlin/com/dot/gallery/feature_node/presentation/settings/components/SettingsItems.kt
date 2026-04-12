@@ -2,10 +2,12 @@ package com.dot.gallery.feature_node.presentation.settings.components
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -22,19 +24,26 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.FolderCopy
 import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.WavingHand
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,9 +55,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -92,7 +104,8 @@ fun SettingsItem(
     applyPaddings: Boolean = true,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     borderModifier: @Composable (Shape) -> Modifier = { Modifier },
-    customIcon: (@Composable (icon: ImageVector?, iconUri: String?, iconRes: Int?) -> Unit)? = null
+    customIcon: (@Composable (icon: ImageVector?, iconUri: String?, iconRes: Int?) -> Unit)? = null,
+    customTrailingContent: (@Composable () -> Unit)? = null
 ) {
     val mutableInteractionSource = remember {
         MutableInteractionSource()
@@ -125,7 +138,8 @@ fun SettingsItem(
             Text(
                 text = it,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -147,14 +161,14 @@ fun SettingsItem(
         } else if (imageVector != null) {
             Image(
                 imageVector = imageVector,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(22.dp),
                 contentDescription = null,
                 colorFilter = if (tintIcon) ColorFilter.tint(MaterialTheme.colorScheme.onSurface) else null
             )
         } else if (imageRes != null) {
             Image(
                 painter = painterResource(imageRes),
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(22.dp),
                 contentDescription = null,
                 colorFilter = if (tintIcon) ColorFilter.tint(MaterialTheme.colorScheme.onSurface) else null
             )
@@ -173,7 +187,6 @@ fun SettingsItem(
     }
     val switch: @Composable () -> Unit = {
         Switch(
-            modifier = Modifier.padding(start = 16.dp),
             checked = checked,
             onCheckedChange = { isChecked ->
                 item.onCheck?.let {
@@ -282,17 +295,22 @@ fun SettingsItem(
         }
     }
 
-    val trailingContent: (@Composable () -> Unit)? = when (item.type) {
-        PreferenceType.Switch -> switch
-        PreferenceType.Seek -> seekTrailing
+    val trailingContent: (@Composable () -> Unit)? = when {
+        customTrailingContent != null -> customTrailingContent
+        item.type == PreferenceType.Switch -> switch
+        item.type == PreferenceType.Seek -> seekTrailing
         else -> {
             if (item.rightText.isNullOrEmpty() && item.rightTextAnnotated == null) null
             else rightTextTrailing
         }
     }
+    val hasClickAction = remember(item) {
+        (item.onClick != null || item.onLongClick != null) || item.type == PreferenceType.Switch
+    }
+    @OptIn(ExperimentalFoundationApi::class)
     val clickableModifier =
-        if (item.type != PreferenceType.Seek && !item.isHeader && (item.onClick != null || item.onCheck != null))
-            Modifier.clickable(
+        if (item.type != PreferenceType.Seek && !item.isHeader && hasClickAction)
+            Modifier.combinedClickable(
                 enabled = item.enabled,
                 interactionSource = mutableInteractionSource,
                 indication = LocalIndication.current,
@@ -304,108 +322,190 @@ fun SettingsItem(
                         }
                     } else item.onClick?.invoke()
                 },
+                onLongClick = item.onLongClick
             )
         else Modifier
-    if (item.isHeader) {
-        if (item.titleAnnotated != null) {
-            Text(
-                text = item.titleAnnotated!!,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 40.dp, vertical = 8.dp)
-                    .padding(bottom = 8.dp)
-            )
-        } else {
-            Text(
-                text = item.title,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 40.dp, vertical = 8.dp)
-                    .padding(bottom = 8.dp)
-            )
-        }
-    } else {
-        val alpha by animateFloatAsState(
-            targetValue = if (item.enabled) 1f else 0.4f,
-            label = "alpha"
-        )
-        Column(
-            modifier = modifier
-                .then(paddingModifier)
-                .maybeApply(
-                    condition = applyPaddings,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                .clip(shape)
-                .background(
-                    color = backgroundColor
-                )
-                .then(borderModifier(shape))
-                .then(clickableModifier)
-                .padding(horizontal = 8.dp)
-                .then(if (!slimLayout) Modifier.padding(vertical = 4.dp) else Modifier)
-                .fillMaxWidth()
-                .alpha(alpha)
+
+    val settingsContent: @Composable () -> Unit = {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (item.icon != null || item.iconUri != null || item.iconRes != null) {
-                    Box(
-                        modifier = Modifier.padding(end = 16.dp)
-                    ) {
-                        icon()
+            if (item.isHeader) {
+                Column(
+                    modifier = modifier
+                        .then(paddingModifier)
+                        .maybeApply(
+                            condition = applyPaddings,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        .clip(shape)
+                        .then(clickableModifier)
+                        .padding(horizontal = 8.dp)
+                        .widthIn(max = 600.dp)
+                        .fillMaxWidth()
+                ) {
+                    if (item.titleAnnotated != null) {
+                        Text(
+                            text = item.titleAnnotated!!,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    } else {
+                        Text(
+                            text = item.title,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
                     }
                 }
-
-                if (item.horizontalLayout) {
+            } else {
+                val alpha by animateFloatAsState(
+                    targetValue = if (item.enabled) 1f else 0.4f,
+                    label = "alpha"
+                )
+                val semanticDescription = buildString {
+                    append(item.titleAnnotated?.text ?: item.title)
+                    val summaryText = item.summaryAnnotated?.text ?: item.summary
+                    if (!summaryText.isNullOrEmpty()) {
+                        append(", ")
+                        append(summaryText)
+                    }
+                    val rightTextValue = item.rightTextAnnotated?.text ?: item.rightText
+                    if (!rightTextValue.isNullOrEmpty()) {
+                        append(", ")
+                        append(rightTextValue)
+                    }
+                    if (item.type == PreferenceType.Switch) {
+                        append(", ")
+                        append(if (checked) "enabled" else "disabled")
+                    }
+                }
+                Column(
+                    modifier = modifier
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = semanticDescription
+                        }
+                        .then(paddingModifier)
+                        .maybeApply(
+                            condition = applyPaddings,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        .clip(shape)
+                        .background(
+                            color = backgroundColor
+                        )
+                        .then(borderModifier(shape))
+                        .then(clickableModifier)
+                        .padding(horizontal = 8.dp)
+                        .then(if (!slimLayout) Modifier.padding(vertical = 4.dp) else Modifier)
+                        .widthIn(max = 600.dp)
+                        .fillMaxWidth()
+                        .graphicsLayer { this.alpha = alpha }
+                ) {
                     Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(
-                                if (item.icon != null) Modifier.padding(end = 16.dp) else Modifier
-                            ),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(8.dp).padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        supportingContent?.invoke()
-                        Text(
-                            text = item.titleAnnotated ?: AnnotatedString(item.title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        if (item.icon != null || item.iconUri != null || item.iconRes != null) {
+                            Box(
+                                modifier = Modifier.padding(end = 12.dp)
+                            ) {
+                                icon()
+                            }
+                        }
+
+                        if (item.horizontalLayout) {
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .then(
+                                        if (item.icon != null) Modifier.padding(end = 16.dp) else Modifier
+                                    ),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.widthIn(max = 120.dp)) {
+                                    supportingContent?.invoke()
+                                }
+                                Text(
+                                    modifier = Modifier.weight(1f).padding(start = 16.dp),
+                                    text = item.titleAnnotated ?: AnnotatedString(item.title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.End
+                                )
+                            }
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .then(
+                                        if (item.icon != null || item.iconUri != null) Modifier.padding(
+                                            end = 16.dp
+                                        ) else Modifier
+                                    ),
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = item.titleAnnotated ?: AnnotatedString(item.title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                supportingContent?.invoke()
+                            }
+                        }
+                        trailingContent?.invoke()
                     }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(
-                                if (item.icon != null || item.iconUri != null) Modifier.padding(end = 16.dp) else Modifier
-                            ),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = item.titleAnnotated ?: AnnotatedString(item.title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        supportingContent?.invoke()
+                    if (item.type == PreferenceType.Seek) {
+                        seekContent()
                     }
                 }
-                trailingContent?.invoke()
-            }
-            if (item.type == PreferenceType.Seek) {
-                seekContent()
             }
         }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    val swipeToDeleteCallback = item.onSwipeToDelete
+    if (swipeToDeleteCallback != null) {
+        val dismissState = rememberSwipeToDismissBoxState(
+            positionalThreshold = { totalDistance -> totalDistance * 0.4f }
+        )
+        LaunchedEffect(dismissState.targetValue) {
+            if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
+                swipeToDeleteCallback()
+            }
+        }
+        SwipeToDismissBox(
+            state = dismissState,
+            backgroundContent = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(shape)
+                        .padding(horizontal = 24.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete ${item.title}",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            enableDismissFromStartToEnd = false,
+            enableDismissFromEndToStart = true,
+            content = { settingsContent() }
+        )
+    } else {
+        settingsContent()
     }
 }
 
