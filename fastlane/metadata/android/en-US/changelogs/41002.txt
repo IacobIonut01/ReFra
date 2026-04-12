@@ -14,6 +14,7 @@ New Features
 - AI-Powered Categories: CLIP-based classification replacing the legacy ONNX model — create custom categories with search terms and accuracy thresholds
 - Smart Search Discovery: Carousels for categories, locations, MIME types, camera models, and special modes (night, panorama, long exposure)
 - Video Blur Effects: Haze blur behind video player UI via PixelCopy-based SurfaceView capture
+- Redesigned Media Picker: Album grid with shared transitions, pill tab switcher (Recents/Albums)
 
 Improvements
 
