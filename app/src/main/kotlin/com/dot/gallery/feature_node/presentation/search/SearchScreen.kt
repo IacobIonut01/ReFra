@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -32,9 +31,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ImageSearch
-import androidx.compose.material.icons.outlined.PlayCircle
-import androidx.compose.material.icons.outlined.Portrait
-import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -83,6 +79,9 @@ import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
+import com.dot.gallery.feature_node.presentation.classifier.components.CategoryCarousel
+import com.dot.gallery.feature_node.presentation.classifier.components.LocationCarousel
+import com.dot.gallery.feature_node.presentation.classifier.components.SearchCarousel
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.SettingsOptionLayout
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
@@ -111,6 +110,13 @@ fun SearchScreen(
     val query by viewModel.query.collectAsStateWithLifecycle()
     var searchHistory by rememberSearchHistory()
 
+    // Categories for the carousel
+    val topCategories by viewModel.topCategories.collectAsStateWithLifecycle()
+    val topLocations by viewModel.topLocations.collectAsStateWithLifecycle()
+    val topMimeTypes by viewModel.topMimeTypes.collectAsStateWithLifecycle()
+    val topLensModels by viewModel.topLensModels.collectAsStateWithLifecycle()
+    val topMediaModes by viewModel.topMediaModes.collectAsStateWithLifecycle()
+
     val historyItems by rememberedDerivedState {
         if (searchHistory.isEmpty()) {
             emptyList()
@@ -124,31 +130,16 @@ fun SearchScreen(
         }
     }
     val resources = LocalResources.current
-    val suggestionItems = remember(resources) {
+    val suggestionProviders = remember(resources) {
         listOf(
-            SettingsEntity.Header(resources.getString(R.string.suggestions)),
-            SettingsEntity.Preference(
-                title = resources.getString(R.string.screenshots),
-                icon = Icons.Outlined.Screenshot,
-                onClick = {
-                    viewModel.setQuery(resources.getString(R.string.screenshots), apply = true)
-                }
-            ),
-            SettingsEntity.Preference(
-                title = resources.getString(R.string.videos),
-                icon = Icons.Outlined.PlayCircle,
-                onClick = {
-                    viewModel.setMimeTypeQuery("video/", hideExplicitQuery = true)
-                }
-            ),
-            SettingsEntity.Preference(
-                title = resources.getString(R.string.selfies),
-                icon = Icons.Outlined.Portrait,
-                onClick = {
-                    viewModel.setQuery(resources.getString(R.string.selfies), apply = true)
-                }
-            ),
+            QuickSuggestionProvider(resources),
+            // Add more providers here:
+            // MimeTypeSuggestionProvider(resources, mimeTypes),
+            // MediaTagSuggestionProvider(resources, tags),
         )
+    }
+    val suggestionItems = remember(suggestionProviders) {
+        suggestionProviders.toSettingsEntities(viewModel)
     }
     val searchIndexerState by viewModel.searchIndexerState.collectAsStateWithLifecycle()
     Scaffold(
@@ -160,12 +151,10 @@ fun SearchScreen(
             Box(
                 modifier = Modifier.statusBarsPadding()
             ) {
-                Column(
-                    modifier = Modifier.statusBarsPadding()
-                ) {
+                Column {
                     Row(
                         modifier = Modifier
-                            .padding(vertical = 8.dp),
+                            .padding(start = 4.dp, top = 4.dp, bottom = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
@@ -277,66 +266,6 @@ fun SearchScreen(
                     .fillMaxSize(),
             ) {
                 AnimatedVisibility(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    visible = searchIndexerState.isIndexing,
-                    enter = enterAnimation,
-                    exit = exitAnimation
-                ) {
-                    ListItem(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        leadingContent = {
-                            Icon(
-                                imageVector = Icons.Outlined.ImageSearch,
-                                contentDescription = "Search Indexer",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        },
-                        headlineContent = {
-                            Text(
-                                text = "Search function limited"
-                            )
-                        },
-                        supportingContent = {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Search indexer is running. Results may not be accurate."
-                                )
-                                if (searchIndexerState.progress == 0f) {
-                                    LinearProgressIndicator(
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        trackColor = MaterialTheme.colorScheme.primaryContainer.copy(
-                                            alpha = 0.5f
-                                        ),
-                                        gapSize = 0.dp,
-                                        strokeCap = StrokeCap.Round
-                                    )
-                                } else {
-                                    LinearProgressIndicator(
-                                        progress = { searchIndexerState.progress / 100f },
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        trackColor = MaterialTheme.colorScheme.primaryContainer.copy(
-                                            alpha = 0.5f
-                                        ),
-                                        drawStopIndicator = {},
-                                        gapSize = 0.dp,
-                                        strokeCap = StrokeCap.Round
-                                    )
-                                }
-                            }
-                        },
-                        colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            headlineColor = MaterialTheme.colorScheme.onPrimary,
-                            supportingColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                        )
-                    )
-                }
-                AnimatedVisibility(
                     modifier = Modifier.padding(top = 16.dp),
                     visible = !searchResults.isSearching && !searchResults.hasSearched,
                     enter = enterAnimation,
@@ -345,6 +274,66 @@ fun SearchScreen(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(1.dp)
                     ) {
+                        if (searchIndexerState.isIndexing)
+                            item {
+                                ListItem(
+                                    modifier = Modifier
+                                        .animateItem()
+                                        .padding(16.dp)
+                                        .clip(RoundedCornerShape(16.dp)),
+                                    leadingContent = {
+                                        Icon(
+                                            imageVector = Icons.Outlined.ImageSearch,
+                                            contentDescription = "Search Indexer",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    },
+                                    headlineContent = {
+                                        Text(
+                                            text = "Search function limited"
+                                        )
+                                    },
+                                    supportingContent = {
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        ) {
+                                            Text(
+                                                text = "Search indexer is running. Results may not be accurate."
+                                            )
+                                            if (searchIndexerState.progress == 0f) {
+                                                LinearProgressIndicator(
+                                                    color = MaterialTheme.colorScheme.onPrimary,
+                                                    trackColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                                                        alpha = 0.5f
+                                                    ),
+                                                    gapSize = 0.dp,
+                                                    strokeCap = StrokeCap.Round
+                                                )
+                                            } else {
+                                                LinearProgressIndicator(
+                                                    progress = { searchIndexerState.progress / 100f },
+                                                    color = MaterialTheme.colorScheme.onPrimary,
+                                                    trackColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                                                        alpha = 0.5f
+                                                    ),
+                                                    drawStopIndicator = {},
+                                                    gapSize = 0.dp,
+                                                    strokeCap = StrokeCap.Round
+                                                )
+                                            }
+                                        }
+                                    },
+                                    colors = ListItemDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        headlineColor = MaterialTheme.colorScheme.onPrimary,
+                                        supportingColor = MaterialTheme.colorScheme.onPrimary.copy(
+                                            alpha = 0.7f
+                                        )
+                                    )
+                                )
+                            }
+                        // History and Suggestions
                         SettingsOptionLayout(
                             optionList = historyItems,
                             slimLayout = true,
@@ -358,6 +347,105 @@ fun SearchScreen(
                             optionList = suggestionItems,
                             slimLayout = true
                         )
+
+                        // Category Carousel
+                        if (topCategories.isNotEmpty()) {
+                            SettingsOptionLayout(
+                                modifier = Modifier.padding(top = 12.dp),
+                                optionList = listOf(SettingsEntity.Header(resources.getString(R.string.browse_categories))),
+                                slimLayout = true
+                            )
+                            item {
+                                CategoryCarousel(
+                                    categories = topCategories,
+                                    onCategoryClick = { categoryMedia ->
+                                        eventHandler.navigate(
+                                            Screen.CategoryViewScreen.categoryId(
+                                                categoryMedia.category.id
+                                            )
+                                        )
+                                    },
+                                    title = null
+                                )
+                            }
+                        }
+
+                        // Location Carousel
+                        if (topLocations.isNotEmpty()) {
+                            SettingsOptionLayout(
+                                modifier = Modifier.padding(top = 12.dp),
+                                optionList = listOf(SettingsEntity.Header(resources.getString(R.string.locations))),
+                                slimLayout = true
+                            )
+                            item {
+                                LocationCarousel(
+                                    locations = topLocations,
+                                    onLocationClick = { locationMedia ->
+                                        val city = locationMedia.location.substringBefore(",")
+                                        val country =
+                                            locationMedia.location.substringAfterLast(", ")
+                                        eventHandler.navigate(
+                                            Screen.LocationTimelineScreen.location(
+                                                gpsLocationNameCity = city,
+                                                gpsLocationNameCountry = country
+                                            )
+                                        )
+                                    },
+                                    title = null
+                                )
+                            }
+                        }
+
+                        // Media Types Carousel
+                        if (topMimeTypes.isNotEmpty()) {
+                            SettingsOptionLayout(
+                                modifier = Modifier.padding(top = 12.dp),
+                                optionList = listOf(SettingsEntity.Header(resources.getString(R.string.media_types))),
+                                slimLayout = true
+                            )
+                            item {
+                                SearchCarousel(
+                                    items = topMimeTypes,
+                                    onItemClick = { item ->
+                                        viewModel.setMimeTypeQuery(item.key)
+                                    }
+                                )
+                            }
+                        }
+
+                        // Camera Models Carousel
+                        if (topLensModels.isNotEmpty()) {
+                            SettingsOptionLayout(
+                                modifier = Modifier.padding(top = 12.dp),
+                                optionList = listOf(SettingsEntity.Header(resources.getString(R.string.camera_models))),
+                                slimLayout = true
+                            )
+                            item {
+                                SearchCarousel(
+                                    items = topLensModels,
+                                    onItemClick = { item ->
+                                        viewModel.setLensModelQuery(item.key)
+                                    }
+                                )
+                            }
+                        }
+
+                        // Media Modes Carousel (Night Mode, Panoramas, etc.)
+                        if (topMediaModes.isNotEmpty()) {
+                            SettingsOptionLayout(
+                                modifier = Modifier.padding(top = 12.dp),
+                                optionList = listOf(SettingsEntity.Header(resources.getString(R.string.special_modes))),
+                                slimLayout = true
+                            )
+                            item {
+                                SearchCarousel(
+                                    items = topMediaModes,
+                                    onItemClick = { item ->
+                                        viewModel.setMediaModeQuery(item.key)
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
                 AnimatedVisibility(
@@ -393,13 +481,10 @@ fun SearchScreen(
                         distributor.metadataFlow.collectAsStateWithLifecycle(MediaMetadataState())
                     var canScroll by rememberSaveable { mutableStateOf(true) }
                     var lastCellIndex by rememberGridSize()
-                    val dpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
                     val pinchState = rememberPinchZoomGridState(
                         cellsList = cellsList,
                         initialCellsIndex = lastCellIndex,
-                        gridState = rememberLazyGridState(
-                            cacheWindow = dpCacheWindow
-                        )
+                        gridState = rememberLazyGridState()
                     )
 
                     LaunchedEffect(pinchState.isZooming) {

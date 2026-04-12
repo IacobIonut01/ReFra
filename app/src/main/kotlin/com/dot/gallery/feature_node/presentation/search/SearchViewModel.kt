@@ -6,21 +6,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.dot.gallery.R
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.Settings
+import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
+import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.presentation.library.CategoryMedia
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.frosch2010.fuzzywuzzy_kotlin.FuzzySearch
 import com.frosch2010.fuzzywuzzy_kotlin.ToStringFunction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -43,6 +52,7 @@ class SearchViewModel @Inject constructor(
     mediaDistributor: MediaDistributor,
     workManager: WorkManager,
     private val searchHelper: SearchHelper,
+    repository: MediaRepository,
     @param:ApplicationContext
     private val context: Context
 ) : ViewModel() {
@@ -61,6 +71,119 @@ class SearchViewModel @Inject constructor(
     val searchResultsState = _searchResultsState.asStateFlow()
 
     private val dateFormats = mediaDistributor.dateFormatsFlow
+
+    // Top categories for the search screen carousel (matching LibraryScreen style)
+    val topCategories: StateFlow<ImmutableList<CategoryMedia>> = combine(
+        repository.getTopCategories(8),
+        mediaDistributor.timelineMediaFlow
+    ) { categories, mediaState ->
+        val mediaMap = mediaState.media.associateBy { it.id }
+        categories.map { category ->
+            CategoryMedia(
+                category = category,
+                thumbnailMedia = category.thumbnailMediaId?.let { mediaMap[it] }
+            )
+        }.toImmutableList()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = persistentListOf()
+    )
+
+    // Top locations for the search screen carousel (matching LibraryScreen style)
+    val topLocations: StateFlow<ImmutableList<LocationMedia>> = mediaDistributor.locationsMediaFlow
+        .map { it.take(10).toImmutableList() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = persistentListOf()
+        )
+
+    // Top MIME types carousel – grouped by mimeType, readable labels
+    val topMimeTypes: StateFlow<ImmutableList<SearchMediaItem>> = mediaDistributor.timelineMediaFlow
+        .map { mediaState ->
+            mediaState.media
+                .groupBy { it.mimeType }
+                .map { (mimeType, mediaList) ->
+                    SearchMediaItem(
+                        key = mimeType,
+                        label = mimeType.toReadableMimeType(),
+                        media = mediaList.firstOrNull(),
+                        count = mediaList.size
+                    )
+                }
+                .sortedByDescending { it.count }
+                .take(10)
+                .toImmutableList()
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = persistentListOf()
+        )
+
+    // Top camera/lens models – grouped by manufacturer + model
+    val topLensModels: StateFlow<ImmutableList<SearchMediaItem>> = combine(
+        mediaDistributor.metadataFlow,
+        mediaDistributor.timelineMediaFlow
+    ) { metadataState, mediaState ->
+        val mediaMap = mediaState.media.associateBy { it.id }
+        metadataState.metadata
+            .asSequence()
+            .filter { !it.modelName.isNullOrEmpty() }
+            .groupBy { "${it.manufacturerName.orEmpty()} ${it.modelName.orEmpty()}".trim() }
+            .map { (lensModel, metadataList) ->
+                SearchMediaItem(
+                    key = lensModel,
+                    label = lensModel,
+                    media = metadataList.firstNotNullOfOrNull { mediaMap[it.mediaId] },
+                    count = metadataList.size
+                )
+            }
+            .sortedByDescending { it.count }
+            .take(10)
+            .toImmutableList()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = persistentListOf()
+    )
+
+    // Media mode carousels – night mode, panorama, photosphere, long exposure, motion photo
+    private data class MediaModeSpec(
+        val key: String,
+        val labelResId: Int,
+        val predicate: (MediaMetadata) -> Boolean
+    )
+
+    private val mediaModeSpecs = listOf(
+        MediaModeSpec("night_mode", R.string.night_mode) { it.isNightMode },
+        MediaModeSpec("panorama", R.string.panoramas) { it.isPanorama },
+        MediaModeSpec("photosphere", R.string.photospheres) { it.isPhotosphere },
+        MediaModeSpec("long_exposure", R.string.long_exposures) { it.isLongExposure },
+        MediaModeSpec("motion_photo", R.string.motion_photos) { it.isMotionPhoto },
+    )
+
+    val topMediaModes: StateFlow<ImmutableList<SearchMediaItem>> = combine(
+        mediaDistributor.metadataFlow,
+        mediaDistributor.timelineMediaFlow
+    ) { metadataState, mediaState ->
+        val mediaMap = mediaState.media.associateBy { it.id }
+        mediaModeSpecs.mapNotNull { spec ->
+            val matching = metadataState.metadata.filter(spec.predicate)
+            if (matching.isEmpty()) null
+            else SearchMediaItem(
+                key = spec.key,
+                label = context.getString(spec.labelResId),
+                media = matching.firstNotNullOfOrNull { mediaMap[it.mediaId] },
+                count = matching.size
+            )
+        }.toImmutableList()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = persistentListOf()
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val allMedia = mediaDistributor.timelineMediaFlow
@@ -160,6 +283,76 @@ class SearchViewModel @Inject constructor(
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             val allMedia = allMedia.value.media
             val filteredMedia = allMedia.filter { it.mimeType.startsWith(searchQuery) }
+            val mediaState = mapMediaToItem(
+                data = filteredMedia,
+                error = "",
+                albumId = -1L,
+                defaultDateFormat = dateFormats.value.first,
+                extendedDateFormat = dateFormats.value.second,
+                weeklyDateFormat = dateFormats.value.third
+            )
+            _searchResultsState.tryEmit(
+                SearchResultsState(
+                    hasSearched = true,
+                    isSearching = false,
+                    progress = 1f,
+                    results = mediaState
+                )
+            )
+        }
+    }
+
+    /**
+     * Search by metadata flag (night mode, panorama, photosphere, long exposure, motion photo).
+     * @param modeKey one of "night_mode", "panorama", "photosphere", "long_exposure", "motion_photo"
+     */
+    fun setMediaModeQuery(modeKey: String) {
+        val spec = mediaModeSpecs.find { it.key == modeKey } ?: return
+        _query.value = context.getString(spec.labelResId)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            val allMediaMap = allMedia.value.media.associateBy { it.id }
+            val matchingIds = metadata.value.metadata
+                .filter(spec.predicate)
+                .map { it.mediaId }
+                .toSet()
+            val filteredMedia = matchingIds.mapNotNull { allMediaMap[it] }
+            val mediaState = mapMediaToItem(
+                data = filteredMedia,
+                error = "",
+                albumId = -1L,
+                defaultDateFormat = dateFormats.value.first,
+                extendedDateFormat = dateFormats.value.second,
+                weeklyDateFormat = dateFormats.value.third
+            )
+            _searchResultsState.tryEmit(
+                SearchResultsState(
+                    hasSearched = true,
+                    isSearching = false,
+                    progress = 1f,
+                    results = mediaState
+                )
+            )
+        }
+    }
+
+    /**
+     * Search by camera/lens model name.
+     * Filters metadata by manufacturer + model match and returns associated media.
+     */
+    fun setLensModelQuery(lensModel: String) {
+        _query.value = lensModel
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            val allMediaMap = allMedia.value.media.associateBy { it.id }
+            val matchingIds = metadata.value.metadata
+                .filter {
+                    val full = "${it.manufacturerName.orEmpty()} ${it.modelName.orEmpty()}".trim()
+                    full.equals(lensModel, ignoreCase = true)
+                }
+                .map { it.mediaId }
+                .toSet()
+            val filteredMedia = matchingIds.mapNotNull { allMediaMap[it] }
             val mediaState = mapMediaToItem(
                 data = filteredMedia,
                 error = "",
