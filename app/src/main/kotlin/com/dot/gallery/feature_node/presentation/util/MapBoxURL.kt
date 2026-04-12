@@ -10,7 +10,7 @@ import com.dot.gallery.BuildConfig
 
 object MapBoxURL {
 
-    private const val apiKey: String = BuildConfig.MAPS_TOKEN
+    private val apiKey: String = BuildConfig.MAPS_TOKEN
 
     operator fun invoke(
         latitude: Double,
