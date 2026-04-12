@@ -1,14 +1,18 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components.video
 
 import android.app.Activity
+import android.view.SurfaceView
+import android.view.View
 import android.view.WindowManager
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,25 +32,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onVisibilityChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAudioFocus
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
+import com.dot.gallery.feature_node.presentation.util.rememberSurfaceCapture
+import dev.chrisbanes.haze.hazeSource
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -132,6 +143,16 @@ fun <T : Media> VideoPlayer(
         }
     }
 
+    val density = LocalDensity.current
+    var surfaceViewRef by remember { mutableStateOf<View?>(null) }
+    var videoSize by remember { mutableStateOf(IntSize.Zero) }
+    val allowBlur by rememberAllowBlur()
+    val hazeState = LocalHazeState.current
+    val videoCapture by rememberSurfaceCapture(
+        view = surfaceViewRef,
+        enabled = allowBlur
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -149,14 +170,41 @@ fun <T : Media> VideoPlayer(
             }
             .then(modifier)
     ) {
-        PlayerSurface(
-            player = vm.player,
+        if (videoSize != IntSize.Zero) {
+            videoCapture?.let { bitmap ->
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(
+                            with(density) { videoSize.width.toDp() },
+                            with(density) { videoSize.height.toDp() }
+                        )
+                        .hazeSource(hazeState)
+                )
+            }
+        }
+        AndroidView(
+            factory = { ctx ->
+                SurfaceView(ctx).also { sv ->
+                    surfaceViewRef = sv
+                    vm.player.setVideoSurfaceView(sv)
+                }
+            },
+            update = { sv ->
+                vm.player.setVideoSurfaceView(sv)
+            },
             modifier = Modifier
                 .align(Alignment.Center)
                 .resizeWithContentScale(
                     contentScale = ContentScale.Fit,
                     sourceSizeDp = presentationState.videoSizeDp
                 )
+                .onGloballyPositioned { coordinates ->
+                    videoSize = coordinates.size
+                }
         )
 
         if (presentationState.coverSurface) {
