@@ -22,7 +22,7 @@ jobs:
         with:
           distribution: 'temurin'
           cache: 'gradle'
-          java-version: 17
+          java-version: 21
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       - name: Setup Gradle
@@ -64,7 +64,7 @@ jobs:
         with:
           distribution: 'temurin'
           cache: 'gradle'
-          java-version: 17
+          java-version: 21
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       - name: Setup Gradle
@@ -74,7 +74,11 @@ jobs:
       - name: Load Maps Token
         env:
           MAPS_TOKEN: $
-        run: echo MAPS_TOKEN=\"$MAPS_TOKEN\" > ./api.properties
+        run: echo MAPS_TOKEN="$MAPS_TOKEN" > ./api.properties
+      - name: Load Mapbox Downloads Token
+        env:
+          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
+        run: echo "MAPBOX_DOWNLOADS_TOKEN=$MAPBOX_DOWNLOADS_TOKEN" >> gradle.properties
       - name: Decode Keystore
         id: decode_keystore
         uses: timheuer/base64-to-file@v1
@@ -88,6 +92,7 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: Gallery Release (Maps)
@@ -106,6 +111,7 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
       - uses: r0adkll/upload-google-play@v1
         continue-on-error: true
         with:
