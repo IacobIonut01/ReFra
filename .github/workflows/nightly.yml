@@ -76,7 +76,7 @@ jobs:
         run: chmod +x ./gradlew
       - name: Load Maps Token
         env:
-          MAPS_TOKEN: $
+          MAPS_TOKEN: ${{ secrets.MAPS_TOKEN }}
         run: echo MAPS_TOKEN="$MAPS_TOKEN" > ./api.properties
       - name: Decode Keystore
         id: decode_keystore
