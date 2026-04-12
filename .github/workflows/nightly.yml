@@ -78,10 +78,6 @@ jobs:
         env:
           MAPS_TOKEN: $
         run: echo MAPS_TOKEN="$MAPS_TOKEN" > ./api.properties
-      - name: Load Mapbox Downloads Token
-        env:
-          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
-        run: echo "MAPBOX_DOWNLOADS_TOKEN=$MAPBOX_DOWNLOADS_TOKEN" >> gradle.properties
       - name: Decode Keystore
         id: decode_keystore
         uses: timheuer/base64-to-file@v1

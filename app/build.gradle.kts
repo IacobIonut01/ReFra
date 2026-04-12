@@ -77,6 +77,7 @@ android {
         }
         create("staging") {
             initWith(getByName("release"))
+            matchingFallbacks += "release"
             isMinifyEnabled = false
             isShrinkResources = false
             applicationIdSuffix = ".staging"
@@ -293,11 +294,13 @@ dependencies {
     implementation(libs.haze)
     implementation(libs.haze.materials)
 
-    // Mapbox
-    implementation(libs.mapbox.navigation.core)
-    implementation(libs.mapbox.navigation.ui.maps)
-    implementation(libs.mapbox.navigation.ui.components)
-    implementation(libs.mapbox.maps.compose)
+    // Mapbox (only when MAPS_TOKEN is configured)
+    if (getApiKey() != "\"DEBUG\"") {
+        implementation(libs.mapbox.navigation.core)
+        implementation(libs.mapbox.navigation.ui.maps)
+        implementation(libs.mapbox.navigation.ui.components)
+        implementation(libs.mapbox.maps.compose)
+    }
 
     // Tests
     testImplementation(libs.junit)
