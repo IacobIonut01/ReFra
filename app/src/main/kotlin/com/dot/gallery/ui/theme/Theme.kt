@@ -5,6 +5,7 @@
 
 package com.dot.gallery.ui.theme
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -24,9 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberForceTheme
 import com.dot.gallery.core.Settings.Misc.rememberIsAmoledMode
 import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
+import com.dot.gallery.core.Settings.Misc.rememberThemeColorSeed
+import com.google.android.material.color.utilities.Hct
+import com.google.android.material.color.utilities.SchemeTonalSpot
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
@@ -120,9 +125,13 @@ fun GalleryTheme(
         mutableStateOf(if (!ignoreUserPreference && forceThemeValue) isDarkMode else darkTheme)
     }
     val isAmoledMode by rememberIsAmoledMode()
+    val themeColorSeed by rememberThemeColorSeed()
     val context = LocalContext.current
-    val colorScheme = remember(dynamicColor, forcedDarkTheme, isAmoledMode) {
-        if (dynamicColor) {
+    val colorScheme = remember(dynamicColor, forcedDarkTheme, isAmoledMode, themeColorSeed) {
+        if (themeColorSeed != Settings.Misc.THEME_SEED_SYSTEM) {
+            val seedArgb = themeColorSeed.toLongOrNull(16)?.toInt() ?: seed.value.toInt()
+            colorSchemeFromSeed(seedArgb, forcedDarkTheme, isAmoledMode)
+        } else if (dynamicColor) {
             maybeDynamicColorScheme(context, forcedDarkTheme, isAmoledMode)
         } else {
             if (forcedDarkTheme) {
@@ -175,4 +184,123 @@ private fun ColorScheme.maybeAmoled(boolean: Boolean) = if (boolean) {
     )
 } else {
     this
+}
+
+@SuppressLint("RestrictedApi")
+fun colorSchemeFromSeed(
+    seedArgb: Int,
+    isDark: Boolean,
+    isAmoledMode: Boolean = false
+): ColorScheme {
+    val hct = Hct.fromInt(seedArgb)
+    val scheme = SchemeTonalSpot(hct, isDark, 0.0)
+    val p = scheme.primaryPalette
+    val s = scheme.secondaryPalette
+    val t = scheme.tertiaryPalette
+    val n = scheme.neutralPalette
+    val nv = scheme.neutralVariantPalette
+    val e = scheme.errorPalette
+    return if (isDark) {
+        darkColorScheme(
+            primary = Color(p.tone(80)),
+            onPrimary = Color(p.tone(20)),
+            primaryContainer = Color(p.tone(30)),
+            onPrimaryContainer = Color(p.tone(90)),
+            inversePrimary = Color(p.tone(40)),
+            secondary = Color(s.tone(80)),
+            onSecondary = Color(s.tone(20)),
+            secondaryContainer = Color(s.tone(30)),
+            onSecondaryContainer = Color(s.tone(90)),
+            tertiary = Color(t.tone(80)),
+            onTertiary = Color(t.tone(20)),
+            tertiaryContainer = Color(t.tone(30)),
+            onTertiaryContainer = Color(t.tone(90)),
+            background = Color(n.tone(6)),
+            onBackground = Color(n.tone(90)),
+            surface = Color(n.tone(6)),
+            onSurface = Color(n.tone(90)),
+            surfaceVariant = Color(nv.tone(30)),
+            onSurfaceVariant = Color(nv.tone(80)),
+            surfaceTint = Color(p.tone(80)),
+            inverseSurface = Color(n.tone(90)),
+            inverseOnSurface = Color(n.tone(20)),
+            error = Color(e.tone(80)),
+            onError = Color(e.tone(20)),
+            errorContainer = Color(e.tone(30)),
+            onErrorContainer = Color(e.tone(90)),
+            outline = Color(nv.tone(60)),
+            outlineVariant = Color(nv.tone(30)),
+            scrim = Color(n.tone(0)),
+            surfaceBright = Color(n.tone(24)),
+            surfaceDim = Color(n.tone(6)),
+            surfaceContainer = Color(n.tone(12)),
+            surfaceContainerHigh = Color(n.tone(17)),
+            surfaceContainerHighest = Color(n.tone(22)),
+            surfaceContainerLow = Color(n.tone(10)),
+            surfaceContainerLowest = Color(n.tone(4)),
+            primaryFixed = Color(p.tone(90)),
+            primaryFixedDim = Color(p.tone(80)),
+            onPrimaryFixed = Color(p.tone(10)),
+            onPrimaryFixedVariant = Color(p.tone(30)),
+            secondaryFixed = Color(s.tone(90)),
+            secondaryFixedDim = Color(s.tone(80)),
+            onSecondaryFixed = Color(s.tone(10)),
+            onSecondaryFixedVariant = Color(s.tone(30)),
+            tertiaryFixed = Color(t.tone(90)),
+            tertiaryFixedDim = Color(t.tone(80)),
+            onTertiaryFixed = Color(t.tone(10)),
+            onTertiaryFixedVariant = Color(t.tone(30)),
+        )
+    } else {
+        lightColorScheme(
+            primary = Color(p.tone(40)),
+            onPrimary = Color(p.tone(100)),
+            primaryContainer = Color(p.tone(90)),
+            onPrimaryContainer = Color(p.tone(10)),
+            inversePrimary = Color(p.tone(80)),
+            secondary = Color(s.tone(40)),
+            onSecondary = Color(s.tone(100)),
+            secondaryContainer = Color(s.tone(90)),
+            onSecondaryContainer = Color(s.tone(10)),
+            tertiary = Color(t.tone(40)),
+            onTertiary = Color(t.tone(100)),
+            tertiaryContainer = Color(t.tone(90)),
+            onTertiaryContainer = Color(t.tone(10)),
+            background = Color(n.tone(99)),
+            onBackground = Color(n.tone(10)),
+            surface = Color(n.tone(99)),
+            onSurface = Color(n.tone(10)),
+            surfaceVariant = Color(nv.tone(90)),
+            onSurfaceVariant = Color(nv.tone(30)),
+            surfaceTint = Color(p.tone(40)),
+            inverseSurface = Color(n.tone(20)),
+            inverseOnSurface = Color(n.tone(95)),
+            error = Color(e.tone(40)),
+            onError = Color(e.tone(100)),
+            errorContainer = Color(e.tone(90)),
+            onErrorContainer = Color(e.tone(10)),
+            outline = Color(nv.tone(50)),
+            outlineVariant = Color(nv.tone(80)),
+            scrim = Color(n.tone(0)),
+            surfaceBright = Color(n.tone(98)),
+            surfaceDim = Color(n.tone(87)),
+            surfaceContainer = Color(n.tone(94)),
+            surfaceContainerHigh = Color(n.tone(92)),
+            surfaceContainerHighest = Color(n.tone(90)),
+            surfaceContainerLow = Color(n.tone(96)),
+            surfaceContainerLowest = Color(n.tone(100)),
+            primaryFixed = Color(p.tone(90)),
+            primaryFixedDim = Color(p.tone(80)),
+            onPrimaryFixed = Color(p.tone(10)),
+            onPrimaryFixedVariant = Color(p.tone(30)),
+            secondaryFixed = Color(s.tone(90)),
+            secondaryFixedDim = Color(s.tone(80)),
+            onSecondaryFixed = Color(s.tone(10)),
+            onSecondaryFixedVariant = Color(s.tone(30)),
+            tertiaryFixed = Color(t.tone(90)),
+            tertiaryFixedDim = Color(t.tone(80)),
+            onTertiaryFixed = Color(t.tone(10)),
+            onTertiaryFixedVariant = Color(t.tone(30)),
+        )
+    }.maybeAmoled(isAmoledMode && isDark)
 }
