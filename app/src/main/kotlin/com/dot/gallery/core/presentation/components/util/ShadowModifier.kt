@@ -29,7 +29,7 @@ fun Modifier.advancedShadow(
 
     drawIntoCanvas {
         val frameworkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = transparentColor
+            this.color = transparentColor
             setShadowLayer(
                 shadowBlurRadius.toPx(),
                 offsetX.toPx(),
