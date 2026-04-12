@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayer
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -32,6 +33,7 @@ import dev.chrisbanes.haze.hazeSource
 fun <T: Media> MediaPreviewComponent(
     media: T?,
     modifier: Modifier = Modifier,
+    containerModifier: Modifier = Modifier,
     uiEnabled: Boolean,
     playWhenReady: State<Boolean>,
     onItemClick: () -> Unit,
@@ -39,6 +41,11 @@ fun <T: Media> MediaPreviewComponent(
     rotationDisabled: Boolean,
     onImageRotated: (newRotation: Int) -> Unit,
     offset: IntOffset,
+    isPanorama: Boolean = false,
+    isPhotosphere: Boolean = false,
+    isMotionPhoto: Boolean = false,
+    motionPhotoState: MotionPhotoState? = null,
+    currentVault: Vault? = null,
     videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
 ) {
     AnimatedVisibility(
@@ -48,7 +55,7 @@ fun <T: Media> MediaPreviewComponent(
         visible = media != null,
     ) {
         Box(
-            modifier = Modifier.fillMaxSize().offset { offset },
+            modifier = Modifier.fillMaxSize().then(containerModifier).offset { offset },
         ) {
             AnimatedVisibility(
                 modifier = Modifier.fillMaxSize(),
@@ -68,7 +75,7 @@ fun <T: Media> MediaPreviewComponent(
 
             AnimatedVisibility(
                 modifier = Modifier.fillMaxSize(),
-                visible = !media.isVideo,
+                visible = !media.isVideo && !isPanorama && !isPhotosphere,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -80,6 +87,25 @@ fun <T: Media> MediaPreviewComponent(
                     onImageRotated = onImageRotated,
                     onItemClick = onItemClick,
                     onSwipeDown = onSwipeDown
+                )
+            }
+
+            if (!media.isVideo && motionPhotoState != null) {
+                MotionPhotoSurface(state = motionPhotoState)
+            }
+
+            AnimatedVisibility(
+                modifier = Modifier.fillMaxSize(),
+                visible = !media.isVideo && !isMotionPhoto && (isPanorama || isPhotosphere),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                PanoramaImageViewer(
+                    media = media,
+                    isPhotosphere = isPhotosphere,
+                    modifier = modifier,
+                    onItemClick = onItemClick,
+                    currentVault = currentVault
                 )
             }
         }
