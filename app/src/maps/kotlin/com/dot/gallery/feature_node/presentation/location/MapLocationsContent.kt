@@ -161,9 +161,7 @@ internal fun MapLocationsContent(
         }
     }
 
-    LaunchedEffect(BuildConfig.MAPS_TOKEN) {
-        MapboxOptions.accessToken = BuildConfig.MAPS_TOKEN
-    }
+    MapboxOptions.accessToken = BuildConfig.MAPS_TOKEN
 
     // Saveable state for configuration changes
     var savedLat by rememberSaveable { mutableDoubleStateOf(30.0) }
