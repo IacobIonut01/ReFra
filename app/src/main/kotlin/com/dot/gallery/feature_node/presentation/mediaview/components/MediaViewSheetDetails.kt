@@ -24,8 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GpsOff
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -49,7 +46,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -77,6 +73,8 @@ import com.dot.gallery.feature_node.domain.util.isRaw
 import com.dot.gallery.feature_node.domain.util.isTrashed
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.exif.MetadataEditSheet
+import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoShotsSection
+import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoState
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -99,7 +97,8 @@ fun <T : Media> MediaViewSheetDetails(
     metadataState: State<MediaMetadataState>,
     currentMedia: T?,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
-    currentVault: Vault?
+    currentVault: Vault?,
+    motionPhotoState: MotionPhotoState? = null,
 ) {
     val metadata by rememberedDerivedState(metadataState.value, currentMedia) {
         metadataState.value.metadata.find { it.mediaId == currentMedia?.id }
@@ -129,6 +128,29 @@ fun <T : Media> MediaViewSheetDetails(
     val sheetCardButtonHazeStyle = HazeMaterials.thick(
         containerColor = surfaceColorVariant
     )
+    val iconBackgroundHazeStyle = HazeMaterials.thick(
+        containerColor = surfaceContainerHigh
+    )
+    val iconBackgroundModifier = remember(isBlurEnabled) {
+        if (!isBlurEnabled) {
+            Modifier.background(
+                color = surfaceContainerHigh,
+                shape = RoundedCornerShape(10.dp)
+            )
+        } else {
+            Modifier
+        }
+    }
+    val buttonBackgroundModifier = remember(isBlurEnabled) {
+        if (!isBlurEnabled) {
+            Modifier.background(
+                color = surfaceContainerHigh,
+                shape = RoundedCornerShape(12.dp)
+            )
+        } else {
+            Modifier
+        }
+    }
     val sheetBackgroundModifier = remember(isBlurEnabled) {
         if (!isBlurEnabled) {
             Modifier.background(
@@ -304,120 +326,122 @@ fun <T : Media> MediaViewSheetDetails(
                                     )
                                 }
                             }
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp)),
-                                verticalArrangement = Arrangement.spacedBy(1.dp)
+                            LocationItem(
+                                iconBackgroundModifier = Modifier
+                                    .then(iconBackgroundModifier)
+                                    .hazeEffect(
+                                        state = LocalHazeState.current,
+                                        style = iconBackgroundHazeStyle
+                                    ),
+                                locationData = locationData
+                            )
+                            AnimatedVisibility(
+                                visible = currentMedia.canMakeActions
                             ) {
-                                LocationItem(
-                                    locationData = locationData
-                                )
-                                AnimatedVisibility(
-                                    visible = currentMedia.canMakeActions
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(1.dp),
+                                    AnimatedVisibility(
+                                        modifier = Modifier.weight(1f),
+                                        visible = locationData != null
                                     ) {
-                                        val sheetCardButtonBackgroundModifier =
-                                            remember(isBlurEnabled) {
-                                                if (!isBlurEnabled) {
-                                                    Modifier.background(
-                                                        color = surfaceColorVariant,
-                                                        shape = RoundedCornerShape(2.dp)
-                                                    )
-                                                } else {
-                                                    Modifier
-                                                }
-                                            }
-                                        AnimatedVisibility(
-                                            modifier = Modifier.weight(1f),
-                                            visible = locationData != null
-                                        ) {
-                                            ListItem(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(2.dp))
-                                                    .then(sheetCardButtonBackgroundModifier)
-                                                    .hazeEffect(
-                                                        state = LocalHazeState.current,
-                                                        style = sheetCardButtonHazeStyle
-                                                    )
-                                                    .clickable {
-                                                        scope.launch {
-                                                            exifDeleteMode = 1
-                                                            exifAttributesEditResult.launch(
-                                                                currentMedia.writeRequest(
-                                                                    context.contentResolver
-                                                                )
-                                                            )
-                                                        }
-                                                    },
-                                                headlineContent = {
-                                                    Text(
-                                                        text = stringResource(R.string.delete_location),
-                                                        fontSize = 12.sp
-                                                    )
-                                                },
-                                                leadingContent = {
-                                                    Icon(
-                                                        imageVector = Icons.Outlined.GpsOff,
-                                                        contentDescription = stringResource(R.string.delete_location)
-                                                    )
-                                                },
-                                                colors = ListItemDefaults.colors(
-                                                    containerColor = Color.Transparent,
-                                                    headlineColor = MaterialTheme.colorScheme.onSurface,
-                                                    leadingIconColor = MaterialTheme.colorScheme.onSurface
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(
+                                                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f),
+                                                    shape = RoundedCornerShape(12.dp)
                                                 )
+                                                .clickable {
+                                                    scope.launch {
+                                                        exifDeleteMode = 1
+                                                        exifAttributesEditResult.launch(
+                                                            currentMedia.writeRequest(
+                                                                context.contentResolver
+                                                            )
+                                                        )
+                                                    }
+                                                }
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.GpsOff,
+                                                contentDescription = stringResource(R.string.delete_location),
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.tertiary
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.delete_location),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.tertiary,
+                                                modifier = Modifier.padding(start = 8.dp)
                                             )
                                         }
-                                        AnimatedVisibility(
-                                            modifier = Modifier.weight(1f),
-                                            visible = metadata?.lensDescription != null
-                                        ) {
-                                            ListItem(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(2.dp))
-                                                    .then(sheetCardButtonBackgroundModifier)
-                                                    .hazeEffect(
-                                                        state = LocalHazeState.current,
-                                                        style = sheetCardButtonHazeStyle
-                                                    )
-                                                    .clickable {
-                                                        scope.launch {
-                                                            exifDeleteMode = 0
-                                                            exifAttributesEditResult.launch(
-                                                                currentMedia.writeRequest(
-                                                                    context.contentResolver
-                                                                )
-                                                            )
-                                                        }
-                                                    },
-                                                headlineContent = {
-                                                    Text(
-                                                        text = stringResource(R.string.delete_metadata),
-                                                        fontSize = 12.sp
-                                                    )
-                                                },
-                                                leadingContent = {
-                                                    Icon(
-                                                        imageVector = Icons.Outlined.LocalFireDepartment,
-                                                        contentDescription = stringResource(R.string.delete_metadata)
-                                                    )
-                                                },
-                                                colors = ListItemDefaults.colors(
-                                                    containerColor = Color.Transparent,
-                                                    headlineColor = MaterialTheme.colorScheme.onSurface,
-                                                    leadingIconColor = MaterialTheme.colorScheme.onSurface
+                                    }
+                                    AnimatedVisibility(
+                                        modifier = Modifier.weight(1f),
+                                        visible = metadata?.lensDescription != null
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .then(buttonBackgroundModifier)
+                                                .hazeEffect(
+                                                    state = LocalHazeState.current,
+                                                    style = sheetCardButtonHazeStyle
                                                 )
+                                                .clickable {
+                                                    scope.launch {
+                                                        exifDeleteMode = 0
+                                                        exifAttributesEditResult.launch(
+                                                            currentMedia.writeRequest(
+                                                                context.contentResolver
+                                                            )
+                                                        )
+                                                    }
+                                                }
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.LocalFireDepartment,
+                                                contentDescription = stringResource(R.string.delete_metadata),
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.delete_metadata),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.padding(start = 8.dp)
                                             )
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
+                    if (motionPhotoState != null) {
+                        item {
+                            MotionPhotoShotsSection(
+                                state = motionPhotoState,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .then(sheetCardBackgroundModifier)
+                                    .hazeEffect(
+                                        state = LocalHazeState.current,
+                                        style = sheetCardHazeStyle
+                                    )
+                                    .padding(16.dp)
+                            )
                         }
                     }
                     item {
@@ -439,6 +463,13 @@ fun <T : Media> MediaViewSheetDetails(
                                         .padding(horizontal = 16.dp),
                                     label = it.label,
                                     content = it.content,
+                                    icon = it.icon,
+                                    iconBackgroundModifier = Modifier
+                                        .then(iconBackgroundModifier)
+                                        .hazeEffect(
+                                            state = LocalHazeState.current,
+                                            style = iconBackgroundHazeStyle
+                                        ),
                                     trailingContent = {
                                         if (it.trailingIcon != null && currentMedia.canMakeActions) {
                                             MediaInfoChip(
@@ -475,6 +506,12 @@ fun <T : Media> MediaViewSheetDetails(
                                         R.string.s_items,
                                         mediaCategoryCounter
                                     ),
+                                    iconBackgroundModifier = Modifier
+                                        .then(iconBackgroundModifier)
+                                        .hazeEffect(
+                                            state = LocalHazeState.current,
+                                            style = iconBackgroundHazeStyle
+                                        ),
                                     trailingContent = {
                                         AnimatedVisibility(
                                             visible = mediaCategoryThumbnail != null,

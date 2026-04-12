@@ -345,10 +345,11 @@ suspend fun Context.retrieveExtraMediaMetadata(geocoder: Geocoder?, media: Media
                         }
                     }
 
-                    // Motion photo
+                    // Motion photo (Google Camera v2/v3 or legacy MicroVideo v1)
                     isMotionPhoto = xmps.any { xmp ->
                         xmp.xmpProperties.any { prop ->
-                            prop.key == "GCamera:MotionPhoto" && prop.value == "1"
+                            (prop.key == "GCamera:MotionPhoto" && prop.value == "1") ||
+                                    (prop.key == "GCamera:MicroVideo" && prop.value == "1")
                         }
                     }
                 }

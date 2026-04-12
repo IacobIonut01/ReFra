@@ -18,11 +18,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.MotionPhotosOn
+import androidx.compose.material.icons.outlined.MotionPhotosPaused
 import androidx.compose.material.icons.outlined.ScreenRotationAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,6 +72,9 @@ fun MediaViewAppBar(
     currentDate: AnnotatedString,
     paddingValues: PaddingValues,
     showRotationHelper: State<Boolean>,
+    isMotionPhoto: Boolean = false,
+    isMotionPlaying: Boolean = false,
+    onToggleMotionPhoto: () -> Unit = {},
     rotateImage: () -> Unit,
     onGoBack: () -> Unit,
     onShowInfo: () -> Unit,
@@ -210,6 +216,37 @@ fun MediaViewAppBar(
                     contentDescription = stringResource(R.string.locked),
                     modifier = Modifier.height(20.dp)
                 )
+            }
+            AnimatedVisibility(
+                visible = isMotionPhoto && !isLocked,
+                enter = enterAnimation,
+                exit = exitAnimation
+            ) {
+                Row(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(0.7f),
+                            shape = CircleShape
+                        )
+                        .clip(CircleShape)
+                        .clickable(onClick = onToggleMotionPhoto)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isMotionPlaying) Icons.Outlined.MotionPhotosPaused
+                            else Icons.Outlined.MotionPhotosOn,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.motion_photo_pill),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             AnimatedVisibility(
                 visible = showRotationHelper.value && !isLocked,

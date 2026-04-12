@@ -8,8 +8,16 @@ package com.dot.gallery.feature_node.presentation.mediaview.components
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Camera
@@ -18,19 +26,20 @@ import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material.icons.outlined.VideoFile
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
@@ -39,7 +48,7 @@ import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.formatMinSec
 import com.dot.gallery.feature_node.presentation.util.formatSize
 import com.dot.gallery.feature_node.presentation.util.toBitrateString
-import com.dot.gallery.ui.theme.Shapes
+import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -49,16 +58,18 @@ fun MediaInfoRow(
     modifier: Modifier = Modifier,
     label: String,
     content: String,
+    icon: ImageVector? = null,
+    iconBackgroundModifier: Modifier = Modifier,
     trailingContent: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null
 ) {
     val clipboardManager: Clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    ListItem(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(Shapes.medium)
+            .clip(RoundedCornerShape(12.dp))
             .combinedClickable(
                 onClick = { onClick?.let { it() } },
                 onLongClick = {
@@ -76,21 +87,50 @@ fun MediaInfoRow(
                         }
                     }
                 }
-            ),
-        colors = ListItemDefaults.colors(
-            containerColor = Color.Transparent
-        ),
-        headlineContent = {
+            )
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (icon != null) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .then(iconBackgroundModifier),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
             Text(
                 text = label,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-        },
-        supportingContent = {
-            Text(text = content)
-        },
-        trailingContent = trailingContent
-    )
+            Text(
+                text = content,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        if (trailingContent != null) {
+            trailingContent()
+        }
+    }
 }
 
 fun Media.retrieveMetadata(

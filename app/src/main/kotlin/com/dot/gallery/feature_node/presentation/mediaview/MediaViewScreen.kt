@@ -21,7 +21,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,8 +34,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisallowComposableCalls
 import androidx.compose.runtime.DisposableEffect
@@ -54,7 +54,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onVisibilityChanged
@@ -103,8 +102,11 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewA
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewQuickBottomBar
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewSheetDetails
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
+import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoFilmstrip
+import com.dot.gallery.feature_node.presentation.mediaview.components.media.rememberMotionPhotoState
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayerController
 import com.dot.gallery.feature_node.presentation.util.FullBrightnessWindow
+import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.ProvideInsets
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.BOTTOM_BAR_HEIGHT
 import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.ImageOnly
@@ -116,12 +118,13 @@ import com.dot.gallery.feature_node.presentation.util.rememberNavigationBarHeigh
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
 import com.dot.gallery.feature_node.presentation.util.setHdrMode
 import com.dot.gallery.feature_node.presentation.util.toggleSystemBars
-import com.dot.gallery.ui.theme.BlackScrim
-import com.dot.gallery.ui.theme.WhiterBlackScrim
 import com.dot.gallery.ui.theme.isDarkTheme
 import com.github.panpf.sketch.BitmapImage
 import com.github.panpf.sketch.request.ImageRequest
 import com.github.panpf.sketch.sketch
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -149,7 +152,7 @@ fun <T> rememberedDerivedState(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun <T : Media> MediaViewScreen(
     toggleRotate: () -> Unit,
@@ -253,6 +256,7 @@ fun <T : Media> MediaViewScreen(
     val showInfo by rememberedDerivedState { currentMedia?.trashed == 0 && !isReadOnly }
 
     var showUI by rememberSaveable { mutableStateOf(true) }
+    val motionPhotoState = rememberMotionPhotoState(currentMedia, viewModel)
     // Key rotation helpers by media id, not whole media object (prevents Serializable fallback of Media inside internal Pair)
     val newRotationValue = rememberSaveable(currentMedia?.id ?: -1L) { mutableIntStateOf(0) }
     val showRotationHelper = rememberSaveable(currentMedia?.id ?: -1L) { mutableStateOf(false) }
@@ -290,9 +294,15 @@ fun <T : Media> MediaViewScreen(
         )
     }
 
-    val imageOnlyDetent = remember(bottomBarHeightDefault, extraPaddingWithNavButtons) {
-        ImageOnly { bottomBarHeightDefault + extraPaddingWithNavButtons }
+    val bottomPadding = remember(paddingValues) {
+        paddingValues.calculateBottomPadding()
     }
+
+    val imageOnlyDetent =
+        remember(bottomBarHeightDefault, extraPaddingWithNavButtons, bottomPadding) {
+            ImageOnly { bottomBarHeightDefault + extraPaddingWithNavButtons + bottomPadding + 16.dp }
+        }
+
     val expandedDetent = remember { FullyExpanded }
 
     val sheetState = rememberBottomSheetState(
@@ -371,13 +381,6 @@ fun <T : Media> MediaViewScreen(
         }
     }
 
-    val bottomPadding =
-        remember(configuration.orientation) {
-            //if (!isGestureEnabled && isLandscape) 0.dp
-            //else
-            paddingValues.calculateBottomPadding()
-        }
-
     LaunchedEffect(Unit) {
         viewModel.uiEvents.collect { event ->
             when (event) {
@@ -419,6 +422,9 @@ fun <T : Media> MediaViewScreen(
                 val media by rememberedDerivedState(mediaState.value, index) {
                     mediaState.value.media.getOrNull(index)
                 }
+                val mediaMetadata by rememberedDerivedState(metadataState.value, media) {
+                    metadataState.value.metadata.find { it.mediaId == media?.id }
+                }
                 val canPlay = rememberSaveable(media) { mutableStateOf(false) }
                 var canAnimateContent by rememberSaveable(media) { mutableStateOf(true) }
                 AnimatedVisibility(
@@ -442,13 +448,15 @@ fun <T : Media> MediaViewScreen(
                                     allowAnimation = canAnimateContent,
                                     media = media!!,
                                     animatedVisibilityScope = animatedContentScope
-                                )
+                                ),
+                            containerModifier = Modifier
                                 .graphicsLayer {
                                     translationY =
                                         -((halfScreenHeight -
                                                 bottomBarHeightDefault -
                                                 bottomPadding -
                                                 extraPaddingWithNavButtons -
+                                                16.dp -
                                                 if (!isGestureEnabled && isLandscape) navigationBarHeight else 0.dp
                                                 ).toPx() * sheetProgress)
                                 },
@@ -466,6 +474,11 @@ fun <T : Media> MediaViewScreen(
                                 }
                             },
                             offset = offset,
+                            isPanorama = mediaMetadata?.isPanorama == true,
+                            isPhotosphere = mediaMetadata?.isPhotosphere == true,
+                            isMotionPhoto = mediaMetadata?.isMotionPhoto == true,
+                            motionPhotoState = motionPhotoState,
+                            currentVault = currentVault,
                             rotationDisabled = isLocked,
                             onImageRotated = { newRotation ->
                                 showRotationHelper.value =
@@ -594,6 +607,9 @@ fun <T : Media> MediaViewScreen(
                 paddingValues = paddingValues,
                 currentMedia = currentMedia,
                 showRotationHelper = showRotationHelper,
+                isMotionPhoto = motionPhotoState.isDetected,
+                isMotionPlaying = motionPhotoState.isPlaying,
+                onToggleMotionPhoto = { motionPhotoState.togglePlayback() },
                 rotateImage = {
                     viewModel.rotateImage(currentMedia!!, newRotationValue.intValue)
                 },
@@ -621,6 +637,29 @@ fun <T : Media> MediaViewScreen(
                     isLocked = !isLocked
                 }
             )
+            // Floating filmstrip overlay (positioned like video seekbar)
+            AnimatedVisibility(
+                visible = showUI && motionPhotoState.isDetected && motionPhotoState.compositeFilmstrip != null,
+                enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp)
+                    .padding(
+                        bottom = bottomPadding + extraPaddingWithNavButtons +
+                                bottomBarHeightDefault + 32.dp
+                    )
+            ) {
+                MotionPhotoFilmstrip(
+                    state = motionPhotoState,
+                    onTap = {
+                        if (sheetState.currentDetent == imageOnlyDetent) {
+                            showUI = !showUI
+                            windowInsetsController.toggleSystemBars(showUI)
+                        }
+                    }
+                )
+            }
             LaunchedEffect(showUI) {
                 if (!showUI && (sheetState.currentDetent == FullyExpanded || sheetState.targetDetent == FullyExpanded)) {
                     sheetState.animateTo(imageOnlyDetent)
@@ -640,7 +679,6 @@ fun <T : Media> MediaViewScreen(
                 state = sheetState,
                 enabled = showUI && target != TARGET_TRASH && showInfo,
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
                     .graphicsLayer {
                         alpha = bottomSheetAlpha
                     }
@@ -659,40 +697,53 @@ fun <T : Media> MediaViewScreen(
                         enter = enterAnimation,
                         exit = exitAnimation
                     ) {
-                        val followTheme = remember(allowBlur) { !allowBlur }
-                        val gradientColor by animateColorAsState(
-                            if (followTheme) {
-                                if (isDarkTheme) BlackScrim else WhiterBlackScrim
-                            } else BlackScrim,
+                        val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer.copy(
+                            if (isDarkTheme) 0.5f else 0.8f
                         )
-                        Row(
+                        val backgroundModifier = remember(allowBlur) {
+                            if (!allowBlur) {
+                                Modifier.background(
+                                    color = surfaceContainer,
+                                    shape = RoundedCornerShape(100)
+                                )
+                            } else Modifier
+                        }
+                        Box(
                             modifier = Modifier
                                 .graphicsLayer {
                                     alpha = actionsAlpha
                                     translationY =
                                         bottomBarHeightDefault.toPx() * sheetProgress
                                 }
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(Color.Transparent, gradientColor)
-                                    )
-                                )
                                 .padding(
-                                    bottom = bottomPadding + extraPaddingWithNavButtons
+                                    bottom = bottomPadding + extraPaddingWithNavButtons + 16.dp
                                 )
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly,
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            MediaViewQuickBottomBar(
-                                currentMedia = currentMedia,
-                                showDeleteButton = !isReadOnly,
-                                enabled = showUI,
-                                deleteMedia = deleteMedia,
-                                restoreMedia = restoreMedia,
-                                currentVault = currentVault
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100))
+                                    .then(backgroundModifier)
+                                    .hazeEffect(
+                                        state = LocalHazeState.current,
+                                        style = HazeMaterials.ultraThin(
+                                            containerColor = surfaceContainer
+                                        )
+                                    )
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                MediaViewQuickBottomBar(
+                                    currentMedia = currentMedia,
+                                    showDeleteButton = !isReadOnly,
+                                    enabled = showUI,
+                                    deleteMedia = deleteMedia,
+                                    restoreMedia = restoreMedia,
+                                    currentVault = currentVault
+                                )
+                            }
                         }
                     }
 
@@ -703,6 +754,7 @@ fun <T : Media> MediaViewScreen(
                         currentMedia = currentMedia,
                         restoreMedia = restoreMedia,
                         currentVault = currentVault,
+                        motionPhotoState = motionPhotoState,
                     )
                 }
             }

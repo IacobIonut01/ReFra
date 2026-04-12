@@ -3,30 +3,29 @@ package com.dot.gallery.feature_node.presentation.mediaview.components.actionbut
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.feature_node.domain.model.Media
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T : Media> MediaViewButton(
     currentMedia: T?,
@@ -41,48 +40,42 @@ fun <T : Media> MediaViewButton(
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
 
     val tintColor by animateColorAsState(
-        if (followTheme) onSurfaceColor.copy(alpha = alpha)
-        else Color.White.copy(alpha = alpha)
+        onSurfaceColor.copy(alpha = alpha)
     )
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .defaultMinSize(
-                minWidth = 90.dp
-            )
-            .height(84.dp)
-            .combinedClickable(
-                enabled = enabled,
-                onLongClick = {
-                    currentMedia?.let {
-                        onItemLongClick?.invoke(it)
-                    }
-                },
-                onClick = {
-                    currentMedia?.let {
-                        onItemClick.invoke(it)
-                    }
-                }
-            )
-            .padding(top = 12.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val tooltipState = rememberTooltipState()
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+            TooltipAnchorPosition.Above,
+            4.dp
+        ),
+        tooltip = {
+            PlainTooltip {
+                Text(text = title)
+            }
+        },
+        state = tooltipState
     ) {
-        Image(
-            imageVector = imageVector,
-            colorFilter = ColorFilter.tint(tintColor),
-            contentDescription = title,
+        Box(
             modifier = Modifier
-                .height(32.dp)
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-        Text(
-            text = title,
-            modifier = Modifier,
-            fontWeight = FontWeight.Medium,
-            style = MaterialTheme.typography.bodyMedium,
-            color = tintColor,
-            textAlign = TextAlign.Center,
-        )
+                .size(48.dp)
+                .clip(CircleShape)
+                .clickable(
+                    enabled = enabled,
+                    onClick = {
+                        currentMedia?.let {
+                            onItemClick.invoke(it)
+                        }
+                    },
+                    onClickLabel = title
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                imageVector = imageVector,
+                colorFilter = ColorFilter.tint(tintColor),
+                contentDescription = title,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
