@@ -1,1 +1,1 @@
-Light-weight Media Gallery
+ReFra — A modern, open-source media gallery

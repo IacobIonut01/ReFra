@@ -1,0 +1,32 @@
+ReFra v4.1.0 — The Refraction Update
+
+App Rebrand
+- Gallery is now ReFra! Reflecting a fresh identity inspired by the refraction of light
+- New geometric launcher icon with themed monochrome support
+- Google Sans font family across the entire app
+
+New Features
+
+- 360° Panorama & Photosphere Viewer: OpenGL-powered viewer with touch/gyroscope navigation and compass overlay (#628)
+- Motion Photo Playback: Detects and plays embedded video in Google Motion Photos, Samsung Live Photos, and Micro Videos with filmstrip scrubbing and haptic snap-to-favourite (#395)
+- Custom Color Palette: Choose from wallpaper-derived colors, 12 preset palettes, or system dynamic color with live phone preview
+- Location Map Viewer: Interactive Mapbox map with clustered markers, bottom sheet media grid, and adaptive layouts
+- AI-Powered Categories: CLIP-based classification replacing the legacy ONNX model — create custom categories with search terms and accuracy thresholds
+- Smart Search Discovery: Carousels for categories, locations, MIME types, camera models, and special modes (night, panorama, long exposure)
+- Video Blur Effects: Haze blur behind video player UI via PixelCopy-based SurfaceView capture
+
+Improvements
+
+- Compact media viewer action buttons (48dp circles with tooltips)
+- Reduced bottom bar height (100dp → 64dp) for more viewing space
+- Enhanced settings with swipe-to-delete and long-press actions
+- Updated build toolchain: Gradle 9.3.1, AGP 9.1.0, Kotlin 2.3.20
+- Dependency updates: Compose 1.10.6, Media3 1.10.0, Hilt 2.59.2, and more
+
+Bug Fixes
+
+- Fixed light mode video player buttons being invisible (#675)
+- Fixed search crash on exit or query change (#801)
+- Improved media distribution with permission-aware album loading
+
+Updated translations across 40+ languages

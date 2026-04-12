@@ -1,33 +1,57 @@
-<p><strong>Gallery&nbsp;</strong>for Android is a light-weight Media Gallery app for Android made with Jetpack Compose. It supports albums, favorites and more. It also features an integrated video player.</p>
+<p><strong>ReFra</strong> is a modern, open-source media gallery for Android built with Jetpack Compose. It refracts how you browse, organize, and experience your photos and videos — with AI-powered categories, panorama viewing, motion photo playback, and a fully customizable Material 3 interface.</p>
 
 <p>&nbsp;</p>
 
 <p><strong>Features</strong></p>
 
 <ul>
-	<li>Media Timeline screen where you can see all the photos videos
+	<li>Media Timeline with date-grouped photos and videos
 	<ul>
-		<li>The Timeline screen is visible from the Main screen and inside each album</li>
-		<li>Media is separated in groups by date</li>
+		<li>Available on the main screen and inside each album</li>
+		<li>Smooth scrolling with optimized thumbnail loading</li>
 	</ul>
 	</li>
-	<li>Multi-Select photos and videos to perform batch operations like
+	<li>360° Panorama &amp; Photosphere Viewer
 	<ul>
-		<li>Mark as favorite</li>
-		<li>Move to trash</li>
-		<li>Share</li>
+		<li>OpenGL-powered spherical and cylindrical projections</li>
+		<li>Touch and gyroscope navigation with compass overlay</li>
 	</ul>
 	</li>
-	<li>Sort and Pin Albums
+	<li>Motion Photo Playback
 	<ul>
-		<li>Sort&nbsp; by Date, Label</li>
-		<li>Pin on top most loved albums</li>
+		<li>Detects Google Motion Photos, Samsung Live Photos, and Micro Videos</li>
+		<li>Interactive filmstrip scrubber with haptic feedback</li>
 	</ul>
 	</li>
-	<li>Quickly Access all the Favorites&nbsp;</li>
-	<li>Manage the Trashed Items from a single screen</li>
-	<li>Custom Video Player powered by <em>Media3 ExoPlayer</em></li>
-	<li>Modern <strong>Material 3</strong> Design Guidelines powered by <strong>Jetpack Compose</strong></li>
-	<li><strong><u>Open Source</u></strong></li>
-	<li>Active Development</li>
+	<li>AI-Powered Categories
+	<ul>
+		<li>CLIP-based image classification with customizable categories</li>
+		<li>Create your own categories with search terms and accuracy thresholds</li>
+	</ul>
+	</li>
+	<li>Location Map Viewer
+	<ul>
+		<li>Interactive Mapbox map with clustered photo markers</li>
+		<li>Browse geotagged media by location</li>
+	</ul>
+	</li>
+	<li>Smart Search with Discovery
+	<ul>
+		<li>Carousels for categories, locations, media types, camera models</li>
+		<li>Special mode filters: night shots, long exposures, panoramas</li>
+	</ul>
+	</li>
+	<li>Custom Color Palettes
+	<ul>
+		<li>Pick from wallpaper-derived or preset color schemes</li>
+		<li>Live preview with full Material 3 theme generation</li>
+	</ul>
+	</li>
+	<li>Multi-Select for batch favorite, trash, share, copy, and move</li>
+	<li>Sortable and pinnable albums</li>
+	<li>Encrypted Vault with biometric unlock</li>
+	<li>Built-in Photo Editor</li>
+	<li>Custom Video Player powered by <em>Media3 ExoPlayer</em> with blur effects</li>
+	<li>Google Sans typography and modern <strong>Material 3</strong> design</li>
+	<li><strong><u>Open Source</u></strong> (Apache-2.0) with active development</li>
 </ul>
