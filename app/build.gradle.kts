@@ -111,6 +111,16 @@ android {
         includeInApk = false
     }
 
+    sourceSets {
+        getByName("main") {
+            if (getApiKey() != "\"DEBUG\"") {
+                kotlin.srcDir("src/maps/kotlin")
+            } else {
+                kotlin.srcDir("src/nomaps/kotlin")
+            }
+        }
+    }
+
     flavorDimensions += listOf("abi")
     productFlavors {
         create("arm64-v8a") {
