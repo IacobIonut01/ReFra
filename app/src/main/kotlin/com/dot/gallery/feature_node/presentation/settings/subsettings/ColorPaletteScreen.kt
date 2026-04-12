@@ -702,49 +702,36 @@ private fun LandscapePreviewContent() {
         val h = maxHeight
         val w = maxWidth
 
-        // Proportional sizes based on container dimensions
-        val topPad = h * 0.06f
-        val statusBarH = h * 0.08f
-        val searchRowH = h * 0.13f
-        val todayH = h * 0.10f
-        val homeH = h * 0.05f
-
-        val buttonSize = h * 0.10f
-        val searchBarH = h * 0.10f
-        val searchBarW = w * 0.12f
-        val smallIconSize = h * 0.05f
-        val searchFontSize = (h.value * 0.03f).sp
-        val tinyFontSize = (h.value * 0.04f).sp
-        val gap = h * 0.015f
-        val navBarH = h * 0.13f
-        val navPillW = h * 0.15f
-        val navPillH = h * 0.08f
-        val navIconSize = h * 0.06f
-        val navPadH = w * 0.025f
+        val fontSize = (h.value * 0.022f).sp
+        val searchFontSize = (h.value * 0.018f).sp
+        val btnSize = h * 0.065f
+        val iconSize = h * 0.035f
+        val sidePad = w * 0.03f
+        val navBarH = h * 0.075f
+        val navPillW = h * 0.09f
+        val navPillH = h * 0.045f
+        val navIconSize = h * 0.04f
+        val navSpacing = w * 0.018f
 
         Column(modifier = Modifier.fillMaxSize()) {
-            // Top padding
-            Spacer(modifier = Modifier.requiredHeight(topPad))
-
             // Status bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .requiredHeight(statusBarH)
-                    .padding(horizontal = w * 0.04f),
+                    .padding(start = sidePad, end = sidePad, top = h * 0.04f),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "12:30",
-                    fontSize = tinyFontSize,
-                    lineHeight = tinyFontSize,
+                    fontSize = fontSize,
+                    lineHeight = fontSize,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Medium
                 )
                 Box(
                     modifier = Modifier
-                        .requiredSize(width = h * 0.05f, height = h * 0.025f)
+                        .requiredSize(width = h * 0.04f, height = h * 0.02f)
                         .clip(RoundedCornerShape(1.dp))
                         .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
                 )
@@ -754,29 +741,29 @@ private fun LandscapePreviewContent() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .requiredHeight(searchRowH)
-                    .padding(end = w * 0.04f),
+                    .padding(top = h * 0.02f, end = sidePad),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
                     modifier = Modifier
-                        .requiredWidth(searchBarW)
-                        .requiredHeight(searchBarH),
+                        .requiredWidth(w * 0.09f)
+                        .requiredHeight(btnSize),
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainer
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = w * 0.01f),
+                        modifier = Modifier.padding(horizontal = w * 0.008f),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(gap)
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Search,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.requiredSize(smallIconSize)
+                            modifier = Modifier.requiredSize(iconSize)
                         )
+                        Spacer(modifier = Modifier.requiredWidth(w * 0.004f))
                         Text(
                             text = stringResource(R.string.search),
                             fontSize = searchFontSize,
@@ -785,9 +772,9 @@ private fun LandscapePreviewContent() {
                         )
                     }
                 }
-                Spacer(modifier = Modifier.requiredWidth(gap))
+                Spacer(modifier = Modifier.requiredWidth(w * 0.008f))
                 Surface(
-                    modifier = Modifier.requiredSize(buttonSize),
+                    modifier = Modifier.requiredSize(btnSize),
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.primaryFixed
                 ) {
@@ -796,14 +783,14 @@ private fun LandscapePreviewContent() {
                             imageVector = Icons.Rounded.Favorite,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryFixed,
-                            modifier = Modifier.requiredSize(smallIconSize)
+                            modifier = Modifier.requiredSize(iconSize)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.requiredWidth(gap))
+                Spacer(modifier = Modifier.requiredWidth(w * 0.008f))
                 Surface(
-                    modifier = Modifier.requiredSize(buttonSize),
-                    shape = RoundedCornerShape(h * 0.02f),
+                    modifier = Modifier.requiredSize(btnSize),
+                    shape = RoundedCornerShape(h * 0.015f),
                     color = MaterialTheme.colorScheme.tertiaryFixed
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -811,72 +798,67 @@ private fun LandscapePreviewContent() {
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onTertiaryFixed,
-                            modifier = Modifier.requiredSize(smallIconSize)
+                            modifier = Modifier.requiredSize(iconSize)
                         )
                     }
                 }
             }
 
             // "Today" header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .requiredHeight(todayH)
-                    .padding(start = w * 0.03f),
-                contentAlignment = Alignment.TopStart
-            ) {
-                Text(
-                    text = "Today",
-                    fontSize = tinyFontSize,
-                    lineHeight = tinyFontSize,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onBackground
+            Text(
+                text = "Today",
+                fontSize = fontSize,
+                lineHeight = fontSize,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(
+                    start = sidePad,
+                    top = h * 0.03f,
+                    bottom = h * 0.02f
                 )
-            }
+            )
 
-            // Photo grid (7 columns, square cells)
-            Column(
+            // Photo grid (square cells) with floating nav bar
+            Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = w * 0.01f),
-                verticalArrangement = Arrangement.spacedBy(1.dp)
+                    .padding(horizontal = w * 0.008f)
             ) {
-                repeat(4) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(1.dp)
-                    ) {
-                        repeat(7) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(1.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            )
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                ) {
+                    repeat(3) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(1.dp)
+                        ) {
+                            repeat(8) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(1.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            // GalleryNavBar floating at bottom right
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = h * 0.02f),
-                contentAlignment = Alignment.CenterEnd
-            ) {
+                // GalleryNavBar floating at bottom right
                 Surface(
                     modifier = Modifier
-                        .padding(end = w * 0.04f)
+                        .align(Alignment.BottomEnd)
+                        .padding(end = sidePad, bottom = h * 0.02f)
                         .requiredHeight(navBarH),
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainer
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = navPadH),
-                        horizontalArrangement = Arrangement.spacedBy(navPadH),
+                        modifier = Modifier.padding(horizontal = navSpacing),
+                        horizontalArrangement = Arrangement.spacedBy(navSpacing),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Timeline (selected)
@@ -917,18 +899,12 @@ private fun LandscapePreviewContent() {
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .requiredHeight(homeH)
-                    .requiredWidth(w * 0.15f),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .requiredHeight(h * 0.01f)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
-                )
-            }
+                    .padding(vertical = h * 0.015f)
+                    .requiredWidth(w * 0.12f)
+                    .requiredHeight(h * 0.008f)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
+            )
         }
     }
 }

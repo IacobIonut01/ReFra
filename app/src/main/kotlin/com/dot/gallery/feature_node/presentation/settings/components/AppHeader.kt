@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 IacobIacob01
+ * SPDX-FileCopyrightText: 2023-2026 IacobIacob01
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,14 +12,15 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -88,112 +89,119 @@ fun SettingsAppHeader() {
     )
     val cornerRadius = 24.dp
 
-    Column(
+    Box(
         modifier = Modifier
-            .sizeIn(maxWidth = 600.dp)
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
-            .drawWithCache {
-                val cx = size.width - size.width * fraction
-                val cy = size.height * fraction
-
-                val gradient = Brush.radialGradient(
-                    colors = listOf(colorPrimary, colorTertiary),
-                    center = Offset(cx, cy),
-                    radius = 800f
-                )
-
-                onDrawBehind {
-                    drawRoundRect(
-                        brush = gradient,
-                        cornerRadius = CornerRadius(
-                            cornerRadius.toPx(),
-                            cornerRadius.toPx()
-                        )
-                    )
-                }
-            }
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
-                shape = RoundedCornerShape(cornerRadius)
-            )
-            .padding(all = 24.dp)
             .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Text(
-                text = appName,
-                fontSize = 22.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = appVersion,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
-                modifier = Modifier.graphicsLayer {
-                    translationX = 6.0f
+        Column(
+            modifier = Modifier
+                .widthIn(max = 600.dp)
+                .fillMaxWidth()
+                .drawWithCache {
+                    val cx = size.width - size.width * fraction
+                    val cy = size.height * fraction
+
+                    val gradient = Brush.radialGradient(
+                        colors = listOf(colorPrimary, colorTertiary),
+                        center = Offset(cx, cy),
+                        radius = 800f
+                    )
+
+                    onDrawBehind {
+                        drawRoundRect(
+                            brush = gradient,
+                            cornerRadius = CornerRadius(
+                                cornerRadius.toPx(),
+                                cornerRadius.toPx()
+                            )
+                        )
+                    }
                 }
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = appDeveloper,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(cornerRadius)
+                )
+                .padding(all = 24.dp)
+                .fillMaxWidth()
         ) {
-            Button(
-                onClick = {
-                    scope.launch {
-                        supportState.show()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = .12f),
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = .12f),
-                ),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .weight(1f)
-                    .semantics {
-                        contentDescription = donateContentDesc
-                    }
+            Row(
+                verticalAlignment = Alignment.Bottom
             ) {
-                Icon(painter = donateImage, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = donateTitle)
+                Text(
+                    text = appName,
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = appVersion,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp,
+                    modifier = Modifier.graphicsLayer {
+                        translationX = 6.0f
+                    }
+                )
             }
-            Button(
-                onClick = { uriHandler.openUri(githubUrl) },
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = MaterialTheme.colorScheme.onTertiary,
-                    disabledContentColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = .12f),
-                    containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
-                    disabledContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = .12f)
-                ),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .height(52.dp)
-                    .semantics {
-                        contentDescription = githubContentDesc
-                    }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = appDeveloper,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(painter = githubImage, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = githubTitle)
+                Button(
+                    onClick = {
+                        scope.launch {
+                            supportState.show()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = .12f),
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = .12f),
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .weight(1f)
+                        .semantics {
+                            contentDescription = donateContentDesc
+                        }
+                ) {
+                    Icon(painter = donateImage, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = donateTitle)
+                }
+                Button(
+                    onClick = { uriHandler.openUri(githubUrl) },
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                        disabledContentColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = .12f),
+                        containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
+                        disabledContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = .12f)
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .height(52.dp)
+                        .semantics {
+                            contentDescription = githubContentDesc
+                        }
+                ) {
+                    Icon(painter = githubImage, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = githubTitle)
+                }
             }
         }
     }

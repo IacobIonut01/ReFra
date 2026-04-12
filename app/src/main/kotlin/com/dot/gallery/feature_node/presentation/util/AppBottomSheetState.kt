@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 IacobIacob01
+ * SPDX-FileCopyrightText: 2023-2026 IacobIacob01
  * SPDX-License-Identifier: Apache-2.0
  */
 
