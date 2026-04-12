@@ -334,7 +334,8 @@ fun getApiKey(): String {
     return try {
         val properties = Properties()
         properties.load(FileInputStream(fl))
-        properties.getProperty("MAPS_TOKEN")
+        val token = properties.getProperty("MAPS_TOKEN")?.trim('"') ?: "DEBUG"
+        "\"$token\""
     } catch (_: Exception) {
         "\"DEBUG\""
     }
