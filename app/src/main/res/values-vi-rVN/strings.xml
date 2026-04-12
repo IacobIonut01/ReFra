@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Gallery</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">Album</string>
     <string name="searchbar_title"><![CDATA[Tìm kiếm ảnh và video]]></string>
     <string name="header_today">Hôm nay</string>
@@ -84,7 +84,7 @@
     <string name="photo">Ảnh</string>
     <string name="video">Video</string>
     <string name="close">Đóng</string>
-    <string name="manage_media_title">Cho phép Gallery quản lý phương tiện của bạn</string>
+    <string name="manage_media_title">Cho phép ReFra quản lý phương tiện của bạn</string>
     <string name="manage_media_summary">Thiết đặt này chỉ bỏ qua mọi hộp thoại xác nhận bổ sung trong khi thực hiện các hành động khác nhau như đánh dấu là ưa thích.</string>
     <string name="skip">Bỏ qua</string>
     <string name="allow">Cho phép</string>
@@ -154,9 +154,9 @@
     <string name="copy">Sao chép</string>
     <string name="ignored_albums">Album bị bỏ qua</string>
     <string name="select_an_album">Chọn một album</string>
-    <string name="blacklist_summary">Bỏ qua album từ Gallery</string>
+    <string name="blacklist_summary">Bỏ qua album từ ReFra</string>
     <string name="add_to_ignored">Thêm vào album bị bỏ qua</string>
-    <string name="add_to_ignored_summary">Xóa album khỏi hiển thị bên trong Gallery</string>
+    <string name="add_to_ignored_summary">Xóa album khỏi hiển thị bên trong ReFra</string>
     <string name="remove_from_ignored">Loại khỏi danh sách bị bỏ qua</string>
     <string name="remove_from_ignored_summary">Loại khỏi danh sách bị bỏ qua album có tên %1$s</string>
     <string name="override">Ghi đè</string>
@@ -319,7 +319,7 @@
     <string name="vault_notification_channel_name">Vault Operations</string>
     <string name="vault_notification_channel_description">Progress of encryption / decryption tasks</string>
     <string name="decrypt_vault">Decrypt Vault</string>
-    <string name="restore_vault_summary">The current vault and its content will be decrypted and restored.\nThis action will make your content accessible again in the Gallery.</string>
+    <string name="restore_vault_summary">The current vault and its content will be decrypted and restored.\nThis action will make your content accessible again in the ReFra.</string>
     <string name="restore_vault_title">Confirm Decryption?</string>
     <string name="yes">Yes</string>
     <string name="vault_deletion_title">Confirm Deletion?</string>

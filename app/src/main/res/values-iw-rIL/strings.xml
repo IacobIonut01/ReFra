@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Gallery</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">Albums</string>
     <string name="searchbar_title"><![CDATA[Search photos & videos]]></string>
     <string name="header_today">Today</string>
@@ -84,7 +84,7 @@
     <string name="photo">Photo</string>
     <string name="video">Video</string>
     <string name="close">Close</string>
-    <string name="manage_media_title">Allow Gallery to Manage your Media</string>
+    <string name="manage_media_title">Allow ReFra to Manage your Media</string>
     <string name="manage_media_summary">This setting just skips any extra confirmation dialogs while performing various actions like marking as favorite.</string>
     <string name="skip">Skip</string>
     <string name="allow">Allow</string>
@@ -154,9 +154,9 @@
     <string name="copy">Copy</string>
     <string name="ignored_albums">Ignored Albums</string>
     <string name="select_an_album">Select an album</string>
-    <string name="blacklist_summary">Ignore albums from Gallery</string>
+    <string name="blacklist_summary">Ignore albums from ReFra</string>
     <string name="add_to_ignored">Add to ignored albums</string>
-    <string name="add_to_ignored_summary">Remove an album from showing inside the Gallery</string>
+    <string name="add_to_ignored_summary">Remove an album from showing inside the ReFra</string>
     <string name="remove_from_ignored">Remove from ignored list</string>
     <string name="remove_from_ignored_summary">Remove from the ignored list the album named %1$s</string>
     <string name="override">Override</string>
@@ -319,7 +319,7 @@
     <string name="vault_notification_channel_name">Vault Operations</string>
     <string name="vault_notification_channel_description">Progress of encryption / decryption tasks</string>
     <string name="decrypt_vault">Decrypt Vault</string>
-    <string name="restore_vault_summary">The current vault and its content will be decrypted and restored.\nThis action will make your content accessible again in the Gallery.</string>
+    <string name="restore_vault_summary">The current vault and its content will be decrypted and restored.\nThis action will make your content accessible again in the ReFra.</string>
     <string name="restore_vault_title">Confirm Decryption?</string>
     <string name="yes">Yes</string>
     <string name="vault_deletion_title">Confirm Deletion?</string>

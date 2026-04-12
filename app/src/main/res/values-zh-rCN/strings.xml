@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">图库</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">专辑</string>
     <string name="searchbar_title"><![CDATA[搜索图片和视频]]></string>
     <string name="header_today">今天</string>

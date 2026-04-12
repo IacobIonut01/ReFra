@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Galeri</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">Albümler</string>
     <string name="searchbar_title"><![CDATA[Fotoğraf ve videoları ara]]></string>
     <string name="header_today">Bugün</string>

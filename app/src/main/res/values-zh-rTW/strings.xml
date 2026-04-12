@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">相片庫</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">相簿</string>
     <string name="searchbar_title"><![CDATA[搜尋照片和影片]]></string>
     <string name="header_today">今天</string>

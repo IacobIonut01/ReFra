@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Galerija</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">Albumai</string>
     <string name="searchbar_title"><![CDATA[Ieškoti nuotraukos ar vaizdo įrašo]]></string>
     <string name="header_today">Šiandien</string>

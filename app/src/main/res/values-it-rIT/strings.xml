@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Galleria</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">Album</string>
     <string name="searchbar_title"><![CDATA[Cerca foto e video]]></string>
     <string name="header_today">Oggi</string>

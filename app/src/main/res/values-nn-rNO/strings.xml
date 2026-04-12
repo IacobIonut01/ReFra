@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Gallery</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">Album</string>
     <string name="searchbar_title"><![CDATA[Søk etter bilete og videoar]]></string>
     <string name="header_today">I dag</string>
@@ -84,7 +84,7 @@
     <string name="photo">Bilete</string>
     <string name="video">Video</string>
     <string name="close">Lukk</string>
-    <string name="manage_media_title">Gje Gallery løyve til å handsame medium</string>
+    <string name="manage_media_title">Gje ReFra løyve til å handsame medium</string>
     <string name="manage_media_summary">This setting just skips any extra confirmation dialogs while performing various actions like marking as favorite.</string>
     <string name="skip">Hopp over</string>
     <string name="allow">Tillat</string>
@@ -154,9 +154,9 @@
     <string name="copy">Copy</string>
     <string name="ignored_albums">Ignored Albums</string>
     <string name="select_an_album">Select an album</string>
-    <string name="blacklist_summary">Ignore albums from Gallery</string>
+    <string name="blacklist_summary">Ignore albums from ReFra</string>
     <string name="add_to_ignored">Add to ignored albums</string>
-    <string name="add_to_ignored_summary">Remove an album from showing inside the Gallery</string>
+    <string name="add_to_ignored_summary">Remove an album from showing inside the ReFra</string>
     <string name="remove_from_ignored">Remove from ignored list</string>
     <string name="remove_from_ignored_summary">Remove from the ignored list the album named %1$s</string>
     <string name="override">Override</string>
@@ -319,7 +319,7 @@
     <string name="vault_notification_channel_name">Vault Operations</string>
     <string name="vault_notification_channel_description">Progress of encryption / decryption tasks</string>
     <string name="decrypt_vault">Dekrypter kvelvet</string>
-    <string name="restore_vault_summary">Det gjeldande kvelvet og innhaldet i det vert dekryptert og gjenoppretta.\nInnhaldet vert på nytt tilgjengeleg i Gallery.</string>
+    <string name="restore_vault_summary">Det gjeldande kvelvet og innhaldet i det vert dekryptert og gjenoppretta.\nInnhaldet vert på nytt tilgjengeleg i ReFra.</string>
     <string name="restore_vault_title">Vil du dekryptera?</string>
     <string name="yes">Ja</string>
     <string name="vault_deletion_title">Vil du sletta?</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ギャラリー</string>
+    <string name="app_name">ReFra</string>
     <string name="nav_albums">アルバム</string>
     <string name="searchbar_title"><![CDATA[写真と動画を検索]]></string>
     <string name="header_today">今日</string>
@@ -84,7 +84,7 @@
     <string name="photo">写真</string>
     <string name="video">動画</string>
     <string name="close">閉じる</string>
-    <string name="manage_media_title">Galleryにメディアの管理を許可する</string>
+    <string name="manage_media_title">ReFraにメディアの管理を許可する</string>
     <string name="manage_media_summary">この設定は、お気に入り登録などの様々なアクションを実行する際に、追加の確認ダイアログをスキップします。</string>
     <string name="skip">スキップ</string>
     <string name="allow">許可</string>
