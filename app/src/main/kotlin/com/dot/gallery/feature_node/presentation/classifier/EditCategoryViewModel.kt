@@ -18,6 +18,8 @@ import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.search.SearchHelper
 import com.dot.gallery.feature_node.presentation.search.util.dot
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
+import androidx.work.WorkManager
+import com.dot.gallery.core.workers.startCategoryClassification
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,7 +36,8 @@ import javax.inject.Inject
 @HiltViewModel
 class EditCategoryViewModel @Inject constructor(
     private val repository: MediaRepository,
-    private val searchHelper: SearchHelper
+    private val searchHelper: SearchHelper,
+    private val workManager: WorkManager
 ) : ViewModel() {
 
     // Date format settings
@@ -210,13 +213,19 @@ class EditCategoryViewModel @Inject constructor(
             _isSaving.value = true
             try {
                 val existingCategory = _category.value ?: return@launch
+                val searchTermsChanged = existingCategory.searchTerms != terms
+                val thresholdChanged = existingCategory.threshold != _threshold.value
                 val updatedCategory = existingCategory.copy(
                     name = name,
                     searchTerms = terms,
                     threshold = _threshold.value,
-                    updatedAt = System.currentTimeMillis()
+                    updatedAt = System.currentTimeMillis(),
+                    embedding = if (searchTermsChanged) null else existingCategory.embedding
                 )
                 repository.updateCategory(updatedCategory)
+                if (searchTermsChanged || thresholdChanged) {
+                    workManager.startCategoryClassification()
+                }
                 withContext(Dispatchers.Main) {
                     onComplete()
                 }

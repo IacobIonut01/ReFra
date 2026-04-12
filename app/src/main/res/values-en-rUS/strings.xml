@@ -273,7 +273,7 @@
     <string name="delete_metadata">Delete Metadata</string>
     <string name="categorise_your_media">Categorise your media</string>
     <string name="disclaimer">Disclaimer</string>
-    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device by using TensorFlow-Lite with a pre-trained model available in the app\'s assets.</string>
+    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device using ONNX Runtime with a pre-trained model available in the app\'s assets.</string>
     <string name="delete_all_categories">Delete all categories</string>
     <string name="delete_all_categories_summary">This will permanently delete all categories found in your media so far, this action is irreversible. You will have to rescan your media to reclassify them.</string>
     <string name="ai_category">Smart Features</string>

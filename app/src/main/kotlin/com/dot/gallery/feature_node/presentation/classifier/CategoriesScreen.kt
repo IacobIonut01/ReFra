@@ -180,7 +180,7 @@ fun CategoriesScreen(
             LazyVerticalGrid(
                 state = gridState,
                 modifier = Modifier
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 16.dp)
                     .fillMaxSize(),
                 columns = gridCells,
                 contentPadding = PaddingValues(
@@ -203,7 +203,6 @@ fun CategoriesScreen(
                         contentColor = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
                             .padding(top = 16.dp)
                             .pinchItem(key = "settings_button")
                             .clickable {

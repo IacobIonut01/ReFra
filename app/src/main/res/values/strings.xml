@@ -314,7 +314,7 @@
     <string name="delete_metadata">Delete Metadata</string>
     <string name="categorise_your_media">Categorise your media</string>
     <string name="disclaimer">Disclaimer</string>
-    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device using AI vision models.</string>
+    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device using ONNX Runtime with a pre-trained model available in the app\'s assets.</string>
     <string name="delete_all_categories">Delete all categories</string>
     <string name="delete_all_categories_summary">This will permanently delete all categories found in your media so far, this action is irreversible. You will have to rescan your media to reclassify them.</string>
     <string name="ai_category">Smart Features</string>
@@ -343,7 +343,9 @@
     <string name="more_accurate">More accurate</string>
     <string name="preview">Preview</string>
     <string name="matching_photos">Matching photos</string>
+    <string name="best_match">Best Match</string>
     <string name="matching_photos_count">%1$d matching</string>
+    <string name="recommended">recommended</string>
     <string name="no_matching_photos">No matching photos found</string>
     <string name="enter_search_terms_to_preview">Enter search terms to see matching photos</string>
     <string name="category_helper_text">Add a name, search terms and adjust the accuracy to create your category</string>

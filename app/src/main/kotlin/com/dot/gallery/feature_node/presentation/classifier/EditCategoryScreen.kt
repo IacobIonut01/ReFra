@@ -12,18 +12,25 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,25 +40,32 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -62,6 +76,7 @@ import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.navigate
+import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
@@ -70,9 +85,7 @@ import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalSharedTransitionApi::class,
@@ -106,31 +119,32 @@ fun EditCategoryScreen(
     val previewMediaState by viewModel.previewMediaState.collectAsStateWithLifecycle()
     val previewCount by viewModel.previewCount.collectAsStateWithLifecycle()
 
-    var canScroll by rememberSaveable { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
     var lastCellIndex by rememberGridSize()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            skipHiddenState = false
+        )
+    )
+
+    val density = LocalDensity.current
+    val dragHandleAlpha by remember {
+        derivedStateOf {
+            val offset =
+                runCatching { scaffoldState.bottomSheetState.requireOffset() }.getOrElse { Float.MAX_VALUE }
+            val fadeThreshold = with(density) { 200.dp.toPx() }
+            (offset / fadeThreshold).coerceIn(0f, 1f)
+        }
+    }
 
     val isValid = categoryName.isNotBlank()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = rememberTopAppBarState(),
-        canScroll = { canScroll },
         flingAnimationSpec = null
     )
-
-    val dpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
-    val pinchState = rememberPinchZoomGridState(
-        cellsList = cellsList,
-        initialCellsIndex = lastCellIndex,
-        gridState = rememberLazyGridState(cacheWindow = dpCacheWindow)
-    )
-
-    LaunchedEffect(pinchState.isZooming) {
-        withContext(Dispatchers.IO) {
-            canScroll = !pinchState.isZooming
-            lastCellIndex = cellsList.indexOf(pinchState.currentCells)
-        }
-    }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -172,103 +186,140 @@ fun EditCategoryScreen(
                 CircularProgressIndicator()
             }
         } else {
-            Scaffold(
-                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                topBar = {
-                    LargeTopAppBar(
-                        modifier = Modifier.hazeEffect(
-                            state = LocalHazeState.current,
-                            style = LocalHazeStyle.current
-                        ),
-                        title = {
-                            CategoryNameInput(
-                                value = categoryName,
-                                onValueChange = { viewModel.updateCategoryName(it) },
-                                placeholder = stringResource(R.string.category_name_hint)
-                            )
-                        },
-                        navigationIcon = {
-                            NavigationBackButton(forcedAction = onNavigateBack)
-                        },
-                        actions = {
-                            IconButton(onClick = { showDeleteDialog = true }) {
-                                Icon(
-                                    Icons.Outlined.Delete,
-                                    contentDescription = stringResource(R.string.action_delete),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
-                        scrollBehavior = scrollBehavior,
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                        ),
-                    )
-                },
-                floatingActionButton = {
-                    AnimatedVisibility(
-                        visible = isValid && !isSaving,
-                        enter = fadeIn(),
-                        exit = fadeOut()
+            BottomSheetScaffold(
+                scaffoldState = scaffoldState,
+                sheetPeekHeight = 0.dp,
+                sheetDragHandle = { DragHandle(alpha = dragHandleAlpha) },
+                sheetContent = {
+                    Box(
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        FloatingActionButton(
-                            onClick = {
-                                keyboardController?.hide()
-                                viewModel.saveCategory(onNavigateBack)
+                        Text(
+                            text = stringResource(R.string.best_match),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                    val sheetDpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
+                    val sheetPinchState = rememberPinchZoomGridState(
+                        cellsList = cellsList,
+                        initialCellsIndex = lastCellIndex,
+                        gridState = rememberLazyGridState(cacheWindow = sheetDpCacheWindow)
+                    )
+                    PinchZoomGridLayout(state = sheetPinchState) {
+                        MediaGridView(
+                            mediaState = remember(previewMediaState) {
+                                mutableStateOf(previewMediaState.copy(isLoading = false))
                             },
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Check,
-                                contentDescription = stringResource(R.string.save),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            metadataState = metadataState,
+                            allowSelection = false,
+                            showSearchBar = false,
+                            enableStickyHeaders = false,
+                            paddingValues = PaddingValues(
+                                bottom = 128.dp
+                            ),
+                            canScroll = true,
+                            allowHeaders = false,
+                            showMonthlyHeader = false,
+                            isScrolling = isScrolling,
+                            emptyContent = {
+                                EmptyMedia(
+                                    title = stringResource(R.string.no_matching_photos)
+                                )
+                            },
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedContentScope = animatedContentScope
+                        ) { media ->
+                            eventHandler.navigate(
+                                Screen.MediaViewScreen.idAndCategoryId(media.id, categoryId)
                             )
                         }
                     }
                 }
-            ) { innerPadding ->
-                PinchZoomGridLayout(
-                    state = pinchState,
-                    modifier = Modifier.hazeSource(LocalHazeState.current)
-                ) {
-                    MediaGridView(
-                        modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
-                        mediaState = remember(previewMediaState) { mutableStateOf(previewMediaState) },
-                        metadataState = metadataState,
-                        allowSelection = false,
-                        showSearchBar = false,
-                        enableStickyHeaders = false,
-                        paddingValues = remember(paddingValues) {
-                            PaddingValues(
+            ) {
+                Scaffold(
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                    topBar = {
+                        LargeTopAppBar(
+                            modifier = Modifier.hazeEffect(
+                                state = LocalHazeState.current,
+                                style = LocalHazeStyle.current
+                            ),
+                            title = {
+                                CategoryNameInput(
+                                    value = categoryName,
+                                    onValueChange = { viewModel.updateCategoryName(it) },
+                                    placeholder = stringResource(R.string.category_name_hint)
+                                )
+                            },
+                            navigationIcon = {
+                                NavigationBackButton(forcedAction = onNavigateBack)
+                            },
+                            actions = {
+                                IconButton(onClick = { showDeleteDialog = true }) {
+                                    Icon(
+                                        Icons.Outlined.Delete,
+                                        contentDescription = stringResource(R.string.action_delete),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            },
+                            scrollBehavior = scrollBehavior,
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                            ),
+                        )
+                    },
+                    floatingActionButton = {
+                        AnimatedVisibility(
+                            visible = isValid && !isSaving,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
+                            FloatingActionButton(
+                                onClick = {
+                                    keyboardController?.hide()
+                                    viewModel.saveCategory(onNavigateBack)
+                                },
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = stringResource(R.string.save),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    }
+                ) { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .padding(top = innerPadding.calculateTopPadding())
+                            .padding(
                                 bottom = paddingValues.calculateBottomPadding() + 128.dp
                             )
-                        },
-                        canScroll = canScroll,
-                        allowHeaders = false,
-                        showMonthlyHeader = false,
-                        aboveGridContent = {
-                            CategoryInputControls(
-                                searchTerms = searchTerms,
-                                onSearchTermsChange = { viewModel.updateSearchTerms(it) },
-                                threshold = threshold,
-                                onThresholdChange = { viewModel.updateThreshold(it) },
-                                isLoading = isLoading,
-                                previewCount = previewCount,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
-                        },
-                        isScrolling = isScrolling,
-                        emptyContent = {
-                            CategoryEmptyContent(
-                                hasSearchTerms = searchTerms.isNotBlank(),
-                                isLoading = isLoading
-                            )
-                        },
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedContentScope = animatedContentScope
-                    ) { media ->
-                        eventHandler.navigate(
-                            Screen.MediaViewScreen.idAndCategoryId(media.id, categoryId)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        CategoryInputControls(
+                            searchTerms = searchTerms,
+                            onSearchTermsChange = { viewModel.updateSearchTerms(it) },
+                            threshold = threshold,
+                            onThresholdChange = { viewModel.updateThreshold(it) },
+                            isLoading = isLoading,
+                            previewCount = previewCount,
+                            onMatchingPhotosClick = {
+                                if (previewCount > 0) {
+                                    scope.launch { scaffoldState.bottomSheetState.expand() }
+                                }
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
                 }
