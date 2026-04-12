@@ -317,6 +317,13 @@ object Settings {
         fun rememberIsAmoledMode() =
             rememberPreference(key = AMOLED_MODE, defaultValue = false)
 
+        const val THEME_SEED_SYSTEM = "system"
+        private val THEME_COLOR_SEED = stringPreferencesKey("theme_color_seed")
+
+        @Composable
+        fun rememberThemeColorSeed() =
+            rememberPreference(key = THEME_COLOR_SEED, defaultValue = THEME_SEED_SYSTEM)
+
         private val SECURE_MODE = booleanPreferencesKey("secure_mode")
 
         @Composable
@@ -498,6 +505,8 @@ sealed class SettingsEntity(
     open val isChecked: Boolean? = null,
     open val onCheck: ((Boolean) -> Unit)? = null,
     open val onClick: (() -> Unit)? = null,
+    open val onLongClick: (() -> Unit)? = null,
+    open val onSwipeToDelete: (() -> Unit)? = null,
     open val minValue: Float? = null,
     open val currentValue: Float? = null,
     open val maxValue: Float? = null,
@@ -507,6 +516,7 @@ sealed class SettingsEntity(
     open val onSeek: ((Float) -> Unit)? = null,
     open val screenPosition: Position = Position.Alone,
     open val horizontalLayout: Boolean = false,
+    open val tag: Any? = null,
 ) {
     val isHeader = type == PreferenceType.Header
 
@@ -535,6 +545,9 @@ sealed class SettingsEntity(
         override val screenPosition: Position = Position.Alone,
         override val horizontalLayout: Boolean = false,
         override val onClick: (() -> Unit)? = null,
+        override val onLongClick: (() -> Unit)? = null,
+        override val onSwipeToDelete: (() -> Unit)? = null,
+        override val tag: Any? = null,
     ) : SettingsEntity(
         icon = icon,
         iconUri = iconUri,
@@ -549,6 +562,9 @@ sealed class SettingsEntity(
         screenPosition = screenPosition,
         horizontalLayout = horizontalLayout,
         onClick = onClick,
+        onLongClick = onLongClick,
+        onSwipeToDelete = onSwipeToDelete,
+        tag = tag,
         type = PreferenceType.Default
     )
 

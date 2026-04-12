@@ -35,6 +35,7 @@ import com.dot.gallery.core.util.ext.updateMedia
 import com.dot.gallery.core.util.ext.updateMediaExif
 import com.dot.gallery.core.workers.copyMedia
 import com.dot.gallery.core.workers.updateDatabase
+import com.dot.gallery.feature_node.data.data_source.CategoryWithMediaCount
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.AlbumsFlow
@@ -42,12 +43,14 @@ import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaFlo
 import com.dot.gallery.feature_node.data.data_source.mediastore.queries.MediaUriFlow
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
+import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
 import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
@@ -158,12 +161,10 @@ class MediaRepositoryImpl(
     override fun getAlbums(mediaOrder: MediaOrder): Flow<Resource<List<Album>>> =
         AlbumsFlow(context).flowData().map {
             withContext(Dispatchers.IO) {
-                val data = it.toMutableList().apply {
-                    replaceAll { album ->
-                        album.copy(isPinned = database.getPinnedDao().albumIsPinned(album.id))
-                    }
+                val pinnedIds = database.getPinnedDao().getPinnedAlbumIds().toHashSet()
+                val data = it.map { album ->
+                    album.copy(isPinned = album.id in pinnedIds)
                 }
-
                 Resource.Success(mediaOrder.sortAlbums(data))
             }
         }.flowOn(Dispatchers.IO)
@@ -171,14 +172,10 @@ class MediaRepositoryImpl(
     override fun getAlbum(albumId: Long): Flow<Resource<Album>> =
         AlbumsFlow(context).flowData().map {
             withContext(Dispatchers.IO) {
-                val data = it.toMutableList().apply {
-                    replaceAll { album ->
-                        album.copy(isPinned = database.getPinnedDao().albumIsPinned(album.id))
-                    }
-                }
-                val album = data.firstOrNull { it -> it.id == albumId }
+                val pinnedIds = database.getPinnedDao().getPinnedAlbumIds().toHashSet()
+                val album = it.firstOrNull { it -> it.id == albumId }
+                    ?.copy(isPinned = albumId in pinnedIds)
                     ?: return@withContext Resource.Error("Album not found")
-
                 Resource.Success(album)
             }
         }.flowOn(Dispatchers.IO)
@@ -781,6 +778,91 @@ class MediaRepositoryImpl(
 
     override suspend fun changeCategory(mediaId: Long, newCategory: String) =
         database.getClassifierDao().changeCategory(mediaId, newCategory)
+
+    // ============ New Category System Implementation ============
+
+    private val categoryDao get() = database.getCategoryDao()
+
+    override suspend fun createCategory(category: Category): Long =
+        categoryDao.insertCategory(category)
+
+    override suspend fun updateCategory(category: Category) =
+        categoryDao.updateCategory(category)
+
+    override suspend fun deleteCategory(categoryId: Long) =
+        categoryDao.deleteCategoryById(categoryId)
+
+    override fun getCategory(categoryId: Long): Flow<Category?> =
+        categoryDao.getCategoryByIdFlow(categoryId)
+
+    override suspend fun getCategoryAsync(categoryId: Long): Category? =
+        categoryDao.getCategoryById(categoryId)
+
+    override fun getAllCategories(): Flow<List<Category>> =
+        categoryDao.getAllCategories()
+
+    override suspend fun getAllCategoriesAsync(): List<Category> =
+        categoryDao.getAllCategoriesAsync()
+
+    override fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>> =
+        categoryDao.getCategoriesWithMediaCount()
+
+    override fun getCategoryCount(): Flow<Int> =
+        categoryDao.getCategoryCount()
+
+    override fun getTopCategories(limit: Int): Flow<List<CategoryWithMediaCount>> =
+        categoryDao.getTopCategoriesByMediaCount(limit)
+
+    override suspend fun updateCategoryThreshold(categoryId: Long, threshold: Float) =
+        categoryDao.updateCategoryThreshold(categoryId, threshold)
+
+    override suspend fun updateCategoryName(categoryId: Long, name: String) =
+        categoryDao.updateCategoryName(categoryId, name)
+
+    override suspend fun toggleCategoryPinned(categoryId: Long, isPinned: Boolean) =
+        categoryDao.updateCategoryPinned(categoryId, isPinned)
+
+    override fun getMediaIdsInCategory(categoryId: Long): Flow<List<Long>> =
+        categoryDao.getMediaIdsInCategory(categoryId)
+
+    override suspend fun getMediaIdsInCategoryAsync(categoryId: Long): List<Long> =
+        categoryDao.getMediaIdsInCategoryAsync(categoryId)
+
+    override fun getCategoriesForMedia(mediaId: Long): Flow<List<Category>> =
+        categoryDao.getCategoriesForMedia(mediaId)
+
+    override suspend fun addMediaToCategory(
+        mediaId: Long,
+        categoryId: Long,
+        similarity: Float,
+        isManual: Boolean
+    ) = categoryDao.insertMediaCategory(
+        MediaCategory(
+            mediaId = mediaId,
+            categoryId = categoryId,
+            similarityScore = similarity,
+            isManuallyAdded = isManual
+        )
+    )
+
+    override suspend fun removeMediaFromCategory(mediaId: Long, categoryId: Long) =
+        categoryDao.removeMediaFromCategory(mediaId, categoryId)
+
+    override fun getMediaCountInCategory(categoryId: Long): Flow<Int> =
+        categoryDao.getMediaCountInCategory(categoryId)
+
+    override fun getThumbnailMediaIdForCategory(categoryId: Long): Flow<Long?> =
+        categoryDao.getThumbnailMediaIdForCategory(categoryId)
+
+    override suspend fun initializeDefaultCategories() {
+        val existingCategories = categoryDao.getAllCategoriesAsync()
+        if (existingCategories.isEmpty()) {
+            categoryDao.insertCategories(Category.DEFAULT_CATEGORIES)
+        }
+    }
+
+    override suspend fun resetCategoryData() =
+        categoryDao.resetAllCategoryData()
 
     override fun getMetadata(media: Media): Flow<MediaMetadata> {
         return database.getMetadataDao().getFullMetadata(media.id).map { it.toMediaMetadata() }

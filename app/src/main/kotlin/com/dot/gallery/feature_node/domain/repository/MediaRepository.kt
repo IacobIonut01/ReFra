@@ -11,13 +11,16 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.datastore.preferences.core.Preferences
 import com.dot.gallery.core.Resource
+import com.dot.gallery.feature_node.data.data_source.CategoryWithMediaCount
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
+import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
+import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
@@ -182,6 +185,7 @@ interface MediaRepository {
 
     fun <Result> getSetting(key: Preferences.Key<Result>, defaultValue: Result): Flow<Result>
 
+    // ============ Legacy Classification (to be deprecated) ============
     fun getClassifiedCategories(): Flow<List<String>>
 
     fun getClassifiedMediaByCategory(category: String?): Flow<List<ClassifiedMedia>>
@@ -200,6 +204,38 @@ interface MediaRepository {
     suspend fun changeCategory(mediaId: Long, newCategory: String)
 
     suspend fun deleteClassifications()
+
+    // ============ New Category System ============
+    
+    // Category CRUD
+    suspend fun createCategory(category: Category): Long
+    suspend fun updateCategory(category: Category)
+    suspend fun deleteCategory(categoryId: Long)
+    fun getCategory(categoryId: Long): Flow<Category?>
+    suspend fun getCategoryAsync(categoryId: Long): Category?
+    fun getAllCategories(): Flow<List<Category>>
+    suspend fun getAllCategoriesAsync(): List<Category>
+    fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>>
+    fun getCategoryCount(): Flow<Int>
+    fun getTopCategories(limit: Int = 10): Flow<List<CategoryWithMediaCount>>
+    
+    // Category settings
+    suspend fun updateCategoryThreshold(categoryId: Long, threshold: Float)
+    suspend fun updateCategoryName(categoryId: Long, name: String)
+    suspend fun toggleCategoryPinned(categoryId: Long, isPinned: Boolean)
+    
+    // Media-Category associations
+    fun getMediaIdsInCategory(categoryId: Long): Flow<List<Long>>
+    suspend fun getMediaIdsInCategoryAsync(categoryId: Long): List<Long>
+    fun getCategoriesForMedia(mediaId: Long): Flow<List<Category>>
+    suspend fun addMediaToCategory(mediaId: Long, categoryId: Long, similarity: Float = 1f, isManual: Boolean = true)
+    suspend fun removeMediaFromCategory(mediaId: Long, categoryId: Long)
+    fun getMediaCountInCategory(categoryId: Long): Flow<Int>
+    fun getThumbnailMediaIdForCategory(categoryId: Long): Flow<Long?>
+    
+    // Category initialization and management
+    suspend fun initializeDefaultCategories()
+    suspend fun resetCategoryData()
 
     fun getMetadata(): Flow<List<MediaMetadata>>
 

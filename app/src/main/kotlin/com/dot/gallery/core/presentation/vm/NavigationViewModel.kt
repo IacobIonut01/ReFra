@@ -32,7 +32,7 @@ class NavigationViewModel @Inject constructor(
     )
 
     val allAlbumsMediaState = distributor.albumsTimelinesMediaFlow.stateIn(
-        viewModelScope, Eagerly, emptyMap()
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap()
     )
 
     val timelineMediaState = distributor.timelineMediaFlow.stateIn(
@@ -40,7 +40,7 @@ class NavigationViewModel @Inject constructor(
     )
 
     val metadataState = distributor.metadataFlow.stateIn(
-        viewModelScope, Eagerly, MediaMetadataState()
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), MediaMetadataState()
     )
 
     val vaultState = distributor.vaultsMediaFlow.stateIn(

@@ -27,4 +27,7 @@ interface PinnedDao {
     @Query("SELECT EXISTS(SELECT * FROM pinned_table WHERE id = :albumId)")
     fun albumIsPinned(albumId: Long): Boolean
 
+    @Query("SELECT id FROM pinned_table")
+    suspend fun getPinnedAlbumIds(): List<Long>
+
 }

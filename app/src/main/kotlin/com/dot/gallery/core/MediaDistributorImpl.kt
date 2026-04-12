@@ -9,8 +9,10 @@ import com.dot.gallery.core.Settings.Misc.EXTENDED_DATE_FORMAT
 import com.dot.gallery.core.Settings.Misc.WEEKLY_DATE_FORMAT
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.feature_node.domain.model.AlbumState
+import com.dot.gallery.feature_node.domain.model.GeoMedia
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
+import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
@@ -39,7 +41,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import com.dot.gallery.feature_node.domain.model.LocationMedia
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -56,7 +57,7 @@ val LocalMediaDistributor = compositionLocalOf<MediaDistributor> {
 
 @Singleton
 class MediaDistributorImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val repository: MediaRepository,
     private val eventHandler: EventHandler,
     workManager: WorkManager
@@ -150,50 +151,89 @@ class MediaDistributorImpl @Inject constructor(
             initialValue = emptyList()
         )
 
-    override val albumsFlow: StateFlow<AlbumState> = combine(
-        repository.getAlbums(mediaOrder = albumOrder),
-        pinnedAlbumsFlow,
-        blacklistedAlbumsFlow,
-        settingsFlow,
-        albumThumbnails
-    ) { result, pinnedAlbums, blacklistedAlbums, settings, thumbnails ->
-        val newOrder = settings?.albumMediaOrder ?: albumOrder
-        val data = newOrder.sortAlbums(result.data ?: emptyList()).map { album ->
-            val thumbnail = thumbnails.find { it.albumId == album.id }
-            if (thumbnail == null) return@map album
-            album.copy(uri = thumbnail.thumbnailUri)
-        }
-        val cleanData = data.removeBlacklisted(blacklistedAlbums).mapPinned(pinnedAlbums)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val albumsFlow: StateFlow<AlbumState> = hasPermission.flatMapLatest { granted ->
+        if (!granted) flowOf(AlbumState())
+        else combine(
+            repository.getAlbums(mediaOrder = albumOrder),
+            pinnedAlbumsFlow,
+            blacklistedAlbumsFlow,
+            settingsFlow,
+            albumThumbnails
+        ) { result, pinnedAlbums, blacklistedAlbums, settings, thumbnails ->
+            val newOrder = settings?.albumMediaOrder ?: albumOrder
+            val data = newOrder.sortAlbums(result.data ?: emptyList()).map { album ->
+                val thumbnail = thumbnails.find { it.albumId == album.id }
+                if (thumbnail == null) return@map album
+                album.copy(uri = thumbnail.thumbnailUri)
+            }
+            val cleanData = data.removeBlacklisted(blacklistedAlbums).mapPinned(pinnedAlbums)
 
-        AlbumState(
-            albums = cleanData,
-            albumsWithBlacklisted = data,
-            albumsUnpinned = cleanData.filter { !it.isPinned },
-            albumsPinned = cleanData.filter { it.isPinned }.sortedBy { it.label },
-            isLoading = false,
-            error = if (result is Resource.Error) result.message ?: "An error occurred" else ""
-        )
+            AlbumState(
+                albums = cleanData,
+                albumsWithBlacklisted = data,
+                albumsUnpinned = cleanData.filter { !it.isPinned },
+                albumsPinned = cleanData.filter { it.isPinned }.sortedBy { it.label },
+                isLoading = false,
+                error = if (result is Resource.Error) result.message ?: "An error occurred" else ""
+            )
+        }
     }.stateIn(appScope, started = prioritySharingMethod, AlbumState())
 
     /**
      * Media
      */
     override val timelineMediaFlow: SharedFlow<MediaState<Media.UriMedia>> =
-        mediaFlow(-1L, null)
+        mediaFlow(-1L, null, triggerDatabaseUpdate = true)
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    @Suppress("UNCHECKED_CAST")
     override val albumsTimelinesMediaFlow: StateFlow<Map<Long, MediaState<Media.UriMedia>>> =
-        albumsFlow.flatMapLatest { albumState ->
-            val albums = albumState.albums
-            if (albums.isEmpty()) {
-                flowOf(emptyMap())
-            } else {
-                combine(
-                    albums.map { album ->
-                        mediaFlow(album.id, null)
-                            .map { album.id to it }
+        hasPermission.flatMapLatest { granted ->
+            if (!granted) flowOf(emptyMap())
+            else combine(
+                repository.mediaFlow(-1L, null),
+                albumsFlow,
+                settingsFlow,
+                blacklistedAlbumsFlow,
+                dateFormatsFlow,
+                albumMediaSortFlow
+            ) { values ->
+                val allMediaResult = values[0] as Resource<List<Media.UriMedia>>
+                val albumState = values[1] as AlbumState
+                val settings = values[2] as TimelineSettings?
+                val blacklistedAlbums = values[3] as List<IgnoredAlbum>
+                val dateFormats = values[4] as Triple<String, String, String>
+                val albumSort = values[5] as Settings.Album.LastSort
+
+                val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
+                val allMedia = allMediaResult.data ?: emptyList()
+                val albumIds = albumState.albums.mapTo(HashSet()) { it.id }
+
+                val sorter = when (albumSort.kind) {
+                    FilterKind.DATE -> MediaOrder.Date(albumSort.orderType)
+                    FilterKind.DATE_MODIFIED -> MediaOrder.DateModified(albumSort.orderType)
+                    FilterKind.NAME -> MediaOrder.Label(albumSort.orderType)
+                }
+
+                val mediaByAlbum = allMedia.groupBy { it.albumID }
+                val result = HashMap<Long, MediaState<Media.UriMedia>>(albumIds.size)
+                for (albumId in albumIds) {
+                    val albumMedia = mediaByAlbum[albumId] ?: continue
+                    val filtered = albumMedia.toMutableList().apply {
+                        removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media, albumId) } }
                     }
-                ) { states -> states.toMap() }
+                    result[albumId] = mapMediaToItem(
+                        data = sorter.sortMedia(filtered),
+                        error = "",
+                        albumId = albumId,
+                        groupByMonth = settings?.groupTimelineByMonth == true,
+                        defaultDateFormat = defaultDateFormat,
+                        extendedDateFormat = extendedDateFormat,
+                        weeklyDateFormat = weeklyDateFormat
+                    )
+                }
+                result
             }
         }.stateIn(appScope, sharingMethod, emptyMap())
 
@@ -211,55 +251,57 @@ class MediaDistributorImpl @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Suppress("UNCHECKED_CAST")
-    private fun mediaFlow(albumId: Long, target: String?) = combine(
-        repository.mediaFlow(albumId, target),
-        settingsFlow,
-        blacklistedAlbumsFlow,
-        dateFormatsFlow,
-        hasPermission,
-        albumMediaSortFlow
-    ) { values ->
-        val result = values[0] as Resource<List<Media.UriMedia>>
-        val settings = values[1] as TimelineSettings?
-        val blacklistedAlbums = values[2] as List<IgnoredAlbum>
-        val dateFormats = values[3] as Triple<String, String, String>
-        val hasPermission = values[4] as Boolean
-        val albumSort = values[5] as Settings.Album.LastSort
-        
-        val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
-        
-        if (!hasPermission) return@combine MediaState(
+    private fun mediaFlow(albumId: Long, target: String?, triggerDatabaseUpdate: Boolean = false) = hasPermission.flatMapLatest { granted ->
+        if (!granted) flowOf(MediaState(
             error = "No permission to access media",
             isLoading = false
-        )
-        if (result is Resource.Error) return@combine MediaState(
-            error = result.message ?: "",
-            isLoading = false
-        )
-        // Use custom sort for album timelines, default sort for favorites/trash
-        val sorter = if (target == null && albumId > 0) {
-            when (albumSort.kind) {
-                FilterKind.DATE -> MediaOrder.Date(albumSort.orderType)
-                FilterKind.DATE_MODIFIED -> MediaOrder.DateModified(albumSort.orderType)
-                FilterKind.NAME -> MediaOrder.Label(albumSort.orderType)
+        ))
+        else combine(
+            repository.mediaFlow(albumId, target),
+            settingsFlow,
+            blacklistedAlbumsFlow,
+            dateFormatsFlow,
+            albumMediaSortFlow
+        ) { values ->
+            val result = values[0] as Resource<List<Media.UriMedia>>
+            val settings = values[1] as TimelineSettings?
+            val blacklistedAlbums = values[2] as List<IgnoredAlbum>
+            val dateFormats = values[3] as Triple<String, String, String>
+            val albumSort = values[4] as Settings.Album.LastSort
+            
+            val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
+            
+            if (result is Resource.Error) return@combine MediaState(
+                error = result.message ?: "",
+                isLoading = false
+            )
+            // Use custom sort for album timelines, default sort for favorites/trash
+            val sorter = if (target == null && albumId > 0) {
+                when (albumSort.kind) {
+                    FilterKind.DATE -> MediaOrder.Date(albumSort.orderType)
+                    FilterKind.DATE_MODIFIED -> MediaOrder.DateModified(albumSort.orderType)
+                    FilterKind.NAME -> MediaOrder.Label(albumSort.orderType)
+                }
+            } else {
+                MediaOrder.Default
             }
-        } else {
-            MediaOrder.Default
+            val data = (result.data ?: emptyList()).toMutableList().apply {
+                removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media, albumId) } }
+            }
+            mapMediaToItem(
+                data = sorter.sortMedia(data),
+                error = result.message ?: "",
+                albumId = albumId,
+                groupByMonth = settings?.groupTimelineByMonth == true,
+                defaultDateFormat = defaultDateFormat,
+                extendedDateFormat = extendedDateFormat,
+                weeklyDateFormat = weeklyDateFormat
+            )
         }
-        val data = (result.data ?: emptyList()).toMutableList().apply {
-            removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media, albumId) } }
-        }
-        mapMediaToItem(
-            data = sorter.sortMedia(data),
-            error = result.message ?: "",
-            albumId = albumId,
-            groupByMonth = settings?.groupTimelineByMonth == true,
-            defaultDateFormat = defaultDateFormat,
-            extendedDateFormat = extendedDateFormat,
-            weeklyDateFormat = weeklyDateFormat
-        )
     }.mapLatest {
-        eventHandler.pushEvent(UIEvent.UpdateDatabase)
+        if (triggerDatabaseUpdate) {
+            eventHandler.pushEvent(UIEvent.UpdateDatabase)
+        }
         it
     }.shareIn(
         scope = appScope,
@@ -291,13 +333,14 @@ class MediaDistributorImpl @Inject constructor(
         repository.getMetadata(),
         repository.getCompleteMedia()
     ) { metadata, media ->
-        val filteredMetadata = metadata.filter {
-            it.gpsLocationNameCity != null && it.gpsLocationNameCountry != null
-        }.filter {
-            it.gpsLocationNameCity == gpsLocationNameCity && it.gpsLocationNameCountry == gpsLocationNameCountry
-        }
+        val matchingMediaIds = metadata
+            .filter {
+                it.gpsLocationNameCity == gpsLocationNameCity &&
+                        it.gpsLocationNameCountry == gpsLocationNameCountry
+            }
+            .mapTo(HashSet()) { it.mediaId }
         val filteredMedia = media.data.orEmpty().filter {
-            filteredMetadata.find { metadataObj -> metadataObj.mediaId == it.id } != null
+            it.id in matchingMediaIds
         }
         return@combine mapMediaToItem(
             data = filteredMedia,
@@ -313,16 +356,39 @@ class MediaDistributorImpl @Inject constructor(
         repository.getMetadata(),
         timelineMediaFlow
     ) { metadata, timelineState ->
+        val mediaById = HashMap<Long, Media.UriMedia>(timelineState.media.size)
+        for (m in timelineState.media) { mediaById[m.id] = m }
         metadata
             .filter { it.gpsLocationNameCity != null && it.gpsLocationNameCountry != null }
             .groupBy { "${it.gpsLocationNameCity}, ${it.gpsLocationNameCountry}" }
             .mapNotNull { (location, items) ->
-                val media = timelineState.media
-                    .sortedByDescending { it.definedTimestamp }
-                    .find { it.id == items.first().mediaId }
-                if (media != null) LocationMedia(media = media, location = location) else null
+                items.mapNotNull { mediaById[it.mediaId] }
+                    .maxByOrNull { it.definedTimestamp }
+                    ?.let { media -> LocationMedia(media = media, location = location) }
             }
             .sortedBy { it.location }
+    }
+
+    override val geoMediaFlow: Flow<List<GeoMedia>> = combine(
+        repository.getMetadata(),
+        timelineMediaFlow
+    ) { metadata, timelineState ->
+        val mediaById = HashMap<Long, Media.UriMedia>(timelineState.media.size)
+        for (m in timelineState.media) { mediaById[m.id] = m }
+        metadata
+            .filter { it.gpsLatitude != null && it.gpsLongitude != null }
+            .mapNotNull { meta ->
+                mediaById[meta.mediaId]?.let { media ->
+                    GeoMedia(
+                        mediaId = meta.mediaId,
+                        latitude = meta.gpsLatitude!!,
+                        longitude = meta.gpsLongitude!!,
+                        locationCity = meta.gpsLocationNameCity,
+                        locationCountry = meta.gpsLocationNameCountry,
+                        media = media
+                    )
+                }
+            }
     }
 
     /**

@@ -62,7 +62,8 @@ class MetadataCollectionWorker @AssistedInject constructor(
         val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
         printDebug("Retrieved ${media?.size ?: 0} media items from repository.")
         val differentMedia = if (!forceReload) {
-            media.orEmpty().filter { mediaItem -> oldMedia.none { it.id == mediaItem.id } }
+            val oldMediaIds = oldMedia.mapTo(HashSet(oldMedia.size)) { it.id }
+            media.orEmpty().filter { it.id !in oldMediaIds }
         } else media
         printDebug("Found ${differentMedia?.size ?: 0} new or updated media items.")
         media?.let {

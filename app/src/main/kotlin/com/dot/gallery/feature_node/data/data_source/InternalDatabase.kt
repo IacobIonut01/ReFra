@@ -7,12 +7,16 @@ package com.dot.gallery.feature_node.data.data_source
 
 import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
+import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.model.MediaMetadataCore
 import com.dot.gallery.feature_node.domain.model.MediaMetadataFlags
 import com.dot.gallery.feature_node.domain.model.MediaMetadataVideo
@@ -36,9 +40,11 @@ import com.dot.gallery.feature_node.domain.util.Converters
         MediaMetadataVideo::class,
         MediaMetadataFlags::class,
         AlbumThumbnail::class,
-        ImageEmbedding::class
+        ImageEmbedding::class,
+        Category::class,
+        MediaCategory::class
     ],
-    version = 13,
+    version = 15,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -53,10 +59,15 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 10, to = 11),
         AutoMigration(from = 11, to = 12),
         // Migration 12 to 13 is handled manually in IgnoredAlbumMigration.kt
+        AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 14, to = 15, spec = InternalDatabase.RemoveIconEmojiMigration::class),
     ]
 )
 @TypeConverters(Converters::class)
 abstract class InternalDatabase : RoomDatabase() {
+
+    @DeleteColumn(tableName = "categories", columnName = "iconEmoji")
+    class RemoveIconEmojiMigration : AutoMigrationSpec
 
     abstract fun getPinnedDao(): PinnedDao
 
@@ -73,6 +84,8 @@ abstract class InternalDatabase : RoomDatabase() {
     abstract fun getAlbumThumbnailDao(): AlbumThumbnailDao
 
     abstract fun getImageEmbeddingDao(): ImageEmbeddingDao
+
+    abstract fun getCategoryDao(): CategoryDao
 
     companion object {
         const val NAME = "internal_db"

@@ -1,6 +1,7 @@
 package com.dot.gallery.core
 
 import com.dot.gallery.feature_node.domain.model.AlbumState
+import com.dot.gallery.feature_node.domain.model.GeoMedia
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
@@ -51,6 +52,7 @@ interface MediaDistributor {
      */
     val metadataFlow: Flow<MediaMetadataState>
     val locationsMediaFlow: Flow<List<LocationMedia>>
+    val geoMediaFlow: Flow<List<GeoMedia>>
 
     /**
      * Vault

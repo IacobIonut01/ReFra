@@ -75,8 +75,13 @@ fun ContentResolver.querySteppedFlow(
     // The first set of values must always be generated and cannot (shouldn't) be cancelled.
     launch(Dispatchers.IO) {
         runCatching {
-            trySend(query(uri, projection, modifiedArgs, null))
-            trySend(query(uri, projection, queryArgs, null))
+            val batchCursor = query(uri, projection, modifiedArgs, null)
+            val batchCount = batchCursor?.count ?: 0
+            trySend(batchCursor)
+            // Only run the full query if the batch was actually limited
+            if (batchCount >= 250) {
+                trySend(query(uri, projection, queryArgs, null))
+            }
         }
     }
 
