@@ -106,6 +106,8 @@ android {
         }
     }
 
+    assetPacks += listOf(":ml-models")
+
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
@@ -117,6 +119,13 @@ android {
                 kotlin.srcDir("src/maps/kotlin")
             } else {
                 kotlin.srcDir("src/nomaps/kotlin")
+            }
+            // For APK builds, include ML assets directly since asset packs are AAB-only
+            val isBundleBuild = gradle.startParameter.taskNames.any {
+                it.contains("bundle", ignoreCase = true)
+            }
+            if (!isBundleBuild) {
+                assets.srcDirs("src/main/assets", "../ml-models/src/main/assets")
             }
         }
     }

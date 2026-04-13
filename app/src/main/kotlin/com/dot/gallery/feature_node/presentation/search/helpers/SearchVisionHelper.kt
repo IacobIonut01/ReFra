@@ -7,7 +7,6 @@ import ai.onnxruntime.OrtSession
 import ai.onnxruntime.providers.NNAPIFlags
 import android.content.Context
 import android.graphics.Bitmap
-import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.search.tokenizer.ClipTokenizer
 import com.dot.gallery.feature_node.presentation.search.util.centerCrop
 import com.dot.gallery.feature_node.presentation.search.util.normalizeL2
@@ -21,10 +20,10 @@ class SearchVisionHelper(private val context: Context) {
     private val tokenizer = ClipTokenizer(context)
     private val ortEnv = OrtEnvironment.getEnvironment()
 
-    fun setupVisionSession() = createOrtSessionWithFallback( R.raw.visual_quant)
-    fun setupTextSession() = createOrtSessionWithFallback(R.raw.textual_quant)
+    fun setupVisionSession() = createOrtSessionWithFallback("visual_quant.onnx")
+    fun setupTextSession() = createOrtSessionWithFallback("textual_quant.onnx")
 
-    private fun createOrtSessionWithFallback(modelID: Int): OrtSession {
+    private fun createOrtSessionWithFallback(modelName: String): OrtSession {
         val options = OrtSession.SessionOptions()
 
         try {
@@ -52,7 +51,7 @@ class SearchVisionHelper(private val context: Context) {
         }
 
         // Load model into session
-        val modelBytes = context.resources.openRawResource(modelID).readBytes()
+        val modelBytes = context.assets.open(modelName).use { it.readBytes() }
         return ortEnv.createSession(modelBytes, options)
     }
 

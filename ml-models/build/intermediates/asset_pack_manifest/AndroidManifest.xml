@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:dist="http://schemas.android.com/apk/distribution" package="basePackage" split="ml_models">
+  <dist:module dist:type="asset-pack">
+    <dist:fusing dist:include="true" />    <dist:delivery>
+      <dist:install-time/>
+    </dist:delivery>
+  </dist:module>
+</manifest>

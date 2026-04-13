@@ -10,7 +10,6 @@ package com.dot.gallery.feature_node.presentation.search.tokenizer
 
 import android.content.Context
 import android.util.JsonReader
-import com.dot.gallery.R
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.io.useLines
@@ -24,7 +23,7 @@ class ClipTokenizer(
 
     private fun getVocab(): Map<String, Int> {
         val vocab = hashMapOf<String, Int>().apply {
-            appContext.resources.openRawResource(R.raw.vocab).use {
+            appContext.assets.open("vocab.json").use {
                 val vocabReader = JsonReader(InputStreamReader(it, "UTF-8"))
                 vocabReader.beginObject()
                 while (vocabReader.hasNext()) {
@@ -43,7 +42,7 @@ class ClipTokenizer(
 
     private fun getMerges(): HashMap<Pair<String, String>, Int> {
         val merges = hashMapOf<Pair<String, String>, Int>().apply {
-            appContext.resources.openRawResource(R.raw.merges).use {
+            appContext.assets.open("merges.txt").use {
                 val mergesReader = BufferedReader(InputStreamReader(it))
                 mergesReader.useLines { seq ->
                     seq.drop(1).forEachIndexed { i, s ->
