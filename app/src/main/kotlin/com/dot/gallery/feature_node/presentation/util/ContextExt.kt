@@ -401,3 +401,22 @@ fun Context.restartApplication() {
     startActivity(mainIntent)
     Runtime.getRuntime().exit(0)
 }
+
+fun Context.changeAppAlias(newAlias: String) {
+    val namespace = "com.dot.gallery"
+    val aliases = listOf("Launcher_ReFra", "Launcher_Gallery")
+    val targetAlias = "Launcher_$newAlias"
+    for (alias in aliases) {
+        val component = android.content.ComponentName(packageName, "$namespace.$alias")
+        val newState = if (alias == targetAlias) {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        } else {
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        }
+        packageManager.setComponentEnabledSetting(
+            component,
+            newState,
+            PackageManager.DONT_KILL_APP
+        )
+    }
+}
