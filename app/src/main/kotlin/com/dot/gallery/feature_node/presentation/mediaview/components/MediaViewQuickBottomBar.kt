@@ -13,6 +13,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberShowFavoriteButton
 import com.dot.gallery.core.setFollowTheme
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
@@ -87,7 +88,8 @@ fun <T : Media> MediaViewQuickBottomBar(
                 currentVault = currentVault
             )
             // Favorite Component
-            if (currentMedia.canMakeActions) {
+            val showFavoriteButton by rememberShowFavoriteButton()
+            if (showFavoriteButton && currentMedia.canMakeActions) {
                 FavoriteButton(
                     media = currentMedia,
                     enabled = enabled,
