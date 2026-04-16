@@ -33,6 +33,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.core.Settings
+import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -159,10 +161,17 @@ fun <T : Media> MediaImage(
             )
         }
 
-        if (media.isFavorite) {
+        val favIconPosition by rememberFavoriteIconPosition()
+        if (media.isFavorite && favIconPosition != Settings.Misc.FAV_ICON_DISABLED) {
+            val favAlignment = when (favIconPosition) {
+                Settings.Misc.FAV_ICON_BOTTOM_START -> Alignment.BottomStart
+                Settings.Misc.FAV_ICON_TOP_END -> Alignment.TopEnd
+                Settings.Misc.FAV_ICON_TOP_START -> Alignment.TopStart
+                else -> Alignment.BottomEnd
+            }
             Icon(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
+                    .align(favAlignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
