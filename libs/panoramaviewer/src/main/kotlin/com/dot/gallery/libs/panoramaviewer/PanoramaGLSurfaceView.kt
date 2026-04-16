@@ -474,7 +474,7 @@ internal class PanoramaGLSurfaceView(
             val axisY = event.values[1] // yaw rate
             val dt = GYRO_DT
 
-            renderer.yaw -= Math.toDegrees(axisY.toDouble()).toFloat() * dt
+            renderer.yaw += Math.toDegrees(axisY.toDouble()).toFloat() * dt
             clampYaw()
             val maxPitch = when (projectionType) {
                 ProjectionType.SPHERE -> PanoramaRenderer.MAX_PITCH_SPHERE
