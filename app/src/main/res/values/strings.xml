@@ -1,5 +1,20 @@
 <resources>
     <string name="app_name">ReFra</string>
+    <string name="app_name_gallery">Gallery</string>
+    <string name="change_app_name">App name</string>
+    <string name="change_app_name_summary">Change the app name shown on your launcher</string>
+    <string name="choose_app_name">Choose app name</string>
+    <string name="change_app_name_info">You may need to re-add the app to your home screen after changing the name</string>
+    <string name="favorite_icon_on_thumbnails">Favorite icon on thumbnails</string>
+    <string name="favorite_icon_on_thumbnails_summary">Choose the position of the heart icon on media thumbnails</string>
+    <string name="choose_favorite_icon_position">Choose position</string>
+    <string name="fav_position_disabled">Hidden</string>
+    <string name="fav_position_bottom_end">Bottom right</string>
+    <string name="fav_position_bottom_start">Bottom left</string>
+    <string name="fav_position_top_end">Top right</string>
+    <string name="fav_position_top_start">Top left</string>
+    <string name="show_favorite_button">Favorite button in viewer</string>
+    <string name="show_favorite_button_summary">Show the favorite toggle button in the media viewer</string>
     <string name="nav_albums">Albums</string>
     <string name="searchbar_title"><![CDATA[Search photos & videos]]></string>
     <string name="header_today">Today</string>

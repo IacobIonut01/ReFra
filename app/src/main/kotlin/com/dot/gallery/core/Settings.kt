@@ -472,6 +472,31 @@ object Settings {
         fun rememberShowSelectionTitles() =
             rememberPreference(key = SELECTION_TITLES, defaultValue = true)
 
+        const val ALIAS_REFRA = "ReFra"
+        const val ALIAS_GALLERY = "Gallery"
+        private val APP_NAME_ALIAS = stringPreferencesKey("app_name_alias")
+
+        @Composable
+        fun rememberAppNameAlias() =
+            rememberPreference(key = APP_NAME_ALIAS, defaultValue = ALIAS_REFRA)
+
+        const val FAV_ICON_DISABLED = "disabled"
+        const val FAV_ICON_BOTTOM_END = "bottom_end"
+        const val FAV_ICON_BOTTOM_START = "bottom_start"
+        const val FAV_ICON_TOP_END = "top_end"
+        const val FAV_ICON_TOP_START = "top_start"
+        private val FAVORITE_ICON_POSITION = stringPreferencesKey("favorite_icon_position")
+
+        @Composable
+        fun rememberFavoriteIconPosition() =
+            rememberPreference(key = FAVORITE_ICON_POSITION, defaultValue = FAV_ICON_BOTTOM_END)
+
+        private val SHOW_FAVORITE_BUTTON = booleanPreferencesKey("show_favorite_button")
+
+        @Composable
+        fun rememberShowFavoriteButton() =
+            rememberPreference(key = SHOW_FAVORITE_BUTTON, defaultValue = true)
+
     }
 }
 
