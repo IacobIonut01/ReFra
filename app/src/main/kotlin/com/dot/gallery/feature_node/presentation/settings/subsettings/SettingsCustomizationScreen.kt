@@ -1,17 +1,37 @@
 package com.dot.gallery.feature_node.presentation.settings.subsettings
 
 import android.os.Build
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalTextStyle
@@ -39,18 +59,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.Settings.Misc.rememberAppNameAlias
 import com.dot.gallery.core.Settings.Misc.rememberAudioFocus
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideNavBar
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
+import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberFullBrightnessView
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
+import com.dot.gallery.core.Settings.Misc.rememberShowFavoriteButton
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberShowSelectionTitles
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
@@ -60,8 +84,10 @@ import com.dot.gallery.feature_node.presentation.settings.components.BaseSetting
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.changeAppAlias
 import com.dot.gallery.feature_node.presentation.util.restartApplication
 import com.dot.gallery.ui.theme.Shapes
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -119,6 +145,161 @@ fun SettingsCustomizationScreen() {
             )
         }
 
+        val showAppNameDialog = rememberSaveable { mutableStateOf(false) }
+        val appNameSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var appNameAlias by rememberAppNameAlias()
+        val appNamePref = rememberPreference(
+            appNameAlias,
+            title = stringResource(R.string.change_app_name),
+            summary = stringResource(R.string.change_app_name_summary),
+            onClick = { showAppNameDialog.value = true },
+            screenPosition = Position.Top
+        )
+        if (showAppNameDialog.value) {
+            ModalBottomSheet(
+                sheetState = appNameSheetState,
+                onDismissRequest = { showAppNameDialog.value = false },
+                contentWindowInsets = {
+                    WindowInsets(bottom = WindowInsets.systemBars.getBottom(LocalDensity.current))
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
+                            shape = Shapes.extraLarge
+                        )
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CompositionLocalProvider(
+                        value = LocalTextStyle.provides(
+                            TextStyle.Default.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                    ) {
+                        val appNameScope = rememberCoroutineScope()
+                        Text(
+                            text = stringResource(R.string.choose_app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val aliasOptions = remember(appNameAlias) {
+                            listOf(
+                                Settings.Misc.ALIAS_REFRA to (appNameAlias == Settings.Misc.ALIAS_REFRA),
+                                Settings.Misc.ALIAS_GALLERY to (appNameAlias == Settings.Misc.ALIAS_GALLERY)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            aliasOptions.forEach { (alias, selected) ->
+                                val borderColor = if (selected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.outlineVariant
+                                }
+                                val containerColor = if (selected) {
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                } else {
+                                    Color.Transparent
+                                }
+                                Column(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable {
+                                            appNameAlias = alias
+                                            context.changeAppAlias(alias)
+                                        }
+                                        .border(
+                                            width = 2.dp,
+                                            color = borderColor,
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                        .background(containerColor)
+                                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Image(
+                                        painter = rememberDrawablePainter(
+                                            drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
+                                        ),
+                                        contentDescription = alias,
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .clip(CircleShape)
+                                    )
+                                    Text(
+                                        text = alias,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Filled.CheckCircle,
+                                        contentDescription = null,
+                                        tint = if (selected) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.outlineVariant
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.change_app_name_info),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Button(onClick = {
+                            appNameScope.launch {
+                                appNameSheetState.hide()
+                                showAppNameDialog.value = false
+                                context.restartApplication()
+                            }
+                        }) {
+                            Text(
+                                text = stringResource(R.string.action_confirm),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         val shouldAllowBlur = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.S }
         var allowBlur by Settings.Misc.rememberAllowBlur()
         val allowBlurPref = rememberSwitchPreference(
@@ -128,7 +309,7 @@ fun SettingsCustomizationScreen() {
             isChecked = allowBlur,
             onCheck = { allowBlur = it },
             enabled = shouldAllowBlur,
-            screenPosition = Position.Top
+            screenPosition = Position.Middle
         )
 
         val showLaunchScreenDialog = rememberSaveable { mutableStateOf(false) }
@@ -266,8 +447,149 @@ fun SettingsCustomizationScreen() {
             summary = stringResource(R.string.show_selection_titles_summary),
             isChecked = showSelectionTitles,
             onCheck = { showSelectionTitles = it },
+            screenPosition = Position.Middle
+        )
+
+        val showFavIconDialog = rememberSaveable { mutableStateOf(false) }
+        val favIconSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var favIconPosition by rememberFavoriteIconPosition()
+        val favIconPositionLabel = remember(favIconPosition) {
+            when (favIconPosition) {
+                Settings.Misc.FAV_ICON_DISABLED -> context.getString(R.string.fav_position_disabled)
+                Settings.Misc.FAV_ICON_BOTTOM_START -> context.getString(R.string.fav_position_bottom_start)
+                Settings.Misc.FAV_ICON_TOP_END -> context.getString(R.string.fav_position_top_end)
+                Settings.Misc.FAV_ICON_TOP_START -> context.getString(R.string.fav_position_top_start)
+                else -> context.getString(R.string.fav_position_bottom_end)
+            }
+        }
+        val favIconPositionPref = rememberPreference(
+            favIconPosition,
+            title = stringResource(R.string.favorite_icon_on_thumbnails),
+            summary = favIconPositionLabel,
+            onClick = { showFavIconDialog.value = true },
             screenPosition = Position.Bottom
         )
+        if (showFavIconDialog.value) {
+            ModalBottomSheet(
+                sheetState = favIconSheetState,
+                onDismissRequest = { showFavIconDialog.value = false },
+                contentWindowInsets = {
+                    WindowInsets(bottom = WindowInsets.systemBars.getBottom(LocalDensity.current))
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
+                            shape = Shapes.extraLarge
+                        )
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CompositionLocalProvider(
+                        value = LocalTextStyle.provides(
+                            TextStyle.Default.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                    ) {
+                        val favScope = rememberCoroutineScope()
+                        Text(
+                            text = stringResource(R.string.choose_favorite_icon_position),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        // Animated preview
+                        val isHidden = favIconPosition == Settings.Misc.FAV_ICON_DISABLED
+                        val heartAlpha by animateFloatAsState(
+                            targetValue = if (isHidden) 0f else 1f,
+                            label = "heartAlpha"
+                        )
+                        val favAlignment = when (favIconPosition) {
+                            Settings.Misc.FAV_ICON_BOTTOM_START -> Alignment.BottomStart
+                            Settings.Misc.FAV_ICON_TOP_END -> Alignment.TopEnd
+                            Settings.Misc.FAV_ICON_TOP_START -> Alignment.TopStart
+                            else -> Alignment.BottomEnd
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
+                        ) {
+                            repeat(3) { index ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                ) {
+                                    if (index == 1) {
+                                        Icon(
+                                            modifier = Modifier
+                                                .align(favAlignment)
+                                                .padding(6.dp)
+                                                .size(14.dp),
+                                            imageVector = Icons.Filled.Favorite,
+                                            tint = Color.Red.copy(alpha = heartAlpha),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        val positionOptions = remember(favIconPosition) {
+                            listOf(
+                                Triple(Settings.Misc.FAV_ICON_DISABLED, context.getString(R.string.fav_position_disabled), favIconPosition == Settings.Misc.FAV_ICON_DISABLED),
+                                Triple(Settings.Misc.FAV_ICON_BOTTOM_END, context.getString(R.string.fav_position_bottom_end), favIconPosition == Settings.Misc.FAV_ICON_BOTTOM_END),
+                                Triple(Settings.Misc.FAV_ICON_BOTTOM_START, context.getString(R.string.fav_position_bottom_start), favIconPosition == Settings.Misc.FAV_ICON_BOTTOM_START),
+                                Triple(Settings.Misc.FAV_ICON_TOP_END, context.getString(R.string.fav_position_top_end), favIconPosition == Settings.Misc.FAV_ICON_TOP_END),
+                                Triple(Settings.Misc.FAV_ICON_TOP_START, context.getString(R.string.fav_position_top_start), favIconPosition == Settings.Misc.FAV_ICON_TOP_START)
+                            )
+                        }
+
+                        LazyColumn {
+                            items(
+                                items = positionOptions,
+                                key = { it.first }
+                            ) { (value, label, selected) ->
+                                ListItem(
+                                    modifier = Modifier
+                                        .clip(Shapes.large)
+                                        .clickable { favIconPosition = value },
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                    headlineContent = {
+                                        Text(text = label)
+                                    },
+                                    trailingContent = {
+                                        RadioButton(
+                                            selected = selected,
+                                            onClick = { favIconPosition = value }
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                        Button(onClick = {
+                            favScope.launch {
+                                favIconSheetState.hide()
+                                showFavIconDialog.value = false
+                            }
+                        }) {
+                            Text(
+                                text = stringResource(R.string.done),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         val mediaViewHeader = remember(context) {
             SettingsEntity.Header(
@@ -292,6 +614,16 @@ fun SettingsCustomizationScreen() {
             summary = stringResource(R.string.show_date_header_summary),
             isChecked = showMediaDateHeader,
             onCheck = { showMediaDateHeader = it },
+            screenPosition = Position.Middle
+        )
+
+        var showFavoriteButton by rememberShowFavoriteButton()
+        val showFavoriteButtonPref = rememberSwitchPreference(
+            showFavoriteButton,
+            title = stringResource(R.string.show_favorite_button),
+            summary = stringResource(R.string.show_favorite_button_summary),
+            isChecked = showFavoriteButton,
+            onCheck = { showFavoriteButton = it },
             screenPosition = Position.Bottom
         )
 
@@ -397,7 +729,10 @@ fun SettingsCustomizationScreen() {
             autoPlayVideoPref,
             sharedElementsPref,
             showMediaDateHeaderPref,
-            showSelectionTitlesPref
+            showSelectionTitlesPref,
+            appNamePref,
+            favIconPositionPref,
+            showFavoriteButtonPref
         ) {
             mutableStateListOf(
                 timelineHeader,
@@ -405,8 +740,10 @@ fun SettingsCustomizationScreen() {
                 hideTimelineOnAlbumPref,
                 forcedLastScreenPref,
                 showSelectionTitlesPref,
+                favIconPositionPref,
 
                 interfaceHeader,
+                appNamePref,
                 allowBlurPref,
                 sharedElementsPref,
 
@@ -414,6 +751,7 @@ fun SettingsCustomizationScreen() {
                 dateHeaderPref,
                 fullBrightnessViewPref,
                 showMediaDateHeaderPref,
+                showFavoriteButtonPref,
 
                 videoPlaybackHeader,
                 audioFocusPref,
