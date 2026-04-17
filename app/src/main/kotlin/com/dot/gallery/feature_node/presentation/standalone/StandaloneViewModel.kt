@@ -5,6 +5,7 @@
 
 package com.dot.gallery.feature_node.presentation.standalone
 
+import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -50,11 +51,19 @@ class StandaloneViewModel @AssistedInject constructor(
 
     var mediaId: Long = -1
 
+    private val targetId: Long = dataList.firstOrNull()?.let { uri ->
+        try { ContentUris.parseId(uri) } catch (_: NumberFormatException) { null }
+    } ?: -1L
+
     var mediaState = repository.getMediaListByUris(dataList, reviewMode)
         .map {
             val data = it.data
             if (data != null) {
-                mediaId = data.first().id
+                mediaId = if (targetId != -1L && data.any { m -> m.id == targetId }) {
+                    targetId
+                } else {
+                    data.first().id
+                }
                 MediaState(media = data, isLoading = false)
             } else {
                 mediaFromUris()
