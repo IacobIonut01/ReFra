@@ -71,6 +71,7 @@ import com.dot.gallery.feature_node.presentation.settings.SettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.ColorPaletteScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsCustomizationScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsGeneralScreen
+import com.dot.gallery.feature_node.presentation.settings.subsettings.EditBackupsViewerScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSmartFeaturesScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsThemesScreen
 import com.dot.gallery.feature_node.presentation.setup.SetupScreen
@@ -608,6 +609,9 @@ fun NavigationComp(
             }
             composable(Screen.SettingsSmartFeaturesScreen()) {
                 SettingsSmartFeaturesScreen()
+            }
+            composable(Screen.EditBackupsViewerScreen()) {
+                EditBackupsViewerScreen()
             }
 
             composable(Screen.SearchScreen()) {

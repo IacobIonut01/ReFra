@@ -26,6 +26,8 @@ import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
@@ -35,6 +37,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
@@ -88,6 +91,8 @@ import dev.chrisbanes.haze.hazeSource
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun EditScreen2(
+    hasOriginalBackup: Boolean = false,
+    isReverting: Boolean = false,
     canOverride: Boolean = false,
     canSave: Boolean = true,
     isChanged: Boolean = false,
@@ -126,7 +131,8 @@ fun EditScreen2(
     setCurrentPathProperty: (PathProperties) -> Unit,
     applyDrawing: (Bitmap, () -> Unit) -> Unit,
     undoLastPath: () -> Unit,
-    redoLastPath: () -> Unit
+    redoLastPath: () -> Unit,
+    onRevertToOriginal: () -> Unit = {}
 ) = GalleryTheme(darkTheme = true, ignoreUserPreference = true) {
     val context = LocalContext.current
     val navigator = rememberSupportingPaneScaffoldNavigator(
@@ -141,6 +147,7 @@ fun EditScreen2(
         navBackStackEntry?.destination?.route?.contains("markup", true) == true
     }
 
+    var showRevertDialog by remember { mutableStateOf(false) }
     var cropState by rememberSaveable { mutableStateOf(CropState()) }
     LaunchedEffect(navBackStackEntry) {
         cropState = cropState.copy(
@@ -149,7 +156,7 @@ fun EditScreen2(
     }
 
     val animatedBlurRadius by animateDpAsState(
-        if (isSaving || cropState.isCropping) 50.dp else 0.dp,
+        if (isSaving || isReverting || cropState.isCropping) 50.dp else 0.dp,
         label = "animatedBlurRadius"
     )
 
@@ -159,7 +166,7 @@ fun EditScreen2(
                 .hazeSource(LocalHazeState.current)
                 .animateContentSize()
                 .fillMaxSize()
-                .then(if (isSaving || cropState.isCropping) Modifier.blur(animatedBlurRadius) else Modifier),
+                .then(if (isSaving || isReverting || cropState.isCropping) Modifier.blur(animatedBlurRadius) else Modifier),
             containerColor = Color.Black,
             contentColor = Color.White,
             bottomBar = {
@@ -346,11 +353,33 @@ fun EditScreen2(
                             enter = enterAnimation,
                             exit = exitAnimation
                         ) {
-                            Text(
-                                text = stringResource(R.string.up_to_date),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (hasOriginalBackup) {
+                                    ElevatedButton(
+                                        onClick = { showRevertDialog = true },
+                                        shape = RoundedCornerShape(100f)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.RestartAlt,
+                                            contentDescription = stringResource(R.string.revert_to_original),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.revert_to_original),
+                                            modifier = Modifier.padding(start = 4.dp)
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = stringResource(R.string.up_to_date),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -420,7 +449,7 @@ fun EditScreen2(
         }
 
         AnimatedVisibility(
-            visible = isSaving,
+            visible = isSaving || isReverting,
             enter = enterAnimation,
             exit = exitAnimation
         ) {
@@ -437,6 +466,29 @@ fun EditScreen2(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+        }
+
+        if (showRevertDialog) {
+            AlertDialog(
+                onDismissRequest = { showRevertDialog = false },
+                title = { Text(stringResource(R.string.revert_to_original)) },
+                text = { Text(stringResource(R.string.revert_to_original_confirmation)) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showRevertDialog = false
+                            onRevertToOriginal()
+                        }
+                    ) {
+                        Text(stringResource(R.string.action_revert))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRevertDialog = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            )
         }
     }
 }

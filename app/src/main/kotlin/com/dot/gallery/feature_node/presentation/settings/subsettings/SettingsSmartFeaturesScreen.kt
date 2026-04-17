@@ -21,6 +21,8 @@ import com.dot.gallery.feature_node.presentation.settings.components.BaseSetting
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
 import com.dot.gallery.feature_node.presentation.util.Screen
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SettingsBackupRestore
 
 @Composable
 fun SettingsSmartFeaturesScreen() {
@@ -59,9 +61,30 @@ fun SettingsSmartFeaturesScreen() {
             screenPosition = Position.Alone
         )
 
-        return remember(noClassificationPref, databaseHeader, refreshMetadataPref) {
+        val storageHeader = remember(context) {
+            SettingsEntity.Header(
+                title = context.getString(R.string.edit_backups_storage)
+            )
+        }
+
+        val editBackupsPref = rememberPreference(
+            title = stringResource(R.string.edit_backups),
+            summary = stringResource(R.string.edit_backups_summary),
+            icon = Icons.Outlined.SettingsBackupRestore,
+            onClick = {
+                handler.navigate(Screen.EditBackupsViewerScreen())
+            },
+            screenPosition = Position.Alone
+        )
+
+        return remember(
+            noClassificationPref, databaseHeader, refreshMetadataPref,
+            storageHeader, editBackupsPref
+        ) {
             mutableStateListOf(
-                noClassificationPref, databaseHeader, refreshMetadataPref
+                noClassificationPref,
+                databaseHeader, refreshMetadataPref,
+                storageHeader, editBackupsPref
             )
         }
     }

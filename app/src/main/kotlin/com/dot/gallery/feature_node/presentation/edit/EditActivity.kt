@@ -74,6 +74,8 @@ class EditActivity : ComponentActivity() {
                     val uri by viewModel.uri.collectAsStateWithLifecycle()
                     //val isEditingActive by viewModel.isEditingActive.collectAsStateWithLifecycle()
                     val canOverride by viewModel.canOverride.collectAsStateWithLifecycle()
+                    val hasOriginalBackup by viewModel.hasOriginalBackup.collectAsStateWithLifecycle()
+                    val isReverting by viewModel.isReverting.collectAsStateWithLifecycle()
                     val originalImage by viewModel.originalBitmap.collectAsStateWithLifecycle()
                     val appliedAdjustments by viewModel.appliedAdjustments.collectAsStateWithLifecycle()
                     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
@@ -106,8 +108,23 @@ class EditActivity : ComponentActivity() {
                         }
                     )
 
+                    val revertRequest = rememberActivityResult(
+                        onResultOk = {
+                            viewModel.revertToOriginal(
+                                onSuccess = {
+                                    finish()
+                                },
+                                onFail = {
+                                    printError("Failed to revert to original")
+                                }
+                            )
+                        }
+                    )
+
 
                     EditScreen2(
+                        hasOriginalBackup = hasOriginalBackup,
+                        isReverting = isReverting,
                         canOverride = canOverride,
                         isChanged = appliedAdjustments.isNotEmpty(),
                         isSaving = isSaving,
@@ -169,7 +186,18 @@ class EditActivity : ComponentActivity() {
                         setCurrentPathProperty = viewModel::setCurrentPathProperty,
                         applyDrawing = viewModel::applyDrawing,
                         undoLastPath = viewModel::undoLastPath,
-                        redoLastPath = viewModel::redoLastPath
+                        redoLastPath = viewModel::redoLastPath,
+                        onRevertToOriginal = {
+                            scope.launch {
+                                uri?.let { uri ->
+                                    revertRequest.launch(
+                                        uri.writeRequest(
+                                            contentResolver
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
             }

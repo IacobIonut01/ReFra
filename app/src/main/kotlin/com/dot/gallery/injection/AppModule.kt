@@ -13,6 +13,7 @@ import android.os.Build
 import androidx.room.Room
 import androidx.work.WorkManager
 import com.dot.gallery.core.DefaultEventHandler
+import com.dot.gallery.core.EditBackupManager
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaDistributorImpl
 import com.dot.gallery.core.MediaHandler
@@ -129,5 +130,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideByteArrayPool(): ByteArrayPool = ByteArrayPool()
+
+    @Provides
+    @Singleton
+    fun provideEditBackupManager(
+        @ApplicationContext context: Context,
+        database: InternalDatabase
+    ): EditBackupManager = EditBackupManager(context, database.getEditHistoryDao())
 
 }
