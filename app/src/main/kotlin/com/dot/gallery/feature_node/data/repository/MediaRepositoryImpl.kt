@@ -30,6 +30,8 @@ import com.dot.gallery.core.util.ext.renameMedia
 import com.dot.gallery.core.util.ext.saveImage
 import com.dot.gallery.core.util.ext.saveRawImage
 import com.dot.gallery.core.util.ext.saveVideo
+import com.dot.gallery.core.util.ext.saveVideoStream
+import com.dot.gallery.core.util.ext.saveRawStream
 import com.dot.gallery.core.util.ext.updateImageDescription
 import com.dot.gallery.core.util.ext.updateMedia
 import com.dot.gallery.core.util.ext.updateMediaExif
@@ -68,7 +70,7 @@ import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isRawFile
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.migrate
-import com.dot.gallery.feature_node.domain.util.toEncryptedMedia
+import com.dot.gallery.feature_node.domain.util.toEncryptedMedia2
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.BOTH
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.PHOTOS
@@ -462,41 +464,24 @@ class MediaRepositoryImpl(
             with(keychainHolder) {
                 keychainHolder.checkVaultFolder(vault)
                 val output = vault.mediaFile(media.id).apply { if (exists()) delete() }
-                val rawBytes = getBytes(media.getUri())
-                val encryptedMedia = rawBytes?.let { bytes -> media.toEncryptedMedia(bytes) }
-                suspend fun doEncrypt(): Boolean {
-                    val em = encryptedMedia ?: return false
-                    if (isTransferable(vault)) {
-                        val portableBytes = encryptPortableContent(vault, em.bytes)
-                        output.writeBytes(portableBytes)
-                    } else {
-                        output.encryptKotlin(em)
-                    }
-                    output.setLastModified(System.currentTimeMillis())
-                    database.getVaultDao().addMediaToVault(em.migrate(vault.uuid))
-                    return true
+                // Ensure vault uses portable format for streaming encryption
+                if (!isTransferable(vault)) {
+                    writeVaultInfo(vault, transferable = true)
                 }
                 return@withContext try {
-                    doEncrypt()
-                } catch (e: Exception) {
-                    // If MasterKey mismatch (restored device), AEADBadTagException or GeneralSecurityException will surface.
-                    val isAead = e::class.simpleName?.contains("AEADBadTag", true) == true ||
-                            e.message?.contains("MAC verification failed", true) == true
-                    if (!isTransferable(vault) && isAead) {
-                        // Force convert vault to portable mode and retry once.
-                        writeVaultInfo(vault, transferable = true, force = true)
-                        try {
-                            doEncrypt()
-                        } catch (e2: Exception) {
-                            e2.printStackTrace()
-                            printError("Failed to add file after portable fallback: ${media.label}")
-                            false
-                        }
-                    } else {
-                        e.printStackTrace()
-                        printError("Failed to add file: ${media.label}")
-                        false
+                    val inputStream = context.contentResolver.openInputStream(media.getUri())
+                        ?: return@withContext false
+                    inputStream.use { input ->
+                        encryptPortableStream(vault, input, output)
                     }
+                    output.setLastModified(System.currentTimeMillis())
+                    database.getVaultDao().addMediaToVault(media.toEncryptedMedia2(vault.uuid))
+                    true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    printError("Failed to add file: ${media.label}")
+                    output.delete()
+                    false
                 }
             }
         }
@@ -506,42 +491,68 @@ class MediaRepositoryImpl(
             with(keychainHolder) {
                 checkVaultFolder(vault)
                 return@withContext try {
-                    val output = vault.mediaFile(media.id)
-                    val encryptedMedia = output.decryptKotlin<EncryptedMedia>()
+                    val encFile = vault.mediaFile(media.id)
                     val restored: Boolean
-                    if (media.isRawFile) {
-                        // Raw formats (GIF, WebP, etc.) must be written as raw bytes
-                        // to preserve animation and avoid quality loss
-                        restored = contentResolver.saveRawImage(
-                            data = encryptedMedia.bytes,
-                            displayName = media.label,
-                            mimeType = media.mimeType,
-                            relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
-                        ) != null
-                    } else if (media.isImage) {
-                        restored = saveImage(
-                            bitmap = BitmapFactory.decodeByteArray(
-                                encryptedMedia.bytes,
-                                0,
-                                encryptedMedia.bytes.size
-                            ),
-                            displayName = media.label,
-                            mimeType = media.compatibleMimeType(),
-                            format = media.compatibleBitmapFormat(),
-                            relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
-                        ) != null
+                    if (isPortableFile(encFile)) {
+                        // Portable format: stream-decrypt directly to MediaStore
+                        restored = if (media.isRawFile) {
+                            contentResolver.saveRawStream(
+                                writeBlock = { out -> decryptPortableStream(vault, encFile, out) },
+                                displayName = media.label,
+                                mimeType = media.mimeType,
+                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                            ) != null
+                        } else if (media.isImage) {
+                            // Images need bitmap decode/re-encode for format compatibility
+                            contentResolver.saveRawStream(
+                                writeBlock = { out -> decryptPortableStream(vault, encFile, out) },
+                                displayName = media.label,
+                                mimeType = media.mimeType,
+                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                            ) != null
+                        } else {
+                            contentResolver.saveVideoStream(
+                                writeBlock = { out -> decryptPortableStream(vault, encFile, out) },
+                                displayName = media.label,
+                                mimeType = media.compatibleMimeType(),
+                                relativePath = Environment.DIRECTORY_MOVIES + "/Restored"
+                            ) != null
+                        }
                     } else {
-                        restored = contentResolver.saveVideo(
-                            data = encryptedMedia.bytes,
-                            displayName = media.label,
-                            mimeType = media.compatibleMimeType(),
-                            relativePath = Environment.DIRECTORY_MOVIES + "/Restored"
-                        ) != null
+                        // Legacy format: in-memory decryption (only for old small files)
+                        val encryptedMedia = encFile.decryptKotlin<EncryptedMedia>()
+                        restored = if (media.isRawFile) {
+                            contentResolver.saveRawImage(
+                                data = encryptedMedia.bytes,
+                                displayName = media.label,
+                                mimeType = media.mimeType,
+                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                            ) != null
+                        } else if (media.isImage) {
+                            saveImage(
+                                bitmap = BitmapFactory.decodeByteArray(
+                                    encryptedMedia.bytes,
+                                    0,
+                                    encryptedMedia.bytes.size
+                                ),
+                                displayName = media.label,
+                                mimeType = media.compatibleMimeType(),
+                                format = media.compatibleBitmapFormat(),
+                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                            ) != null
+                        } else {
+                            contentResolver.saveVideo(
+                                data = encryptedMedia.bytes,
+                                displayName = media.label,
+                                mimeType = media.compatibleMimeType(),
+                                relativePath = Environment.DIRECTORY_MOVIES + "/Restored"
+                            ) != null
+                        }
                     }
-                    val deleted = if (restored) output.delete() else false
+                    val deleted = if (restored) encFile.delete() else false
                     if (deleted) {
                         database.getVaultDao()
-                            .deleteMediaFromVault(encryptedMedia.migrate(vault.uuid))
+                            .deleteMediaFromVault(vault.uuid, media.id)
                     }
                     restored && deleted
                 } catch (e: Exception) {

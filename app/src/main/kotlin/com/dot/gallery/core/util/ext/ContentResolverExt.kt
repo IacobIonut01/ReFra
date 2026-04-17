@@ -37,6 +37,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
 
 fun ContentResolver.querySteppedFlow(
@@ -254,6 +255,48 @@ suspend fun ContentResolver.saveRawImage(
     }
 ) { out ->
     out.write(data)
+}
+
+suspend fun ContentResolver.saveRawStream(
+    writeBlock: (OutputStream) -> Unit,
+    mimeType: String,
+    relativePath: String = Environment.DIRECTORY_PICTURES,
+    displayName: String
+): Uri? = performInsertWrite(
+    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+        put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+        put(
+            MediaStore.MediaColumns.RELATIVE_PATH,
+            if (relativePath.contains("DCIM") || relativePath.contains("Pictures"))
+                relativePath
+            else Environment.DIRECTORY_PICTURES + "/Restored"
+        )
+    }
+) { out ->
+    writeBlock(out)
+}
+
+suspend fun ContentResolver.saveVideoStream(
+    writeBlock: (OutputStream) -> Unit,
+    mimeType: String,
+    relativePath: String = Environment.DIRECTORY_MOVIES,
+    displayName: String
+): Uri? = performInsertWrite(
+    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+    ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+        put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+        put(
+            MediaStore.MediaColumns.RELATIVE_PATH,
+            if (relativePath.contains("DCIM") || relativePath.contains("Movies"))
+                relativePath
+            else Environment.DIRECTORY_MOVIES + "/Edited"
+        )
+    }
+) { out ->
+    writeBlock(out)
 }
 
 private suspend fun ContentResolver.performInsertWrite(

@@ -160,6 +160,25 @@ fun <T : Media> T.toEncryptedMedia(bytes: ByteArray): Media.EncryptedMedia {
     )
 }
 
+fun <T : Media> T.toEncryptedMedia2(uuid: UUID): Media.EncryptedMedia2 {
+    return Media.EncryptedMedia2(
+        id = id,
+        label = label,
+        uuid = uuid,
+        path = path,
+        timestamp = timestamp,
+        mimeType = mimeType,
+        duration = duration,
+        trashed = trashed,
+        favorite = favorite,
+        albumID = albumID,
+        albumLabel = albumLabel,
+        relativePath = relativePath,
+        fullDate = fullDate,
+        size = size,
+    )
+}
+
 fun <T : Media> T.asSubsamplingImage(context: Context): SubsamplingImage {
     return SubsamplingImage(imageSource = ContentImageSource(context, getUri()))
 }

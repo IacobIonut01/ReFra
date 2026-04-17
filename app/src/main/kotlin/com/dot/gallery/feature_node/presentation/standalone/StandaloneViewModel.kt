@@ -19,6 +19,10 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.domain.util.getUri
+import androidx.work.WorkManager
+import com.dot.gallery.core.workers.VaultOperationWorker
+import com.dot.gallery.core.workers.enqueueVaultOperation
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -39,6 +43,7 @@ class StandaloneViewModel @AssistedInject constructor(
     @param:ApplicationContext
     private val applicationContext: Context,
     private val repository: MediaRepository,
+    private val workManager: WorkManager,
     distributor: MediaDistributor,
     @Assisted private val reviewMode: Boolean,
     @Assisted private val dataList: List<Uri>
@@ -87,9 +92,11 @@ class StandaloneViewModel @AssistedInject constructor(
 
 
     fun addMedia(vault: Vault, media: UriMedia) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.addMedia(vault, media)
-        }
+        workManager.enqueueVaultOperation(
+            operation = VaultOperationWorker.OP_ENCRYPT,
+            media = listOf(media.getUri()),
+            vault = vault
+        )
     }
 
     private fun <T: Media> mediaFromUris(): MediaState<T> {

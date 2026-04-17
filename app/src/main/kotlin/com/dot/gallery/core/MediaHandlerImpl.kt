@@ -8,7 +8,10 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.compose.runtime.compositionLocalOf
 import androidx.work.WorkManager
 import com.dot.gallery.core.Settings.Misc.getTrashEnabled
+import com.dot.gallery.core.workers.VaultOperationWorker
+import com.dot.gallery.core.workers.enqueueVaultOperation
 import com.dot.gallery.core.workers.rotateImage
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -72,9 +75,11 @@ class MediaHandlerImpl @Inject constructor(
     }
 
     override suspend fun <T : Media> addMedia(vault: Vault, media: T) {
-        withContext(Dispatchers.IO) {
-            repository.addMedia(vault, media)
-        }
+        workManager.enqueueVaultOperation(
+            operation = VaultOperationWorker.OP_ENCRYPT,
+            media = listOf(media.getUri()),
+            vault = vault
+        )
     }
 
     override fun <T : Media> rotateImage(

@@ -15,9 +15,12 @@ import com.dot.gallery.feature_node.domain.util.fromKotlinByteArray
 import com.dot.gallery.feature_node.domain.util.toKotlinByteArray
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.security.GeneralSecurityException
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -193,6 +196,28 @@ class KeychainHolder @Inject constructor(
         }
     }
 
+    fun encryptPortableStream(vault: Vault, input: InputStream, outputFile: File) {
+        val dk = loadDataKey(vault) ?: error("Data key missing for portable vault")
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val nonce = ByteArray(12).apply { SecureRandom().nextBytes(this) }
+        cipher.init(Cipher.ENCRYPT_MODE, dk.toAesKey(), GCMParameterSpec(128, nonce))
+
+        outputFile.outputStream().buffered().use { out ->
+            out.write(MAGIC)
+            out.write(ByteArray(MAGIC_PAD - MAGIC.size)) // padding
+            out.write(nonce)
+
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var len: Int
+            while (input.read(buffer).also { len = it } != -1) {
+                val encrypted = cipher.update(buffer, 0, len)
+                if (encrypted != null) out.write(encrypted)
+            }
+            val finalBlock = cipher.doFinal()
+            if (finalBlock != null && finalBlock.isNotEmpty()) out.write(finalBlock)
+        }
+    }
+
     fun decryptPortableContent(vault: Vault, bytes: ByteArray): ByteArray {
         if (!startsWithMagic(bytes)) error("Not portable content")
         val dk = loadDataKey(vault) ?: error("Data key missing")
@@ -201,6 +226,38 @@ class KeychainHolder @Inject constructor(
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, dk.toAesKey(), GCMParameterSpec(128, nonce))
         return cipher.doFinal(ct)
+    }
+
+    fun decryptPortableStream(vault: Vault, inputFile: File, output: OutputStream) {
+        val dk = loadDataKey(vault) ?: error("Data key missing")
+        inputFile.inputStream().buffered().use { input ->
+            val dis = DataInputStream(input)
+            val header = ByteArray(MAGIC_PAD)
+            dis.readFully(header)
+            if (!startsWithMagic(header)) error("Not portable content")
+
+            val nonce = ByteArray(12)
+            dis.readFully(nonce)
+
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, dk.toAesKey(), GCMParameterSpec(128, nonce))
+
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var len: Int
+            while (input.read(buffer).also { len = it } != -1) {
+                val decrypted = cipher.update(buffer, 0, len)
+                if (decrypted != null) output.write(decrypted)
+            }
+            val finalBlock = cipher.doFinal()
+            if (finalBlock != null && finalBlock.isNotEmpty()) output.write(finalBlock)
+        }
+    }
+
+    fun isPortableFile(file: File): Boolean {
+        if (!file.exists() || file.length() < MAGIC_PAD) return false
+        val header = ByteArray(MAGIC_PAD)
+        file.inputStream().use { it.read(header) }
+        return startsWithMagic(header)
     }
 
     /**
@@ -272,7 +329,7 @@ class KeychainHolder @Inject constructor(
         }
     }
 
-    fun startsWithMagic(bytes: ByteArray): Boolean {
+    internal fun startsWithMagic(bytes: ByteArray): Boolean {
         if (bytes.size < MAGIC_PAD) return false
         for (i in MAGIC.indices) if (bytes[i] != MAGIC[i]) return false
         return true

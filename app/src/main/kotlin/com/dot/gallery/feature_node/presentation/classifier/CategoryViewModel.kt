@@ -4,7 +4,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.core.Constants
+import androidx.work.WorkManager
 import com.dot.gallery.core.MediaDistributor
+import com.dot.gallery.core.workers.VaultOperationWorker
+import com.dot.gallery.core.workers.enqueueVaultOperation
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.Media
@@ -37,7 +41,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
     private val repository: MediaRepository,
-    private val distributor: MediaDistributor
+    private val distributor: MediaDistributor,
+    private val workManager: WorkManager
 ) : ViewModel() {
 
     // Legacy string-based category (for backward compatibility)
@@ -163,9 +168,11 @@ class CategoryViewModel @Inject constructor(
     }
 
     fun <T : Media> addMedia(vault: Vault, media: T) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.addMedia(vault, media)
-        }
+        workManager.enqueueVaultOperation(
+            operation = VaultOperationWorker.OP_ENCRYPT,
+            media = listOf(media.getUri()),
+            vault = vault
+        )
     }
 
     /**

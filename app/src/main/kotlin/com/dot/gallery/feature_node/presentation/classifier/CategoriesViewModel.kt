@@ -8,7 +8,10 @@ import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.workers.CategoryWorker
+import com.dot.gallery.core.workers.VaultOperationWorker
+import com.dot.gallery.core.workers.enqueueVaultOperation
 import com.dot.gallery.core.workers.startCategoryClassification
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.core.workers.startClassification
 import com.dot.gallery.core.workers.stopCategoryClassification
 import com.dot.gallery.core.workers.stopClassification
@@ -282,9 +285,11 @@ class CategoriesViewModel @Inject constructor(
     }
 
     fun <T: Media> addMedia(vault: Vault, media: T) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.addMedia(vault, media)
-        }
+        workManager.enqueueVaultOperation(
+            operation = VaultOperationWorker.OP_ENCRYPT,
+            media = listOf(media.getUri()),
+            vault = vault
+        )
     }
 
     /**
