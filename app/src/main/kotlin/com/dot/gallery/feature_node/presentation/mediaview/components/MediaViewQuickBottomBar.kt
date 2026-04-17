@@ -22,6 +22,7 @@ import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isTrashed
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
+import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.CopyToClipboardButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.EditButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.FavoriteButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.MediaViewButton
@@ -86,6 +87,12 @@ fun <T : Media> MediaViewQuickBottomBar(
                 enabled = enabled,
                 followTheme = followTheme,
                 currentVault = currentVault
+            )
+            // Copy to Clipboard
+            CopyToClipboardButton(
+                media = currentMedia,
+                enabled = enabled,
+                followTheme = followTheme
             )
             // Favorite Component
             val showFavoriteButton by rememberShowFavoriteButton()

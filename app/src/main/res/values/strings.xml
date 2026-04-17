@@ -179,6 +179,8 @@
     <string name="album_name">Album Name</string>
     <string name="create_new_album">Create new album</string>
     <string name="copy">Copy</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="ignored_albums">Ignored Albums</string>
     <string name="select_an_album">Select an album</string>
     <string name="blacklist_summary">Ignore albums from ReFra</string>

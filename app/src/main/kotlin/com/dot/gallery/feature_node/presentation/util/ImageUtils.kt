@@ -14,6 +14,7 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.net.Uri
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,6 +33,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toFile
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.R
 import com.dot.gallery.core.Settings.Misc.rememberExifDateFormat
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.InfoRow
@@ -192,6 +194,14 @@ fun Uri.authorizedUri(context: Context): Uri = if (this.toString()
     BuildConfig.CONTENT_AUTHORITY,
     this.toFile()
 )
+
+fun <T : Media> Context.copyMediaToClipboard(media: T) {
+    val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+    val uri = media.getUri().authorizedUri(this)
+    val clip = android.content.ClipData.newUri(contentResolver, media.label, uri)
+    clipboardManager.setPrimaryClip(clip)
+    Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+}
 
 fun <T : Media> Context.shareMedia(media: T) {
     val originalUri = media.getUri()

@@ -17,6 +17,7 @@ import com.dot.gallery.feature_node.domain.util.canMakeActions
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isLocalContent
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.CopyButton
+import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.CopyToClipboardButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.EditButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.HideButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.MoveButton
@@ -45,6 +46,12 @@ fun <T : Media> MediaViewSheetActions(
             followTheme = true, 
             enabled = true,
             currentVault = currentVault
+        )
+        // Copy to Clipboard
+        CopyToClipboardButton(
+            media = media,
+            followTheme = true,
+            enabled = true
         )
         // Hide
         if (media.isLocalContent) {
