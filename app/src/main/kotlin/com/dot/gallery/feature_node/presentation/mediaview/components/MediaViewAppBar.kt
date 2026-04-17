@@ -128,32 +128,26 @@ fun MediaViewAppBar(
                     label = "AppBarContentColor"
                 )
 
-                this@Column.AnimatedVisibility(
-                    visible = showInfo,
-                    enter = enterAnimation,
-                    exit = exitAnimation
+                IconButton(
+                    modifier = modifier
+                        .align(Alignment.CenterStart)
+                        .padding(horizontal = 8.dp)
+                        .clip(CircleShape)
+                        .then(backgroundModifier)
+                        .hazeEffect(
+                            state = LocalHazeState.current,
+                            style = HazeMaterials.ultraThin(
+                                containerColor = surfaceContainer
+                            )
+                        ),
+                    onClick = onGoBack
                 ) {
-                    IconButton(
-                        modifier = modifier
-                            .align(Alignment.CenterStart)
-                            .padding(horizontal = 8.dp)
-                            .clip(CircleShape)
-                            .then(backgroundModifier)
-                            .hazeEffect(
-                                state = LocalHazeState.current,
-                                style = HazeMaterials.ultraThin(
-                                    containerColor = surfaceContainer
-                                )
-                            ),
-                        onClick = onGoBack
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Go back",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.height(48.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "Go back",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.height(48.dp)
+                    )
                 }
 
                 this@Column.AnimatedVisibility(

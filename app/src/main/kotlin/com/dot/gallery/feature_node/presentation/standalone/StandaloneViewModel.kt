@@ -25,7 +25,10 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -49,7 +52,8 @@ class StandaloneViewModel @AssistedInject constructor(
         ): StandaloneViewModel
     }
 
-    var mediaId: Long = -1
+    private val _mediaId = MutableStateFlow(-1L)
+    val mediaId: StateFlow<Long> = _mediaId.asStateFlow()
 
     private val targetId: Long = dataList.firstOrNull()?.let { uri ->
         try { ContentUris.parseId(uri) } catch (_: NumberFormatException) { null }
@@ -59,7 +63,7 @@ class StandaloneViewModel @AssistedInject constructor(
         .map {
             val data = it.data
             if (data != null) {
-                mediaId = if (targetId != -1L && data.any { m -> m.id == targetId }) {
+                _mediaId.value = if (targetId != -1L && data.any { m -> m.id == targetId }) {
                     targetId
                 } else {
                     data.first().id

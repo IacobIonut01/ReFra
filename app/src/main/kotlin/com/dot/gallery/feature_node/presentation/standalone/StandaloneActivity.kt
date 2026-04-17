@@ -39,7 +39,6 @@ import com.dot.gallery.feature_node.presentation.util.toggleOrientation
 import com.dot.gallery.ui.theme.GalleryTheme
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
@@ -110,18 +109,15 @@ class StandaloneActivity : ComponentActivity() {
                         mediaHandler = mediaHandler,
                         mediaSelector = mediaSelector
                     ) {
-                        Scaffold(
-                            modifier = Modifier.hazeSource(hazeState)
-                        ) { paddingValues ->
+                        Scaffold { paddingValues ->
                             val vaults = viewModel.vaults.collectAsStateWithLifecycle()
                             val mediaState = viewModel.mediaState.collectAsStateWithLifecycle()
                             val albumsState = viewModel.albumsState.collectAsStateWithLifecycle()
                             val metadataState =
                                 viewModel.metadataState.collectAsStateWithLifecycle()
+                            val mediaId by viewModel.mediaId.collectAsStateWithLifecycle()
                             val staticState by remember { mutableStateOf(true) }
-                            SharedTransitionLayout(
-                                modifier = Modifier.hazeSource(hazeState)
-                            ) {
+                            SharedTransitionLayout {
                                 AnimatedContent(
                                     targetState = staticState,
                                     label = "standalone"
@@ -131,7 +127,7 @@ class StandaloneActivity : ComponentActivity() {
                                             toggleRotate = ::toggleOrientation,
                                             paddingValues = paddingValues,
                                             isStandalone = true,
-                                            mediaId = viewModel.mediaId,
+                                            mediaId = mediaId,
                                             mediaState = mediaState,
                                             vaultState = vaults,
                                             albumsState = albumsState,

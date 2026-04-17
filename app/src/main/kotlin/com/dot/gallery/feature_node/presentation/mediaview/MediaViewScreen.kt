@@ -176,7 +176,7 @@ fun <T : Media> MediaViewScreen(
     val scope = rememberCoroutineScope()
     val windowInsetsController = rememberWindowInsetsController()
 
-    var initialPageSetup by rememberSaveable { mutableStateOf(false) }
+    var initialPageSetup by rememberSaveable(mediaId) { mutableStateOf(false) }
 
     // Use only primitive ids/sizes as saveable keys (avoid passing full media list object)
     val initialPage = rememberSaveable(mediaId, mediaState.value.media.size) {
@@ -194,20 +194,11 @@ fun <T : Media> MediaViewScreen(
         mediaState.value.media.getOrNull(currentPage)
     }
 
-    var shouldForcePage by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(initialPage, currentPage, mediaState.value) {
-        if (currentPage == 0) {
-            if (mediaState.value.isLoading) {
-                shouldForcePage = true
-            } else {
-                if (initialPage != 0 && currentPage != initialPage && shouldForcePage) {
-                    pagerState.scrollToPage(initialPage)
-                }
-                shouldForcePage = false
-                initialPageSetup = true
+    LaunchedEffect(initialPage, mediaState.value.isLoading) {
+        if (!mediaState.value.isLoading && !initialPageSetup) {
+            if (pagerState.currentPage != initialPage) {
+                pagerState.scrollToPage(initialPage)
             }
-        } else {
             initialPageSetup = true
         }
     }
