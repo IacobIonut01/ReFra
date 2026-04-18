@@ -3,6 +3,8 @@ package com.dot.gallery.feature_node.presentation.edit.components.editor
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -72,7 +75,8 @@ fun ImageViewer(
     setPreviousPosition: (Offset) -> Unit,
     setCurrentPath: (Path) -> Unit,
     setCurrentPathProperty: (PathProperties) -> Unit,
-    applyDrawing: (Bitmap, () -> Unit) -> Unit
+    applyDrawing: (Bitmap, () -> Unit) -> Unit,
+    onNavigateBack: () -> Unit = {}
 ) {
 
     val resizedBitmap by remember(currentImage) {
@@ -81,15 +85,36 @@ fun ImageViewer(
         }
     }
 
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerLowest
+    val animatedCornerRadius by animateDpAsState(
+        targetValue = if (showMarkup) 0.dp else 16.dp,
+        animationSpec = tween(350),
+        label = "cornerRadius"
+    )
+    val animatedBgAlpha by animateFloatAsState(
+        targetValue = if (showMarkup) 0f else 1f,
+        animationSpec = tween(350),
+        label = "bgAlpha"
+    )
+    val animatedTopPadding by animateDpAsState(
+        targetValue = if (showMarkup || isSupportingPanel) 0.dp else 16.dp,
+        animationSpec = tween(350),
+        label = "topPadding"
+    )
+
     Box(
         modifier = modifier
-            .then(if (!isSupportingPanel) Modifier.padding(top = 16.dp) else Modifier)
-            .safeSystemGesturesPadding(onlyLeft = isSupportingPanel)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                shape = RoundedCornerShape(16.dp)
+            .padding(top = animatedTopPadding)
+            .then(
+                if (!showMarkup) Modifier.safeSystemGesturesPadding(onlyLeft = isSupportingPanel)
+                else Modifier
             )
-            .clip(RoundedCornerShape(16.dp)),
+            .background(
+                color = surfaceColor.copy(alpha = animatedBgAlpha),
+                shape = RoundedCornerShape(animatedCornerRadius)
+            )
+            .clip(RoundedCornerShape(animatedCornerRadius))
+            .clipToBounds(),
         contentAlignment = Alignment.Center
     ) {
         AnimatedVisibility(
@@ -131,7 +156,8 @@ fun ImageViewer(
                         currentPathProperty = currentPathProperty,
                         setCurrentPathProperty = setCurrentPathProperty,
                         currentImage = currentImage,
-                        applyDrawing = applyDrawing
+                        applyDrawing = applyDrawing,
+                        onNavigateBack = onNavigateBack
                     )
                 }
             }

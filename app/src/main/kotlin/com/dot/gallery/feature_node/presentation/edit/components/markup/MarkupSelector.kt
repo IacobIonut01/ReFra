@@ -41,7 +41,7 @@ fun MarkupSelector(
 ) {
 
     val padding = remember(isSupportingPanel) {
-        if (isSupportingPanel) PaddingValues(0.dp) else PaddingValues(16.dp)
+        if (isSupportingPanel) PaddingValues(0.dp) else PaddingValues(horizontal = 16.dp)
     }
 
     SupportiveLayout(
@@ -106,6 +106,7 @@ fun MarkupSelector(
                         MarkupItems.Highlighter -> drawMode == DrawMode.Draw && drawType == DrawType.Highlighter
                         MarkupItems.Marker -> drawMode == DrawMode.Draw && drawType == DrawType.Marker
                         MarkupItems.Eraser -> drawMode == DrawMode.Erase
+                        MarkupItems.Pan -> drawMode == DrawMode.Touch
                     }
                 }
                 SelectableItem(
@@ -132,6 +133,10 @@ fun MarkupSelector(
 
                             MarkupItems.Eraser -> {
                                 setDrawMode(DrawMode.Erase)
+                            }
+
+                            MarkupItems.Pan -> {
+                                setDrawMode(DrawMode.Touch)
                             }
                         }
                     }

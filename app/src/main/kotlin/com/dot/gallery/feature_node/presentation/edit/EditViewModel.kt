@@ -14,6 +14,7 @@ import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.dot.gallery.core.EditBackupManager
 import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.feature_node.domain.model.Media
@@ -239,6 +240,8 @@ class EditViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val result = Glide.with(context)
                 .load(activeMedia.value?.uri)
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .submit()
                 .get()
             val bitmap = result.toBitmap()

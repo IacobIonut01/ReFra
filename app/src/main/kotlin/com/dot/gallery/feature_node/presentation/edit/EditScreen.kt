@@ -2,8 +2,13 @@ package com.dot.gallery.feature_node.presentation.edit
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateDpAsState
@@ -25,6 +30,7 @@ import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.ChevronLeft
+import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.AlertDialog
@@ -58,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
@@ -81,10 +88,10 @@ import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter.VariableFilterTypes
 import com.dot.gallery.feature_node.presentation.edit.components.editor.EditorNavigator
 import com.dot.gallery.feature_node.presentation.edit.components.editor.ImageViewer
+import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupSelector
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.getEditImageCapableApps
-import com.dot.gallery.feature_node.presentation.util.goBack
 import com.dot.gallery.ui.theme.GalleryTheme
 import dev.chrisbanes.haze.hazeSource
 
@@ -146,6 +153,14 @@ fun EditScreen2(
     val showMarkup by rememberedDerivedState {
         navBackStackEntry?.destination?.route?.contains("markup", true) == true
     }
+    var showMarkupTools by remember { mutableStateOf(false) }
+    LaunchedEffect(showMarkup) {
+        if (!showMarkup) showMarkupTools = false
+    }
+
+    BackHandler(showMarkup) {
+        navController.popBackStack()
+    }
 
     var showRevertDialog by remember { mutableStateOf(false) }
     var cropState by rememberSaveable { mutableStateOf(CropState()) }
@@ -173,6 +188,14 @@ fun EditScreen2(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .then(
+                            if (showMarkup) Modifier.background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))
+                                )
+                            )
+                            else Modifier
+                        )
                         .animateContentSize(
                             animationSpec = spring(
                                 stiffness = Spring.StiffnessHigh,
@@ -182,7 +205,8 @@ fun EditScreen2(
                         .systemBarsPadding(),
                 ) {
                     AnimatedVisibility(
-                        visible = navigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Hidden,
+                        visible = navigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Hidden
+                                && !showMarkup,
                         enter = enterAnimation,
                         exit = exitAnimation
                     ) {
@@ -225,9 +249,7 @@ fun EditScreen2(
                             IconButton(
                                 onClick = {
                                     if (showingEditorScreen) onClose() else {
-                                        context.goBack {
-                                            navController.popBackStack()
-                                        }
+                                        navController.popBackStack()
                                     }
                                 }
                             ) {
@@ -308,6 +330,22 @@ fun EditScreen2(
                                             tint = LocalContentColor.current
                                         )
                                     }
+                                    VerticalDivider(
+                                        modifier = Modifier
+                                            .height(24.dp)
+                                            .align(Alignment.CenterVertically)
+                                            .padding(horizontal = 4.dp)
+                                    )
+                                    IconButton(
+                                        onClick = { showMarkupTools = !showMarkupTools }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Brush,
+                                            contentDescription = "Toggle tools",
+                                            tint = if (showMarkupTools) MaterialTheme.colorScheme.primary
+                                                else LocalContentColor.current
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -385,67 +423,110 @@ fun EditScreen2(
                 }
             }
         ) { innerPadding ->
-            SupportingPaneScaffold(
-                directive = navigator.scaffoldDirective,
-                value = navigator.scaffoldValue,
+            Box(
                 modifier = Modifier
-                    .padding(innerPadding)
-                    .animateContentSize()
-                    .fillMaxSize(),
-                mainPane = {
-                    ImageViewer(
-                        modifier = Modifier.fillMaxSize(),
-                        currentImage = currentImage,
-                        previewMatrix = previewMatrix,
-                        previewRotation = previewRotation,
-                        cropState = cropState,
-                        showMarkup = showMarkup,
-                        paths = paths,
-                        currentPosition = currentPosition,
-                        previousPosition = previousPosition,
-                        drawMode = drawMode,
-                        currentPath = currentPath,
-                        currentPathProperty = currentPathProperty,
-                        isSupportingPanel = navigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Expanded,
-                        onCropSuccess = {
-                            onCropSuccess(it)
-                            cropState = cropState.copy(isCropping = false)
-                        },
-                        addPath = addPath,
-                        clearPathsUndone = clearPathsUndone,
-                        setCurrentPosition = setCurrentPosition,
-                        setPreviousPosition = setPreviousPosition,
-                        setCurrentPath = setCurrentPath,
-                        setCurrentPathProperty = setCurrentPathProperty,
-                        applyDrawing = applyDrawing
+                    .padding(
+                        top = if (showMarkup) 0.dp else innerPadding.calculateTopPadding(),
+                        bottom = if (showMarkup) 0.dp else innerPadding.calculateBottomPadding()
                     )
-                },
-                supportingPane = {
-                    AnimatedPane(modifier = Modifier) {
-                        EditorNavigator(
-                            modifier = Modifier.animateContentSize(),
-                            navController = navController,
-                            appliedAdjustments = appliedAdjustments,
-                            targetImage = targetImage,
-                            targetUri = targetUri,
-                            onAdjustItemLongClick = onAdjustItemLongClick,
-                            onAdjustmentChange = onAdjustmentChange,
-                            onAdjustmentPreview = onAdjustmentPreview,
-                            onToggleFilter = onToggleFilter,
-                            startCropping = {
-                                cropState = cropState.copy(isCropping = true)
+                    .fillMaxSize()
+            ) {
+                SupportingPaneScaffold(
+                    directive = navigator.scaffoldDirective,
+                    value = navigator.scaffoldValue,
+                    modifier = Modifier
+                        .animateContentSize()
+                        .fillMaxSize(),
+                    mainPane = {
+                        ImageViewer(
+                            modifier = Modifier.fillMaxSize(),
+                            currentImage = currentImage,
+                            previewMatrix = previewMatrix,
+                            previewRotation = previewRotation,
+                            cropState = cropState,
+                            showMarkup = showMarkup,
+                            paths = paths,
+                            currentPosition = currentPosition,
+                            previousPosition = previousPosition,
+                            drawMode = drawMode,
+                            currentPath = currentPath,
+                            currentPathProperty = currentPathProperty,
+                            isSupportingPanel = navigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Expanded,
+                            onCropSuccess = {
+                                onCropSuccess(it)
+                                cropState = cropState.copy(isCropping = false)
                             },
+                            addPath = addPath,
+                            clearPathsUndone = clearPathsUndone,
+                            setCurrentPosition = setCurrentPosition,
+                            setPreviousPosition = setPreviousPosition,
+                            setCurrentPath = setCurrentPath,
+                            setCurrentPathProperty = setCurrentPathProperty,
+                            applyDrawing = applyDrawing,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    },
+                    supportingPane = {
+                        AnimatedPane(modifier = Modifier) {
+                            EditorNavigator(
+                                modifier = Modifier.animateContentSize(),
+                                navController = navController,
+                                appliedAdjustments = appliedAdjustments,
+                                targetImage = targetImage,
+                                targetUri = targetUri,
+                                onAdjustItemLongClick = onAdjustItemLongClick,
+                                onAdjustmentChange = onAdjustmentChange,
+                                onAdjustmentPreview = onAdjustmentPreview,
+                                onToggleFilter = onToggleFilter,
+                                startCropping = {
+                                    cropState = cropState.copy(isCropping = true)
+                                },
+                                drawMode = drawMode,
+                                setDrawMode = setDrawMode,
+                                drawType = drawType,
+                                setDrawType = setDrawType,
+                                currentPathProperty = currentPathProperty,
+                                setCurrentPathProperty = setCurrentPathProperty,
+                                isSupportingPanel = true
+                            )
+                        }
+                    }
+                )
+
+                // Floating markup tools overlay
+                AnimatedVisibility(
+                    visible = showMarkup && showMarkupTools,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 8.dp
+                        ),
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = Color.Black.copy(alpha = 0.85f),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(vertical = 16.dp)
+                    ) {
+                        MarkupSelector(
                             drawMode = drawMode,
                             setDrawMode = setDrawMode,
                             drawType = drawType,
                             setDrawType = setDrawType,
+                            isSupportingPanel = false,
                             currentPathProperty = currentPathProperty,
-                            setCurrentPathProperty = setCurrentPathProperty,
-                            isSupportingPanel = true
+                            setCurrentPathProperty = setCurrentPathProperty
                         )
                     }
                 }
-            )
+            }
         }
 
         AnimatedVisibility(

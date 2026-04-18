@@ -1,6 +1,8 @@
 package com.dot.gallery.feature_node.domain.model.editor
 
 import android.os.Parcelable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -20,7 +22,8 @@ enum class MarkupItems : Parcelable {
     Stylus,
     Highlighter,
     Marker,
-    Eraser;
+    Eraser,
+    Pan;
 
     @get:Composable
     val translatedName get() = when (this) {
@@ -28,6 +31,7 @@ enum class MarkupItems : Parcelable {
         Highlighter -> stringResource(R.string.type_highlighter)
         Marker -> stringResource(R.string.type_marker)
         Eraser -> stringResource(R.string.type_erase)
+        Pan -> stringResource(R.string.type_pan)
     }
 
     @IgnoredOnParcel
@@ -37,5 +41,6 @@ enum class MarkupItems : Parcelable {
             Highlighter -> DotIcons.InkHighlighter
             Marker -> DotIcons.InkMarker
             Eraser -> DotIcons.Ink_Eraser
+            Pan -> Icons.Outlined.PanTool
         }
 }

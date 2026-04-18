@@ -3,16 +3,20 @@ package com.dot.gallery.feature_node.presentation.edit.components.markup
 import android.graphics.Bitmap
 import android.graphics.Paint
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
@@ -21,17 +25,17 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.platform.LocalContext
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.feature_node.domain.model.editor.DrawMode
 import com.dot.gallery.feature_node.domain.model.editor.PainterMotionEvent
 import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.presentation.edit.utils.dragMotionEvent
-import com.dot.gallery.feature_node.presentation.util.goBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -57,6 +61,7 @@ fun MarkupPainter(
     setCurrentPathProperty: (PathProperties) -> Unit,
     currentImage: Bitmap?,
     applyDrawing: (Bitmap, () -> Unit) -> Unit,
+    onNavigateBack: () -> Unit = {},
 ) {
     var graphicsLayer = rememberGraphicsLayer()
 
@@ -66,8 +71,14 @@ fun MarkupPainter(
      */
     var painterMotionEvent by remember { mutableStateOf(PainterMotionEvent.Idle) }
 
+    // Zoom and pan state for navigating the canvas while drawing
+    var canvasScale by remember { mutableFloatStateOf(1f) }
+    var canvasOffset by remember { mutableStateOf(Offset.Zero) }
+    // Tracks whether a multi-touch (pinch/pan) gesture is in progress,
+    // used to suppress accidental drawing from the first finger of a pinch
+    var isZooming by remember { mutableStateOf(false) }
+
     val scope = rememberCoroutineScope { Dispatchers.IO }
-    val context = LocalContext.current
     val shouldSaveDrawing by remember(paths, currentImage) {
         derivedStateOf { paths.isNotEmpty() && currentImage != null }
     }
@@ -80,7 +91,7 @@ fun MarkupPainter(
             mutex.withLock {
                 val image = graphicsLayer.toImageBitmap().asAndroidBitmap()
                 applyDrawing(image) {
-                    context.goBack()
+                    onNavigateBack()
                 }
             }
         }
@@ -91,31 +102,80 @@ fun MarkupPainter(
         contentDescription = null,
         modifier = Modifier
             .wrapContentSize()
-            .clipToBounds()
+            // Pinch-to-zoom and two-finger pan gesture
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    do {
+                        val event = awaitPointerEvent()
+                        val pointerCount = event.changes.count { it.pressed }
+                        if (pointerCount >= 2) {
+                            if (!isZooming) {
+                                // Transitioning to zoom — discard any in-progress drawing
+                                isZooming = true
+                                currentPath.reset()
+                                painterMotionEvent = PainterMotionEvent.Idle
+                                setCurrentPosition(Offset.Unspecified)
+                            }
+                            val zoom = event.calculateZoom()
+                            val pan = event.calculatePan()
+                            canvasScale = (canvasScale * zoom).coerceIn(1f, 5f)
+                            canvasOffset = if (canvasScale == 1f) {
+                                Offset.Zero
+                            } else {
+                                canvasOffset + pan
+                            }
+                            event.changes.forEach { it.consume() }
+                        }
+                    } while (event.changes.any { it.pressed })
+                    // Reset once all fingers are lifted
+                    isZooming = false
+                }
+            }
+            .graphicsLayer {
+                scaleX = canvasScale
+                scaleY = canvasScale
+                translationX = canvasOffset.x
+                translationY = canvasOffset.y
+            }
             .dragMotionEvent(
+                key = drawMode,
                 onDragStart = { pointerInputChange ->
-                    painterMotionEvent = PainterMotionEvent.Down
-                    setCurrentPosition(pointerInputChange.position)
-                    if (pointerInputChange.pressed != pointerInputChange.previousPressed) pointerInputChange.consume()
-
+                    if (drawMode == DrawMode.Touch || isZooming) {
+                        pointerInputChange.consume()
+                    } else {
+                        painterMotionEvent = PainterMotionEvent.Down
+                        val pos = pointerInputChange.position
+                        setCurrentPosition(pos)
+                        if (pointerInputChange.pressed != pointerInputChange.previousPressed) pointerInputChange.consume()
+                    }
                 },
                 onDrag = { pointerInputChange ->
-                    painterMotionEvent = PainterMotionEvent.Move
-                    setCurrentPosition(pointerInputChange.position)
-
-                    if (drawMode == DrawMode.Touch) {
+                    if (isZooming) {
+                        // Suppress drawing while a pinch gesture is active
+                        pointerInputChange.consume()
+                    } else if (drawMode == DrawMode.Touch) {
+                        // Pan the canvas with single finger in Touch mode
                         val change = pointerInputChange.positionChange()
-                        paths.forEach { entry ->
-                            val path: Path = entry.first
-                            path.translate(change)
-                        }
-                        currentPath.translate(change)
+                        canvasOffset += change * canvasScale
+                        pointerInputChange.consume()
+                    } else {
+                        painterMotionEvent = PainterMotionEvent.Move
+                        val pos = pointerInputChange.position
+                        setCurrentPosition(pos)
+                        if (pointerInputChange.positionChange() != Offset.Zero) pointerInputChange.consume()
                     }
-                    if (pointerInputChange.positionChange() != Offset.Zero) pointerInputChange.consume()
-
                 },
                 onDragEnd = { pointerInputChange ->
-                    painterMotionEvent = PainterMotionEvent.Up
+                    if (isZooming) {
+                        // Discard the path that was started before the pinch
+                        currentPath.reset()
+                        setCurrentPath(Path())
+                        painterMotionEvent = PainterMotionEvent.Idle
+                        setCurrentPosition(Offset.Unspecified)
+                    } else if (drawMode != DrawMode.Touch) {
+                        painterMotionEvent = PainterMotionEvent.Up
+                    }
                     if (pointerInputChange.pressed != pointerInputChange.previousPressed) pointerInputChange.consume()
                 }
             )
