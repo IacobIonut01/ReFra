@@ -44,7 +44,7 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
       - uses: actions/upload-artifact@v4
         with:
-          name: Gallery Release (No Maps)
+          name: ReFra Release (No Maps)
           path: app/build/**/*.apk
 
   build_maps:
@@ -91,7 +91,7 @@ jobs:
           MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
-          name: Gallery Release (Maps)
+          name: ReFra Release (Maps)
           path: app/build/**/*.apk
       - name: Apply Google Play patch
         id: gplay_patcher
@@ -113,15 +113,15 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.dot.gallery.gplay
-          releaseFiles: app/build/outputs/bundle/universalGplay/Gallery-${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }}-universal-gplay.aab
+          releaseFiles: app/build/outputs/bundle/universalGplay/ReFra-${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }}-universal-gplay.aab
           track: production
           releaseName: ${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }} Release
           mappingFile: app/build/outputs/mapping/universalGplay/mapping.txt
           debugSymbols: app/build/intermediates/merged_native_libs/universalGplay/mergeUniversalGplayNativeLibs/out/lib
       - uses: actions/upload-artifact@v4
         with:
-          name: Gallery Release (GPlay Bundle)
-          path: app/build/outputs/bundle/universalGplay/Gallery-${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }}-universal-gplay.aab
+          name: ReFra Release (GPlay Bundle)
+          path: app/build/outputs/bundle/universalGplay/ReFra-${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }}-universal-gplay.aab
 
   release:
     needs: [build_nomaps, build_maps]
@@ -129,12 +129,12 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: Gallery Release (No Maps)
+          name: ReFra Release (No Maps)
       - uses: actions/download-artifact@v4
         with:
-          name: Gallery Release (Maps)
+          name: ReFra Release (Maps)
       - name: Generate SHA256
-        run: echo "### Checksums" >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt && find . -name "Gallery-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"} ' >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
+        run: echo "### Checksums" >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt && find . -name "ReFra-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"} ' >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -144,6 +144,6 @@ jobs:
           prerelease: false
           tag_name: ${{ needs.build_maps.outputs.versionName }}
           files: |
-            ./**/Gallery-*.apk
+            ./**/ReFra-*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

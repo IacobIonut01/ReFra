@@ -1,0 +1,11 @@
+ReFra v4.1.2
+
+New Features
+
+- Android 10 (API 29) Support (#671): Extended compatibility down to Android 10 with graceful fallbacks for Trash, Favorites, and biometric prompts
+- Home Screen Widgets: Single photo and grid media widgets with configurable album source
+- Album Locking: Lock albums behind biometric authentication for added privacy
+- Media Grouping: Automatically group related media (RAW+JPG, bursts, edits) with a viewer strip and search categories
+- Neutral Theme: New neutral theme option with gray backgrounds and colorful accents
+- Default Editor Setting: Choose your preferred default image editor
+- GIF Animation Toggle: Option to disable GIF animation in the grid view for reduced distraction and improved performance

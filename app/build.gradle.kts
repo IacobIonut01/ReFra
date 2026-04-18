@@ -22,14 +22,14 @@ android {
         applicationId = "com.dot.gallery"
         minSdk = 29
         targetSdk = 36
-        versionCode = 41202
+        versionCode = 41203
         versionName = "4.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
-        base.archivesName.set("Gallery-${versionName}-$versionCode" + mapsApiApplicationPrefix)
+        base.archivesName.set("ReFra-${versionName}-$versionCode" + mapsApiApplicationPrefix)
     }
 
     lint.baseline = file("lint-baseline.xml")
