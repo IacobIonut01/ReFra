@@ -504,6 +504,13 @@ object Settings {
         fun rememberShowFavoriteButton() =
             rememberPreference(key = SHOW_FAVORITE_BUTTON, defaultValue = true)
 
+        const val EDITOR_BUILTIN = "builtin"
+        private val DEFAULT_IMAGE_EDITOR = stringPreferencesKey("default_image_editor")
+
+        @Composable
+        fun rememberDefaultImageEditor() =
+            rememberPreference(key = DEFAULT_IMAGE_EDITOR, defaultValue = EDITOR_BUILTIN)
+
     }
 }
 

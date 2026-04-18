@@ -15,6 +15,10 @@
     <string name="fav_position_top_start">Top left</string>
     <string name="show_favorite_button">Favorite button in viewer</string>
     <string name="show_favorite_button_summary">Show the favorite toggle button in the media viewer</string>
+    <string name="default_image_editor">Default image editor</string>
+    <string name="default_image_editor_summary">Choose which editor opens when editing images</string>
+    <string name="default_image_editor_builtin">Built-in editor</string>
+    <string name="choose_default_editor">Choose default editor</string>
     <string name="nav_albums">Albums</string>
     <string name="searchbar_title"><![CDATA[Search photos & videos]]></string>
     <string name="header_today">Today</string>

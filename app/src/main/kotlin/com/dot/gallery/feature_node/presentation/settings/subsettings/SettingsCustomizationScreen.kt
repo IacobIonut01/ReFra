@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -54,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -70,6 +73,7 @@ import com.dot.gallery.core.Settings.Misc.rememberAudioFocus
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideNavBar
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
+import com.dot.gallery.core.Settings.Misc.rememberDefaultImageEditor
 import com.dot.gallery.core.Settings.Misc.rememberGroupSimilarMedia
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
@@ -87,8 +91,10 @@ import com.dot.gallery.feature_node.presentation.settings.components.rememberPre
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.changeAppAlias
+import com.dot.gallery.feature_node.presentation.util.getEditImageCapableApps
 import com.dot.gallery.feature_node.presentation.util.restartApplication
 import com.dot.gallery.ui.theme.Shapes
+import androidx.core.graphics.drawable.toBitmap
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -636,8 +642,206 @@ fun SettingsCustomizationScreen() {
             summary = stringResource(R.string.show_favorite_button_summary),
             isChecked = showFavoriteButton,
             onCheck = { showFavoriteButton = it },
+            screenPosition = Position.Middle
+        )
+
+        val showEditorDialog = rememberSaveable { mutableStateOf(false) }
+        val editorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var defaultEditor by rememberDefaultImageEditor()
+        val editApps = remember(context, context::getEditImageCapableApps)
+        val editorSummary = remember(defaultEditor, editApps) {
+            if (defaultEditor == Settings.Misc.EDITOR_BUILTIN) {
+                context.getString(R.string.default_image_editor_builtin)
+            } else {
+                editApps.find { it.activityInfo.packageName == defaultEditor }
+                    ?.loadLabel(context.packageManager)?.toString()
+                    ?: context.getString(R.string.default_image_editor_builtin)
+            }
+        }
+        val defaultEditorPref = rememberPreference(
+            defaultEditor,
+            title = stringResource(R.string.default_image_editor),
+            summary = editorSummary,
+            onClick = { showEditorDialog.value = true },
             screenPosition = Position.Bottom
         )
+        if (showEditorDialog.value) {
+            ModalBottomSheet(
+                sheetState = editorSheetState,
+                onDismissRequest = { showEditorDialog.value = false },
+                contentWindowInsets = {
+                    WindowInsets(bottom = WindowInsets.systemBars.getBottom(LocalDensity.current))
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
+                            shape = Shapes.extraLarge
+                        )
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CompositionLocalProvider(
+                        value = LocalTextStyle.provides(
+                            TextStyle.Default.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                    ) {
+                        val editorScope = rememberCoroutineScope()
+                        Text(
+                            text = stringResource(R.string.choose_default_editor),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Built-in editor option
+                            val builtinSelected = defaultEditor == Settings.Misc.EDITOR_BUILTIN
+                            val builtinBorderColor = if (builtinSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant
+                            }
+                            val builtinContainerColor = if (builtinSelected) {
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                            } else {
+                                Color.Transparent
+                            }
+                            Column(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .clickable { defaultEditor = Settings.Misc.EDITOR_BUILTIN }
+                                    .border(
+                                        width = 2.dp,
+                                        color = builtinBorderColor,
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .background(builtinContainerColor)
+                                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Image(
+                                    painter = rememberDrawablePainter(
+                                        drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
+                                    ),
+                                    contentDescription = stringResource(R.string.default_image_editor_builtin),
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(CircleShape)
+                                )
+                                Text(
+                                    text = stringResource(R.string.default_image_editor_builtin),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Icon(
+                                    imageVector = Icons.Filled.CheckCircle,
+                                    contentDescription = null,
+                                    tint = if (builtinSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.outlineVariant
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            // External editor options
+                            editApps.forEach { app ->
+                                val packageName = app.activityInfo.packageName
+                                val appLabel = remember(app) {
+                                    app.loadLabel(context.packageManager).toString()
+                                }
+                                val appIcon = remember(app) {
+                                    try {
+                                        app.loadIcon(context.packageManager).toBitmap().asImageBitmap()
+                                    } catch (_: Exception) {
+                                        null
+                                    }
+                                }
+                                if (appIcon != null) {
+                                    val selected = defaultEditor == packageName
+                                    val borderColor = if (selected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.outlineVariant
+                                    }
+                                    val containerColor = if (selected) {
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                    } else {
+                                        Color.Transparent
+                                    }
+                                    Column(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .clickable { defaultEditor = packageName }
+                                            .border(
+                                                width = 2.dp,
+                                                color = borderColor,
+                                                shape = RoundedCornerShape(16.dp)
+                                            )
+                                            .background(containerColor)
+                                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Image(
+                                            bitmap = appIcon,
+                                            contentDescription = appLabel,
+                                            modifier = Modifier
+                                                .size(64.dp)
+                                                .clip(CircleShape)
+                                        )
+                                        Text(
+                                            text = appLabel,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Medium,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Filled.CheckCircle,
+                                            contentDescription = null,
+                                            tint = if (selected) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.outlineVariant
+                                            },
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Button(onClick = {
+                            editorScope.launch {
+                                editorSheetState.hide()
+                                showEditorDialog.value = false
+                            }
+                        }) {
+                            Text(
+                                text = stringResource(R.string.done),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         val videoPlaybackHeader = remember(context) {
             SettingsEntity.Header(
@@ -745,7 +949,8 @@ fun SettingsCustomizationScreen() {
             showSelectionTitlesPref,
             appNamePref,
             favIconPositionPref,
-            showFavoriteButtonPref
+            showFavoriteButtonPref,
+            defaultEditorPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
@@ -770,6 +975,7 @@ fun SettingsCustomizationScreen() {
                 if (SdkCompat.supportsFavorites) {
                     add(showFavoriteButtonPref)
                 }
+                add(defaultEditorPref)
 
                 add(videoPlaybackHeader)
                 add(audioFocusPref)
