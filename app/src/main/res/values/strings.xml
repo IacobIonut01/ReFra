@@ -124,6 +124,8 @@
     <string name="monthly_timeline_summary">Group the timeline monthly instead of per date (Restarts the app)</string>
     <string name="group_similar_media_title">Group similar photos</string>
     <string name="group_similar_media_summary">Group RAW+JPG pairs, edits and burst photos together in the timeline and albums</string>
+    <string name="allow_gif_animation_title">Animate GIFs in grid</string>
+    <string name="allow_gif_animation_summary">Play GIF animations in the timeline and album grid. Disable to reduce lag in folders with many GIFs</string>
     <string name="amoled_mode_title">Use Amoled Mode</string>
     <string name="amoled_mode_summary">Higher contrast, best suited for Amoled Screens</string>
     <string name="color_palette_title">Color Palette</string>

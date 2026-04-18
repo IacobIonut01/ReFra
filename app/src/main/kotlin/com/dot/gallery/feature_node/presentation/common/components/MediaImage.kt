@@ -40,6 +40,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberAllowGifAnimation
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -111,6 +112,7 @@ fun <T : Media> MediaImage(
         RoundedCornerShape(selectedShapeSize)
     }
     val allowBlur by rememberAllowBlur()
+    val allowGifAnimation by rememberAllowGifAnimation()
     val badgeHazeState = rememberHazeState(blurEnabled = allowBlur)
 
     Box(
@@ -159,7 +161,7 @@ fun <T : Media> MediaImage(
                 var newRequest = it.centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL)
                 newRequest = newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
                     .signature(GlideInvalidation.signature(media))
-                if (media.label.contains(".gif", ignoreCase = true)) {
+                if (allowGifAnimation && media.label.contains(".gif", ignoreCase = true)) {
                     newRequest = newRequest.decode(GifDrawable::class.java)
                 }
                 newRequest

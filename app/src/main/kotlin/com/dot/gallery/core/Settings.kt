@@ -504,6 +504,12 @@ object Settings {
         fun rememberShowFavoriteButton() =
             rememberPreference(key = SHOW_FAVORITE_BUTTON, defaultValue = true)
 
+        private val ALLOW_GIF_ANIMATION = booleanPreferencesKey("allow_gif_animation")
+
+        @Composable
+        fun rememberAllowGifAnimation() =
+            rememberPreference(key = ALLOW_GIF_ANIMATION, defaultValue = true)
+
         const val EDITOR_BUILTIN = "builtin"
         private val DEFAULT_IMAGE_EDITOR = stringPreferencesKey("default_image_editor")
 

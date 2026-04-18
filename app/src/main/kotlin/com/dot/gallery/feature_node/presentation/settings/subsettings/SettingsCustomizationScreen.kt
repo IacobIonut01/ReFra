@@ -74,6 +74,7 @@ import com.dot.gallery.core.Settings.Misc.rememberAutoHideNavBar
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.core.Settings.Misc.rememberDefaultImageEditor
+import com.dot.gallery.core.Settings.Misc.rememberAllowGifAnimation
 import com.dot.gallery.core.Settings.Misc.rememberGroupSimilarMedia
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
@@ -154,6 +155,16 @@ fun SettingsCustomizationScreen() {
             summary = stringResource(R.string.hide_timeline_for_album_summary),
             isChecked = hideTimelineOnAlbum,
             onCheck = { hideTimelineOnAlbum = it },
+            screenPosition = Position.Middle
+        )
+
+        var allowGifAnimation by rememberAllowGifAnimation()
+        val allowGifAnimationPref = rememberSwitchPreference(
+            allowGifAnimation,
+            title = stringResource(R.string.allow_gif_animation_title),
+            summary = stringResource(R.string.allow_gif_animation_summary),
+            isChecked = allowGifAnimation,
+            onCheck = { allowGifAnimation = it },
             screenPosition = Position.Middle
         )
 
@@ -938,6 +949,7 @@ fun SettingsCustomizationScreen() {
             groupByMonthPref,
             groupSimilarMediaPref,
             hideTimelineOnAlbumPref,
+            allowGifAnimationPref,
             allowBlurPref,
             forcedLastScreenPref,
             audioFocusPref,
@@ -957,6 +969,7 @@ fun SettingsCustomizationScreen() {
                 add(groupByMonthPref)
                 add(groupSimilarMediaPref)
                 add(hideTimelineOnAlbumPref)
+                add(allowGifAnimationPref)
                 add(forcedLastScreenPref)
                 add(showSelectionTitlesPref)
                 if (SdkCompat.supportsFavorites) {
