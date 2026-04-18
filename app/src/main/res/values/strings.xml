@@ -138,6 +138,7 @@
     <string name="color_palette_dark_theme">Dark theme</string>
     <string name="color_palette_wallpaper_colors">Wallpaper colors</string>
     <string name="color_palette_other_colors">Other colors</string>
+    <string name="color_palette_neutral">Neutral</string>
     <string name="location_chip">Location: %s</string>
     <string name="media_details">Details</string>
     <string name="album_card_size">Album Card Size</string>

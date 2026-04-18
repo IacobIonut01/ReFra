@@ -34,6 +34,7 @@ import com.dot.gallery.feature_node.presentation.settings.components.SettingsIte
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.ui.theme.colorSchemeFromSeed
+import com.dot.gallery.ui.theme.neutralColorScheme
 import kotlinx.serialization.Serializable
 
 @Stable
@@ -95,6 +96,8 @@ fun SettingsThemesScreen() {
 
         val paletteSummary = if (themeColorSeed == Settings.Misc.THEME_SEED_SYSTEM) {
             stringResource(R.string.color_palette_system)
+        } else if (themeColorSeed == Settings.Misc.THEME_SEED_NEUTRAL) {
+            stringResource(R.string.color_palette_neutral)
         } else {
             presetPalettes.find { it.hexKey == themeColorSeed }?.name
                 ?: stringResource(R.string.color_palette_custom)
@@ -126,6 +129,9 @@ fun SettingsThemesScreen() {
     val swatchColors = remember(themeColorSeed, isDark) {
         if (themeColorSeed == Settings.Misc.THEME_SEED_SYSTEM) {
             null
+        } else if (themeColorSeed == Settings.Misc.THEME_SEED_NEUTRAL) {
+            val scheme = neutralColorScheme(isDark)
+            listOf(scheme.primary, scheme.secondary, scheme.tertiary, scheme.primaryContainer)
         } else {
             val seedArgb = themeColorSeed.toLongOrNull(16)?.toInt() ?: return@remember null
             val scheme = colorSchemeFromSeed(seedArgb, isDark)

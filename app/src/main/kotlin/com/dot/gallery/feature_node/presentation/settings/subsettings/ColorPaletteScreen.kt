@@ -85,6 +85,7 @@ import com.dot.gallery.feature_node.presentation.settings.components.rememberSwi
 import com.dot.gallery.ui.core.icons.Albums
 import com.dot.gallery.ui.theme.colorSchemeFromSeed
 import com.dot.gallery.ui.theme.isDarkTheme
+import com.dot.gallery.ui.theme.neutralColorScheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,6 +135,8 @@ fun ColorPaletteScreen() {
     val previewScheme = remember(themeColorSeed, isDark, amoledModeValue) {
         if (themeColorSeed == Settings.Misc.THEME_SEED_SYSTEM) {
             null
+        } else if (themeColorSeed == Settings.Misc.THEME_SEED_NEUTRAL) {
+            neutralColorScheme(isDark, amoledModeValue)
         } else {
             val seedArgb = themeColorSeed.toLongOrNull(16)?.toInt() ?: return@remember null
             colorSchemeFromSeed(seedArgb, isDark, amoledModeValue)
@@ -199,7 +202,8 @@ fun ColorPaletteScreen() {
                 if (tab == 0) {
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         item(key = "system") {
                             SystemColorOption(
@@ -216,6 +220,24 @@ fun ColorPaletteScreen() {
                                 scheme = scheme,
                                 isSelected = isSelected,
                                 onClick = { themeColorSeed = palette.hexKey }
+                            )
+                        }
+                        item(key = "neutral_divider") {
+                            Box(
+                                modifier = Modifier
+                                    .width(1.dp)
+                                    .height(40.dp)
+                                    .background(MaterialTheme.colorScheme.outlineVariant)
+                            )
+                        }
+                        item(key = "neutral") {
+                            val neutralScheme = remember(isDark, amoledModeValue) {
+                                neutralColorScheme(isDark, amoledModeValue)
+                            }
+                            ColorCircleItem(
+                                scheme = neutralScheme,
+                                isSelected = themeColorSeed == Settings.Misc.THEME_SEED_NEUTRAL,
+                                onClick = { themeColorSeed = Settings.Misc.THEME_SEED_NEUTRAL }
                             )
                         }
                     }

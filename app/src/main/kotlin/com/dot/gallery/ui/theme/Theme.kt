@@ -32,6 +32,7 @@ import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
 import com.dot.gallery.core.Settings.Misc.rememberThemeColorSeed
 import com.google.android.material.color.utilities.Hct
 import com.google.android.material.color.utilities.SchemeTonalSpot
+import com.google.android.material.color.utilities.TonalPalette
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
@@ -128,7 +129,9 @@ fun GalleryTheme(
     val themeColorSeed by rememberThemeColorSeed()
     val context = LocalContext.current
     val colorScheme = remember(dynamicColor, forcedDarkTheme, isAmoledMode, themeColorSeed) {
-        if (themeColorSeed != Settings.Misc.THEME_SEED_SYSTEM) {
+        if (themeColorSeed == Settings.Misc.THEME_SEED_NEUTRAL) {
+            neutralColorScheme(forcedDarkTheme, isAmoledMode)
+        } else if (themeColorSeed != Settings.Misc.THEME_SEED_SYSTEM) {
             val seedArgb = themeColorSeed.toLongOrNull(16)?.toInt() ?: seed.value.toInt()
             colorSchemeFromSeed(seedArgb, forcedDarkTheme, isAmoledMode)
         } else if (dynamicColor) {
@@ -187,19 +190,16 @@ private fun ColorScheme.maybeAmoled(boolean: Boolean) = if (boolean) {
 }
 
 @SuppressLint("RestrictedApi")
-fun colorSchemeFromSeed(
-    seedArgb: Int,
+private fun buildColorScheme(
+    p: TonalPalette,
+    s: TonalPalette,
+    t: TonalPalette,
+    n: TonalPalette,
+    nv: TonalPalette,
+    e: TonalPalette,
     isDark: Boolean,
-    isAmoledMode: Boolean = false
+    isAmoledMode: Boolean
 ): ColorScheme {
-    val hct = Hct.fromInt(seedArgb)
-    val scheme = SchemeTonalSpot(hct, isDark, 0.0)
-    val p = scheme.primaryPalette
-    val s = scheme.secondaryPalette
-    val t = scheme.tertiaryPalette
-    val n = scheme.neutralPalette
-    val nv = scheme.neutralVariantPalette
-    val e = scheme.errorPalette
     return if (isDark) {
         darkColorScheme(
             primary = Color(p.tone(80)),
@@ -303,4 +303,44 @@ fun colorSchemeFromSeed(
             onTertiaryFixedVariant = Color(t.tone(30)),
         )
     }.maybeAmoled(isAmoledMode && isDark)
+}
+
+@SuppressLint("RestrictedApi")
+fun colorSchemeFromSeed(
+    seedArgb: Int,
+    isDark: Boolean,
+    isAmoledMode: Boolean = false
+): ColorScheme {
+    val hct = Hct.fromInt(seedArgb)
+    val scheme = SchemeTonalSpot(hct, isDark, 0.0)
+    return buildColorScheme(
+        p = scheme.primaryPalette,
+        s = scheme.secondaryPalette,
+        t = scheme.tertiaryPalette,
+        n = scheme.neutralPalette,
+        nv = scheme.neutralVariantPalette,
+        e = scheme.errorPalette,
+        isDark = isDark,
+        isAmoledMode = isAmoledMode
+    )
+}
+
+@SuppressLint("RestrictedApi")
+fun neutralColorScheme(
+    isDark: Boolean,
+    isAmoledMode: Boolean = false
+): ColorScheme {
+    val hct = Hct.fromInt(0xFF247EE0.toInt())
+    val scheme = SchemeTonalSpot(hct, isDark, 0.0)
+    val neutralPalette = TonalPalette.fromHueAndChroma(0.0, 0.0)
+    return buildColorScheme(
+        p = scheme.primaryPalette,
+        s = scheme.secondaryPalette,
+        t = scheme.tertiaryPalette,
+        n = neutralPalette,
+        nv = neutralPalette,
+        e = scheme.errorPalette,
+        isDark = isDark,
+        isAmoledMode = isAmoledMode
+    )
 }

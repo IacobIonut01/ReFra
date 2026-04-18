@@ -319,6 +319,7 @@ object Settings {
             rememberPreference(key = AMOLED_MODE, defaultValue = false)
 
         const val THEME_SEED_SYSTEM = "system"
+        const val THEME_SEED_NEUTRAL = "neutral"
         private val THEME_COLOR_SEED = stringPreferencesKey("theme_color_seed")
 
         @Composable
