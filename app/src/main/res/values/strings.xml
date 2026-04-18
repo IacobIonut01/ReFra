@@ -543,4 +543,12 @@
         <item quantity="one">%s item</item>
         <item quantity="other">%s items</item>
     </plurals>
+
+    <!-- Widgets -->
+    <string name="widget_single_label">Single Photo</string>
+    <string name="widget_single_description">Display a single photo on your home screen</string>
+    <string name="widget_grid_label">Photo Grid</string>
+    <string name="widget_grid_description">Display a grid of photos on your home screen (2×2, 4×4, or 6×6 depending on size)</string>
+    <string name="widget_select_photo">Select Photo</string>
+    <string name="widget_select_photos">Select Photos</string>
 </resources>

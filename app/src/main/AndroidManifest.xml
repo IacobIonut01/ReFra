@@ -208,6 +208,43 @@
             </intent-filter>
         </activity>
 
+        <!-- Widget Configuration Activity -->
+        <activity
+            android:name=".feature_node.presentation.widget.WidgetConfigActivity"
+            android:exported="true"
+            android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:theme="@style/Theme.Gallery">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <!-- Single Media Widget -->
+        <receiver
+            android:name=".feature_node.presentation.widget.SingleMediaWidgetReceiver"
+            android:label="@string/widget_single_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/single_media_widget_info" />
+        </receiver>
+
+        <!-- Grid Media Widget -->
+        <receiver
+            android:name=".feature_node.presentation.widget.GridMediaWidgetReceiver"
+            android:label="@string/widget_grid_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/grid_media_widget_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${appProvider}"
