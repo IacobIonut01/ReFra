@@ -340,6 +340,12 @@ object Settings {
         fun rememberTimelineGroupByMonth() =
             rememberPreference(key = TIMELINE_GROUP_BY_MONTH, defaultValue = false)
 
+        val GROUP_SIMILAR_MEDIA = booleanPreferencesKey("group_similar_media")
+
+        @Composable
+        fun rememberGroupSimilarMedia() =
+            rememberPreference(key = GROUP_SIMILAR_MEDIA, defaultValue = true)
+
         private val ALLOW_BLUR = booleanPreferencesKey("allow_blur")
 
         @Composable

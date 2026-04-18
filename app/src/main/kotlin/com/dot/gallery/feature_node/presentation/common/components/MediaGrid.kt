@@ -314,6 +314,7 @@ private fun <T : Media> PinchZoomGridScope.MediaGridContentWithHeaders(
                                 )
                                 .pinchItem(key = it.key),
                             media = it.media,
+                            stackCount = it.stackCount,
                             canClick = { canScroll },
                             onMediaClick = { onMediaClick(it) },
                             metadataState = metadataState,

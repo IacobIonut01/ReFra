@@ -116,6 +116,7 @@ fun SearchScreen(
     val topMimeTypes by viewModel.topMimeTypes.collectAsStateWithLifecycle()
     val topLensModels by viewModel.topLensModels.collectAsStateWithLifecycle()
     val topMediaModes by viewModel.topMediaModes.collectAsStateWithLifecycle()
+    val topGroupTypes by viewModel.topGroupTypes.collectAsStateWithLifecycle()
 
     val historyItems by rememberedDerivedState {
         if (searchHistory.isEmpty()) {
@@ -442,6 +443,23 @@ fun SearchScreen(
                                     items = topMediaModes,
                                     onItemClick = { item ->
                                         viewModel.setMediaModeQuery(item.key)
+                                    }
+                                )
+                            }
+                        }
+
+                        // Media Groupings Carousel (Bursts, RAW+JPG, Edits)
+                        if (topGroupTypes.isNotEmpty()) {
+                            SettingsOptionLayout(
+                                modifier = Modifier.padding(top = 12.dp),
+                                optionList = listOf(SettingsEntity.Header(resources.getString(R.string.media_groupings))),
+                                slimLayout = true
+                            )
+                            item {
+                                SearchCarousel(
+                                    items = topGroupTypes,
+                                    onItemClick = { item ->
+                                        viewModel.setGroupTypeQuery(item.key)
                                     }
                                 )
                             }

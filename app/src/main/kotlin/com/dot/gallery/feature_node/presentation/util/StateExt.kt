@@ -26,6 +26,8 @@ import com.dot.gallery.feature_node.domain.model.MediaItem
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MediaOrder
+import com.dot.gallery.feature_node.domain.util.groupKey
+import com.dot.gallery.feature_node.domain.util.selectRepresentative
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import kotlinx.coroutines.Dispatchers
@@ -122,6 +124,7 @@ fun <T : Media> Flow<Resource<List<T>>>.mapMedia(
     albumId: Long,
     groupByMonth: Boolean = false,
     withMonthHeader: Boolean = true,
+    groupSimilarMedia: Boolean = false,
     updateDatabase: () -> Unit,
     defaultDateFormat: String,
     extendedDateFormat: String,
@@ -134,6 +137,7 @@ fun <T : Media> Flow<Resource<List<T>>>.mapMedia(
         albumId = albumId,
         groupByMonth = groupByMonth,
         withMonthHeader = withMonthHeader,
+        groupSimilarMedia = groupSimilarMedia,
         defaultDateFormat = defaultDateFormat,
         extendedDateFormat = extendedDateFormat,
         weeklyDateFormat = weeklyDateFormat
@@ -146,6 +150,7 @@ suspend fun <T : Media> MutableStateFlow<MediaState<T>>.collectMedia(
     albumId: Long,
     groupByMonth: Boolean = false,
     withMonthHeader: Boolean = true,
+    groupSimilarMedia: Boolean = false,
     defaultDateFormat: String,
     extendedDateFormat: String,
     weeklyDateFormat: String
@@ -157,6 +162,7 @@ suspend fun <T : Media> MutableStateFlow<MediaState<T>>.collectMedia(
             albumId = albumId,
             groupByMonth = groupByMonth,
             withMonthHeader = withMonthHeader,
+            groupSimilarMedia = groupSimilarMedia,
             defaultDateFormat = defaultDateFormat,
             extendedDateFormat = extendedDateFormat,
             weeklyDateFormat = weeklyDateFormat
@@ -170,6 +176,7 @@ suspend fun <T : Media> mapMediaToItem(
     albumId: Long,
     groupByMonth: Boolean = false,
     withMonthHeader: Boolean = true,
+    groupSimilarMedia: Boolean = false,
     defaultDateFormat: String,
     extendedDateFormat: String,
     weeklyDateFormat: String
@@ -178,6 +185,8 @@ suspend fun <T : Media> mapMediaToItem(
     val mappedDataWithMonthly = mutableListOf<MediaItem<T>>()
     val monthHeaderList: MutableSet<String> = mutableSetOf()
     val headers = mutableListOf<MediaItem.Header<T>>()
+    val pagerMediaList = mutableListOf<T>()
+    val mediaGroupsMap = mutableMapOf<Long, List<T>>()
 
     val groupedData = data.groupBy {
         if (groupByMonth) {
@@ -196,8 +205,24 @@ suspend fun <T : Media> mapMediaToItem(
     groupedData.forEach { (date, data) ->
         val dateHeader = MediaItem.Header<T>("header_$date", date, data.fastMap { it.id }.toSet())
         headers.add(dateHeader)
-        val groupedMedia = data.fastMap {
-            MediaItem.MediaViewItem("media_${it.id}_${it.label}", it)
+        val groupedMedia = if (groupSimilarMedia) {
+            val groups = data.groupBy { it.groupKey }
+            groups.values.map { group ->
+                val representative = group.selectRepresentative()
+                pagerMediaList.add(representative)
+                if (group.size > 1) {
+                    mediaGroupsMap[representative.id] = group
+                }
+                MediaItem.MediaViewItem(
+                    key = "media_${representative.id}_${representative.label}",
+                    media = representative,
+                    stackCount = group.size
+                )
+            }
+        } else {
+            data.fastMap {
+                MediaItem.MediaViewItem("media_${it.id}_${it.label}", it)
+            }
         }
         if (groupByMonth) {
             mappedData.add(dateHeader)
@@ -236,6 +261,8 @@ suspend fun <T : Media> mapMediaToItem(
         isLoading = false,
         error = error,
         media = data,
+        pagerMedia = if (groupSimilarMedia) pagerMediaList else data,
+        mediaGroups = mediaGroupsMap,
         headers = headers,
         mappedMedia = mappedData,
         mappedMediaWithMonthly = if (withMonthHeader) mappedDataWithMonthly else emptyList(),

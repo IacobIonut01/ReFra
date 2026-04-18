@@ -15,6 +15,9 @@ import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.domain.util.MediaGroupType
+import com.dot.gallery.feature_node.domain.util.classifyGroupType
+import com.dot.gallery.feature_node.domain.util.groupKey
 import com.dot.gallery.feature_node.presentation.library.CategoryMedia
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.frosch2010.fuzzywuzzy_kotlin.FuzzySearch
@@ -32,6 +35,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -184,6 +188,47 @@ class SearchViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = persistentListOf()
     )
+
+    // Media groupings carousel – bursts, RAW+JPG pairs, edits
+    private data class GroupTypeSpec(
+        val type: MediaGroupType,
+        val key: String,
+        val labelResId: Int
+    )
+
+    private val groupTypeSpecs = listOf(
+        GroupTypeSpec(MediaGroupType.BURST, "bursts", R.string.group_type_bursts),
+        GroupTypeSpec(MediaGroupType.RAW_JPG, "raw_jpg", R.string.group_type_raw_jpg),
+        GroupTypeSpec(MediaGroupType.EDITS, "edits", R.string.group_type_edits),
+    )
+
+    val topGroupTypes: StateFlow<ImmutableList<SearchMediaItem>> = mediaDistributor.timelineMediaFlow
+        .map { mediaState ->
+            val groups = mediaState.media
+                .groupBy { it.groupKey }
+                .values
+                .filter { it.size > 1 }
+
+            groupTypeSpecs.mapNotNull { spec ->
+                val matching = groups.filter { it.classifyGroupType() == spec.type }
+                if (matching.isEmpty()) null
+                else {
+                    val allMedia = matching.flatten()
+                    SearchMediaItem(
+                        key = spec.key,
+                        label = context.getString(spec.labelResId),
+                        media = allMedia.firstOrNull(),
+                        count = allMedia.size
+                    )
+                }
+            }.toImmutableList()
+        }
+        .flowOn(Dispatchers.IO)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = persistentListOf()
+        )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val allMedia = mediaDistributor.timelineMediaFlow
@@ -357,6 +402,43 @@ class SearchViewModel @Inject constructor(
                 data = filteredMedia,
                 error = "",
                 albumId = -1L,
+                defaultDateFormat = dateFormats.value.first,
+                extendedDateFormat = dateFormats.value.second,
+                weeklyDateFormat = dateFormats.value.third
+            )
+            _searchResultsState.tryEmit(
+                SearchResultsState(
+                    hasSearched = true,
+                    isSearching = false,
+                    progress = 1f,
+                    results = mediaState
+                )
+            )
+        }
+    }
+
+    /**
+     * Search by media group type (bursts, RAW+JPG pairs, edits).
+     * Groups all media by groupKey, classifies each group, and returns
+     * all media items that belong to groups of the specified type.
+     */
+    fun setGroupTypeQuery(groupTypeKey: String) {
+        val spec = groupTypeSpecs.find { it.key == groupTypeKey } ?: return
+        _query.value = context.getString(spec.labelResId)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            val groups = allMedia.value.media
+                .groupBy { it.groupKey }
+                .values
+                .filter { it.size > 1 }
+            val filteredMedia = groups
+                .filter { it.classifyGroupType() == spec.type }
+                .flatten()
+            val mediaState = mapMediaToItem(
+                data = filteredMedia,
+                error = "",
+                albumId = -1L,
+                groupSimilarMedia = true,
                 defaultDateFormat = dateFormats.value.first,
                 extendedDateFormat = dateFormats.value.second,
                 weeklyDateFormat = dateFormats.value.third

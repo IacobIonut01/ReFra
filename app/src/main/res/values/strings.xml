@@ -118,6 +118,8 @@
     <string name="set_wallpaper_error">Can\'t set wallpaper, no app available!</string>
     <string name="monthly_timeline_title">Monthly Timeline</string>
     <string name="monthly_timeline_summary">Group the timeline monthly instead of per date (Restarts the app)</string>
+    <string name="group_similar_media_title">Group similar photos</string>
+    <string name="group_similar_media_summary">Group RAW+JPG pairs, edits and burst photos together in the timeline and albums</string>
     <string name="amoled_mode_title">Use Amoled Mode</string>
     <string name="amoled_mode_summary">Higher contrast, best suited for Amoled Screens</string>
     <string name="color_palette_title">Color Palette</string>
@@ -520,6 +522,10 @@
     <string name="long_exposures">Long Exposures</string>
     <string name="motion_photos">Motion Photos</string>
     <string name="motion_photo_pill">Motion</string>
+    <string name="media_groupings">Media Groupings</string>
+    <string name="group_type_bursts">Bursts</string>
+    <string name="group_type_raw_jpg">RAW + JPG</string>
+    <string name="group_type_edits">Edits</string>
 
     <plurals name="item_count">
         <item quantity="one">%s item</item>

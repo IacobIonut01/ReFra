@@ -70,6 +70,7 @@ import com.dot.gallery.core.Settings.Misc.rememberAudioFocus
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideNavBar
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
+import com.dot.gallery.core.Settings.Misc.rememberGroupSimilarMedia
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberFullBrightnessView
@@ -128,6 +129,16 @@ fun SettingsCustomizationScreen() {
                 }
             },
             screenPosition = Position.Top
+        )
+
+        var groupSimilarMedia by rememberGroupSimilarMedia()
+        val groupSimilarMediaPref = rememberSwitchPreference(
+            groupSimilarMedia,
+            title = stringResource(R.string.group_similar_media_title),
+            summary = stringResource(R.string.group_similar_media_summary),
+            isChecked = groupSimilarMedia,
+            onCheck = { groupSimilarMedia = it },
+            screenPosition = Position.Middle
         )
 
         var hideTimelineOnAlbum by Settings.Album.rememberHideTimelineOnAlbum()
@@ -721,6 +732,7 @@ fun SettingsCustomizationScreen() {
         return remember(
             dateHeaderPref,
             groupByMonthPref,
+            groupSimilarMediaPref,
             hideTimelineOnAlbumPref,
             allowBlurPref,
             forcedLastScreenPref,
@@ -738,6 +750,7 @@ fun SettingsCustomizationScreen() {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
                 add(groupByMonthPref)
+                add(groupSimilarMediaPref)
                 add(hideTimelineOnAlbumPref)
                 add(forcedLastScreenPref)
                 add(showSelectionTitlesPref)

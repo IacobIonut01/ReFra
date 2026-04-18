@@ -25,6 +25,7 @@ interface MediaDistributor {
     val hasPermission: MutableStateFlow<Boolean>
     val dateFormatsFlow: StateFlow<Triple<String, String, String>>
     var groupByMonth: Boolean
+    val groupSimilarMedia: StateFlow<Boolean>
 
     /**
      * Settings

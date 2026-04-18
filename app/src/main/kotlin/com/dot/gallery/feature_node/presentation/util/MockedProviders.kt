@@ -43,6 +43,7 @@ class MockedMediaDistributor: MediaDistributor {
     override val hasPermission: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val dateFormatsFlow: StateFlow<Triple<String, String, String>> = MutableStateFlow(Triple("", "", ""))
     override var groupByMonth: Boolean = false
+    override val groupSimilarMedia: StateFlow<Boolean> = MutableStateFlow(false)
     override val settingsFlow: StateFlow<TimelineSettings?> = MutableStateFlow(null)
     override val albumsFlow: StateFlow<AlbumState> = MutableStateFlow(AlbumState())
     override val blacklistedAlbumsFlow: StateFlow<List<IgnoredAlbum>> = MutableStateFlow(emptyList())

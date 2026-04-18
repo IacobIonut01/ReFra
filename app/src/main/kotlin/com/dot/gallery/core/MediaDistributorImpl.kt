@@ -105,6 +105,10 @@ class MediaDistributorImpl @Inject constructor(
             }
         }
 
+    override val groupSimilarMedia: StateFlow<Boolean> =
+        repository.getSetting(Settings.Misc.GROUP_SIMILAR_MEDIA, true)
+            .stateIn(appScope, sharingMethod, true)
+
     /**
      * Settings
      */
@@ -197,7 +201,8 @@ class MediaDistributorImpl @Inject constructor(
                 settingsFlow,
                 blacklistedAlbumsFlow,
                 dateFormatsFlow,
-                albumMediaSortFlow
+                albumMediaSortFlow,
+                groupSimilarMedia
             ) { values ->
                 val allMediaResult = values[0] as Resource<List<Media.UriMedia>>
                 val albumState = values[1] as AlbumState
@@ -205,6 +210,7 @@ class MediaDistributorImpl @Inject constructor(
                 val blacklistedAlbums = values[3] as List<IgnoredAlbum>
                 val dateFormats = values[4] as Triple<String, String, String>
                 val albumSort = values[5] as Settings.Album.LastSort
+                val shouldGroupSimilar = values[6] as Boolean
 
                 val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
                 val allMedia = allMediaResult.data ?: emptyList()
@@ -228,6 +234,7 @@ class MediaDistributorImpl @Inject constructor(
                         error = "",
                         albumId = albumId,
                         groupByMonth = settings?.groupTimelineByMonth == true,
+                        groupSimilarMedia = shouldGroupSimilar,
                         defaultDateFormat = defaultDateFormat,
                         extendedDateFormat = extendedDateFormat,
                         weeklyDateFormat = weeklyDateFormat
@@ -261,13 +268,15 @@ class MediaDistributorImpl @Inject constructor(
             settingsFlow,
             blacklistedAlbumsFlow,
             dateFormatsFlow,
-            albumMediaSortFlow
+            albumMediaSortFlow,
+            groupSimilarMedia
         ) { values ->
             val result = values[0] as Resource<List<Media.UriMedia>>
             val settings = values[1] as TimelineSettings?
             val blacklistedAlbums = values[2] as List<IgnoredAlbum>
             val dateFormats = values[3] as Triple<String, String, String>
             val albumSort = values[4] as Settings.Album.LastSort
+            val shouldGroupSimilar = values[5] as Boolean
             
             val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
             
@@ -293,6 +302,7 @@ class MediaDistributorImpl @Inject constructor(
                 error = result.message ?: "",
                 albumId = albumId,
                 groupByMonth = settings?.groupTimelineByMonth == true,
+                groupSimilarMedia = shouldGroupSimilar,
                 defaultDateFormat = defaultDateFormat,
                 extendedDateFormat = extendedDateFormat,
                 weeklyDateFormat = weeklyDateFormat

@@ -20,7 +20,8 @@ sealed class MediaItem<T: Media> {
     @Stable
     data class MediaViewItem<T: Media> (
         override val key: String,
-        val media: T
+        val media: T,
+        val stackCount: Int = 1
     ) : MediaItem<T>()
 
 }
