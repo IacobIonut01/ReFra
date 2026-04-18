@@ -1,0 +1,22 @@
+ReFra v4.1.1
+
+New Features
+
+- Enhanced Markup Drawing (#760): Pinch-to-zoom, pan gestures, full-screen mode, and floating tools overlay in the photo editor markup mode
+- Copy Image to Clipboard (#783): Quickly copy any image to the system clipboard
+- Edit Backups Viewer: Browse and compare original vs edited images with zoomable viewer, storage stats, and batch cleanup
+- Dynamic App Name (#811): Switch between app name aliases (ReFra / Gallery) from settings
+- Favorite Icon Customization (#802): Choose favorite icon position on thumbnails and toggle visibility in the media viewer, with animated settings preview
+
+Bug Fixes
+
+- Fixed vault encryption crashing on large files (#796) — replaced in-memory encryption with chunked streaming to prevent OOM on files >20MB
+- Fixed wrong image shown when opening from external file manager (#797)
+- Fixed JPEG-XL files wrapped in ISO-BMFF containers not being recognized (#803)
+- Fixed force quit on device rotation (#795)
+- Fixed inverted gyroscope horizontal yaw direction in photosphere viewer
+
+Under the Hood
+
+- ML models moved to install-time asset pack to reduce base APK size
+- Room database migration to v16 for edit history tracking (EditedMedia entity)
