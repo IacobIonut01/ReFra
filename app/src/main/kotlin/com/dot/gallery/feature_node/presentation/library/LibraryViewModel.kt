@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.dot.gallery.core.MediaDistributor
+import com.dot.gallery.core.Resource
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.workers.startCategoryClassification
 import com.dot.gallery.feature_node.data.data_source.CategoryWithMediaCount
 import com.dot.gallery.feature_node.domain.model.LibraryIndicatorState
@@ -13,6 +15,7 @@ import com.dot.gallery.feature_node.domain.util.MediaOrder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -36,8 +39,8 @@ class LibraryViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val indicatorState = combine(
-        repository.getTrashed(),
-        repository.getFavorites(MediaOrder.Default)
+        if (SdkCompat.supportsTrash) repository.getTrashed() else flowOf(Resource.Success(emptyList())),
+        if (SdkCompat.supportsFavorites) repository.getFavorites(MediaOrder.Default) else flowOf(Resource.Success(emptyList()))
     ) { trashed, favorites ->
         LibraryIndicatorState(
             trashCount = trashed.data?.size ?: 0,

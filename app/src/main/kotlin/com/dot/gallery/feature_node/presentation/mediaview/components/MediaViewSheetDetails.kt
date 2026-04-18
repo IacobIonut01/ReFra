@@ -82,6 +82,7 @@ import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.launchWriteRequest
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberMediaInfo
@@ -208,43 +209,44 @@ fun <T : Media> MediaViewSheetDetails(
                 var exifDeleteMode by rememberSaveable {
                     mutableIntStateOf(-1)
                 }
-                val exifAttributesEditResult = rememberActivityResult(
-                    onResultOk = {
-                        scope.launch {
-                            handler.let {
-                                when (exifDeleteMode) {
-                                    0 -> {
-                                        if (it.deleteMediaMetadata(currentMedia)) {
-                                            printDebug("Exif Attributes Updated")
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Exif Update failed",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-
-                                    1 -> {
-                                        if (it.deleteMediaGPSMetadata(currentMedia)) {
-                                            printDebug("Exif Attributes Updated")
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Exif Update failed",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-
-                                    else -> {
-                                        printDebug("No Exif Attributes Updated")
+                val doExifEdit: () -> Unit = {
+                    scope.launch {
+                        handler.let {
+                            when (exifDeleteMode) {
+                                0 -> {
+                                    if (it.deleteMediaMetadata(currentMedia)) {
+                                        printDebug("Exif Attributes Updated")
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Exif Update failed",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
-                                exifDeleteMode = -1
+
+                                1 -> {
+                                    if (it.deleteMediaGPSMetadata(currentMedia)) {
+                                        printDebug("Exif Attributes Updated")
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Exif Update failed",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+
+                                else -> {
+                                    printDebug("No Exif Attributes Updated")
+                                }
                             }
+                            exifDeleteMode = -1
                         }
                     }
+                }
+                val exifAttributesEditResult = rememberActivityResult(
+                    onResultOk = doExifEdit
                 )
 
                 val dateCaption = rememberMediaDateCaption(metadata, currentMedia)
@@ -364,10 +366,11 @@ fun <T : Media> MediaViewSheetDetails(
                                                 .clickable {
                                                     scope.launch {
                                                         exifDeleteMode = 1
-                                                        exifAttributesEditResult.launch(
+                                                        exifAttributesEditResult.launchWriteRequest(
                                                             currentMedia.writeRequest(
                                                                 context.contentResolver
-                                                            )
+                                                            ),
+                                                            doExifEdit
                                                         )
                                                     }
                                                 }
@@ -405,10 +408,11 @@ fun <T : Media> MediaViewSheetDetails(
                                                 .clickable {
                                                     scope.launch {
                                                         exifDeleteMode = 0
-                                                        exifAttributesEditResult.launch(
+                                                        exifAttributesEditResult.launchWriteRequest(
                                                             currentMedia.writeRequest(
                                                                 context.contentResolver
-                                                            )
+                                                            ),
+                                                            doExifEdit
                                                         )
                                                     }
                                                 }

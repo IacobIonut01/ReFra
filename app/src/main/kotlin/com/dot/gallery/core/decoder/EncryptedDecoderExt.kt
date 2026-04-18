@@ -8,7 +8,6 @@ import android.os.Build.VERSION_CODES
 import androidx.core.net.toFile
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.github.panpf.sketch.decode.DecodeConfig
 import com.github.panpf.sketch.decode.ImageInfo
 import com.github.panpf.sketch.decode.ImageInvalidException
@@ -43,14 +42,12 @@ fun DataSource.decodeEncryptedBitmap(
 ): Bitmap {
     val options = config?.toBitmapOptions()
     val encryptedFile = getFile()
-    val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decryptKotlin<EncryptedMedia>()
-    }
+    val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
     val bitmap = BitmapFactory.decodeByteArray(
-        encryptedMedia.bytes,
+        decrypted.bytes,
         0,
-        encryptedMedia.bytes.size,
-        options.apply { this?.outMimeType = encryptedMedia.mimeType }
+        decrypted.bytes.size,
+        options.apply { this?.outMimeType = decrypted.mimeType }
     ) ?: throw ImageInvalidException("decode return null at decodeEncryptedBitmap")
     val exifOrientationHelper1 =
         exifOrientationHelper ?: ExifOrientationHelper(readEncryptedExifOrientation(keychainHolder))
@@ -69,17 +66,15 @@ fun DataSource.decodeEncryptedRegionBitmap(
     exifOrientationHelper: ExifOrientationHelper? = null
 ): Bitmap {
     val encryptedFile = getFile()
-    val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decryptKotlin<EncryptedMedia>()
-    }
+    val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
     val regionDecoder = if (VERSION.SDK_INT >= VERSION_CODES.S) {
-        BitmapRegionDecoder.newInstance(encryptedMedia.bytes, 0, encryptedMedia.bytes.size)
+        BitmapRegionDecoder.newInstance(decrypted.bytes, 0, decrypted.bytes.size)
     } else {
         @Suppress("DEPRECATION")
         BitmapRegionDecoder.newInstance(
-            encryptedMedia.bytes,
+            decrypted.bytes,
             0,
-            encryptedMedia.bytes.size,
+            decrypted.bytes.size,
             false
         )
     }
@@ -113,10 +108,8 @@ fun DataSource.decodeEncryptedRegionBitmap(
 @Throws(IOException::class)
 fun DataSource.readEncryptedExifOrientation(keychainHolder: KeychainHolder): Int {
     val encryptedFile = getFile()
-    val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decryptKotlin<EncryptedMedia>()
-    }
-    return encryptedMedia.bytes.inputStream().use {
+    val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
+    return decrypted.bytes.inputStream().use {
         ExifInterface(it).getAttributeInt(
             ExifInterface.TAG_ORIENTATION,
             ExifInterface.ORIENTATION_UNDEFINED
@@ -130,14 +123,12 @@ fun DataSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: K
         inJustDecodeBounds = true
     }
     val encryptedFile = getFile()
-    val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decryptKotlin<EncryptedMedia>()
-    }
+    val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
     try {
         BitmapFactory.decodeByteArray(
-            encryptedMedia.bytes,
+            decrypted.bytes,
             0,
-            encryptedMedia.bytes.size,
+            decrypted.bytes.size,
             boundOptions
         )
     } catch (e: Exception) {
@@ -146,7 +137,7 @@ fun DataSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: K
     }
 
     val imageSize = Size(width = boundOptions.outWidth, height = boundOptions.outHeight)
-    return ImageInfo(size = imageSize, mimeType = encryptedMedia.mimeType)
+    return ImageInfo(size = imageSize, mimeType = decrypted.mimeType)
         .apply { checkImageInfo(this) }
 }
 

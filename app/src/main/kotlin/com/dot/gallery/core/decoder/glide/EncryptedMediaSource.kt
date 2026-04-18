@@ -2,7 +2,6 @@ package com.dot.gallery.core.decoder.glide
 
 import android.content.Context
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -28,17 +27,35 @@ data class EncryptedMediaSource(
         smallBytes?.let { return it.inputStream() }
         tempFile?.let { return it.inputStream() }
         // Fallback: decrypt on demand (should rarely happen if created correctly)
-        val keychainHolder = KeychainHolder(contextRef)
-        val again = with(keychainHolder) { file.decryptKotlin<Media.EncryptedMedia>() }
-        return again.bytes.inputStream()
+        val result = try {
+            val ep = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                contextRef.applicationContext,
+                com.dot.gallery.core.decryption.DecryptManagerEntryPoint::class.java
+            )
+            ep.decryptManager().decrypt(file)
+        } catch (_: Throwable) {
+            val keychainHolder = KeychainHolder(contextRef)
+            val d = keychainHolder.decryptVaultMedia(file)
+            com.dot.gallery.core.decryption.DecryptResult(d.bytes, d.mimeType)
+        }
+        return result.bytes.inputStream()
     }
 
     /** Materialize as EncryptedMediaStream (byte array) for decoders that still require bytes. */
     fun asMediaStream(): EncryptedMediaStream {
         val bytes = smallBytes ?: tempFile?.readBytes() ?: run {
-            val keychainHolder = KeychainHolder(contextRef)
-            val enc = with(keychainHolder) { file.decryptKotlin<Media.EncryptedMedia>() }
-            enc.bytes
+            val result = try {
+                val ep = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                    contextRef.applicationContext,
+                    com.dot.gallery.core.decryption.DecryptManagerEntryPoint::class.java
+                )
+                ep.decryptManager().decrypt(file)
+            } catch (_: Throwable) {
+                val keychainHolder = KeychainHolder(contextRef)
+                val d = keychainHolder.decryptVaultMedia(file)
+                com.dot.gallery.core.decryption.DecryptResult(d.bytes, d.mimeType)
+            }
+            result.bytes
         }
         return EncryptedMediaStream(bytes, mimeType, isVideo)
     }
@@ -56,8 +73,8 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
         ep.decryptManager().decrypt(file)
     } catch (t: Throwable) {
         val keychainHolder = KeychainHolder(context)
-        val enc = with(keychainHolder) { file.decryptKotlin<Media.EncryptedMedia>() }
-        com.dot.gallery.core.decryption.DecryptResult(enc.bytes, enc.mimeType)
+        val d = keychainHolder.decryptVaultMedia(file)
+        com.dot.gallery.core.decryption.DecryptResult(d.bytes, d.mimeType)
     }
     val mime = decryptResult.mimeType
     val isVideo = mime.startsWith("video")

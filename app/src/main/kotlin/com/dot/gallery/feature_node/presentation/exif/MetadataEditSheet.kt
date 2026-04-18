@@ -46,6 +46,7 @@ import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.launchWriteRequest
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.toastError
 import com.dot.gallery.feature_node.presentation.util.writeRequest
@@ -69,7 +70,7 @@ fun <T: Media> MetadataEditSheet(
     }
     var newLabel by rememberSaveable { mutableStateOf(media.label) }
     val errorToast = toastError()
-    val request = rememberActivityResult {
+    val doUpdate: () -> Unit = {
         scope.launch {
             var done: Boolean
             printDebug("Updating media image description to $imageDescription")
@@ -91,6 +92,7 @@ fun <T: Media> MetadataEditSheet(
             }
         }
     }
+    val request = rememberActivityResult { doUpdate() }
 
     if (state.isVisible) {
         ModalBottomSheet(
@@ -205,7 +207,10 @@ fun <T: Media> MetadataEditSheet(
                     Button(
                         onClick = {
                             scope.launch(Dispatchers.Main) {
-                                request.launch(media.writeRequest(cr))
+                                request.launchWriteRequest(
+                                    media.writeRequest(cr),
+                                    doUpdate
+                                )
                             }
                         }
                     ) {

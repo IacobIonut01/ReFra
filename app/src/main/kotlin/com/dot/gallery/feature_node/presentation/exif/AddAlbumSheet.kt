@@ -1,5 +1,6 @@
 package com.dot.gallery.feature_node.presentation.exif
 
+import android.os.Build
 import android.os.Environment
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -84,7 +85,7 @@ fun AddAlbumSheet(
                 )
 
                 val isStorageManager = remember {
-                    Environment.isExternalStorageManager()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) Environment.isExternalStorageManager() else true
                 }
                 val location = remember(isStorageManager, newAlbum) {
                     if (!isStorageManager) {

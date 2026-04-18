@@ -7,7 +7,6 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import androidx.core.net.toFile
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.github.panpf.zoomimage.subsampling.BitmapTileImage
 import com.github.panpf.zoomimage.subsampling.ContentImageSource
 import com.github.panpf.zoomimage.subsampling.ImageInfo
@@ -61,16 +60,16 @@ class EncryptedRegionDecoder(
     override fun prepare() {
         if (bitmapRegionDecoder != null) return
 
-        val encryptedMedia = with(keychainHolder) {
-            (imageSource as ContentImageSource).uri.toFile().decryptKotlin<EncryptedMedia>()
-        }
+        val decrypted = keychainHolder.decryptVaultMedia(
+            (imageSource as ContentImageSource).uri.toFile()
+        )
 
         bitmapRegionDecoder = kotlin.runCatching {
             if (VERSION.SDK_INT >= VERSION_CODES.S) {
-                BitmapRegionDecoder.newInstance(encryptedMedia.bytes, 0, encryptedMedia.bytes.size)
+                BitmapRegionDecoder.newInstance(decrypted.bytes, 0, decrypted.bytes.size)
             } else {
                 @Suppress("DEPRECATION")
-                BitmapRegionDecoder.newInstance(encryptedMedia.bytes, 0, encryptedMedia.bytes.size, false)
+                BitmapRegionDecoder.newInstance(decrypted.bytes, 0, decrypted.bytes.size, false)
             }
         }.apply {
             if (isFailure) {

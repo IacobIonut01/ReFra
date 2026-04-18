@@ -80,6 +80,7 @@ import com.dot.gallery.core.Settings.Misc.rememberShowSelectionTitles
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.navigate
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
@@ -734,35 +735,39 @@ fun SettingsCustomizationScreen() {
             favIconPositionPref,
             showFavoriteButtonPref
         ) {
-            mutableStateListOf(
-                timelineHeader,
-                groupByMonthPref,
-                hideTimelineOnAlbumPref,
-                forcedLastScreenPref,
-                showSelectionTitlesPref,
-                favIconPositionPref,
+            mutableStateListOf<SettingsEntity>().apply {
+                add(timelineHeader)
+                add(groupByMonthPref)
+                add(hideTimelineOnAlbumPref)
+                add(forcedLastScreenPref)
+                add(showSelectionTitlesPref)
+                if (SdkCompat.supportsFavorites) {
+                    add(favIconPositionPref)
+                }
 
-                interfaceHeader,
-                appNamePref,
-                allowBlurPref,
-                sharedElementsPref,
+                add(interfaceHeader)
+                add(appNamePref)
+                add(allowBlurPref)
+                add(sharedElementsPref)
 
-                mediaViewHeader,
-                dateHeaderPref,
-                fullBrightnessViewPref,
-                showMediaDateHeaderPref,
-                showFavoriteButtonPref,
+                add(mediaViewHeader)
+                add(dateHeaderPref)
+                add(fullBrightnessViewPref)
+                add(showMediaDateHeaderPref)
+                if (SdkCompat.supportsFavorites) {
+                    add(showFavoriteButtonPref)
+                }
 
-                videoPlaybackHeader,
-                audioFocusPref,
-                autoHideOnVideoPlayPref,
-                autoPlayVideoPref,
+                add(videoPlaybackHeader)
+                add(audioFocusPref)
+                add(autoHideOnVideoPlayPref)
+                add(autoPlayVideoPref)
 
-                navigationHeader,
-                showOldNavbarPref,
-                autoHideSearch,
-                autoHideNavigation
-            )
+                add(navigationHeader)
+                add(showOldNavbarPref)
+                add(autoHideSearch)
+                add(autoHideNavigation)
+            }
         }
     }
 

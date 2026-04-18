@@ -32,6 +32,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.navigate
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import dev.chrisbanes.haze.hazeEffect
@@ -48,34 +49,36 @@ fun TimelineNavActions() {
     val errorContainer = MaterialTheme.colorScheme.primaryFixed
     val onErrorContainer = MaterialTheme.colorScheme.onPrimaryFixed
 
-    val favoriteBackgroundModifier = remember(allowBlur) {
-        if (!allowBlur) {
-            Modifier.background(
-                color = errorContainer,
-                shape = RoundedCornerShape(100)
-            )
-        } else {
-            Modifier
-        }
-    }
-    IconButton(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .then(favoriteBackgroundModifier)
-            .hazeEffect(
-                state = LocalHazeState.current,
-                style = HazeMaterials.regular(
-                    containerColor = errorContainer
+    if (SdkCompat.supportsFavorites) {
+        val favoriteBackgroundModifier = remember(allowBlur) {
+            if (!allowBlur) {
+                Modifier.background(
+                    color = errorContainer,
+                    shape = RoundedCornerShape(100)
                 )
-            ),
-        onClick = { eventHandler.navigate(Screen.FavoriteScreen()) }
-    ) {
-        Icon(
-            imageVector = Icons.Rounded.Favorite,
-            contentDescription = stringResource(R.string.favorites),
-            tint = onErrorContainer
-        )
+            } else {
+                Modifier
+            }
+        }
+        IconButton(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .then(favoriteBackgroundModifier)
+                .hazeEffect(
+                    state = LocalHazeState.current,
+                    style = HazeMaterials.regular(
+                        containerColor = errorContainer
+                    )
+                ),
+            onClick = { eventHandler.navigate(Screen.FavoriteScreen()) }
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Favorite,
+                contentDescription = stringResource(R.string.favorites),
+                tint = onErrorContainer
+            )
+        }
     }
 
     val settingsInteractionSource = remember { MutableInteractionSource() }

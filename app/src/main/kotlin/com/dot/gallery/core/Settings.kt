@@ -39,6 +39,7 @@ import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.Settings.PREFERENCE_NAME
 import com.dot.gallery.core.presentation.components.FilterKind
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.rememberPreference
 import com.dot.gallery.core.util.rememberPreferenceSerializable
 import com.dot.gallery.feature_node.domain.model.SearchHistory
@@ -222,10 +223,10 @@ object Settings {
 
         @Composable
         fun rememberTrashEnabled() =
-            rememberPreference(key = ENABLE_TRASH, defaultValue = true)
+            rememberPreference(key = ENABLE_TRASH, defaultValue = SdkCompat.supportsTrash)
 
         fun getTrashEnabled(context: Context) =
-            context.dataStore.data.map { it[ENABLE_TRASH] ?: true }
+            context.dataStore.data.map { it[ENABLE_TRASH] ?: SdkCompat.supportsTrash }
 
         private val ENABLE_TRASH_CONFIRMATION = booleanPreferencesKey("enable_trashcan_confirmation")
 
@@ -342,7 +343,7 @@ object Settings {
         private val ALLOW_BLUR = booleanPreferencesKey("allow_blur")
 
         @Composable
-        fun rememberAllowBlur() = rememberPreference(key = ALLOW_BLUR, defaultValue = true)
+        fun rememberAllowBlur() = rememberPreference(key = ALLOW_BLUR, defaultValue = SdkCompat.supportsBlur)
 
         private val OLD_NAVBAR = booleanPreferencesKey("old_navbar")
 

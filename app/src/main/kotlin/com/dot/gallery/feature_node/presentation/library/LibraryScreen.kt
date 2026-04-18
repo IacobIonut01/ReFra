@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import com.dot.gallery.core.util.SdkCompat
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -228,36 +229,42 @@ fun LibraryScreen(
                             .padding(top = 32.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(
-                                16.dp,
-                                Alignment.CenterHorizontally
-                            )
-                        ) {
-                            LibrarySmallItem(
-                                title = stringResource(R.string.trash),
-                                icon = Icons.Outlined.DeleteOutline,
-                                contentColor = MaterialTheme.colorScheme.primary,
-                                useIndicator = true,
-                                indicatorCounter = indicatorState.trashCount,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable {
-                                        eventHandler.navigate(Screen.TrashedScreen.route)
-                                    }
-                            )
-                            LibrarySmallItem(
-                                title = stringResource(R.string.favorites),
-                                icon = Icons.Outlined.FavoriteBorder,
-                                contentColor = MaterialTheme.colorScheme.error,
-                                useIndicator = true,
-                                indicatorCounter = indicatorState.favoriteCount,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable {
-                                        eventHandler.navigate(Screen.FavoriteScreen.route)
-                                    }
-                            )
+                        if (SdkCompat.supportsTrash || SdkCompat.supportsFavorites) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    16.dp,
+                                    Alignment.CenterHorizontally
+                                )
+                            ) {
+                                if (SdkCompat.supportsTrash) {
+                                    LibrarySmallItem(
+                                        title = stringResource(R.string.trash),
+                                        icon = Icons.Outlined.DeleteOutline,
+                                        contentColor = MaterialTheme.colorScheme.primary,
+                                        useIndicator = true,
+                                        indicatorCounter = indicatorState.trashCount,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                eventHandler.navigate(Screen.TrashedScreen.route)
+                                            }
+                                    )
+                                }
+                                if (SdkCompat.supportsFavorites) {
+                                    LibrarySmallItem(
+                                        title = stringResource(R.string.favorites),
+                                        icon = Icons.Outlined.FavoriteBorder,
+                                        contentColor = MaterialTheme.colorScheme.error,
+                                        useIndicator = true,
+                                        indicatorCounter = indicatorState.favoriteCount,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                eventHandler.navigate(Screen.FavoriteScreen.route)
+                                            }
+                                    )
+                                }
+                            }
                         }
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(

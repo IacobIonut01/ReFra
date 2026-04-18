@@ -4,7 +4,6 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaMetadataRetriever.BitmapParams
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.github.panpf.sketch.Image
 import com.github.panpf.sketch.Sketch
 import com.github.panpf.sketch.asImage
@@ -114,13 +113,11 @@ private class EncryptedVideoFrameDecodeHelper(
     private fun createDecryptedVideoFile(file: File): File {
         // Create a temporary file
         val tempFile = File.createTempFile("${file.name}.temp", null)
-        val encryptedMedia = with(keychainHolder) {
-            file.decryptKotlin<EncryptedMedia>()
-        }
+        val decrypted = keychainHolder.decryptVaultMedia(file)
 
         // Write the ByteArray to the temporary file
         FileOutputStream(tempFile).use { fileOutputStream ->
-            fileOutputStream.write(encryptedMedia.bytes)
+            fileOutputStream.write(decrypted.bytes)
             fileOutputStream.flush()
         }
 

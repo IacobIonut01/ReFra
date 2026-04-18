@@ -1,5 +1,7 @@
 package com.dot.gallery.feature_node.presentation.vault
 
+import android.app.KeyguardManager
+import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -46,7 +48,12 @@ fun VaultSetup(
 
     val biometricManager = remember { BiometricManager.from(context) }
     val isBiometricAvailable = remember {
-        biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL) == BIOMETRIC_SUCCESS
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL) == BIOMETRIC_SUCCESS
+        } else {
+            val keyguardManager = context.getSystemService(KeyguardManager::class.java)
+            keyguardManager?.isDeviceSecure == true
+        }
     }
     SetupWizard(
         icon = Icons.Encrypted,

@@ -16,6 +16,7 @@ import com.dot.gallery.core.Constants
 import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.PickerUtils
 import com.dot.gallery.core.util.Query
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.and
 import com.dot.gallery.core.util.eq
 import com.dot.gallery.core.util.ext.mapEachRow
@@ -61,10 +62,15 @@ class MediaUriFlow(
             }
         } ?: MediaQuery.Selection.imageOrVideo
         val albumFilter = when (buckedId) {
-            MediaStoreBuckets.MEDIA_STORE_BUCKET_FAVORITES.id -> MediaStore.Files.FileColumns.IS_FAVORITE eq 1
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_FAVORITES.id ->
+                if (SdkCompat.supportsFavorites)
+                    MediaStore.Files.FileColumns.IS_FAVORITE eq 1
+                else null
 
             MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id ->
-                MediaStore.Files.FileColumns.IS_TRASHED eq 1
+                if (SdkCompat.supportsTrash)
+                    MediaStore.Files.FileColumns.IS_TRASHED eq 1
+                else null
 
             MediaStoreBuckets.MEDIA_STORE_BUCKET_TIMELINE.id,
             MediaStoreBuckets.MEDIA_STORE_BUCKET_PHOTOS.id,
@@ -93,7 +99,8 @@ class MediaUriFlow(
 
         val sortOrder = when (buckedId) {
             MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id ->
-                "${MediaStore.Files.FileColumns.DATE_EXPIRES} DESC"
+                if (SdkCompat.supportsTrash) "${MediaStore.Files.FileColumns.DATE_EXPIRES} DESC"
+                else "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC"
 
             else -> "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC"
         }
@@ -104,13 +111,16 @@ class MediaUriFlow(
             putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, sortOrder)
 
             // Exclude trashed media unless we want data for the trashed album
-            putInt(
-                MediaStore.QUERY_ARG_MATCH_TRASHED, when (buckedId) {
-                    MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id -> MediaStore.MATCH_ONLY
+            // QUERY_ARG_MATCH_TRASHED is only available on API 30+
+            if (SdkCompat.supportsTrash) {
+                putInt(
+                    MediaStore.QUERY_ARG_MATCH_TRASHED, when (buckedId) {
+                        MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id -> MediaStore.MATCH_ONLY
 
-                    else -> MediaStore.MATCH_EXCLUDE
-                }
-            )
+                        else -> MediaStore.MATCH_EXCLUDE
+                    }
+                )
+            }
         }
 
         return contentResolver.queryFlow(
@@ -135,8 +145,9 @@ class MediaUriFlow(
             val duration = it.tryGetString(indexCache[i++])
             val size = it.getLong(indexCache[i++])
             val mimeType = it.getString(indexCache[i++])
-            val isFavorite = it.getInt(indexCache[i++])
-            val isTrashed = it.getInt(indexCache[i])
+            // IS_FAVORITE and IS_TRASHED are only available on API 30+
+            val isFavorite = if (SdkCompat.supportsFavorites) it.getInt(indexCache[i++]) else 0
+            val isTrashed = if (SdkCompat.supportsTrash) it.getInt(indexCache[i]) else 0
             val contentUri = if (mimeType.contains("image"))
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             else

@@ -15,7 +15,9 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.provider.MediaStore
 import android.widget.Toast
+import com.dot.gallery.core.util.SdkCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -38,7 +40,7 @@ import com.dot.gallery.core.Settings.Misc.rememberExifDateFormat
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
+
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.getUri
@@ -156,23 +158,46 @@ fun rememberActivityResult(onResultCanceled: () -> Unit = {}, onResultOk: () -> 
 
 fun <T : Media> T.writeRequest(
     contentResolver: ContentResolver,
-) = IntentSenderRequest.Builder(
-    MediaStore.createWriteRequest(
-        contentResolver,
-        arrayListOf(getUri())
-    )
-)
-    .build()
+): IntentSenderRequest? {
+    if (!SdkCompat.supportsMediaStoreRequests) return null
+    return IntentSenderRequest.Builder(
+        MediaStore.createWriteRequest(
+            contentResolver,
+            arrayListOf(getUri())
+        )
+    ).build()
+}
 
 fun <T : Media> List<T>.writeRequest(
     contentResolver: ContentResolver,
-) = IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, map { it.getUri() }))
-    .build()
+): IntentSenderRequest? {
+    if (!SdkCompat.supportsMediaStoreRequests) return null
+    return IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, map { it.getUri() }))
+        .build()
+}
 
 fun Uri.writeRequest(
     contentResolver: ContentResolver,
-) = IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, arrayListOf(this)))
-    .build()
+): IntentSenderRequest? {
+    if (!SdkCompat.supportsMediaStoreRequests) return null
+    return IntentSenderRequest.Builder(MediaStore.createWriteRequest(contentResolver, arrayListOf(this)))
+        .build()
+}
+
+/**
+ * Launch an [IntentSenderRequest] or, if [request] is null (API 29 with legacy storage),
+ * directly invoke [onGranted] since write permission is already available.
+ */
+fun ActivityResultLauncher<IntentSenderRequest>.launchWriteRequest(
+    request: IntentSenderRequest?,
+    onGranted: () -> Unit
+) {
+    if (request != null) {
+        launch(request)
+    } else {
+        onGranted()
+    }
+}
 
 @Composable
 fun <T : Media> rememberMediaInfo(
@@ -362,9 +387,7 @@ private fun <T : Media> createDecryptedTempFile(
     val encryptedFile = media.getUri().toFile()
     
     // Decrypt the media
-    val encryptedMedia = with(keychainHolder) {
-        encryptedFile.decryptKotlin<EncryptedMedia>()
-    }
+    val decryptedMedia = keychainHolder.decryptVaultMedia(encryptedFile)
     
     // Create temp file with appropriate extension
     val extension = when {
@@ -392,7 +415,7 @@ private fun <T : Media> createDecryptedTempFile(
     
     // Write decrypted bytes to temp file
     FileOutputStream(tempFile).use { outputStream ->
-        outputStream.write(encryptedMedia.bytes)
+        outputStream.write(decryptedMedia.bytes)
         outputStream.flush()
     }
     

@@ -1,6 +1,7 @@
 package com.dot.gallery.core.workers
 
 import android.content.Context
+import android.os.Build
 import androidx.compose.ui.util.fastMap
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
@@ -34,7 +35,11 @@ fun WorkManager.updateDatabase() {
 
     val searchIndexerWork = OneTimeWorkRequestBuilder<SearchIndexerUpdaterWorker>()
         .setConstraints(constraints)
-        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+        .apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            }
+        }
         .addTag("SearchIndexerUpdater")
         .build()
 
@@ -44,7 +49,11 @@ fun WorkManager.updateDatabase() {
 
     val metadataWork = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
         .setConstraints(constraints)
-        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+        .apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            }
+        }
         .addTag("MetadataCollection")
         .build()
 

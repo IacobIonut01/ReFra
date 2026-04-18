@@ -21,6 +21,7 @@ import com.dot.gallery.feature_node.domain.model.editor.SaveFormat
 import com.dot.gallery.feature_node.presentation.edit.adjustments.Crop
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.launchWriteRequest
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.writeRequest
 import com.dot.gallery.ui.theme.GalleryTheme
@@ -94,31 +95,33 @@ class EditActivity : ComponentActivity() {
 
                     val scope = rememberCoroutineScope { Dispatchers.IO }
 
+                    val doOverride: () -> Unit = {
+                        viewModel.saveOverride(
+                            saveFormat = SaveFormat.PNG,
+                            onSuccess = {
+                                finish()
+                            },
+                            onFail = {
+                                printError("Failed to save override")
+                            }
+                        )
+                    }
                     val overrideRequest = rememberActivityResult(
-                        onResultOk = {
-                            viewModel.saveOverride(
-                                saveFormat = SaveFormat.PNG,
-                                onSuccess = {
-                                    finish()
-                                },
-                                onFail = {
-                                    printError("Failed to save override")
-                                }
-                            )
-                        }
+                        onResultOk = doOverride
                     )
 
+                    val doRevert: () -> Unit = {
+                        viewModel.revertToOriginal(
+                            onSuccess = {
+                                finish()
+                            },
+                            onFail = {
+                                printError("Failed to revert to original")
+                            }
+                        )
+                    }
                     val revertRequest = rememberActivityResult(
-                        onResultOk = {
-                            viewModel.revertToOriginal(
-                                onSuccess = {
-                                    finish()
-                                },
-                                onFail = {
-                                    printError("Failed to revert to original")
-                                }
-                            )
-                        }
+                        onResultOk = doRevert
                     )
 
 
@@ -149,10 +152,9 @@ class EditActivity : ComponentActivity() {
                         onOverride = {
                             scope.launch {
                                 uri?.let { uri ->
-                                    overrideRequest.launch(
-                                        uri.writeRequest(
-                                            contentResolver
-                                        )
+                                    overrideRequest.launchWriteRequest(
+                                        uri.writeRequest(contentResolver),
+                                        doOverride
                                     )
                                 }
                             }
@@ -190,10 +192,9 @@ class EditActivity : ComponentActivity() {
                         onRevertToOriginal = {
                             scope.launch {
                                 uri?.let { uri ->
-                                    revertRequest.launch(
-                                        uri.writeRequest(
-                                            contentResolver
-                                        )
+                                    revertRequest.launchWriteRequest(
+                                        uri.writeRequest(contentResolver),
+                                        doRevert
                                     )
                                 }
                             }

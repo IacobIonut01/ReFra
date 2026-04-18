@@ -4,7 +4,6 @@ import android.graphics.BitmapFactory
 import androidx.core.net.toFile
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.github.panpf.sketch.decode.ImageInvalidException
 import com.github.panpf.sketch.decode.internal.ExifOrientationHelper
 import com.github.panpf.sketch.util.Size
@@ -19,10 +18,8 @@ import java.io.IOException
 fun ImageSource.readEncryptedExifOrientation(keychainHolder: KeychainHolder): Int {
     return with(this as ContentImageSource) {
         val encryptedFile = uri.toFile()
-        val encryptedMedia = with(keychainHolder) {
-            encryptedFile.decryptKotlin<EncryptedMedia>()
-        }
-        encryptedMedia.bytes.inputStream().use {
+        val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
+        decrypted.bytes.inputStream().use {
             ExifInterface(it).getAttributeInt(
                 ExifInterface.TAG_ORIENTATION,
                 ExifInterface.ORIENTATION_UNDEFINED
@@ -38,22 +35,20 @@ fun ImageSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: 
             inJustDecodeBounds = true
         }
         val encryptedFile = uri.toFile()
-        val encryptedMedia = with(keychainHolder) {
-            encryptedFile.decryptKotlin<EncryptedMedia>()
-        }
+        val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
         try {
             BitmapFactory.decodeByteArray(
-                encryptedMedia.bytes,
+                decrypted.bytes,
                 0,
-                encryptedMedia.bytes.size,
-                boundOptions.apply { this.outMimeType = encryptedMedia.mimeType }
+                decrypted.bytes.size,
+                boundOptions.apply { this.outMimeType = decrypted.mimeType }
             )
         } catch (e: Exception) {
             e.printStackTrace()
             throw ImageInvalidException("decode return null at readEncryptedImageInfoWithIgnoreExifOrientation")
         }
 
-        val mimeType = encryptedMedia.mimeType
+        val mimeType = decrypted.mimeType
         val imageSize = IntSizeCompat(width = boundOptions.outWidth, height = boundOptions.outHeight)
         return ImageInfo(size = imageSize, mimeType = mimeType)
             .apply { checkImageInfo(this) }

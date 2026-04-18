@@ -13,6 +13,7 @@ import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberTrashConfirmationEnabled
 import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
 
@@ -75,14 +76,16 @@ fun SettingsGeneralScreen() {
         )
 
         return remember(trashCanEnabledPref, trashConfirmationEnabledPref, secureModePref, allowVibrationsPref) {
-            mutableStateListOf(
-                trashSectionPref,
-                trashCanEnabledPref,
-                trashConfirmationEnabledPref,
-                otherSectionPref,
-                secureModePref,
-                allowVibrationsPref
-            )
+            mutableStateListOf<SettingsEntity>().apply {
+                if (SdkCompat.supportsTrash) {
+                    add(trashSectionPref)
+                    add(trashCanEnabledPref)
+                    add(trashConfirmationEnabledPref)
+                }
+                add(otherSectionPref)
+                add(secureModePref)
+                add(allowVibrationsPref)
+            }
         }
     }
 

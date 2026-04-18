@@ -11,7 +11,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.github.panpf.sketch.asImage
 import com.github.panpf.sketch.decode.DecodeConfig
 import com.github.panpf.sketch.request.ImageData
@@ -68,10 +67,8 @@ class EncryptedRawImageDecoder(
     private fun getDecryptedBytes(): ByteArray {
         if (cachedBytes == null) {
             val encryptedFile = dataSource.getFile()
-            val encryptedMedia = with(keychainHolder) {
-                encryptedFile.decryptKotlin<EncryptedMedia>()
-            }
-            cachedBytes = encryptedMedia.bytes
+            val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
+            cachedBytes = decrypted.bytes
         }
         return cachedBytes!!
     }

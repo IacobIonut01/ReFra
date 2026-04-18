@@ -11,7 +11,6 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.os.Build
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.dot.gallery.libs.panoramaviewer.PanoramaImageLoader
 import com.dot.gallery.libs.panoramaviewer.PanoramaLog
 import java.io.File
@@ -63,10 +62,7 @@ class EncryptedPanoramaImageLoader(
 
         // Decrypt the file to get raw image bytes
         val bytes = try {
-            val encryptedMedia = with(keychainHolder) {
-                encryptedFile.decryptKotlin<EncryptedMedia>()
-            }
-            encryptedMedia.bytes
+            keychainHolder.decryptVaultMedia(encryptedFile).bytes
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.initialize() decryption failed", e)
             return false

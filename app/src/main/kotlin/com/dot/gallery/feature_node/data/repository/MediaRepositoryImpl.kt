@@ -13,10 +13,12 @@ import android.graphics.BitmapFactory
 import android.location.Geocoder
 import android.net.Uri
 import android.os.Environment
+import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.ActivityOptionsCompat
+import com.dot.gallery.core.util.SdkCompat
 import androidx.datastore.preferences.core.Preferences
 import androidx.work.WorkManager
 import com.dot.gallery.core.Resource
@@ -241,6 +243,10 @@ class MediaRepositoryImpl(
         mediaList: List<T>,
         favorite: Boolean
     ) {
+        if (!SdkCompat.supportsMediaStoreRequests) {
+            // Favorites not supported on API 29
+            return
+        }
         val intentSender = MediaStore.createFavoriteRequest(
             contentResolver,
             mediaList.map { it.getUri() },
@@ -257,6 +263,13 @@ class MediaRepositoryImpl(
         mediaList: List<T>,
         trash: Boolean
     ) {
+        if (!SdkCompat.supportsMediaStoreRequests) {
+            // Trash not supported on API 29; delete directly instead
+            if (trash) {
+                deleteMedia(result, mediaList)
+            }
+            return
+        }
         val intentSender = MediaStore.createTrashRequest(
             contentResolver,
             mediaList.map { it.getUri() },
@@ -272,6 +285,20 @@ class MediaRepositoryImpl(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>
     ) {
+        if (!SdkCompat.supportsMediaStoreRequests) {
+            // On API 29, delete directly via ContentResolver
+            // requestLegacyExternalStorage grants full write access
+            withContext(Dispatchers.IO) {
+                mediaList.forEach { media ->
+                    runCatching {
+                        contentResolver.delete(media.getUri(), null, null)
+                    }.onFailure {
+                        printWarning("Failed to delete media ${media.id}: ${it.message}")
+                    }
+                }
+            }
+            return
+        }
         val intentSender =
             MediaStore.createDeleteRequest(
                 contentResolver,

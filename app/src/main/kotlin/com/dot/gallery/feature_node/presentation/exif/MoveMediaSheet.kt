@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.exif
 
 import android.media.MediaScannerConnection
+import android.os.Build
 import android.os.Environment
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.volume
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
+import com.dot.gallery.feature_node.presentation.util.launchWriteRequest
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.toastError
@@ -76,7 +78,7 @@ fun <T: Media> MoveMediaSheet(
 
     val newAlbumSheetState = rememberAppBottomSheetState()
 
-    val request = rememberActivityResult {
+    val doMove: () -> Unit = {
         scope.launch {
             val done = async {
                 mediaList.forEachIndexed { index, it ->
@@ -104,6 +106,8 @@ fun <T: Media> MoveMediaSheet(
             }
         }
     }
+
+    val request = rememberActivityResult { doMove() }
 
     if (sheetState.isVisible) {
         ModalBottomSheet(
@@ -193,7 +197,7 @@ fun <T: Media> MoveMediaSheet(
                                     "allow"
                                 ) ?: albumOwnership
                             val mediaAlbum = mediaList.firstOrNull()?.albumLabel ?: item.label
-                            val isStorageManager = Environment.isExternalStorageManager()
+                            val isStorageManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) Environment.isExternalStorageManager() else true
                             AlbumComponent(
                                 album = item,
                                 isEnabled = isStorageManager || (item.volume == mediaVolume
@@ -205,7 +209,10 @@ fun <T: Media> MoveMediaSheet(
                                 onItemClick = { album ->
                                     scope.launch(Dispatchers.Main) {
                                         newPath = album.relativePath
-                                        request.launch(mediaList.writeRequest(context.contentResolver))
+                                        request.launchWriteRequest(
+                                            mediaList.writeRequest(context.contentResolver),
+                                            doMove
+                                        )
                                     }
                                 }
                             )
@@ -220,8 +227,11 @@ fun <T: Media> MoveMediaSheet(
         sheetState = newAlbumSheetState,
         onFinish = { newAlbum ->
             scope.launch(Dispatchers.Main) {
-                newPath = if (Environment.isExternalStorageManager()) newAlbum else "Pictures/$newAlbum"
-                request.launch(mediaList.writeRequest(context.contentResolver))
+                newPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) newAlbum else "Pictures/$newAlbum"
+                request.launchWriteRequest(
+                    mediaList.writeRequest(context.contentResolver),
+                    doMove
+                )
             }
         },
         onCancel = {

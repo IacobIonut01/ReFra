@@ -25,6 +25,7 @@ import java.security.GeneralSecurityException
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
+import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
@@ -383,8 +384,44 @@ class KeychainHolder @Inject constructor(
             byteBuffer.toByteArray()
         }
 
+    /**
+     * Unified vault file decryption that handles both portable (VLTv1) and legacy (EncryptedFile) formats.
+     * Returns raw decrypted bytes and the mime type.
+     */
+    fun decryptVaultMedia(file: File): DecryptedVaultMedia {
+        if (isPortableFile(file)) {
+            val vaultUuidStr = file.parentFile?.name ?: error("Cannot determine vault UUID from path")
+            val vault = Vault(uuid = UUID.fromString(vaultUuidStr), name = "")
+            val encBytes = file.readBytes()
+            val plainBytes = decryptPortableContent(vault, encBytes)
+            val mime = sniffMimeType(plainBytes)
+            return DecryptedVaultMedia(plainBytes, mime)
+        }
+        val enc = file.decryptKotlin<Media.EncryptedMedia>()
+        return DecryptedVaultMedia(enc.bytes, enc.mimeType)
+    }
+
     companion object {
         const val VAULT_INFO_FILE_NAME = "info.vault"
         const val DATA_KEY_FILE_NAME = "vault.key.enc"
+
+        fun sniffMimeType(bytes: ByteArray): String {
+            if (bytes.size < 12) return "application/octet-stream"
+            if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte()) return "image/jpeg"
+            if (bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() && bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte()) return "image/png"
+            if (bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() && bytes[2] == 0x46.toByte()) return "image/gif"
+            if (bytes[0] == 0x52.toByte() && bytes[1] == 0x49.toByte() && bytes[2] == 0x46.toByte() && bytes[3] == 0x46.toByte() &&
+                bytes[8] == 0x57.toByte() && bytes[9] == 0x45.toByte() && bytes[10] == 0x42.toByte() && bytes[11] == 0x50.toByte()
+            ) return "image/webp"
+            if (bytes[4] == 0x66.toByte() && bytes[5] == 0x74.toByte() && bytes[6] == 0x79.toByte() && bytes[7] == 0x70.toByte()) {
+                val brand = String(bytes, 8, 4)
+                if (brand.startsWith("heic") || brand.startsWith("heix") || brand.startsWith("mif1")) return "image/heif"
+                return "video/mp4"
+            }
+            if (bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte()) return "image/bmp"
+            return "application/octet-stream"
+        }
     }
 }
+
+data class DecryptedVaultMedia(val bytes: ByteArray, val mimeType: String)

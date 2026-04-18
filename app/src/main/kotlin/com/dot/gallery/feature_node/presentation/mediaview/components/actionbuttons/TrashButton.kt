@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.isEncrypted
@@ -36,7 +37,7 @@ fun <T : Media> TrashButton(
     val scope = rememberCoroutineScope()
     val trashEnabled = rememberTrashEnabled()
     val trashEnabledRes = remember(trashEnabled, media) {
-        if (trashEnabled.value && !media.isEncrypted) R.string.trash else R.string.trash_delete
+        if (trashEnabled.value && !media.isEncrypted && SdkCompat.supportsTrash) R.string.trash else R.string.trash_delete
     }
     val result = rememberActivityResult {
         scope.launch {
@@ -74,7 +75,7 @@ fun <T : Media> TrashButton(
                 deleteMedia(currentVault, media) {}
             }
         } else {
-            if (shouldMoveToTrash) {
+            if (shouldMoveToTrash && SdkCompat.supportsTrash) {
                 handler.trashMedia(result, it, true)
             } else {
                 handler.deleteMedia(result, it)

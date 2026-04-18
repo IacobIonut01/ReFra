@@ -11,6 +11,7 @@ import androidx.core.database.getLongOrNull
 import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.PickerUtils
 import com.dot.gallery.core.util.Query
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.and
 import com.dot.gallery.core.util.eq
 import com.dot.gallery.core.util.ext.queryFlow
@@ -21,6 +22,7 @@ import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.MediaType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 
 /**
@@ -37,6 +39,14 @@ class AlbumsFlow(
     private val bucketId: Long? = null
 ) : QueryFlow<Album>() {
     override fun flowCursor(): Flow<Cursor?> {
+        // Trash and Favorites are not supported on API 29
+        if (!SdkCompat.supportsTrash && bucketId == MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id) {
+            return flowOf(null)
+        }
+        if (!SdkCompat.supportsFavorites && bucketId == MediaStoreBuckets.MEDIA_STORE_BUCKET_FAVORITES.id) {
+            return flowOf(null)
+        }
+
         val uri = MediaQuery.MediaStoreFileUri
         val projection = MediaQuery.AlbumsProjection
         val imageOrVideo = PickerUtils.mediaTypeFromGenericMimeType(mimeType)?.let {
@@ -54,10 +64,15 @@ class AlbumsFlow(
             MediaStore.Files.FileColumns.MIME_TYPE eq Query.ARG
         }
         val albumFilter = when (bucketId) {
-            MediaStoreBuckets.MEDIA_STORE_BUCKET_FAVORITES.id -> MediaStore.Files.FileColumns.IS_FAVORITE eq 1
+            MediaStoreBuckets.MEDIA_STORE_BUCKET_FAVORITES.id ->
+                if (SdkCompat.supportsFavorites)
+                    MediaStore.Files.FileColumns.IS_FAVORITE eq 1
+                else null
 
             MediaStoreBuckets.MEDIA_STORE_BUCKET_TRASH.id ->
-                MediaStore.Files.FileColumns.IS_TRASHED eq 1
+                if (SdkCompat.supportsTrash)
+                    MediaStore.Files.FileColumns.IS_TRASHED eq 1
+                else null
 
             MediaStoreBuckets.MEDIA_STORE_BUCKET_TIMELINE.id,
             MediaStoreBuckets.MEDIA_STORE_BUCKET_PHOTOS.id,

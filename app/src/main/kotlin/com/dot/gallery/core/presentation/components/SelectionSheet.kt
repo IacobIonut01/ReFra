@@ -75,6 +75,7 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberShowSelectionTitles
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.exif.CopyMediaSheet
@@ -218,13 +219,15 @@ fun <T : Media> BoxScope.SelectionSheet(
                     }
                 }
                 // Favorite Component
-                SelectionBarColumn(
-                    imageVector = Icons.Outlined.FavoriteBorder,
-                    tabletMode = tabletMode,
-                    title = stringResource(R.string.favorite)
-                ) {
-                    scope.launch {
-                        handler.toggleFavorite(result = result, selectedMedia)
+                if (SdkCompat.supportsFavorites) {
+                    SelectionBarColumn(
+                        imageVector = Icons.Outlined.FavoriteBorder,
+                        tabletMode = tabletMode,
+                        title = stringResource(R.string.favorite)
+                    ) {
+                        scope.launch {
+                            handler.toggleFavorite(result = result, selectedMedia)
+                        }
                     }
                 }
                 // Copy Component
@@ -297,7 +300,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         },
     ) {
         selector.clearSelection()
-        if (shouldMoveToTrash) {
+        if (shouldMoveToTrash && SdkCompat.supportsTrash) {
             handler.trashMedia(result, it, true)
         } else {
             handler.deleteMedia(result, it)

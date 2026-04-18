@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.collection.LruCache
 import com.dot.gallery.core.metrics.MetricsCollector
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
-import com.dot.gallery.feature_node.domain.model.Media
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.security.MessageDigest
@@ -61,10 +60,10 @@ class DecryptManager @Inject constructor(
         var result: DecryptResult? = null
         try {
             metrics.incDecryptInvocation()
-            val enc = with(keychainHolder) { file.decryptKotlin<Media.EncryptedMedia>() }
-            result = DecryptResult(enc.bytes, enc.mimeType)
+            val decrypted = keychainHolder.decryptVaultMedia(file)
+            result = DecryptResult(decrypted.bytes, decrypted.mimeType)
             // Only cache small results (< 2MB) to keep memory bounded
-            if (enc.bytes.size <= 2 * 1024 * 1024) {
+            if (result.bytes.size <= 2 * 1024 * 1024) {
                 lru.put(key, result)
             }
             return result

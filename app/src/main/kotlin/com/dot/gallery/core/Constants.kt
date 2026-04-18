@@ -63,6 +63,16 @@ object Constants {
         )
     }
 
+    private val PERMISSION_Q =
+        PERMISSION_COMMON.toMutableList().apply {
+            addAll(
+                listOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+            )
+        }
+
     private val PERMISSION_OLD =
         PERMISSION_COMMON.toMutableList().apply {
             addAll(
@@ -70,10 +80,10 @@ object Constants {
             )
         }
 
-    val PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        PERMISSION_T
-    } else {
-        PERMISSION_OLD
+    val PERMISSIONS = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> PERMISSION_T
+        Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> PERMISSION_Q
+        else -> PERMISSION_OLD
     }
 
 
