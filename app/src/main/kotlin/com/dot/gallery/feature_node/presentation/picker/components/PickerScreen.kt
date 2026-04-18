@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -41,9 +42,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +69,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,6 +87,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.feature_node.domain.model.Album
+import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
@@ -86,7 +98,10 @@ import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.PickerViewModel
+import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
+import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
+import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
 import com.dot.gallery.feature_node.presentation.util.toggleOrientation
 import com.dot.gallery.ui.theme.Dimens
@@ -119,6 +134,37 @@ fun PickerScreen(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var selectedAlbum by remember { mutableStateOf<Album?>(null) }
     var showPreview by remember { mutableStateOf(false) }
+    var pendingLockedAlbum by remember { mutableStateOf<Album?>(null) }
+    val securitySheetState = rememberAppBottomSheetState()
+    val biometricState = rememberBiometricState(
+        title = stringResource(R.string.biometric_authentication),
+        subtitle = stringResource(R.string.unlock_album_biometric_subtitle),
+        onSuccess = {
+            pendingLockedAlbum?.let { album ->
+                selectedAlbum = album
+            }
+            pendingLockedAlbum = null
+        },
+        onFailed = {
+            pendingLockedAlbum = null
+        }
+    )
+    val onAlbumClickWithLock: (Album) -> Unit = remember(biometricState) {
+        { album ->
+            if (album.isLocked) {
+                if (!biometricState.isSupported) {
+                    scope.launch { securitySheetState.show() }
+                } else {
+                    pendingLockedAlbum = album
+                    biometricState.authenticate()
+                }
+            } else {
+                selectedAlbum = album
+            }
+        }
+    }
+
+    PickerSecurityInfoSheet(sheetState = securitySheetState)
 
     val navState: PickerNavState = if (selectedAlbum != null) {
         PickerNavState.AlbumDetail(selectedAlbum!!)
@@ -304,7 +350,7 @@ fun PickerScreen(
                                         1 -> {
                                             PickerAlbumsGrid(
                                                 albums = albumsState.albums.filter { it.id != -1L },
-                                                onAlbumClick = { album -> selectedAlbum = album },
+                                                onAlbumClick = onAlbumClickWithLock,
                                                 sharedTransitionScope = this@SharedTransitionLayout,
                                                 animatedContentScope = contentScope
                                             )
@@ -457,6 +503,66 @@ private fun RowScope.PillTab(
             color = textColor,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PickerSecurityInfoSheet(
+    sheetState: AppBottomSheetState
+) {
+    val scope = rememberCoroutineScope()
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            sheetState = sheetState.sheetState,
+            onDismissRequest = {
+                scope.launch { sheetState.hide() }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            tonalElevation = 0.dp,
+            dragHandle = { DragHandle() },
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
+                    .navigationBarsPadding()
+            ) {
+                Text(
+                    text = stringResource(R.string.locked),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .fillMaxWidth()
+                )
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    text = stringResource(R.string.locked_album_security_error),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+                Button(
+                    onClick = {
+                        scope.launch { sheetState.hide() }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        }
     }
 }
 

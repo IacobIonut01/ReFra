@@ -15,6 +15,7 @@ import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
 import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.EditedMedia
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
+import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaCategory
@@ -44,9 +45,10 @@ import com.dot.gallery.feature_node.domain.util.Converters
         ImageEmbedding::class,
         Category::class,
         MediaCategory::class,
-        EditedMedia::class
+        EditedMedia::class,
+        LockedAlbum::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -64,6 +66,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 13, to = 14),
         AutoMigration(from = 14, to = 15, spec = InternalDatabase.RemoveIconEmojiMigration::class),
         AutoMigration(from = 15, to = 16),
+        AutoMigration(from = 16, to = 17),
     ]
 )
 @TypeConverters(Converters::class)
@@ -91,6 +94,8 @@ abstract class InternalDatabase : RoomDatabase() {
     abstract fun getCategoryDao(): CategoryDao
 
     abstract fun getEditHistoryDao(): EditHistoryDao
+
+    abstract fun getLockedAlbumDao(): LockedAlbumDao
 
     companion object {
         const val NAME = "internal_db"

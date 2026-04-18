@@ -7,6 +7,7 @@ import com.dot.gallery.BuildConfig
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.github.panpf.zoomimage.subsampling.ContentImageSource
 import com.github.panpf.zoomimage.subsampling.SubsamplingImage
@@ -347,6 +348,9 @@ fun <T : Media> List<T>.classifyGroupType(): MediaGroupType {
 
 fun List<Album>.mapPinned(pinnedAlbums: List<PinnedAlbum>): List<Album> =
     map { album -> album.copy(isPinned = pinnedAlbums.any { it.id == album.id }) }
+
+fun List<Album>.mapLocked(lockedAlbums: List<LockedAlbum>): List<Album> =
+    map { album -> album.copy(isLocked = lockedAlbums.any { it.id == album.id }) }
 
 fun List<Album>.removeBlacklisted(blacklistedAlbums: List<IgnoredAlbum>): List<Album> =
     toMutableList().apply {

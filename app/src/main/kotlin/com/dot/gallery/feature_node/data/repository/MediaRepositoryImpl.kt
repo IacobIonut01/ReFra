@@ -56,6 +56,7 @@ import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
+import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
@@ -192,6 +193,15 @@ class MediaRepositoryImpl(
 
     override fun getPinnedAlbums(): Flow<List<PinnedAlbum>> =
         database.getPinnedDao().getPinnedAlbums()
+
+    override suspend fun insertLockedAlbum(lockedAlbum: LockedAlbum) =
+        database.getLockedAlbumDao().insertLockedAlbum(lockedAlbum)
+
+    override suspend fun removeLockedAlbum(lockedAlbum: LockedAlbum) =
+        database.getLockedAlbumDao().removeLockedAlbum(lockedAlbum)
+
+    override fun getLockedAlbums(): Flow<List<LockedAlbum>> =
+        database.getLockedAlbumDao().getLockedAlbums()
 
     override suspend fun addBlacklistedAlbum(ignoredAlbum: IgnoredAlbum) =
         database.getBlacklistDao().addBlacklistedAlbum(ignoredAlbum)

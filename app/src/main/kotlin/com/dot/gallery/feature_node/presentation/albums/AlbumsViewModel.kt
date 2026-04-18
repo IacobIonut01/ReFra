@@ -15,6 +15,7 @@ import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.FilterOption
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
+import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -99,6 +100,16 @@ class AlbumsViewModel @Inject constructor(
                 repository.insertPinnedAlbum(PinnedAlbum(album.id))
             } else {
                 repository.removePinnedAlbum(PinnedAlbum(album.id))
+            }
+        }
+    }
+
+    fun toggleAlbumLock(album: Album) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (album.isLocked) {
+                repository.removeLockedAlbum(LockedAlbum(album.id))
+            } else {
+                repository.insertLockedAlbum(LockedAlbum(album.id))
             }
         }
     }

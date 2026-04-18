@@ -14,6 +14,7 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
+import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
@@ -48,10 +49,15 @@ open class PickerViewModel @Inject constructor(
             mediaState = lazy {
                 combine(
                     repository.getBlacklistedAlbums(),
+                    repository.getLockedAlbums(),
                     repository.mediaFlowWithType(value, allowedMedia)
-                ) { blacklisted, mediaResult ->
+                ) { blacklisted, lockedAlbums, mediaResult ->
+                    val lockedIds = lockedAlbums.mapTo(HashSet()) { it.id }
                     val data = (mediaResult.data ?: emptyList()).toMutableList().apply {
                         removeAll { media -> blacklisted.any { it.matchesMedia(media) && it.hiddenInTimeline } }
+                        if (value == -1L) {
+                            removeAll { media -> media.albumID in lockedIds }
+                        }
                     }
                     val error = if (mediaResult is Resource.Error) mediaResult.message
                         ?: "An error occurred" else ""
@@ -74,10 +80,15 @@ open class PickerViewModel @Inject constructor(
     var mediaState = lazy {
         combine(
             repository.getBlacklistedAlbums(),
+            repository.getLockedAlbums(),
             repository.mediaFlowWithType(albumId, allowedMedia)
-        ) { blacklisted, mediaResult ->
+        ) { blacklisted, lockedAlbums, mediaResult ->
+            val lockedIds = lockedAlbums.mapTo(HashSet()) { it.id }
             val data = (mediaResult.data ?: emptyList()).toMutableList().apply {
                 removeAll { media -> blacklisted.any { it.shouldIgnore(media) } }
+                if (albumId == -1L) {
+                    removeAll { media -> media.albumID in lockedIds }
+                }
             }
             val error = if (mediaResult is Resource.Error) mediaResult.message
                 ?: "An error occurred" else ""
@@ -99,10 +110,14 @@ open class PickerViewModel @Inject constructor(
     val albumsState by lazy {
         combine(
             repository.getBlacklistedAlbums(),
+            repository.getLockedAlbums(),
             repository.getAlbumsWithType(allowedMedia)
-        ) { blacklisted, albumsResult ->
+        ) { blacklisted, lockedAlbums, albumsResult ->
+            val lockedIds = lockedAlbums.mapTo(HashSet()) { it.id }
             val data = (albumsResult.data ?: emptyList()).toMutableList().apply {
                 removeAll { album -> blacklisted.any { it.matchesAlbum(album) && it.hiddenInAlbums } }
+            }.map { album ->
+                album.copy(isLocked = album.id in lockedIds)
             }
             val error = if (albumsResult is Resource.Error) albumsResult.message
                 ?: "An error occurred" else ""

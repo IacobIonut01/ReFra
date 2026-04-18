@@ -24,6 +24,7 @@ data class Album(
     var count: Long = 0,
     var size: Long = 0,
     val isPinned: Boolean = false,
+    val isLocked: Boolean = false,
 ) : Parcelable {
 
     val key: String

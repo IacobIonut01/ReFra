@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -29,21 +30,24 @@ fun rememberBiometricManager(): BiometricManager {
 fun rememberBiometricCallback(
     onSuccess: () -> Unit,
     onFailed: () -> Unit
-) = remember {
-    object : BiometricPrompt.AuthenticationCallback() {
-        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-            super.onAuthenticationError(errorCode, errString)
-            onFailed()
-        }
+): BiometricPrompt.AuthenticationCallback {
+    val currentOnSuccess by rememberUpdatedState(onSuccess)
+    val currentOnFailed by rememberUpdatedState(onFailed)
+    return remember {
+        object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                currentOnFailed()
+            }
 
-        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-            super.onAuthenticationSucceeded(result)
-            onSuccess()
-        }
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                currentOnSuccess()
+            }
 
-        override fun onAuthenticationFailed() {
-            super.onAuthenticationFailed()
-            onFailed()
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+            }
         }
     }
 }

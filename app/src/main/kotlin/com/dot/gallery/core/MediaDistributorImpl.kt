@@ -8,7 +8,9 @@ import com.dot.gallery.core.Settings.Misc.DEFAULT_DATE_FORMAT
 import com.dot.gallery.core.Settings.Misc.EXTENDED_DATE_FORMAT
 import com.dot.gallery.core.Settings.Misc.WEEKLY_DATE_FORMAT
 import com.dot.gallery.core.presentation.components.FilterKind
+import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
+import com.dot.gallery.feature_node.domain.model.AlbumThumbnail
 import com.dot.gallery.feature_node.domain.model.GeoMedia
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
@@ -16,6 +18,7 @@ import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
+import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.UIEvent
@@ -26,6 +29,7 @@ import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.domain.util.OrderType
+import com.dot.gallery.feature_node.domain.util.mapLocked
 import com.dot.gallery.feature_node.domain.util.mapPinned
 import com.dot.gallery.feature_node.domain.util.removeBlacklisted
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
@@ -138,6 +142,14 @@ class MediaDistributorImpl @Inject constructor(
                 initialValue = emptyList()
             )
 
+    override val lockedAlbumsFlow: StateFlow<List<LockedAlbum>> =
+        repository.getLockedAlbums()
+            .stateIn(
+                scope = appScope,
+                started = sharingMethod,
+                initialValue = emptyList()
+            )
+
     private var albumOrder: MediaOrder
         get() = settingsFlow.value?.albumMediaOrder ?: MediaOrder.Date(OrderType.Descending)
         set(value) {
@@ -162,16 +174,30 @@ class MediaDistributorImpl @Inject constructor(
             repository.getAlbums(mediaOrder = albumOrder),
             pinnedAlbumsFlow,
             blacklistedAlbumsFlow,
+            lockedAlbumsFlow,
             settingsFlow,
             albumThumbnails
-        ) { result, pinnedAlbums, blacklistedAlbums, settings, thumbnails ->
+        ) { values ->
+            @Suppress("UNCHECKED_CAST")
+            val result = values[0] as Resource<List<Album>>
+            @Suppress("UNCHECKED_CAST")
+            val pinnedAlbums = values[1] as List<PinnedAlbum>
+            @Suppress("UNCHECKED_CAST")
+            val blacklistedAlbums = values[2] as List<IgnoredAlbum>
+            @Suppress("UNCHECKED_CAST")
+            val lockedAlbums = values[3] as List<LockedAlbum>
+            val settings = values[4] as TimelineSettings?
+            @Suppress("UNCHECKED_CAST")
+            val thumbnails = values[5] as List<AlbumThumbnail>
             val newOrder = settings?.albumMediaOrder ?: albumOrder
             val data = newOrder.sortAlbums(result.data ?: emptyList()).map { album ->
                 val thumbnail = thumbnails.find { it.albumId == album.id }
                 if (thumbnail == null) return@map album
                 album.copy(uri = thumbnail.thumbnailUri)
             }
-            val cleanData = data.removeBlacklisted(blacklistedAlbums).mapPinned(pinnedAlbums)
+            val cleanData = data.removeBlacklisted(blacklistedAlbums)
+                .mapPinned(pinnedAlbums)
+                .mapLocked(lockedAlbums)
 
             AlbumState(
                 albums = cleanData,
@@ -267,6 +293,7 @@ class MediaDistributorImpl @Inject constructor(
             repository.mediaFlow(albumId, target),
             settingsFlow,
             blacklistedAlbumsFlow,
+            lockedAlbumsFlow,
             dateFormatsFlow,
             albumMediaSortFlow,
             groupSimilarMedia
@@ -274,9 +301,10 @@ class MediaDistributorImpl @Inject constructor(
             val result = values[0] as Resource<List<Media.UriMedia>>
             val settings = values[1] as TimelineSettings?
             val blacklistedAlbums = values[2] as List<IgnoredAlbum>
-            val dateFormats = values[3] as Triple<String, String, String>
-            val albumSort = values[4] as Settings.Album.LastSort
-            val shouldGroupSimilar = values[5] as Boolean
+            val lockedAlbums = values[3] as List<LockedAlbum>
+            val dateFormats = values[4] as Triple<String, String, String>
+            val albumSort = values[5] as Settings.Album.LastSort
+            val shouldGroupSimilar = values[6] as Boolean
             
             val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
             
@@ -294,8 +322,13 @@ class MediaDistributorImpl @Inject constructor(
             } else {
                 MediaOrder.Default
             }
+            val lockedAlbumIds = lockedAlbums.mapTo(HashSet()) { it.id }
             val data = (result.data ?: emptyList()).toMutableList().apply {
                 removeAll { media -> blacklistedAlbums.any { it.shouldIgnore(media, albumId) } }
+                // Hide media from locked albums in the main timeline
+                if (albumId == -1L && target == null) {
+                    removeAll { media -> media.albumID in lockedAlbumIds }
+                }
             }
             mapMediaToItem(
                 data = sorter.sortMedia(data),

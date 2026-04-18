@@ -22,6 +22,7 @@ import com.dot.gallery.feature_node.domain.model.Media.ClassifiedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
+import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
@@ -53,6 +54,12 @@ interface MediaRepository {
     suspend fun removePinnedAlbum(pinnedAlbum: PinnedAlbum)
 
     fun getPinnedAlbums(): Flow<List<PinnedAlbum>>
+
+    suspend fun insertLockedAlbum(lockedAlbum: LockedAlbum)
+
+    suspend fun removeLockedAlbum(lockedAlbum: LockedAlbum)
+
+    fun getLockedAlbums(): Flow<List<LockedAlbum>>
 
     suspend fun addBlacklistedAlbum(ignoredAlbum: IgnoredAlbum)
 

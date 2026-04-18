@@ -507,6 +507,11 @@
     <string name="search_media">Search media</string>
     <string name="rotate">Rotate</string>
     <string name="locked">Locked</string>
+    <string name="lock_album">Lock album</string>
+    <string name="unlock_album">Unlock album</string>
+    <string name="unlock_album_biometric_subtitle">Authenticate to view this album</string>
+    <string name="locked_album_security_error">Please set up a phone security measure (PIN, pattern, password or biometrics) before locking or unlocking albums.</string>
+    <string name="lock_album_disclaimer">Locking an album only hides it behind authentication within this app. The contents will not be encrypted and will still be accessible by other apps and file managers.\n\nTo encrypt your files, use the Vault feature instead.</string>
     <string name="decrypt_failed_tap_to_retry">Decrypt failed. Tap to retry.</string>
     <string name="other">Other</string>
     <string name="settings_trash_confirmation_title">Require confirmation on trash</string>

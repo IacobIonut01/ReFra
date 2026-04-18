@@ -44,6 +44,7 @@ import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.SecurityInfoSheet
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
@@ -55,6 +56,7 @@ import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.toastError
 import com.dot.gallery.feature_node.presentation.util.writeRequest
+import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -77,6 +79,8 @@ fun <T: Media> MoveMediaSheet(
     var newPath by remember(mediaList) { mutableStateOf("") }
 
     val newAlbumSheetState = rememberAppBottomSheetState()
+    val securitySheetState = rememberAppBottomSheetState()
+    var pendingLockedAlbumPath by remember { mutableStateOf<String?>(null) }
 
     val doMove: () -> Unit = {
         scope.launch {
@@ -108,6 +112,30 @@ fun <T: Media> MoveMediaSheet(
     }
 
     val request = rememberActivityResult { doMove() }
+
+    fun startMove(albumPath: String) {
+        scope.launch(Dispatchers.Main) {
+            newPath = albumPath
+            request.launchWriteRequest(
+                mediaList.writeRequest(context.contentResolver),
+                doMove
+            )
+        }
+    }
+
+    val biometricState = rememberBiometricState(
+        title = stringResource(R.string.biometric_authentication),
+        subtitle = stringResource(R.string.unlock_album_biometric_subtitle),
+        onSuccess = {
+            pendingLockedAlbumPath?.let { path ->
+                startMove(path)
+            }
+            pendingLockedAlbumPath = null
+        },
+        onFailed = {
+            pendingLockedAlbumPath = null
+        }
+    )
 
     if (sheetState.isVisible) {
         ModalBottomSheet(
@@ -207,12 +235,15 @@ fun <T: Media> MoveMediaSheet(
                                         && (item.relativePath.contains("Pictures")
                                         || item.relativePath.contains("DCIM"))),
                                 onItemClick = { album ->
-                                    scope.launch(Dispatchers.Main) {
-                                        newPath = album.relativePath
-                                        request.launchWriteRequest(
-                                            mediaList.writeRequest(context.contentResolver),
-                                            doMove
-                                        )
+                                    if (album.isLocked) {
+                                        if (!biometricState.isSupported) {
+                                            scope.launch { securitySheetState.show() }
+                                        } else {
+                                            pendingLockedAlbumPath = album.relativePath
+                                            biometricState.authenticate()
+                                        }
+                                    } else {
+                                        startMove(album.relativePath)
                                     }
                                 }
                             )
@@ -222,6 +253,8 @@ fun <T: Media> MoveMediaSheet(
             }
         }
     }
+
+    SecurityInfoSheet(sheetState = securitySheetState)
 
     AddAlbumSheet(
         sheetState = newAlbumSheetState,

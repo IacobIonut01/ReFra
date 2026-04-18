@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,6 +31,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileOpen
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.SdCard
@@ -91,6 +94,7 @@ fun AlbumComponent(
     onMoveAlbumToTrash: ((Album) -> Unit)? = null,
     onTogglePinClick: ((Album) -> Unit)? = null,
     onToggleIgnoreClick: ((Album) -> Unit)? = null,
+    onToggleLockClick: ((Album) -> Unit)? = null,
     onDeleteAlbumThumbnailClick: ((Album) -> Unit)? = null
 ) {
     val scope = rememberCoroutineScope()
@@ -104,6 +108,7 @@ fun AlbumComponent(
         val pinTitle = stringResource(R.string.pin)
         val changeThumbnailTitle = stringResource(R.string.change_thumbnail)
         val ignoredTitle = stringResource(id = R.string.add_to_ignored)
+        val lockTitle = stringResource(if (album.isLocked) R.string.unlock_album else R.string.lock_album)
         val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
         val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
         val primaryContainer = MaterialTheme.colorScheme.primaryContainer
@@ -155,7 +160,7 @@ fun AlbumComponent(
                 )
             )
         }
-        val optionList = remember(onMoveAlbumToTrash, onTogglePinClick, onToggleIgnoreClick) {
+        val optionList = remember(onMoveAlbumToTrash, onTogglePinClick, onToggleIgnoreClick, onToggleLockClick, album.isLocked) {
             mutableListOf(
                 OptionItem(
                     icon = Icons.Outlined.Delete,
@@ -191,6 +196,20 @@ fun AlbumComponent(
                     onClick = { isSelectingThumbnail = true }
                 ),
             ).apply {
+                if (onToggleLockClick != null) {
+                    add(
+                        OptionItem(
+                            icon = if (album.isLocked) Icons.Outlined.LockOpen else Icons.Outlined.Lock,
+                            text = lockTitle,
+                            onClick = {
+                                scope.launch {
+                                    appBottomSheetState.hide()
+                                    onToggleLockClick(album)
+                                }
+                            }
+                        )
+                    )
+                }
                 if (onToggleIgnoreClick != null) {
                     add(
                         OptionItem(
@@ -242,17 +261,34 @@ fun AlbumComponent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    GlideImage(
-                        modifier = Modifier
-                            .size(98.dp)
-                            .clip(Shapes.large),
-                        contentScale = ContentScale.Crop,
-                        model = album.uri,
-                        requestBuilderTransform = {
-                            it.signature(GlideInvalidation.signature(album))
-                        },
-                        contentDescription = album.label
-                    )
+                    if (album.isLocked) {
+                        Box(
+                            modifier = Modifier
+                                .size(98.dp)
+                                .clip(Shapes.large)
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = stringResource(R.string.locked),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    } else {
+                        GlideImage(
+                            modifier = Modifier
+                                .size(98.dp)
+                                .clip(Shapes.large),
+                            contentScale = ContentScale.Crop,
+                            model = album.uri,
+                            requestBuilderTransform = {
+                                it.signature(GlideInvalidation.signature(album))
+                            },
+                            contentDescription = album.label
+                        )
+                    }
                     Text(
                         text = buildAnnotatedString {
                             withStyle(
@@ -423,14 +459,31 @@ fun AlbumRowComponent(
                 state = appBottomSheetState,
                 optionList = arrayOf(optionList),
                 headerContent = {
-                    GlideImage(
-                        modifier = Modifier
-                            .size(98.dp)
-                            .clip(Shapes.large),
-                        contentScale = ContentScale.Crop,
-                        model = album.uri.toString(),
-                        contentDescription = album.label
-                    )
+                    if (album.isLocked) {
+                        Box(
+                            modifier = Modifier
+                                .size(98.dp)
+                                .clip(Shapes.large)
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = stringResource(R.string.locked),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    } else {
+                        GlideImage(
+                            modifier = Modifier
+                                .size(98.dp)
+                                .clip(Shapes.large),
+                            contentScale = ContentScale.Crop,
+                            model = album.uri.toString(),
+                            contentDescription = album.label
+                        )
+                    }
                     Text(
                         text = buildAnnotatedString {
                             withStyle(
@@ -533,7 +586,38 @@ fun AlbumImage(
         label = "cornerRadius"
     )
     val feedbackManager = rememberFeedbackManager()
-    if (album.id == -200L && album.count == 0L) {
+    if (album.isLocked) {
+        Icon(
+            imageVector = Icons.Outlined.Lock,
+            contentDescription = stringResource(R.string.locked),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = modifier
+                .fillMaxSize()
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(cornerRadius)
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(cornerRadius)
+                )
+                .clip(RoundedCornerShape(cornerRadius))
+                .combinedClickable(
+                    enabled = isEnabled,
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
+                    onClick = { onItemClick(album) },
+                    onLongClick = {
+                        onItemLongClick?.let {
+                            feedbackManager.vibrate()
+                            it(album)
+                        }
+                    }
+                )
+                .padding(48.dp)
+        )
+    } else if (album.id == -200L && album.count == 0L) {
         Icon(
             imageVector = Icons.Outlined.AddCircleOutline,
             contentDescription = null,

@@ -7,7 +7,28 @@ package com.dot.gallery.core.presentation.components
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -16,6 +37,8 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +54,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
+import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
+import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
+import kotlinx.coroutines.launch
 import com.dot.gallery.core.Constants.Animation.navigateInAnimation
 import com.dot.gallery.core.Constants.Animation.navigateUpAnimation
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
@@ -79,6 +105,7 @@ import com.dot.gallery.feature_node.presentation.timeline.TimelineScreen
 import com.dot.gallery.feature_node.presentation.trashed.TrashedGridScreen
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.vault.VaultScreen
+import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
@@ -232,13 +259,77 @@ fun NavigationComp(
                 route = Screen.AlbumsScreen()
             ) {
                 val albumsViewModel = hiltViewModel<AlbumsViewModel>()
+                val scope = rememberCoroutineScope()
+                var pendingAlbum by remember { mutableStateOf<com.dot.gallery.feature_node.domain.model.Album?>(null) }
+                var biometricAction by remember { mutableStateOf<String?>(null) }
+                var pendingLockAlbum by remember { mutableStateOf<com.dot.gallery.feature_node.domain.model.Album?>(null) }
+                val securitySheetState = rememberAppBottomSheetState()
+                val lockDisclaimerSheetState = rememberAppBottomSheetState()
+                val biometricState = rememberBiometricState(
+                    title = stringResource(R.string.biometric_authentication),
+                    subtitle = stringResource(R.string.unlock_album_biometric_subtitle),
+                    onSuccess = {
+                        when (biometricAction) {
+                            "open" -> pendingAlbum?.let { album ->
+                                albumsViewModel.onAlbumClick(eventHandler::navigate)(album)
+                            }
+                            "unlock" -> pendingAlbum?.let { album ->
+                                albumsViewModel.toggleAlbumLock(album)
+                            }
+                        }
+                        pendingAlbum = null
+                        biometricAction = null
+                    },
+                    onFailed = {
+                        pendingAlbum = null
+                        biometricAction = null
+                    }
+                )
+                val onAlbumClickWithLock: (com.dot.gallery.feature_node.domain.model.Album) -> Unit = remember(biometricState) {
+                    { album ->
+                        if (album.isLocked) {
+                            if (!biometricState.isSupported) {
+                                scope.launch { securitySheetState.show() }
+                            } else {
+                                pendingAlbum = album
+                                biometricAction = "open"
+                                biometricState.authenticate()
+                            }
+                        } else {
+                            albumsViewModel.onAlbumClick(eventHandler::navigate)(album)
+                        }
+                    }
+                }
+                val onLockAlbumWithCheck: (com.dot.gallery.feature_node.domain.model.Album) -> Unit = remember(biometricState) {
+                    { album ->
+                        if (!biometricState.isSupported) {
+                            scope.launch { securitySheetState.show() }
+                        } else if (album.isLocked) {
+                            pendingAlbum = album
+                            biometricAction = "unlock"
+                            biometricState.authenticate()
+                        } else {
+                            pendingLockAlbum = album
+                            scope.launch { lockDisclaimerSheetState.show() }
+                        }
+                    }
+                }
+                SecurityInfoSheet(sheetState = securitySheetState)
+                LockDisclaimerSheet(
+                    sheetState = lockDisclaimerSheetState,
+                    onConfirm = {
+                        pendingLockAlbum?.let { albumsViewModel.toggleAlbumLock(it) }
+                        pendingLockAlbum = null
+                    }
+                )
                 AlbumsScreen(
                     isScrolling = isScrolling,
-                    onAlbumClick = albumsViewModel.onAlbumClick(eventHandler::navigate),
+                    onAlbumClick = onAlbumClickWithLock,
                     onAlbumLongClick = albumsViewModel.onAlbumLongClick,
                     filterOptions = albumsViewModel.rememberFilters(),
                     onMoveAlbumToTrash = albumsViewModel::moveAlbumToTrash,
                     onIgnoreAlbum = albumsViewModel::addAlbumToIgnored,
+                    onLockAlbum = onLockAlbumWithCheck,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -690,6 +781,145 @@ fun NavigationComp(
                 )
             }
 
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun SecurityInfoSheet(
+    sheetState: AppBottomSheetState
+) {
+    val scope = rememberCoroutineScope()
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            sheetState = sheetState.sheetState,
+            onDismissRequest = {
+                scope.launch { sheetState.hide() }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            tonalElevation = 0.dp,
+            dragHandle = { DragHandle() },
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
+                    .navigationBarsPadding()
+            ) {
+                Text(
+                    text = stringResource(R.string.locked),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .fillMaxWidth()
+                )
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    text = stringResource(R.string.locked_album_security_error),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+                Button(
+                    onClick = {
+                        scope.launch { sheetState.hide() }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LockDisclaimerSheet(
+    sheetState: AppBottomSheetState,
+    onConfirm: () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            sheetState = sheetState.sheetState,
+            onDismissRequest = {
+                scope.launch { sheetState.hide() }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            tonalElevation = 0.dp,
+            dragHandle = { DragHandle() },
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
+                    .navigationBarsPadding()
+            ) {
+                Text(
+                    text = stringResource(R.string.lock_album),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .fillMaxWidth()
+                )
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    text = stringResource(R.string.lock_album_disclaimer),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = {
+                            scope.launch { sheetState.hide() }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    ) {
+                        Text(text = stringResource(R.string.action_cancel))
+                    }
+                    Button(
+                        onClick = {
+                            onConfirm()
+                            scope.launch { sheetState.hide() }
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.lock_album))
+                    }
+                }
+            }
         }
     }
 }

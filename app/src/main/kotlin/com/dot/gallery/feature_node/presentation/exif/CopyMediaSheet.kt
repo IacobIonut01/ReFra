@@ -28,7 +28,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -44,6 +47,7 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.SecurityInfoSheet
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
@@ -52,6 +56,7 @@ import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponen
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
+import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -72,6 +77,8 @@ fun <T: Media> CopyMediaSheet(
     val isActive by viewModel.isActive.collectAsState()
 
     val newAlbumSheetState = rememberAppBottomSheetState()
+    val securitySheetState = rememberAppBottomSheetState()
+    var pendingLockedAlbumPath by remember { mutableStateOf<String?>(null) }
     val mutex = Mutex()
 
     fun copyMedia(path: String) {
@@ -85,6 +92,20 @@ fun <T: Media> CopyMediaSheet(
             }
         }
     }
+
+    val biometricState = rememberBiometricState(
+        title = stringResource(R.string.biometric_authentication),
+        subtitle = stringResource(R.string.unlock_album_biometric_subtitle),
+        onSuccess = {
+            pendingLockedAlbumPath?.let { path ->
+                copyMedia(path)
+            }
+            pendingLockedAlbumPath = null
+        },
+        onFailed = {
+            pendingLockedAlbumPath = null
+        }
+    )
 
     LaunchedEffect(isActive) {
         if (isActive) {
@@ -215,7 +236,16 @@ fun <T: Media> CopyMediaSheet(
                                         && (item.relativePath.contains("Pictures")
                                         || item.relativePath.contains("DCIM"))),
                                 onItemClick = { album ->
-                                    copyMedia(album.relativePath)
+                                    if (album.isLocked) {
+                                        if (!biometricState.isSupported) {
+                                            scope.launch { securitySheetState.show() }
+                                        } else {
+                                            pendingLockedAlbumPath = album.relativePath
+                                            biometricState.authenticate()
+                                        }
+                                    } else {
+                                        copyMedia(album.relativePath)
+                                    }
                                 }
                             )
                         }
@@ -224,6 +254,8 @@ fun <T: Media> CopyMediaSheet(
             }
         }
     }
+
+    SecurityInfoSheet(sheetState = securitySheetState)
 
     AddAlbumSheet(
         sheetState = newAlbumSheetState,

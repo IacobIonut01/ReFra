@@ -79,6 +79,7 @@ fun AlbumsScreen(
     onAlbumLongClick: (Album) -> Unit,
     onMoveAlbumToTrash: (ActivityResultLauncher<IntentSenderRequest>, Album) -> Unit,
     onIgnoreAlbum: (Album) -> Unit,
+    onLockAlbum: (Album) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
@@ -212,7 +213,8 @@ fun AlbumsScreen(
                                         onMoveAlbumToTrash = {
                                             onMoveAlbumToTrash(trashResult, it)
                                         },
-                                        onToggleIgnoreClick = onIgnoreAlbum
+                                        onToggleIgnoreClick = onIgnoreAlbum,
+                                        onToggleLockClick = onLockAlbum
                                     )
                                 }
                             }
