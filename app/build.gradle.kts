@@ -19,7 +19,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.dot.gallery"
+        applicationId = "com.dot.gallery.gplay"
         minSdk = 29
         targetSdk = 36
         versionCode = 41301
@@ -75,6 +75,14 @@ android {
             buildConfigField("Boolean", "MAPS_ENABLED", "$includeMaps")
             buildConfigField("String", "CONTENT_AUTHORITY", "\"com.dot.gallery.media_provider\"")
             buildConfigField("Boolean", "ENABLE_INDEXING", "true")
+        }
+        create("gplay") {
+            initWith(getByName("release"))
+            ndk.debugSymbolLevel = "FULL"
+            manifestPlaceholders += mapOf(
+                "appProvider" to "com.dot.gallery.media_provider.gplay"
+            )
+            buildConfigField("String", "CONTENT_AUTHORITY", "\"com.dot.gallery.media_provider.gplay\"")
         }
         create("staging") {
             initWith(getByName("release"))
