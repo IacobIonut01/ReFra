@@ -78,6 +78,7 @@ android {
         }
         create("gplay") {
             initWith(getByName("release"))
+            matchingFallbacks += "release"
             ndk.debugSymbolLevel = "FULL"
             manifestPlaceholders += mapOf(
                 "appProvider" to "com.dot.gallery.media_provider.gplay"
