@@ -2,19 +2,18 @@ package com.dot.gallery.feature_node.presentation.edit.components.markup
 
 import android.graphics.Bitmap
 import android.graphics.Paint
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -36,9 +35,7 @@ import com.dot.gallery.feature_node.domain.model.editor.DrawMode
 import com.dot.gallery.feature_node.domain.model.editor.PainterMotionEvent
 import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.presentation.edit.utils.dragMotionEvent
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -62,6 +59,8 @@ fun MarkupPainter(
     currentImage: Bitmap?,
     applyDrawing: (Bitmap, () -> Unit) -> Unit,
     onNavigateBack: () -> Unit = {},
+    requestApply: Boolean = false,
+    onApplyHandled: () -> Unit = {},
 ) {
     var graphicsLayer = rememberGraphicsLayer()
 
@@ -78,15 +77,14 @@ fun MarkupPainter(
     // used to suppress accidental drawing from the first finger of a pinch
     var isZooming by remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope { Dispatchers.IO }
     val shouldSaveDrawing by remember(paths, currentImage) {
         derivedStateOf { paths.isNotEmpty() && currentImage != null }
     }
 
     val mutex = remember { Mutex() }
 
-    BackHandler(shouldSaveDrawing) {
-        scope.launch {
+    LaunchedEffect(requestApply) {
+        if (requestApply && shouldSaveDrawing) {
             delay(100)
             mutex.withLock {
                 val image = graphicsLayer.toImageBitmap().asAndroidBitmap()
@@ -94,6 +92,9 @@ fun MarkupPainter(
                     onNavigateBack()
                 }
             }
+            onApplyHandled()
+        } else if (requestApply) {
+            onApplyHandled()
         }
     }
 

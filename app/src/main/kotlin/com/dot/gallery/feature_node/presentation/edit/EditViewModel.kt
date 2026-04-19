@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -210,7 +211,7 @@ class EditViewModel @Inject constructor(
         }
     }
 
-    private fun clearDrawingBoard() {
+    fun clearDrawingBoard() {
         _paths.value = emptyList()
         _pathsUndone.value = emptyList()
         _currentPath.value = Path()
@@ -338,7 +339,9 @@ class EditViewModel @Inject constructor(
                         e.printStackTrace()
                     }
                     clearDrawingBoard()
-                    onFinish()
+                    withContext(Dispatchers.Main) {
+                        onFinish()
+                    }
                 }
             }
         }

@@ -31,7 +31,9 @@ import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.Brush
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -139,6 +141,7 @@ fun EditScreen2(
     applyDrawing: (Bitmap, () -> Unit) -> Unit,
     undoLastPath: () -> Unit,
     redoLastPath: () -> Unit,
+    clearDrawing: () -> Unit = {},
     onRevertToOriginal: () -> Unit = {}
 ) = GalleryTheme(darkTheme = true, ignoreUserPreference = true) {
     val context = LocalContext.current
@@ -158,6 +161,8 @@ fun EditScreen2(
         if (!showMarkup) showMarkupTools = false
     }
 
+    var requestMarkupApply by remember { mutableStateOf(false) }
+
     BackHandler(showMarkup) {
         navController.popBackStack()
     }
@@ -171,7 +176,7 @@ fun EditScreen2(
     }
 
     val animatedBlurRadius by animateDpAsState(
-        if (isSaving || isReverting || cropState.isCropping) 50.dp else 0.dp,
+        if (isSaving || isReverting || cropState.isCropping || requestMarkupApply) 50.dp else 0.dp,
         label = "animatedBlurRadius"
     )
 
@@ -181,7 +186,7 @@ fun EditScreen2(
                 .hazeSource(LocalHazeState.current)
                 .animateContentSize()
                 .fillMaxSize()
-                .then(if (isSaving || isReverting || cropState.isCropping) Modifier.blur(animatedBlurRadius) else Modifier),
+                .then(if (isSaving || isReverting || cropState.isCropping || requestMarkupApply) Modifier.blur(animatedBlurRadius) else Modifier),
             containerColor = Color.Black,
             contentColor = Color.White,
             bottomBar = {
@@ -351,7 +356,40 @@ fun EditScreen2(
                         }
 
                         AnimatedVisibility(
-                            visible = isChanged,
+                            visible = showMarkup,
+                            enter = enterAnimation,
+                            exit = exitAnimation
+                        ) {
+                            val hasMarkupPaths by rememberedDerivedState(paths) { paths.isNotEmpty() }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                IconButton(
+                                    onClick = clearDrawing,
+                                    enabled = hasMarkupPaths
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Delete,
+                                        contentDescription = stringResource(R.string.reset),
+                                        tint = LocalContentColor.current
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { requestMarkupApply = true },
+                                    enabled = hasMarkupPaths
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = stringResource(R.string.apply),
+                                        tint = if (hasMarkupPaths) MaterialTheme.colorScheme.primary
+                                            else LocalContentColor.current
+                                    )
+                                }
+                            }
+                        }
+
+                        AnimatedVisibility(
+                            visible = isChanged && !showMarkup,
                             enter = enterAnimation,
                             exit = exitAnimation
                         ) {
@@ -463,7 +501,9 @@ fun EditScreen2(
                             setCurrentPath = setCurrentPath,
                             setCurrentPathProperty = setCurrentPathProperty,
                             applyDrawing = applyDrawing,
-                            onNavigateBack = { navController.popBackStack() }
+                            onNavigateBack = { navController.popBackStack() },
+                            requestApply = requestMarkupApply,
+                            onApplyHandled = { requestMarkupApply = false }
                         )
                     },
                     supportingPane = {
@@ -530,7 +570,7 @@ fun EditScreen2(
         }
 
         AnimatedVisibility(
-            visible = isSaving || isReverting,
+            visible = isSaving || isReverting || requestMarkupApply,
             enter = enterAnimation,
             exit = exitAnimation
         ) {

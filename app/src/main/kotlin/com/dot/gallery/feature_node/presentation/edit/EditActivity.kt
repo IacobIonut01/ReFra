@@ -189,6 +189,7 @@ class EditActivity : ComponentActivity() {
                         applyDrawing = viewModel::applyDrawing,
                         undoLastPath = viewModel::undoLastPath,
                         redoLastPath = viewModel::redoLastPath,
+                        clearDrawing = viewModel::clearDrawingBoard,
                         onRevertToOriginal = {
                             scope.launch {
                                 uri?.let { uri ->

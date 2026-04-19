@@ -76,7 +76,9 @@ fun ImageViewer(
     setCurrentPath: (Path) -> Unit,
     setCurrentPathProperty: (PathProperties) -> Unit,
     applyDrawing: (Bitmap, () -> Unit) -> Unit,
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    requestApply: Boolean = false,
+    onApplyHandled: () -> Unit = {}
 ) {
 
     val resizedBitmap by remember(currentImage) {
@@ -157,7 +159,9 @@ fun ImageViewer(
                         setCurrentPathProperty = setCurrentPathProperty,
                         currentImage = currentImage,
                         applyDrawing = applyDrawing,
-                        onNavigateBack = onNavigateBack
+                        onNavigateBack = onNavigateBack,
+                        requestApply = requestApply,
+                        onApplyHandled = onApplyHandled
                     )
                 }
             }
