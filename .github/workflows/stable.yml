@@ -98,7 +98,7 @@ jobs:
         run: git config --global user.email "paulionut2003@gmail.com" &&
           git config --global user.name "IacobIonut01" &&
           git fetch https://github.com/IacobIonut01/Gallery.git main_play &&
-          git cherry-pick 7eb55ab9 36ee7735 &&
+          git cherry-pick 8ff8ee46 b8e961d1 &&
           chmod +x ./strip_allfiles_permission.sh && ./strip_allfiles_permission.sh &&
           echo ALL_FILES_ACCESS=false > ./app.properties
       - name: Build Google Play Bundle
