@@ -1,6 +1,6 @@
 [versions]
 adaptive = "1.2.0"
-agp = "9.1.1"
+agp = "9.2.0"
 aire = "0.18.1"
 avifCoderCoil = "2.2.0"
 benchmarkMacroJunit4 = "1.5.0-alpha05"
