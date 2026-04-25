@@ -5,17 +5,18 @@
 
 package com.dot.gallery.feature_node.presentation.location
 
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,19 +53,18 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.createBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.dot.gallery.BuildConfig
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
@@ -72,61 +72,72 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.GeoMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
-import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.classifier.CategoriesViewModel
-import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.rememberSurfaceCapture
 import com.dot.gallery.ui.theme.isDarkTheme
-import com.mapbox.common.MapboxOptions
-import com.mapbox.geojson.Feature
-import com.mapbox.geojson.FeatureCollection
-import com.mapbox.geojson.Point
-import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.EdgeInsets
-import com.mapbox.maps.MapView
-import com.mapbox.maps.MapboxExperimental
-import com.mapbox.maps.Style
-import com.mapbox.maps.extension.compose.ComposeMapInitOptions
-import com.mapbox.maps.extension.compose.MapEffect
-import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
-import com.mapbox.maps.extension.compose.style.MapStyle
-import com.mapbox.maps.extension.style.expressions.generated.Expression
-import com.mapbox.maps.extension.style.layers.addLayer
-import com.mapbox.maps.extension.style.layers.generated.circleLayer
-import com.mapbox.maps.extension.style.layers.generated.heatmapLayer
-import com.mapbox.maps.extension.style.layers.generated.symbolLayer
-import com.mapbox.maps.extension.style.sources.addSource
-import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
-import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.compose.camera.rememberCameraState
+import org.maplibre.spatialk.geojson.Position
+import org.maplibre.compose.expressions.dsl.asNumber
+import org.maplibre.compose.expressions.dsl.condition
+import org.maplibre.compose.expressions.dsl.const
+import org.maplibre.compose.expressions.dsl.feature
+import org.maplibre.compose.expressions.dsl.heatmapDensity
+import org.maplibre.compose.expressions.dsl.interpolate
+import org.maplibre.compose.expressions.dsl.linear
+import org.maplibre.compose.expressions.dsl.nil
+import org.maplibre.compose.expressions.dsl.switch
+import org.maplibre.compose.expressions.dsl.zoom
+import org.maplibre.compose.expressions.dsl.image
+import org.maplibre.compose.layers.CircleLayer
+import org.maplibre.compose.layers.HeatmapLayer
+import org.maplibre.compose.layers.SymbolLayer
+import org.maplibre.compose.map.MaplibreMap
+import org.maplibre.compose.map.MapOptions
+import org.maplibre.compose.map.OrnamentOptions
+import org.maplibre.compose.sources.GeoJsonData
+import org.maplibre.compose.sources.GeoJsonOptions
+import org.maplibre.compose.sources.rememberGeoJsonSource
+import org.maplibre.compose.style.BaseStyle
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
+import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.ui.graphics.Color as ComposeColor
 
-private const val HEATMAP_SOURCE_ID = "media-heatmap-source"
-private const val HEATMAP_LAYER_ID = "media-heatmap"
-private const val SELECTED_SOURCE_ID = "media-selected-source"
-private const val SELECTED_LAYER_ID = "media-selected-point"
+private const val OPEN_FREE_MAP_LIGHT = "https://tiles.openfreemap.org/styles/liberty"
+private const val OPEN_FREE_MAP_DARK = "https://tiles.openfreemap.org/styles/dark"
 
 @Suppress("ComposeRules")
-@OptIn(
-    MapboxExperimental::class,
-    ExperimentalMaterial3Api::class,
-)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MapLocationsContent(
     metadataState: State<MediaMetadataState>,
 ) {
     val sheetHazeState = LocalHazeState.current
     val allowBlur by rememberAllowBlur()
+    val composeView: View = LocalView.current
     val context = LocalContext.current
     val eventHandler = LocalEventHandler.current
     val viewModel = hiltViewModel<CategoriesViewModel>()
@@ -161,8 +172,6 @@ internal fun MapLocationsContent(
         }
     }
 
-    MapboxOptions.accessToken = BuildConfig.MAPS_TOKEN
-
     // Saveable state for configuration changes
     var savedLat by rememberSaveable { mutableDoubleStateOf(30.0) }
     var savedLng by rememberSaveable { mutableDoubleStateOf(10.0) }
@@ -176,29 +185,25 @@ internal fun MapLocationsContent(
 
     val gridState = rememberLazyGridState()
 
-    val density = LocalDensity.current
-    val sheetPeekHeightPx = remember(density) { with(density) { 280.dp.toPx() } }
-
     // Adaptive layout detection
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()
     val useWideLayout =
         windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
-    val mapViewportState = rememberMapViewportState {
-        setCameraOptions {
-            zoom(savedZoom)
-            center(Point.fromLngLat(savedLng, savedLat))
-            pitch(0.0)
-            bearing(0.0)
-            if (!useWideLayout) {
-                padding(EdgeInsets(0.0, 0.0, sheetPeekHeightPx.toDouble(), 0.0))
-            }
-        }
-    }
-
-    var mapReady by remember { mutableStateOf(false) }
-    var mapViewRef by remember { mutableStateOf<MapView?>(null) }
+    val sheetPeekHeight = 280.dp
+    val sheetPeekHeightPx = with(LocalDensity.current) { sheetPeekHeight.toPx() }
     var currentSheetPaddingPx by remember { mutableFloatStateOf(if (useWideLayout) 0f else sheetPeekHeightPx) }
+    val density = LocalDensity.current
+
+    val cameraState = rememberCameraState(
+        firstPosition = CameraPosition(
+            target = Position(longitude = savedLng, latitude = savedLat),
+            zoom = savedZoom,
+            tilt = 0.0,
+            bearing = 0.0,
+            padding = if (!useWideLayout) PaddingValues(bottom = sheetPeekHeight) else PaddingValues(0.dp)
+        )
+    )
 
     val accentColor = MaterialTheme.colorScheme.primary
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -219,6 +224,61 @@ internal fun MapLocationsContent(
             (surfaceColor.blue * 255).toInt()
         )
     }
+
+    val accentComposeColor = ComposeColor(accentArgb)
+    val surfaceComposeColor = ComposeColor(surfaceArgb)
+
+    // ── Load circular thumbnail for selected media marker ──
+    var selectedThumbBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(selectedGeoMedia) {
+        val item = selectedGeoMedia ?: run {
+            selectedThumbBitmap = null
+            return@LaunchedEffect
+        }
+        selectedThumbBitmap = null
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val thumbSize = 192
+                val uri = item.media.getUri()
+                val bitmap = Glide.with(context.applicationContext)
+                    .asBitmap()
+                    .load(uri)
+                    .centerCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .signature(GlideInvalidation.signature(item.media))
+                    .submit(thumbSize, thumbSize)
+                    .get()
+
+                val output = createBitmap(thumbSize, thumbSize)
+                val canvas = Canvas(output)
+                val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+                val half = thumbSize / 2f
+                canvas.drawCircle(half, half, half, paint)
+                paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+                canvas.drawBitmap(
+                    bitmap,
+                    (thumbSize - bitmap.width) / 2f,
+                    (thumbSize - bitmap.height) / 2f,
+                    paint
+                )
+                val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = 3f
+                    color = surfaceArgb
+                }
+                canvas.drawCircle(half, half, half - 1.5f, borderPaint)
+
+                selectedThumbBitmap = output.asImageBitmap()
+            }
+        }
+    }
+
+    // ── Capture map SurfaceView for haze blur ──
+    var mapReady by remember { mutableStateOf(false) }
+    val mapCaptureState = rememberSurfaceCapture(
+        view = composeView,
+        enabled = allowBlur && mapReady
+    )
 
     // Set initial selection when data loads
     LaunchedEffect(sortedGeoMedia) {
@@ -241,133 +301,77 @@ internal fun MapLocationsContent(
             }
     }
 
-    // Fly camera when selected location changes (skip if triggered by map drag)
+    // Fly camera when selected location changes
     val selectedLocationKey = remember(selectedGeoMedia) {
         selectedGeoMedia?.let { "${it.latitude},${it.longitude}" } ?: ""
     }
     LaunchedEffect(selectedLocationKey) {
         val item = selectedGeoMedia ?: return@LaunchedEffect
-        mapViewportState.flyTo(
-            CameraOptions.Builder()
-                .center(Point.fromLngLat(item.longitude, item.latitude))
-                .zoom(12.0)
-                .padding(EdgeInsets(0.0, 0.0, currentSheetPaddingPx.toDouble(), 0.0))
-                .build()
+        val bottomPaddingDp = with(density) { currentSheetPaddingPx.toDp() }
+        cameraState.animateTo(
+            finalPosition = CameraPosition(
+                target = Position(longitude = item.longitude, latitude = item.latitude),
+                zoom = 12.0,
+                tilt = 0.0,
+                bearing = 0.0,
+                padding = PaddingValues(bottom = bottomPaddingDp)
+            ),
+            duration = 500.milliseconds
         )
     }
 
-    // Save camera position for config changes
-    LaunchedEffect(mapReady) {
-        if (!mapReady) return@LaunchedEffect
-        snapshotFlow {
-            mapViewRef?.mapboxMap?.cameraState
-        }.collect { cameraState ->
-            if (cameraState != null) {
-                savedLat = cameraState.center.latitude()
-                savedLng = cameraState.center.longitude()
-                savedZoom = cameraState.zoom
+    // Save camera position for config changes (debounced to avoid recomposition storm)
+    LaunchedEffect(cameraState) {
+        snapshotFlow { cameraState.position }
+            .debounce(500)
+            .collect { pos ->
+                savedLat = pos.target.latitude
+                savedLng = pos.target.longitude
+                savedZoom = pos.zoom
             }
-        }
     }
 
-    // Load thumbnail for the selected media on demand
-    var selectedThumbId by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(selectedGeoMedia, mapReady) {
-        val item = selectedGeoMedia ?: return@LaunchedEffect
-        if (!mapReady) return@LaunchedEffect
-        val thumbId = "thumb-${item.mediaId}"
-        selectedThumbId = null
-        scope.launch {
-            withContext(Dispatchers.IO) {
-                runCatching {
-                    val thumbSize = 192
-                    val appContext = context.applicationContext
-                    val uri = item.media.getUri()
-                    val bitmap: Bitmap = Glide.with(appContext)
-                        .asBitmap()
-                        .load(uri)
-                        .centerCrop()
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .signature(GlideInvalidation.signature(item.media))
-                        .submit(thumbSize, thumbSize)
-                        .get()
-
-                    val output = createBitmap(thumbSize, thumbSize)
-                    val canvas = Canvas(output)
-                    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-                    val half = thumbSize / 2f
-                    canvas.drawCircle(half, half, half, paint)
-                    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-                    canvas.drawBitmap(
-                        bitmap,
-                        ((thumbSize - bitmap.width) / 2f),
-                        ((thumbSize - bitmap.height) / 2f),
-                        paint
-                    )
-                    val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        style = Paint.Style.STROKE
-                        strokeWidth = 3f
-                        color = surfaceArgb
-                    }
-                    canvas.drawCircle(half, half, half - 1.5f, borderPaint)
-
-                    withContext(Dispatchers.Main) {
-                        runCatching {
-                            mapViewRef?.mapboxMap?.style?.addImage(thumbId, output)
+    // ── Build GeoJSON sources reactively ──
+    val heatmapGeoJson = remember(geoMedia) {
+        buildJsonObject {
+            put("type", "FeatureCollection")
+            putJsonArray("features") {
+                geoMedia.forEach { item ->
+                    addJsonObject {
+                        put("type", "Feature")
+                        putJsonObject("geometry") {
+                            put("type", "Point")
+                            putJsonArray("coordinates") {
+                                add(item.longitude)
+                                add(item.latitude)
+                            }
                         }
-                        selectedThumbId = thumbId
+                        putJsonObject("properties") {}
                     }
                 }
             }
-        }
+        }.toString()
     }
 
-    // Update selected marker on map
-    LaunchedEffect(selectedGeoMedia, selectedThumbId, mapReady) {
-        val item = selectedGeoMedia ?: return@LaunchedEffect
-        if (!mapReady) return@LaunchedEffect
-        val mapboxMap = mapViewRef?.mapboxMap ?: return@LaunchedEffect
-
-        mapboxMap.getStyle { style ->
-            runCatching { style.removeStyleLayer(SELECTED_LAYER_ID) }
-            runCatching { style.removeStyleSource(SELECTED_SOURCE_ID) }
-
-            val thumbReady = selectedThumbId == "thumb-${item.mediaId}"
-
-            val feature = Feature.fromGeometry(
-                Point.fromLngLat(item.longitude, item.latitude)
-            ).apply {
-                if (thumbReady) {
-                    addStringProperty("thumbIcon", selectedThumbId!!)
+    val selectedGeoJson = remember(selectedGeoMedia) {
+        val item = selectedGeoMedia
+            ?: return@remember "{\"type\":\"FeatureCollection\",\"features\":[]}"
+        buildJsonObject {
+            put("type", "FeatureCollection")
+            putJsonArray("features") {
+                addJsonObject {
+                    put("type", "Feature")
+                    putJsonObject("geometry") {
+                        put("type", "Point")
+                        putJsonArray("coordinates") {
+                            add(item.longitude)
+                            add(item.latitude)
+                        }
+                    }
+                    putJsonObject("properties") {}
                 }
             }
-
-            style.addSource(
-                geoJsonSource(SELECTED_SOURCE_ID) {
-                    featureCollection(FeatureCollection.fromFeatures(listOf(feature)))
-                }
-            )
-
-            if (thumbReady) {
-                style.addLayer(
-                    symbolLayer(SELECTED_LAYER_ID, SELECTED_SOURCE_ID) {
-                        iconImage(Expression.get { literal("thumbIcon") })
-                        iconSize(1.5)
-                        iconAllowOverlap(true)
-                        iconIgnorePlacement(true)
-                    }
-                )
-            } else {
-                style.addLayer(
-                    circleLayer(SELECTED_LAYER_ID, SELECTED_SOURCE_ID) {
-                        circleColor(accentArgb)
-                        circleRadius(14.0)
-                        circleStrokeWidth(3.0)
-                        circleStrokeColor(surfaceArgb)
-                    }
-                )
-            }
-        }
+        }.toString()
     }
 
     // Helper: navigate to media viewer for a given media
@@ -388,41 +392,36 @@ internal fun MapLocationsContent(
         }
     }
 
-    // ── Capture map SurfaceView for haze blur ──
-    val mapCapture by rememberSurfaceCapture(
-        view = mapViewRef,
-        enabled = allowBlur && mapReady
-    )
-
     // ── Shared composable: Map ──
+    val mapOptions = remember {
+        MapOptions(
+            ornamentOptions = OrnamentOptions(
+                isLogoEnabled = true,
+                isAttributionEnabled = false,
+                isCompassEnabled = false,
+                isScaleBarEnabled = false
+            )
+        )
+    }
+
+    val baseStyle = remember(isDark) {
+        BaseStyle.Uri(if (isDark) OPEN_FREE_MAP_DARK else OPEN_FREE_MAP_LIGHT)
+    }
+
     val mapContent: @Composable (Modifier) -> Unit = { modifier ->
         Box(modifier = modifier) {
-            // Captured map bitmap as hazeSource — sits in Compose layer behind the
-            // SurfaceView hole so haze can read it for position-correct blur.
-            mapCapture?.let { bitmap ->
-                Image(
-                    bitmap = bitmap,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .hazeSource(sheetHazeState)
-                )
-            }
+            MapBlurOverlay(mapCaptureState, sheetHazeState)
 
-            MapboxMap(
+            MaplibreMap(
                 modifier = Modifier.fillMaxSize(),
-                composeMapInitOptions = with(LocalDensity.current) {
-                    remember { ComposeMapInitOptions(density.density) }
-                },
-                mapViewportState = mapViewportState,
-                scaleBar = {},
-                logo = {},
-                attribution = {},
-                onMapClickListener = OnMapClickListener { clickedPoint ->
+                cameraState = cameraState,
+                options = mapOptions,
+                baseStyle = baseStyle,
+                onMapLoadFinished = { mapReady = true },
+                onMapClick = { pos, _ ->
                     val closest = sortedGeoMedia.minByOrNull { geo ->
-                        val dx = geo.longitude - clickedPoint.longitude()
-                        val dy = geo.latitude - clickedPoint.latitude()
+                        val dx = geo.longitude - pos.longitude
+                        val dy = geo.latitude - pos.latitude
                         dx * dx + dy * dy
                     }
                     if (closest != null) {
@@ -434,104 +433,96 @@ internal fun MapLocationsContent(
                             scope.launch { gridState.animateScrollToItem(index) }
                         }
                     }
-                    true
-                },
-                style = {
-                    MapStyle(style = if (isDark) Style.DARK else Style.LIGHT)
+                    org.maplibre.compose.util.ClickResult.Consume
                 }
             ) {
-                MapEffect(geoMedia, isDark) { mapView ->
-                    mapViewRef = mapView
-                    val mapboxMap = mapView.mapboxMap
-
-                    mapboxMap.getStyle { style ->
-                        // Clean up existing layers and sources
-                        runCatching { style.removeStyleLayer(SELECTED_LAYER_ID) }
-                        runCatching { style.removeStyleLayer(HEATMAP_LAYER_ID) }
-                        runCatching { style.removeStyleSource(SELECTED_SOURCE_ID) }
-                        runCatching { style.removeStyleSource(HEATMAP_SOURCE_ID) }
-
-                        if (geoMedia.isEmpty()) return@getStyle
-
-                        // ── Source: clustered points for heatmap ──
-                        val heatmapFeatures = geoMedia.map { item ->
-                            Feature.fromGeometry(
-                                Point.fromLngLat(item.longitude, item.latitude)
-                            )
-                        }
-                        style.addSource(
-                            geoJsonSource(HEATMAP_SOURCE_ID) {
-                                featureCollection(FeatureCollection.fromFeatures(heatmapFeatures))
-                                cluster(true)
-                                clusterRadius(50)
-                                clusterMaxZoom(15)
-                            }
+                if (geoMedia.isNotEmpty()) {
+                    val heatmapSource = rememberGeoJsonSource(
+                        data = GeoJsonData.JsonString(heatmapGeoJson),
+                        options = GeoJsonOptions(
+                            cluster = true,
+                            clusterRadius = 50,
+                            clusterMaxZoom = 15
                         )
+                    )
 
-                        // ── Heatmap layer ──
-                        // Weight = point_count so cluster size drives density.
-                        // Color mapped by density:
-                        // 1-2 media → purple, 3-5 → blue, 6-8 → green,
-                        // 9-12 → yellow, 13-20 → orange, 21+ → red
-                        style.addLayer(
-                            heatmapLayer(HEATMAP_LAYER_ID, HEATMAP_SOURCE_ID) {
-                                heatmapWeight(
-                                    Expression.switchCase(
-                                        Expression.has(Expression.literal("point_count")),
-                                        Expression.get(Expression.literal("point_count")),
-                                        Expression.literal(1.0)
-                                    )
-                                )
-                                heatmapIntensity(
-                                    Expression.interpolate {
-                                        linear()
-                                        zoom()
-                                        stop { literal(0); literal(0.1) }
-                                        stop { literal(5); literal(0.15) }
-                                        stop { literal(9); literal(0.25) }
-                                        stop { literal(14); literal(0.4) }
-                                    }
-                                )
-                                heatmapColor(
-                                    Expression.interpolate {
-                                        linear()
-                                        heatmapDensity()
-                                        stop { literal(0.0); rgba(0.0, 0.0, 0.0, 0.0) }
-                                        stop { literal(0.1); rgba(128.0, 0.0, 255.0, 0.7) }
-                                        stop { literal(0.25); rgba(0.0, 100.0, 255.0, 0.75) }
-                                        stop { literal(0.4); rgba(0.0, 200.0, 100.0, 0.8) }
-                                        stop { literal(0.55); rgba(255.0, 220.0, 0.0, 0.85) }
-                                        stop { literal(0.75); rgba(255.0, 140.0, 0.0, 0.9) }
-                                        stop { literal(1.0); rgba(255.0, 50.0, 0.0, 0.95) }
-                                    }
-                                )
-                                heatmapRadius(
-                                    Expression.interpolate {
-                                        linear()
-                                        zoom()
-                                        stop { literal(0); literal(10.0) }
-                                        stop { literal(5); literal(18.0) }
-                                        stop { literal(10); literal(30.0) }
-                                        stop { literal(15); literal(50.0) }
-                                    }
-                                )
-                                heatmapOpacity(
-                                    Expression.interpolate {
-                                        linear()
-                                        zoom()
-                                        stop { literal(0); literal(0.9) }
-                                        stop { literal(10); literal(0.7) }
-                                        stop { literal(15); literal(0.4) }
-                                        stop { literal(20); literal(0.0) }
-                                    }
-                                )
-                            }
+                    // ── Heatmap layer ──
+                    HeatmapLayer(
+                        id = "media-heatmap",
+                        source = heatmapSource,
+                        weight = switch(
+                            condition(
+                                feature.has("point_count"),
+                                feature.get("point_count").asNumber()
+                            ),
+                            fallback = const(1.0f)
+                        ),
+                        intensity = interpolate(
+                            type = linear(),
+                            input = zoom(),
+                            0 to const(0.1f),
+                            5 to const(0.15f),
+                            9 to const(0.25f),
+                            14 to const(0.4f)
+                        ),
+                        color = interpolate(
+                            type = linear(),
+                            input = heatmapDensity(),
+                            0.0 to const(ComposeColor(0x00000000)),
+                            0.1 to const(ComposeColor(0xB38000FF.toInt())),
+                            0.25 to const(ComposeColor(0xBF0064FF.toInt())),
+                            0.4 to const(ComposeColor(0xCC00C864.toInt())),
+                            0.55 to const(ComposeColor(0xD9FFDC00.toInt())),
+                            0.75 to const(ComposeColor(0xE6FF8C00.toInt())),
+                            1.0 to const(ComposeColor(0xF2FF3200.toInt()))
+                        ),
+                        radius = interpolate(
+                            type = linear(),
+                            input = zoom(),
+                            0 to const(10.dp),
+                            5 to const(18.dp),
+                            10 to const(30.dp),
+                            15 to const(50.dp)
+                        ),
+                        opacity = interpolate(
+                            type = linear(),
+                            input = zoom(),
+                            0 to const(0.9f),
+                            10 to const(0.7f),
+                            15 to const(0.4f),
+                            20 to const(0.0f)
                         )
-
-                        mapReady = true
-                    }
-
+                    )
                 }
+
+                // ── Selected point marker ──
+                val selectedSource = rememberGeoJsonSource(
+                    data = GeoJsonData.JsonString(selectedGeoJson)
+                )
+                val thumbBitmap = selectedThumbBitmap
+                val hasThumb = thumbBitmap != null
+
+                // Circle fallback (hidden once thumbnail loads)
+                CircleLayer(
+                    id = "media-selected-circle",
+                    source = selectedSource,
+                    visible = !hasThumb,
+                    radius = const(14.dp),
+                    color = const(accentComposeColor),
+                    strokeWidth = const(3.dp),
+                    strokeColor = const(surfaceComposeColor)
+                )
+
+                // Thumbnail icon (hidden until thumbnail loads)
+                SymbolLayer(
+                    id = "media-selected-thumb",
+                    source = selectedSource,
+                    visible = hasThumb,
+                    iconImage = if (thumbBitmap != null) image(thumbBitmap) else nil(),
+                    iconSize = const(1.5f),
+                    iconAllowOverlap = const(true),
+                    iconIgnorePlacement = const(true)
+                )
             }
 
             // Back button
@@ -611,16 +602,16 @@ internal fun MapLocationsContent(
         val sheetMaxHeight = screenHeight / 2
 
         // Blur support
-        val surfaceColor = MaterialTheme.colorScheme.surface
+        val surfaceColorLocal = MaterialTheme.colorScheme.surface
 
         @OptIn(ExperimentalHazeMaterialsApi::class)
         val sheetHazeStyle = HazeMaterials.regular(
-            containerColor = surfaceColor
+            containerColor = surfaceColorLocal
         )
-        val sheetBackgroundModifier = remember(allowBlur, surfaceColor) {
+        val sheetBackgroundModifier = remember(allowBlur, surfaceColorLocal) {
             when {
                 !allowBlur -> Modifier.background(
-                    color = surfaceColor,
+                    color = surfaceColorLocal,
                     shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                 )
 
@@ -635,18 +626,12 @@ internal fun MapLocationsContent(
                 runCatching { scaffoldState.bottomSheetState.requireOffset() }.getOrNull()
             }.collect { offset ->
                 if (offset != null) {
-                    val mapboxMap = mapViewRef?.mapboxMap ?: return@collect
-                    val containerHeight = mapboxMap.getSize().height
+                    val containerHeight = with(density) { screenHeight.toPx() }
                     val sheetVisiblePx = (containerHeight - offset).coerceAtLeast(0f)
                     currentSheetPaddingPx = sheetVisiblePx
-                    mapboxMap.setCamera(
-                        CameraOptions.Builder()
-                            .padding(
-                                EdgeInsets(
-                                    0.0, 0.0, sheetVisiblePx.toDouble(), 0.0
-                                )
-                            )
-                            .build()
+                    val bottomDp = with(density) { sheetVisiblePx.toDp() }
+                    cameraState.position = cameraState.position.copy(
+                        padding = PaddingValues(bottom = bottomDp)
                     )
                 }
             }
@@ -654,7 +639,7 @@ internal fun MapLocationsContent(
 
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
-            sheetPeekHeight = 280.dp,
+            sheetPeekHeight = sheetPeekHeight,
             sheetContainerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surface,
             sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
             sheetDragHandle = {},
@@ -685,5 +670,27 @@ internal fun MapLocationsContent(
                 Modifier.fillMaxSize()
             )
         }
+    }
+}
+
+/**
+ * Isolated composable that reads the [mapCaptureState] and renders it as a [hazeSource].
+ * Because the capture state updates every ~50 ms, keeping this read in its own composable
+ * scope prevents recomposition from propagating into the sibling [MaplibreMap].
+ */
+@Composable
+private fun MapBlurOverlay(
+    mapCaptureState: State<ImageBitmap?>,
+    hazeState: HazeState,
+) {
+    mapCaptureState.value?.let { bitmap ->
+        Image(
+            bitmap = bitmap,
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState)
+        )
     }
 }

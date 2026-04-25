@@ -46,7 +46,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.dot.gallery.BuildConfig
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.navigate
@@ -71,13 +70,7 @@ internal sealed interface MapGridItem {
 fun LocationsScreen(
     metadataState: State<MediaMetadataState>,
 ) {
-    val hasMapToken = remember(BuildConfig.MAPS_TOKEN) { BuildConfig.MAPS_TOKEN != "DEBUG" }
-
-    if (hasMapToken) {
-        MapLocationsContent(metadataState = metadataState)
-    } else {
-        ListLocationsContent(metadataState = metadataState)
-    }
+    MapLocationsContent(metadataState = metadataState)
 }
 
 @Suppress("DerivedStateOfCandidate")
@@ -186,9 +179,6 @@ internal fun ListLocationsContent(
         }
     }
 }
-
-// MapLocationsContent is provided by src/maps/kotlin or src/nomaps/kotlin
-// (see build.gradle.kts conditional sourceSets)
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable

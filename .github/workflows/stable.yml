@@ -18,6 +18,8 @@ jobs:
         run: echo "versionName=$(grep 'versionName' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
       - name: Strip internet permission
         run: chmod +x ./strip_permission.sh && ./strip_permission.sh
+      - name: Disable maps
+        run: echo "INCLUDE_MAPS=false" >> ./app.properties
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -71,10 +73,6 @@ jobs:
         uses: gradle/gradle-build-action@v3
       - name: Make Gradle executable
         run: chmod +x ./gradlew
-      - name: Load Maps Token
-        env:
-          MAPS_TOKEN: ${{ secrets.MAPS_TOKEN }}
-        run: echo MAPS_TOKEN="$MAPS_TOKEN" > ./api.properties
       - name: Decode Keystore
         id: decode_keystore
         uses: timheuer/base64-to-file@v1
@@ -88,7 +86,6 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: ReFra Release (Maps)
@@ -100,14 +97,13 @@ jobs:
           git fetch https://github.com/IacobIonut01/Gallery.git main_play &&
           git cherry-pick 8ff8ee46 b8e961d1 &&
           chmod +x ./strip_allfiles_permission.sh && ./strip_allfiles_permission.sh &&
-          echo ALL_FILES_ACCESS=false > ./app.properties
+          printf 'ALL_FILES_ACCESS=false\nINCLUDE_MAPS=true\n' > ./app.properties
       - name: Build Google Play Bundle
         run: ./gradlew bundleUniversalGplay
         env: 
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
       - uses: r0adkll/upload-google-play@v1
         continue-on-error: true
         with:

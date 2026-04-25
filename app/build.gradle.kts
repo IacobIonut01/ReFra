@@ -29,7 +29,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        base.archivesName.set("ReFra-${versionName}-$versionCode" + mapsApiApplicationPrefix)
+        val mapsPrefix = if (includeMaps) "" else "-nomaps"
+        base.archivesName.set("ReFra-${versionName}-$versionCode$mapsPrefix")
     }
 
     lint.baseline = file("lint-baseline.xml")
@@ -45,11 +46,11 @@ android {
 
     buildTypes {
         getByName("debug") {
-            buildConfigField("String", "MAPS_TOKEN", getApiKey())
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             manifestPlaceholders["appProvider"] = "com.dot.gallery.debug.media_provider"
             buildConfigField("Boolean", "ALLOW_ALL_FILES_ACCESS", allowAllFilesAccess)
+            buildConfigField("Boolean", "MAPS_ENABLED", "$includeMaps")
             buildConfigField(
                 "String",
                 "CONTENT_AUTHORITY",
@@ -71,7 +72,7 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
             buildConfigField("Boolean", "ALLOW_ALL_FILES_ACCESS", allowAllFilesAccess)
-            buildConfigField("String", "MAPS_TOKEN", getApiKey())
+            buildConfigField("Boolean", "MAPS_ENABLED", "$includeMaps")
             buildConfigField("String", "CONTENT_AUTHORITY", "\"com.dot.gallery.media_provider\"")
             buildConfigField("Boolean", "ENABLE_INDEXING", "true")
         }
@@ -89,6 +90,7 @@ android {
                 "\"com.dot.staging.debug.media_provider\""
             )
             buildConfigField("Boolean", "ENABLE_INDEXING", "true")
+            buildConfigField("Boolean", "MAPS_ENABLED", "$includeMaps")
         }
     }
 
@@ -115,17 +117,18 @@ android {
 
     sourceSets {
         getByName("main") {
-            if (getApiKey() != "\"DEBUG\"") {
-                kotlin.srcDir("src/maps/kotlin")
-            } else {
-                kotlin.srcDir("src/nomaps/kotlin")
-            }
             // For APK builds, include ML assets directly since asset packs are AAB-only
             val isBundleBuild = gradle.startParameter.taskNames.any {
                 it.contains("bundle", ignoreCase = true)
             }
             if (!isBundleBuild) {
                 assets.srcDirs("src/main/assets", "../ml-models/src/main/assets")
+            }
+            // Conditional maps/nomaps source set
+            if (includeMaps) {
+                kotlin.srcDir("src/maps/kotlin")
+            } else {
+                kotlin.srcDir("src/nomaps/kotlin")
             }
         }
     }
@@ -313,12 +316,9 @@ dependencies {
     implementation(libs.haze)
     implementation(libs.haze.materials)
 
-    // Mapbox (only when MAPS_TOKEN is configured)
-    if (getApiKey() != "\"DEBUG\"") {
-        implementation(libs.mapbox.navigation.core)
-        implementation(libs.mapbox.navigation.ui.maps)
-        implementation(libs.mapbox.navigation.ui.components)
-        implementation(libs.mapbox.maps.compose)
+    // MapLibre Compose
+    if (includeMaps) {
+        implementation(libs.maplibre.compose)
     }
 
     // Tests
@@ -329,26 +329,17 @@ dependencies {
     debugRuntimeOnly(libs.compose.ui.test.manifest)
 }
 
-val mapsApiApplicationPrefix: String
-    get() = if (getApiKey() == "\"DEBUG\"") {
-        "-nomaps"
-    } else {
-        ""
+val includeMaps: Boolean
+    get() {
+        val fl = rootProject.file("app.properties")
+        return try {
+            val properties = Properties()
+            properties.load(FileInputStream(fl))
+            properties.getProperty("INCLUDE_MAPS", "true").toBoolean()
+        } catch (_: Exception) {
+            true
+        }
     }
-
-
-fun getApiKey(): String {
-    val fl = rootProject.file("api.properties")
-
-    return try {
-        val properties = Properties()
-        properties.load(FileInputStream(fl))
-        val token = properties.getProperty("MAPS_TOKEN")?.trim('"') ?: "DEBUG"
-        "\"$token\""
-    } catch (_: Exception) {
-        "\"DEBUG\""
-    }
-}
 
 val allowAllFilesAccess: String
     get() {

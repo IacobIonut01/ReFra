@@ -15,30 +15,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        val mapboxToken = providers.gradleProperty("MAPBOX_DOWNLOADS_TOKEN")
-            .orElse(providers.environmentVariable("MAPBOX_DOWNLOADS_TOKEN"))
-            .getOrElse("")
-        if (mapboxToken.isNotEmpty()) {
-            maven("https://api.mapbox.com/downloads/v2/releases/maven") {
-                content {
-                    includeGroupByRegex("com\\.mapbox\\..*")
-                }
-                authentication {
-                    create<BasicAuthentication>("basic")
-                }
-                credentials {
-                    username = "mapbox"
-                    password = mapboxToken
-                }
-            }
-        }
-        maven("https://jitpack.io") {
-            content {
-                if (mapboxToken.isNotEmpty()) {
-                    excludeGroupByRegex("com\\.mapbox\\..*")
-                }
-            }
-        }
+        maven("https://jitpack.io")
         mavenLocal()
     }
 }

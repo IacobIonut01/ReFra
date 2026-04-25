@@ -23,8 +23,7 @@ junit = "4.13.2"
 androidx-test-ext-junit = "1.3.0"
 espresso-core = "3.7.0"
 lazycolumnscrollbar = "2.2.0"
-mapbox = "3.20.0-rc.1"
-mapboxMaps = "11.20.0-rc.1"
+maplibreCompose = "0.12.1"
 lifecycle-runtime = "2.10.0"
 activity-compose = "1.13.0"
 hilt = "2.59.2"
@@ -115,10 +114,7 @@ haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "hazeMaterials" }
 jxl-coder-coil = { module = "io.github.awxkee:jxl-coder-coil", version.ref = "jxlCoder" }
 lazycolumnscrollbar = { module = "com.github.nanihadesuka:LazyColumnScrollbar", version.ref = "lazycolumnscrollbar" }
-mapbox-navigation-core = { module = "com.mapbox.navigationcore:android-ndk27", version.ref = "mapbox" }
-mapbox-navigation-ui-maps = { module = "com.mapbox.navigationcore:ui-maps-ndk27", version.ref = "mapbox" }
-mapbox-navigation-ui-components = { module = "com.mapbox.navigationcore:ui-components-ndk27", version.ref = "mapbox" }
-mapbox-maps-compose = { module = "com.mapbox.extension:maps-compose-ndk27", version.ref = "mapboxMaps" }
+maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.ref = "maplibreCompose" }
 metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref = "metadataExtractor" }
 onnxruntime-android-qnn = { module = "com.microsoft.onnxruntime:onnxruntime-android-qnn", version.ref = "onnxruntimeAndroidQnn" }
 pinchzoomgrid = { module = "io.github.dokar3:pinchzoomgrid", version.ref = "pinchzoomgrid" }

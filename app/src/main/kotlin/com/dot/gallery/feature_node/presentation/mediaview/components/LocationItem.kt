@@ -35,7 +35,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.feature_node.domain.model.LocationData
-import com.dot.gallery.feature_node.presentation.util.MapBoxURL
+import com.dot.gallery.feature_node.presentation.util.StaticMapURL
 import com.dot.gallery.feature_node.presentation.util.connectivityState
 import com.dot.gallery.feature_node.presentation.util.launchMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -106,11 +106,11 @@ fun LocationItem(
 
                 AnimatedVisibility(
                     visible = remember(connection) {
-                        connection.isConnected() && BuildConfig.MAPS_TOKEN != "DEBUG"
+                        BuildConfig.MAPS_ENABLED && connection.isConnected()
                     }
                 ) {
                     GlideImage(
-                        model = MapBoxURL(
+                        model = StaticMapURL(
                             latitude = locationData.latitude,
                             longitude = locationData.longitude,
                             darkTheme = isSystemInDarkTheme()
