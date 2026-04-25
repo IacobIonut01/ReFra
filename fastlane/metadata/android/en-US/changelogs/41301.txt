@@ -1,0 +1,13 @@
+ReFra v4.1.3
+
+New Features
+
+- Revamped Edit Screen: Completely remade photo editor with enhanced tools and text overlay support
+- Full Metadata Viewer: View all metadata for images and videos directly in the media detail view
+- MapLibre Migration: Replaced Mapbox with MapLibre using OpenFreeMap tiles, removing the need for a Mapbox token
+- Sandboxed Metadata Parsing: Media metadata parsing now runs in an isolated process for improved stability
+
+Bug Fixes
+
+- Fixed on-demand metadata fetching for media detail view (#817)
+- Fixed ClassCastException in PickerActivity by extending FragmentActivity (#823)
