@@ -67,6 +67,21 @@ fun FloatArray.to3x3Matrix(): FloatArray {
     )
 }
 
+/**
+ * Apply a full 4×5 color matrix to a [Bitmap] using Android's native
+ * [android.graphics.ColorMatrixColorFilter].  This produces pixel-identical
+ * results to Compose's [androidx.compose.ui.graphics.ColorFilter.colorMatrix].
+ */
+fun applyColorMatrix(src: Bitmap, matrix: FloatArray): Bitmap {
+    val result = Bitmap.createBitmap(src.width, src.height, src.config ?: Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(result)
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        colorFilter = android.graphics.ColorMatrixColorFilter(android.graphics.ColorMatrix(matrix))
+    }
+    canvas.drawBitmap(src, 0f, 0f, paint)
+    return result
+}
+
 fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
     val width = bitmap.width
     val height = bitmap.height

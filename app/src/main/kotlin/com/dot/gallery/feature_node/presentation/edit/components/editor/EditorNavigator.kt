@@ -16,18 +16,20 @@ import com.dot.gallery.feature_node.domain.model.editor.Adjustment
 import com.dot.gallery.feature_node.domain.model.editor.DrawMode
 import com.dot.gallery.feature_node.domain.model.editor.DrawType
 import com.dot.gallery.feature_node.domain.model.editor.EditorDestination
-import com.dot.gallery.feature_node.domain.model.editor.EditorItems.Adjust
-import com.dot.gallery.feature_node.domain.model.editor.EditorItems.Crop
-import com.dot.gallery.feature_node.domain.model.editor.EditorItems.Filters
-import com.dot.gallery.feature_node.domain.model.editor.EditorItems.Markup
+import com.dot.gallery.feature_node.domain.model.editor.EditorItems
 import com.dot.gallery.feature_node.domain.model.editor.ImageFilter
+import com.dot.gallery.feature_node.domain.model.editor.MarkupItems
 import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter.VariableFilterTypes
 import com.dot.gallery.feature_node.presentation.edit.components.adjustment.AdjustScrubber
-import com.dot.gallery.feature_node.presentation.edit.components.adjustment.AdjustSection
-import com.dot.gallery.feature_node.presentation.edit.components.cropper.CropperSection
+import com.dot.gallery.feature_node.presentation.edit.components.colour.ColourSection
+import com.dot.gallery.feature_node.presentation.edit.components.colour.toVariableFilterType
 import com.dot.gallery.feature_node.presentation.edit.components.filters.FiltersSelector
+import com.dot.gallery.feature_node.presentation.edit.components.lighting.LightingSection
+import com.dot.gallery.feature_node.presentation.edit.components.lighting.toVariableFilterType
 import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupSelector
+import com.dot.gallery.feature_node.presentation.edit.components.markup.MarkupToolSelector
+import com.dot.gallery.feature_node.domain.model.editor.TextAnnotation
 import kotlin.math.roundToInt
 
 @Composable
@@ -41,51 +43,91 @@ fun EditorNavigator(
     onAdjustmentChange: (Adjustment) -> Unit = {},
     onAdjustmentPreview: (Adjustment) -> Unit = {},
     onToggleFilter: (ImageFilter) -> Unit = {},
-    startCropping: () -> Unit = {},
     drawMode: DrawMode,
     setDrawMode: (DrawMode) -> Unit,
     drawType: DrawType,
     setDrawType: (DrawType) -> Unit,
     currentPathProperty: PathProperties,
     setCurrentPathProperty: (PathProperties) -> Unit,
-    isSupportingPanel: Boolean = false
+    filterIntensity: Float = 1f,
+    onFilterIntensityChange: (Float) -> Unit = {},
+    activeFilterName: String? = null,
+    isSupportingPanel: Boolean = false,
+    onRequestTextInput: () -> Unit = {},
+    textAnnotations: List<TextAnnotation> = emptyList(),
+    onTextAnnotationsChange: (List<TextAnnotation>) -> Unit = {},
+    selectedTextIndex: Int = -1,
 ) {
 
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = EditorDestination.Editor,
+        startDestination = EditorDestination.Lighting,
         enterTransition = { navigateInAnimation },
         exitTransition = { navigateUpAnimation },
         popEnterTransition = { navigateInAnimation },
         popExitTransition = { navigateUpAnimation }
     ) {
         composable<EditorDestination.Editor> {
-            EditorSelector(
-                isSupportingPanel = isSupportingPanel,
-                onItemClick = { editorItem ->
-                    val dest = when (editorItem) {
-                        Adjust -> EditorDestination.Adjust
-                        Crop -> EditorDestination.Crop
-                        Filters -> EditorDestination.Filters
-                        Markup -> EditorDestination.Markup
+            if (isSupportingPanel) {
+                EditorSelector(
+                    isSupportingPanel = true,
+                    onItemClick = { editorItem ->
+                        val dest = when (editorItem) {
+                            EditorItems.Lighting -> EditorDestination.Lighting
+                            EditorItems.Filters -> EditorDestination.Filters
+                            EditorItems.Markup -> EditorDestination.Markup
+                            EditorItems.Colour -> EditorDestination.Colour
+                            EditorItems.More -> EditorDestination.More
+                        }
+                        navController.navigate(dest)
                     }
-                    navController.navigate(dest)
+                )
+            }
+            // Phone layout: tab bar is outside NavHost, so Editor destination is empty
+        }
+
+        // Lighting tab
+        composable<EditorDestination.Lighting> {
+            LightingSection(
+                appliedAdjustments = appliedAdjustments,
+                isSupportingPanel = isSupportingPanel,
+                onItemClick = { tool ->
+                    navController.navigate(
+                        EditorDestination.AdjustDetail(tool.toVariableFilterType())
+                    )
+                },
+                onLongItemClick = { tool ->
+                    onAdjustItemLongClick(tool.toVariableFilterType())
                 }
             )
         }
 
-        composable<EditorDestination.Adjust> {
-            AdjustSection(
+        // Colour tab
+        composable<EditorDestination.Colour> {
+            ColourSection(
                 appliedAdjustments = appliedAdjustments,
                 isSupportingPanel = isSupportingPanel,
-                onItemClick = { adjustment ->
-                    navController.navigate(EditorDestination.AdjustDetail(adjustment))
+                onItemClick = { tool ->
+                    navController.navigate(
+                        EditorDestination.AdjustDetail(tool.toVariableFilterType())
+                    )
                 },
-                onLongItemClick = onAdjustItemLongClick
+                onLongItemClick = { tool ->
+                    onAdjustItemLongClick(tool.toVariableFilterType())
+                }
             )
         }
 
+        // More tab → directly show external editors
+        composable<EditorDestination.More> {
+            ExternalEditor(
+                currentUri = targetUri,
+                isSupportingPanel = isSupportingPanel
+            )
+        }
+
+        // Shared detail scrubber for all variable filters
         composable<EditorDestination.AdjustDetail> {
             val params = it.toRoute<EditorDestination.AdjustDetail>()
             val isRotate = params.adjustment == VariableFilterTypes.Rotate
@@ -109,25 +151,50 @@ fun EditorNavigator(
                 bitmap = targetImage!!,
                 onClick = onToggleFilter,
                 appliedAdjustments = appliedAdjustments,
-                isSupportingPanel = isSupportingPanel
+                activeFilterName = activeFilterName,
+                isSupportingPanel = isSupportingPanel,
+                filterIntensity = filterIntensity,
+                onFilterIntensityChange = onFilterIntensityChange
             )
         }
 
-        composable<EditorDestination.Crop> {
-            CropperSection(
+        composable<EditorDestination.Markup> {
+            MarkupToolSelector(
                 isSupportingPanel = isSupportingPanel,
-                onActionClick = {
-                    val adjustment = it.asAdjustment()
-                    if (adjustment != null) {
-                        onAdjustmentChange(adjustment)
-                    } else {
-                        startCropping()
+                onToolClick = { item ->
+                    when (item) {
+                        MarkupItems.Stylus -> {
+                            setDrawMode(DrawMode.Draw)
+                            setDrawType(DrawType.Stylus)
+                        }
+                        MarkupItems.Highlighter -> {
+                            setDrawMode(DrawMode.Draw)
+                            setDrawType(DrawType.Highlighter)
+                        }
+                        MarkupItems.Marker -> {
+                            setDrawMode(DrawMode.Draw)
+                            setDrawType(DrawType.Marker)
+                        }
+                        MarkupItems.Text -> {
+                            setDrawMode(DrawMode.Text)
+                            onRequestTextInput()
+                        }
+                        MarkupItems.Eraser -> {
+                            setDrawMode(DrawMode.Erase)
+                        }
+                        MarkupItems.Pan -> {
+                            setDrawMode(DrawMode.Touch)
+                        }
+                    }
+                    navController.navigate(EditorDestination.MarkupDraw) {
+                        popUpTo(EditorDestination.Markup) { inclusive = false }
+                        launchSingleTop = true
                     }
                 }
             )
         }
 
-        composable<EditorDestination.Markup> {
+        composable<EditorDestination.MarkupDraw> {
             MarkupSelector(
                 drawMode = drawMode,
                 setDrawMode = setDrawMode,
@@ -135,16 +202,13 @@ fun EditorNavigator(
                 setDrawType = setDrawType,
                 isSupportingPanel = isSupportingPanel,
                 currentPathProperty = currentPathProperty,
-                setCurrentPathProperty = setCurrentPathProperty
+                setCurrentPathProperty = setCurrentPathProperty,
+                onRequestTextInput = onRequestTextInput,
+                textAnnotations = textAnnotations,
+                onTextAnnotationsChange = onTextAnnotationsChange,
+                selectedTextIndex = selectedTextIndex
             )
         }
 
-        composable<EditorDestination.ExternalEditor> {
-            ExternalEditor(
-                currentUri = targetUri,
-                isSupportingPanel = isSupportingPanel
-            )
-        }
     }
 }
-

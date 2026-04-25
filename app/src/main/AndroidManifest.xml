@@ -196,6 +196,7 @@
         <activity
             android:name=".feature_node.presentation.edit.EditActivity"
             android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:screenOrientation="portrait"
             android:launchMode="singleTop"
             android:exported="true">
             <intent-filter android:label="@string/app_name">

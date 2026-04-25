@@ -45,7 +45,7 @@ fun SelectableItem(
     onItemClick: () -> Unit
 ) {
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-    val surfaceColorLowest = MaterialTheme.colorScheme.surfaceContainerLowest
+    val surfaceColorHigh = MaterialTheme.colorScheme.surfaceContainerHigh
 
     val onTertiaryColor = MaterialTheme.colorScheme.onTertiary
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
@@ -60,7 +60,7 @@ fun SelectableItem(
         label = "tintColor"
     )
     val containerColor by animateColorAsState(
-        (if (selected) tertiaryColor else surfaceColorLowest).copy(alpha = alpha),
+        (if (selected) tertiaryColor else surfaceColorHigh).copy(alpha = alpha),
         label = "containerColor"
     )
 
@@ -110,10 +110,24 @@ fun SelectableItem(
         }
     } else {
         Column(
-            modifier = mModifier,
+            modifier = mModifier
+                .combinedClickable(
+                    enabled = enabled,
+                    onLongClick = { onLongItemClick?.invoke() },
+                    onClick = onItemClick
+                ),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = title.sentenceCase().replace("_", " "),
+                modifier = Modifier,
+                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.size(8.dp))
             Image(
                 imageVector = icon,
                 colorFilter = ColorFilter.tint(tintColor),
@@ -124,22 +138,8 @@ fun SelectableItem(
                         color = containerColor,
                         shape = CircleShape
                     )
-                    .combinedClickable(
-                        enabled = enabled,
-                        onLongClick = { onLongItemClick?.invoke() },
-                        onClick = onItemClick
-                    )
-                    .padding(vertical = 8.dp, horizontal = 12.dp)
-                    .height(32.dp)
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = title.sentenceCase().replace("_", " "),
-                modifier = Modifier,
-                fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
+                    .padding(20.dp)
+                    .size(28.dp)
             )
         }
     }

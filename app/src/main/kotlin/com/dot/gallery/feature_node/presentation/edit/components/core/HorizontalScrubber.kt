@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.feature_node.presentation.util.horizontalFadingEdge
@@ -59,7 +60,7 @@ fun HorizontalScrubber(
 ) {
     require(minValue < maxValue) { "minValue($minValue) should be less than maxValue($maxValue)" }
     require(defaultValue in minValue..maxValue) { "defaultValue should be between minValue and maxValue" }
-    require(currentValue in minValue..maxValue) { "currentValue(${currentValue}) should be between minValue($minValue) and maxValue($maxValue)" }
+    val clampedCurrentValue = currentValue.coerceIn(minValue, maxValue)
     require(horizontalFade in 0f..1f) { "horizontalFade should be between 0f and 1f" }
     require(maxValue > 0) { "maxValue should be greater than 0" }
     if (allowNegative) {
@@ -67,7 +68,8 @@ fun HorizontalScrubber(
     } else {
         require(minValue >= 0) { "minValue should be greater than or equal to 0" }
     }
-    var currentValueInternal by rememberSaveable { mutableFloatStateOf(currentValue) }
+    var currentValueInternal by rememberSaveable { mutableFloatStateOf(clampedCurrentValue) }
+    val view = LocalView.current
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -99,16 +101,28 @@ fun HorizontalScrubber(
              */
             val state = rememberLazyListState(
                 initialFirstVisibleItemIndex = if (allowNegative) {
-                    if (currentValue >= defaultValue) {
-                        middleIndex + (currentValue / maxValue * middleIndex).roundToInt()
+                    if (clampedCurrentValue >= defaultValue) {
+                        middleIndex + (clampedCurrentValue / maxValue * middleIndex).roundToInt()
                     } else {
-                        middleIndex - (currentValue / minValue * middleIndex).roundToInt()
+                        middleIndex - (clampedCurrentValue / minValue * middleIndex).roundToInt()
                     }
                 } else {
-                    (currentValue * steps.toFloat() / maxValue).roundToInt()
+                    (clampedCurrentValue * steps.toFloat() / maxValue).roundToInt()
                 }
             )
 
+            val defaultIndex = remember(allowNegative, middleIndex, defaultValue, minValue, maxValue, steps) {
+                if (allowNegative) {
+                    if (defaultValue >= 0f) {
+                        middleIndex + (defaultValue / maxValue * middleIndex).roundToInt()
+                    } else {
+                        middleIndex - (defaultValue / minValue * middleIndex).roundToInt()
+                    }
+                } else {
+                    (defaultValue * steps.toFloat() / maxValue).roundToInt()
+                }
+            }
+            val snapThreshold = 3
             LaunchedEffect(state) {
                 snapshotFlow { state.firstVisibleItemIndex to state.isScrollInProgress }.collect { (index, isScrollInProgress) ->
                     fun value(raw: Int): Float = raw.toFloat() / (if (allowNegative) middleIndex.toFloat() else steps.toFloat())
@@ -117,19 +131,26 @@ fun HorizontalScrubber(
                     else if (allowNegative) 0f
                     else minValue
                     onValueChanged(isScrollInProgress, currentValueInternal)
+
+                    if (!isScrollInProgress && index != defaultIndex
+                        && index in (defaultIndex - snapThreshold)..(defaultIndex + snapThreshold)
+                    ) {
+                        state.animateScrollToItem(defaultIndex)
+                        view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+                    }
                 }
             }
-            LaunchedEffect(currentValue) {
-                if (currentValue != currentValueInternal) {
+            LaunchedEffect(clampedCurrentValue) {
+                if (clampedCurrentValue != currentValueInternal) {
                     state.animateScrollToItem(
                         index = if (allowNegative) {
-                            if (currentValue >= defaultValue) {
-                                middleIndex + (currentValue / maxValue * middleIndex).roundToInt()
+                            if (clampedCurrentValue >= defaultValue) {
+                                middleIndex + (clampedCurrentValue / maxValue * middleIndex).roundToInt()
                             } else {
-                                middleIndex - (currentValue / minValue * middleIndex).roundToInt()
+                                middleIndex - (clampedCurrentValue / minValue * middleIndex).roundToInt()
                             }
                         } else {
-                            (currentValue * steps.toFloat() / maxValue).roundToInt()
+                            (clampedCurrentValue * steps.toFloat() / maxValue).roundToInt()
                         }
                     )
                 }

@@ -65,6 +65,7 @@ fun ImageCropper(
     cropEnabled: Boolean = true,
     onCropStart: () -> Unit,
     onCropSuccess: (ImageBitmap) -> Unit,
+    onCropRect: ((android.graphics.RectF) -> Unit)? = null,
     backgroundModifier: Modifier = Modifier
 ) {
 
@@ -124,6 +125,8 @@ fun ImageCropper(
                 scaledImageBitmap,
                 imageWidthPx,
                 imageHeightPx,
+                containerWidthPx,
+                containerHeightPx,
                 contentScale,
                 cropType,
                 fixedAspectRatio
@@ -161,7 +164,21 @@ fun ImageCropper(
             cropState.cropRect,
             cropOutline,
             onCropStart,
-            onCropSuccess
+            onCropSuccess,
+            onCropRect = onCropRect?.let { callback ->
+                { cropRect ->
+                    // cropRect is in scaledImageBitmap pixel coords.
+                    // scaledImageBitmap is a 1:1 pixel sub-region of imageBitmap at (rect.left, rect.top).
+                    // Normalize to 0-1 relative to the full input imageBitmap.
+                    val imgW = imageBitmap.width.toFloat()
+                    val imgH = imageBitmap.height.toFloat()
+                    val left = (rect.left + cropRect.left) / imgW
+                    val top = (rect.top + cropRect.top) / imgH
+                    val right = (rect.left + cropRect.right) / imgW
+                    val bottom = (rect.top + cropRect.bottom) / imgH
+                    callback(android.graphics.RectF(left, top, right, bottom))
+                }
+            }
         )
 
         val imageModifier = Modifier
@@ -314,7 +331,8 @@ private fun Crop(
     cropRect: Rect,
     cropOutline: CropOutline,
     onCropStart: () -> Unit,
-    onCropSuccess: (ImageBitmap) -> Unit
+    onCropSuccess: (ImageBitmap) -> Unit,
+    onCropRect: ((Rect) -> Unit)? = null
 ) {
 
     val density = LocalDensity.current
@@ -339,6 +357,7 @@ private fun Crop(
                 .flowOn(Dispatchers.Default)
                 .onStart {
                     onCropStart()
+                    onCropRect?.invoke(cropRect)
                     delay(400)
                 }
                 .onEach {
@@ -355,6 +374,8 @@ private fun getResetKeys(
     scaledImageBitmap: ImageBitmap,
     imageWidthPx: Int,
     imageHeightPx: Int,
+    containerWidthPx: Int,
+    containerHeightPx: Int,
     contentScale: ContentScale,
     cropType: CropType,
     fixedAspectRatio: Boolean,
@@ -363,6 +384,8 @@ private fun getResetKeys(
     scaledImageBitmap,
     imageWidthPx,
     imageHeightPx,
+    containerWidthPx,
+    containerHeightPx,
     contentScale,
     cropType,
     fixedAspectRatio,
@@ -372,6 +395,8 @@ private fun getResetKeys(
         scaledImageBitmap,
         imageWidthPx,
         imageHeightPx,
+        containerWidthPx,
+        containerHeightPx,
         contentScale,
         cropType,
         fixedAspectRatio,

@@ -2,9 +2,8 @@ package com.dot.gallery.feature_node.presentation.edit.adjustments.filters
 
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.ColorMatrix
-import com.awxkee.aire.Aire
 import com.dot.gallery.feature_node.domain.model.editor.ImageFilter
-import com.dot.gallery.feature_node.presentation.util.to3x3Matrix
+import com.dot.gallery.feature_node.presentation.util.applyColorMatrix
 
 data class Sepia(override val name: String = "Sepia") : ImageFilter {
 
@@ -18,6 +17,6 @@ data class Sepia(override val name: String = "Sepia") : ImageFilter {
     )
 
     override fun apply(bitmap: Bitmap): Bitmap =
-        Aire.colorMatrix(bitmap, colorMatrix().values.to3x3Matrix())
+        applyColorMatrix(bitmap, colorMatrix().values)
 
 }

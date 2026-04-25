@@ -10,21 +10,24 @@ sealed class EditorDestination {
     data object Editor : EditorDestination()
 
     @Serializable
-    data object Crop : EditorDestination()
+    data object Markup : EditorDestination()
 
     @Serializable
-    data object Adjust : EditorDestination()
-
-        @Serializable
-        data class AdjustDetail(val adjustment: VariableFilterTypes) : EditorDestination()
+    data object MarkupDraw : EditorDestination()
 
     @Serializable
     data object Filters : EditorDestination()
 
     @Serializable
-    data object Markup : EditorDestination()
+    data object Lighting : EditorDestination()
 
-        @Serializable
-        data object ExternalEditor : EditorDestination()
+    @Serializable
+    data object Colour : EditorDestination()
+
+    @Serializable
+    data object More : EditorDestination()
+
+    @Serializable
+    data class AdjustDetail(val adjustment: VariableFilterTypes) : EditorDestination()
 
 }

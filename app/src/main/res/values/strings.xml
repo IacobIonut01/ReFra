@@ -441,6 +441,7 @@
     <string name="type_stylus">Stylus</string>
     <string name="type_highlighter">Highlighter</string>
     <string name="type_marker">Marker</string>
+    <string name="type_text">Text</string>
     <string name="type_erase">Eraser</string>
     <string name="type_pan">Pan</string>
     <string name="crop">Crop</string>
@@ -551,4 +552,78 @@
     <string name="widget_grid_description">Display a grid of photos on your home screen (2×2, 4×4, or 6×6 depending on size)</string>
     <string name="widget_select_photo">Select Photo</string>
     <string name="widget_select_photos">Select Photos</string>
+
+    <!-- Editor tabs -->
+    <string name="editor_auto">Auto</string>
+    <string name="editor_actions">Actions</string>
+    <string name="editor_lighting">Lighting</string>
+    <string name="editor_colour">Colour</string>
+    <string name="editor_more">More</string>
+    <string name="editor_framing">Framing</string>
+    <string name="editor_done">Done</string>
+    <string name="editor_save_as_copy">Save as copy</string>
+    <string name="editor_save">Save</string>
+    <string name="editor_save_subtitle">You can always undo these changes</string>
+    <string name="editor_save_copy_subtitle">Your original won\'t change</string>
+    <string name="editor_compare_original">Compare with original</string>
+    <string name="editor_mirror">Mirror image</string>
+    <string name="editor_rotate_90">Rotate 90 degrees</string>
+    <string name="editor_aspect_ratio">Aspect ratio</string>
+    <string name="editor_reset_crop">Reset crop</string>
+    <string name="editor_cancel_crop">Cancel crop</string>
+    <string name="editor_apply_crop">Apply crop</string>
+    <string name="editor_cancel_markup">Cancel markup</string>
+    <string name="editor_apply_markup">Apply markup</string>
+    <string name="editor_edited_image_preview">Edited image preview</string>
+    <string name="editor_tap_hold_original">Tap and hold to see original</string>
+    <string name="editor_undo">Undo</string>
+    <string name="editor_redo">Redo</string>
+    <string name="editor_more_options">More options</string>
+    <string name="editor_grid">Grid</string>
+    <string name="editor_add_text">Add Text</string>
+    <string name="editor_pen">Pen</string>
+    <string name="editor_highlighter">Highlighter</string>
+    <string name="editor_text">Text</string>
+    <string name="editor_add_or_select_text">Add or select a text to change color</string>
+    <string name="editor_type_something">Type something</string>
+    <string name="editor_remove">Remove</string>
+
+    <!-- Lighting tools -->
+    <string name="tool_brightness">Brightness</string>
+    <string name="tool_tone">Tone</string>
+    <string name="tool_contrast">Contrast</string>
+    <string name="tool_black_point">Black point</string>
+    <string name="tool_white_point">White point</string>
+    <string name="tool_highlights">Highlights</string>
+    <string name="tool_shadows">Shadows</string>
+    <string name="tool_vignette">Vignette</string>
+
+    <!-- Colour tools -->
+    <string name="tool_saturation">Saturation</string>
+    <string name="tool_warmth">Warmth</string>
+    <string name="tool_tint">Tint</string>
+    <string name="tool_skin_tone">Skin tone</string>
+    <string name="tool_blue_tone">Blue tone</string>
+
+    <!-- Actions tools -->
+    <string name="tool_pop">Pop</string>
+    <string name="tool_sharpen">Sharpen</string>
+    <string name="tool_denoise">Denoise</string>
+
+    <!-- Filter styles -->
+    <string name="filter_style_vivid">Vivid</string>
+    <string name="filter_style_luminous">Luminous</string>
+    <string name="filter_style_radiant">Radiant</string>
+    <string name="filter_style_ember">Ember</string>
+    <string name="filter_style_airy">Airy</string>
+    <string name="filter_intensity">Filter intensity</string>
+
+    <!-- Aspect ratios -->
+    <string name="aspect_freeform">Freeform</string>
+    <string name="aspect_original">Original</string>
+    <string name="aspect_square">Square</string>
+
+    <!-- Auto presets -->
+    <string name="preset_enhance">Enhance</string>
+    <string name="preset_dynamic">Dynamic</string>
 </resources>

@@ -17,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dot.gallery.feature_node.domain.model.editor.SaveFormat
 import com.dot.gallery.feature_node.presentation.edit.adjustments.Crop
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.printError
@@ -73,11 +72,9 @@ class EditActivity : ComponentActivity() {
                     val currentImage by viewModel.currentBitmap.collectAsStateWithLifecycle()
                     val targetImage by viewModel.targetBitmap.collectAsStateWithLifecycle()
                     val uri by viewModel.uri.collectAsStateWithLifecycle()
-                    //val isEditingActive by viewModel.isEditingActive.collectAsStateWithLifecycle()
                     val canOverride by viewModel.canOverride.collectAsStateWithLifecycle()
                     val hasOriginalBackup by viewModel.hasOriginalBackup.collectAsStateWithLifecycle()
                     val isReverting by viewModel.isReverting.collectAsStateWithLifecycle()
-                    val originalImage by viewModel.originalBitmap.collectAsStateWithLifecycle()
                     val appliedAdjustments by viewModel.appliedAdjustments.collectAsStateWithLifecycle()
                     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
                     val previewMatrix by viewModel.previewMatrix.collectAsStateWithLifecycle()
@@ -92,12 +89,21 @@ class EditActivity : ComponentActivity() {
                     val drawType by viewModel.drawType.collectAsStateWithLifecycle()
                     val currentPath by viewModel.currentPath.collectAsStateWithLifecycle()
                     val currentPathProperty by viewModel.currentPathProperty.collectAsStateWithLifecycle()
+                    val canUndo by viewModel.canUndo.collectAsStateWithLifecycle()
+                    val canRedo by viewModel.canRedo.collectAsStateWithLifecycle()
+                    val filterIntensity by viewModel.filterIntensity.collectAsStateWithLifecycle()
+                    val activeFilter by viewModel.activeFilter.collectAsStateWithLifecycle()
+                    val vignetteIntensity by viewModel.previewVignette.collectAsStateWithLifecycle()
+                    val blurRadius by viewModel.previewBlur.collectAsStateWithLifecycle()
+                    val sharpnessValue by viewModel.previewSharpness.collectAsStateWithLifecycle()
+                    val isProcessing by viewModel.isProcessing.collectAsStateWithLifecycle()
+                    val previewRotation90 by viewModel.previewRotation90.collectAsStateWithLifecycle()
+                    val previewFlipH by viewModel.previewFlipH.collectAsStateWithLifecycle()
 
                     val scope = rememberCoroutineScope { Dispatchers.IO }
 
                     val doOverride: () -> Unit = {
                         viewModel.saveOverride(
-                            saveFormat = SaveFormat.PNG,
                             onSuccess = {
                                 finish()
                             },
@@ -131,10 +137,10 @@ class EditActivity : ComponentActivity() {
                         canOverride = canOverride,
                         isChanged = appliedAdjustments.isNotEmpty(),
                         isSaving = isSaving,
+                        isProcessing = isProcessing,
                         currentImage = currentImage,
                         targetImage = targetImage ?: currentImage,
                         targetUri = uri,
-                        originalImage = originalImage,
                         previewMatrix = previewMatrix,
                         previewRotation = previewRotation,
                         appliedAdjustments = appliedAdjustments,
@@ -161,7 +167,6 @@ class EditActivity : ComponentActivity() {
                         },
                         onSaveCopy = {
                             viewModel.saveCopy(
-                                saveFormat = SaveFormat.PNG,
                                 onSuccess = {
                                     finish()
                                 },
@@ -174,9 +179,10 @@ class EditActivity : ComponentActivity() {
                         onAdjustmentChange = viewModel::applyAdjustment,
                         onAdjustmentPreview = viewModel::previewAdjustment,
                         onToggleFilter = viewModel::toggleFilter,
+                        commitFilter = viewModel::commitFilter,
                         removeLast = viewModel::removeLast,
-                        onCropSuccess = { newImage ->
-                            viewModel.applyAdjustment(Crop(newImage))
+                        onCropRect = { normalizedRect ->
+                            viewModel.applyAdjustment(Crop(normalizedRect))
                         },
                         addPath = viewModel::addPath,
                         clearPathsUndone = viewModel::clearPathsUndone,
@@ -199,7 +205,20 @@ class EditActivity : ComponentActivity() {
                                     )
                                 }
                             }
-                        }
+                        },
+                        canUndo = canUndo,
+                        canRedo = canRedo,
+                        onRedo = viewModel::redoLast,
+                        filterIntensity = filterIntensity,
+                        onFilterIntensityChange = viewModel::setFilterIntensity,
+                        activeFilterName = activeFilter?.name,
+                        vignetteIntensity = vignetteIntensity,
+                        blurRadius = blurRadius,
+                        sharpnessValue = sharpnessValue,
+                        previewRotation90 = previewRotation90,
+                        previewFlipH = previewFlipH,
+                        onRotate90 = viewModel::applyRotate90,
+                        onFlipH = viewModel::applyFlipH
                     )
                 }
             }

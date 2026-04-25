@@ -3,8 +3,8 @@ package com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter
 import android.graphics.Bitmap
 import androidx.annotation.FloatRange
 import androidx.compose.ui.graphics.ColorMatrix
-import com.awxkee.aire.Aire
 import com.dot.gallery.feature_node.domain.model.editor.VariableFilter
+import com.dot.gallery.feature_node.presentation.util.applyColorMatrix
 
 data class Contrast(
     @param:FloatRange(from = 0.0, to = 2.0)
@@ -14,13 +14,11 @@ data class Contrast(
     override val minValue = 0f
     override val defaultValue = 1f
 
-    override fun apply(bitmap: Bitmap): Bitmap {
-        return Aire.contrast(bitmap, value)
-    }
+    override fun apply(bitmap: Bitmap): Bitmap =
+        applyColorMatrix(bitmap, colorMatrix().values)
 
-    override fun revert(bitmap: Bitmap): Bitmap {
-        return Aire.contrast(bitmap, -value)
-    }
+    override fun revert(bitmap: Bitmap): Bitmap =
+        Contrast(1f / value.coerceAtLeast(0.01f)).apply(bitmap)
 
     override fun colorMatrix(): ColorMatrix =
         ColorMatrix(

@@ -30,7 +30,7 @@ fun AdjustScrubber(
     isSupportingPanel: Boolean,
 ) {
     val defaultAdjustment = remember(adjustment, appliedAdjustments) {
-        (appliedAdjustments.findLast { it.name == adjustment.name } as VariableFilter?)
+        (appliedAdjustments.findLast { it.name.equals(adjustment.name, ignoreCase = true) } as VariableFilter?)
             ?: adjustment.createDefaultFilter()
     }
     var currentAdjustment by remember(defaultAdjustment) {
@@ -41,7 +41,7 @@ fun AdjustScrubber(
     }
     DisposableEffect(Unit) {
         onDispose {
-            if (currentAdjustment != appliedAdjustments.findLast { it.name == adjustment.name } as VariableFilter?
+            if (currentAdjustment != appliedAdjustments.findLast { it.name.equals(adjustment.name, ignoreCase = true) } as VariableFilter?
                 && currentAdjustment != adjustment.createDefaultFilter()) {
                 onAdjustmentChange(currentAdjustment)
             }

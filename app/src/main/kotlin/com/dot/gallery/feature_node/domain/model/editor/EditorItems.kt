@@ -3,10 +3,11 @@ package com.dot.gallery.feature_node.domain.model.editor;
 import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Adjust
-import androidx.compose.material.icons.outlined.Crop
 import androidx.compose.material.icons.outlined.Draw
 import androidx.compose.material.icons.outlined.Filter
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -19,26 +20,29 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Parcelize
 enum class EditorItems : Parcelable {
-    Crop,
-    Adjust,
+    Lighting,
     Filters,
-    Markup;
+    Markup,
+    Colour,
+    More;
 
     @get:Composable
     val translatedName : String
         get() = when (this) {
-            Crop -> stringResource(R.string.crop)
-            Adjust -> stringResource(R.string.adjust)
+            Lighting -> stringResource(R.string.editor_lighting)
             Filters -> stringResource(R.string.filters)
             Markup -> stringResource(R.string.markup)
+            Colour -> stringResource(R.string.editor_colour)
+            More -> stringResource(R.string.editor_more)
         }
 
     @IgnoredOnParcel
     val icon: ImageVector
         get() = when (this) {
-            Crop -> Icons.Outlined.Crop
-            Adjust -> Icons.Outlined.Adjust
+            Lighting -> Icons.Outlined.WbSunny
             Filters -> Icons.Outlined.Filter
             Markup -> Icons.Outlined.Draw
+            Colour -> Icons.Outlined.Palette
+            More -> Icons.Outlined.MoreHoriz
         }
 }

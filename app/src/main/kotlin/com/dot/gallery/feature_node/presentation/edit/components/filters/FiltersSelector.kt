@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -43,6 +44,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.feature_node.domain.model.editor.Adjustment
 import com.dot.gallery.feature_node.domain.model.editor.ImageFilter
 import com.dot.gallery.feature_node.presentation.edit.adjustments.filters.ImageFilterTypes
+import com.dot.gallery.feature_node.presentation.edit.components.core.HorizontalScrubber
 import com.dot.gallery.feature_node.presentation.edit.components.core.SupportiveLazyLayout
 import com.dot.gallery.feature_node.presentation.util.safeSystemGesturesPadding
 
@@ -65,13 +67,25 @@ fun FiltersSelector(
     bitmap: Bitmap,
     isSupportingPanel: Boolean,
     appliedAdjustments: List<Adjustment> = emptyList(),
+    activeFilterName: String? = null,
     onClick: (ImageFilter) -> Unit = {},
+    filterIntensity: Float = 1f,
+    onFilterIntensityChange: (Float) -> Unit = {},
 ) {
-    val noFilterApplied by remember(appliedAdjustments) {
-        derivedStateOf {
-            appliedAdjustments.none { it is ImageFilter }
-        }
+    // Pre-compute a small thumbnail for filter previews to avoid lag
+    val thumbnailBitmap = remember(bitmap) {
+        val maxSize = 200
+        val scale = minOf(maxSize.toFloat() / bitmap.width, maxSize.toFloat() / bitmap.height, 1f)
+        if (scale < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * scale).toInt().coerceAtLeast(1),
+                (bitmap.height * scale).toInt().coerceAtLeast(1),
+                true
+            )
+        } else bitmap
     }
+    val noFilterActive = activeFilterName == null
 
     if (isSupportingPanel) {
         LazyVerticalGrid(
@@ -87,11 +101,7 @@ fun FiltersSelector(
                 items = ImageFilterTypes.entries,
                 key = { it.name }
             ) { filter ->
-                val isSelected by remember(appliedAdjustments, filter) {
-                    derivedStateOf {
-                        appliedAdjustments.any { it.name == filter.name } || (noFilterApplied && filter.name == "None")
-                    }
-                }
+                val isSelected = filter.name == activeFilterName || (noFilterActive && filter == ImageFilterTypes.Original)
                 val strokeSize by animateDpAsState(
                     if (isSelected) 4.dp else 0.dp,
                     label = "strokeSize"
@@ -120,7 +130,7 @@ fun FiltersSelector(
                             .clickable {
                                 if (!isSelected) onClick(imageFilter)
                             },
-                        model = bitmap,
+                        model = thumbnailBitmap,
                         colorFilter = remember(imageFilter) {
                             imageFilter.colorMatrix()?.let { ColorFilter.colorMatrix(it) }
                         },
@@ -137,69 +147,79 @@ fun FiltersSelector(
             }
         }
     } else {
-        SupportiveLazyLayout(
-            modifier = modifier
-                .fillMaxWidth()
-                .safeSystemGesturesPadding()
-                .clipToBounds()
-                .clip(RoundedCornerShape(16.dp)),
-            contentPadding = PaddingValues(0.dp),
-            isSupportingPanel = false
-        ) {
-            items(
-                items = ImageFilterTypes.entries,
-                key = { it.name }
-            ) { filter ->
-                val isSelected by remember(appliedAdjustments, filter) {
-                    derivedStateOf {
-                        appliedAdjustments.any { it.name == filter.name } || (noFilterApplied && filter.name == "None")
+        Column(modifier = modifier.fillMaxWidth()) {
+            val hasActiveFilter = activeFilterName != null
+            if (hasActiveFilter) {
+                HorizontalScrubber(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    allowNegative = false,
+                    minValue = 0f,
+                    maxValue = 1f,
+                    defaultValue = 0f,
+                    currentValue = filterIntensity,
+                    displayValue = { "${(it * 100).toInt()}%" },
+                    onValueChanged = { _, newValue ->
+                        onFilterIntensityChange(newValue)
                     }
-                }
-                val strokeSize by animateDpAsState(
-                    if (isSelected) 4.dp else 0.dp,
-                    label = "strokeSize"
                 )
-                val strokeAlpha by animateFloatAsState(
-                    if (isSelected) 1f else 0f,
-                    label = "strokeAlpha"
-                )
-                val imageFilter = remember(filter) {
-                    filter.createImageFilter()
-                }
-                Column(
-                    modifier = Modifier.padding(bottom = 16.dp).padding(end = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    GlideImage(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(
-                                width = strokeSize,
-                                color = MaterialTheme.colorScheme.tertiary.copy(strokeAlpha),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .clickable {
-                                if (!isSelected) onClick(imageFilter)
+            }
+            SupportiveLazyLayout(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                isSupportingPanel = false
+            ) {
+                items(
+                    items = ImageFilterTypes.entries,
+                    key = { it.name }
+                ) { filter ->
+                    val isSelected = filter.name == activeFilterName || (noFilterActive && filter == ImageFilterTypes.Original)
+                    val strokeSize by animateDpAsState(
+                        if (isSelected) 3.dp else 0.dp,
+                        label = "strokeSize_${filter.name}"
+                    )
+                    val strokeAlpha by animateFloatAsState(
+                        if (isSelected) 1f else 0f,
+                        label = "strokeAlpha_${filter.name}"
+                    )
+                    val imageFilter = remember(filter) {
+                        filter.createImageFilter()
+                    }
+                    Column(
+                        modifier = Modifier.padding(horizontal = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        GlideImage(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .border(
+                                    width = strokeSize,
+                                    color = MaterialTheme.colorScheme.tertiary.copy(strokeAlpha),
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .clickable {
+                                    onClick(imageFilter)
+                                },
+                            model = thumbnailBitmap,
+                            colorFilter = remember(imageFilter) {
+                                imageFilter.colorMatrix()?.let { ColorFilter.colorMatrix(it) }
                             },
-                        model = bitmap,
-                        colorFilter = remember(imageFilter) {
-                            imageFilter.colorMatrix()?.let { ColorFilter.colorMatrix(it) }
-                        },
-                        contentDescription = imageFilter.name,
-                        contentScale = ContentScale.Crop
-                    )
-                    Text(
-                        text = filter.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                            contentDescription = imageFilter.name,
+                            contentScale = ContentScale.Crop
+                        )
+                        Text(
+                            text = filter.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = if (isSelected) MaterialTheme.colorScheme.tertiary
+                            else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
         }
     }
-
-
 }

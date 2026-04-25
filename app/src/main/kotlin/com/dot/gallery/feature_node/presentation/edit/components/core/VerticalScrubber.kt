@@ -63,7 +63,7 @@ fun VerticalScrubber(
 ) {
     require(minValue < maxValue) { "minValue($minValue) should be less than maxValue($maxValue)" }
     require(defaultValue in minValue..maxValue) { "defaultValue should be between minValue and maxValue" }
-    require(currentValue in minValue..maxValue) { "currentValue(${currentValue}) should be between minValue($minValue) and maxValue($maxValue)" }
+    val clampedCurrentValue = currentValue.coerceIn(minValue, maxValue)
     require(verticalFade in 0f..1f) { "horizontalFade should be between 0f and 1f" }
     require(maxValue > 0) { "maxValue should be greater than 0" }
     if (allowNegative) {
@@ -71,7 +71,7 @@ fun VerticalScrubber(
     } else {
         require(minValue >= 0) { "minValue should be greater than or equal to 0" }
     }
-    var currentValueInternal by rememberSaveable { mutableFloatStateOf(currentValue) }
+    var currentValueInternal by rememberSaveable { mutableFloatStateOf(clampedCurrentValue) }
     Row(
         modifier = modifier.fillMaxHeight()
     ) {
@@ -105,13 +105,13 @@ fun VerticalScrubber(
              */
             val state = rememberLazyListState(
                 initialFirstVisibleItemIndex = if (allowNegative) {
-                    if (currentValue >= defaultValue) {
-                        middleIndex + (currentValue / maxValue * middleIndex).roundToInt()
+                    if (clampedCurrentValue >= defaultValue) {
+                        middleIndex + (clampedCurrentValue / maxValue * middleIndex).roundToInt()
                     } else {
-                        middleIndex - (currentValue / minValue * middleIndex).roundToInt()
+                        middleIndex - (clampedCurrentValue / minValue * middleIndex).roundToInt()
                     }
                 } else {
-                    (currentValue * steps.toFloat() / maxValue).roundToInt()
+                    (clampedCurrentValue * steps.toFloat() / maxValue).roundToInt()
                 }
             )
 
@@ -125,17 +125,17 @@ fun VerticalScrubber(
                     onValueChanged(isScrollInProgress, currentValueInternal)
                 }
             }
-            LaunchedEffect(currentValue) {
-                if (currentValue != currentValueInternal) {
+            LaunchedEffect(clampedCurrentValue) {
+                if (clampedCurrentValue != currentValueInternal) {
                     state.animateScrollToItem(
                         index = if (allowNegative) {
-                            if (currentValue >= defaultValue) {
-                                middleIndex + (currentValue / maxValue * middleIndex).roundToInt()
+                            if (clampedCurrentValue >= defaultValue) {
+                                middleIndex + (clampedCurrentValue / maxValue * middleIndex).roundToInt()
                             } else {
-                                middleIndex - (currentValue / minValue * middleIndex).roundToInt()
+                                middleIndex - (clampedCurrentValue / minValue * middleIndex).roundToInt()
                             }
                         } else {
-                            (currentValue * steps.toFloat() / maxValue).roundToInt()
+                            (clampedCurrentValue * steps.toFloat() / maxValue).roundToInt()
                         }
                     )
                 }

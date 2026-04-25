@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import com.dot.gallery.feature_node.domain.model.editor.VariableFilter
 import com.dot.gallery.feature_node.presentation.util.applyColorMatrix
 
-data class Brightness(
+data class Highlights(
     @param:FloatRange(from = -1.0, to = 1.0)
     override val value: Float = 0f
 ) : VariableFilter {
@@ -17,21 +17,16 @@ data class Brightness(
     override fun apply(bitmap: Bitmap): Bitmap =
         applyColorMatrix(bitmap, colorMatrix().values)
 
-    override fun revert(bitmap: Bitmap): Bitmap =
-        Brightness(-value).apply(bitmap)
+    override fun revert(bitmap: Bitmap): Bitmap = Highlights(-value).apply(bitmap)
 
-    override fun colorMatrix(): ColorMatrix =
-        ColorMatrix(
-            floatArrayOf(
-                1f, 0f, 0f, 0f, value * 255,
-                0f, 1f, 0f, 0f, value * 255,
-                0f, 0f, 1f, 0f, value * 255,
-                0f, 0f, 0f, 1f, 0f
-            )
-        )
+    override fun colorMatrix(): ColorMatrix {
+        // Approximate: shift brightness slightly for preview
+        val offset = value * 30f
+        return ColorMatrix(floatArrayOf(
+            1f, 0f, 0f, 0f, offset,
+            0f, 1f, 0f, 0f, offset,
+            0f, 0f, 1f, 0f, offset,
+            0f, 0f, 0f, 1f, 0f
+        ))
+    }
 }
-
-
-
-
-
