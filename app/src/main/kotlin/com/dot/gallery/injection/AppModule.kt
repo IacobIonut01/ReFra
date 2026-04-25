@@ -14,6 +14,7 @@ import androidx.room.Room
 import androidx.work.WorkManager
 import com.dot.gallery.core.DefaultEventHandler
 import com.dot.gallery.core.EditBackupManager
+import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaDistributorImpl
 import com.dot.gallery.core.MediaHandler
@@ -94,13 +95,19 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideIsolatedMetadataParser(@ApplicationContext context: Context): IsolatedMetadataParser =
+        IsolatedMetadataParser(context)
+
+    @Provides
+    @Singleton
     fun provideMediaRepository(
         @ApplicationContext context: Context,
         workManager: WorkManager,
         database: InternalDatabase,
         keychainHolder: KeychainHolder,
         geocoder: Geocoder?,
-    ): MediaRepository = MediaRepositoryImpl(context, workManager, database, keychainHolder, geocoder)
+        isolatedParser: IsolatedMetadataParser,
+    ): MediaRepository = MediaRepositoryImpl(context, workManager, database, keychainHolder, geocoder, isolatedParser)
 
     @Provides
     @Singleton

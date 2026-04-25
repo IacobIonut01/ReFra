@@ -95,6 +95,10 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
 
 
     override fun onCreate() {
+        // Isolated-process services inherit this Application class but must NOT
+        // run Hilt injection (WorkManager/JobScheduler are unavailable there).
+        if (getProcessName() != packageName) return
+
         super.onCreate()
 
         workManager.enqueueUniqueWork(

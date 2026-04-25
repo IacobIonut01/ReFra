@@ -12,6 +12,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.domain.model.MediaVersion
@@ -42,6 +43,7 @@ class MetadataCollectionWorker @AssistedInject constructor(
     private val database: InternalDatabase,
     private val repository: MediaRepository,
     private val geocoder: Geocoder?,
+    private val isolatedParser: IsolatedMetadataParser,
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
@@ -84,7 +86,7 @@ class MetadataCollectionWorker @AssistedInject constructor(
                 val pct =
                     if (total <= 1) 100 else (((index + 1).toFloat() / total.toFloat()) * 100f).roundToInt()
                 throttler.emit(pct) { setProgress(workDataOf("progress" to it)) }
-                appContext.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
+                appContext.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }

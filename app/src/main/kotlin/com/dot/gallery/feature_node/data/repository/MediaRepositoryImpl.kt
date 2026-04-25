@@ -56,6 +56,7 @@ import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
+import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
@@ -99,7 +100,8 @@ class MediaRepositoryImpl(
     private val workManager: WorkManager,
     private val database: InternalDatabase,
     private val keychainHolder: KeychainHolder,
-    private val geocoder: Geocoder?
+    private val geocoder: Geocoder?,
+    private val isolatedParser: IsolatedMetadataParser
 ) : MediaRepository {
 
     private val contentResolver = context.contentResolver
@@ -354,7 +356,7 @@ class MediaRepositoryImpl(
             media = media,
             action = { deleteGpsMetadata() },
             postAction = {
-                context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
+                context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }
@@ -365,7 +367,7 @@ class MediaRepositoryImpl(
             media = media,
             action = { deleteMetadata() },
             postAction = {
-                context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
+                context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }
@@ -398,7 +400,7 @@ class MediaRepositoryImpl(
                 media = media,
                 action = { updateImageDescription(description) },
                 postAction = {
-                    context.retrieveExtraMediaMetadata(geocoder, it)?.let { metadata ->
+                    context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
                         database.getMetadataDao().addMetadata(metadata)
                     }
                 }
@@ -940,7 +942,7 @@ class MediaRepositoryImpl(
         database.getAlbumThumbnailDao().getAlbumThumbnailsFlow()
 
     override suspend fun collectMetadataFor(media: Media) {
-        context.retrieveExtraMediaMetadata(geocoder, media)?.let { metadata ->
+        context.retrieveExtraMediaMetadata(isolatedParser, geocoder, media)?.let { metadata ->
             database.getMetadataDao().addMetadata(metadata)
         }
     }

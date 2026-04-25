@@ -1,8 +1,11 @@
 package com.dot.gallery.feature_node.domain.model
 
+import android.content.ContentUris
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.location.Geocoder
-import android.media.MediaMetadataRetriever
+import android.os.Bundle
+import android.provider.MediaStore
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Exposure
 import androidx.compose.material.icons.outlined.MotionPhotosOn
@@ -14,17 +17,14 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.dot.gallery.core.sandbox.IsolatedMetadataParser
+import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion as Keys
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.formattedAddress
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printWarning
-import com.drew.imaging.ImageMetadataReader
-import com.drew.metadata.exif.ExifIFD0Directory
-import com.drew.metadata.exif.ExifSubIFDDirectory
-import com.drew.metadata.exif.GpsDirectory
-import com.drew.metadata.xmp.XmpDirectory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -188,236 +188,28 @@ fun MediaMetadata.getIcon(): ImageVector? {
 }
 
 @Suppress("DEPRECATION")
-suspend fun Context.retrieveExtraMediaMetadata(geocoder: Geocoder?, media: Media): MediaMetadata? =
+suspend fun Context.retrieveExtraMediaMetadata(
+    isolatedParser: IsolatedMetadataParser,
+    geocoder: Geocoder?,
+    media: Media
+): MediaMetadata? =
     withContext(Dispatchers.IO) {
         runCatching {
             val uri = media.getUri()
             val label = media.label
             printDebug("Retrieving extra metadata for ${media.id} - $uri")
 
-            // placeholders
-            var imageDescription: String? = null
-            var dateTimeOriginal: String? = null
-            var manufacturerName: String? = null
-            var modelName: String? = null
-            var aperture: String? = null
-            var exposureTime: String? = null
-            var iso: String? = null
-            var gpsLatitude: Double? = null
-            var gpsLongitude: Double? = null
-            var gpsLocationName: String? = null
-            var gpsLocationCountry: String? = null
-            var gpsLocationCity: String? = null
-            var imgW = 0;
-            var imgH = 0
-            var resX: Double? = null;
-            var resY: Double? = null;
-            var resUnit: Int? = null
-
-            var durationMs: Long? = null
-            var vidW: Int? = null;
-            var vidH: Int? = null
-            var frameRate: Float? = null
-            var bitRate: Int? = null
-
-            // feature flags
-            var isNightMode = false
-            var isPanorama = false
-            var isPhotosphere = false
-            var isLongExposure = false
-            var isMotionPhoto = false
-
             if (media.isImage) {
-                contentResolver.openInputStream(uri).use { stream ->
-                    val meta = runCatching { ImageMetadataReader.readMetadata(stream) }.getOrNull()
-                        ?: return@use
-
-                    // EXIF0 directories (image description, make, model, resolution)
-                    meta.getDirectoriesOfType(ExifIFD0Directory::class.java).forEach { dir ->
-                        if (imageDescription == null)
-                            imageDescription =
-                                dir.getString(ExifIFD0Directory.TAG_IMAGE_DESCRIPTION)
-                        if (manufacturerName == null)
-                            manufacturerName = dir.getString(ExifIFD0Directory.TAG_MAKE)
-                        if (modelName == null)
-                            modelName = dir.getString(ExifIFD0Directory.TAG_MODEL)
-                        if (imgW == 0)
-                            imgW = dir.getInteger(ExifIFD0Directory.TAG_IMAGE_WIDTH) ?: 0
-                        if (imgH == 0)
-                            imgH = dir.getInteger(ExifIFD0Directory.TAG_IMAGE_HEIGHT) ?: 0
-                        if (resX == null)
-                            resX = dir.getDoubleObject(ExifIFD0Directory.TAG_X_RESOLUTION)
-                        if (resY == null)
-                            resY = dir.getDoubleObject(ExifIFD0Directory.TAG_Y_RESOLUTION)
-                        if (resUnit == null)
-                            resUnit = dir.getInteger(ExifIFD0Directory.TAG_RESOLUTION_UNIT)
-                    }
-
-                    // SubIFD directories (datetime, aperture, exposure, ISO, alternate dimensions)
-                    meta.getDirectoriesOfType(ExifSubIFDDirectory::class.java).forEach { dir ->
-                        if (dateTimeOriginal == null)
-                            dateTimeOriginal =
-                                dir.getString(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL)
-                        if (aperture == null)
-                            aperture = dir.getDescription(ExifSubIFDDirectory.TAG_FNUMBER)
-                        if (exposureTime == null)
-                            exposureTime = dir.getDescription(ExifSubIFDDirectory.TAG_EXPOSURE_TIME)
-                        if (iso == null)
-                            iso = dir.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT)
-                        if (imgW == 0)
-                            imgW = dir.getInteger(ExifSubIFDDirectory.TAG_EXIF_IMAGE_WIDTH) ?: 0
-                        if (imgH == 0)
-                            imgH = dir.getInteger(ExifSubIFDDirectory.TAG_EXIF_IMAGE_HEIGHT) ?: 0
-                    }
-
-                    // GPS directories
-                    meta.getDirectoriesOfType(GpsDirectory::class.java).forEach { dir ->
-                        dir.geoLocation?.let {
-                            if (gpsLatitude == null) gpsLatitude = it.latitude
-                            if (gpsLongitude == null) gpsLongitude = it.longitude
-                        }
-                    }.also {
-                        // If GPS location is available, try to get the location name
-                        if (gpsLatitude != null && gpsLongitude != null) {
-                            if (geocoder != null) {
-                                suspendCoroutine {
-                                    val address = geocoder.getFromLocation(gpsLatitude, gpsLongitude, 1).orEmpty().firstOrNull()
-                                    gpsLocationName = address?.formattedAddress
-                                    gpsLocationCountry = address?.countryName
-                                    gpsLocationCity = address?.locality
-                                    it.resume(Unit)
-                                }
-                            } else {
-                                printWarning("MetadataReader: Geocoder not available")
-                            }
-                        }
-                    }
-
-
-                    // XMP directories for your feature flags
-                    val xmps = meta.getDirectoriesOfType(XmpDirectory::class.java)
-
-                    // Night mode: any subIfd dir that has both ISO & EXP tags
-                    isNightMode =
-                        meta.getDirectoriesOfType(ExifSubIFDDirectory::class.java).any { dir ->
-                            dir.containsTag(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT) &&
-                                    dir.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_TIME) &&
-                                    run {
-                                        val isoVal =
-                                            dir.getInt(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT)
-                                        val expVal =
-                                            dir.getDouble(ExifSubIFDDirectory.TAG_EXPOSURE_TIME)
-                                        label.matches("(?i).*\\.NIGHT\\..*".toRegex()) ||
-                                                (isoVal < 100 && expVal > 0.01)
-                                    }
-                        }
-
-                    // Photosphere
-                    isPhotosphere = xmps.any { xmp ->
-                        xmp.xmpProperties.any { prop ->
-                            (MediaMetadata.PHOTOSPERE_KEYS.any { key ->
-                                prop.key.contains(
-                                    key,
-                                    true
-                                )
-                            }
-                                    && prop.value == MediaMetadata.PHOTOSPHERE_VALUES[0])
-                                    || prop.value == MediaMetadata.PHOTOSPHERE_VALUES[1]
-                        }
-                    }
-
-                    // Panorama (but not photosphere)
-                    isPanorama = xmps.any { xmp ->
-                        xmp.xmpProperties.any { prop ->
-                            MediaMetadata.PANORMA_KEYS.any { key -> prop.key.contains(key, true) }
-                        }
-                    } && !isPhotosphere
-
-                    // Long exposure
-                    isLongExposure = xmps.any { xmp ->
-                        xmp.xmpProperties.any { prop ->
-                            MediaMetadata.LONG_EXPOSURE_KEYS.any { key ->
-                                prop.key.contains(
-                                    key,
-                                    true
-                                )
-                            }
-                        }
-                    }
-
-                    // Motion photo (Google Camera v2/v3 or legacy MicroVideo v1)
-                    isMotionPhoto = xmps.any { xmp ->
-                        xmp.xmpProperties.any { prop ->
-                            (prop.key == "GCamera:MotionPhoto" && prop.value == "1") ||
-                                    (prop.key == "GCamera:MicroVideo" && prop.value == "1")
-                        }
-                    }
-                }
-
-                // Fallback: if dimensions still not found, use BitmapFactory
-                if (imgW == 0 || imgH == 0) {
-                    contentResolver.openInputStream(uri)?.use { fallbackStream ->
-                        val options = android.graphics.BitmapFactory.Options().apply {
-                            inJustDecodeBounds = true
-                        }
-                        android.graphics.BitmapFactory.decodeStream(fallbackStream, null, options)
-                        if (options.outWidth > 0 && options.outHeight > 0) {
-                            imgW = options.outWidth
-                            imgH = options.outHeight
-                        }
-                    }
-                }
+                val bundle = isolatedParser.parseImageMetadata(uri, label)
+                    ?: return@runCatching null
+                mediaMetadataFromImageBundle(media.id, bundle, geocoder, this@retrieveExtraMediaMetadata)
             } else if (media.isVideo) {
-                val retriever = MediaMetadataRetriever().apply {
-                    setDataSource(applicationContext, uri)
-                }
-
-                durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    ?.toLongOrNull()
-                vidW = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                    ?.toIntOrNull()
-                vidH = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-                    ?.toIntOrNull()
-                bitRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
-                    ?.toIntOrNull()
-
-                frameRate = retriever
-                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
-                    ?.toFloatOrNull()
-                    ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)
-                        ?.let { cnt -> durationMs?.let { d -> cnt.toFloat() / (d / 1000f) } }
-            }
-
-            MediaMetadata(
-                mediaId = media.id,
-                imageDescription = imageDescription,
-                dateTimeOriginal = dateTimeOriginal,
-                manufacturerName = manufacturerName,
-                modelName = modelName,
-                aperture = aperture,
-                exposureTime = exposureTime,
-                iso = iso,
-                gpsLatitude = gpsLatitude,
-                gpsLongitude = gpsLongitude,
-                gpsLocationName = gpsLocationName,
-                gpsLocationNameCountry = gpsLocationCountry,
-                gpsLocationNameCity = gpsLocationCity,
-                imageWidth = imgW,
-                imageHeight = imgH,
-                imageResolutionX = resX,
-                imageResolutionY = resY,
-                resolutionUnit = resUnit,
-                durationMs = durationMs,
-                videoWidth = vidW,
-                videoHeight = vidH,
-                frameRate = frameRate,
-                bitRate = bitRate,
-                isNightMode = isNightMode,
-                isPanorama = isPanorama,
-                isPhotosphere = isPhotosphere,
-                isLongExposure = isLongExposure,
-                isMotionPhoto = isMotionPhoto
-            ).also {
+                val bundle = isolatedParser.parseVideoMetadata(uri)
+                    ?: return@runCatching null
+                mediaMetadataFromVideoBundle(media.id, bundle)
+            } else {
+                null
+            }?.also {
                 printDebug("Retrieved metadata for ${media.id} - $uri\n$it")
             }
         }.getOrElse {
@@ -425,6 +217,129 @@ suspend fun Context.retrieveExtraMediaMetadata(geocoder: Geocoder?, media: Media
             null
         }
     }
+
+/**
+ * Converts the [Bundle] returned by the isolated image parser into a [MediaMetadata],
+ * performing Geocoder lookup in the main process (Geocoder needs network + Play Services).
+ */
+@Suppress("DEPRECATION")
+private suspend fun mediaMetadataFromImageBundle(
+    mediaId: Long,
+    bundle: Bundle,
+    geocoder: Geocoder?,
+    context: Context
+): MediaMetadata {
+    val gpsLatitude = if (bundle.containsKey(Keys.KEY_GPS_LAT)) bundle.getDouble(Keys.KEY_GPS_LAT) else null
+    val gpsLongitude = if (bundle.containsKey(Keys.KEY_GPS_LON)) bundle.getDouble(Keys.KEY_GPS_LON) else null
+
+    // Geocoding runs in the main app process (needs network + GMS)
+    var gpsLocationName: String? = null
+    var gpsLocationCountry: String? = null
+    var gpsLocationCity: String? = null
+    if (gpsLatitude != null && gpsLongitude != null) {
+        if (geocoder != null) {
+            suspendCoroutine {
+                val address = geocoder.getFromLocation(gpsLatitude, gpsLongitude, 1)
+                    .orEmpty().firstOrNull()
+                gpsLocationName = address?.formattedAddress
+                gpsLocationCountry = address?.countryName
+                gpsLocationCity = address?.locality
+                it.resume(Unit)
+            }
+        } else {
+            printWarning("MetadataReader: Geocoder not available")
+        }
+    }
+
+    var imgW = bundle.getInt(Keys.KEY_IMAGE_WIDTH, 0)
+    var imgH = bundle.getInt(Keys.KEY_IMAGE_HEIGHT, 0)
+
+    // BitmapFactory fallback runs in main process (needs ContentResolver)
+    if (imgW == 0 || imgH == 0) {
+        // We need the URI again for the fallback — reconstruct from mediaId
+        // This is a rare path so we tolerate the extra cost
+        runCatching {
+            val uri = ContentUris.withAppendedId(
+                MediaStore.Files.getContentUri("external"),
+                mediaId
+            )
+            context.contentResolver.openInputStream(uri)?.use { fallbackStream ->
+                val options = BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                }
+                BitmapFactory.decodeStream(fallbackStream, null, options)
+                if (options.outWidth > 0 && options.outHeight > 0) {
+                    imgW = options.outWidth
+                    imgH = options.outHeight
+                }
+            }
+        }
+    }
+
+    return MediaMetadata(
+        mediaId = mediaId,
+        imageDescription = bundle.getString(Keys.KEY_IMAGE_DESCRIPTION),
+        dateTimeOriginal = bundle.getString(Keys.KEY_DATETIME_ORIGINAL),
+        manufacturerName = bundle.getString(Keys.KEY_MANUFACTURER),
+        modelName = bundle.getString(Keys.KEY_MODEL),
+        aperture = bundle.getString(Keys.KEY_APERTURE),
+        exposureTime = bundle.getString(Keys.KEY_EXPOSURE_TIME),
+        iso = bundle.getString(Keys.KEY_ISO),
+        gpsLatitude = gpsLatitude,
+        gpsLongitude = gpsLongitude,
+        gpsLocationName = gpsLocationName,
+        gpsLocationNameCountry = gpsLocationCountry,
+        gpsLocationNameCity = gpsLocationCity,
+        imageWidth = imgW,
+        imageHeight = imgH,
+        imageResolutionX = if (bundle.containsKey(Keys.KEY_RES_X)) bundle.getDouble(Keys.KEY_RES_X) else null,
+        imageResolutionY = if (bundle.containsKey(Keys.KEY_RES_Y)) bundle.getDouble(Keys.KEY_RES_Y) else null,
+        resolutionUnit = if (bundle.containsKey(Keys.KEY_RES_UNIT)) bundle.getInt(Keys.KEY_RES_UNIT) else null,
+        durationMs = null,
+        videoWidth = null,
+        videoHeight = null,
+        frameRate = null,
+        bitRate = null,
+        isNightMode = bundle.getBoolean(Keys.KEY_IS_NIGHT_MODE),
+        isPanorama = bundle.getBoolean(Keys.KEY_IS_PANORAMA),
+        isPhotosphere = bundle.getBoolean(Keys.KEY_IS_PHOTOSPHERE),
+        isLongExposure = bundle.getBoolean(Keys.KEY_IS_LONG_EXPOSURE),
+        isMotionPhoto = bundle.getBoolean(Keys.KEY_IS_MOTION_PHOTO)
+    )
+}
+
+private fun mediaMetadataFromVideoBundle(mediaId: Long, bundle: Bundle): MediaMetadata {
+    return MediaMetadata(
+        mediaId = mediaId,
+        imageDescription = null,
+        dateTimeOriginal = null,
+        manufacturerName = null,
+        modelName = null,
+        aperture = null,
+        exposureTime = null,
+        iso = null,
+        gpsLatitude = null,
+        gpsLongitude = null,
+        gpsLocationName = null,
+        gpsLocationNameCountry = null,
+        gpsLocationNameCity = null,
+        imageWidth = 0,
+        imageHeight = 0,
+        imageResolutionX = null,
+        imageResolutionY = null,
+        resolutionUnit = null,
+        durationMs = if (bundle.containsKey(Keys.KEY_DURATION_MS)) bundle.getLong(Keys.KEY_DURATION_MS) else null,
+        videoWidth = if (bundle.containsKey(Keys.KEY_VIDEO_WIDTH)) bundle.getInt(Keys.KEY_VIDEO_WIDTH) else null,
+        videoHeight = if (bundle.containsKey(Keys.KEY_VIDEO_HEIGHT)) bundle.getInt(Keys.KEY_VIDEO_HEIGHT) else null,
+        frameRate = if (bundle.containsKey(Keys.KEY_FRAME_RATE)) bundle.getFloat(Keys.KEY_FRAME_RATE) else null,
+        bitRate = if (bundle.containsKey(Keys.KEY_BIT_RATE)) bundle.getInt(Keys.KEY_BIT_RATE) else null,
+        isNightMode = false,
+        isPanorama = false,
+        isPhotosphere = false,
+        isLongExposure = false,
+        isMotionPhoto = false
+    )
+}
 
 fun MediaMetadata.toCore() = MediaMetadataCore(
     mediaId = mediaId,
