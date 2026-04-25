@@ -14,6 +14,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.dot.gallery.core.workers.rotateImage
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadataState
+import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MotionPhotoHelper
 import com.dot.gallery.feature_node.domain.util.MotionPhotoInfo
 import com.dot.gallery.feature_node.domain.util.getUri
@@ -42,13 +44,28 @@ private const val FILMSTRIP_THUMB_HEIGHT = 108 // px, ~36dp @ 3x
 @HiltViewModel
 class MediaViewViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val repository: MediaRepository
 ) : ViewModel() {
 
     private val _uiEvents = MutableSharedFlow<MediaViewEvent>(extraBufferCapacity = 1)
     val uiEvents: SharedFlow<MediaViewEvent> = _uiEvents
 
     private var rotateWorkId: UUID? = null
+
+    // ======================== On-demand Metadata Fetching ========================
+
+    private var lastMetadataFetchId: Long? = null
+
+    fun ensureMetadataAvailable(media: Media?, metadataState: MediaMetadataState) {
+        if (media == null) return
+        if (media.id == lastMetadataFetchId) return
+        if (metadataState.metadata.any { it.mediaId == media.id }) return
+        lastMetadataFetchId = media.id
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.collectMetadataFor(media)
+        }
+    }
 
     // ======================== Motion Photo Extraction ========================
 

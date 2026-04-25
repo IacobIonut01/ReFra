@@ -236,6 +236,10 @@ fun <T : Media> MediaViewScreen(
         }
     }
 
+    LaunchedEffect(currentMedia?.id) {
+        viewModel.ensureMetadataAvailable(currentMedia, metadataState.value)
+    }
+
     LaunchedEffect(initialPage, mediaState.value.isLoading) {
         if (!mediaState.value.isLoading && !initialPageSetup) {
             if (pagerState.currentPage != initialPage) {
