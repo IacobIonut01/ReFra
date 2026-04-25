@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GpsOff
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +74,8 @@ import com.dot.gallery.feature_node.domain.util.getCategory
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isRaw
 import com.dot.gallery.feature_node.domain.util.isTrashed
+import com.dot.gallery.feature_node.domain.util.isVideo
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.exif.MetadataEditSheet
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoShotsSection
@@ -251,6 +254,7 @@ fun <T : Media> MediaViewSheetDetails(
 
                 val dateCaption = rememberMediaDateCaption(metadata, currentMedia)
                 val metadataSheetState = rememberAppBottomSheetState()
+                val allMetadataEventHandler = LocalEventHandler.current
                 val mediaInfoList = rememberMediaInfo(
                     media = currentMedia,
                     exifMetadata = metadata,
@@ -501,6 +505,28 @@ fun <T : Media> MediaViewSheetDetails(
                                     onClick = it.onClick
                                 )
                             }
+                            MediaInfoRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                label = stringResource(R.string.view_all_metadata),
+                                content = stringResource(R.string.metadata),
+                                icon = Icons.Outlined.Info,
+                                iconBackgroundModifier = Modifier
+                                    .then(iconBackgroundModifier)
+                                    .hazeEffect(
+                                        state = LocalHazeState.current,
+                                        style = iconBackgroundHazeStyle
+                                    ),
+                                onClick = {
+                                    allMetadataEventHandler.navigate(
+                                        Screen.MetadataViewScreen.uriAndType(
+                                            mediaUri = currentMedia.getUri().toString(),
+                                            isVideo = currentMedia.isVideo
+                                        )
+                                    )
+                                }
+                            )
                             if (category != null) {
                                 val mediaCategoryCounter by handler.getClassifiedMediaCountAtCategory(
                                     category!!
@@ -575,6 +601,7 @@ fun <T : Media> MediaViewSheetDetails(
                         metadata = metadata
                     )
                 }
+
             }
         }
     }

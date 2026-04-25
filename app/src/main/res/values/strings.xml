@@ -366,6 +366,10 @@
     <string name="up_to_date">Up-to-date</string>
     <string name="delete_location">Delete Location</string>
     <string name="delete_metadata">Delete Metadata</string>
+    <string name="view_all_metadata">View all metadata</string>
+    <string name="all_metadata">All Metadata</string>
+    <string name="no_metadata_found">No metadata found</string>
+    <string name="loading_metadata">Loading metadata…</string>
     <string name="categorise_your_media">Categorise your media</string>
     <string name="disclaimer">Disclaimer</string>
     <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device using ONNX Runtime with a pre-trained model available in the app\'s assets.</string>

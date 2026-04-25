@@ -84,6 +84,7 @@ import com.dot.gallery.feature_node.presentation.location.LocationsScreen
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewModel
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewScreen
 import com.dot.gallery.feature_node.presentation.dateformat.DateFormatScreen
+import com.dot.gallery.feature_node.presentation.exif.MetadataViewScreen
 import com.dot.gallery.feature_node.presentation.favorites.FavoriteScreen
 import com.dot.gallery.feature_node.presentation.ignored.IgnoredScreen
 import com.dot.gallery.feature_node.presentation.library.LibraryScreen
@@ -740,6 +741,31 @@ fun NavigationComp(
                     isScrolling = isScrolling,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
+                )
+            }
+
+            composable(
+                route = Screen.MetadataViewScreen.uriAndType(),
+                arguments = listOf(
+                    navArgument(name = "mediaUri") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument(name = "isVideo") {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    }
+                )
+            ) { backStackEntry ->
+                val mediaUri = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("mediaUri") ?: ""
+                }
+                val isVideo = remember(backStackEntry) {
+                    backStackEntry.arguments?.getBoolean("isVideo") ?: false
+                }
+                MetadataViewScreen(
+                    mediaUri = mediaUri,
+                    isVideo = isVideo
                 )
             }
 

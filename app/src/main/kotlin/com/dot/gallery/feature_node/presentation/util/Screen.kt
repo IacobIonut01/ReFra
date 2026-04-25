@@ -103,5 +103,13 @@ sealed class Screen(val route: String) {
 
     data object SearchScreen : Screen("search_screen")
 
+    data object MetadataViewScreen : Screen("metadata_view_screen") {
+
+        fun uriAndType() = "$route?mediaUri={mediaUri}&isVideo={isVideo}"
+
+        fun uriAndType(mediaUri: String, isVideo: Boolean) =
+            "$route?mediaUri=$mediaUri&isVideo=$isVideo"
+    }
+
     operator fun invoke() = route
 }
