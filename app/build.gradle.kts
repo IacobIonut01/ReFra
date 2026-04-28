@@ -1,4 +1,3 @@
-
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
@@ -12,6 +11,23 @@ plugins {
     alias(libs.plugins.kotlin.compose.compiler)
     id("kotlin-parcelize")
     alias(libs.plugins.kotlinSerialization)
+    id("apk-versioning")
+}
+
+val abiVersionCodes = mapOf(
+    "arm64-v8a" to 4,
+    "armeabi-v7a" to 3,
+    "x86_64" to 2,
+    "x86" to 1,
+    "universal" to 0
+)
+
+apkVersioning {
+    flavorVersionCodes.set(abiVersionCodes)
+    versionCodeMultiplier.set(10)
+    outputFileName.set("{appName}-{versionName}-{versionCode}{suffix}-{flavorName}-{buildType}")
+    variables.put("appName", "ReFra")
+    variables.put("suffix", if (includeMaps) "" else "-nomaps")
 }
 
 android {
@@ -135,30 +151,15 @@ android {
 
     flavorDimensions += listOf("abi")
     productFlavors {
-        create("arm64-v8a") {
-            dimension = "abi"
-            versionCode = 4 + (android.defaultConfig.versionCode ?: 0) * 10
-            ndk.abiFilters.add("arm64-v8a")
-        }
-        create("armeabi-v7a") {
-            dimension = "abi"
-            versionCode = 3 + (android.defaultConfig.versionCode ?: 0) * 10
-            ndk.abiFilters.add("armeabi-v7a")
-        }
-        create("x86_64") {
-            dimension = "abi"
-            versionCode = 2 + (android.defaultConfig.versionCode ?: 0) * 10
-            ndk.abiFilters.add("x86_64")
-        }
-        create("x86") {
-            dimension = "abi"
-            versionCode = 1 + (android.defaultConfig.versionCode ?: 0) * 10
-            ndk.abiFilters.add("x86")
-        }
-        create("universal") {
-            dimension = "abi"
-            versionCode = 0 + (android.defaultConfig.versionCode ?: 0) * 10
-            ndk.abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
+        abiVersionCodes.forEach { (abi, _) ->
+            create(abi) {
+                dimension = "abi"
+                if (abi == "universal") {
+                    ndk.abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
+                } else {
+                    ndk.abiFilters.add(abi)
+                }
+            }
         }
     }
 

@@ -53,6 +53,7 @@ glide-ksp = "5.0.5"
 
 [libraries]
 # AndroidX
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 aire = { module = "com.github.awxkee:aire", version.ref = "aire" }
 androidx-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
 androidx-adaptive-layout = { module = "androidx.compose.material3.adaptive:adaptive-layout", version.ref = "adaptive" }
