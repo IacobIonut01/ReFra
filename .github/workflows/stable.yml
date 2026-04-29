@@ -133,7 +133,7 @@ jobs:
         run: echo "### Checksums" >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt && find . -name "ReFra-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"} ' >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }} Release
           body_path: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
