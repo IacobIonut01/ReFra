@@ -20,7 +20,7 @@ jobs:
         run: chmod +x ./strip_permission.sh && ./strip_permission.sh
       - name: Disable maps
         run: echo "INCLUDE_MAPS=false" >> ./app.properties
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           cache: 'gradle'
@@ -62,7 +62,7 @@ jobs:
       - name: Get versionName
         id: versionname
         run: echo "versionName=$(grep 'versionName' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           cache: 'gradle'
