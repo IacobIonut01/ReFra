@@ -12,7 +12,7 @@ jobs:
       versionCode: ${{ steps.versioncode.outputs.versionCode }}
       versionName: ${{ steps.versionname.outputs.versionName }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Get versionCode
         id: versioncode
         run: echo "versionCode=$(grep 'versionCode' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
@@ -58,7 +58,7 @@ jobs:
       versionCode: ${{ steps.versioncode.outputs.versionCode }}
       versionName: ${{ steps.versionname.outputs.versionName }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Get versionCode
         id: versioncode
         run: echo "versionCode=$(grep 'versionCode' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
