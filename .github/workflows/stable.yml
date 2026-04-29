@@ -44,7 +44,7 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReFra Release (No Maps)
           path: app/build/**/*.apk
@@ -86,7 +86,7 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReFra Release (Maps)
           path: app/build/**/*.apk
@@ -114,7 +114,7 @@ jobs:
           releaseName: ${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }} Release
           mappingFile: app/build/outputs/mapping/universalGplay/mapping.txt
           debugSymbols: app/build/intermediates/merged_native_libs/universalGplay/mergeUniversalGplayNativeLibs/out/lib
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReFra Release (GPlay Bundle)
           path: app/build/outputs/bundle/universalGplay/ReFra-${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }}-universal-gplay.aab
@@ -123,10 +123,10 @@ jobs:
     needs: [build_nomaps, build_maps]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: ReFra Release (No Maps)
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: ReFra Release (Maps)
       - name: Generate SHA256
