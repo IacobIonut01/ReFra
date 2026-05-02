@@ -158,29 +158,54 @@ class CategoryWorker @AssistedInject constructor(
                     ))
                 }
 
-                // Generate text embedding for the category's search terms
-                val categoryEmbedding = category.embedding ?: run {
-                    val embedding = visionHelper.getTextEmbedding(session, category.searchTerms)
-                    // Save the embedding for future use - use full entity update to properly apply TypeConverters
-                    categoryDao.updateCategory(category.copy(
-                        embedding = embedding,
-                        updatedAt = System.currentTimeMillis()
-                    ))
-                    embedding
+                // Generate text embedding for the category's search terms (if any)
+                val categoryEmbedding = if (category.searchTerms.isNotBlank()) {
+                    category.embedding ?: run {
+                        val embedding = visionHelper.getTextEmbedding(session, category.searchTerms)
+                        categoryDao.updateCategory(category.copy(
+                            embedding = embedding,
+                            updatedAt = System.currentTimeMillis()
+                        ))
+                        embedding
+                    }
+                } else null
+
+                // Collect reference image embeddings for image-to-image matching
+                val refIdSet = category.referenceImageIds.toSet()
+                val refEmbeddings = if (refIdSet.isNotEmpty()) {
+                    imageEmbeddings.filter { it.id in refIdSet }
+                } else emptyList()
+
+                if (categoryEmbedding == null && refEmbeddings.isEmpty()) {
+                    printInfo("CategoryWorker: Category '${category.name}' has no text or reference images, skipping")
+                    return@fastForEachIndexed
                 }
 
                 // Find matching media
                 val matchingMedia = mutableListOf<MediaCategory>()
                 
                 imageEmbeddings.fastForEach { imageEmbedding ->
-                    val similarity = categoryEmbedding.dot(imageEmbedding.embedding)
+                    // Skip reference images themselves
+                    if (imageEmbedding.id in refIdSet) return@fastForEach
+
+                    var bestScore = 0f
+
+                    // Text-to-image similarity
+                    if (categoryEmbedding != null) {
+                        bestScore = maxOf(bestScore, categoryEmbedding.dot(imageEmbedding.embedding))
+                    }
+
+                    // Image-to-image similarity (against each reference)
+                    refEmbeddings.fastForEach { ref ->
+                        bestScore = maxOf(bestScore, ref.embedding.dot(imageEmbedding.embedding))
+                    }
                     
-                    if (similarity >= category.threshold) {
+                    if (bestScore >= category.threshold) {
                         matchingMedia.add(
                             MediaCategory(
                                 mediaId = imageEmbedding.id,
                                 categoryId = category.id,
-                                similarityScore = similarity
+                                similarityScore = bestScore
                             )
                         )
                     }

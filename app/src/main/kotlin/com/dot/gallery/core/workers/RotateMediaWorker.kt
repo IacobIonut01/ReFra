@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.IntDef
 import androidx.core.net.toUri
@@ -39,8 +38,6 @@ fun WorkManager.rotateImage(
                 RotateMediaWorker.KEY_MEDIA_URI to media.getUri().toString(),
                 RotateMediaWorker.KEY_ROTATION_DEGREES to degrees,
                 RotateMediaWorker.KEY_MIME_TYPE to media.mimeType,
-                RotateMediaWorker.KEY_DISPLAY_NAME to media.label,
-                RotateMediaWorker.KEY_RELATIVE_PATH to media.relativePath
             )
         )
         .build()
@@ -77,26 +74,19 @@ class RotateMediaWorker @AssistedInject constructor(
             val rotated = original.rotate(degrees)
             if (rotated !== original) original.recycle()
 
-            update(Status.SAVING, "Saving copy")
+            update(Status.SAVING, "Saving")
             val format = chooseCompressFormat(mime)
-            val newUri = saveRotatedCopy(
+            val saved = saveRotatedInPlace(
                 sourceUri = sourceUri,
                 rotated = rotated,
-                mime = mime,
-                degrees = degrees,
                 format = format,
                 quality = 95
-            ) ?: return@withContext failure("Save failed")
-
+            )
             rotated.recycle()
+            if (!saved) return@withContext failure("Save failed")
 
             update(Status.COMPLETED, "Done")
-            success(
-                "Rotation applied (copy)",
-                extra = Data.Builder()
-                    .putString(KEY_NEW_MEDIA_URI, newUri.toString())
-                    .build()
-            )
+            success("Rotation applied")
         } catch (oom: OutOfMemoryError) {
             oom.printStackTrace()
             failure("OOM while rotating")
@@ -105,84 +95,34 @@ class RotateMediaWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun saveRotatedCopy(
+    private suspend fun saveRotatedInPlace(
         sourceUri: Uri,
         rotated: Bitmap,
-        mime: String,
-        degrees: Int,
         format: Bitmap.CompressFormat,
         quality: Int
-    ): Uri? = withContext(Dispatchers.IO) {
-        val baseName = (inputData.getString(KEY_DISPLAY_NAME)
-            ?: queryDisplayName(sourceUri)
-            ?: "image")
-            .removeSuffix(".jpg")
-            .removeSuffix(".jpeg")
-            .removeSuffix(".png")
-            .removeSuffix(".webp")
-
-        val extension = chooseExtension(format, mime)
-        val displayName = "${baseName.substringBefore("_rotated")}_rotated_${degrees}$extension"
-
-        val relativePath = Environment.DIRECTORY_PICTURES + "/Rotated"
-        val collection: Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        }
-
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
-            put(MediaStore.MediaColumns.MIME_TYPE, mime)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
-            }
-        }
-
-        val inserted = cr.insert(collection, values) ?: return@withContext null
+    ): Boolean = withContext(Dispatchers.IO) {
         try {
-            cr.openOutputStream(inserted)?.use { out ->
-                if (!rotated.compress(
-                        format,
-                        quality,
-                        out
-                    )
-                ) throw RuntimeException("Compression failed")
+            // Overwrite the original file via its Uri
+            cr.openOutputStream(sourceUri, "wt")?.use { out ->
+                if (!rotated.compress(format, quality, out)) {
+                    throw RuntimeException("Compression failed")
+                }
             } ?: throw RuntimeException("Stream failed")
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val publish = ContentValues().apply {
-                    put(MediaStore.MediaColumns.IS_PENDING, 0)
-                }
-                cr.update(inserted, publish, null, null)
+            // Touch date_modified so MediaStore picks up the change
+            val values = ContentValues().apply {
+                put(
+                    MediaStore.MediaColumns.DATE_MODIFIED,
+                    System.currentTimeMillis() / 1000
+                )
             }
-            inserted
+            cr.update(sourceUri, values, null, null)
+            true
         } catch (e: Exception) {
-            // Cleanup on failure
-            runCatching { cr.delete(inserted, null, null) }
-            null
+            e.printStackTrace()
+            false
         }
     }
-
-    private fun queryDisplayName(uri: Uri): String? {
-        val proj = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
-        cr.query(uri, proj, null, null, null)?.use { c ->
-            if (c.moveToFirst()) {
-                val idx = c.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
-                return c.getString(idx)
-            }
-        }
-        return null
-    }
-
-    private fun chooseExtension(format: Bitmap.CompressFormat, mime: String): String =
-        when {
-            format == Bitmap.CompressFormat.JPEG || mime.contains("jpeg") || mime.contains("jpg") -> ".jpg"
-            format == Bitmap.CompressFormat.PNG || mime.contains("png") -> ".png"
-            mime.contains("webp") -> ".webp"
-            else -> ".png"
-        }
 
     private fun decodeFullResolution(uri: Uri, mime: String): Bitmap? {
         val lower = mime.lowercase()
@@ -232,19 +172,11 @@ class RotateMediaWorker @AssistedInject constructor(
         setProgress(workDataOf(KEY_STATUS to status, KEY_MESSAGE to msg))
     }
 
-    private fun success(msg: String, extra: Data? = null): Result =
+    private fun success(msg: String): Result =
         Result.success(
             Data.Builder()
                 .putInt(KEY_STATUS, Status.COMPLETED)
                 .putString(KEY_MESSAGE, msg)
-                .apply {
-                    extra?.keyValueMap?.forEach { (k, v) ->
-                        when (v) {
-                            is String -> putString(k, v)
-                            is Int -> putInt(k, v)
-                        }
-                    }
-                }
                 .build()
         )
 
@@ -260,9 +192,6 @@ class RotateMediaWorker @AssistedInject constructor(
         const val KEY_MEDIA_URI = "media_uri"
         const val KEY_ROTATION_DEGREES = "rotation_degrees"
         const val KEY_MIME_TYPE = "mime_type"
-        const val KEY_DISPLAY_NAME = "display_name"
-        const val KEY_RELATIVE_PATH = "relative_path"
-        const val KEY_NEW_MEDIA_URI = "new_media_uri"
 
         const val KEY_STATUS = "status"
         const val KEY_MESSAGE = "message"

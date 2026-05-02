@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
@@ -57,7 +58,7 @@ fun SetupWizard(
     subtitle: String,
     contentPadding: Dp = 32.dp,
     content: @Composable () -> Unit,
-    bottomBar: @Composable () -> Unit
+    bottomBar: @Composable RowScope.() -> Unit
 ) = SetupWizard(
     modifier = modifier,
     iconComponent = { modifier, color ->
@@ -83,7 +84,7 @@ fun SetupWizard(
     subtitle: String,
     contentPadding: Dp = 32.dp,
     content: @Composable () -> Unit,
-    bottomBar: @Composable () -> Unit
+    bottomBar: @Composable RowScope.() -> Unit
 ) = SetupWizard(
     modifier = modifier,
     iconComponent = { modifier, color ->
@@ -110,7 +111,7 @@ fun SetupWizard(
     subtitle: String,
     contentPadding: Dp = 32.dp,
     content: @Composable () -> Unit,
-    bottomBar: @Composable () -> Unit
+    bottomBar: @Composable RowScope.() -> Unit
 ) {
     val colorPrimary = MaterialTheme.colorScheme.primaryContainer
     val colorTertiary = MaterialTheme.colorScheme.tertiaryContainer
@@ -152,7 +153,7 @@ fun SetupWizard(
                     .background(Color.Transparent)
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 bottomBar()
             }
