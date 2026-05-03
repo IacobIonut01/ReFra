@@ -5,6 +5,9 @@
 
 package com.dot.gallery.feature_node.presentation.classifier
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
@@ -83,8 +86,8 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
-import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.library.components.dashedBorder
+import com.dot.gallery.feature_node.presentation.util.categorySharedElement
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -97,10 +100,12 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun CategoriesScreen(
-    viewModel: CategoriesViewModel = hiltViewModel<CategoriesViewModel>()
+    viewModel: CategoriesViewModel = hiltViewModel<CategoriesViewModel>(),
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) {
     val eventHandler = LocalEventHandler.current
     val distributor = LocalMediaDistributor.current
@@ -136,6 +141,9 @@ fun CategoriesScreen(
         canScroll = { canScroll },
         flingAnimationSpec = null
     )
+
+    val categoriesSettingsTitle = stringResource(R.string.categories_settings)
+    val categoriesSettingsSubtitle = stringResource(R.string.categories_settings_subtitle)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -188,26 +196,43 @@ fun CategoriesScreen(
                     bottom = paddingValues.calculateBottomPadding() + 128.dp
                 ),
                 userScrollEnabled = canScroll,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Settings button at the top
                 item(
                     span = { GridItemSpan(maxLineSpan) },
-                    key = "settings_button"
+                    key = "categories_settings"
                 ) {
-                    LibrarySmallItem(
-                        title = stringResource(R.string.categories_settings),
-                        subtitle = stringResource(R.string.categories_settings_subtitle),
-                        icon = Icons.Outlined.Settings,
-                        contentColor = MaterialTheme.colorScheme.primary,
+                    androidx.compose.material3.ListItem(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
-                            .pinchItem(key = "settings_button")
-                            .clickable {
-                                eventHandler.navigate(Screen.CategoriesSettingsScreen())
-                            }
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainer)
+                            .clickable { eventHandler.navigate(Screen.CategoriesSettingsScreen()) },
+                        headlineContent = {
+                            Text(
+                                text = categoriesSettingsTitle,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        },
+                        supportingContent = {
+                            Text(
+                                text = categoriesSettingsSubtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        leadingContent = {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        colors = androidx.compose.material3.ListItemDefaults.colors(
+                            containerColor = Color.Transparent
+                        )
                     )
                 }
 
@@ -222,23 +247,29 @@ fun CategoriesScreen(
                         }
                     }
 
-                    CategoryGridItem(
-                        categoryWithCount = categoryWithCount,
-                        media = thumbnailMedia,
-                        onClick = {
-                            eventHandler.navigate(
-                                Screen.CategoryViewScreen.categoryId(categoryWithCount.id)
-                            )
-                        },
-                        onLongClick = {
-                            eventHandler.navigate(
-                                Screen.CategoryEditorScreen.edit(categoryWithCount.id)
-                            )
-                        },
-                        modifier = Modifier
-                            .pinchItem(key = categoryWithCount.id.toString())
-                            .animateItem()
-                    )
+                    with(sharedTransitionScope) {
+                        CategoryGridItem(
+                            categoryWithCount = categoryWithCount,
+                            media = thumbnailMedia,
+                            onClick = {
+                                eventHandler.navigate(
+                                    Screen.CategoryViewScreen.categoryId(categoryWithCount.id)
+                                )
+                            },
+                            onLongClick = {
+                                eventHandler.navigate(
+                                    Screen.CategoryEditorScreen.edit(categoryWithCount.id)
+                                )
+                            },
+                            modifier = Modifier
+                                .pinchItem(key = categoryWithCount.id.toString())
+                                .animateItem()
+                                .categorySharedElement(
+                                    categoryId = categoryWithCount.id,
+                                    animatedVisibilityScope = animatedContentScope
+                                )
+                        )
+                    }
                 }
 
                 // Empty state
@@ -313,7 +344,7 @@ private fun CategoryGridItem(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed = interactionSource.collectIsPressedAsState()
     val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed.value) 32.dp else 16.dp,
+        targetValue = if (isPressed.value) 32.dp else 24.dp,
         label = "cornerRadius"
     )
     val feedbackManager = rememberFeedbackManager()
@@ -328,7 +359,7 @@ private fun CategoryGridItem(
 
     Box(
         modifier = modifier
-            .aspectRatio(1f)
+            .aspectRatio(164f / 256f)
             .clip(RoundedCornerShape(cornerRadius))
             .combinedClickable(
                 interactionSource = interactionSource,
@@ -377,7 +408,7 @@ private fun CategoryGridItem(
                         )
                     )
                 )
-                .padding(12.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(

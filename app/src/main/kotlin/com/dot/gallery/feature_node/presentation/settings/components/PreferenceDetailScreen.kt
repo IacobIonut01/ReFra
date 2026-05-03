@@ -214,7 +214,7 @@ fun <T> SwitchPreferenceDetailScreen(
                         .widthIn(max = 600.dp)
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
-                        .padding(top = 16.dp, bottom = if (options.isNotEmpty()) 16.dp else 0.dp)
+                        .padding(top = 16.dp, bottom = if (options.isNotEmpty() || customContent != null) 16.dp else 0.dp)
                 )
             }
 

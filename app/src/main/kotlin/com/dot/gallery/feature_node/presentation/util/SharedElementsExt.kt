@@ -37,6 +37,15 @@ fun Modifier.mediaSharedElement(
 context(namedSharedTransitionScope: SharedTransitionScope)
 @Composable
 @OptIn(ExperimentalSharedTransitionApi::class)
+fun Modifier.categorySharedElement(
+    allowAnimation: Boolean = true,
+    categoryId: Long,
+    animatedVisibilityScope: AnimatedVisibilityScope
+): Modifier = mediaSharedElement(allowAnimation = allowAnimation, key = "category_$categoryId", animatedVisibilityScope = animatedVisibilityScope)
+
+context(namedSharedTransitionScope: SharedTransitionScope)
+@Composable
+@OptIn(ExperimentalSharedTransitionApi::class)
 private fun Modifier.mediaSharedElement(
     allowAnimation: Boolean = true,
     key: String,

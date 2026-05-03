@@ -83,6 +83,7 @@ import com.dot.gallery.feature_node.presentation.library.components.LibrarySmall
 import com.dot.gallery.feature_node.presentation.library.components.dashedBorder
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
+import com.dot.gallery.feature_node.presentation.util.categorySharedElement
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -139,6 +140,7 @@ fun LibraryScreen(
     val totalLocationsCount by rememberedDerivedState { locations.size }
     val topLocations by rememberedDerivedState { locations.take(10) }
 
+    val hasInternet = viewModel.hasInternetPermission
     var noClassification by rememberNoClassification()
 
     Scaffold(
@@ -405,7 +407,7 @@ fun LibraryScreen(
                     }
                 }
 
-                if (!noClassification) {
+                if (hasInternet && !noClassification) {
                     if (!noCategoriesFound) {
                         // "See all categories" header below carousel
                         item(
@@ -464,6 +466,10 @@ fun LibraryScreen(
                                             modifier = Modifier
                                                 .width(164.dp)
                                                 .height(256.dp)
+                                                .categorySharedElement(
+                                                    categoryId = category.id,
+                                                    animatedVisibilityScope = animatedContentScope
+                                                )
                                                 .clip(RoundedCornerShape(24.dp))
                                                 .combinedClickable(
                                                     onClick = {

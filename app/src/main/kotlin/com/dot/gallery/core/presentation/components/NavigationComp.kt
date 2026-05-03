@@ -108,6 +108,7 @@ import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsNa
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSelectionActionsScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsTimelineAlbumsScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.EditBackupsViewerScreen
+import com.dot.gallery.feature_node.presentation.settings.subsettings.AIModelsManagerScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSmartFeaturesScreen
 import com.dot.gallery.feature_node.presentation.setup.SetupScreen
 import com.dot.gallery.feature_node.presentation.timeline.TimelineScreen
@@ -764,7 +765,10 @@ fun NavigationComp(
             composable(
                 route = Screen.CategoriesScreen()
             ) {
-                CategoriesScreen()
+                CategoriesScreen(
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
             }
 
             composable(
@@ -1060,6 +1064,9 @@ fun NavigationComp(
             }
             composable(Screen.SettingsSmartFeaturesScreen()) {
                 SettingsSmartFeaturesScreen()
+            }
+            composable(Screen.AIModelsManagerScreen()) {
+                AIModelsManagerScreen()
             }
             composable(Screen.SettingsAppearanceScreen()) {
                 ColorPaletteScreen()
