@@ -143,13 +143,11 @@ fun Modifier.crop(
             this.update(cropState)
         }
 
-        this.then(
-            clipToBounds()
-                .then(tapModifier)
-                .then(transformModifier)
-                .then(touchModifier)
-                .then(graphicsModifier)
-        )
+        clipToBounds()
+            .then(tapModifier)
+            .then(transformModifier)
+            .then(touchModifier)
+            .then(graphicsModifier)
     },
     inspectorInfo = debugInspectorInfo {
         name = "crop"
