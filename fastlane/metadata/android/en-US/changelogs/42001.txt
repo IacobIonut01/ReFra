@@ -1,0 +1,21 @@
+ReFra v4.2.0
+
+New Features
+
+- Custom Collections: Create and manage custom albums with add-to-collection from selection sheet
+- Album Groups: Organize albums into groups with CRUD, group view, and copy/move picker integration
+- Mosaic Timeline Layout: New mosaic layout with seedable tile distribution and sticky headers
+- Image-to-Image Search: Find visually similar images using AI-powered search
+- Frame-Accurate Video Seeking: Sensitivity-aware scrubbing for precise video navigation
+- Merge Albums: Option to merge albums with the same name or merge subfolder albums into parent (#693)
+- Optional ML Models: AI models can now be downloaded on-demand instead of being bundled
+- Granular Grouping Settings: Separate controls for RAW+JPG, edited copies, and burst sequences
+- Configurable Actions: Customizable selection sheet and media viewer action buttons
+- Help & Tips: In-app release notes and navigation guide
+
+Bug Fixes
+
+- Fixed video codec exhaustion and black screen on fast scroll
+- Fixed 'show favorite button' setting not respected in timeline and selection sheet (#831)
+- Fixed categories spacing and shared element animation issues
+- Fixed baseline profile install issue
