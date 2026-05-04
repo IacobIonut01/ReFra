@@ -52,6 +52,7 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
+import com.dot.gallery.feature_node.domain.util.isIgnoredKey
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.roundDpToPx
 import com.dot.gallery.feature_node.presentation.util.roundSpToPx
@@ -136,7 +137,7 @@ fun <T : Media> PinchZoomGridScope.MediaGridView(
         StickyHeaderGrid(
             state = gridState,
             modifier = Modifier.fillMaxSize(),
-            headerMatcher = { item -> item.key.isHeaderKey },
+            headerMatcher = { item -> item.key.isHeaderKey || item.key.isIgnoredKey },
             searchBarOffset = { if (showSearchBar) 28.roundSpToPx(density) + searchBarPaddingPx else 0 },
             toolbarOffset = { if (showSearchBar) 0 else if (hasToolbarOffset) 64.roundDpToPx(density) + searchBarHeightPx else 0 },
             stickyHeader = {
