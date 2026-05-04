@@ -70,7 +70,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoState
 import com.composables.core.BottomSheet
 import com.composables.core.SheetDetent.Companion.FullyExpanded
 import com.composables.core.rememberBottomSheetState
@@ -106,7 +106,6 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewQ
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewSheetDetails
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoFilmstrip
-import com.dot.gallery.feature_node.presentation.mediaview.components.media.rememberMotionPhotoState
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayerController
 import com.dot.gallery.feature_node.presentation.util.shareMedia
 import com.dot.gallery.feature_node.presentation.util.FullBrightnessWindow
@@ -158,6 +157,52 @@ fun <T> rememberedDerivedState(
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
+fun <T : Media> MediaViewScreenRoute(
+    toggleRotate: () -> Unit,
+    paddingValues: PaddingValues,
+    isStandalone: Boolean = false,
+    mediaId: Long,
+    target: String? = null,
+    mediaState: State<MediaState<out T>>,
+    metadataState: State<MediaMetadataState>,
+    albumsState: State<AlbumState>,
+    vaultState: State<VaultState>,
+    restoreMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
+    deleteMedia: ((Vault, T, () -> Unit) -> Unit)? = null,
+    currentVault: Vault? = null,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
+) {
+    val viewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel<MediaViewViewModel>()
+    MediaViewScreen(
+        toggleRotate = toggleRotate,
+        paddingValues = paddingValues,
+        isStandalone = isStandalone,
+        mediaId = mediaId,
+        target = target,
+        mediaState = mediaState,
+        metadataState = metadataState,
+        albumsState = albumsState,
+        vaultState = vaultState,
+        restoreMedia = restoreMedia,
+        deleteMedia = deleteMedia,
+        currentVault = currentVault,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope,
+        ensureMetadataAvailable = viewModel::ensureMetadataAvailable,
+        rotateImage = viewModel::rotateImage,
+        uiEvents = viewModel.uiEvents,
+        motionPhotoStateFactory = { media ->
+            com.dot.gallery.feature_node.presentation.mediaview.components.media.rememberMotionPhotoState(
+                media = media,
+                viewModel = viewModel
+            )
+        },
+    )
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
+@Composable
 fun <T : Media> MediaViewScreen(
     toggleRotate: () -> Unit,
     paddingValues: PaddingValues,
@@ -173,8 +218,11 @@ fun <T : Media> MediaViewScreen(
     currentVault: Vault? = null,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
+    ensureMetadataAvailable: (Media?, MediaMetadataState) -> Unit = { _, _ -> },
+    rotateImage: (Media, Int) -> Unit = { _, _ -> },
+    uiEvents: kotlinx.coroutines.flow.SharedFlow<MediaViewEvent> = kotlinx.coroutines.flow.MutableSharedFlow(),
+    motionPhotoStateFactory: @Composable (Media?) -> MotionPhotoState = { remember { MotionPhotoState() } },
 ) = ProvideInsets {
-    val viewModel = hiltViewModel<MediaViewViewModel>()
     val eventHandler = LocalEventHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -245,7 +293,7 @@ fun <T : Media> MediaViewScreen(
     }
 
     LaunchedEffect(currentMedia?.id) {
-        viewModel.ensureMetadataAvailable(currentMedia, metadataState.value)
+        ensureMetadataAvailable(currentMedia, metadataState.value)
     }
 
     LaunchedEffect(initialPage, mediaState.value.isLoading) {
@@ -301,7 +349,7 @@ fun <T : Media> MediaViewScreen(
     val showInfo by rememberedDerivedState { currentMedia?.trashed == 0 && !isReadOnly }
 
     var showUI by rememberSaveable { mutableStateOf(true) }
-    val motionPhotoState = rememberMotionPhotoState(currentMedia, viewModel)
+    val motionPhotoState = motionPhotoStateFactory(currentMedia)
     // Key rotation helpers by media id, not whole media object (prevents Serializable fallback of Media inside internal Pair)
     val newRotationValue = rememberSaveable(currentMedia?.id ?: -1L) { mutableIntStateOf(0) }
     val showRotationHelper = rememberSaveable(currentMedia?.id ?: -1L) { mutableStateOf(false) }
@@ -427,7 +475,7 @@ fun <T : Media> MediaViewScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.uiEvents.collect { event ->
+        uiEvents.collect { event ->
             when (event) {
                 MediaViewEvent.ScrollToFirstPage -> pagerState.animateScrollToPage(0)
             }
@@ -677,7 +725,7 @@ fun <T : Media> MediaViewScreen(
                 isMotionPlaying = motionPhotoState.isPlaying,
                 onToggleMotionPhoto = { motionPhotoState.togglePlayback() },
                 rotateImage = {
-                    viewModel.rotateImage(currentMedia!!, newRotationValue.intValue)
+                    rotateImage(currentMedia!!, newRotationValue.intValue)
                 },
                 onShowInfo = {
                     scope.launch {

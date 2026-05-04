@@ -33,7 +33,7 @@ import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.util.SetupMediaProviders
 import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.util.EventHandler
-import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
+import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreenRoute
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.toggleOrientation
 import com.dot.gallery.ui.theme.GalleryTheme
@@ -123,7 +123,7 @@ class StandaloneActivity : ComponentActivity() {
                                     label = "standalone"
                                 ) { staticState ->
                                     if (staticState) {
-                                        MediaViewScreen(
+                                        MediaViewScreenRoute(
                                             toggleRotate = ::toggleOrientation,
                                             paddingValues = paddingValues,
                                             isStandalone = true,

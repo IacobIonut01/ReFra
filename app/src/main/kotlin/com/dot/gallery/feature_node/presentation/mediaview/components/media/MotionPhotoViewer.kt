@@ -82,7 +82,11 @@ private val FAVOURITE_DOT_SIZE = 6.dp
  */
 @Stable
 class MotionPhotoState(
-    private val viewModel: MediaViewViewModel
+    private val onToggle: () -> Unit = {},
+    private val onStart: () -> Unit = {},
+    private val onStop: () -> Unit = {},
+    private val onSeek: (Long) -> Unit = {},
+    private val onSeekAndPause: (Long) -> Unit = {},
 ) {
     var motionInfo by mutableStateOf<MotionPhotoInfo?>(null)
     var compositeFilmstrip by mutableStateOf<Bitmap?>(null)
@@ -95,11 +99,11 @@ class MotionPhotoState(
 
     val isDetected: Boolean get() = motionInfo != null
 
-    fun togglePlayback() = viewModel.toggleMotionPlayback()
-    fun startPlayback() = viewModel.startMotionPlayback()
-    fun stopPlayback() = viewModel.stopMotionPlayback()
-    fun seekTo(ms: Long) = viewModel.seekMotionTo(ms)
-    fun seekAndPause(ms: Long) = viewModel.seekMotionAndPause(ms)
+    fun togglePlayback() = onToggle()
+    fun startPlayback() = onStart()
+    fun stopPlayback() = onStop()
+    fun seekTo(ms: Long) = onSeek(ms)
+    fun seekAndPause(ms: Long) = onSeekAndPause(ms)
 }
 
 /**
@@ -112,7 +116,15 @@ fun <T : Media> rememberMotionPhotoState(
     media: T?,
     viewModel: MediaViewViewModel
 ): MotionPhotoState {
-    val state = remember(media?.id) { MotionPhotoState(viewModel) }
+    val state = remember(media?.id) {
+        MotionPhotoState(
+            onToggle = viewModel::toggleMotionPlayback,
+            onStart = viewModel::startMotionPlayback,
+            onStop = viewModel::stopMotionPlayback,
+            onSeek = viewModel::seekMotionTo,
+            onSeekAndPause = viewModel::seekMotionAndPause,
+        )
+    }
 
     // Trigger extraction in ViewModel
     LaunchedEffect(media?.id) {

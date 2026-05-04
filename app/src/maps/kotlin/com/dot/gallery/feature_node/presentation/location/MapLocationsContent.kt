@@ -62,8 +62,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
@@ -71,8 +69,8 @@ import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.GeoMedia
+import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
-import com.dot.gallery.feature_node.presentation.classifier.CategoriesViewModel
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.getDate
@@ -129,22 +127,21 @@ import androidx.compose.ui.graphics.Color as ComposeColor
 private const val OPEN_FREE_MAP_LIGHT = "https://tiles.openfreemap.org/styles/liberty"
 private const val OPEN_FREE_MAP_DARK = "https://tiles.openfreemap.org/styles/dark"
 
-@Suppress("ComposeRules")
+@Suppress("ComposeRules", "UNUSED_PARAMETER")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MapLocationsContent(
     metadataState: State<MediaMetadataState>,
+    locations: List<LocationMedia> = emptyList(),
+    geoMedia: List<GeoMedia> = emptyList(),
 ) {
     val sheetHazeState = LocalHazeState.current
     val allowBlur by rememberAllowBlur()
     val composeView: View = LocalView.current
     val context = LocalContext.current
     val eventHandler = LocalEventHandler.current
-    val viewModel = hiltViewModel<CategoriesViewModel>()
     val scope = rememberCoroutineScope()
     val isDark = isDarkTheme()
-
-    val geoMedia by viewModel.geoMedia.collectAsStateWithLifecycle()
 
     // Sort by timestamp descending (most recent first)
     val sortedGeoMedia = remember(geoMedia) {

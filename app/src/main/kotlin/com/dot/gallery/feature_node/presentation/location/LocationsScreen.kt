@@ -41,8 +41,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -51,9 +49,9 @@ import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.GeoMedia
+import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.util.getUri
-import com.dot.gallery.feature_node.presentation.classifier.CategoriesViewModel
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -69,8 +67,10 @@ internal sealed interface MapGridItem {
 @Composable
 fun LocationsScreen(
     metadataState: State<MediaMetadataState>,
+    locations: List<LocationMedia> = emptyList(),
+    geoMedia: List<GeoMedia> = emptyList(),
 ) {
-    MapLocationsContent(metadataState = metadataState)
+    MapLocationsContent(metadataState = metadataState, locations = locations, geoMedia = geoMedia)
 }
 
 @Suppress("DerivedStateOfCandidate")
@@ -78,10 +78,9 @@ fun LocationsScreen(
 @Composable
 internal fun ListLocationsContent(
     metadataState: State<MediaMetadataState>,
+    locations: List<LocationMedia> = emptyList(),
 ) {
     val eventHandler = LocalEventHandler.current
-    val viewModel = hiltViewModel<CategoriesViewModel>()
-    val locations by viewModel.locations.collectAsStateWithLifecycle()
 
     val grouped = remember(locations) {
         locations.groupBy { it.location }

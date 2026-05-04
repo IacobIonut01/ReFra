@@ -46,7 +46,7 @@ import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.navigateUp
 import com.dot.gallery.feature_node.domain.model.UIEvent
-import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
+import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreenRoute
 import com.dot.gallery.feature_node.presentation.util.SecureWindow
 import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import kotlinx.coroutines.flow.collectLatest
@@ -193,7 +193,9 @@ fun VaultScreen(
                             animatedContentScope = this@composable,
                             workerProgress = viewModel.progress,
                             workerIsRunning = viewModel.isRunning,
-                            metadataState = metadataState
+                            metadataState = metadataState,
+                            encryptAndRequestDeletion = viewModel::encryptAndRequestDeletion,
+                            pendingDeletions = viewModel.pendingDeletions,
                         )
                     }
                 }
@@ -212,7 +214,7 @@ fun VaultScreen(
                     val mediaState = remember(viewModel.currentVault.value) {
                         viewModel.createMediaState(viewModel.currentVault.value)
                     }.collectAsStateWithLifecycle()
-                    MediaViewScreen(
+                    MediaViewScreenRoute(
                         toggleRotate = toggleRotate,
                         paddingValues = paddingValues,
                         mediaId = mediaId,

@@ -62,7 +62,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.core.net.toUri
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.pinchzoomgrid.PinchZoomGridLayout
 import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
@@ -117,6 +116,8 @@ fun VaultDisplay(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     metadataState: State<MediaMetadataState>,
+    encryptAndRequestDeletion: (Vault, List<Uri>) -> Unit = { _, _ -> },
+    pendingDeletions: kotlinx.coroutines.flow.Flow<List<Uri>> = kotlinx.coroutines.flow.emptyFlow(),
 ) {
     val eventHandler = LocalEventHandler.current
     val isRunning by workerIsRunning.collectAsStateWithLifecycle()
@@ -157,21 +158,20 @@ fun VaultDisplay(
     val bottomSheetState = rememberAppBottomSheetState()
 
     var toAddMedia by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    val vaultViewModel = hiltViewModel<VaultViewModel>()
 
     val pickerLauncher = rememberLauncherForActivityResult(PickerActivityContract()) { uriList ->
         scope.launch {
             if (uriList.isNotEmpty()) {
                 val uriList = uriList.map { it.toUri() }
                 toAddMedia = uriList
-                vaultViewModel.encryptAndRequestDeletion(currentVault.value!!, uriList)
+                encryptAndRequestDeletion(currentVault.value!!, uriList)
             }
         }
     }
     val postEncryptLauncher = rememberActivityResult()
 
     LaunchedEffect(Unit) {
-        vaultViewModel.pendingDeletions.collect { leftovers ->
+        pendingDeletions.collect { leftovers ->
             if (leftovers.isNotEmpty()) {
                 deleteLeftovers(postEncryptLauncher, leftovers)
                 toAddMedia = emptyList()

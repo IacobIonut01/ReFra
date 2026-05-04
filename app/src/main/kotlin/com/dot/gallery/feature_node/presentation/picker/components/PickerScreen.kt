@@ -91,7 +91,7 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumImage
-import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
+import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreenRoute
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.PickerViewModel
@@ -440,7 +440,7 @@ fun PickerScreen(
                     }
 
                     Scaffold { paddingValues ->
-                        MediaViewScreen(
+                        MediaViewScreenRoute(
                             toggleRotate = { activity?.toggleOrientation() },
                             paddingValues = paddingValues,
                             isStandalone = true,

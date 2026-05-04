@@ -67,7 +67,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -76,7 +75,6 @@ import com.dokar.pinchzoomgrid.rememberPinchZoomGridState
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.navigate
@@ -98,26 +96,16 @@ import com.dot.gallery.ui.theme.isDarkTheme
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun CategoriesScreen(
-    viewModel: CategoriesViewModel = hiltViewModel<CategoriesViewModel>(),
+    categoriesWithCount: List<CategoryWithMediaCount>,
+    mediaState: MediaState<Media.UriMedia>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
     val eventHandler = LocalEventHandler.current
-    val distributor = LocalMediaDistributor.current
-
-    // Get categories from the ViewModel
-    val categoriesWithCount by viewModel.categoriesWithCount.collectAsStateWithLifecycle()
-
-    // Get media for thumbnails
-    val mediaState by distributor.timelineMediaFlow.collectAsStateWithLifecycle(
-        context = Dispatchers.IO,
-        initialValue = MediaState()
-    )
 
     val totalMediaCount by remember(categoriesWithCount) {
         derivedStateOf { categoriesWithCount.sumOf { it.mediaCount } }

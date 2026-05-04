@@ -41,8 +41,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
@@ -52,16 +50,9 @@ import com.dot.gallery.feature_node.presentation.settings.components.SettingsIte
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MetadataViewScreen(
-    mediaUri: String,
-    isVideo: Boolean
+    state: MetadataViewState,
 ) {
-    val viewModel = hiltViewModel<MetadataViewViewModel>()
-    val state by viewModel.state.collectAsStateWithLifecycle()
     val expandedDirs = remember { mutableStateMapOf<String, Boolean>() }
-
-    LaunchedEffect(mediaUri) {
-        viewModel.loadMetadata(mediaUri, isVideo)
-    }
 
     LaunchedEffect(state.directories) {
         state.directories.forEachIndexed { index, dir ->
