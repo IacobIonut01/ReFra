@@ -161,5 +161,19 @@ sealed class Screen(val route: String) {
             "$route?mediaUri=$mediaUri&isVideo=$isVideo"
     }
 
+    data object HelpScreen : Screen("help_screen")
+
+    data object TutorialCategoryScreen : Screen("tutorial_category_screen") {
+        fun category() = "$route?category={category}"
+        fun category(category: String) = "$route?category=$category"
+    }
+
+    data object TutorialDetailScreen : Screen("tutorial_detail_screen") {
+        fun tipId() = "$route?tipId={tipId}"
+        fun tipId(id: String) = "$route?tipId=$id"
+    }
+
+    data object WhatsNewScreen : Screen("whats_new_screen")
+
     operator fun invoke() = route
 }

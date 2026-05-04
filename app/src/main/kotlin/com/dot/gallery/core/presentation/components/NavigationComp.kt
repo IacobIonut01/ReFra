@@ -82,6 +82,7 @@ import com.dot.gallery.feature_node.presentation.classifier.CategoriesSettingsSc
 import com.dot.gallery.feature_node.presentation.classifier.CategoryEditorScreen
 import com.dot.gallery.feature_node.presentation.classifier.EditCategoryScreen
 import com.dot.gallery.feature_node.presentation.classifier.CategoriesScreen
+import com.dot.gallery.feature_node.presentation.classifier.CategoriesViewModel
 import com.dot.gallery.feature_node.presentation.location.LocationsScreen
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewModel
 import com.dot.gallery.feature_node.presentation.classifier.CategoryViewScreen
@@ -91,11 +92,15 @@ import com.dot.gallery.feature_node.presentation.collection.CollectionViewScreen
 import com.dot.gallery.feature_node.presentation.dateformat.DateFormatScreen
 import com.dot.gallery.feature_node.presentation.exif.MetadataViewScreen
 import com.dot.gallery.feature_node.presentation.favorites.FavoriteScreen
+import com.dot.gallery.feature_node.presentation.help.HelpScreen
+import com.dot.gallery.feature_node.presentation.help.TutorialCategoryScreen
+import com.dot.gallery.feature_node.presentation.help.TutorialDetailScreen
+import com.dot.gallery.feature_node.presentation.help.WhatsNewScreen
 import com.dot.gallery.feature_node.presentation.ignored.IgnoredScreen
 import com.dot.gallery.feature_node.presentation.library.LibraryScreen
 import com.dot.gallery.feature_node.presentation.location.LocationTimelineScreen
 import com.dot.gallery.feature_node.presentation.location.LocationsViewModel
-import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreen
+import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreenRoute
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.SearchScreen
 import com.dot.gallery.feature_node.presentation.search.SearchViewModel
@@ -647,7 +652,7 @@ fun NavigationComp(
                     } else timelineState
                 }
 
-                MediaViewScreen(
+                MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -686,7 +691,7 @@ fun NavigationComp(
                     }
                 }.collectAsStateWithLifecycle()
 
-                MediaViewScreen(
+                MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -715,7 +720,7 @@ fun NavigationComp(
                     searchViewModel.searchResultsState.collectAsStateWithLifecycle()
                 val mediaState =
                     remember(searchResultsState.value) { mutableStateOf(searchResultsState.value.results) }
-                MediaViewScreen(
+                MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -765,7 +770,16 @@ fun NavigationComp(
             composable(
                 route = Screen.CategoriesScreen()
             ) {
+                val categoriesViewModel = hiltViewModel<CategoriesViewModel>()
+                val categoriesWithCount by categoriesViewModel.categoriesWithCount.collectAsStateWithLifecycle()
+                val distributor = com.dot.gallery.core.LocalMediaDistributor.current
+                val categoryMediaState by distributor.timelineMediaFlow.collectAsStateWithLifecycle(
+                    context = kotlinx.coroutines.Dispatchers.IO,
+                    initialValue = com.dot.gallery.feature_node.domain.model.MediaState()
+                )
                 CategoriesScreen(
+                    categoriesWithCount = categoriesWithCount,
+                    mediaState = categoryMediaState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
@@ -780,7 +794,14 @@ fun NavigationComp(
             composable(
                 route = Screen.LocationsScreen()
             ) {
-                LocationsScreen(metadataState = metadataState)
+                val locationsViewModel = hiltViewModel<CategoriesViewModel>()
+                val locations by locationsViewModel.locations.collectAsStateWithLifecycle()
+                val geoMedia by locationsViewModel.geoMedia.collectAsStateWithLifecycle()
+                LocationsScreen(
+                    metadataState = metadataState,
+                    locations = locations,
+                    geoMedia = geoMedia
+                )
             }
 
             composable(
@@ -925,7 +946,7 @@ fun NavigationComp(
                 val mediaState = viewModel.mediaByCategory
                     .collectAsStateWithLifecycle(MediaState())
 
-                MediaViewScreen(
+                MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -965,7 +986,7 @@ fun NavigationComp(
                 val mediaState = viewModel.mediaByCategoryId
                     .collectAsStateWithLifecycle(MediaState())
 
-                MediaViewScreen(
+                MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -1039,7 +1060,7 @@ fun NavigationComp(
                 }
                 val mediaState = collectionMediaFlow.collectAsStateWithLifecycle()
 
-                MediaViewScreen(
+                MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -1096,6 +1117,44 @@ fun NavigationComp(
                 )
             }
 
+            composable(Screen.HelpScreen()) {
+                HelpScreen()
+            }
+
+            composable(
+                route = Screen.TutorialCategoryScreen.category(),
+                arguments = listOf(
+                    navArgument(name = "category") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    }
+                )
+            ) { backStackEntry ->
+                val category = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("category", "") ?: ""
+                }
+                TutorialCategoryScreen(categoryName = category)
+            }
+
+            composable(
+                route = Screen.TutorialDetailScreen.tipId(),
+                arguments = listOf(
+                    navArgument(name = "tipId") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    }
+                )
+            ) { backStackEntry ->
+                val tipId = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("tipId", "") ?: ""
+                }
+                TutorialDetailScreen(tipId = tipId)
+            }
+
+            composable(Screen.WhatsNewScreen()) {
+                WhatsNewScreen()
+            }
+
             composable(Screen.LocationTimelineScreen.location()) { backStackEntry ->
                 val gpsLocationNameCity: String = remember(backStackEntry) {
                     backStackEntry.arguments?.getString("gpsLocationNameCity", "null").toString()
@@ -1144,9 +1203,13 @@ fun NavigationComp(
                 val isVideo = remember(backStackEntry) {
                     backStackEntry.arguments?.getBoolean("isVideo") ?: false
                 }
+                val metadataViewViewModel = hiltViewModel<com.dot.gallery.feature_node.presentation.exif.MetadataViewViewModel>()
+                val metadataViewState by metadataViewViewModel.state.collectAsStateWithLifecycle()
+                LaunchedEffect(mediaUri) {
+                    metadataViewViewModel.loadMetadata(mediaUri, isVideo)
+                }
                 MetadataViewScreen(
-                    mediaUri = mediaUri,
-                    isVideo = isVideo
+                    state = metadataViewState
                 )
             }
 
@@ -1174,7 +1237,7 @@ fun NavigationComp(
                     )
                 val mediaState = locationsViewModel.mediaState.collectAsStateWithLifecycle()
 
-                MediaViewScreen(
+                MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
