@@ -70,6 +70,7 @@ import androidx.media3.exoplayer.SeekParameters
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.PlaybackSpeed
 import com.dot.gallery.feature_node.presentation.util.formatMinSec
+import com.dot.gallery.feature_node.presentation.util.rememberGestureNavigationEnabled
 import kotlin.math.roundToInt
 
 @UnstableApi
@@ -87,6 +88,11 @@ fun VideoPlayerController(
 ) {
     val scope = rememberCoroutineScope()
 
+    val isGestureEnabled = rememberGestureNavigationEnabled()
+    val extraNavPadding = remember(isGestureEnabled) {
+        if (!isGestureEnabled) 32.dp else 0.dp
+    }
+
     Box(
         modifier = Modifier
             .zIndex(10f)
@@ -97,7 +103,7 @@ fun VideoPlayerController(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(horizontal = 16.dp)
-                .padding(bottom = paddingValues.calculateBottomPadding() + 80.dp)
+                .padding(bottom = paddingValues.calculateBottomPadding() + 80.dp + extraNavPadding)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.End
