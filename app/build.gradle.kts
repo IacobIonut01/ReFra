@@ -49,7 +49,7 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             manifestPlaceholders["appProvider"] = "com.dot.gallery.debug.media_provider"
-            buildConfigField("Boolean", "ALLOW_ALL_FILES_ACCESS", allowAllFilesAccess)
+            buildConfigField("Boolean", "ALLOW_ALL_FILES_ACCESS", "$allowAllFilesAccess")
             buildConfigField("Boolean", "MAPS_ENABLED", "$includeMaps")
             buildConfigField(
                 "String",
@@ -71,7 +71,7 @@ android {
                 )
             )
             signingConfig = signingConfigs.getByName("release")
-            buildConfigField("Boolean", "ALLOW_ALL_FILES_ACCESS", allowAllFilesAccess)
+            buildConfigField("Boolean", "ALLOW_ALL_FILES_ACCESS", "$allowAllFilesAccess")
             buildConfigField("Boolean", "MAPS_ENABLED", "$includeMaps")
             buildConfigField("String", "CONTENT_AUTHORITY", "\"com.dot.gallery.media_provider\"")
             buildConfigField("Boolean", "ENABLE_INDEXING", "true")
@@ -341,15 +341,15 @@ val includeMaps: Boolean
         }
     }
 
-val allowAllFilesAccess: String
+val allowAllFilesAccess: Boolean
     get() {
         val fl = rootProject.file("app.properties")
 
         return try {
             val properties = Properties()
             properties.load(FileInputStream(fl))
-            properties.getProperty("ALL_FILES_ACCESS")
+            properties.getProperty("ALL_FILES_ACCESS", "true").toBoolean()
         } catch (_: Exception) {
-            "true"
+            true
         }
     }
