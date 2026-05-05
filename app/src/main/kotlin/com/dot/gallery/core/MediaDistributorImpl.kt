@@ -1,6 +1,7 @@
 package com.dot.gallery.core
 
 import android.content.Context
+import android.media.MediaScannerConnection
 import androidx.compose.runtime.compositionLocalOf
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -61,6 +62,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -80,6 +82,12 @@ class MediaDistributorImpl @Inject constructor(
     private val prioritySharingMethod = SharingStarted.Eagerly
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * Tracks media IDs that have already been submitted for a MediaStore rescan
+     * to avoid redundant scanning of the same files.
+     */
+    private val rescanRequestedIds = ConcurrentHashMap.newKeySet<Long>()
 
     /**
      * Pull-to-refresh
@@ -506,6 +514,7 @@ class MediaDistributorImpl @Inject constructor(
         if (triggerDatabaseUpdate) {
             eventHandler.pushEvent(UIEvent.UpdateDatabase)
         }
+        triggerRescanForMissingDateTaken(it.media)
         it
     }.shareIn(
         scope = appScope,
@@ -678,6 +687,24 @@ class MediaDistributorImpl @Inject constructor(
                 started = prioritySharingMethod,
                 initialValue = emptyList()
             )
+
+    /**
+     * Triggers a MediaStore rescan for media items that have null DATE_TAKEN.
+     * When files are transferred between devices, MediaStore may not have
+     * processed their EXIF data yet, so DATE_TAKEN is null and the app falls
+     * back to DATE_MODIFIED (the transfer time). Rescanning forces MediaStore
+     * to read EXIF immediately, populating DATE_TAKEN and triggering a
+     * ContentResolver change notification that refreshes the timeline.
+     */
+    private fun triggerRescanForMissingDateTaken(media: List<Media.UriMedia>) {
+        val toScan = media.filter { it.takenTimestamp == null && rescanRequestedIds.add(it.id) }
+        if (toScan.isEmpty()) return
+        val paths = toScan.mapNotNull { it.path.takeIf { p -> p.isNotBlank() } }.toTypedArray()
+        val mimeTypes = toScan.map { it.mimeType }.toTypedArray()
+        if (paths.isNotEmpty()) {
+            MediaScannerConnection.scanFile(context, paths, mimeTypes, null)
+        }
+    }
 
     private fun mergeSubfolderAlbums(
         albums: List<Album>,

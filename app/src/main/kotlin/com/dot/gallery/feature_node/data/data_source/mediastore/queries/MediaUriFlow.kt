@@ -153,7 +153,7 @@ class MediaUriFlow(
             else
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI
             val uri = ContentUris.withAppendedId(contentUri, id)
-            val formattedDate = modifiedTimestamp.getDate(Constants.FULL_DATE_FORMAT)
+            val formattedDate = (takenTimestamp?.div(1000) ?: modifiedTimestamp).getDate(Constants.FULL_DATE_FORMAT)
             Media.UriMedia(
                 id = id,
                 label = title,
