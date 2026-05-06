@@ -12,7 +12,7 @@ jobs:
       versionCode: ${{ steps.versioncode.outputs.versionCode }}
       versionName: ${{ steps.versionname.outputs.versionName }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Get versionCode
         id: versioncode
         run: echo "versionCode=$(grep 'versionCode' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
@@ -23,15 +23,15 @@ jobs:
         run: chmod +x ./strip_permission.sh && ./strip_permission.sh
       - name: Disable maps
         run: echo "INCLUDE_MAPS=false" >> ./app.properties
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           cache: 'gradle'
           java-version: 21
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v5
       - name: Make Gradle executable
         run: chmod +x ./gradlew
       - name: Decode Keystore
@@ -53,10 +53,10 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ReFra Release (No Maps)
-          path: app/build/**/*.apk 
+          path: app/build/outputs/apk-renamed/**/*.apk 
 
   build_maps:
     runs-on: ubuntu-latest
@@ -64,22 +64,22 @@ jobs:
       versionCode: ${{ steps.versioncode.outputs.versionCode }}
       versionName: ${{ steps.versionname.outputs.versionName }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Get versionCode
         id: versioncode
         run: echo "versionCode=$(grep 'versionCode' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
       - name: Get versionName
         id: versionname
         run: echo "versionName=$(grep 'versionName' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           cache: 'gradle'
           java-version: 21
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v5
       - name: Make Gradle executable
         run: chmod +x ./gradlew
       - name: Decode Keystore
@@ -101,26 +101,26 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ReFra Release (Maps)
-          path: app/build/**/*.apk
+          path: app/build/outputs/apk-renamed/**/*.apk
 
   release:
     needs: [build_nomaps, build_maps]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: ReFra Release (No Maps)
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: ReFra Release (Maps)
       - name: Generate SHA256
         run: echo "### Checksums" >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-nightly-changelog.txt && find . -name "ReFra-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"} ' >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-nightly-changelog.txt
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }} Nightly Release
           body_path: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-nightly-changelog.txt
