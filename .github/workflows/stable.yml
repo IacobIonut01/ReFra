@@ -12,10 +12,10 @@ jobs:
       - uses: actions/checkout@v6
       - name: Get versionCode
         id: versioncode
-        run: echo "versionCode=$(grep 'versionCode' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
+        run: echo "versionCode=$(grep -E '^\s+versionCode\s*=' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
       - name: Get versionName
         id: versionname
-        run: echo "versionName=$(grep 'versionName' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
+        run: echo "versionName=$(grep -E '^\s+versionName\s*=' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
       - name: Strip internet permission
         run: chmod +x ./strip_permission.sh && ./strip_permission.sh
       - name: Disable maps
@@ -64,10 +64,10 @@ jobs:
       - uses: actions/checkout@v6
       - name: Get versionCode
         id: versioncode
-        run: echo "versionCode=$(grep 'versionCode' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
+        run: echo "versionCode=$(grep -E '^\s+versionCode\s*=' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
       - name: Get versionName
         id: versionname
-        run: echo "versionName=$(grep 'versionName' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
+        run: echo "versionName=$(grep -E '^\s+versionName\s*=' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
