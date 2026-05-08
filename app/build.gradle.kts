@@ -140,13 +140,13 @@ android {
                 kotlin.srcDir("src/nomaps/kotlin")
             }
         }
-        // For withMl APK builds, include ML model assets directly
+        // For withML APK builds, include ML model assets directly
         // (asset packs are AAB-only, so for APK builds we inline them)
         val isBundleBuild = gradle.startParameter.taskNames.any {
             it.contains("bundle", ignoreCase = true)
         }
         if (!isBundleBuild) {
-            maybeCreate("withMl").apply {
+            maybeCreate("withML").apply {
                 assets.srcDirs("../ml-models/src/main/assets")
             }
         }
@@ -164,11 +164,11 @@ android {
                 }
             }
         }
-        create("withMl") {
+        create("withML") {
             dimension = "ml"
             buildConfigField("Boolean", "ML_MODELS_BUNDLED", "true")
         }
-        create("noMl") {
+        create("noML") {
             dimension = "ml"
             buildConfigField("Boolean", "ML_MODELS_BUNDLED", "false")
         }

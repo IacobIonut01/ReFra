@@ -120,7 +120,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
         // Schedule periodic cleanup of stale decrypted temp files.
         TempVaultCleanupWorker.schedule(workManager)
 
-        // Initialize ML models (copies from assets on withMl, checks presence on noMl)
+        // Initialize ML models (copies from assets on withML, checks presence on noML)
         appScope.launch {
             modelManager.initializeModels()
         }

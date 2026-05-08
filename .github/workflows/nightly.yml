@@ -44,11 +44,11 @@ jobs:
       - name: Build Release APK
         run: >-
           ./gradlew
-          :app:assembleArm64-v8aNoMlRelease
-          :app:assembleArmeabi-v7aNoMlRelease
-          :app:assembleX86_64NoMlRelease
-          :app:assembleX86NoMlRelease
-          :app:assembleUniversalNoMlRelease
+          :app:assembleArm64-v8aNoMLRelease
+          :app:assembleArmeabi-v7aNoMLRelease
+          :app:assembleX86_64NoMLRelease
+          :app:assembleX86NoMLRelease
+          :app:assembleUniversalNoMLRelease
         env: 
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -92,11 +92,11 @@ jobs:
       - name: Build Release APK
         run: >-
           ./gradlew
-          :app:assembleArm64-v8aNoMlRelease
-          :app:assembleArmeabi-v7aNoMlRelease
-          :app:assembleX86_64NoMlRelease
-          :app:assembleX86NoMlRelease
-          :app:assembleUniversalNoMlRelease
+          :app:assembleArm64-v8aNoMLRelease
+          :app:assembleArmeabi-v7aNoMLRelease
+          :app:assembleX86_64NoMLRelease
+          :app:assembleX86NoMLRelease
+          :app:assembleUniversalNoMLRelease
         env: 
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}

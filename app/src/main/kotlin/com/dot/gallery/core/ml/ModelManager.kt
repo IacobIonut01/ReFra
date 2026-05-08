@@ -83,8 +83,8 @@ class ModelManager @Inject constructor(
 
     /**
      * Initialize models on app start.
-     * For withMl builds: copies bundled assets to filesDir if not already present.
-     * For noMl builds: checks if models have been previously downloaded.
+     * For withML builds: copies bundled assets to filesDir if not already present.
+     * For noML builds: checks if models have been previously downloaded.
      */
     suspend fun initializeModels() = mutex.withLock {
         withContext(Dispatchers.IO) {
@@ -98,7 +98,7 @@ class ModelManager @Inject constructor(
                 copyBundledModels()
             } else {
                 _status.value = ModelStatus.NOT_INSTALLED
-                printInfo("ModelManager: Models not installed (noMl build)")
+                printInfo("ModelManager: Models not installed (noML build)")
             }
         }
     }
@@ -216,7 +216,7 @@ class ModelManager @Inject constructor(
     }
 
     /**
-     * Copy bundled assets to filesDir (withMl builds only).
+     * Copy bundled assets to filesDir (withML builds only).
      */
     private suspend fun copyBundledModels() {
         _status.value = ModelStatus.COPYING
