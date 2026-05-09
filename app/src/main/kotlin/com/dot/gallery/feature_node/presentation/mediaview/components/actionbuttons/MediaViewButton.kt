@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -38,10 +40,14 @@ fun <T : Media> MediaViewButton(
     onItemClick: (T) -> Unit
 ) {
     val alpha by animateFloatAsState(if (enabled) 1f else 0.5f)
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val baseColor by animateColorAsState(
+        targetValue = if (followTheme) LocalContentColor.current else Color.White,
+        label = "MediaViewButtonBaseColor"
+    )
 
     val tintColor by animateColorAsState(
-        onSurfaceColor.copy(alpha = alpha)
+        baseColor.copy(alpha = alpha),
+        label = "MediaViewButtonTintColor"
     )
     val tooltipState = rememberTooltipState()
     TooltipBox(

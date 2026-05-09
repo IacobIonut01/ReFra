@@ -29,9 +29,11 @@ import androidx.compose.material.icons.outlined.MotionPhotosPaused
 import androidx.compose.material.icons.outlined.ScreenRotationAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -79,7 +81,9 @@ fun MediaViewAppBar(
     onGoBack: () -> Unit,
     onShowInfo: () -> Unit,
     onLock: () -> Unit,
-    castButton: @Composable (() -> Unit)? = null,
+    isImageDark: Boolean = false,
+    autoContrast: Boolean = false,
+    castButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
     castBanner: @Composable (() -> Unit)? = null
 ) {
     val allowBlur by rememberAllowBlur()
@@ -87,16 +91,21 @@ fun MediaViewAppBar(
     val isVideo by rememberedDerivedState(currentMedia) {
         currentMedia?.isVideo ?: false
     }
-    val followTheme = remember(allowBlur, isVideo) { !allowBlur && !isVideo }
+    val followTheme = remember(allowBlur, isVideo, isDarkTheme, autoContrast, isImageDark) {
+        if (autoContrast) !isImageDark
+        else !allowBlur && !isVideo
+    }
     AnimatedVisibility(
         visible = showUI,
         enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
         exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION)
     ) {
         val gradientColor by animateColorAsState(
-            if (followTheme) {
-                if (isDarkTheme) BlackScrim else WhiterBlackScrim
-            } else BlackScrim,
+            when {
+                autoContrast -> if (isImageDark) BlackScrim else WhiterBlackScrim
+                followTheme -> if (isDarkTheme) BlackScrim else WhiterBlackScrim
+                else -> BlackScrim
+            },
         )
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -116,20 +125,31 @@ fun MediaViewAppBar(
                     .then(modifier)
                     .fillMaxWidth(),
             ) {
-                val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer.copy(0.5f)
-                val backgroundModifier = remember(allowBlur) {
-                    if (!allowBlur) {
-                        Modifier.background(
-                            color = surfaceContainer,
-                            shape = CircleShape
-                        )
-                    } else Modifier
-                }
+                val surfaceContainer by animateColorAsState(
+                    targetValue = when {
+                        autoContrast && !isImageDark -> Color.White.copy(0.4f)
+                        autoContrast -> Color.Black.copy(0.3f)
+                        followTheme -> MaterialTheme.colorScheme.surfaceContainer.copy(0.5f)
+                        else -> Color.Black.copy(0.3f)
+                    },
+                    label = "AppBarSurfaceContainer"
+                )
+                val backgroundModifier = if (!allowBlur) {
+                    Modifier.background(
+                        color = surfaceContainer,
+                        shape = CircleShape
+                    )
+                } else Modifier
                 val contentColor by animateColorAsState(
-                    targetValue = if (followTheme) MaterialTheme.colorScheme.onSurface else Color.White,
+                    targetValue = when {
+                        autoContrast -> if (isImageDark) Color.White else Color.Black
+                        followTheme -> MaterialTheme.colorScheme.onSurface
+                        else -> Color.White
+                    },
                     label = "AppBarContentColor"
                 )
 
+                CompositionLocalProvider(LocalContentColor provides contentColor) {
                 IconButton(
                     modifier = modifier
                         .align(Alignment.CenterStart)
@@ -147,7 +167,7 @@ fun MediaViewAppBar(
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                         contentDescription = "Go back",
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = contentColor,
                         modifier = Modifier.height(48.dp)
                     )
                 }
@@ -187,7 +207,7 @@ fun MediaViewAppBar(
                         ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    castButton?.invoke()
+                    castButton?.invoke(followTheme)
 
                     this@Column.AnimatedVisibility(
                         visible = showInfo,
@@ -198,11 +218,12 @@ fun MediaViewAppBar(
                             Icon(
                                 imageVector = Icons.Outlined.Info,
                                 contentDescription = "info",
-                                tint = MaterialTheme.colorScheme.onSurface,
+                                tint = contentColor,
                                 modifier = Modifier.height(48.dp)
                             )
                         }
                     }
+                }
                 }
             }
 

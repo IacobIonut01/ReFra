@@ -463,6 +463,11 @@ object Settings {
         @Composable
         fun rememberAllowBlur() = rememberPreference(key = ALLOW_BLUR, defaultValue = SdkCompat.supportsBlur)
 
+        private val AUTO_CONTRAST = booleanPreferencesKey("auto_contrast")
+
+        @Composable
+        fun rememberAutoContrast() = rememberPreference(key = AUTO_CONTRAST, defaultValue = false)
+
         private val OLD_NAVBAR = booleanPreferencesKey("old_navbar")
 
         @Composable

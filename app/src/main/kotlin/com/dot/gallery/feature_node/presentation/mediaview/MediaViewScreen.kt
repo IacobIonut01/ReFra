@@ -6,7 +6,12 @@
 package com.dot.gallery.feature_node.presentation.mediaview
 
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
+import android.view.PixelCopy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -82,6 +87,7 @@ import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberAutoContrast
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberExtendedDateHeaderFormat
@@ -142,6 +148,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -364,6 +371,9 @@ fun <T : Media> MediaViewScreen(
     val showInfo by rememberedDerivedState { currentMedia?.trashed == 0 && !isReadOnly }
 
     var showUI by rememberSaveable { mutableStateOf(true) }
+    var isTopDark by remember { mutableStateOf(false) }
+    var isBottomDark by remember { mutableStateOf(false) }
+    val autoContrast by rememberAutoContrast()
     val motionPhotoState = motionPhotoStateFactory(currentMedia)
     // Key rotation helpers by media id, not whole media object (prevents Serializable fallback of Media inside internal Pair)
     val newRotationValue = rememberSaveable(currentMedia?.id ?: -1L) { mutableIntStateOf(0) }
@@ -486,6 +496,99 @@ fun <T : Media> MediaViewScreen(
                 printWarning("Disposing HDR Mode")
                 context.setHdrMode(false)
             }
+        }
+    }
+
+    // ── PixelCopy-based real-time luminance detection ──
+    val pixelCopyThread = remember {
+        HandlerThread("AutoContrastThread").apply { start() }
+    }
+    val pixelCopyHandler = remember(pixelCopyThread) {
+        Handler(pixelCopyThread.looper)
+    }
+    DisposableEffect(Unit) {
+        onDispose { pixelCopyThread.quitSafely() }
+    }
+
+    LaunchedEffect(autoContrast, activity, currentMedia?.id) {
+        isTopDark = false
+        isBottomDark = false
+        if (!autoContrast || activity == null) {
+            return@LaunchedEffect
+        }
+
+        val window = activity.window
+        val capturing = AtomicBoolean(false)
+        val captureW = 32
+
+        while (true) {
+            if (!capturing.get()) {
+                val decorView = window.decorView
+                val screenW = decorView.width
+                val screenH = decorView.height
+                if (screenW > 0 && screenH > 0) {
+                    val captureH = (captureW * screenH.toFloat() / screenW)
+                        .toInt().coerceAtLeast(1)
+                    val dest = Bitmap.createBitmap(
+                        captureW, captureH, Bitmap.Config.ARGB_8888
+                    )
+                    capturing.set(true)
+                    try {
+                        PixelCopy.request(
+                            window,
+                            Rect(0, 0, screenW, screenH),
+                            dest,
+                            { result ->
+                                if (result == PixelCopy.SUCCESS) {
+                                    val w = dest.width
+                                    val h = dest.height
+                                    val pixels = IntArray(w * h)
+                                    dest.getPixels(pixels, 0, w, 0, 0, w, h)
+
+                                    val topRows = (h * 0.15f).toInt().coerceAtLeast(1)
+                                    val bottomStart = h - (h * 0.15f).toInt().coerceAtLeast(1)
+
+                                    var topLum = 0.0
+                                    var topCnt = 0
+                                    for (y in 0 until topRows) {
+                                        for (x in 0 until w) {
+                                            val p = pixels[y * w + x]
+                                            topLum += 0.299 * ((p shr 16) and 0xFF) +
+                                                    0.587 * ((p shr 8) and 0xFF) +
+                                                    0.114 * (p and 0xFF)
+                                            topCnt++
+                                        }
+                                    }
+
+                                    var btmLum = 0.0
+                                    var btmCnt = 0
+                                    for (y in bottomStart until h) {
+                                        for (x in 0 until w) {
+                                            val p = pixels[y * w + x]
+                                            btmLum += 0.299 * ((p shr 16) and 0xFF) +
+                                                    0.587 * ((p shr 8) and 0xFF) +
+                                                    0.114 * (p and 0xFF)
+                                            btmCnt++
+                                        }
+                                    }
+
+                                    isTopDark = topCnt > 0 &&
+                                            (topLum / topCnt / 255.0) < 0.4
+                                    isBottomDark = btmCnt > 0 &&
+                                            (btmLum / btmCnt / 255.0) < 0.4
+                                }
+                                dest.recycle()
+                                capturing.set(false)
+                            },
+                            pixelCopyHandler
+                        )
+                    } catch (_: Exception) {
+                        dest.recycle()
+                        capturing.set(false)
+                    }
+                }
+            }
+            delay(300L)
         }
     }
 
@@ -747,6 +850,18 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
             }
+            // Sync status bar icon color with the top image luminance
+            LaunchedEffect(isTopDark) {
+                // Dark top → white status icons; bright top → dark status icons
+                windowInsetsController.isAppearanceLightStatusBars = !isTopDark
+            }
+            DisposableEffect(Unit) {
+                val previousLightStatusBars = windowInsetsController.isAppearanceLightStatusBars
+                onDispose {
+                    windowInsetsController.isAppearanceLightStatusBars = previousLightStatusBars
+                }
+            }
+
             val allowShowingDate by rememberShowMediaViewDateHeader()
             MediaViewAppBar(
                 showUI = showUI,
@@ -759,6 +874,8 @@ fun <T : Media> MediaViewScreen(
                 paddingValues = paddingValues,
                 currentMedia = currentMedia,
                 showRotationHelper = showRotationHelper,
+                isImageDark = isTopDark,
+                autoContrast = autoContrast,
                 isMotionPhoto = motionPhotoState.isDetected,
                 isMotionPlaying = motionPhotoState.isPlaying,
                 onToggleMotionPhoto = { motionPhotoState.togglePlayback() },
@@ -788,11 +905,11 @@ fun <T : Media> MediaViewScreen(
                 onLock = {
                     isLocked = !isLocked
                 },
-                castButton = {
+                castButton = { followTheme ->
                     CastButton(
                         isConnected = fcastState.connectedDevice != null,
                         isConnecting = fcastState.isConnecting,
-                        followTheme = true,
+                        followTheme = followTheme,
                         onClick = {
                             if (fcastState.connectedDevice != null) {
                                 showCastPicker = true
@@ -1001,17 +1118,28 @@ fun <T : Media> MediaViewScreen(
                         enter = enterAnimation,
                         exit = exitAnimation
                     ) {
-                        val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer.copy(
-                            if (isDarkTheme) 0.5f else 0.8f
-                        )
-                        val backgroundModifier = remember(allowBlur) {
-                            if (!allowBlur) {
-                                Modifier.background(
-                                    color = surfaceContainer,
-                                    shape = RoundedCornerShape(100)
-                                )
-                            } else Modifier
+                        val bottomBarFollowTheme = if (autoContrast) {
+                            !isBottomDark
+                        } else {
+                            !allowBlur
                         }
+                        val surfaceContainer by animateColorAsState(
+                            targetValue = when {
+                                autoContrast && !isBottomDark -> Color.White.copy(0.5f)
+                                autoContrast -> Color.Black.copy(0.5f)
+                                bottomBarFollowTheme -> MaterialTheme.colorScheme.surfaceContainer.copy(
+                                    if (isDarkTheme) 0.5f else 0.8f
+                                )
+                                else -> Color.Black.copy(0.5f)
+                            },
+                            label = "BottomBarSurfaceContainer"
+                        )
+                        val backgroundModifier = if (!allowBlur) {
+                            Modifier.background(
+                                color = surfaceContainer,
+                                shape = RoundedCornerShape(100)
+                            )
+                        } else Modifier
                         Box(
                             modifier = Modifier
                                 .graphicsLayer {
@@ -1045,7 +1173,9 @@ fun <T : Media> MediaViewScreen(
                                     enabled = showUI,
                                     deleteMedia = deleteMedia,
                                     restoreMedia = restoreMedia,
-                                    currentVault = currentVault
+                                    currentVault = currentVault,
+                                    isImageDark = isBottomDark,
+                                    autoContrast = autoContrast
                                 )
                             }
                         }

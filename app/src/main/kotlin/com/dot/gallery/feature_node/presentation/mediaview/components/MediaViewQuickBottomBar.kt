@@ -1,13 +1,18 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.RestoreFromTrash
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
@@ -42,18 +47,33 @@ fun <T : Media> MediaViewQuickBottomBar(
     enabled: Boolean,
     deleteMedia: ((Vault, T, () -> Unit) -> Unit)?,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
-    currentVault: Vault?
+    currentVault: Vault?,
+    isImageDark: Boolean = false,
+    autoContrast: Boolean = false
 ) {
     val handler = LocalMediaHandler.current
     val allowBlur by rememberAllowBlur()
     val isVideo by rememberedDerivedState(currentMedia) {
         currentMedia?.isVideo ?: false
     }
-    val followTheme = remember(allowBlur, isVideo) { !allowBlur && !isVideo }
+    val isDarkTheme = com.dot.gallery.ui.theme.isDarkTheme()
+    val followTheme = remember(allowBlur, isVideo, isDarkTheme, autoContrast, isImageDark) {
+        if (autoContrast) !isImageDark
+        else !allowBlur && !isVideo
+    }
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            autoContrast -> if (isImageDark) Color.White else Color.Black
+            followTheme -> MaterialTheme.colorScheme.onSurface
+            else -> Color.White
+        },
+        label = "BottomBarContentColor"
+    )
     val eventHandler = LocalEventHandler.current
     LaunchedEffect(followTheme) {
         eventHandler.setFollowTheme(followTheme)
     }
+    CompositionLocalProvider(LocalContentColor provides contentColor) {
     if (currentMedia != null) {
         if (currentMedia.isTrashed) {
             val scope = rememberCoroutineScope()
@@ -140,5 +160,6 @@ fun <T : Media> MediaViewQuickBottomBar(
                 )
             }
         }
+    }
     }
 }

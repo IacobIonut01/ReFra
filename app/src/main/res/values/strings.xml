@@ -184,6 +184,9 @@
     <string name="internet_summary"><![CDATA[Required to display Location Previews of your images & videos]]></string>
     <string name="fancy_blur">Fancy Blur</string>
     <string name="fancy_blur_summary">Blur background in Media View</string>
+    <string name="auto_contrast">Auto Contrast (Beta)</string>
+    <string name="auto_contrast_summary">Adjust button contrast based on image brightness</string>
+    <string name="auto_contrast_description">Continuously samples the screen to detect image brightness and adjusts media viewer UI colors accordingly. Over dark regions, buttons and icons appear white with a dark backdrop. Over bright regions, they switch to black with a light backdrop. Works in both light and dark themes. Status bar icons also adapt to match the image brightness behind them. Updates in real-time as you zoom, pan, and swipe between media.</string>
     <string name="old_navbar">Use Material Navigation</string>
     <string name="old_navbar_summary">Show the old navigation bar UI (with rails for bigger screens)</string>
     <string name="hide_timeline_for_albums">Hide timeline for albums</string>

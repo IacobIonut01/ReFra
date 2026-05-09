@@ -92,6 +92,7 @@ private const val DETAIL_FOLLOW_SYSTEM = "follow_system"
 private const val DETAIL_DARK_MODE = "dark_mode"
 private const val DETAIL_AMOLED = "amoled"
 private const val DETAIL_BLUR = "blur"
+private const val DETAIL_AUTO_CONTRAST = "auto_contrast"
 private const val DETAIL_SHARED = "shared"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,6 +105,7 @@ fun ColorPaletteScreen() {
     var amoledModeValue by Settings.Misc.rememberIsAmoledMode()
     val shouldAllowBlur = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.S }
     var allowBlur by Settings.Misc.rememberAllowBlur()
+    var autoContrast by Settings.Misc.rememberAutoContrast()
     var sharedElements by Settings.Misc.rememberSharedElements()
     val isDark = isDarkTheme()
 
@@ -150,6 +152,16 @@ fun ColorPaletteScreen() {
                 description = stringResource(R.string.fancy_blur_description),
                 preview = { checked -> BlurPreview(checked) },
                 enabled = shouldAllowBlur,
+            )
+            return
+        }
+        DETAIL_AUTO_CONTRAST -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(R.string.auto_contrast),
+                isChecked = autoContrast,
+                onCheckedChange = { autoContrast = it },
+                description = stringResource(R.string.auto_contrast_description),
             )
             return
         }
@@ -274,6 +286,15 @@ fun ColorPaletteScreen() {
             onClick = { detailKey = DETAIL_BLUR },
             enabled = shouldAllowBlur,
             screenPosition = Position.Top
+        )
+        val autoContrastPref = rememberSwitchPreference(
+            autoContrast,
+            title = stringResource(R.string.auto_contrast),
+            summary = stringResource(R.string.auto_contrast_summary),
+            isChecked = autoContrast,
+            onCheck = { autoContrast = it },
+            onClick = { detailKey = DETAIL_AUTO_CONTRAST },
+            screenPosition = Position.Middle
         )
         val sharedElementsPref = rememberSwitchPreference(
             sharedElements,
@@ -442,6 +463,7 @@ fun ColorPaletteScreen() {
                     Spacer(modifier = Modifier.height(16.dp))
                     SettingsItem(item = effectsHeader)
                     SettingsItem(item = allowBlurPref)
+                    SettingsItem(item = autoContrastPref)
                     SettingsItem(item = sharedElementsPref)
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -491,6 +513,7 @@ fun ColorPaletteScreen() {
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsItem(item = effectsHeader)
                 SettingsItem(item = allowBlurPref)
+                SettingsItem(item = autoContrastPref)
                 SettingsItem(item = sharedElementsPref)
 
                 Spacer(modifier = Modifier.height(32.dp))

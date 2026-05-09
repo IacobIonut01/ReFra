@@ -5,7 +5,9 @@
 
 package com.dot.gallery.feature_node.presentation.cast.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -39,11 +41,14 @@ fun CastButton(
     onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val tint = if (followTheme) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        if (isConnected) Color.White else Color.White.copy(alpha = 0.8f)
-    }
+    val tint by animateColorAsState(
+        targetValue = if (followTheme) {
+            LocalContentColor.current
+        } else {
+            if (isConnected) Color.White else Color.White.copy(alpha = 0.8f)
+        },
+        label = "CastButtonTint"
+    )
 
     val alpha = if (isConnecting) {
         val transition = rememberInfiniteTransition(label = "cast_connecting")
