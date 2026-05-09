@@ -236,7 +236,7 @@ fun SetupScreen(
 
 private val Context.requiredPermissionsList: Array<Triple<ImageVector, String, String>>
     get() {
-        return arrayOf(
+        val list = mutableListOf(
             Triple(
                 Icons.Rounded.Image,
                 getString(R.string.read_media_images),
@@ -252,18 +252,15 @@ private val Context.requiredPermissionsList: Array<Triple<ImageVector, String, S
                 getString(R.string.access_media_location),
                 getString(R.string.access_media_location_summary)
             ),
-            Triple(
-                Icons.Rounded.SignalWifi4Bar,
-                getString(R.string.internet),
-                getString(R.string.internet_summary)
+        )
+        if (BuildConfig.MAPS_ENABLED) {
+            list.add(
+                Triple(
+                    Icons.Rounded.SignalWifi4Bar,
+                    getString(R.string.internet),
+                    getString(R.string.internet_summary)
+                )
             )
-        ).apply {
-            if (packageManager.checkPermission(
-                    Manifest.permission.INTERNET,
-                    packageName
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                this.dropLast(1)
-            }
         }
+        return list.toTypedArray()
     }
