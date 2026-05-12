@@ -62,7 +62,7 @@ class EncryptedPanoramaImageLoader(
 
         // Decrypt the file to get raw image bytes
         val bytes = try {
-            keychainHolder.decryptVaultMedia(encryptedFile).bytes
+            keychainHolder.decryptVaultMedia(encryptedFile).readBytes()
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.initialize() decryption failed", e)
             return false

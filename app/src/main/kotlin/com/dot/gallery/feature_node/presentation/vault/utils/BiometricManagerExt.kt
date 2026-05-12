@@ -53,18 +53,6 @@ fun rememberBiometricCallback(
 }
 
 @Composable
-fun rememberBiometricPrompt(biometricPromptCallback: BiometricPrompt.AuthenticationCallback): BiometricPrompt {
-    val context = LocalContext.current
-    val executor = remember { ContextCompat.getMainExecutor(context) }
-
-    return remember(context, executor, biometricPromptCallback) {
-        BiometricPrompt(
-            context as FragmentActivity, executor, biometricPromptCallback
-        )
-    }
-}
-
-@Composable
 fun rememberBiometricState(
     title: String,
     subtitle: String,
@@ -74,7 +62,6 @@ fun rememberBiometricState(
     val context = LocalContext.current
     val biometricManager = rememberBiometricManager()
     val callback = rememberBiometricCallback(onSuccess, onFailed)
-    val prompt = rememberBiometricPrompt(callback)
     return remember(biometricManager, title, subtitle) {
         val promptInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             PromptInfo.Builder()
@@ -91,31 +78,35 @@ fun rememberBiometricState(
                 .build()
         }
         BiometricState(
-            context = context,
+            activity = context as FragmentActivity,
             biometricManager = biometricManager,
             promptInfo = promptInfo,
-            prompt = prompt
+            callback = callback
         )
     }
 }
 
 class BiometricState(
-    context: Context,
+    private val activity: FragmentActivity,
     biometricManager: BiometricManager,
     private val promptInfo: PromptInfo,
-    private val prompt: BiometricPrompt
+    private val callback: BiometricPrompt.AuthenticationCallback
 ) {
     val isSupported by mutableStateOf(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL) == BIOMETRIC_SUCCESS
         } else {
-            val keyguardManager = context.getSystemService(KeyguardManager::class.java)
+            val keyguardManager = activity.getSystemService(KeyguardManager::class.java)
             keyguardManager?.isDeviceSecure == true
         }
     )
 
     fun authenticate() {
         if (isSupported) {
+            // Create a fresh BiometricPrompt each time to avoid stale internal
+            // BiometricFragment state that silently swallows subsequent callbacks.
+            val executor = ContextCompat.getMainExecutor(activity)
+            val prompt = BiometricPrompt(activity, executor, callback)
             prompt.authenticate(promptInfo)
         }
     }

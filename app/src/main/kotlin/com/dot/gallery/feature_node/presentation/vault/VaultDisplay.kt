@@ -45,7 +45,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -104,7 +103,7 @@ import com.dot.gallery.feature_node.presentation.vault.components.VaultPasswordS
 import com.dot.gallery.feature_node.presentation.vault.utils.VaultPasswordManager
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -118,7 +117,7 @@ import kotlin.math.roundToInt
 fun VaultDisplay(
     globalNavigateUp: () -> Unit,
     vaultState: State<VaultState>,
-    currentVault: MutableState<Vault?>,
+    currentVault: MutableStateFlow<Vault?>,
     createMediaState: (Vault?) -> StateFlow<MediaState<Media.UriMedia>>,
     onCreateVaultClick: () -> Unit,
     deleteLeftovers: (result: ActivityResultLauncher<IntentSenderRequest>, uris: List<Uri>) -> Unit,
@@ -130,30 +129,34 @@ fun VaultDisplay(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     metadataState: State<MediaMetadataState>,
+    onAuthenticateVault: (Vault) -> Unit = {},
+    onVaultDeleted: () -> Unit = {},
     encryptAndRequestDeletion: (Vault, List<Uri>) -> Unit = { _, _ -> },
     addMediaKeepOriginals: (Vault, List<Uri>) -> Unit = { _, _ -> },
     pendingDeletions: Flow<List<Uri>> = emptyFlow(),
-    userMessage: SharedFlow<String>? = null,
+    userMessage: Flow<String>? = null,
+    onMediaClick: (Long) -> Unit = {},
 ) {
     val eventHandler = LocalEventHandler.current
     val isRunning by workerIsRunning.collectAsStateWithLifecycle()
     val progress by workerProgress.collectAsStateWithLifecycle()
-    val mediaState = remember(currentVault.value) {
-        createMediaState(currentVault.value)
+    val currentVaultValue by currentVault.collectAsStateWithLifecycle()
+    val mediaState = remember(currentVaultValue) {
+        createMediaState(currentVaultValue)
     }.collectAsStateWithLifecycle()
 
-    LaunchedEffect(vaultState.value, currentVault.value) {
-        val current = currentVault.value
+    // Keep current vault in sync; if deleted or null, navigate back
+    LaunchedEffect(vaultState.value, currentVaultValue) {
+        val current = currentVaultValue
         val vaults = vaultState.value.vaults
         if (current != null && vaults.any { it.uuid == current.uuid }) {
             setVault(current)
-        } else {
-            val fallback = vaults.firstOrNull()
-            if (fallback != null) {
-                setVault(fallback)
-            } else {
-                currentVault.value = null
-            }
+        } else if (current == null && vaults.isNotEmpty()) {
+            // Vault was deleted but others remain — go to vault selector for auth
+            onVaultDeleted()
+        } else if (current == null && vaults.isEmpty()) {
+            // Last vault deleted — exit to library
+            globalNavigateUp()
         }
     }
 
@@ -194,7 +197,7 @@ fun VaultDisplay(
         scope.launch {
             if (uriList.isNotEmpty()) {
                 val uris = uriList.map { it.toUri() }
-                val vault = currentVault.value ?: return@launch
+                val vault = currentVaultValue ?: return@launch
                 when (vaultEncryptBehavior) {
                     Settings.Vault.ENCRYPT_DELETE -> {
                         toAddMedia = uris
@@ -228,15 +231,15 @@ fun VaultDisplay(
     var hasCustomPassword by remember { mutableStateOf(false) }
     val passwordSetMsg = stringResource(R.string.vault_password_set)
     val passwordRemovedMsg = stringResource(R.string.vault_password_removed)
-    LaunchedEffect(currentVault.value) {
-        val uuid = currentVault.value?.uuid ?: return@LaunchedEffect
+    LaunchedEffect(currentVaultValue) {
+        val uuid = currentVaultValue?.uuid ?: return@LaunchedEffect
         hasCustomPassword = VaultPasswordManager.hasCustomPassword(context, uuid)
     }
     val removePasswordSheetState = rememberAppBottomSheetState()
     RemovePasswordSheet(
         state = removePasswordSheetState,
         onConfirm = {
-            val uuid = currentVault.value?.uuid ?: return@RemovePasswordSheet
+            val uuid = currentVaultValue?.uuid ?: return@RemovePasswordSheet
             scope.launch {
                 VaultPasswordManager.removePassword(context, uuid)
                 hasCustomPassword = false
@@ -247,7 +250,7 @@ fun VaultDisplay(
     VaultPasswordSetupSheet(
         state = passwordSetupSheetState,
         onSecretSet = { type, secret ->
-            val uuid = currentVault.value?.uuid ?: return@VaultPasswordSetupSheet
+            val uuid = currentVaultValue?.uuid ?: return@VaultPasswordSetupSheet
             scope.launch {
                 VaultPasswordManager.setPassword(context, uuid, secret, type)
                 hasCustomPassword = true
@@ -381,7 +384,7 @@ fun VaultDisplay(
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 Text(
-                                    text = currentVault.value?.name
+                                    text = currentVaultValue?.name
                                         ?: stringResource(R.string.unknown_vault)
                                 )
                                 AnimatedVisibility(
@@ -397,18 +400,17 @@ fun VaultDisplay(
                                                 shape = CircleShape
                                             ),
                                         imageVector = Icons.Rounded.ArrowDropDown,
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.switch_vault_cd),
                                         tint = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 }
                             }
                             SelectVaultSheet(
                                 state = sheetState,
-                                vaultState = vaultState.value
+                                vaultState = vaultState.value,
+                                excludeVault = currentVaultValue
                             ) { vault ->
-                                scope.launch {
-                                    setVault(vault)
-                                }
+                                onAuthenticateVault(vault)
                             }
                         }
                     },
@@ -453,11 +455,7 @@ fun VaultDisplay(
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
                         onMediaClick = { encryptedMedia ->
-                            eventHandler.navigate(
-                                VaultScreens.EncryptedMediaViewScreen.id(
-                                    encryptedMedia.id
-                                )
-                            )
+                            onMediaClick(encryptedMedia.id)
                         },
                     )
                 }
@@ -469,19 +467,19 @@ fun VaultDisplay(
             allMedia = mediaState.value,
             selectedMedia = selectedMediaList,
             isInVault = true,
-            currentVault = currentVault.value,
+            currentVault = currentVaultValue,
         )
 
         AddToVaultSheet(
             state = addToVaultSheetState,
             onEncryptAndDelete = {
-                val vault = currentVault.value ?: return@AddToVaultSheet
+                val vault = currentVaultValue ?: return@AddToVaultSheet
                 toAddMedia = pickedUris
                 encryptAndRequestDeletion(vault, pickedUris)
                 pickedUris = emptyList()
             },
             onEncryptAndKeep = {
-                val vault = currentVault.value ?: return@AddToVaultSheet
+                val vault = currentVaultValue ?: return@AddToVaultSheet
                 toAddMedia = pickedUris
                 addMediaKeepOriginals(vault, pickedUris)
                 pickedUris = emptyList()
@@ -494,15 +492,16 @@ fun VaultDisplay(
             onConfirm = onCreateVaultClick
         )
         DeleteVaultSheet(
-            state = deleteVaultSheetState
+            state = deleteVaultSheetState,
+            vaultName = currentVaultValue?.name
         ) {
-            val vault = currentVault.value ?: vaultState.value.vaults.firstOrNull()
+            val vault = currentVaultValue ?: vaultState.value.vaults.firstOrNull()
             vault?.let { it1 -> deleteVault(it1) }
         }
         RestoreVaultSheet(
             state = decryptVaultSheetState
         ) {
-            val vault = currentVault.value ?: vaultState.value.vaults.firstOrNull()
+            val vault = currentVaultValue ?: vaultState.value.vaults.firstOrNull()
             vault?.let { it1 -> restoreVault(it1) }
         }
         VaultActionsSheet(

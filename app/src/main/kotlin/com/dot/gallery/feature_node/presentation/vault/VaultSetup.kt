@@ -2,10 +2,10 @@ package com.dot.gallery.feature_node.presentation.vault
 
 import android.app.KeyguardManager
 import android.os.Build
-import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
+import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,7 +45,7 @@ fun VaultSetup(
     var nameError by remember { mutableStateOf("") }
     var newVault by remember { mutableStateOf(Vault(name = "")) }
 
-    val biometricManager = remember { BiometricManager.from(context) }
+    val biometricManager = rememberBiometricManager()
     val isBiometricAvailable = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL) == BIOMETRIC_SUCCESS

@@ -36,7 +36,7 @@ data class EncryptedMediaSource(
         } catch (_: Throwable) {
             val keychainHolder = KeychainHolder(contextRef)
             val d = keychainHolder.decryptVaultMedia(file)
-            com.dot.gallery.core.decryption.DecryptResult(d.bytes, d.mimeType)
+            com.dot.gallery.core.decryption.DecryptResult(d.readBytes(), d.mimeType)
         }
         return result.bytes.inputStream()
     }
@@ -53,7 +53,7 @@ data class EncryptedMediaSource(
             } catch (_: Throwable) {
                 val keychainHolder = KeychainHolder(contextRef)
                 val d = keychainHolder.decryptVaultMedia(file)
-                com.dot.gallery.core.decryption.DecryptResult(d.bytes, d.mimeType)
+                com.dot.gallery.core.decryption.DecryptResult(d.readBytes(), d.mimeType)
             }
             result.bytes
         }
@@ -74,7 +74,7 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
     } catch (t: Throwable) {
         val keychainHolder = KeychainHolder(context)
         val d = keychainHolder.decryptVaultMedia(file)
-        com.dot.gallery.core.decryption.DecryptResult(d.bytes, d.mimeType)
+        com.dot.gallery.core.decryption.DecryptResult(d.readBytes(), d.mimeType)
     }
     val mime = decryptResult.mimeType
     val isVideo = mime.startsWith("video")

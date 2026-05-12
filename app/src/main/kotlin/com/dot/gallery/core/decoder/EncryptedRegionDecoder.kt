@@ -66,10 +66,10 @@ class EncryptedRegionDecoder(
 
         bitmapRegionDecoder = kotlin.runCatching {
             if (VERSION.SDK_INT >= VERSION_CODES.S) {
-                BitmapRegionDecoder.newInstance(decrypted.bytes, 0, decrypted.bytes.size)
+                BitmapRegionDecoder.newInstance(decrypted.readBytes(), 0, decrypted.readBytes().size)
             } else {
                 @Suppress("DEPRECATION")
-                BitmapRegionDecoder.newInstance(decrypted.bytes, 0, decrypted.bytes.size, false)
+                BitmapRegionDecoder.newInstance(decrypted.readBytes(), 0, decrypted.readBytes().size, false)
             }
         }.apply {
             if (isFailure) {

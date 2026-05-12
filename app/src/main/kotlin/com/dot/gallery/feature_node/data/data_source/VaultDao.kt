@@ -56,6 +56,9 @@ interface VaultDao {
     @Query("SELECT uuid, COUNT(*) as count FROM encrypted_media GROUP BY uuid")
     fun getMediaCountPerVault(): Flow<List<VaultMediaCount>>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM encrypted_media WHERE uuid = :uuid AND id = :id)")
+    suspend fun mediaExistsInVault(uuid: UUID, id: Long): Boolean
+
     @Upsert
     suspend fun addMediaToVault(media: Media.EncryptedMedia2)
 

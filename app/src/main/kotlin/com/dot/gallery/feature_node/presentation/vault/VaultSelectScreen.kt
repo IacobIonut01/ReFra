@@ -7,6 +7,7 @@ package com.dot.gallery.feature_node.presentation.vault
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons as MaterialIcons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
+import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.ui.core.Icons as GalleryIcons
@@ -48,9 +52,9 @@ import com.dot.gallery.ui.core.icons.Encrypted
 @Composable
 fun VaultSelectScreen(
     vaultState: State<VaultState>,
-    vaultItemCounts: Map<java.util.UUID, Int>,
     onVaultSelected: (Vault) -> Unit,
     onCreateVault: () -> Unit,
+    onChangeGateSecurity: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
     val vaults = vaultState.value.vaults
@@ -59,15 +63,41 @@ fun VaultSelectScreen(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 24.dp),
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            NavigationBackButton(
+                forcedAction = onNavigateUp
+            )
+            IconButton(
+                onClick = onChangeGateSecurity,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = MaterialIcons.Outlined.Settings,
+                    contentDescription = stringResource(R.string.vault_manage_security),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Icon(
             imageVector = GalleryIcons.Encrypted,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.vault_icon_cd),
             modifier = Modifier.size(48.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -79,7 +109,9 @@ fun VaultSelectScreen(
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -89,7 +121,9 @@ fun VaultSelectScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -98,15 +132,14 @@ fun VaultSelectScreen(
             modifier = Modifier
                 .widthIn(max = 600.dp)
                 .fillMaxWidth()
+                .padding(horizontal = 24.dp)
                 .weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             items(vaults, key = { it.uuid }) { vault ->
-                val itemCount = vaultItemCounts[vault.uuid] ?: 0
                 VaultCard(
                     vault = vault,
-                    itemCount = itemCount,
                     onClick = { onVaultSelected(vault) }
                 )
             }
@@ -122,7 +155,6 @@ fun VaultSelectScreen(
 @Composable
 private fun VaultCard(
     vault: Vault,
-    itemCount: Int,
     onClick: () -> Unit,
 ) {
     Row(
@@ -146,7 +178,7 @@ private fun VaultCard(
         ) {
             Icon(
                 imageVector = MaterialIcons.Outlined.Lock,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.vault_locked_cd),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(24.dp)
             )
@@ -160,11 +192,6 @@ private fun VaultCard(
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = stringResource(R.string.vault_items_count, itemCount),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -195,7 +222,7 @@ private fun CreateVaultCard(
         ) {
             Icon(
                 imageVector = MaterialIcons.Outlined.Add,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.create_vault_cd),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.size(24.dp)
             )

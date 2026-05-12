@@ -122,10 +122,11 @@ private class EncryptedVideoFrameDecodeHelper(
         val tempFile = File.createTempFile("${file.name}.temp", null)
         val decrypted = keychainHolder.decryptVaultMedia(file)
 
-        // Write the ByteArray to the temporary file
-        FileOutputStream(tempFile).use { fileOutputStream ->
-            fileOutputStream.write(decrypted.bytes)
-            fileOutputStream.flush()
+        // Write decrypted content to the temporary file (streaming for large files)
+        decrypted.openStream().use { input ->
+            FileOutputStream(tempFile).use { output ->
+                input.copyTo(output)
+            }
         }
 
         return tempFile

@@ -509,6 +509,11 @@ class MediaRepositoryImpl(
         withContext(Dispatchers.IO) {
             with(keychainHolder) {
                 keychainHolder.checkVaultFolder(vault)
+                // Skip duplicate: if this media ID already exists in this vault, treat as success
+                if (database.getVaultDao().mediaExistsInVault(vault.uuid, media.id)) {
+                    printInfo("Skipping duplicate: ${media.label} already in vault ${vault.name}")
+                    return@withContext true
+                }
                 val output = vault.mediaFile(media.id).apply { if (exists()) delete() }
                 // Ensure vault uses portable format for streaming encryption
                 if (!isTransferable(vault)) {

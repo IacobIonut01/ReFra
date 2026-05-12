@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
-import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,21 +29,33 @@ import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.util.mapMedia
 import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.serialization.json.Json
+import android.os.Environment
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 open class VaultViewModel @Inject constructor(
     private val repository: MediaRepository,
     distributor: MediaDistributor,
     private val workManager: WorkManager,
     database: InternalDatabase,
-    @param:dagger.hilt.android.qualifiers.ApplicationContext private val appContext: Context
+    @param:ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val defaultDateFormat =
@@ -59,16 +70,16 @@ open class VaultViewModel @Inject constructor(
         repository.getSetting(Settings.Misc.WEEKLY_DATE_FORMAT, Constants.WEEKLY_DATE_FORMAT)
             .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.WEEKLY_DATE_FORMAT)
 
-    var currentVault = mutableStateOf<Vault?>(null)
+    val currentVault = MutableStateFlow<Vault?>(null)
 
-    // User-facing message flow for snackbar / toast feedback
-    private val _userMessage = kotlinx.coroutines.flow.MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val userMessage: kotlinx.coroutines.flow.SharedFlow<String> = _userMessage
+    // User-facing message flow for snackbar / toast feedback (multicast, no replay)
+    private val _userMessage = MutableSharedFlow<String>(extraBufferCapacity = 10)
+    val userMessage: SharedFlow<String> = _userMessage
 
     // Emits lists of original URIs that should be deleted (user permission required) after a
     // vault operation (encrypt/hide) succeeds with deleteOriginals=true.
-    private val _pendingDeletions = kotlinx.coroutines.flow.MutableSharedFlow<List<Uri>>(extraBufferCapacity = 1)
-    val pendingDeletions: kotlinx.coroutines.flow.SharedFlow<List<Uri>> = _pendingDeletions
+    private val _pendingDeletions = MutableSharedFlow<List<Uri>>(extraBufferCapacity = 10)
+    val pendingDeletions: SharedFlow<List<Uri>> = _pendingDeletions
 
     val vaultState = distributor.vaultsMediaFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, VaultState())
@@ -99,6 +110,7 @@ open class VaultViewModel @Inject constructor(
     )
 
     fun createMediaState(vault: Vault?) = repository.getEncryptedMedia(vault)
+        .debounce(300)
         .mapMedia(
             albumId = -1,
             updateDatabase = {},
@@ -141,8 +153,7 @@ open class VaultViewModel @Inject constructor(
             repository.deleteVault(
                 vault = vault,
                 onSuccess = {
-                    val remaining = vaultState.value.vaults.filter { it.uuid != vault.uuid }
-                    currentVault.value = remaining.firstOrNull()
+                    currentVault.value = null
                 },
                 onFailed = {
                     printError("Failed to delete vault: $it")
@@ -170,12 +181,21 @@ open class VaultViewModel @Inject constructor(
             deleteOriginals = false
         )
         viewModelScope.launch(Dispatchers.IO) {
-            workManager.getWorkInfoByIdFlow(id).collect { info ->
-                if (info?.state == WorkInfo.State.SUCCEEDED) {
+            val info = workManager.getWorkInfoByIdFlow(id)
+                .filter { it?.state?.isFinished == true }
+                .first()
+            when (info?.state) {
+                WorkInfo.State.SUCCEEDED -> {
                     _userMessage.emit(
                         appContext.getString(R.string.vault_items_encrypted, uris.size)
                     )
                 }
+                WorkInfo.State.FAILED -> {
+                    _userMessage.emit(
+                        appContext.getString(R.string.vault_encrypt_failed, uris.size)
+                    )
+                }
+                else -> { /* ignore */ }
             }
         }
     }
@@ -204,14 +224,16 @@ open class VaultViewModel @Inject constructor(
         observeDeletionOutput(id)
     }
 
-    private fun observeDeletionOutput(id: java.util.UUID, itemCount: Int = 0) {
+    private fun observeDeletionOutput(id: UUID, itemCount: Int = 0) {
         viewModelScope.launch(Dispatchers.IO) {
-            // getWorkInfoByIdFlow is provided by WorkManager KTX
-            workManager.getWorkInfoByIdFlow(id).collect { info ->
-                if (info?.state == WorkInfo.State.SUCCEEDED) {
+            val info = workManager.getWorkInfoByIdFlow(id)
+                .filter { it?.state?.isFinished == true }
+                .first()
+            when (info?.state) {
+                WorkInfo.State.SUCCEEDED -> {
                     val leftoversJson = info.outputData.getString(VaultOperationWorker.KEY_LEFTOVER_URIS)
                     val leftovers = leftoversJson?.let {
-                        kotlinx.serialization.json.Json.decodeFromString<List<String>>(it).map { s -> s.toUri() }
+                        Json.decodeFromString<List<String>>(it).map { s -> s.toUri() }
                     }.orEmpty()
                     if (leftovers.isNotEmpty()) {
                         _pendingDeletions.emit(leftovers)
@@ -220,6 +242,12 @@ open class VaultViewModel @Inject constructor(
                         appContext.getString(R.string.vault_items_encrypted, itemCount.coerceAtLeast(leftovers.size))
                     )
                 }
+                WorkInfo.State.FAILED -> {
+                    _userMessage.emit(
+                        appContext.getString(R.string.vault_encrypt_failed, itemCount)
+                    )
+                }
+                else -> { /* CANCELLED — ignore */ }
             }
         }
     }
@@ -229,14 +257,21 @@ open class VaultViewModel @Inject constructor(
             operation = VaultOperationWorker.OP_DECRYPT,
             media = listOf(media.uri),
             vault = vault,
-            uniqueKey = "restore_${vault.uuid}_${media.id}"
+            uniqueKey = "restore_${vault.uuid}_${media.id}_${System.currentTimeMillis()}"
         )
         viewModelScope.launch(Dispatchers.IO) {
-            workManager.getWorkInfoByIdFlow(id).collect { info ->
-                if (info?.state == WorkInfo.State.SUCCEEDED) {
-                    _userMessage.emit(appContext.getString(R.string.vault_items_restored, 1))
-                    withContext(Dispatchers.Main) { onSuccess() }
-                }
+            val info = workManager.getWorkInfoByIdFlow(id)
+                .filter { it?.state?.isFinished == true }
+                .first()
+            if (info?.state == WorkInfo.State.SUCCEEDED) {
+                val restoredPath = if (media.mimeType.startsWith("video"))
+                    Environment.DIRECTORY_MOVIES + "/Restored"
+                else
+                    Environment.DIRECTORY_PICTURES + "/Restored"
+                _userMessage.emit(
+                    appContext.getString(R.string.vault_restored_to, 1, restoredPath)
+                )
+                withContext(Dispatchers.Main) { onSuccess() }
             }
         }
     }

@@ -8,16 +8,14 @@ import java.io.File
 import java.io.FileOutputStream
 
 fun <T: Media> createDecryptedVideoFile(keychainHolder: KeychainHolder, decryptedMedia: T): File {
-    // Create a temporary file
     val tempFile = File.createTempFile("${decryptedMedia.id}.temp", null)
     val encryptedFile = decryptedMedia.getUri().toFile()
     val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
-
-    // Write the ByteArray to the temporary file
-    FileOutputStream(tempFile).use { fileOutputStream ->
-        fileOutputStream.write(decrypted.bytes)
-        fileOutputStream.flush()
+    // Stream decrypted content to temp file (constant memory for VLTv2 via tempFile backing)
+    decrypted.openStream().use { input ->
+        FileOutputStream(tempFile).use { output ->
+            input.copyTo(output)
+        }
     }
-
     return tempFile
 }

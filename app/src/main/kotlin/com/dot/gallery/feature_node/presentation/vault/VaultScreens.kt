@@ -1,17 +1,31 @@
 package com.dot.gallery.feature_node.presentation.vault
 
-sealed class VaultScreens(val route: String) {
-    data object VaultSetup : VaultScreens("vault_setup")
-    data object VaultSelect : VaultScreens("vault_select")
-    data object VaultDisplay : VaultScreens("vault_display")
+import kotlinx.serialization.Serializable
 
-    data object EncryptedMediaViewScreen : VaultScreens("vault_media_view_screen") {
-        fun id() = "$route?mediaId={mediaId}"
+@Serializable
+sealed class VaultScreens {
 
-        fun id(id: Long) = "$route?mediaId=$id"
-    }
+    @Serializable
+    data object VaultSetup : VaultScreens()
 
-    data object LoadingScreen : VaultScreens("vault_loading_screen")
+    @Serializable
+    data object VaultPasswordSetup : VaultScreens()
 
-    operator fun invoke() = route
+    @Serializable
+    data object VaultGateAuth : VaultScreens()
+
+    @Serializable
+    data object VaultGateSetup : VaultScreens()
+
+    @Serializable
+    data object VaultSelect : VaultScreens()
+
+    @Serializable
+    data object VaultDisplay : VaultScreens()
+
+    @Serializable
+    data class EncryptedMediaViewScreen(val mediaId: Long) : VaultScreens()
+
+    @Serializable
+    data object LoadingScreen : VaultScreens()
 }

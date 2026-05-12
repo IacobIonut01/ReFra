@@ -113,8 +113,8 @@ fun VaultPatternLock(
         ) {
             val w = size.width
             val h = size.height
-            val dotRadius = w / 20f
-            val activeDotRadius = w / 14f
+            val dotRadius = w / 30f
+            val activeDotRadius = w / 20f
 
             // Draw connection lines
             for (i in 0 until selectedNodes.size - 1) {

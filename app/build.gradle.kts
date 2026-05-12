@@ -32,14 +32,14 @@ apkVersioning {
 
 android {
     namespace = "com.dot.gallery"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.dot.gallery"
         minSdk = 29
-        targetSdk = 36
-        versionCode = 42001
-        versionName = "4.2.0"
+        targetSdk = 37
+        versionCode = 42101
+        versionName = "4.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

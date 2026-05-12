@@ -6,8 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import com.dot.gallery.core.Settings
+import android.graphics.drawable.ColorDrawable
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.integration.compose.placeholder
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.signature.ObjectKey
@@ -48,6 +50,8 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
             model = model,
             contentDescription = contentDescription,
             contentScale = contentScale,
+            loading = placeholder(ColorDrawable(0x4D444444)),
+            failure = placeholder(ColorDrawable(0x33444444)),
             requestBuilderTransform = {
                 var request = it.centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL)
                 request = request.thumbnail(request.clone().sizeMultiplier(0.4f))

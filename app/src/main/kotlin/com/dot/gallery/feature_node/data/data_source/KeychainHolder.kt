@@ -16,7 +16,10 @@ import com.dot.gallery.feature_node.domain.util.toKotlinByteArray
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.EOFException
 import java.io.File
+import java.io.FileOutputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
@@ -179,9 +182,12 @@ class KeychainHolder @Inject constructor(
     }
 
     // ---- Portable content encryption helpers ----
-    // File layout: MAGIC(6) | NONCE(12) | CIPHERTEXT+TAG (Cipher.doFinal output with 128-bit tag)
+    // V1 layout: MAGIC_V1(6) | NONCE(12) | CIPHERTEXT+TAG (single GCM, in-memory)
+    // V2 layout: MAGIC_V2(6) | BASE_NONCE(12) | CHUNK_SIZE(4) | [LEN(4)+CHUNK_CIPHERTEXT]*
     private val MAGIC = "VLTv1".toByteArray() // 5 bytes + sentinel
+    private val MAGIC_V2 = "VLTv2".toByteArray()
     private val MAGIC_PAD = 6 // ensure fixed length (add 1 padding byte)
+    private val STREAM_CHUNK_SIZE = 1 * 1024 * 1024 // 1 MiB per GCM chunk
 
     fun encryptPortableContent(vault: Vault, plaintext: ByteArray): ByteArray {
         val dk = loadDataKey(vault) ?: error("Data key missing for portable vault")
@@ -197,25 +203,35 @@ class KeychainHolder @Inject constructor(
         }
     }
 
+    /**
+     * Chunked streaming encryption (VLTv2). Each chunk is independently GCM-encrypted
+     * so the cipher never accumulates more than STREAM_CHUNK_SIZE in memory.
+     */
     fun encryptPortableStream(vault: Vault, input: InputStream, outputFile: File) {
         val dk = loadDataKey(vault) ?: error("Data key missing for portable vault")
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        val nonce = ByteArray(12).apply { SecureRandom().nextBytes(this) }
-        cipher.init(Cipher.ENCRYPT_MODE, dk.toAesKey(), GCMParameterSpec(128, nonce))
+        val key = dk.toAesKey()
+        val baseNonce = ByteArray(12).apply { SecureRandom().nextBytes(this) }
 
-        outputFile.outputStream().buffered().use { out ->
-            out.write(MAGIC)
-            out.write(ByteArray(MAGIC_PAD - MAGIC.size)) // padding
-            out.write(nonce)
+        DataOutputStream(outputFile.outputStream().buffered()).use { dos ->
+            // Header
+            dos.write(MAGIC_V2)
+            dos.write(ByteArray(MAGIC_PAD - MAGIC_V2.size)) // padding to 6 bytes
+            dos.write(baseNonce)
+            dos.writeInt(STREAM_CHUNK_SIZE)
 
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var len: Int
-            while (input.read(buffer).also { len = it } != -1) {
-                val encrypted = cipher.update(buffer, 0, len)
-                if (encrypted != null) out.write(encrypted)
+            val readBuf = ByteArray(STREAM_CHUNK_SIZE)
+            var chunkIndex = 0L
+            while (true) {
+                val bytesRead = readFully(input, readBuf)
+                if (bytesRead == 0) break
+
+                val chunkNonce = deriveChunkNonce(baseNonce, chunkIndex++)
+                val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(128, chunkNonce))
+                val ct = cipher.doFinal(readBuf, 0, bytesRead)
+                dos.writeInt(ct.size)
+                dos.write(ct)
             }
-            val finalBlock = cipher.doFinal()
-            if (finalBlock != null && finalBlock.isNotEmpty()) out.write(finalBlock)
         }
     }
 
@@ -229,28 +245,51 @@ class KeychainHolder @Inject constructor(
         return cipher.doFinal(ct)
     }
 
+    /**
+     * Streaming decryption that auto-detects VLTv1 (single GCM) vs VLTv2 (chunked GCM).
+     */
     fun decryptPortableStream(vault: Vault, inputFile: File, output: OutputStream) {
         val dk = loadDataKey(vault) ?: error("Data key missing")
+        val key = dk.toAesKey()
         inputFile.inputStream().buffered().use { input ->
             val dis = DataInputStream(input)
             val header = ByteArray(MAGIC_PAD)
             dis.readFully(header)
-            if (!startsWithMagic(header)) error("Not portable content")
 
-            val nonce = ByteArray(12)
-            dis.readFully(nonce)
+            if (startsWithMagicV2(header)) {
+                // VLTv2 chunked decryption
+                val baseNonce = ByteArray(12)
+                dis.readFully(baseNonce)
+                val chunkSize = dis.readInt() // stored but not strictly needed for read
 
-            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-            cipher.init(Cipher.DECRYPT_MODE, dk.toAesKey(), GCMParameterSpec(128, nonce))
-
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var len: Int
-            while (input.read(buffer).also { len = it } != -1) {
-                val decrypted = cipher.update(buffer, 0, len)
-                if (decrypted != null) output.write(decrypted)
+                var chunkIndex = 0L
+                while (dis.available() > 0 || input.available() > 0) {
+                    val ctLen = try { dis.readInt() } catch (_: EOFException) { break }
+                    val ct = ByteArray(ctLen)
+                    dis.readFully(ct)
+                    val chunkNonce = deriveChunkNonce(baseNonce, chunkIndex++)
+                    val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                    cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, chunkNonce))
+                    val plain = cipher.doFinal(ct)
+                    output.write(plain)
+                }
+            } else if (startsWithMagic(header)) {
+                // VLTv1 single-GCM (legacy streaming — works for small files)
+                val nonce = ByteArray(12)
+                dis.readFully(nonce)
+                val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, nonce))
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var len: Int
+                while (input.read(buffer).also { len = it } != -1) {
+                    val decrypted = cipher.update(buffer, 0, len)
+                    if (decrypted != null) output.write(decrypted)
+                }
+                val finalBlock = cipher.doFinal()
+                if (finalBlock != null && finalBlock.isNotEmpty()) output.write(finalBlock)
+            } else {
+                error("Not portable content")
             }
-            val finalBlock = cipher.doFinal()
-            if (finalBlock != null && finalBlock.isNotEmpty()) output.write(finalBlock)
         }
     }
 
@@ -258,7 +297,7 @@ class KeychainHolder @Inject constructor(
         if (!file.exists() || file.length() < MAGIC_PAD) return false
         val header = ByteArray(MAGIC_PAD)
         file.inputStream().use { it.read(header) }
-        return startsWithMagic(header)
+        return startsWithMagic(header) || startsWithMagicV2(header)
     }
 
     /**
@@ -336,6 +375,39 @@ class KeychainHolder @Inject constructor(
         return true
     }
 
+    internal fun startsWithMagicV2(bytes: ByteArray): Boolean {
+        if (bytes.size < MAGIC_PAD) return false
+        for (i in MAGIC_V2.indices) if (bytes[i] != MAGIC_V2[i]) return false
+        return true
+    }
+
+    fun isPortableV2File(file: File): Boolean {
+        if (!file.exists() || file.length() < MAGIC_PAD) return false
+        val header = ByteArray(MAGIC_PAD)
+        file.inputStream().use { it.read(header) }
+        return startsWithMagicV2(header)
+    }
+
+    /** XOR chunk index into the last 8 bytes of the base nonce to derive a unique per-chunk nonce. */
+    private fun deriveChunkNonce(baseNonce: ByteArray, chunkIndex: Long): ByteArray {
+        val nonce = baseNonce.copyOf()
+        for (i in 0 until 8) {
+            nonce[nonce.size - 1 - i] = (nonce[nonce.size - 1 - i].toInt() xor ((chunkIndex shr (i * 8)) and 0xFF).toInt()).toByte()
+        }
+        return nonce
+    }
+
+    /** Read up to buf.size bytes from input, returning actual count (0 at EOF). */
+    private fun readFully(input: InputStream, buf: ByteArray): Int {
+        var offset = 0
+        while (offset < buf.size) {
+            val n = input.read(buf, offset, buf.size - offset)
+            if (n == -1) break
+            offset += n
+        }
+        return offset
+    }
+
     private fun ByteArray.toAesKey(): SecretKey = SecretKeySpec(this, "AES")
 
     @Throws(GeneralSecurityException::class, IOException::class, FileNotFoundException::class, UserNotAuthenticatedException::class)
@@ -388,10 +460,34 @@ class KeychainHolder @Inject constructor(
      * Unified vault file decryption that handles both portable (VLTv1) and legacy (EncryptedFile) formats.
      * Returns raw decrypted bytes and the mime type.
      */
+    /**
+     * Decrypt a VLTv2 file to a temporary file (streaming, constant memory).
+     * Returns the temp file and sniffed MIME type.
+     */
+    fun decryptToTempFile(file: File, cacheDir: File? = null): DecryptedVaultMedia {
+        val vaultUuidStr = file.parentFile?.name ?: error("Cannot determine vault UUID from path")
+        val vault = Vault(uuid = UUID.fromString(vaultUuidStr), name = "")
+        val tmpDir = cacheDir ?: filesDir
+        val tempFile = File.createTempFile("vault_dec_", ".tmp", tmpDir)
+        FileOutputStream(tempFile).use { out ->
+            decryptPortableStream(vault, file, out)
+        }
+        // Sniff MIME from first 12 bytes of decrypted content
+        val header = ByteArray(12)
+        tempFile.inputStream().use { it.read(header) }
+        val mime = sniffMimeType(header)
+        return DecryptedVaultMedia(bytes = null, mimeType = mime, tempFile = tempFile)
+    }
+
     fun decryptVaultMedia(file: File): DecryptedVaultMedia {
+        val vaultUuidStr = file.parentFile?.name ?: error("Cannot determine vault UUID from path")
+        val vault = Vault(uuid = UUID.fromString(vaultUuidStr), name = "")
+
+        if (isPortableV2File(file)) {
+            // VLTv2: stream-decrypt to temp file (constant memory)
+            return decryptToTempFile(file)
+        }
         if (isPortableFile(file)) {
-            val vaultUuidStr = file.parentFile?.name ?: error("Cannot determine vault UUID from path")
-            val vault = Vault(uuid = UUID.fromString(vaultUuidStr), name = "")
             val encBytes = file.readBytes()
             val plainBytes = decryptPortableContent(vault, encBytes)
             val mime = sniffMimeType(plainBytes)
@@ -424,4 +520,17 @@ class KeychainHolder @Inject constructor(
     }
 }
 
-data class DecryptedVaultMedia(val bytes: ByteArray, val mimeType: String)
+data class DecryptedVaultMedia(
+    val bytes: ByteArray?,
+    val mimeType: String,
+    val tempFile: File? = null
+) {
+    /** Read bytes from either in-memory array or temp file. */
+    fun readBytes(): ByteArray = bytes ?: tempFile?.readBytes() ?: error("No data available")
+
+    /** Open an InputStream over the decrypted content without loading everything into memory. */
+    fun openStream(): InputStream = bytes?.inputStream() ?: tempFile?.inputStream() ?: error("No data available")
+
+    /** Clean up temp file if one was created. */
+    fun cleanup() { tempFile?.delete() }
+}

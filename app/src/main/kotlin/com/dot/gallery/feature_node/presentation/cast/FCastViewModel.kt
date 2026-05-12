@@ -57,9 +57,10 @@ class FCastViewModel @Inject constructor(
             val encryptedFile = File(media.getUri().path!!)
             val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
             val tempFile = File.createTempFile("fcast_${media.id}", null, appContext.cacheDir)
-            FileOutputStream(tempFile).use { out ->
-                out.write(decrypted.bytes)
-                out.flush()
+            decrypted.openStream().use { input ->
+                FileOutputStream(tempFile).use { out ->
+                    input.copyTo(out)
+                }
             }
             session.castFile(
                 file = tempFile,

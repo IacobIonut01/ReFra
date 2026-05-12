@@ -6,7 +6,11 @@
 package com.dot.gallery.core.presentation.components
 
 import android.app.Activity
+import android.content.Intent
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.LocalActivity
+import androidx.activity.result.IntentSenderRequest
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInVertically
@@ -49,6 +53,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -114,7 +119,9 @@ import com.dot.gallery.ui.theme.Shapes
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -548,12 +555,14 @@ fun <T : Media> BoxScope.SelectionSheet(
                         // Regular hide: encrypt into selected vault
                         when (vaultEncryptBehavior) {
                             Settings.Vault.ENCRYPT_DELETE -> {
+                                Toast.makeText(context, context.getString(R.string.vault_hide_in_progress), Toast.LENGTH_SHORT).show()
                                 vaultViewModel.encryptAndRequestDeletion(
                                     targetVault,
                                     selectedMedia.map { it.getUri() }
                                 )
                             }
                             Settings.Vault.ENCRYPT_KEEP -> {
+                                Toast.makeText(context, context.getString(R.string.vault_hide_in_progress), Toast.LENGTH_SHORT).show()
                                 vaultViewModel.addMediaKeepOriginals(
                                     targetVault,
                                     selectedMedia.map { it.getUri() }
@@ -576,6 +585,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         state = addToVaultSheetState,
         onEncryptAndDelete = {
             val vault = hideTargetVault ?: return@AddToVaultSheet
+            Toast.makeText(context, context.getString(R.string.vault_hide_in_progress), Toast.LENGTH_SHORT).show()
             scope.launch {
                 vaultViewModel.encryptAndRequestDeletion(vault, selectedMedia.map { it.getUri() })
                 selector.clearSelection()
@@ -583,6 +593,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         },
         onEncryptAndKeep = {
             val vault = hideTargetVault ?: return@AddToVaultSheet
+            Toast.makeText(context, context.getString(R.string.vault_hide_in_progress), Toast.LENGTH_SHORT).show()
             scope.launch {
                 vaultViewModel.addMediaKeepOriginals(vault, selectedMedia.map { it.getUri() })
                 selector.clearSelection()
@@ -590,6 +601,39 @@ fun <T : Media> BoxScope.SelectionSheet(
         },
         onBehaviorChanged = { vaultEncryptBehavior = it }
     )
+
+    val hideResult = rememberActivityResult(onResultOk = {})
+    // Show user feedback (Toast) for hide operations
+    LaunchedEffect(Unit) {
+        vaultViewModel.userMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+    // Collect deletion batches for permission request
+    LaunchedEffect(Unit) {
+        vaultViewModel.pendingDeletions.collect { leftovers ->
+            if (leftovers.isNotEmpty()) {
+                if (SdkCompat.supportsMediaStoreRequests) {
+                    val intentSender = MediaStore.createDeleteRequest(
+                        context.contentResolver,
+                        leftovers
+                    ).intentSender
+                    val senderRequest = IntentSenderRequest.Builder(intentSender)
+                        .setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION, 0)
+                        .build()
+                    hideResult.launch(senderRequest)
+                } else {
+                    withContext(Dispatchers.IO) {
+                        leftovers.forEach { uri ->
+                            runCatching {
+                                context.contentResolver.delete(uri, null, null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (albumsState.value.albums.isNotEmpty()) {
         MoveMediaSheet(

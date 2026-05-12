@@ -1,7 +1,7 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
@@ -20,7 +20,7 @@ fun <T : Media> RestoreButton(
     val scope = rememberCoroutineScope()
     MediaViewButton(
         currentMedia = media,
-        imageVector = Icons.Outlined.Image,
+        imageVector = Icons.Outlined.Restore,
         followTheme = followTheme,
         title = stringResource(R.string.restore)
     ) {

@@ -2,6 +2,7 @@ package com.dot.gallery.feature_node.presentation.mediaview.components.actionbut
 
 import android.content.Intent
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
@@ -44,9 +45,7 @@ fun <T : Media> HideButton(
         currentMedia = media,
         imageVector = Icons.Outlined.Lock,
         followTheme = followTheme,
-        enabled = remember(vaults, enabled) {
-            vaults.vaults.isNotEmpty() && enabled
-        },
+        enabled = enabled,
         title = stringResource(R.string.hide),
     ) {
         scope.launch {
@@ -63,18 +62,23 @@ fun <T : Media> HideButton(
     var vaultEncryptBehavior by Settings.Vault.rememberVaultEncryptBehavior()
     val addToVaultSheetState = rememberAppBottomSheetState()
     var selectedVault by remember { mutableStateOf<Vault?>(null) }
+    val hidingText = stringResource(R.string.vault_hide_in_progress)
+    fun startHide(vault: Vault, deleteOriginals: Boolean) {
+        Toast.makeText(context, hidingText, Toast.LENGTH_SHORT).show()
+        if (deleteOriginals) {
+            vaultViewModel.hideAndRequestDeletion(vault, media.getUri())
+        } else {
+            vaultViewModel.addMediaKeepOriginals(vault, listOf(media.getUri()))
+        }
+    }
     SelectVaultSheet(
         state = sheetState,
         vaultState = vaults,
         onVaultSelected = { vault ->
             scope.launch {
                 when (vaultEncryptBehavior) {
-                    Settings.Vault.ENCRYPT_DELETE -> {
-                        vaultViewModel.hideAndRequestDeletion(vault, media.getUri())
-                    }
-                    Settings.Vault.ENCRYPT_KEEP -> {
-                        vaultViewModel.addMediaKeepOriginals(vault, listOf(media.getUri()))
-                    }
+                    Settings.Vault.ENCRYPT_DELETE -> startHide(vault, deleteOriginals = true)
+                    Settings.Vault.ENCRYPT_KEEP -> startHide(vault, deleteOriginals = false)
                     else -> {
                         selectedVault = vault
                         addToVaultSheetState.show()
@@ -87,18 +91,21 @@ fun <T : Media> HideButton(
         state = addToVaultSheetState,
         onEncryptAndDelete = {
             val vault = selectedVault ?: return@AddToVaultSheet
-            scope.launch {
-                vaultViewModel.hideAndRequestDeletion(vault, media.getUri())
-            }
+            startHide(vault, deleteOriginals = true)
         },
         onEncryptAndKeep = {
             val vault = selectedVault ?: return@AddToVaultSheet
-            scope.launch {
-                vaultViewModel.addMediaKeepOriginals(vault, listOf(media.getUri()))
-            }
+            startHide(vault, deleteOriginals = false)
         },
         onBehaviorChanged = { vaultEncryptBehavior = it }
     )
+
+    // Show user feedback (Toast) for hide operations outside vault screen
+    LaunchedEffect(Unit) {
+        vaultViewModel.userMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Collect deletion batches emitted by ViewModel
     LaunchedEffect(Unit) {

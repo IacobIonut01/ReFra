@@ -44,9 +44,9 @@ fun DataSource.decodeEncryptedBitmap(
     val encryptedFile = getFile()
     val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
     val bitmap = BitmapFactory.decodeByteArray(
-        decrypted.bytes,
+        decrypted.readBytes(),
         0,
-        decrypted.bytes.size,
+        decrypted.readBytes().size,
         options.apply { this?.outMimeType = decrypted.mimeType }
     ) ?: throw ImageInvalidException("decode return null at decodeEncryptedBitmap")
     val exifOrientationHelper1 =
@@ -68,13 +68,13 @@ fun DataSource.decodeEncryptedRegionBitmap(
     val encryptedFile = getFile()
     val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
     val regionDecoder = if (VERSION.SDK_INT >= VERSION_CODES.S) {
-        BitmapRegionDecoder.newInstance(decrypted.bytes, 0, decrypted.bytes.size)
+        BitmapRegionDecoder.newInstance(decrypted.readBytes(), 0, decrypted.readBytes().size)
     } else {
         @Suppress("DEPRECATION")
         BitmapRegionDecoder.newInstance(
-            decrypted.bytes,
+            decrypted.readBytes(),
             0,
-            decrypted.bytes.size,
+            decrypted.readBytes().size,
             false
         )
     }
@@ -109,7 +109,7 @@ fun DataSource.decodeEncryptedRegionBitmap(
 fun DataSource.readEncryptedExifOrientation(keychainHolder: KeychainHolder): Int {
     val encryptedFile = getFile()
     val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
-    return decrypted.bytes.inputStream().use {
+    return decrypted.readBytes().inputStream().use {
         ExifInterface(it).getAttributeInt(
             ExifInterface.TAG_ORIENTATION,
             ExifInterface.ORIENTATION_UNDEFINED
@@ -126,9 +126,9 @@ fun DataSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: K
     val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
     try {
         BitmapFactory.decodeByteArray(
-            decrypted.bytes,
+            decrypted.readBytes(),
             0,
-            decrypted.bytes.size,
+            decrypted.readBytes().size,
             boundOptions
         )
     } catch (e: Exception) {

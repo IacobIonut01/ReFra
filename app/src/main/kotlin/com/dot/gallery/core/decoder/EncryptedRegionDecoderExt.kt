@@ -19,7 +19,7 @@ fun ImageSource.readEncryptedExifOrientation(keychainHolder: KeychainHolder): In
     return with(this as ContentImageSource) {
         val encryptedFile = uri.toFile()
         val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
-        decrypted.bytes.inputStream().use {
+        decrypted.readBytes().inputStream().use {
             ExifInterface(it).getAttributeInt(
                 ExifInterface.TAG_ORIENTATION,
                 ExifInterface.ORIENTATION_UNDEFINED
@@ -38,9 +38,9 @@ fun ImageSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: 
         val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
         try {
             BitmapFactory.decodeByteArray(
-                decrypted.bytes,
+                decrypted.readBytes(),
                 0,
-                decrypted.bytes.size,
+                decrypted.readBytes().size,
                 boundOptions.apply { this.outMimeType = decrypted.mimeType }
             )
         } catch (e: Exception) {

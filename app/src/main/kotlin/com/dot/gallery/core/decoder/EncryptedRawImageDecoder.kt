@@ -67,7 +67,7 @@ class EncryptedRawImageDecoder(
         if (cachedBytes == null) {
             val encryptedFile = dataSource.getFile()
             val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
-            cachedBytes = decrypted.bytes
+            cachedBytes = decrypted.readBytes()
         }
         return cachedBytes!!
     }

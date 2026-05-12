@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
@@ -93,7 +94,12 @@ private fun VaultTextPasswordUnlockDialog(
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
-    LaunchedEffect(errorMessage) { if (errorMessage != null) feedbackManager.vibrateStrong() }
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            feedbackManager.vibrateStrong()
+            password = ""
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -141,7 +147,7 @@ private fun VaultTextPasswordUnlockDialog(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.toggle_password_visibility_cd)
                     )
                 }
             },
@@ -227,7 +233,7 @@ private fun VaultPinUnlockDialog(
         Spacer(modifier = Modifier.height(32.dp))
         VaultPinInput(
             pin = pin,
-            isError = isError,
+            isError = isError && pin.isEmpty(),
             onPinChange = { pin = it },
             onPinComplete = onSubmit
         )
@@ -443,7 +449,11 @@ fun VaultPasswordSetupSheet(
                             errorMessage = errorMessage,
                             modifier = Modifier.weight(1f),
                             onComplete = { secret ->
-                                if (secret.length < 4) {
+                                val minLength = when (selectedType) {
+                                    VaultAuthType.PIN -> 6
+                                    else -> 4
+                                }
+                                if (secret.length < minLength) {
                                     errorMessage = when (selectedType) {
                                         VaultAuthType.PIN -> pinTooShort
                                         VaultAuthType.PATTERN -> patternTooShort
@@ -560,7 +570,7 @@ private fun AuthInput(
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.toggle_password_visibility_cd)
                             )
                         }
                     },
@@ -589,13 +599,11 @@ private fun AuthInput(
 
 @Composable
 private fun ErrorText(message: String?) {
-    if (message != null) {
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = message,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-    }
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        text = message.orEmpty(),
+        color = if (message != null) MaterialTheme.colorScheme.error else Color.Transparent,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(horizontal = 4.dp)
+    )
 }

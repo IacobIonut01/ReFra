@@ -42,5 +42,5 @@ fun isEncryptedVaultPath(file: File): Boolean =
  */
 fun decryptMediaFile(file: File, keychainHolder: KeychainHolder): DecryptedPayload {
     val decrypted = keychainHolder.decryptVaultMedia(file)
-    return DecryptedPayload(bytes = decrypted.bytes, mimeType = decrypted.mimeType)
+    return DecryptedPayload(bytes = decrypted.readBytes(), mimeType = decrypted.mimeType)
 }

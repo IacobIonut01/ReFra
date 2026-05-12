@@ -2,8 +2,10 @@ package com.dot.gallery.feature_node.presentation.vault.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.presentation.common.components.OptionItem
@@ -39,6 +42,7 @@ fun SelectVaultSheet(
     state: AppBottomSheetState,
     vaultState: VaultState,
     excludeVault: Vault? = null,
+    onCreateVault: (() -> Unit)? = null,
     onVaultSelected: (Vault) -> Unit
 ) {
     val vaults = remember(vaultState, excludeVault) {
@@ -102,10 +106,33 @@ fun SelectVaultSheet(
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
                 )
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    optionList = vaultOptions
-                )
+                if (vaultOptions.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.vault_create_first),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (onCreateVault != null) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        SetupButton(
+                            onClick = {
+                                scope.launch { state.hide() }
+                                onCreateVault()
+                            },
+                            applyHorizontalPadding = false,
+                            applyBottomPadding = false,
+                            applyInsets = false,
+                            text = stringResource(R.string.vault_create_vault)
+                        )
+                    }
+                } else {
+                    OptionLayout(
+                        modifier = Modifier.fillMaxWidth(),
+                        optionList = vaultOptions
+                    )
+                }
             }
         }
     }

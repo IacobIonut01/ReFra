@@ -61,7 +61,7 @@ class DecryptManager @Inject constructor(
         try {
             metrics.incDecryptInvocation()
             val decrypted = keychainHolder.decryptVaultMedia(file)
-            result = DecryptResult(decrypted.bytes, decrypted.mimeType)
+            result = DecryptResult(decrypted.readBytes(), decrypted.mimeType)
             // Only cache small results (< 2MB) to keep memory bounded
             if (result.bytes.size <= 2 * 1024 * 1024) {
                 lru.put(key, result)

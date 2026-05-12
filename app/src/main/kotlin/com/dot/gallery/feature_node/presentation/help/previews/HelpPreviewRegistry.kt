@@ -455,7 +455,7 @@ private fun VaultPreviewMini(modifier: Modifier = Modifier) {
     val mockVaultState = remember {
         mutableStateOf(VaultState(vaults = listOf(mockVault), isLoading = false))
     }
-    val mockCurrentVault = remember { mutableStateOf<Vault?>(mockVault) }
+    val mockCurrentVault = remember { MutableStateFlow<Vault?>(mockVault) }
     val mockMediaStateFlow = remember { MutableStateFlow(HelpMockData.MOCK_MEDIA_STATE) }
     val animation = rememberPreviewAnimation(stepCount = 2)
     PreviewFrame(modifier, applyPadding = false) {

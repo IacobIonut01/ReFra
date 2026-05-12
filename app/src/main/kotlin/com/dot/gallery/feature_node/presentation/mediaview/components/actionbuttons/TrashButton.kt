@@ -68,7 +68,13 @@ fun <T : Media> TrashButton(
     TrashDialog(
         appBottomSheetState = state,
         data = listOf(media),
-        action = if (shouldMoveToTrash) TrashDialogAction.TRASH else TrashDialogAction.DELETE
+        action = if (deleteMedia != null && currentVault != null) {
+            TrashDialogAction.DELETE
+        } else if (shouldMoveToTrash) {
+            TrashDialogAction.TRASH
+        } else {
+            TrashDialogAction.DELETE
+        }
     ) {
         if (deleteMedia != null && currentVault != null) {
             it.forEach { media ->

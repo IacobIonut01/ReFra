@@ -2,6 +2,7 @@ package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import android.content.Intent
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,8 +21,8 @@ import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -163,7 +164,7 @@ fun <T : Media> MediaViewSheetActions(
             // Restore
             if (media.isEncrypted && restoreMedia != null && currentVault != null) {
                 add(ActionGridItem(
-                    icon = Icons.Outlined.Image,
+                    icon = Icons.Outlined.Restore,
                     text = restoreText,
                     onClick = { scope.launch { restoreMedia(currentVault, media) {} } }
                 ))
@@ -258,18 +259,23 @@ fun <T : Media> MediaViewSheetActions(
         val hideResult = rememberActivityResult(onResultOk = {
             scope.launch { hideSheetState.hide() }
         })
+        val hidingText = stringResource(R.string.vault_hide_in_progress)
+        fun startHide(vault: com.dot.gallery.feature_node.domain.model.Vault, deleteOriginals: Boolean) {
+            Toast.makeText(context, hidingText, Toast.LENGTH_SHORT).show()
+            if (deleteOriginals) {
+                vaultViewModel.hideAndRequestDeletion(vault, media.getUri())
+            } else {
+                vaultViewModel.addMediaKeepOriginals(vault, listOf(media.getUri()))
+            }
+        }
         SelectVaultSheet(
             state = hideSheetState,
             vaultState = vaults.value,
             onVaultSelected = { vault ->
                 scope.launch {
                     when (vaultEncryptBehavior) {
-                        Settings.Vault.ENCRYPT_DELETE -> {
-                            vaultViewModel.hideAndRequestDeletion(vault, media.getUri())
-                        }
-                        Settings.Vault.ENCRYPT_KEEP -> {
-                            vaultViewModel.addMediaKeepOriginals(vault, listOf(media.getUri()))
-                        }
+                        Settings.Vault.ENCRYPT_DELETE -> startHide(vault, deleteOriginals = true)
+                        Settings.Vault.ENCRYPT_KEEP -> startHide(vault, deleteOriginals = false)
                         else -> {
                             selectedVault = vault
                             addToVaultSheetState.show()
@@ -282,18 +288,19 @@ fun <T : Media> MediaViewSheetActions(
             state = addToVaultSheetState,
             onEncryptAndDelete = {
                 val vault = selectedVault ?: return@AddToVaultSheet
-                scope.launch {
-                    vaultViewModel.hideAndRequestDeletion(vault, media.getUri())
-                }
+                startHide(vault, deleteOriginals = true)
             },
             onEncryptAndKeep = {
                 val vault = selectedVault ?: return@AddToVaultSheet
-                scope.launch {
-                    vaultViewModel.addMediaKeepOriginals(vault, listOf(media.getUri()))
-                }
+                startHide(vault, deleteOriginals = false)
             },
             onBehaviorChanged = { vaultEncryptBehavior = it }
         )
+        LaunchedEffect(Unit) {
+            vaultViewModel.userMessage.collect { message ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
         LaunchedEffect(Unit) {
             vaultViewModel.pendingDeletions.collect { leftovers ->
                 if (leftovers.isNotEmpty()) {

@@ -464,10 +464,11 @@ private fun <T : Media> createDecryptedTempFile(
         extension
     )
     
-    // Write decrypted bytes to temp file
-    FileOutputStream(tempFile).use { outputStream ->
-        outputStream.write(decryptedMedia.bytes)
-        outputStream.flush()
+    // Write decrypted content to temp file (streaming for large files)
+    decryptedMedia.openStream().use { input ->
+        FileOutputStream(tempFile).use { outputStream ->
+            input.copyTo(outputStream)
+        }
     }
     
     return tempFile
