@@ -857,6 +857,64 @@
     <!-- ACTION LABELS -->
     <string name="help_action_open_settings">Open settings</string>
 
+    <!-- VIEWER ACTIONS: Cast -->
+    <string name="help_tip_viewer_cast_title">Cast videos to your TV</string>
+    <string name="help_tip_viewer_cast_subtitle">Stream media to FCast-compatible devices on your network</string>
+    <string name="help_tip_viewer_cast_p1_title">Cast to a device</string>
+    <string name="help_tip_viewer_cast_p1_desc">Cast videos and images to any FCast-compatible device on your local network. Gallery discovers devices automatically using mDNS, sets up a local streaming server, and plays your media on the big screen — all without any cloud services. Encrypted vault media can also be cast securely via temporary decryption.</string>
+    <string name="help_tip_viewer_cast_p2_title">Control playback</string>
+    <string name="help_tip_viewer_cast_p2_desc">While casting, a mini controller appears in the viewer showing cast status. Use the remote controls to play, pause, seek, adjust volume, and change playback speed — all from your phone. Tap the cast button again to stop casting or switch devices.</string>
+    <string name="help_tip_viewer_cast_p2_s1">Open a video in the viewer</string>
+    <string name="help_tip_viewer_cast_p2_s2">Tap the cast button in the top bar</string>
+    <string name="help_tip_viewer_cast_p2_s3">Select a device from the picker</string>
+    <string name="help_tip_viewer_cast_p2_s4">Use on-screen controls to manage playback</string>
+
+    <!-- VIEWER SETTINGS: Auto-Contrast -->
+    <string name="help_tip_viewer_auto_contrast_title">Auto-contrast (Beta)</string>
+    <string name="help_tip_viewer_auto_contrast_subtitle">Automatically enhance display contrast based on image brightness</string>
+    <string name="help_tip_viewer_auto_contrast_p1_title">Smart contrast adjustment</string>
+    <string name="help_tip_viewer_auto_contrast_p1_desc">When enabled, Gallery analyzes the brightness of each photo in real time and automatically adjusts the display contrast to make dark images easier to see and bright images more vivid. The adjustment is subtle and happens instantly as you swipe between photos. This only affects how images look on screen — your original files are never modified. This feature is currently in Beta.</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s1">Go to Settings > Media viewer</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s2">Toggle \'Auto-contrast\'</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s3">Swipe between photos to see real-time adjustments</string>
+
+    <!-- SELECTION: Right-Align Actions -->
+    <string name="help_tip_selection_right_align_title">Right-align top actions</string>
+    <string name="help_tip_selection_right_align_subtitle">Move action buttons to the right side for easier reach</string>
+    <string name="help_tip_selection_right_align_p1_title">Right-aligned actions</string>
+    <string name="help_tip_selection_right_align_p1_desc">When enabled, the top action buttons in the selection bar (Select All, Details) are pushed to the right edge of the screen while the Close button stays on the left. This makes the actions easier to reach with one hand, especially on larger phones. The buttons are placed in a scrollable row to prevent overflow.</string>
+    <string name="help_tip_selection_right_align_p1_s1">Go to Settings > Navigation > Selection actions</string>
+    <string name="help_tip_selection_right_align_p1_s2">Toggle \'Right-align top actions\'</string>
+    <string name="help_tip_selection_right_align_p1_s3">Select items to see the new layout</string>
+
+    <!-- VAULT: Overhaul -->
+    <string name="help_tip_vault_overhaul_title">Redesigned vault security</string>
+    <string name="help_tip_vault_overhaul_subtitle">Gate authentication, custom passwords, and a streamlined vault flow</string>
+    <string name="help_tip_vault_overhaul_p1_title">Gate authentication</string>
+    <string name="help_tip_vault_overhaul_p1_desc">Add an extra layer of security before the vault selector screen. Choose between no gate, device security (biometrics or screen lock), or a custom password. When active, you must authenticate before you can even see the list of available vaults — preventing others from knowing which vaults exist on your device.</string>
+    <string name="help_tip_vault_overhaul_p1_s1">Open the Vault from the Library</string>
+    <string name="help_tip_vault_overhaul_p1_s2">Tap the security settings button</string>
+    <string name="help_tip_vault_overhaul_p1_s3">Choose None, Device Security, or Custom Password</string>
+    <string name="help_tip_vault_overhaul_p2_title">Custom passwords &amp; per-vault security</string>
+    <string name="help_tip_vault_overhaul_p2_desc">Each vault now supports its own authentication — biometrics, PIN, or a custom password — so you can have different security levels for different vaults. The vault creation flow has been streamlined: create a vault, set its password, then configure the global gate. Vault deletion now returns you to the selector with re-authentication required, and the last vault deletion exits to the library.</string>
+    <string name="help_tip_vault_overhaul_p2_s1">Create or open a vault</string>
+    <string name="help_tip_vault_overhaul_p2_s2">Set a custom password or use device security</string>
+    <string name="help_tip_vault_overhaul_p2_s3">Each vault can have its own independent security</string>
+
+    <!-- RELEASE NOTES: 4.2.1 -->
+    <string name="help_release_421_fcast_casting_title">FCast video casting</string>
+    <string name="help_release_421_fcast_casting_desc">Cast videos and images to devices on your local network</string>
+    <string name="help_release_421_auto_contrast_title">Auto-contrast (Beta)</string>
+    <string name="help_release_421_auto_contrast_desc">Real-time luminance-based contrast enhancement in the viewer</string>
+    <string name="help_release_421_right_align_actions_title">Right-align selection actions</string>
+    <string name="help_release_421_right_align_actions_desc">Move top action buttons to the right for easier one-handed use</string>
+    <string name="help_release_421_vault_overhaul_title">Vault overhaul</string>
+    <string name="help_release_421_vault_overhaul_desc">Gate authentication, custom passwords, per-vault security, and streamlined flow</string>
+    <string name="help_release_421_nomaps_withml_title">NoMaps WithML variant</string>
+    <string name="help_release_421_nomaps_withml_desc">New build variant with AI models but without map dependencies</string>
+    <string name="help_release_421_bugfixes_title">Bug fixes &amp; improvements</string>
+    <string name="help_release_421_bugfixes_desc">Fixed phantom selections, corrected setup permissions, and improved image loading</string>
+
     <!-- RELEASE NOTES -->
     <string name="help_release_420_album_groups_title">Album groups</string>
     <string name="help_release_420_album_groups_desc">Organize albums into collapsible groups</string>

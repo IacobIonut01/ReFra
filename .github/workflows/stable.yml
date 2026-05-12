@@ -178,6 +178,10 @@ jobs:
     needs: [build_nomaps, build_nomaps_withml, build_maps]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/RELEASE_BODY.md
+          sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v5
         with:
           name: ReFra Release (No Maps)
@@ -187,8 +191,13 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: ReFra Release (No Maps, WithML)
-      - name: Generate SHA256
-        run: echo "### Checksums" >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt && find . -name "ReFra-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"} ' >> ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
+      - name: Generate changelog
+        run: |
+          CHANGELOG=${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
+          cat .github/RELEASE_BODY.md >> "$CHANGELOG"
+          echo "" >> "$CHANGELOG"
+          echo "### Checksums" >> "$CHANGELOG"
+          find . -name "ReFra-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"}' >> "$CHANGELOG"
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v3

@@ -1,0 +1,13 @@
+What's new in 4.2.1:
+
+• FCast Video Casting — Cast videos and images to FCast-compatible devices on your local network with mDNS device discovery, remote playback controls, and encrypted vault media support
+• Auto-Contrast (Beta) — Real-time luminance detection automatically enhances display contrast in the media viewer
+• Vault Overhaul — Global gate authentication (None / Device Security / Custom Password), custom per-vault passwords, redesigned vault creation flow, and improved vault navigation
+• Right-Align Selection Actions — Option to push top action buttons to the right for easier one-handed use
+• NoMaps WithML Build Variant — New build variant with AI models but without map dependencies
+
+Bug fixes & improvements:
+• Fixed phantom selections when media is externally deleted
+• Corrected permission list on setup screen for maps/nomaps variants
+• Capitalized ML in product flavor names
+• Improved image loading (sketch lib 4.5.0-alpha03)
