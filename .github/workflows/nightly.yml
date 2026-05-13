@@ -59,6 +59,7 @@ jobs:
           path: app/build/outputs/apk-renamed/**/*.apk 
 
   build_nomaps_withml:
+    needs: build_nomaps
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -102,6 +103,7 @@ jobs:
           path: app/build/outputs/apk-renamed/**/*.apk
 
   build_maps:
+    needs: build_nomaps_withml
     runs-on: ubuntu-latest
     outputs:
       versionCode: ${{ steps.versioncode.outputs.versionCode }}
