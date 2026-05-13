@@ -12,6 +12,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
@@ -78,7 +79,10 @@ class MetadataCollectionWorker @AssistedInject constructor(
                 setProgress(workDataOf("progress" to 100))
                 return Result.success()
             }
-            printDebug("Updating metadata for ${diffMedia.size} items...")
+            val isolationMode = Settings.Security.getMetadataIsolationMode(appContext)
+                .firstOrNull() ?: Settings.Security.METADATA_ISOLATION_SHARED
+            val usePerFile = isolationMode == Settings.Security.METADATA_ISOLATION_PER_FILE
+            printDebug("Updating metadata for ${diffMedia.size} items... (isolation=$isolationMode)")
             val throttler = ProgressThrottler()
             val total = diffMedia.size
             diffMedia.fastForEachIndexed { index, it ->
@@ -86,7 +90,7 @@ class MetadataCollectionWorker @AssistedInject constructor(
                 val pct =
                     if (total <= 1) 100 else (((index + 1).toFloat() / total.toFloat()) * 100f).roundToInt()
                 throttler.emit(pct) { setProgress(workDataOf("progress" to it)) }
-                appContext.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
+                appContext.retrieveExtraMediaMetadata(isolatedParser, geocoder, it, usePerFile)?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }

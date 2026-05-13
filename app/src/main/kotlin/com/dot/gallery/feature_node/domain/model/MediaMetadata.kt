@@ -191,21 +191,28 @@ fun MediaMetadata.getIcon(): ImageVector? {
 suspend fun Context.retrieveExtraMediaMetadata(
     isolatedParser: IsolatedMetadataParser,
     geocoder: Geocoder?,
-    media: Media
+    media: Media,
+    usePerFileIsolation: Boolean = false
 ): MediaMetadata? =
     withContext(Dispatchers.IO) {
         runCatching {
             val uri = media.getUri()
             val label = media.label
-            printDebug("Retrieving extra metadata for ${media.id} - $uri")
+            printDebug("Retrieving extra metadata for ${media.id} - $uri (perFile=$usePerFileIsolation)")
 
             if (media.isImage) {
-                val bundle = isolatedParser.parseImageMetadata(uri, label)
-                    ?: return@runCatching null
+                val bundle = if (usePerFileIsolation) {
+                    isolatedParser.parseImageMetadataPerFile(uri, label, media.id)
+                } else {
+                    isolatedParser.parseImageMetadata(uri, label)
+                } ?: return@runCatching null
                 mediaMetadataFromImageBundle(media.id, bundle, geocoder, this@retrieveExtraMediaMetadata)
             } else if (media.isVideo) {
-                val bundle = isolatedParser.parseVideoMetadata(uri)
-                    ?: return@runCatching null
+                val bundle = if (usePerFileIsolation) {
+                    isolatedParser.parseVideoMetadataPerFile(uri, media.id)
+                } else {
+                    isolatedParser.parseVideoMetadata(uri)
+                } ?: return@runCatching null
                 mediaMetadataFromVideoBundle(media.id, bundle)
             } else {
                 null

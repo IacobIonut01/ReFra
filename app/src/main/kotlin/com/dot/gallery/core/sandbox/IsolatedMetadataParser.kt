@@ -17,6 +17,7 @@ import android.os.Looper
 import android.os.Message
 import android.os.Messenger
 import android.os.ParcelFileDescriptor
+import java.util.concurrent.Executors
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_ERROR
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_IS_VIDEO
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_LABEL
@@ -99,6 +100,175 @@ class IsolatedMetadataParser(private val context: Context) {
         }
     }
 
+    // ── Per-file isolation (API 29+) ──────────────────────────────────────
+
+    private val perFileExecutor = Executors.newSingleThreadExecutor()
+
+    /**
+     * Bind a fresh per-file isolated instance.
+     * Each unique [instanceName] forks a new Zygote child process via
+     * [Context.bindIsolatedService]. Call [unbindPerFile] when done.
+     *
+     * Returns null if the bind fails or times out.
+     */
+    suspend fun bindPerFile(mediaId: Long): PerFileConnection? {
+        val instanceName = "metadata_$mediaId"
+        val intent = Intent(context, IsolatedMetadataService::class.java)
+        var perFileMessenger: Messenger? = null
+
+        val perFileConnection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                perFileMessenger = Messenger(binder)
+                printDebug("IsolatedMetadataParser: per-file service connected ($instanceName)")
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                perFileMessenger = null
+                printWarning("IsolatedMetadataParser: per-file service disconnected ($instanceName)")
+            }
+        }
+
+        val bindResult = withContext(Dispatchers.Main) {
+            runCatching {
+                context.bindIsolatedService(
+                    intent,
+                    Context.BIND_AUTO_CREATE,
+                    instanceName,
+                    perFileExecutor,
+                    perFileConnection
+                )
+            }.getOrElse { e ->
+                printWarning("IsolatedMetadataParser: bindIsolatedService failed: ${e.message}")
+                false
+            }
+        }
+
+        if (!bindResult) return null
+
+        // Wait for connection (up to 5s)
+        var attempts = 0
+        while (perFileMessenger == null && attempts < 50) {
+            kotlinx.coroutines.delay(100)
+            attempts++
+        }
+
+        val messenger = perFileMessenger
+        if (messenger == null) {
+            printWarning("IsolatedMetadataParser: per-file bind timed out ($instanceName)")
+            runCatching { context.unbindService(perFileConnection) }
+            return null
+        }
+
+        return PerFileConnection(
+            serviceConnection = perFileConnection,
+            messenger = messenger,
+            instanceName = instanceName
+        )
+    }
+
+    fun unbindPerFile(conn: PerFileConnection) {
+        runCatching { context.unbindService(conn.serviceConnection) }
+        printDebug("IsolatedMetadataParser: per-file service unbound (${conn.instanceName})")
+    }
+
+    // ── Per-file public API ───────────────────────────────────────────────
+
+    /**
+     * Parse image metadata using a per-file isolated instance.
+     * Falls back to shared instance on failure.
+     */
+    suspend fun parseImageMetadataPerFile(
+        uri: Uri,
+        label: String,
+        mediaId: Long
+    ): Bundle? = withContext(Dispatchers.IO) {
+        val startNs = System.nanoTime()
+        val conn = bindPerFile(mediaId)
+        if (conn == null) {
+            printWarning("IsolatedMetadataParser: per-file bind failed, falling back to shared")
+            return@withContext parseImageMetadata(uri, label)
+        }
+        try {
+            val pfd = runCatching {
+                context.contentResolver.openFileDescriptor(uri, "r")
+            }.getOrNull() ?: return@withContext null
+
+            val result = sendAndReceive(conn.messenger, MSG_PARSE_IMAGE, Bundle().apply {
+                putParcelable(KEY_PFD, pfd)
+                putString(KEY_LABEL, label)
+            })
+            val elapsedMs = (System.nanoTime() - startNs) / 1_000_000
+            printDebug("IsolatedMetadataParser: image parse took ${elapsedMs}ms (per-file: ${conn.instanceName})")
+            result
+        } finally {
+            unbindPerFile(conn)
+        }
+    }
+
+    /**
+     * Parse video metadata using a per-file isolated instance.
+     * Falls back to shared instance on failure.
+     */
+    suspend fun parseVideoMetadataPerFile(
+        uri: Uri,
+        mediaId: Long
+    ): Bundle? = withContext(Dispatchers.IO) {
+        val startNs = System.nanoTime()
+        val conn = bindPerFile(mediaId)
+        if (conn == null) {
+            printWarning("IsolatedMetadataParser: per-file bind failed, falling back to shared")
+            return@withContext parseVideoMetadata(uri)
+        }
+        try {
+            val pfd = runCatching {
+                context.contentResolver.openFileDescriptor(uri, "r")
+            }.getOrNull() ?: return@withContext null
+
+            val result = sendAndReceive(conn.messenger, MSG_PARSE_VIDEO, Bundle().apply {
+                putParcelable(KEY_PFD, pfd)
+            })
+            val elapsedMs = (System.nanoTime() - startNs) / 1_000_000
+            printDebug("IsolatedMetadataParser: video parse took ${elapsedMs}ms (per-file: ${conn.instanceName})")
+            result
+        } finally {
+            unbindPerFile(conn)
+        }
+    }
+
+    /**
+     * Parse raw metadata using a per-file isolated instance.
+     * Falls back to shared instance on failure.
+     */
+    suspend fun parseRawMetadataPerFile(
+        uri: Uri,
+        isVideo: Boolean,
+        mediaId: Long
+    ): List<MetadataDirectory> = withContext(Dispatchers.IO) {
+        val startNs = System.nanoTime()
+        val conn = bindPerFile(mediaId)
+        if (conn == null) {
+            printWarning("IsolatedMetadataParser: per-file bind failed, falling back to shared")
+            return@withContext parseRawMetadata(uri, isVideo)
+        }
+        try {
+            val pfd = runCatching {
+                context.contentResolver.openFileDescriptor(uri, "r")
+            }.getOrNull() ?: return@withContext emptyList()
+
+            val bundle = sendAndReceive(conn.messenger, MSG_PARSE_RAW_METADATA, Bundle().apply {
+                putParcelable(KEY_PFD, pfd)
+                putBoolean(KEY_IS_VIDEO, isVideo)
+            }) ?: return@withContext emptyList()
+
+            val result = unbundleRawMetadata(bundle)
+            val elapsedMs = (System.nanoTime() - startNs) / 1_000_000
+            printDebug("IsolatedMetadataParser: raw metadata parse took ${elapsedMs}ms (per-file: ${conn.instanceName})")
+            result
+        } finally {
+            unbindPerFile(conn)
+        }
+    }
+
     // ── Public API ────────────────────────────────────────────────────────
 
     /**
@@ -172,7 +342,10 @@ class IsolatedMetadataParser(private val context: Context) {
 
     private suspend fun sendAndReceive(what: Int, data: Bundle): Bundle? {
         val messenger = serviceMessenger ?: return null
+        return sendAndReceive(messenger, what, data)
+    }
 
+    private suspend fun sendAndReceive(messenger: Messenger, what: Int, data: Bundle): Bundle? {
         return withTimeoutOrNull(SERVICE_TIMEOUT_MS) {
             suspendCancellableCoroutine { cont ->
                 val replyHandler = Handler(Looper.getMainLooper()) { msg ->
