@@ -9,7 +9,7 @@
     <string name="favorite_icon_on_thumbnails">Favorite icon on thumbnails</string>
     <string name="favorite_icon_on_thumbnails_summary">Choose the position of the heart icon on media thumbnails</string>
     <string name="choose_favorite_icon_position">Choose position</string>
-    <string name="fav_position_disabled">Hidden</string>
+    <string name="fav_position_disabled">Caché</string>
     <string name="fav_position_bottom_end">Bottom right</string>
     <string name="fav_position_bottom_start">Bottom left</string>
     <string name="fav_position_top_end">Top right</string>
