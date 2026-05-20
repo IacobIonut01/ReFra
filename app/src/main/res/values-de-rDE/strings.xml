@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ReFra</string>
-    <string name="app_name_gallery">Gallery</string>
-    <string name="change_app_name">App name</string>
-    <string name="change_app_name_summary">Change the app name shown on your launcher</string>
-    <string name="choose_app_name">Choose app name</string>
+    <string name="app_name_gallery">Galerie</string>
+    <string name="change_app_name">App-Name</string>
+    <string name="change_app_name_summary">Ändere den in deinem Launcher angezeigten App-Namen</string>
+    <string name="choose_app_name">App-Name wählen</string>
     <string name="change_app_name_info">You may need to re-add the app to your home screen after changing the name</string>
     <string name="favorite_icon_on_thumbnails">Favorite icon on thumbnails</string>
     <string name="favorite_icon_on_thumbnails_summary">Choose the position of the heart icon on media thumbnails</string>
