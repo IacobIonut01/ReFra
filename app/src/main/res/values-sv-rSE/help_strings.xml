@@ -850,7 +850,7 @@
     <string name="help_tip_viewer_auto_contrast_subtitle">Automatically enhance display contrast based on image brightness</string>
     <string name="help_tip_viewer_auto_contrast_p1_title">Smart contrast adjustment</string>
     <string name="help_tip_viewer_auto_contrast_p1_desc">When enabled, Gallery analyzes the brightness of each photo in real time and automatically adjusts the display contrast to make dark images easier to see and bright images more vivid. The adjustment is subtle and happens instantly as you swipe between photos. This only affects how images look on screen — your original files are never modified. This feature is currently in Beta.</string>
-    <string name="help_tip_viewer_auto_contrast_p1_s1">Go to Settings &gt; Media viewer</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s1">Go to Settings &gt; Appearance</string>
     <string name="help_tip_viewer_auto_contrast_p1_s2">Toggle \'Auto-contrast\'</string>
     <string name="help_tip_viewer_auto_contrast_p1_s3">Swipe between photos to see real-time adjustments</string>
     <!-- SELECTION: Right-Align Actions -->
@@ -874,6 +874,51 @@
     <string name="help_tip_vault_overhaul_p2_s1">Create or open a vault</string>
     <string name="help_tip_vault_overhaul_p2_s2">Set a custom password or use device security</string>
     <string name="help_tip_vault_overhaul_p2_s3">Each vault can have its own independent security</string>
+    <!-- SECURITY SETTINGS -->
+    <string name="help_tip_security_sandbox_title">App sandbox protection</string>
+    <string name="help_tip_security_sandbox_subtitle">Isolate untrusted file processing in secure sandbox processes</string>
+    <string name="help_tip_security_sandbox_p1_title">What is sandboxing?</string>
+    <string name="help_tip_security_sandbox_p1_desc">Sandboxing protects the app by processing untrusted files — such as HEIF, AVIF, and JXL images — in isolated system processes. If a malicious file exploits a decoder vulnerability, the damage is contained in the sandbox and cannot reach the main app or your data.</string>
+    <string name="help_tip_security_sandbox_p2_title">Configuring sandbox protection</string>
+    <string name="help_tip_security_sandbox_p2_desc">You can control how aggressively files are sandboxed. Metadata isolation determines whether EXIF parsing happens in a shared process, per-file process, or a hybrid of both. Sandboxed image decoding routes HEIF/AVIF/JXL through an isolated decoder service using shared memory.</string>
+    <string name="help_tip_security_sandbox_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_sandbox_p2_s2">Choose a metadata isolation mode (Shared, Hybrid, or Per-file)</string>
+    <string name="help_tip_security_sandbox_p2_s3">Toggle sandboxed image decoding on or off</string>
+    <string name="help_tip_security_encrypted_storage_title">Encrypted storage</string>
+    <string name="help_tip_security_encrypted_storage_subtitle">Protect your settings and database with Android Keystore encryption</string>
+    <string name="help_tip_security_encrypted_storage_p1_title">What gets encrypted?</string>
+    <string name="help_tip_security_encrypted_storage_p1_desc">When enabled, your app preferences are encrypted using AES-256-GCM with keys stored in the Android Keystore. The Room database is also encrypted using SQLCipher, protecting your trash index, categories, and internal data at rest — even if the device is rooted.</string>
+    <string name="help_tip_security_encrypted_storage_p2_title">Enabling encrypted storage</string>
+    <string name="help_tip_security_encrypted_storage_p2_desc">Encryption is opt-in. Enabling it triggers a one-time migration that encrypts your existing data. This runs in the background and only needs to happen once.</string>
+    <string name="help_tip_security_encrypted_storage_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_encrypted_storage_p2_s2">Toggle Encrypted settings on</string>
+    <string name="help_tip_security_encrypted_storage_p2_s3">The app will migrate your data automatically</string>
+    <string name="help_tip_security_private_folder_title">Private folder</string>
+    <string name="help_tip_security_private_folder_subtitle">Keep sensitive files hidden and protected via Android\'s Storage Access Framework</string>
+    <string name="help_tip_security_private_folder_p1_title">How the private folder works</string>
+    <string name="help_tip_security_private_folder_p1_desc">The private folder uses Android\'s Storage Access Framework (SAF) to store files outside of MediaStore. Files in your private folder never appear in the normal timeline, are not indexed by other apps, and are protected behind the app\'s security gate.</string>
+    <string name="help_tip_security_private_folder_p2_title">Setting up a private folder</string>
+    <string name="help_tip_security_private_folder_p2_desc">Pick any folder on your device as the private folder. The app takes persistent access permission so it survives reboots. You can browse, view, and manage private files just like regular media.</string>
+    <string name="help_tip_security_private_folder_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_private_folder_p2_s2">Tap Private folder and select a directory</string>
+    <string name="help_tip_security_private_folder_p2_s3">Access your private files from the Library</string>
+    <!-- RELEASE NOTES: 4.2.2 -->
+    <string name="help_release_422_security_hardening_title">Security hardening</string>
+    <string name="help_release_422_security_hardening_desc">App sandbox (targetSandboxVersion 2), encrypted storage, and isolated file processing</string>
+    <string name="help_release_422_sandboxed_decoding_title">Sandboxed image decoding</string>
+    <string name="help_release_422_sandboxed_decoding_desc">HEIF, AVIF, and JXL images are decoded in isolated processes for exploit protection</string>
+    <string name="help_release_422_isolated_metadata_title">Isolated metadata parsing</string>
+    <string name="help_release_422_isolated_metadata_desc">EXIF and metadata extraction runs in per-file sandbox processes</string>
+    <string name="help_release_422_private_folder_title">Private folder</string>
+    <string name="help_release_422_private_folder_desc">Store sensitive files outside MediaStore via SAF, hidden behind a security gate</string>
+    <string name="help_release_422_encrypted_storage_title">Encrypted storage</string>
+    <string name="help_release_422_encrypted_storage_desc">Encrypt app preferences (AES-256-GCM) and Room database (SQLCipher) at rest</string>
+    <string name="help_release_422_rescan_tracking_title">Persistent rescan tracking</string>
+    <string name="help_release_422_rescan_tracking_desc">MediaStore rescan state is now persisted in the database across app restarts</string>
+    <string name="help_release_422_performance_title">Various performance improvements</string>
+    <string name="help_release_422_performance_desc">Lazy per-album timeline flows, reduced recompositions in media viewer, optimized collection types and state management</string>
+    <string name="help_release_422_bugfixes_title">Bug fixes &amp; improvements</string>
+    <string name="help_release_422_bugfixes_desc">Fixed slow AI classification, dark status bar icons, map intent crash, motion player leak, large batch copy crash, filename date fallback, and updated dependencies</string>
     <!-- RELEASE NOTES: 4.2.1 -->
     <string name="help_release_421_fcast_casting_title">FCast video casting</string>
     <string name="help_release_421_fcast_casting_desc">Cast videos and images to devices on your local network</string>
