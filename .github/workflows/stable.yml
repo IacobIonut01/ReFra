@@ -42,6 +42,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
+        run: chmod +x ./gradlew
       - name: Tune Gradle for CI
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
@@ -84,6 +86,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
+        run: chmod +x ./gradlew
       - name: Tune Gradle for CI
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
@@ -126,6 +130,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
+        run: chmod +x ./gradlew
       - name: Tune Gradle for CI
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
@@ -161,6 +167,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
+        run: chmod +x ./gradlew
       - name: Tune Gradle for CI
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
