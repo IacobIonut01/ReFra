@@ -83,10 +83,20 @@ val Media.isImage: Boolean get() = mimeType.startsWith("image/")
  */
 val Media.isRawFile: Boolean get() = mimeType in listOf(
     "image/gif",
+    "image/apng",  // APNG is animated PNG
     "image/webp",  // WebP can be animated
+    "image/avif",  // AVIF can be animated
+    "image/avis",  // AVIF sequence (animated)
     "image/svg+xml",
     "image/bmp"
 )
+
+val Media.isApng: Boolean
+    get() = mimeType == "image/apng" || (mimeType == "image/png" && label.endsWith(".apng", ignoreCase = true))
+
+val Media.isAvif: Boolean
+    get() = mimeType == "image/avif" || mimeType == "image/avis" ||
+            label.endsWith(".avif", ignoreCase = true)
 
 val Media.isTrashed: Boolean get() = trashed == 1
 

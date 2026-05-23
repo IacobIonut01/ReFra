@@ -41,6 +41,8 @@ import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.asSubsamplingImage
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.domain.util.isApng
+import com.dot.gallery.feature_node.domain.util.isAvif
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
@@ -131,6 +133,43 @@ fun <T: Media> BoxScope.ZoomablePagerImage(
             zoomState.subsampling.setRegionDecoders(listOf(EncryptedRegionDecoder.Factory(keychainHolder)))
             zoomState.setSubsamplingImage(media.asSubsamplingImage(context))
         }
+        ZoomImage(
+            zoomState = zoomState,
+            painter = painter,
+            modifier = Modifier
+                .fillMaxSize()
+                .swipe(
+                    onSwipeDown = onSwipeDown
+                )
+                .graphicsLayer {
+                    rotationZ = if (isRotating) rotationAnimation else 0f
+                }.then(modifier),
+            onTap = { onItemClick() },
+            onLongPress = {
+                if (!rotationDisabled) {
+                    scope.launch {
+                        isRotating = true
+                        feedbackManager.vibrate()
+                        currentRotation += 90
+                        onImageRotated(currentRotation)
+                        delay(350)
+                        zoomState.zoomable.rotate(currentRotation)
+                        isRotating = false
+                    }
+                }
+            },
+            alignment = Alignment.Center,
+            contentDescription = media.label,
+            scrollBar = null
+        )
+    } else if (media.isApng || (media.isAvif && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
+        val painter = rememberAsyncImagePainter(
+            request = ComposableImageRequest(media.getUri().toString()) {
+                crossfade(durationMillis = 200)
+            },
+            contentScale = ContentScale.Fit,
+            filterQuality = FilterQuality.None,
+        )
         ZoomImage(
             zoomState = zoomState,
             painter = painter,
