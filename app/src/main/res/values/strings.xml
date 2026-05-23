@@ -61,6 +61,8 @@
     <string name="donate_button_cd">Donate Button</string>
     <string name="github_button_cd">Github Button</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
+    <string name="dismiss_banner">Dismiss banner</string>
+    <string name="show_banner">Show banner</string>
     <string name="use_as">Use as</string>
     <string name="set_as">"Set as: "</string>
     <string name="action_cancel">Cancel</string>
@@ -191,6 +193,8 @@
     <string name="toggle_audio_cd">Toggle audio</string>
     <string name="auto">Auto</string>
     <string name="change_playback_speed_cd">Change playback speed</string>
+    <string name="change_subtitle_track_cd">Change subtitle track</string>
+    <string name="subtitle_off">Off</string>
     <string name="location_new_album">Location: Internal-Storage/%1$s</string>
     <string name="permission_manage_files_title">Manage All Files</string>
     <string name="permission_manage_files_summary">"Allows the app to create, modify, and delete files and albums that were previously restricted by the system. (Includes albums outside Pictures and DCIM folders and the ones from the SD Card)"</string>
@@ -868,5 +872,17 @@
     <string name="private_folder_security_custom">Custom password</string>
     <string name="private_folder_unlock">Unlock private folder</string>
     <string name="private_folder_unlock_subtitle">Authenticate to access your private folder</string>
+
+    <!-- Timeline Filter -->
+    <string name="filter">Filter</string>
+    <string name="filter_title">Filter</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_all">All</string>
+    <string name="filter_status">Status</string>
+    <string name="filter_time">Time</string>
+    <string name="filter_source">Source</string>
+    <string name="filter_reset">Reset</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_active">Filter active</string>
 </resources>
 

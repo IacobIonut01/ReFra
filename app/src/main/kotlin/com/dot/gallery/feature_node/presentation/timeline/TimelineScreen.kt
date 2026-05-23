@@ -72,8 +72,13 @@ import com.dot.gallery.core.toggleNavigationBar
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
+import com.dot.gallery.feature_node.domain.model.MediaTypeFilter
+import com.dot.gallery.feature_node.domain.model.TimelineFilter
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.model.isIgnoredKey
+import com.dot.gallery.feature_node.domain.util.isFavorite
+import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.MosaicMediaGrid
 import com.dot.gallery.feature_node.presentation.common.components.MosaicPinchZoomLayout
@@ -84,9 +89,11 @@ import com.dot.gallery.feature_node.presentation.common.components.rememberStick
 import com.dot.gallery.feature_node.presentation.help.components.WhatsNewHeroCard
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
+import com.dot.gallery.feature_node.presentation.timeline.components.TimelineFilterSheet
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.roundSpToPx
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
 import dev.chrisbanes.haze.hazeSource
@@ -114,6 +121,66 @@ fun TimelineScreen(
     val distributor = LocalMediaDistributor.current
     val isRefreshing by distributor.isRefreshing.collectAsStateWithLifecycle()
     val refreshScope = rememberCoroutineScope()
+
+    // Filter state
+    var timelineFilter by remember { mutableStateOf(TimelineFilter()) }
+    val filterSheetState = rememberAppBottomSheetState()
+
+    val albumsState = distributor.albumsFlow.collectAsStateWithLifecycle()
+    val availableAlbums by rememberedDerivedState(albumsState.value) {
+        albumsState.value.albums.sortedBy { it.label }
+    }
+
+    val availableYears by rememberedDerivedState(mediaState.value) {
+        val cal = java.util.Calendar.getInstance()
+        mediaState.value.media.mapTo(mutableSetOf()) { media ->
+            cal.timeInMillis = media.definedTimestamp * 1000L
+            cal.get(java.util.Calendar.YEAR)
+        }.sortedDescending()
+    }
+
+    val filteredMediaState: State<MediaState<Media.UriMedia>> = remember(mediaState, timelineFilter) {
+        derivedStateOf {
+            val state = mediaState.value
+            if (!timelineFilter.isActive) return@derivedStateOf state
+
+            val filtered = state.media.filter { media ->
+                val typeMatch = when (timelineFilter.mediaType) {
+                    MediaTypeFilter.ALL -> true
+                    MediaTypeFilter.PHOTOS -> media.isImage
+                    MediaTypeFilter.VIDEOS -> media.isVideo
+                }
+                val favMatch = if (timelineFilter.favoritesOnly) media.isFavorite else true
+                val yearMatch = if (timelineFilter.selectedYears.isNotEmpty()) {
+                    val cal = java.util.Calendar.getInstance()
+                    cal.timeInMillis = media.definedTimestamp * 1000L
+                    cal.get(java.util.Calendar.YEAR) in timelineFilter.selectedYears
+                } else true
+                val albumMatch = if (timelineFilter.selectedAlbumIds.isNotEmpty()) {
+                    media.albumID in timelineFilter.selectedAlbumIds
+                } else true
+                typeMatch && favMatch && yearMatch && albumMatch
+            }
+            val filteredIds = filtered.mapTo(HashSet(filtered.size)) { it.id }
+            state.copy(
+                media = filtered,
+                pagerMedia = state.pagerMedia.filter { it.id in filteredIds },
+                mappedMedia = state.mappedMedia.filter { item ->
+                    when (item) {
+                        is com.dot.gallery.feature_node.domain.model.MediaItem.MediaViewItem -> item.media.id in filteredIds
+                        is com.dot.gallery.feature_node.domain.model.MediaItem.Header -> item.data.any { it in filteredIds }
+                    }
+                },
+                mappedMediaWithMonthly = state.mappedMediaWithMonthly.filter { item ->
+                    when (item) {
+                        is com.dot.gallery.feature_node.domain.model.MediaItem.MediaViewItem -> item.media.id in filteredIds
+                        is com.dot.gallery.feature_node.domain.model.MediaItem.Header -> item.data.any { it in filteredIds }
+                    }
+                },
+                headers = state.headers.filter { header -> header.data.any { it in filteredIds } }
+            )
+        }
+    }
     var lastSeenVersion by rememberLastSeenVersion()
     val showWhatsNew = remember(lastSeenVersion) { lastSeenVersion != BuildConfig.VERSION_NAME }
     val whatsNewContent: @Composable (() -> Unit)? = if (showWhatsNew) {
@@ -171,7 +238,14 @@ fun TimelineScreen(
                     isScrolling = isScrolling,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
-                    menuItems = { TimelineNavActions() },
+                    menuItems = {
+                        TimelineNavActions(
+                            isFilterActive = timelineFilter.isActive,
+                            onFilterClick = {
+                                refreshScope.launch { filterSheetState.show() }
+                            }
+                        )
+                    },
                 )
             }
         ) { it ->
@@ -193,11 +267,11 @@ fun TimelineScreen(
                     lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
                 }
 
-                val mappedData by rememberedDerivedState(mediaState.value) {
-                    mediaState.value.mappedMediaWithMonthly
+                val mappedData by rememberedDerivedState(filteredMediaState.value) {
+                    filteredMediaState.value.mappedMediaWithMonthly
                 }
-                val headers by rememberedDerivedState(mediaState.value) {
-                    mediaState.value.headers
+                val headers by rememberedDerivedState(filteredMediaState.value) {
+                    filteredMediaState.value.headers
                 }
                 val mosaicPaddingValues = remember(paddingValues, it) {
                     PaddingValues(
@@ -207,7 +281,7 @@ fun TimelineScreen(
                 }
                 val stickyHeaderItem by rememberStickyHeaderItem(
                     gridState = mosaicGridState,
-                    mediaState = mediaState
+                    mediaState = filteredMediaState
                 )
 
                 val hideSearchBarSetting by rememberAutoHideSearchBar()
@@ -241,7 +315,7 @@ fun TimelineScreen(
                     stickyHeader = {
                         val show by remember {
                             derivedStateOf {
-                                mediaState.value.media.isNotEmpty() && stickyHeaderItem != null
+                                filteredMediaState.value.media.isNotEmpty() && stickyHeaderItem != null
                             }
                         }
                         AnimatedVisibility(
@@ -287,7 +361,7 @@ fun TimelineScreen(
                             modifier = Modifier.hazeSource(LocalHazeState.current),
                             gridState = mosaicGridState,
                             columns = currentColumns,
-                            mediaState = mediaState,
+                            mediaState = filteredMediaState,
                             metadataState = metadataState,
                             mappedData = mappedData,
                             paddingValues = mosaicPaddingValues,
@@ -313,7 +387,7 @@ fun TimelineScreen(
                     indicatorTopPadding = it.calculateTopPadding() + 16.dp,
                 ) {
                     MediaGridView(
-                        mediaState = mediaState,
+                        mediaState = filteredMediaState,
                         metadataState = metadataState,
                         paddingValues = remember(paddingValues, it) {
                             PaddingValues(
@@ -343,13 +417,21 @@ fun TimelineScreen(
             } // PullToRefreshBox
         }
         val selectedMediaList by selectedMedia(
-            media = mediaState.value.media,
+            media = filteredMediaState.value.media,
             selectedSet = selectedMedia
         )
         SelectionSheet(
             modifier = Modifier.align(Alignment.BottomEnd),
-            allMedia = mediaState.value,
+            allMedia = filteredMediaState.value,
             selectedMedia = selectedMediaList
         )
     }
+
+    TimelineFilterSheet(
+        sheetState = filterSheetState,
+        currentFilter = timelineFilter,
+        availableYears = availableYears,
+        availableAlbums = availableAlbums,
+        onApply = { newFilter -> timelineFilter = newFilter }
+    )
 }
