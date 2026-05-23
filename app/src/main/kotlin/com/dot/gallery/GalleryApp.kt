@@ -16,7 +16,9 @@ import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.sandbox.IsolatedImageDecoder
 import com.dot.gallery.core.sandbox.SandboxedDecoderHolder
+import com.dot.gallery.core.decoder.supportApng
 import com.dot.gallery.core.decoder.supportHeifDecoder
+import com.dot.gallery.core.decoder.supportAnimatedJxlDecoder
 import com.dot.gallery.core.decoder.supportJxlDecoder
 import com.dot.gallery.core.decoder.supportSandboxedHeifDecoder
 import com.dot.gallery.core.decoder.supportSandboxedJxlDecoder
@@ -56,11 +58,13 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
             supportPauseLoadWhenScrolling()
             supportSvg()
             supportGif()
+            supportApng()
             supportVideoFrame2()
             supportAnimatedWebp()
             supportAnimatedHeif()
             supportSandboxedHeifDecoder()
             supportSandboxedJxlDecoder()
+            supportAnimatedJxlDecoder()
             supportHeifDecoder()
             supportJxlDecoder()
             supportVaultDecoder()
