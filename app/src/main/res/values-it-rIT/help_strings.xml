@@ -850,7 +850,7 @@
     <string name="help_tip_viewer_auto_contrast_subtitle">Automatically enhance display contrast based on image brightness</string>
     <string name="help_tip_viewer_auto_contrast_p1_title">Smart contrast adjustment</string>
     <string name="help_tip_viewer_auto_contrast_p1_desc">When enabled, Gallery analyzes the brightness of each photo in real time and automatically adjusts the display contrast to make dark images easier to see and bright images more vivid. The adjustment is subtle and happens instantly as you swipe between photos. This only affects how images look on screen — your original files are never modified. This feature is currently in Beta.</string>
-    <string name="help_tip_viewer_auto_contrast_p1_s1">Go to Settings &gt; Media viewer</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s1">Go to Settings &gt; Appearance</string>
     <string name="help_tip_viewer_auto_contrast_p1_s2">Toggle \'Auto-contrast\'</string>
     <string name="help_tip_viewer_auto_contrast_p1_s3">Swipe between photos to see real-time adjustments</string>
     <!-- SELECTION: Right-Align Actions -->

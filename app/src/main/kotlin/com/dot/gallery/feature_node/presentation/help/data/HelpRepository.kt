@@ -353,7 +353,7 @@ object HelpRepository {
             pages = listOf(TutorialPage(title = R.string.help_tip_viewer_fav_button_p1_title, description = R.string.help_tip_viewer_fav_button_p1_desc, steps = listOf(R.string.help_tip_viewer_fav_button_p1_s1, R.string.help_tip_viewer_fav_button_p1_s2, R.string.help_tip_viewer_fav_button_p1_s3))), sinceVersion = "4.0.0"),
         HelpTip(id = "viewer_auto_contrast", title = R.string.help_tip_viewer_auto_contrast_title, subtitle = R.string.help_tip_viewer_auto_contrast_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Contrast), category = HelpCategory.VIEWER_SETTINGS,
-            deepLink = Screen.SettingsMediaViewerScreen(),
+            deepLink = Screen.SettingsAppearanceScreen(),
             pages = listOf(TutorialPage(title = R.string.help_tip_viewer_auto_contrast_p1_title, description = R.string.help_tip_viewer_auto_contrast_p1_desc, steps = listOf(R.string.help_tip_viewer_auto_contrast_p1_s1, R.string.help_tip_viewer_auto_contrast_p1_s2, R.string.help_tip_viewer_auto_contrast_p1_s3))), sinceVersion = "4.2.1")
     )
     // endregion
