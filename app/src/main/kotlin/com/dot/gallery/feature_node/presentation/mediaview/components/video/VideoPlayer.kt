@@ -4,6 +4,8 @@ import android.app.Activity
 import android.view.SurfaceView
 import android.view.View
 import android.view.WindowManager
+import androidx.media3.common.Player
+import androidx.media3.ui.SubtitleView
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -56,6 +58,7 @@ import com.dot.gallery.core.Settings.Misc.rememberAudioFocus
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.SubtitleTrack
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.rememberSurfaceCapture
 import dev.chrisbanes.haze.hazeSource
@@ -66,7 +69,7 @@ fun <T : Media> VideoPlayer(
     media: T,
     modifier: Modifier = Modifier,
     playWhenReady: State<Boolean>,
-    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
+    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float, List<SubtitleTrack>, (SubtitleTrack) -> Unit, () -> Unit) -> Unit,
     onItemClick: () -> Unit,
     onSwipeDown: () -> Unit
 ) {
@@ -217,6 +220,33 @@ fun <T : Media> VideoPlayer(
                 }
         )
 
+        // Subtitle rendering overlay
+        var subtitleViewRef by remember { mutableStateOf<SubtitleView?>(null) }
+        AndroidView(
+            factory = { ctx ->
+                SubtitleView(ctx).also { subtitleViewRef = it }
+            },
+            modifier = Modifier
+                .align(Alignment.Center)
+                .resizeWithContentScale(
+                    contentScale = ContentScale.Fit,
+                    sourceSizeDp = presentationState.videoSizeDp
+                )
+        )
+        DisposableEffect(currentPlayer) {
+            val listener = object : Player.Listener {
+                override fun onCues(cueGroup: androidx.media3.common.text.CueGroup) {
+                    subtitleViewRef?.setCues(cueGroup.cues)
+                }
+            }
+            currentPlayer.addListener(listener)
+            onDispose {
+                if (!currentPlayer.isReleased) {
+                    currentPlayer.removeListener(listener)
+                }
+            }
+        }
+
         if (presentationState.coverSurface) {
             Box(
                 Modifier
@@ -238,7 +268,10 @@ fun <T : Media> VideoPlayer(
             positionState,
             playback.durationMs,
             playback.bufferedPercent,
-            playback.frameRate
+            playback.frameRate,
+            playback.subtitleTracks,
+            vm::selectSubtitleTrack,
+            vm::disableSubtitles
         )
     }
 

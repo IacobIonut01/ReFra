@@ -11,10 +11,15 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
+import com.dot.gallery.feature_node.domain.model.SubtitleTrack
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import java.util.Locale
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isEncrypted
@@ -69,7 +74,8 @@ class VideoPlayerViewModel @AssistedInject constructor(
         val positionMs: Long = 0L,
         val bufferedPercent: Int = 0,
         val frameRate: Float = 60f,
-        val isPlaying: Boolean = false
+        val isPlaying: Boolean = false,
+        val subtitleTracks: List<SubtitleTrack> = emptyList()
     )
 
     private val keychainHolder = KeychainHolder(appContext)
@@ -123,6 +129,10 @@ class VideoPlayerViewModel @AssistedInject constructor(
                     if (!playWhenReady) {
                         _state.update { it.copy(isPlaying = false) }
                     }
+                }
+
+                override fun onTracksChanged(tracks: Tracks) {
+                    updateSubtitleTracks(tracks)
                 }
             })
         }
@@ -327,6 +337,52 @@ class VideoPlayerViewModel @AssistedInject constructor(
         decryptedFile?.delete()
         decryptedFile = null
         super.onCleared()
+    }
+
+    private fun updateSubtitleTracks(tracks: Tracks) {
+        val subs = mutableListOf<SubtitleTrack>()
+        for (group in tracks.groups) {
+            if (group.type != C.TRACK_TYPE_TEXT) continue
+            for (i in 0 until group.length) {
+                val format = group.getTrackFormat(i)
+                val lang = format.language
+                val displayName = format.label
+                    ?: lang?.let { Locale.forLanguageTag(it).displayLanguage }
+                    ?: "Track ${subs.size + 1}"
+                subs.add(
+                    SubtitleTrack(
+                        groupIndex = tracks.groups.indexOf(group),
+                        trackIndex = i,
+                        label = displayName,
+                        language = lang,
+                        isSelected = group.isTrackSelected(i)
+                    )
+                )
+            }
+        }
+        _state.update { it.copy(subtitleTracks = subs) }
+    }
+
+    fun selectSubtitleTrack(track: SubtitleTrack) {
+        val tracks = player.currentTracks
+        val groups = tracks.groups
+        if (track.groupIndex !in groups.indices) return
+        val trackGroup = groups[track.groupIndex].mediaTrackGroup
+
+        player.trackSelectionParameters = player.trackSelectionParameters
+            .buildUpon()
+            .setOverrideForType(
+                TrackSelectionOverride(trackGroup, listOf(track.trackIndex))
+            )
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+            .build()
+    }
+
+    fun disableSubtitles() {
+        player.trackSelectionParameters = player.trackSelectionParameters
+            .buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            .build()
     }
 
     companion object {

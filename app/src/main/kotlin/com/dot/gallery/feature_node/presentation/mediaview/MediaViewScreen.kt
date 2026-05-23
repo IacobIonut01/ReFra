@@ -707,7 +707,7 @@ fun <T : Media> MediaViewScreen(
                                         windowInsetsController.toggleSystemBars(showUI)
                                     }
                                 }
-                            ) { player, isPlaying, currentTime, totalTime, buffer, frameRate ->
+                            ) { player, isPlaying, currentTime, totalTime, buffer, frameRate, subtitleTracks, onSelectSubtitle, onDisableSubtitles ->
                                 Box(
                                     modifier = Modifier.fillMaxSize()
                                 ) {
@@ -827,7 +827,10 @@ fun <T : Media> MediaViewScreen(
                                             } else null,
                                             onCastSpeed = if (fcastState.connectedDevice != null) {
                                                 { spd -> fcastVm.setSpeed(spd) }
-                                            } else null
+                                            } else null,
+                                            subtitleTracks = subtitleTracks,
+                                            onSelectSubtitle = onSelectSubtitle,
+                                            onDisableSubtitles = onDisableSubtitles
                                         )
                                     }
                                 }

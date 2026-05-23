@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.SubtitleTrack
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayer
@@ -46,7 +47,7 @@ fun <T : Media> MediaPreviewComponent(
     isMotionPhoto: Boolean = false,
     motionPhotoState: MotionPhotoState? = null,
     currentVault: Vault? = null,
-    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
+    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float, List<SubtitleTrack>, (SubtitleTrack) -> Unit, () -> Unit) -> Unit,
 ) {
     AnimatedVisibility(
         modifier = Modifier
