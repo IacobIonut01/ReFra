@@ -22,9 +22,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 fun <T : Media> WorkManager.copyMedia(vararg sets: Pair<T, String>) {
     if (sets.isEmpty()) return
@@ -59,6 +62,10 @@ class MediaCopyWorker @AssistedInject constructor(
     @Assisted private val params: WorkerParameters
 ) : CoroutineWorker(appContext, params) {
 
+    companion object {
+        private const val MAX_CONCURRENT_COPIES = 4
+    }
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val uris = params.inputData.getStringArray("uris") ?: return@withContext Result.failure()
         val paths = params.inputData.getStringArray("paths") ?: return@withContext Result.failure()
@@ -68,36 +75,39 @@ class MediaCopyWorker @AssistedInject constructor(
         val completed = AtomicInteger(0)
         val throttler = ProgressThrottler()
         // Track byte-level progress
-        val bytesTotal = AtomicInteger(0)
-        val bytesCopied = AtomicInteger(0)
+        val bytesTotal = AtomicLong(0)
+        val bytesCopied = AtomicLong(0)
 
         // First, compute approximate total bytes (best-effort) to enable smoother progress.
         uris.forEach { uriStr ->
             try {
                 appContext.contentResolver.openAssetFileDescriptor(uriStr.toUri(), "r")?.use { afd ->
                     val length = afd.length
-                    if (length > 0) bytesTotal.addAndGet(length.toInt().coerceAtMost(Int.MAX_VALUE))
+                    if (length > 0) bytesTotal.addAndGet(length)
                 }
             } catch (_: Throwable) { /* ignore, fallback to per-file progress */ }
         }
 
+        val semaphore = Semaphore(MAX_CONCURRENT_COPIES)
         val copyJobs = uris.zip(paths).map { (uriStr, relPath) ->
             async {
-                if (!currentCoroutineContext().isActive || isStopped) return@async false
-                val uri = uriStr.toUri()
-                val result = copyOne(uri, relPath) { delta ->
-                    if (bytesTotal.get() > 0) {
-                        val newTotal = bytesCopied.addAndGet(delta)
-                        val pctBytes = ((newTotal.toFloat() / bytesTotal.get().toFloat()) * 100f).toInt().coerceIn(0, 100)
-                        throttler.emit(pctBytes) { value -> setProgress(workDataOf("progress" to value)) }
+                semaphore.withPermit {
+                    if (!currentCoroutineContext().isActive || isStopped) return@withPermit false
+                    val uri = uriStr.toUri()
+                    val result = copyOne(uri, relPath) { delta ->
+                        if (bytesTotal.get() > 0L) {
+                            val newTotal = bytesCopied.addAndGet(delta.toLong())
+                            val pctBytes = ((newTotal.toFloat() / bytesTotal.get().toFloat()) * 100f).toInt().coerceIn(0, 100)
+                            throttler.emit(pctBytes) { value -> setProgress(workDataOf("progress" to value)) }
+                        }
                     }
+                    val done = completed.incrementAndGet()
+                    if (bytesTotal.get() == 0L) {
+                        val pct = ((done.toFloat() / total.toFloat()) * 100f).toInt().coerceIn(0, 100)
+                        throttler.emit(pct) { value -> setProgress(workDataOf("progress" to value)) }
+                    }
+                    result
                 }
-                val done = completed.incrementAndGet()
-                if (bytesTotal.get() == 0) {
-                    val pct = ((done.toFloat() / total.toFloat()) * 100f).toInt().coerceIn(0, 100)
-                    throttler.emit(pct) { value -> setProgress(workDataOf("progress" to value)) }
-                }
-                result
             }
         }
 
