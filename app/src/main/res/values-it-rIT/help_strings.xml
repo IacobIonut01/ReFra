@@ -902,6 +902,73 @@
     <string name="help_tip_security_private_folder_p2_s1">Go to Settings → Security</string>
     <string name="help_tip_security_private_folder_p2_s2">Tap Private folder and select a directory</string>
     <string name="help_tip_security_private_folder_p2_s3">Access your private files from the Library</string>
+    <!-- Timeline Filter (4.2.3) -->
+    <string name="help_tip_timeline_filter_title">Timeline filter</string>
+    <string name="help_tip_timeline_filter_subtitle">Filter your timeline by type, favorites, year, or album</string>
+    <string name="help_tip_timeline_filter_p1_title">Filter your timeline</string>
+    <string name="help_tip_timeline_filter_p1_desc">The timeline filter lets you narrow down what you see without leaving the main screen. Filter by media type (photos, videos, GIFs), show only favorites, jump to a specific year, or scope the timeline to a single album. Combine multiple filters for precise results.</string>
+    <string name="help_tip_timeline_filter_p2_title">How to use</string>
+    <string name="help_tip_timeline_filter_p2_desc">Access the filter directly from the search bar at the top of the timeline. Tap the filter icon to expand filter options. Active filters are shown as chips that can be individually removed.</string>
+    <string name="help_tip_timeline_filter_p2_s1">Tap the filter icon in the search bar</string>
+    <string name="help_tip_timeline_filter_p2_s2">Select a filter category (type, favorites, year, album)</string>
+    <string name="help_tip_timeline_filter_p2_s3">Tap a filter chip to remove it</string>
+    <string name="help_tip_timeline_filter_p2_s4">The filter visibility toggle is available in Settings</string>
+    <!-- Animated Format Support (4.2.3) -->
+    <string name="help_tip_animated_formats_title">Animated image support</string>
+    <string name="help_tip_animated_formats_subtitle">View animated AVIF, JXL, and APNG images</string>
+    <string name="help_tip_animated_formats_p1_title">Animated formats</string>
+    <string name="help_tip_animated_formats_p1_desc">Gallery now supports animated AVIF, animated JXL, and APNG image formats. These modern animated image formats offer better compression and quality compared to GIF. Animated images play automatically in the media viewer just like GIFs.</string>
+    <string name="help_tip_animated_formats_p2_title">Supported formats</string>
+    <string name="help_tip_animated_formats_p2_desc">The following animated formats are supported alongside traditional GIF: Animated AVIF (AV1-based animation), Animated JXL (JPEG XL animation), and APNG (Animated PNG). Thumbnail animation in the grid can be controlled from the Timeline &amp; Albums settings.</string>
+    <!-- Video Subtitles (4.2.3) -->
+    <string name="help_tip_video_subtitles_title">Video subtitles</string>
+    <string name="help_tip_video_subtitles_subtitle">Select embedded or external subtitle tracks for videos</string>
+    <string name="help_tip_video_subtitles_p1_title">Subtitle support</string>
+    <string name="help_tip_video_subtitles_p1_desc">Gallery supports both embedded subtitle tracks (built into the video file) and external subtitle files (.srt, .ass, .ssa, etc.). When a video has subtitle tracks available, a subtitle button appears in the video player controls.</string>
+    <string name="help_tip_video_subtitles_p2_title">Managing subtitles</string>
+    <string name="help_tip_video_subtitles_p2_desc">Tap the subtitle button during video playback to open the subtitle selector. You can switch between available tracks, load an external subtitle file, or disable subtitles entirely. External subtitle files can also be deleted from the bottom sheet.</string>
+    <string name="help_tip_video_subtitles_p2_s1">Tap the subtitle icon in the video player</string>
+    <string name="help_tip_video_subtitles_p2_s2">Select an embedded track or load an external file</string>
+    <string name="help_tip_video_subtitles_p2_s3">Tap \'None\' to disable subtitles</string>
+    <!-- Video Pinch-to-Zoom (4.2.3) -->
+    <string name="help_tip_video_zoom_title">Video pinch-to-zoom</string>
+    <string name="help_tip_video_zoom_subtitle">Zoom into videos with pinch and double-tap gestures</string>
+    <string name="help_tip_video_zoom_p1_title">Zoom in videos</string>
+    <string name="help_tip_video_zoom_p1_desc">You can now pinch-to-zoom and double-tap-to-zoom while watching videos, just like with photos. This is useful for examining fine details in video footage. Pan around while zoomed in by dragging with one finger. Double-tap again to reset to the original size.</string>
+    <!-- Search Enhancements (4.2.3) -->
+    <string name="help_tip_search_metadata_title">Search descriptions &amp; metadata</string>
+    <string name="help_tip_search_metadata_subtitle">Find photos by their description or metadata text</string>
+    <string name="help_tip_search_metadata_p1_title">Extended search</string>
+    <string name="help_tip_search_metadata_p1_desc">Search now extends beyond filenames and AI analysis. Your search queries also match against image descriptions, EXIF metadata text fields, and other embedded metadata. This makes it easier to find photos you have annotated or that contain specific camera or lens information.</string>
+    <!-- Copy/Move Album Picker Search (4.2.3) -->
+    <string name="help_tip_album_picker_search_title">Album picker search</string>
+    <string name="help_tip_album_picker_search_subtitle">Search for albums when copying or moving photos</string>
+    <string name="help_tip_album_picker_search_p1_title">Find albums quickly</string>
+    <string name="help_tip_album_picker_search_p1_desc">When copying or moving photos to another album, you can now search for the target album by name. A search bar at the top of the album picker sheet lets you quickly filter the album list, making it much faster to find the right destination when you have many albums.</string>
+    <!-- Redesigned Trash &amp; Favorites (4.2.3) -->
+    <string name="help_tip_trash_fav_redesign_title">Redesigned Trash &amp; Favorites</string>
+    <string name="help_tip_trash_fav_redesign_subtitle">Refreshed screens for Trash and Favorites</string>
+    <string name="help_tip_trash_fav_redesign_p1_title">New look</string>
+    <string name="help_tip_trash_fav_redesign_p1_desc">The Trash and Favorites screens have been completely redesigned with a fresh layout, improved visual hierarchy, and smoother animations. The new design brings them in line with the modern look of the rest of the app.</string>
+    <!-- RELEASE NOTES: 4.2.3 -->
+    <string name="help_release_423_timeline_filter_title">Timeline filter</string>
+    <string name="help_release_423_timeline_filter_desc">Filter the timeline by media type, favorites, year, or album</string>
+    <string name="help_release_423_animated_formats_title">Animated format support</string>
+    <string name="help_release_423_animated_formats_desc">Play animated AVIF, JXL, and APNG images alongside GIF</string>
+    <string name="help_release_423_video_subtitles_title">Video subtitles</string>
+    <string name="help_release_423_video_subtitles_desc">Embedded and external subtitle track selection with bottom-sheet management</string>
+    <string name="help_release_423_video_zoom_title">Video pinch-to-zoom</string>
+    <string name="help_release_423_video_zoom_desc">Pinch-to-zoom and double-tap-to-zoom during video playback</string>
+    <string name="help_release_423_search_enhancements_title">Enhanced search</string>
+    <string name="help_release_423_search_enhancements_desc">Search through image descriptions, metadata text fields, and inline timeline filter</string>
+    <string name="help_release_423_trash_fav_redesign_title">Redesigned Trash &amp; Favorites</string>
+    <string name="help_release_423_trash_fav_redesign_desc">Refreshed layout, improved visual hierarchy, and smoother animations</string>
+    <string name="help_release_423_album_picker_search_title">Album picker search</string>
+    <string name="help_release_423_album_picker_search_desc">Search bar in the copy/move album picker for quick album lookup</string>
+    <string name="help_release_423_ux_improvements_title">UX improvements</string>
+    <string name="help_release_423_ux_improvements_desc">Dismissible settings banners, bottom-sheet confirmations, and optimistic trash feedback</string>
+    <string name="help_release_423_bugfixes_title">Bug fixes</string>
+    <string name="help_release_423_bugfixes_desc">Fixed drag-selection tracking, metadata edit keyboard overlap, and preserved original dates when overriding edited photos</string>
     <!-- RELEASE NOTES: 4.2.2 -->
     <string name="help_release_422_security_hardening_title">Security hardening</string>
     <string name="help_release_422_security_hardening_desc">App sandbox (targetSandboxVersion 2), encrypted storage, and isolated file processing</string>
