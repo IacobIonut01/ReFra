@@ -100,10 +100,10 @@ fun Modifier.mosaicGridDragHandler(
                     val hitIds = resolveHitIds(hit, allIds).toSet()
                     if (!selectedIds.value.containsAll(hitIds)) {
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        initialIndex = idx
-                        currentIndex = idx
                         updateSelectedIds(selectedIds.value + hitIds)
                     }
+                    initialIndex = idx
+                    currentIndex = idx
                 }
             }
         },
@@ -179,11 +179,13 @@ fun Modifier.photoGridDragHandler(
             lazyGridState.hitKeyAt(raw, padL, padT)?.let { key ->
                 val idx = allKeys.indexOf(key)
                 val id = key.mediaIdFromKey
-                if (idx >= 0 && id != null && id !in selectedIds.value) {
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                if (idx >= 0 && id != null) {
+                    if (id !in selectedIds.value) {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        updateSelectedIds(selectedIds.value + id)
+                    }
                     initialMediaIndex = idx
                     currentMediaIndex = idx
-                    updateSelectedIds(selectedIds.value + id)
                 }
             }
         },
