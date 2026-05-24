@@ -62,7 +62,13 @@
     <string name="github_button_cd">Github Button</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
     <string name="dismiss_banner">Dismiss banner</string>
+    <string name="dismiss_banner_title">Move banner?</string>
+    <string name="dismiss_banner_message">The Donate and GitHub buttons will move to a compact bar at the bottom of the Settings page.</string>
+    <string name="dismiss_banner_confirm">Move to bottom</string>
     <string name="show_banner">Show banner</string>
+    <string name="restore_banner_title">Restore banner?</string>
+    <string name="restore_banner_message">The full Donate and GitHub banner will be restored at the top of the Settings page.</string>
+    <string name="restore_banner_confirm">Move to top</string>
     <string name="use_as">Use as</string>
     <string name="set_as">"Set as: "</string>
     <string name="action_cancel">Cancel</string>
