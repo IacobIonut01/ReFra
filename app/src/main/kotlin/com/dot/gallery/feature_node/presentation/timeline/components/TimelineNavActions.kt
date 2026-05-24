@@ -11,16 +11,12 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material3.Badge
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -47,60 +42,13 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 
 @OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TimelineNavActions(
-    isFilterActive: Boolean = false,
-    onFilterClick: () -> Unit = {},
-) {
+fun TimelineNavActions() {
     val eventHandler = LocalEventHandler.current
     val tertiaryContainer = MaterialTheme.colorScheme.tertiaryFixed
     val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryFixed
     val allowBlur by rememberAllowBlur()
     val errorContainer = MaterialTheme.colorScheme.primaryFixed
     val onErrorContainer = MaterialTheme.colorScheme.onPrimaryFixed
-
-    // Filter button
-    val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
-    val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
-    val filterBackgroundModifier = remember(allowBlur) {
-        if (!allowBlur) {
-            Modifier.background(
-                color = secondaryContainer,
-                shape = RoundedCornerShape(100)
-            )
-        } else {
-            Modifier
-        }
-    }
-    Box {
-        IconButton(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .then(filterBackgroundModifier)
-                .hazeEffect(
-                    state = LocalHazeState.current,
-                    style = HazeMaterials.regular(
-                        containerColor = secondaryContainer
-                    )
-                ),
-            onClick = onFilterClick
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.FilterList,
-                contentDescription = stringResource(R.string.filter),
-                tint = onSecondaryContainer
-            )
-        }
-        if (isFilterActive) {
-            Badge(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(4.dp),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        }
-    }
 
     val showFavoriteButton by rememberShowFavoriteButton()
     if (showFavoriteButton && SdkCompat.supportsFavorites) {

@@ -20,10 +20,17 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material3.Badge
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
@@ -44,6 +51,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -59,11 +67,13 @@ import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.R
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberLastSeenVersion
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
+import com.dot.gallery.core.Settings.Misc.rememberShowFilterButton
 import com.dot.gallery.core.Settings.Misc.rememberTimelineLayoutType
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
@@ -234,18 +244,38 @@ fun TimelineScreen(
     ) {
         Scaffold(
             topBar = {
+                val showFilterButton by rememberShowFilterButton()
                 MainSearchBar(
                     isScrolling = isScrolling,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
-                    menuItems = {
-                        TimelineNavActions(
-                            isFilterActive = timelineFilter.isActive,
-                            onFilterClick = {
-                                refreshScope.launch { filterSheetState.show() }
+                    menuItems = { TimelineNavActions() },
+                    searchBarTrailingIcon = if (showFilterButton) {
+                        {
+                            Box {
+                                IconButton(
+                                    onClick = {
+                                        refreshScope.launch { filterSheetState.show() }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.FilterList,
+                                        contentDescription = stringResource(R.string.filter),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                if (timelineFilter.isActive) {
+                                    Badge(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(4.dp),
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
-                        )
-                    },
+                        }
+                    } else null,
                 )
             }
         ) { it ->

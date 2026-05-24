@@ -884,5 +884,8 @@
     <string name="filter_reset">Reset</string>
     <string name="filter_apply">Apply</string>
     <string name="filter_active">Filter active</string>
+    <string name="show_filter_button">Filter button</string>
+    <string name="show_filter_button_summary">Show filter button in search bar</string>
+    <string name="show_filter_button_description">Shows a filter icon inside the search bar on the timeline screen. Tap it to open a sheet where you can narrow down your gallery by media type, favorites, year, or album.</string>
 </resources>
 

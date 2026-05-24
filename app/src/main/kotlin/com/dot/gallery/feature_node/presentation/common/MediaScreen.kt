@@ -205,12 +205,13 @@ fun <T: Media> MediaScreen(
                         isScrolling = isScrolling,
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
-                    ) {
-                        NavigationActions(
-                            actions = navActionsContent,
-                            onActivityResult = onActivityResult
-                        )
-                    }
+                        menuItems = {
+                            NavigationActions(
+                                actions = navActionsContent,
+                                onActivityResult = onActivityResult
+                            )
+                        },
+                    )
                 }
             }
         ) { it ->

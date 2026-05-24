@@ -14,21 +14,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.dot.gallery.core.presentation.components.SetupButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,141 +67,138 @@ fun TimelineFilterSheet(
             dragHandle = { BottomSheetDefaults.DragHandle() },
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .navigationBarsPadding()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // Title
-                Text(
-                    text = stringResource(R.string.filter_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                // Type section
-                FilterSectionHeader(stringResource(R.string.filter_type))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 16.dp)
+                // Scrollable filter content
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp)
                 ) {
-                    FilterChip(
-                        label = stringResource(R.string.filter_all),
-                        selected = filter.mediaType == MediaTypeFilter.ALL,
-                        onClick = { filter = filter.copy(mediaType = MediaTypeFilter.ALL) }
+                    // Title
+                    Text(
+                        text = stringResource(R.string.filter_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    FilterChip(
-                        label = stringResource(R.string.photos),
-                        selected = filter.mediaType == MediaTypeFilter.PHOTOS,
-                        onClick = { filter = filter.copy(mediaType = MediaTypeFilter.PHOTOS) }
-                    )
-                    FilterChip(
-                        label = stringResource(R.string.videos),
-                        selected = filter.mediaType == MediaTypeFilter.VIDEOS,
-                        onClick = { filter = filter.copy(mediaType = MediaTypeFilter.VIDEOS) }
-                    )
-                }
 
-                // Status section
-                FilterSectionHeader(stringResource(R.string.filter_status))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    FilterChip(
-                        label = stringResource(R.string.favorites),
-                        selected = filter.favoritesOnly,
-                        onClick = { filter = filter.copy(favoritesOnly = !filter.favoritesOnly) }
-                    )
-                }
-
-                // Time section
-                if (availableYears.isNotEmpty()) {
-                    FilterSectionHeader(stringResource(R.string.filter_time))
+                    // Type section
+                    FilterSectionHeader(stringResource(R.string.filter_type))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(bottom = 16.dp)
                     ) {
-                        availableYears.forEach { year ->
-                            FilterChip(
-                                label = year.toString(),
-                                selected = year in filter.selectedYears,
-                                onClick = {
-                                    val newYears = filter.selectedYears.toMutableSet()
-                                    if (year in newYears) newYears.remove(year) else newYears.add(year)
-                                    filter = filter.copy(selectedYears = newYears)
-                                }
-                            )
-                        }
+                        FilterChip(
+                            label = stringResource(R.string.filter_all),
+                            selected = filter.mediaType == MediaTypeFilter.ALL,
+                            onClick = { filter = filter.copy(mediaType = MediaTypeFilter.ALL) }
+                        )
+                        FilterChip(
+                            label = stringResource(R.string.photos),
+                            selected = filter.mediaType == MediaTypeFilter.PHOTOS,
+                            onClick = { filter = filter.copy(mediaType = MediaTypeFilter.PHOTOS) }
+                        )
+                        FilterChip(
+                            label = stringResource(R.string.videos),
+                            selected = filter.mediaType == MediaTypeFilter.VIDEOS,
+                            onClick = { filter = filter.copy(mediaType = MediaTypeFilter.VIDEOS) }
+                        )
                     }
-                }
 
-                // Source (Albums) section
-                if (availableAlbums.isNotEmpty()) {
-                    FilterSectionHeader(stringResource(R.string.filter_source))
+                    // Status section
+                    FilterSectionHeader(stringResource(R.string.filter_status))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(bottom = 16.dp)
                     ) {
-                        availableAlbums.forEach { album ->
-                            FilterChip(
-                                label = album.label,
-                                selected = album.id in filter.selectedAlbumIds,
-                                onClick = {
-                                    val newIds = filter.selectedAlbumIds.toMutableSet()
-                                    if (album.id in newIds) newIds.remove(album.id) else newIds.add(album.id)
-                                    filter = filter.copy(selectedAlbumIds = newIds)
-                                }
-                            )
+                        FilterChip(
+                            label = stringResource(R.string.favorites),
+                            selected = filter.favoritesOnly,
+                            onClick = { filter = filter.copy(favoritesOnly = !filter.favoritesOnly) }
+                        )
+                    }
+
+                    // Time section
+                    if (availableYears.isNotEmpty()) {
+                        FilterSectionHeader(stringResource(R.string.filter_time))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        ) {
+                            availableYears.forEach { year ->
+                                FilterChip(
+                                    label = year.toString(),
+                                    selected = year in filter.selectedYears,
+                                    onClick = {
+                                        val newYears = filter.selectedYears.toMutableSet()
+                                        if (year in newYears) newYears.remove(year) else newYears.add(year)
+                                        filter = filter.copy(selectedYears = newYears)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Source (Albums) section
+                    if (availableAlbums.isNotEmpty()) {
+                        FilterSectionHeader(stringResource(R.string.filter_source))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        ) {
+                            availableAlbums.forEach { album ->
+                                FilterChip(
+                                    label = album.label,
+                                    selected = album.id in filter.selectedAlbumIds,
+                                    onClick = {
+                                        val newIds = filter.selectedAlbumIds.toMutableSet()
+                                        if (album.id in newIds) newIds.remove(album.id) else newIds.add(album.id)
+                                        filter = filter.copy(selectedAlbumIds = newIds)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
 
-                // Bottom buttons
+                // Pinned bottom buttons
+                HorizontalDivider()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(
-                        onClick = {
-                            filter = TimelineFilter()
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        Text(
-                            text = stringResource(R.string.filter_reset),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    TextButton(
+                    SetupButton(
+                        modifier = Modifier.weight(1f),
+                        applyHorizontalPadding = false,
+                        applyBottomPadding = false,
+                        applyInsets = false,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        text = stringResource(R.string.filter_reset),
+                        onClick = { filter = TimelineFilter() }
+                    )
+                    SetupButton(
+                        modifier = Modifier.weight(1f),
+                        applyHorizontalPadding = false,
+                        applyBottomPadding = false,
+                        applyInsets = false,
+                        text = stringResource(R.string.filter_apply),
                         onClick = {
                             onApply(filter)
                             scope.launch { sheetState.hide() }
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text(
-                            text = stringResource(R.string.filter_apply),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                        }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

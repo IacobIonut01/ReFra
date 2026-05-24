@@ -145,9 +145,8 @@ fun AlbumsScreen(
                 isScrolling = isScrolling,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedContentScope = animatedContentScope,
-            ) {
-                TimelineNavActions()
-            }
+                menuItems = { TimelineNavActions() },
+            )
         }
     ) { innerPaddingValues ->
         when (viewType) {

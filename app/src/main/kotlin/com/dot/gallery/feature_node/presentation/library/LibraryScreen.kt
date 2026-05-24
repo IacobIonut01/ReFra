@@ -158,50 +158,51 @@ fun LibraryScreen(
             MainSearchBar(
                 isScrolling = isScrolling,
                 sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope
-            ) {
-                val tertiaryContainer = MaterialTheme.colorScheme.tertiaryFixed
-                val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryFixed
-                val allowBlur by rememberAllowBlur()
-                val settingsInteractionSource = remember { MutableInteractionSource() }
-                val isPressed = settingsInteractionSource.collectIsPressedAsState()
-                val cornerRadius by animateDpAsState(
-                    targetValue = if (isPressed.value) 32.dp else 16.dp,
-                    label = "cornerRadius"
-                )
-
-                val settingsBackgroundModifier = remember(allowBlur) {
-                    if (!allowBlur) {
-                        Modifier.background(
-                            color = tertiaryContainer,
-                            shape = RoundedCornerShape(cornerRadius)
-                        )
-                    } else {
-                        Modifier
-                    }
-                }
-
-                IconButton(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(cornerRadius))
-                        .then(settingsBackgroundModifier)
-                        .hazeEffect(
-                            state = LocalHazeState.current,
-                            style = HazeMaterials.regular(
-                                containerColor = tertiaryContainer
-                            )
-                        ),
-                    interactionSource = settingsInteractionSource,
-                    onClick = { eventHandler.navigate(Screen.SettingsScreen()) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(R.string.settings_title),
-                        tint = onTertiaryContainer
+                animatedContentScope = animatedContentScope,
+                menuItems = {
+                    val tertiaryContainer = MaterialTheme.colorScheme.tertiaryFixed
+                    val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryFixed
+                    val allowBlur by rememberAllowBlur()
+                    val settingsInteractionSource = remember { MutableInteractionSource() }
+                    val isPressed = settingsInteractionSource.collectIsPressedAsState()
+                    val cornerRadius by animateDpAsState(
+                        targetValue = if (isPressed.value) 32.dp else 16.dp,
+                        label = "cornerRadius"
                     )
-                }
-            }
+
+                    val settingsBackgroundModifier = remember(allowBlur) {
+                        if (!allowBlur) {
+                            Modifier.background(
+                                color = tertiaryContainer,
+                                shape = RoundedCornerShape(cornerRadius)
+                            )
+                        } else {
+                            Modifier
+                        }
+                    }
+
+                    IconButton(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(cornerRadius))
+                            .then(settingsBackgroundModifier)
+                            .hazeEffect(
+                                state = LocalHazeState.current,
+                                style = HazeMaterials.regular(
+                                    containerColor = tertiaryContainer
+                                )
+                            ),
+                        interactionSource = settingsInteractionSource,
+                        onClick = { eventHandler.navigate(Screen.SettingsScreen()) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.settings_title),
+                            tint = onTertiaryContainer
+                        )
+                    }
+                },
+            )
         }
     ) { it ->
         GridPinchZoomLayout(

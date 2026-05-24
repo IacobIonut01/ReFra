@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components.video
 
 import android.app.Activity
+import android.net.Uri
 import android.view.SurfaceView
 import android.view.View
 import android.view.WindowManager
@@ -81,7 +82,7 @@ fun <T : Media> VideoPlayer(
     media: T,
     modifier: Modifier = Modifier,
     playWhenReady: State<Boolean>,
-    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float, List<SubtitleTrack>, (SubtitleTrack) -> Unit, () -> Unit) -> Unit,
+    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float, VideoControllerState) -> Unit,
     onItemClick: () -> Unit,
     onSwipeDown: () -> Unit,
     onZoomChange: (Boolean) -> Unit = {}
@@ -385,9 +386,12 @@ fun <T : Media> VideoPlayer(
             playback.durationMs,
             playback.bufferedPercent,
             playback.frameRate,
-            playback.subtitleTracks,
-            vm::selectSubtitleTrack,
-            vm::disableSubtitles
+            VideoControllerState(
+                subtitleTracks = playback.subtitleTracks,
+                onSelectSubtitle = vm::selectSubtitleTrack,
+                onDisableSubtitles = vm::disableSubtitles,
+                onAddExternalSubtitle = vm::addExternalSubtitle
+            )
         )
     }
 

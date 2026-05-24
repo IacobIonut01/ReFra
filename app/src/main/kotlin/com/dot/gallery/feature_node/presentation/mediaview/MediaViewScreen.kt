@@ -8,6 +8,9 @@ package com.dot.gallery.feature_node.presentation.mediaview
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.createBitmap
 import android.os.Build
 import android.os.Handler
@@ -710,7 +713,11 @@ fun <T : Media> MediaViewScreen(
                                     }
                                 },
                                 onZoomChange = { zoomed -> isVideoZoomed = zoomed }
-                            ) { player, isPlaying, currentTime, totalTime, buffer, frameRate, subtitleTracks, onSelectSubtitle, onDisableSubtitles ->
+                            ) { player, isPlaying, currentTime, totalTime, buffer, frameRate, subtitleState ->
+                                val subtitleTracks = subtitleState.subtitleTracks
+                                val onSelectSubtitle = subtitleState.onSelectSubtitle
+                                val onDisableSubtitles = subtitleState.onDisableSubtitles
+                                val addExternalSubtitle = subtitleState.onAddExternalSubtitle
                                 Box(
                                     modifier = Modifier.fillMaxSize()
                                 ) {
@@ -804,6 +811,12 @@ fun <T : Media> MediaViewScreen(
                                         )
                                     }
 
+                                    val subtitleFilePicker = rememberLauncherForActivityResult(
+                                        contract = ActivityResultContracts.OpenDocument()
+                                    ) { uri: Uri? ->
+                                        uri?.let { addExternalSubtitle(it) }
+                                    }
+
                                     AnimatedVisibility(
                                         visible = showUI,
                                         enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
@@ -835,7 +848,10 @@ fun <T : Media> MediaViewScreen(
                                             } else null,
                                             subtitleTracks = subtitleTracks,
                                             onSelectSubtitle = onSelectSubtitle,
-                                            onDisableSubtitles = onDisableSubtitles
+                                            onDisableSubtitles = onDisableSubtitles,
+                                            onAddSubtitle = {
+                                                subtitleFilePicker.launch(arrayOf("*/*"))
+                                            }
                                         )
                                     }
                                 }

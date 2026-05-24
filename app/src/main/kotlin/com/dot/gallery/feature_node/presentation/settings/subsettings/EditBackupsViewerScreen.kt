@@ -405,7 +405,7 @@ fun EditBackupsViewerScreen(
                                 onItemClick = {
                                     showUI = !showUI
                                 }
-                            ) { _, _, _, _, _, _, _, _, _ ->
+                            ) { _, _, _, _, _, _, _ ->
                                 // No video controller overlay for backups viewer
                             }
                         }

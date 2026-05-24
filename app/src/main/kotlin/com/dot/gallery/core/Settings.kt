@@ -648,6 +648,12 @@ object Settings {
         fun rememberShowFavoriteButton() =
             rememberPreference(key = SHOW_FAVORITE_BUTTON, defaultValue = true)
 
+        private val SHOW_FILTER_BUTTON = booleanPreferencesKey("show_filter_button")
+
+        @Composable
+        fun rememberShowFilterButton() =
+            rememberPreference(key = SHOW_FILTER_BUTTON, defaultValue = true)
+
         private val ALLOW_GIF_ANIMATION = booleanPreferencesKey("allow_gif_animation")
 
         @Composable
