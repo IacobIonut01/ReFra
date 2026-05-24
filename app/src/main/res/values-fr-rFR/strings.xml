@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ReFra</string>
-    <string name="app_name_gallery">Gallery</string>
-    <string name="change_app_name">App name</string>
+    <string name="app_name_gallery">Galerie</string>
+    <string name="change_app_name">Nom de l\'app</string>
     <string name="change_app_name_summary">Changer le nom de l\'application affiché dans votre lanceur</string>
-    <string name="favorite_icon_on_thumbnails">Favorite icon on thumbnails</string>
+    <string name="favorite_icon_on_thumbnails">Icône préférée en miniature</string>
     <string name="fav_position_disabled">Caché</string>
-    <string name="fav_position_bottom_end">Bottom right</string>
-    <string name="fav_position_bottom_start">Bottom left</string>
-    <string name="fav_position_top_end">Top right</string>
-    <string name="fav_position_top_start">Top left</string>
-    <string name="show_favorite_button">Favorite button in viewer</string>
+    <string name="fav_position_bottom_end">En bas à droite</string>
+    <string name="fav_position_bottom_start">En bas à gauche</string>
+    <string name="fav_position_top_end">En haut à droite</string>
+    <string name="fav_position_top_start">En haut à gauche</string>
+    <string name="show_favorite_button">Bouton favori dans le visualiseur</string>
     <string name="show_favorite_button_summary">Show the favorite toggle button in the media viewer</string>
     <string name="default_image_editor">Éditeur d\'image par défaut</string>
     <string name="default_image_editor_builtin">Éditeur intégré</string>
