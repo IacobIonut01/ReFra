@@ -40,9 +40,9 @@
     <string name="help_tip_basics_share_p1_s4">Tip: select multiple photos in the grid first to batch-share</string>
     <string name="help_tip_basics_copy_clipboard_title">Copy media to clipboard</string>
     <string name="help_tip_basics_copy_clipboard_subtitle">Copy a photo to paste it into other apps</string>
-    <string name="help_tip_basics_copy_clipboard_p1_title">Copy to clipboard</string>
+    <string name="help_tip_basics_copy_clipboard_p1_title">Copia negli appunti</string>
     <string name="help_tip_basics_copy_clipboard_p1_desc">Copy a photo directly to your clipboard, then paste it into messaging apps, document editors, email, or any app that accepts images. This is faster than sharing when you just need to quickly drop an image into a conversation or document. The copied image stays on your clipboard until you copy something else.</string>
-    <string name="help_tip_basics_copy_clipboard_p1_s1">Open a photo</string>
+    <string name="help_tip_basics_copy_clipboard_p1_s1">Apri una foto</string>
     <string name="help_tip_basics_copy_clipboard_p1_s2">Tap the copy icon in the action bar</string>
     <string name="help_tip_basics_copy_clipboard_p1_s3">Switch to any app and paste</string>
     <string name="help_tip_basics_copy_clipboard_p1_s4">Tip: works great for quickly pasting into chats</string>
