@@ -68,6 +68,7 @@ fun <T : Media> MediaPreviewComponent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .then(modifier)
                     .then(containerModifier)
                     .offset { offset },
             ) {
@@ -78,7 +79,7 @@ fun <T : Media> MediaPreviewComponent(
                     exit = fadeOut()
                 ) {
                     VideoPlayer(
-                        modifier = modifier,
+                        modifier = Modifier,
                         media = media,
                         playWhenReady = playWhenReady,
                         videoController = videoController,
@@ -95,7 +96,7 @@ fun <T : Media> MediaPreviewComponent(
                     exit = fadeOut()
                 ) {
                     ZoomablePagerImage(
-                        modifier = modifier,
+                        modifier = Modifier,
                         media = media,
                         uiEnabled = uiEnabled,
                         rotationDisabled = rotationDisabled,
@@ -118,7 +119,7 @@ fun <T : Media> MediaPreviewComponent(
                     PanoramaImageViewer(
                         media = media,
                         isPhotosphere = isPhotosphere,
-                        modifier = modifier,
+                        modifier = Modifier,
                         onItemClick = onItemClick,
                         currentVault = currentVault
                     )

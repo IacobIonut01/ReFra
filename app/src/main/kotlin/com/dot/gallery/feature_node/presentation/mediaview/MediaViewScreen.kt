@@ -691,12 +691,13 @@ fun <T : Media> MediaViewScreen(
                         mutableStateOf(IntOffset(0, 0))
                     }
                     val displayMedia = media ?: return@AnimatedVisibility
+                    val sharedElementMedia = pagerMedia ?: displayMedia
                     with(sharedTransitionScope) {
                             MediaPreviewComponent(
                                 modifier = Modifier
                                     .mediaSharedElement(
                                         allowAnimation = canAnimateContent,
-                                        media = displayMedia,
+                                        media = sharedElementMedia,
                                         animatedVisibilityScope = animatedContentScope
                                     ),
                                 containerModifier = Modifier,
