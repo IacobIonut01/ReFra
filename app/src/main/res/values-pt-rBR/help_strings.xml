@@ -118,7 +118,7 @@
     <string name="help_tip_personalize_grid_p1_title">Pinch to zoom the grid</string>
     <string name="help_tip_personalize_grid_p1_desc">Place two fingers on the grid and pinch in or out to change the thumbnail size. Pinching out (spreading fingers) makes photos larger with fewer columns — great for seeing detail. Pinching in (squeezing fingers) makes photos smaller with more columns — ideal for scanning through lots of photos quickly.</string>
     <string name="help_tip_personalize_grid_p2_title">Find your perfect size</string>
-    <string name="help_tip_personalize_grid_p2_desc">The grid ranges from 2 columns (large thumbnails) to 10 columns (tiny thumbnails for maximum overview). Gallery remembers your preference separately for the timeline and album views. Tip: try 3-4 columns for a good balance between seeing photo details and fitting many on screen.</string>
+    <string name="help_tip_personalize_grid_p2_desc"></string>
     <string name="help_tip_personalize_amoled_title">Enable AMOLED dark mode</string>
     <string name="help_tip_personalize_amoled_subtitle">Pure black backgrounds for OLED screens</string>
     <string name="help_tip_personalize_amoled_p1_title">AMOLED mode</string>
@@ -770,7 +770,7 @@
     <string name="help_tip_gesture_pinch_grid_p1_title">Pinch zoom</string>
     <string name="help_tip_gesture_pinch_grid_p1_desc">Place two fingers on the photo grid and pinch in or out to change the column count. Pinching out (spreading fingers) reduces columns for larger thumbnails — great for seeing details. Pinching in (squeezing fingers) adds columns for smaller thumbnails — ideal for scanning lots of photos. The transition is smooth and animated.</string>
     <string name="help_tip_gesture_pinch_grid_p2_title">Range</string>
-    <string name="help_tip_gesture_pinch_grid_p2_desc">Grid ranges from 2 columns (very large thumbnails) to 10 columns (tiny thumbnails for maximum overview). Gallery remembers your preference separately for the timeline and album views, so you can use different sizes in each. Tip: 3-4 columns is a good default for most people.</string>
+    <string name="help_tip_gesture_pinch_grid_p2_desc"></string>
     <string name="help_tip_gesture_swipe_viewer_title">Swipe to navigate</string>
     <string name="help_tip_gesture_swipe_viewer_subtitle">Swipe between photos in the viewer</string>
     <string name="help_tip_gesture_swipe_viewer_p1_title">Swipe navigation</string>
