@@ -61,6 +61,14 @@
     <string name="donate_button_cd">زر التبرع</string>
     <string name="github_button_cd">زر Github</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
+    <string name="dismiss_banner">Dismiss banner</string>
+    <string name="dismiss_banner_title">Move banner?</string>
+    <string name="dismiss_banner_message">The Donate and GitHub buttons will move to a compact bar at the bottom of the Settings page.</string>
+    <string name="dismiss_banner_confirm">Move to bottom</string>
+    <string name="show_banner">Show banner</string>
+    <string name="restore_banner_title">Restore banner?</string>
+    <string name="restore_banner_message">The full Donate and GitHub banner will be restored at the top of the Settings page.</string>
+    <string name="restore_banner_confirm">Move to top</string>
     <string name="use_as">استخدام كـ</string>
     <string name="set_as">"تعيين كـ: "</string>
     <string name="action_cancel">إلغاء</string>
@@ -191,6 +199,12 @@
     <string name="toggle_audio_cd">تبديل الصوت</string>
     <string name="auto">تلقائي</string>
     <string name="change_playback_speed_cd">غيِّر سرعة التشغيل</string>
+    <string name="change_subtitle_track_cd">Change subtitle track</string>
+    <string name="subtitle_off">Off</string>
+    <string name="add_subtitle_file">Add subtitle file</string>
+    <string name="subtitles_title">Subtitles</string>
+    <string name="subtitle_external_label">External</string>
+    <string name="remove_subtitle_track">Remove subtitle track</string>
     <string name="location_new_album">الموقع: Internal-Storage/%1$s</string>
     <string name="permission_manage_files_title">أدر كل الملفات</string>
     <string name="permission_manage_files_summary">"يسمح للتطبيق بإنشاء وتعديل وحذف الملفات والألبومات التي كانت مقيدة مسبقاً من قبل النظام. (يشمل الألبومات الموجودة خارج مجلدات الصور ومجلدات DCIM والألبومات الموجودة في بطاقة SD)"</string>
@@ -597,6 +611,7 @@
     <string name="post_notifications_summary">يسمح للتطبيق بعرض الإشعارات</string>
     <string name="search">ابحث</string>
     <string name="search_media">ابحث في الوسائط</string>
+    <string name="search_albums">Search albums</string>
     <string name="rotate">تدوير</string>
     <string name="locked">مقفل</string>
     <string name="lock_album">Lock album</string>
@@ -846,4 +861,22 @@
     <string name="private_folder_security_custom">Custom password</string>
     <string name="private_folder_unlock">Unlock private folder</string>
     <string name="private_folder_unlock_subtitle">Authenticate to access your private folder</string>
+    <!-- Timeline Filter -->
+    <string name="filter">Filter</string>
+    <string name="filter_title">Filter</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_all">All</string>
+    <string name="filter_status">Status</string>
+    <string name="filter_time">Time</string>
+    <string name="filter_source">Source</string>
+    <string name="filter_reset">Reset</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_active">Filter active</string>
+    <string name="show_filter_button">Filter button</string>
+    <string name="show_filter_button_summary">Show filter button in search bar</string>
+    <string name="show_filter_button_description">Shows a filter icon inside the search bar on the timeline screen. Tap it to open a sheet where you can narrow down your gallery by media type, favorites, year, or album.</string>
+    <string name="trash_restore_all">Restore all</string>
+    <string name="trash_delete_all">Delete all</string>
+    <string name="favorites_info_title">Your Favorites</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
 </resources>
