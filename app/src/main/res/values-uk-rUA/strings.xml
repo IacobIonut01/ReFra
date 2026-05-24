@@ -61,6 +61,14 @@
     <string name="donate_button_cd">Кнопка пожертви</string>
     <string name="github_button_cd">Кнопка GitHub</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
+    <string name="dismiss_banner">Dismiss banner</string>
+    <string name="dismiss_banner_title">Move banner?</string>
+    <string name="dismiss_banner_message">The Donate and GitHub buttons will move to a compact bar at the bottom of the Settings page.</string>
+    <string name="dismiss_banner_confirm">Move to bottom</string>
+    <string name="show_banner">Show banner</string>
+    <string name="restore_banner_title">Restore banner?</string>
+    <string name="restore_banner_message">The full Donate and GitHub banner will be restored at the top of the Settings page.</string>
+    <string name="restore_banner_confirm">Move to top</string>
     <string name="use_as">Використовувати як</string>
     <string name="set_as">"Встановити як: "</string>
     <string name="action_cancel">Скасувати</string>
@@ -191,6 +199,12 @@
     <string name="toggle_audio_cd">Увімк. / Вимк. звук</string>
     <string name="auto">Авто</string>
     <string name="change_playback_speed_cd">Змінити швидкість відтворення</string>
+    <string name="change_subtitle_track_cd">Change subtitle track</string>
+    <string name="subtitle_off">Off</string>
+    <string name="add_subtitle_file">Add subtitle file</string>
+    <string name="subtitles_title">Subtitles</string>
+    <string name="subtitle_external_label">External</string>
+    <string name="remove_subtitle_track">Remove subtitle track</string>
     <string name="location_new_album">Розташування: Внутрішнє сховище/%1$s</string>
     <string name="permission_manage_files_title">Керування всіма файли</string>
     <string name="permission_manage_files_summary">"Дозволяє застосунку створювати, змінювати та видаляти файли та альбоми, які попередньою заборонені системою. (Включає альбоми за межами тек «Зображення», DCIM і SD-карт)"</string>
@@ -597,6 +611,7 @@
     <string name="post_notifications_summary">Дозволяє застосунку показувати сповіщення</string>
     <string name="search">Пошук</string>
     <string name="search_media">Пошук медіа</string>
+    <string name="search_albums">Search albums</string>
     <string name="rotate">Обернути</string>
     <string name="locked">Заблоковано</string>
     <string name="lock_album">Lock album</string>
@@ -844,4 +859,22 @@
     <string name="private_folder_security_custom">Custom password</string>
     <string name="private_folder_unlock">Unlock private folder</string>
     <string name="private_folder_unlock_subtitle">Authenticate to access your private folder</string>
+    <!-- Timeline Filter -->
+    <string name="filter">Filter</string>
+    <string name="filter_title">Filter</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_all">All</string>
+    <string name="filter_status">Status</string>
+    <string name="filter_time">Time</string>
+    <string name="filter_source">Source</string>
+    <string name="filter_reset">Reset</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_active">Filter active</string>
+    <string name="show_filter_button">Filter button</string>
+    <string name="show_filter_button_summary">Show filter button in search bar</string>
+    <string name="show_filter_button_description">Shows a filter icon inside the search bar on the timeline screen. Tap it to open a sheet where you can narrow down your gallery by media type, favorites, year, or album.</string>
+    <string name="trash_restore_all">Restore all</string>
+    <string name="trash_delete_all">Delete all</string>
+    <string name="favorites_info_title">Your Favorites</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
 </resources>
