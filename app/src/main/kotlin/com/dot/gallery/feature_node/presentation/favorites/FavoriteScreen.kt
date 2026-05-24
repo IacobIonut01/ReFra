@@ -12,18 +12,26 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
+import com.dot.gallery.core.Position
+import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.common.MediaScreen
 import com.dot.gallery.feature_node.presentation.favorites.components.EmptyFavorites
-import com.dot.gallery.feature_node.presentation.favorites.components.FavoriteNavActions
+import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -42,10 +50,22 @@ fun FavoriteScreen(
     mediaState = mediaState,
     metadataState = metadataState,
     navActionsContent = { _: MutableState<Boolean>,
-                          result: ActivityResultLauncher<IntentSenderRequest> ->
-        FavoriteNavActions(mediaState, result)
+                          _: ActivityResultLauncher<IntentSenderRequest> ->
     },
     emptyContent = { EmptyFavorites() },
+    aboveGridContent = {
+        SettingsItem(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            item = SettingsEntity.Preference(
+                icon = Icons.Outlined.FavoriteBorder,
+                title = stringResource(R.string.favorites_info_title),
+                summary = stringResource(R.string.favorites_info_summary),
+                screenPosition = Position.Alone,
+            ),
+        )
+    },
     sharedTransitionScope = sharedTransitionScope,
     animatedContentScope = animatedContentScope,
 ) { result ->

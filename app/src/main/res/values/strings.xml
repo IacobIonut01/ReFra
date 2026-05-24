@@ -898,5 +898,9 @@
     <string name="show_filter_button">Filter button</string>
     <string name="show_filter_button_summary">Show filter button in search bar</string>
     <string name="show_filter_button_description">Shows a filter icon inside the search bar on the timeline screen. Tap it to open a sheet where you can narrow down your gallery by media type, favorites, year, or album.</string>
+    <string name="trash_restore_all">Restore all</string>
+    <string name="trash_delete_all">Delete all</string>
+    <string name="favorites_info_title">Your Favorites</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
 </resources>
 
