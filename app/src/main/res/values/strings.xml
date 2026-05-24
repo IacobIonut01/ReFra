@@ -618,6 +618,7 @@
     <string name="post_notifications_summary">Allows the app to display notifications</string>
     <string name="search">Search</string>
     <string name="search_media">Search media</string>
+    <string name="search_albums">Search albums</string>
     <string name="rotate">Rotate</string>
     <string name="locked">Locked</string>
     <string name="lock_album">Lock album</string>

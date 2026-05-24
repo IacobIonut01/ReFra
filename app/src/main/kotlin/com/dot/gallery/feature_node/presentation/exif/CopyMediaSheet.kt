@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -18,13 +19,20 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.dot.gallery.feature_node.domain.model.AlbumGroupWithAlbums
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumGroupComponent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -82,6 +90,7 @@ fun <T: Media> CopyMediaSheet(
     val newAlbumSheetState = rememberAppBottomSheetState()
     val securitySheetState = rememberAppBottomSheetState()
     var pendingLockedAlbumPath by remember { mutableStateOf<String?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
     val mutex = Mutex()
 
     fun copyMedia(path: String) {
@@ -150,6 +159,7 @@ fun <T: Media> CopyMediaSheet(
                 modifier = Modifier
                     .wrapContentHeight()
                     .navigationBarsPadding()
+                    .imePadding()
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -163,6 +173,39 @@ fun <T: Media> CopyMediaSheet(
                         .padding(24.dp)
                         .fillMaxWidth()
                 )
+
+                AnimatedVisibility(
+                    visible = progress == 0f,
+                    enter = enterAnimation,
+                    exit = exitAnimation
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        placeholder = { Text(stringResource(R.string.search_albums)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = stringResource(R.string.search)
+                            )
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                }
 
                 AnimatedVisibility(
                     visible = progress > 0f,
@@ -195,17 +238,37 @@ fun <T: Media> CopyMediaSheet(
                     enter = enterAnimation,
                     exit = exitAnimation
                 ) {
-                    val groups = albumsState.value.albumGroups
-                    val groupedAlbumIds = remember(groups) {
-                        groups.flatMap { g -> g.albums.map { it.id } }.toSet()
+                    val allGroups = albumsState.value.albumGroups
+                    val groupedAlbumIds = remember(allGroups) {
+                        allGroups.flatMap { g -> g.albums.map { it.id } }.toSet()
                     }
-                    val ungroupedAlbums = remember(albumsState.value.albums, groupedAlbumIds) {
+                    val allUngroupedAlbums = remember(albumsState.value.albums, groupedAlbumIds) {
                         albumsState.value.albums.filter { it.id !in groupedAlbumIds }
                     }
                     var selectedGroup by remember { mutableStateOf<AlbumGroupWithAlbums?>(null) }
                     // Keep selectedGroup in sync with latest data
                     val liveSelectedGroup = selectedGroup?.let { sel ->
-                        groups.find { it.group.id == sel.group.id }
+                        allGroups.find { it.group.id == sel.group.id }
+                    }
+
+                    val query = searchQuery.trim()
+                    val filteredGroups = remember(allGroups, query) {
+                        if (query.isEmpty()) allGroups
+                        else allGroups.mapNotNull { g ->
+                            val matched = g.albums.filter { it.label.contains(query, ignoreCase = true) }
+                            if (matched.isNotEmpty()) g.copy(albums = matched)
+                            else if (g.group.label.contains(query, ignoreCase = true)) g
+                            else null
+                        }
+                    }
+                    val filteredUngroupedAlbums = remember(allUngroupedAlbums, query) {
+                        if (query.isEmpty()) allUngroupedAlbums
+                        else allUngroupedAlbums.filter { it.label.contains(query, ignoreCase = true) }
+                    }
+                    val filteredGroupAlbums = remember(liveSelectedGroup, query) {
+                        val albums = liveSelectedGroup?.albums ?: emptyList()
+                        if (query.isEmpty()) albums
+                        else albums.filter { it.label.contains(query, ignoreCase = true) }
                     }
 
                     LazyVerticalGrid(
@@ -228,11 +291,14 @@ fun <T: Media> CopyMediaSheet(
                             ) {
                                 PickerGroupBackHeader(
                                     group = liveSelectedGroup,
-                                    onBack = { selectedGroup = null }
+                                    onBack = {
+                                        selectedGroup = null
+                                        searchQuery = ""
+                                    }
                                 )
                             }
                             items(
-                                items = liveSelectedGroup.albums,
+                                items = filteredGroupAlbums,
                                 key = { item -> "group_album_${item.id}" }
                             ) { item ->
                                 val mediaVolume = (mediaList.firstOrNull()?.volume ?: item.volume)
@@ -268,20 +334,22 @@ fun <T: Media> CopyMediaSheet(
                             }
                         } else {
                             // Main view: New Album + groups + ungrouped albums
-                            item {
-                                AlbumComponent(
-                                    album = Album.NewAlbum,
-                                    isEnabled = true,
-                                    onItemClick = {
-                                        scope.launch(Dispatchers.Main) {
-                                            newAlbumSheetState.show()
+                            if (query.isEmpty()) {
+                                item {
+                                    AlbumComponent(
+                                        album = Album.NewAlbum,
+                                        isEnabled = true,
+                                        onItemClick = {
+                                            scope.launch(Dispatchers.Main) {
+                                                newAlbumSheetState.show()
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
 
                             items(
-                                items = groups,
+                                items = filteredGroups,
                                 key = { group -> "group_${group.group.id}" }
                             ) { group ->
                                 AlbumGroupComponent(
@@ -292,7 +360,7 @@ fun <T: Media> CopyMediaSheet(
                             }
 
                             items(
-                                items = ungroupedAlbums,
+                                items = filteredUngroupedAlbums,
                                 key = { item -> item.toString() }
                             ) { item ->
                                 val mediaVolume = (mediaList.firstOrNull()?.volume ?: item.volume)
