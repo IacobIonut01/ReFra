@@ -950,6 +950,35 @@
     <string name="help_tip_trash_fav_redesign_subtitle">Refreshed screens for Trash and Favorites</string>
     <string name="help_tip_trash_fav_redesign_p1_title">New look</string>
     <string name="help_tip_trash_fav_redesign_p1_desc">The Trash and Favorites screens have been completely redesigned with a fresh layout, improved visual hierarchy, and smoother animations. The new design brings them in line with the modern look of the rest of the app.</string>
+    <!-- Story Cards (4.3.0) -->
+    <string name="help_tip_story_cards_title">Story cards</string>
+    <string name="help_tip_story_cards_subtitle">Swipeable photo stories above the timeline</string>
+    <string name="help_tip_story_cards_p1_title">Relive your memories</string>
+    <string name="help_tip_story_cards_p1_desc">Story cards appear as a horizontal carousel above your timeline, surfacing highlights from your recent photos, albums, categories, locations, and favorites. Tap any card to open an immersive full-screen story viewer with auto-advancing slides and progress indicators — just like stories in social media apps.</string>
+    <string name="help_tip_story_cards_p2_title">Customize your cards</string>
+    <string name="help_tip_story_cards_p2_desc">Control which card types are shown and their order. You can toggle memory, album, category, location, and favorites cards individually, reorder them by drag, and configure the story viewer behavior including auto-advance and duration per photo.</string>
+    <string name="help_tip_story_cards_p2_s1">Go to Settings &gt; Timeline &amp; albums &gt; Story cards</string>
+    <string name="help_tip_story_cards_p2_s2">Toggle individual card types on or off</string>
+    <string name="help_tip_story_cards_p2_s3">Drag to reorder card types</string>
+    <string name="help_tip_story_cards_p2_s4">Configure auto-advance and slide duration</string>
+    <!-- Redesigned Video Controls (4.3.0) -->
+    <string name="help_tip_video_options_popup_title">Video options popup</string>
+    <string name="help_tip_video_options_popup_subtitle">Compact animated popup for video controls</string>
+    <string name="help_tip_video_options_popup_p1_title">Cleaner video controls</string>
+    <string name="help_tip_video_options_popup_p1_desc">Video control buttons (subtitle, speed, volume, rotate) have been consolidated into a single \'more options\' button that expands into a blurred animated popup. The popup uses a row layout in landscape and column in portrait, keeping the video view uncluttered while still providing quick access to all controls.</string>
+    <!-- RELEASE NOTES: 4.3.0 -->
+    <string name="help_release_430_story_cards_title">Story cards</string>
+    <string name="help_release_430_story_cards_desc">Swipeable photo stories above the timeline with auto-advancing viewer and configurable card types</string>
+    <string name="help_release_430_video_controls_title">Redesigned video controls</string>
+    <string name="help_release_430_video_controls_desc">Animated more-options popup replaces the tall stack of video control buttons</string>
+    <string name="help_release_430_video_auto_contrast_title">Video auto-contrast</string>
+    <string name="help_release_430_video_auto_contrast_desc">Auto-contrast and adaptive colors now extend to the video options popup</string>
+    <string name="help_release_430_startup_title">Faster cold startup</string>
+    <string name="help_release_430_startup_desc">Cold startup optimized from ~900 ms to ~350 ms with lazy keystore caching and deferred initialization</string>
+    <string name="help_release_430_shared_elements_title">Improved shared element transitions</string>
+    <string name="help_release_430_shared_elements_desc">More accurate photo-to-viewer transitions with single stable registration and Long-based keys</string>
+    <string name="help_release_430_bugfixes_title">Bug fixes</string>
+    <string name="help_release_430_bugfixes_desc">Fixed move/copy album access with MANAGE_MEDIA, screen rotation reset on video exit, status bar sync, ClassCastException after unlock, grid realignment on back navigation, loading shimmer during startup, and empty-media padding</string>
     <!-- RELEASE NOTES: 4.2.3 -->
     <string name="help_release_423_timeline_filter_title">Timeline filter</string>
     <string name="help_release_423_timeline_filter_desc">Filter the timeline by media type, favorites, year, or album</string>
