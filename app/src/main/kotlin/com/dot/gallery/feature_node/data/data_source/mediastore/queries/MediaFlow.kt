@@ -140,7 +140,8 @@ class MediaFlow(
                 )
             }
         }
-        return if (skipBatching) {
+
+        return if (skipBatching || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
              contentResolver.queryFlow(
                 uri,
                 projection,

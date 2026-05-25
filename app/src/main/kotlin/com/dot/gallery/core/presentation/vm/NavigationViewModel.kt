@@ -7,6 +7,7 @@ import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.VaultState
+import com.dot.gallery.core.metrics.StartupTracer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -51,6 +52,7 @@ class NavigationViewModel @Inject constructor(
 
     fun updatePermissionGranted(permissionState: Boolean) {
         viewModelScope.launch {
+            StartupTracer.begin("NavigationVM.hasPermission→$permissionState").also { s -> StartupTracer.end(s) }
             distributor.hasPermission.tryEmit(permissionState)
         }
     }

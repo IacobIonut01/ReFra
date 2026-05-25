@@ -20,7 +20,9 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
+import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.printWarning
@@ -37,9 +39,9 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
 import java.io.OutputStream
 
+@RequiresApi(Build.VERSION_CODES.R)
 fun ContentResolver.querySteppedFlow(
     uri: Uri,
     projection: Array<String>? = null,
@@ -76,12 +78,19 @@ fun ContentResolver.querySteppedFlow(
     // The first set of values must always be generated and cannot (shouldn't) be cancelled.
     launch(Dispatchers.IO) {
         runCatching {
+            val batchSpan = StartupTracer.begin("MediaStore.queryBatch(LIMIT=250)")
             val batchCursor = query(uri, projection, modifiedArgs, null)
             val batchCount = batchCursor?.count ?: 0
+            StartupTracer.end(batchSpan)
+            StartupTracer.begin("MediaStore.batchResult($batchCount rows)").also { s -> StartupTracer.end(s) }
             trySend(batchCursor)
             // Only run the full query if the batch was actually limited
             if (batchCount >= 250) {
-                trySend(query(uri, projection, queryArgs, null))
+                val fullSpan = StartupTracer.begin("MediaStore.queryFull(no limit)")
+                val fullCursor = query(uri, projection, queryArgs, null)
+                StartupTracer.end(fullSpan)
+                StartupTracer.begin("MediaStore.fullResult(${fullCursor?.count ?: 0} rows)").also { s -> StartupTracer.end(s) }
+                trySend(fullCursor)
             }
         }
     }
@@ -422,7 +431,9 @@ suspend fun ContentResolver.overrideImage(
                         val exif = ExifInterface(input)
                         copyExifTags(exif)
                     }
-                } catch (_: Exception) { null }
+                } catch (_: Exception) {
+                    null
+                }
             } else null
 
         // 3. Mark pending (scoped storage) to reduce race (best effort)
@@ -434,7 +445,7 @@ suspend fun ContentResolver.overrideImage(
 
         // 4. Encode into memory first (atomic style) so we fail early
         val encoded = ByteArrayOutputStream().use { bos ->
-            if (!bitmap.compress(compressFormat, quality.coerceIn(0,100), bos))
+            if (!bitmap.compress(compressFormat, quality.coerceIn(0, 100), bos))
                 error("Bitmap.compress returned false")
             bos.toByteArray()
         }
@@ -452,13 +463,16 @@ suspend fun ContentResolver.overrideImage(
         (openOutputStream(uri, "rwt") // "rwt" truncates if supported
             ?: openOutputStream(uri) // fallback
             ?: error("Failed to open output stream"))
-                .use { out ->
-                    out.write(encoded)
-                    out.flush()
-                    if (out is FileOutputStream) {
-                        try { out.fd.sync() } catch (_: Exception) {}
+            .use { out ->
+                out.write(encoded)
+                out.flush()
+                if (out is FileOutputStream) {
+                    try {
+                        out.fd.sync()
+                    } catch (_: Exception) {
                     }
                 }
+            }
 
         // 7. Restore EXIF (requires rewrite for JPEG)
         if (exifData != null && compressFormat == Bitmap.CompressFormat.JPEG) {
@@ -525,7 +539,9 @@ private fun ContentResolver.queryDateColumns(uri: Uri): Pair<Long?, Long?>? {
                 dateTaken to dateAdded
             } else null
         }
-    } catch (_: Exception) { null }
+    } catch (_: Exception) {
+        null
+    }
 }
 
 private fun ContentResolver.clearPendingQuiet(uri: Uri) {
@@ -543,6 +559,7 @@ private fun inferCompressFormat(mime: String): Bitmap.CompressFormat =
             @Suppress("DEPRECATION")
             Bitmap.CompressFormat.WEBP
         }
+
         mime.contains("jpeg", true) || mime.contains("jpg", true) -> Bitmap.CompressFormat.JPEG
         else -> Bitmap.CompressFormat.PNG
     }

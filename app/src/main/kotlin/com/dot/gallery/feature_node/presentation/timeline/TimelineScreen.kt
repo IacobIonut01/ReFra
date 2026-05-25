@@ -49,6 +49,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.feature_node.presentation.common.components.GridPinchZoomLayout
 import com.dot.gallery.feature_node.presentation.common.components.rememberGridPinchZoomState
@@ -99,6 +101,8 @@ import com.dot.gallery.feature_node.presentation.common.components.rememberStick
 import com.dot.gallery.feature_node.presentation.help.components.WhatsNewHeroCard
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
+import com.dot.gallery.feature_node.presentation.storycards.StoryCardsViewModel
+import com.dot.gallery.feature_node.presentation.storycards.components.StoryCardsRow
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineFilterSheet
 import com.dot.gallery.feature_node.presentation.timeline.components.TimelineNavActions
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -193,21 +197,43 @@ fun TimelineScreen(
     }
     var lastSeenVersion by rememberLastSeenVersion()
     val showWhatsNew = remember(lastSeenVersion) { lastSeenVersion != BuildConfig.VERSION_NAME }
-    val whatsNewContent: @Composable (() -> Unit)? = if (showWhatsNew) {
+
+    // Story Cards
+    val storyCardsViewModel = hiltViewModel<StoryCardsViewModel>()
+    val storyCards by storyCardsViewModel.allCards.collectAsStateWithLifecycle()
+
+    val hasStoryCards = storyCards?.isNotEmpty() == true
+    val aboveGridContent: @Composable (() -> Unit)? = if (showWhatsNew || hasStoryCards) {
         {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                WhatsNewHeroCard(
-                    versionName = BuildConfig.VERSION_NAME,
-                    onClick = {
-                        lastSeenVersion = BuildConfig.VERSION_NAME
-                        eventHandler.navigate(Screen.WhatsNewScreen())
+                if (showWhatsNew) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        WhatsNewHeroCard(
+                            versionName = BuildConfig.VERSION_NAME,
+                            onClick = {
+                                lastSeenVersion = BuildConfig.VERSION_NAME
+                                eventHandler.navigate(Screen.WhatsNewScreen())
+                            }
+                        )
                     }
-                )
+                }
+                if (hasStoryCards) {
+                    StoryCardsRow(
+                        cards = storyCards.orEmpty(),
+                        onCardClick = { index, _ ->
+                            eventHandler.navigate(Screen.StoryViewerScreen.cardIndex(index))
+                        },
+                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                        contentPadding = PaddingValues(horizontal = 32.dp)
+                    )
+                }
             }
         }
     } else null
@@ -398,7 +424,7 @@ fun TimelineScreen(
                             allowSelection = true,
                             canScroll = !mosaicPinchState.isZooming,
                             allowHeaders = true,
-                            aboveGridContent = whatsNewContent,
+                            aboveGridContent = aboveGridContent,
                             isScrolling = isScrolling,
                             emptyContent = { EmptyMedia() },
                             sharedTransitionScope = sharedTransitionScope,
@@ -433,7 +459,7 @@ fun TimelineScreen(
                         canScroll = canScroll,
                         enableStickyHeaders = true,
                         showMonthlyHeader = true,
-                        aboveGridContent = whatsNewContent,
+                        aboveGridContent = aboveGridContent,
                         isScrolling = isScrolling,
                         emptyContent = { EmptyMedia() },
                         sharedTransitionScope = sharedTransitionScope,
