@@ -280,12 +280,18 @@ fun AlbumsScreen(
                             item(
                                 key = "createCollection"
                             ) {
-                                CreateCollectionComponent(
-                                    modifier = Modifier
-                                        .pinchItem(key = "createCollection")
-                                        .animateItem(),
-                                    onClick = onCreateCollection
-                                )
+                                AnimatedVisibility(
+                                    visible = albumsState.value.albums.isNotEmpty(),
+                                    enter = enterAnimation,
+                                    exit = exitAnimation
+                                ) {
+                                    CreateCollectionComponent(
+                                        modifier = Modifier
+                                            .pinchItem(key = "createCollection")
+                                            .animateItem(),
+                                        onClick = onCreateCollection
+                                    )
+                                }
                             }
 
                             item(
@@ -458,10 +464,16 @@ fun AlbumsScreen(
                             )
                         }
                         item("createCollection_list") {
-                            CreateCollectionRowComponent(
-                                modifier = Modifier.animateItem(),
-                                onClick = onCreateCollection
-                            )
+                            AnimatedVisibility(
+                                visible = albumsState.value.albums.isNotEmpty(),
+                                enter = enterAnimation,
+                                exit = exitAnimation
+                            ) {
+                                CreateCollectionRowComponent(
+                                    modifier = Modifier.animateItem(),
+                                    onClick = onCreateCollection
+                                )
+                            }
                         }
 
                         item(key = "albumDetails") {

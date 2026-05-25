@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -44,6 +45,7 @@ import androidx.compose.runtime.snapshotFlow
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -240,16 +242,30 @@ fun <T : Media> MosaicMediaGrid(
         Column(
             modifier = Modifier.padding(paddingValues).fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
-            AnimatedVisibility(visible = mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
-                LoadingMedia()
+            if (aboveGridContent != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawWithContent { }
+                ) {
+                    aboveGridContent()
+                }
             }
-            AnimatedVisibility(visible = mediaState.value.media.isEmpty() && !mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
-                emptyContent()
-            }
-            AnimatedVisibility(visible = mediaState.value.error.isNotEmpty()) {
-                Error(errorMessage = mediaState.value.error)
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                AnimatedVisibility(visible = mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
+                    LoadingMedia()
+                }
+                AnimatedVisibility(visible = mediaState.value.media.isEmpty() && !mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
+                    emptyContent()
+                }
+                AnimatedVisibility(visible = mediaState.value.error.isNotEmpty()) {
+                    Error(errorMessage = mediaState.value.error)
+                }
             }
         }
     }
