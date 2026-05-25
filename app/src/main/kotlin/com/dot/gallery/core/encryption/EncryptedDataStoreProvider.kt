@@ -11,6 +11,7 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.dot.gallery.core.dataStore
+import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import kotlinx.coroutines.Dispatchers
@@ -38,9 +39,15 @@ object EncryptedDataStoreProvider {
     fun getOrCreate(context: Context): DataStore<Preferences> {
         return instance ?: synchronized(this) {
             instance ?: run {
-                val store = createEncryptedDataStore(context)
-                autoMigrateIfNeeded(context, store)
+                val span = StartupTracer.begin("EncryptedDataStore.getOrCreate")
+                val store = StartupTracer.trace("EncryptedDataStore.create") {
+                    createEncryptedDataStore(context)
+                }
+                StartupTracer.trace("EncryptedDataStore.autoMigrate") {
+                    autoMigrateIfNeeded(context, store)
+                }
                 instance = store
+                StartupTracer.end(span)
                 store
             }
         }

@@ -11,6 +11,7 @@ import androidx.core.content.edit
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.room.Room
+import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.migration.MIGRATION_12_13
 import com.dot.gallery.feature_node.presentation.util.printDebug
@@ -44,7 +45,11 @@ object EncryptedDatabaseFactory {
     private const val GCM_TAG_LENGTH = 128
 
     fun create(context: Context): InternalDatabase {
-        System.loadLibrary("sqlcipher")
+        val createSpan = StartupTracer.begin("EncryptedDB.create")
+
+        StartupTracer.trace("EncryptedDB.loadLibrary") {
+            System.loadLibrary("sqlcipher")
+        }
 
         // If the DB hasn't been encrypted yet, clear any stale passphrase from
         // previous failed attempts (which used raw bytes instead of hex).
@@ -53,27 +58,31 @@ object EncryptedDatabaseFactory {
             prefs.edit {remove(PREF_WRAPPED_PASSPHRASE)}
         }
 
-        val passphrase = getOrCreatePassphrase(context)
+        val passphrase = StartupTracer.trace("EncryptedDB.getOrCreatePassphrase") {
+            getOrCreatePassphrase(context)
+        }
 
         // Migrate existing unencrypted DB to encrypted if needed
-        migrateUnencryptedDbIfNeeded(context, passphrase)
-
-        // Validate that the DB can actually be opened with this passphrase.
-        // Catches state corruption from a previous failed migration that
-        // incorrectly marked the DB as encrypted.
-        validatePassphrase(context, passphrase)
+        StartupTracer.trace("EncryptedDB.migrateIfNeeded") {
+            migrateUnencryptedDbIfNeeded(context, passphrase)
+        }
 
         val factory = SupportOpenHelperFactory(passphrase)
-        return Room.databaseBuilder(
-            context,
-            InternalDatabase::class.java,
-            InternalDatabase.NAME
-        )
-            .openHelperFactory(factory)
-            .addMigrations(MIGRATION_12_13)
-            .fallbackToDestructiveMigrationOnDowngrade(true)
-            .fallbackToDestructiveMigration(false)
-            .build()
+        val db = StartupTracer.trace("EncryptedDB.roomBuilder") {
+            Room.databaseBuilder(
+                context,
+                InternalDatabase::class.java,
+                InternalDatabase.NAME
+            )
+                .openHelperFactory(factory)
+                .addMigrations(MIGRATION_12_13)
+                .fallbackToDestructiveMigrationOnDowngrade(true)
+                .fallbackToDestructiveMigration(false)
+                .build()
+        }
+
+        StartupTracer.end(createSpan)
+        return db
     }
 
     /**
@@ -255,29 +264,32 @@ object EncryptedDatabaseFactory {
         }
     }
 
-    private fun getOrCreateKey(): SecretKey {
+    // Cache the Keystore key to avoid repeated expensive Keystore lookups.
+    private val cachedKey: SecretKey by lazy {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
         keyStore.load(null)
 
         if (keyStore.containsAlias(KEY_ALIAS)) {
-            return keyStore.getKey(KEY_ALIAS, null) as SecretKey
-        }
-
-        val keyGen = KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE
-        )
-        keyGen.init(
-            KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            keyStore.getKey(KEY_ALIAS, null) as SecretKey
+        } else {
+            val keyGen = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE
             )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setKeySize(256)
-                .build()
-        )
-        return keyGen.generateKey()
+            keyGen.init(
+                KeyGenParameterSpec.Builder(
+                    KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                )
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setKeySize(256)
+                    .build()
+            )
+            keyGen.generateKey()
+        }
     }
+
+    private fun getOrCreateKey(): SecretKey = cachedKey
 
     private fun wrapPassphrase(key: SecretKey, passphrase: ByteArray): String {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")

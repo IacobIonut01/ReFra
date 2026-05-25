@@ -40,6 +40,7 @@ import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.Constants.mosaicColumnsList
 import com.dot.gallery.core.Settings.PREFERENCE_NAME
 import com.dot.gallery.core.encryption.EncryptedDataStoreProvider
+import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.rememberPreference
@@ -72,6 +73,7 @@ val Context.activeDataStore: DataStore<Preferences>
         } catch (_: Exception) {
             // Device doesn't support hardware-backed keystore or encryption failed —
             // fall back to plaintext silently.
+            StartupTracer.trace("activeDataStore.fallbackPlaintext") { }
             dataStore
         }
     }

@@ -8,8 +8,11 @@ package com.dot.gallery.core.sandbox
 import android.annotation.SuppressLint
 import android.content.Context
 import com.dot.gallery.core.Settings
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 /**
  * Global access point for the [IsolatedImageDecoder] singleton used by
@@ -25,17 +28,28 @@ object SandboxedDecoderHolder {
     var decoder: IsolatedImageDecoder? = null
         private set
 
-    fun init(decoder: IsolatedImageDecoder) {
+    @Volatile
+    private var cachedEnabled: Boolean = false
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    fun init(decoder: IsolatedImageDecoder, context: Context) {
         this.decoder = decoder
+        // Observe the preference in a background coroutine instead of
+        // runBlocking on every decode thread — eliminates 50-200ms blocking
+        // per image decode.
+        scope.launch {
+            Settings.Security.getSandboxedDecode(context).collectLatest { enabled ->
+                cachedEnabled = enabled
+            }
+        }
     }
 
     /**
-     * Check if sandboxed decoding is enabled via the user's security settings.
-     * This is called on Glide/Sketch decode threads so [runBlocking] is acceptable.
+     * Check if sandboxed decoding is enabled via the cached preference value.
+     * The value is kept up to date by a background coroutine started in [init].
      */
-    fun isEnabled(context: Context): Boolean {
-        return runBlocking {
-            Settings.Security.getSandboxedDecode(context).firstOrNull() ?: false
-        }
+    fun isEnabled(@Suppress("UNUSED_PARAMETER") context: Context): Boolean {
+        return cachedEnabled
     }
 }

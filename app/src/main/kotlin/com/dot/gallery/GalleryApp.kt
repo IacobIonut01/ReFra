@@ -47,13 +47,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import com.dot.gallery.core.metrics.StartupTracer
 import javax.inject.Inject
 
 @HiltAndroidApp
 class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provider {
 
     @SuppressLint("NewApi")
-    override fun createSketch(context: PlatformContext): Sketch = Sketch.Builder(this).apply {
+    override fun createSketch(context: PlatformContext): Sketch = StartupTracer.trace("Sketch.create") { Sketch.Builder(this).apply {
         components {
             supportPauseLoadWhenScrolling()
             supportSvg()
@@ -91,7 +92,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
                 saveCellularTraffic(false)
             }
         )
-    }.build()
+    }.build() }
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
@@ -119,28 +120,40 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
+        val onCreateSpan = StartupTracer.begin("App.onCreate")
         // Isolated-process services inherit this Application class but must NOT
         // run Hilt injection (WorkManager/JobScheduler are unavailable there).
         if (getProcessName() != packageName) return
 
-        super.onCreate()
+        StartupTracer.trace("App.super.onCreate (Hilt DI)") {
+            super.onCreate()
+        }
 
-        SandboxedDecoderHolder.init(isolatedImageDecoder)
+        StartupTracer.trace("SandboxedDecoderHolder.init") {
+            SandboxedDecoderHolder.init(isolatedImageDecoder, this)
+        }
 
-        workManager.enqueueUniqueWork(
-            uniqueWorkName = "MetadataCollection",
-            existingWorkPolicy = ExistingWorkPolicy.APPEND_OR_REPLACE,
-            request = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
-                .build()
-        )
+        StartupTracer.trace("WorkManager.enqueueMetadata") {
+            workManager.enqueueUniqueWork(
+                uniqueWorkName = "MetadataCollection",
+                existingWorkPolicy = ExistingWorkPolicy.APPEND_OR_REPLACE,
+                request = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
+                    .build()
+            )
+        }
 
-        // Schedule periodic cleanup of stale decrypted temp files.
-        TempVaultCleanupWorker.schedule(workManager)
+        StartupTracer.trace("TempVaultCleanupWorker.schedule") {
+            TempVaultCleanupWorker.schedule(workManager)
+        }
 
         // Initialize ML models (copies from assets on withML, checks presence on noML)
         appScope.launch {
-            modelManager.initializeModels()
+            StartupTracer.trace("ModelManager.initializeModels") {
+                modelManager.initializeModels()
+            }
         }
+
+        StartupTracer.end(onCreateSpan)
     }
 
 }

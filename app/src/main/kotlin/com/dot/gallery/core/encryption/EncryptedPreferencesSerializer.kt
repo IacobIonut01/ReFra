@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferencesSerializer
 import androidx.datastore.preferences.core.emptyPreferences
 import java.io.ByteArrayOutputStream
+import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import okio.buffer
@@ -39,31 +40,33 @@ class EncryptedPreferencesSerializer(context: Context) : Serializer<Preferences>
 
     override val defaultValue: Preferences = emptyPreferences()
 
-    private val secretKey: SecretKey
-        get() {
-            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
-            keyStore.load(null)
-            return if (keyStore.containsAlias(KEY_ALIAS)) {
-                keyStore.getKey(KEY_ALIAS, null) as SecretKey
-            } else {
-                val keyGen = KeyGenerator.getInstance(
-                    KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE
+    // Cache the Keystore key — Keystore lookups are expensive (50-200ms each)
+    // and this was being called on every single DataStore read/write.
+    private val secretKey: SecretKey by lazy { StartupTracer.trace("EncryptedPrefsSerializer.keystoreInit") {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+        keyStore.load(null)
+        if (keyStore.containsAlias(KEY_ALIAS)) {
+            keyStore.getKey(KEY_ALIAS, null) as SecretKey
+        } else {
+            val keyGen = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE
+            )
+            keyGen.init(
+                KeyGenParameterSpec.Builder(
+                    KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
                 )
-                keyGen.init(
-                    KeyGenParameterSpec.Builder(
-                        KEY_ALIAS,
-                        KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-                    )
-                        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                        .setKeySize(256)
-                        .build()
-                )
-                keyGen.generateKey()
-            }
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setKeySize(256)
+                    .build()
+            )
+            keyGen.generateKey()
         }
+    } }
 
     override suspend fun readFrom(input: InputStream): Preferences {
+        val span = StartupTracer.begin("EncryptedPrefsSerializer.readFrom")
         return try {
             val allBytes = input.readBytes()
             if (allBytes.isEmpty()) return defaultValue
@@ -84,6 +87,8 @@ class EncryptedPreferencesSerializer(context: Context) : Serializer<Preferences>
         } catch (e: Exception) {
             printWarning("EncryptedPreferencesSerializer: read failed: ${e.message}")
             defaultValue
+        } finally {
+            StartupTracer.end(span)
         }
     }
 

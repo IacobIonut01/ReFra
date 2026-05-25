@@ -64,7 +64,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -92,13 +91,13 @@ class MediaDistributorImpl @Inject constructor(
      * Tracks media IDs that have already been submitted for a MediaStore rescan
      * to avoid redundant scanning of the same files.
      * Persisted to the Room database so entries are cleaned when media is deleted.
+     * Loaded asynchronously to avoid blocking the main thread during startup.
      */
-    private val rescanRequestedIds = ConcurrentHashMap.newKeySet<Long>().apply {
-        addAll(runBlocking { scannedMediaDao.getScannedIds() })
-    }
+    private val rescanRequestedIds = ConcurrentHashMap.newKeySet<Long>()
 
     init {
         appScope.launch {
+            rescanRequestedIds.addAll(scannedMediaDao.getScannedIds())
             scannedMediaDao.removeStaleEntries()
         }
     }

@@ -15,6 +15,7 @@ import androidx.work.WorkManager
 import com.dot.gallery.core.DefaultEventHandler
 import com.dot.gallery.core.EditBackupManager
 import com.dot.gallery.core.encryption.EncryptedDatabaseFactory
+import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.sandbox.IsolatedImageDecoder
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.sandbox.PrivateFolderRepository
@@ -55,29 +56,31 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(app: Application): InternalDatabase {
-        return try {
+    fun provideDatabase(app: Application): InternalDatabase = StartupTracer.trace("AppModule.provideDatabase") {
+        try {
             EncryptedDatabaseFactory.create(app)
         } catch (_: Exception) {
             // Device doesn't support SQLCipher or hardware-backed keystore —
             // fall back to plaintext database silently.
-            Room.databaseBuilder(app, InternalDatabase::class.java, InternalDatabase.NAME)
-                .addMigrations(MIGRATION_12_13)
-                .fallbackToDestructiveMigrationOnDowngrade(true)
-                .fallbackToDestructiveMigration(false)
-                .build()
+            StartupTracer.trace("AppModule.provideDatabase.fallbackPlaintext") {
+                Room.databaseBuilder(app, InternalDatabase::class.java, InternalDatabase.NAME)
+                    .addMigrations(MIGRATION_12_13)
+                    .fallbackToDestructiveMigrationOnDowngrade(true)
+                    .fallbackToDestructiveMigration(false)
+                    .build()
+            }
         }
     }
 
     @Provides
     @Singleton
     fun provideKeychainHolder(@ApplicationContext context: Context): KeychainHolder =
-        KeychainHolder(context)
+        StartupTracer.trace("AppModule.provideKeychainHolder") { KeychainHolder(context) }
 
     @Provides
     @Singleton
     fun provideWorkManager(@ApplicationContext context: Context): WorkManager =
-        WorkManager.getInstance(context)
+        StartupTracer.trace("AppModule.provideWorkManager") { WorkManager.getInstance(context) }
 
     @Provides
     @Singleton
@@ -91,7 +94,9 @@ object AppModule {
         repository: MediaRepository,
         eventHandler: EventHandler,
         database: InternalDatabase
-    ): MediaDistributor = MediaDistributorImpl(context, repository, eventHandler, workManager, database.getScannedMediaDao())
+    ): MediaDistributor = StartupTracer.trace("AppModule.provideMediaDistributor") {
+        MediaDistributorImpl(context, repository, eventHandler, workManager, database.getScannedMediaDao())
+    }
 
     @Provides
     @Singleton
@@ -103,17 +108,19 @@ object AppModule {
         @ApplicationContext context: Context,
         mediaRepository: MediaRepository,
         workManager: WorkManager,
-    ): MediaHandler = MediaHandlerImpl(mediaRepository, context, workManager)
+    ): MediaHandler = StartupTracer.trace("AppModule.provideMediaHandler") {
+        MediaHandlerImpl(mediaRepository, context, workManager)
+    }
 
     @Provides
     @Singleton
     fun provideIsolatedMetadataParser(@ApplicationContext context: Context): IsolatedMetadataParser =
-        IsolatedMetadataParser(context)
+        StartupTracer.trace("AppModule.provideIsolatedMetadataParser") { IsolatedMetadataParser(context) }
 
     @Provides
     @Singleton
     fun provideIsolatedImageDecoder(@ApplicationContext context: Context): IsolatedImageDecoder =
-        IsolatedImageDecoder(context)
+        StartupTracer.trace("AppModule.provideIsolatedImageDecoder") { IsolatedImageDecoder(context) }
 
     @Provides
     @Singleton
@@ -124,32 +131,41 @@ object AppModule {
         keychainHolder: KeychainHolder,
         geocoder: Geocoder?,
         isolatedParser: IsolatedMetadataParser,
-    ): MediaRepository = MediaRepositoryImpl(context, workManager, database, keychainHolder, geocoder, isolatedParser)
+    ): MediaRepository = StartupTracer.trace("AppModule.provideMediaRepository") {
+        MediaRepositoryImpl(context, workManager, database, keychainHolder, geocoder, isolatedParser)
+    }
 
     @Provides
     @Singleton
-    fun provideModelManager(@ApplicationContext context: Context): ModelManager = ModelManager(context)
+    fun provideModelManager(@ApplicationContext context: Context): ModelManager =
+        StartupTracer.trace("AppModule.provideModelManager") { ModelManager(context) }
 
     @Provides
     @Singleton
-    fun provideSearchHelper(modelManager: ModelManager): SearchHelper = SearchHelperImpl(modelManager)
+    fun provideSearchHelper(modelManager: ModelManager): SearchHelper =
+        StartupTracer.trace("AppModule.provideSearchHelper") { SearchHelperImpl(modelManager) }
 
     @Provides
     @Singleton
     fun provideGeocoder(@ApplicationContext context: Context): Geocoder? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && Geocoder.isPresent()) Geocoder(context) else null
+        StartupTracer.trace("AppModule.provideGeocoder") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && Geocoder.isPresent()) Geocoder(context) else null
+        }
 
     @Provides
     @Singleton
-    fun provideDecryptManager(@ApplicationContext context: Context, metrics: MetricsCollector): DecryptManager = DecryptManager(context, metrics)
+    fun provideDecryptManager(@ApplicationContext context: Context, metrics: MetricsCollector): DecryptManager =
+        StartupTracer.trace("AppModule.provideDecryptManager") { DecryptManager(context, metrics) }
 
     @Provides
     @Singleton
-    fun provideMediaMetadataSidecarCache(@ApplicationContext context: Context): MediaMetadataSidecarCache = MediaMetadataSidecarCache(context)
+    fun provideMediaMetadataSidecarCache(@ApplicationContext context: Context): MediaMetadataSidecarCache =
+        StartupTracer.trace("AppModule.provideMediaMetadataSidecarCache") { MediaMetadataSidecarCache(context) }
 
     @Provides
     @Singleton
-    fun provideAdaptiveDecryptConfig(app: Application): AdaptiveDecryptConfig = AdaptiveDecryptConfig(app)
+    fun provideAdaptiveDecryptConfig(app: Application): AdaptiveDecryptConfig =
+        StartupTracer.trace("AppModule.provideAdaptiveDecryptConfig") { AdaptiveDecryptConfig(app) }
 
     @Provides
     @Singleton
@@ -162,13 +178,15 @@ object AppModule {
     @Provides
     @Singleton
     fun providePrivateFolderRepository(@ApplicationContext context: Context): PrivateFolderRepository =
-        PrivateFolderRepository(context)
+        StartupTracer.trace("AppModule.providePrivateFolderRepository") { PrivateFolderRepository(context) }
 
     @Provides
     @Singleton
     fun provideEditBackupManager(
         @ApplicationContext context: Context,
         database: InternalDatabase
-    ): EditBackupManager = EditBackupManager(context, database.getEditHistoryDao())
+    ): EditBackupManager = StartupTracer.trace("AppModule.provideEditBackupManager") {
+        EditBackupManager(context, database.getEditHistoryDao())
+    }
 
 }
