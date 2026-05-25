@@ -52,10 +52,15 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.getIcon
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isFavorite
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoDurationHeader
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import androidx.compose.ui.platform.LocalContext
+import com.github.panpf.sketch.request.ImageRequest
+import com.github.panpf.sketch.resize.Precision
+import com.github.panpf.sketch.sketch
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -123,6 +128,7 @@ fun <T : Media> MediaImage(
     }
     val allowBlur by rememberAllowBlur()
     val badgeHazeState = rememberHazeState(blurEnabled = allowBlur)
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -133,6 +139,15 @@ fun <T : Media> MediaImage(
                     if (selectionState) {
                         onItemSelect(media)
                     } else {
+                        context.sketch.enqueue(
+                            ImageRequest(context, media.getUri().toString()) {
+                                resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
+                                if (media.isEncrypted) {
+                                    setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
+                                    setExtra("realMimeType", media.mimeType)
+                                }
+                            }
+                        )
                         onMediaClick(media)
                     }
                 },
