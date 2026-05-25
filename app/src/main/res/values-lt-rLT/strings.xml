@@ -200,6 +200,7 @@
     <string name="auto">Automatiškai</string>
     <string name="change_playback_speed_cd">Pakeisti vaizdo įrašų greitį</string>
     <string name="change_subtitle_track_cd">Change subtitle track</string>
+    <string name="more_options_cd">More options</string>
     <string name="subtitle_off">Off</string>
     <string name="add_subtitle_file">Add subtitle file</string>
     <string name="subtitles_title">Subtitles</string>
@@ -877,4 +878,16 @@
     <string name="trash_delete_all">Delete all</string>
     <string name="favorites_info_title">Your Favorites</string>
     <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <!-- Story Cards -->
+    <string name="story_cards_settings_title">Story Cards</string>
+    <string name="story_cards_settings_summary">Configure story cards above the timeline</string>
+    <string name="story_cards_enabled">Show Story Cards</string>
+    <string name="story_cards_enabled_summary">Display story cards above the timeline</string>
+    <string name="story_cards_order_title">Card types &amp; order</string>
+    <string name="story_viewer_settings_title">Story viewer</string>
+    <string name="story_viewer_auto_advance">Auto-advance</string>
+    <string name="story_viewer_auto_advance_summary">Automatically move to the next photo</string>
+    <string name="story_viewer_duration">Duration per photo</string>
+    <string name="story_viewer_duration_summary">Currently %1$s seconds per photo</string>
+    <string name="navigate_back">Navigate back</string>
 </resources>
