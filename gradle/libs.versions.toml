@@ -162,6 +162,7 @@ glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide-ksp
 
 # Zoomable
 zoomimage-compose-glide = { module = "io.github.panpf.zoomimage:zoomimage-compose-glide", version.ref = "zoomimage" }
+zoomimage-compose-sketch = { module = "io.github.panpf.zoomimage:zoomimage-compose-sketch4", version.ref = "zoomimage" }
 
 # Tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }

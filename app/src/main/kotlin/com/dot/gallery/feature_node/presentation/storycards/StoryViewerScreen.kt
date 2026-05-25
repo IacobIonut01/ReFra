@@ -9,6 +9,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,8 +56,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberStoryViewerAutoAdvance
 import com.dot.gallery.core.Settings.Misc.rememberStoryViewerDuration
@@ -66,8 +65,12 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.actionbutt
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.ShareButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.BlurredMediaBackground
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
-import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
+import com.github.panpf.sketch.PainterState
+import com.github.panpf.sketch.rememberAsyncImagePainter
+import com.github.panpf.sketch.rememberAsyncImageState
+import com.github.panpf.sketch.request.ComposableImageRequest
+import com.github.panpf.sketch.resize.Precision
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -75,7 +78,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun StoryViewerScreen(
     cards: List<StoryCard>?,
@@ -155,7 +158,7 @@ fun StoryViewerScreen(
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 private fun StoryCardViewer(
     card: StoryCard,
@@ -262,16 +265,35 @@ private fun StoryCardViewer(
         )
 
         // Media display (haze source for blur)
-        GlideImage(
+        val mediaUri = remember(currentMedia) {
+            currentMedia.getUri().toString()
+        }
+        val previewPainter = rememberAsyncImagePainter(
+            request = ComposableImageRequest(mediaUri) {
+                resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
+                crossfade(false)
+            },
+            contentScale = ContentScale.Fit
+        )
+        val fullImageState = rememberAsyncImageState()
+        val fullPainter = rememberAsyncImagePainter(
+            request = ComposableImageRequest(mediaUri) {},
+            state = fullImageState,
+            contentScale = ContentScale.Fit
+        )
+        val isFullImageLoaded by rememberedDerivedState(currentMedia) {
+            fullImageState.painterState is PainterState.Success
+        }
+        val activePainter = remember(isFullImageLoaded) {
+            if (isFullImageLoaded) fullPainter else previewPainter
+        }
+        Image(
+            painter = activePainter,
+            contentDescription = currentMedia.label,
             modifier = Modifier
                 .fillMaxSize()
                 .hazeSource(hazeState),
             contentScale = ContentScale.Fit,
-            model = currentMedia.getUri(),
-            contentDescription = currentMedia.label,
-            requestBuilderTransform = {
-                it.signature(GlideInvalidation.signature(currentMedia))
-            }
         )
 
         // Top gradient overlay

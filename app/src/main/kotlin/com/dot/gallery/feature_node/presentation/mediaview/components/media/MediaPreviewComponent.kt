@@ -96,9 +96,7 @@ fun <T : Media> MediaPreviewComponent(
                     exit = fadeOut()
                 ) {
                     ZoomablePagerImage(
-                        modifier = Modifier,
                         media = media,
-                        uiEnabled = uiEnabled,
                         rotationDisabled = rotationDisabled,
                         onImageRotated = onImageRotated,
                         onItemClick = onItemClick,

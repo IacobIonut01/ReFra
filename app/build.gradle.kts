@@ -308,6 +308,7 @@ dependencies {
 
     // Subsampling
     implementation(libs.zoomimage.compose.glide)
+    implementation(libs.zoomimage.compose.sketch)
 
     // Splashscreen
     implementation(libs.androidx.core.splashscreen)
