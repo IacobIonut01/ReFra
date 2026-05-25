@@ -200,6 +200,7 @@
     <string name="auto">Auto</string>
     <string name="change_playback_speed_cd">Change playback speed</string>
     <string name="change_subtitle_track_cd">Change subtitle track</string>
+    <string name="more_options_cd">More options</string>
     <string name="subtitle_off">Off</string>
     <string name="add_subtitle_file">Add subtitle file</string>
     <string name="subtitles_title">Subtitles</string>

@@ -752,8 +752,9 @@ fun <T : Media> MediaViewScreen(
                                     modifier = Modifier.fillMaxSize()
                                 ) {
                                     val hideUiOnPlay by rememberAutoHideOnVideoPlay()
+                                    var uiInteracted by remember { mutableStateOf(false) }
                                     LaunchedEffect(isPlaying.value, hideUiOnPlay) {
-                                        if (isPlaying.value && showUI && hideUiOnPlay) {
+                                        if (isPlaying.value && showUI && hideUiOnPlay && !uiInteracted) {
                                             delay(2.seconds)
                                             showUI = false
                                             windowInsetsController.toggleSystemBars(false)
@@ -901,7 +902,8 @@ fun <T : Media> MediaViewScreen(
                                             anySubtitleSelected = subtitleTracks.any { it.isSelected },
                                             onSubtitleClick = {
                                                 scope.launch { subtitleSheetState.show() }
-                                            }
+                                            },
+                                            onInteraction = { uiInteracted = true }
                                         )
                                     }
                                 }
