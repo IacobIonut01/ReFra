@@ -2,6 +2,7 @@ package com.dot.gallery.feature_node.presentation.exif
 
 import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -83,6 +85,12 @@ fun <T: Media> CopyMediaSheet(
     onFinish: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val hasFullMediaAccess = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        Environment.isExternalStorageManager() || MediaStore.canManageMedia(context)
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        Environment.isExternalStorageManager()
+    } else true
     val viewModel: CopyMediaViewModel = hiltViewModel()
     val progress by viewModel.progress.collectAsState()
     val isActive by viewModel.isActive.collectAsState()
@@ -309,15 +317,12 @@ fun <T: Media> CopyMediaSheet(
                                         "Android/media/",
                                         "allow"
                                     ) ?: albumOwnership
-                                val isStorageManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) Environment.isExternalStorageManager() else true
                                 AlbumComponent(
                                     modifier = Modifier.animateItem(),
                                     album = item,
-                                    isEnabled = isStorageManager || (item.volume == mediaVolume
+                                    isEnabled = hasFullMediaAccess || (item.volume == mediaVolume
                                             && albumOwnership == "allow"
-                                            && mediaOwnership == "allow"
-                                            && (item.relativePath.contains("Pictures")
-                                            || item.relativePath.contains("DCIM"))),
+                                            && mediaOwnership == "allow"),
                                     onItemClick = { album ->
                                         if (album.isLocked) {
                                             if (!biometricState.isSupported) {
@@ -371,14 +376,11 @@ fun <T: Media> CopyMediaSheet(
                                         "Android/media/",
                                         "allow"
                                     ) ?: albumOwnership
-                                val isStorageManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) Environment.isExternalStorageManager() else true
                                 AlbumComponent(
                                     album = item,
-                                    isEnabled = isStorageManager || (item.volume == mediaVolume
+                                    isEnabled = hasFullMediaAccess || (item.volume == mediaVolume
                                             && albumOwnership == "allow"
-                                            && mediaOwnership == "allow"
-                                            && (item.relativePath.contains("Pictures")
-                                            || item.relativePath.contains("DCIM"))),
+                                            && mediaOwnership == "allow"),
                                     onItemClick = { album ->
                                         if (album.isLocked) {
                                             if (!biometricState.isSupported) {
@@ -405,7 +407,7 @@ fun <T: Media> CopyMediaSheet(
     AddAlbumSheet(
         sheetState = newAlbumSheetState,
         onFinish = { newAlbum ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+            if (hasFullMediaAccess) {
                 copyMedia(newAlbum)
             } else {
                 copyMedia("Pictures/$newAlbum")
