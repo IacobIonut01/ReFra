@@ -16,6 +16,7 @@ import androidx.work.workDataOf
 import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.domain.util.resolveMediaStoreVolume
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -125,15 +126,16 @@ class MediaCopyWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun copyOne(src: Uri, relPath: String, onBytesCopied: suspend (Int) -> Unit = {}): Boolean =
+    private suspend fun copyOne(src: Uri, destPath: String, onBytesCopied: suspend (Int) -> Unit = {}): Boolean =
         withContext(Dispatchers.IO) {
             val cr: ContentResolver = appContext.contentResolver
             try {
+                val (volumeName, relPath) = resolveMediaStoreVolume(destPath)
                 val mediaType = cr.getType(src) ?: return@withContext false
                 val isVideo = mediaType.startsWith("video")
                 val targetUri = cr.insert(
-                    if (isVideo) MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                    else MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    if (isVideo) MediaStore.Video.Media.getContentUri(volumeName)
+                    else MediaStore.Images.Media.getContentUri(volumeName),
                     ContentValues().apply {
                         put(MediaStore.MediaColumns.DISPLAY_NAME, src.lastPathSegment)
                         put(MediaStore.MediaColumns.MIME_TYPE, mediaType)

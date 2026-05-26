@@ -325,11 +325,11 @@ fun <T: Media> MoveMediaSheet(
                                             if (!biometricState.isSupported) {
                                                 scope.launch { securitySheetState.show() }
                                             } else {
-                                                pendingLockedAlbumPath = album.relativePath
+                                                pendingLockedAlbumPath = album.absolutePath
                                                 biometricState.authenticate()
                                             }
                                         } else {
-                                            startMove(album.relativePath)
+                                            startMove(album.absolutePath)
                                         }
                                     }
                                 )
@@ -385,11 +385,11 @@ fun <T: Media> MoveMediaSheet(
                                             if (!biometricState.isSupported) {
                                                 scope.launch { securitySheetState.show() }
                                             } else {
-                                                pendingLockedAlbumPath = album.relativePath
+                                                pendingLockedAlbumPath = album.absolutePath
                                                 biometricState.authenticate()
                                             }
                                         } else {
-                                            startMove(album.relativePath)
+                                            startMove(album.absolutePath)
                                         }
                                     }
                                 )

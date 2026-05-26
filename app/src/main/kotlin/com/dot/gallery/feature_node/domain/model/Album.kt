@@ -42,6 +42,10 @@ data class Album(
 
     @IgnoredOnParcel
     @Stable
+    val absolutePath: String = volume.trimEnd('/') + "/" + relativePath
+
+    @IgnoredOnParcel
+    @Stable
     val isOnSdcard: Boolean =
         volume.toLowerCase(Locale.current).matches(SD_CARD_REGEX)
 

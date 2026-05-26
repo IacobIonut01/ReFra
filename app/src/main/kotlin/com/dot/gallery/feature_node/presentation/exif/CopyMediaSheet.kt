@@ -328,11 +328,11 @@ fun <T: Media> CopyMediaSheet(
                                             if (!biometricState.isSupported) {
                                                 scope.launch { securitySheetState.show() }
                                             } else {
-                                                pendingLockedAlbumPath = album.relativePath
+                                                pendingLockedAlbumPath = album.absolutePath
                                                 biometricState.authenticate()
                                             }
                                         } else {
-                                            copyMedia(album.relativePath)
+                                            copyMedia(album.absolutePath)
                                         }
                                     }
                                 )
@@ -386,11 +386,11 @@ fun <T: Media> CopyMediaSheet(
                                             if (!biometricState.isSupported) {
                                                 scope.launch { securitySheetState.show() }
                                             } else {
-                                                pendingLockedAlbumPath = album.relativePath
+                                                pendingLockedAlbumPath = album.absolutePath
                                                 biometricState.authenticate()
                                             }
                                         } else {
-                                            copyMedia(album.relativePath)
+                                            copyMedia(album.absolutePath)
                                         }
                                     }
                                 )
