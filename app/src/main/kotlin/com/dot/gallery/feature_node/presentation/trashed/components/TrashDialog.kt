@@ -70,6 +70,7 @@ import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogA
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction.TRASH
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.presentation.util.canBeTrashed
 import com.dot.gallery.feature_node.presentation.util.mediaPair
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
@@ -198,7 +199,8 @@ fun <T : Media> TrashDialog(
                     )
                 }
 
-                val mediaPair = dataCopy.mediaPair()
+                val hasFullAccess = remember { SdkCompat.hasFullFileAccess }
+                val mediaPair = dataCopy.mediaPair(hasFullAccess)
 
                 AnimatedVisibility(visible = mediaPair.second.isNotEmpty() && !confirmed) {
                     Column(
@@ -264,7 +266,7 @@ fun <T : Media> TrashDialog(
                     ) {
                         val context = LocalContext.current
                         val longPressText = stringResource(R.string.long_press_to_remove)
-                        val canBeTrashed = it.canBeTrashed()
+                        val canBeTrashed = it.canBeTrashed(hasFullAccess)
                         val borderWidth = if (canBeTrashed) 0.5.dp else 2.dp
                         val borderColor =
                             if (canBeTrashed) MaterialTheme.colorScheme.onSurfaceVariant

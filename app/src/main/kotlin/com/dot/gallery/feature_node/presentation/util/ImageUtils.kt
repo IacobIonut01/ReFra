@@ -143,7 +143,8 @@ fun Bitmap.rotate(degrees: Float): Bitmap {
     return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
 }
 
-fun List<Media>.canBeTrashed(): Boolean {
+fun List<Media>.canBeTrashed(hasFullAccess: Boolean = false): Boolean {
+    if (hasFullAccess) return true
     return find { it.path.matches(sdcardRegex) } == null
 }
 
@@ -151,7 +152,8 @@ fun List<Media>.canBeTrashed(): Boolean {
  * first pair = trashable
  * second pair = non-trashable
  */
-fun List<Media>.mediaPair(): Pair<List<Media>, List<Media>> {
+fun List<Media>.mediaPair(hasFullAccess: Boolean = false): Pair<List<Media>, List<Media>> {
+    if (hasFullAccess) return this to emptyList()
     val trashableMedia = ArrayList<Media>()
     val nonTrashableMedia = ArrayList<Media>()
     forEach {
@@ -164,7 +166,8 @@ fun List<Media>.mediaPair(): Pair<List<Media>, List<Media>> {
     return trashableMedia to nonTrashableMedia
 }
 
-fun Media.canBeTrashed(): Boolean {
+fun Media.canBeTrashed(hasFullAccess: Boolean = false): Boolean {
+    if (hasFullAccess) return true
     return !path.matches(sdcardRegex)
 }
 

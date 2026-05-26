@@ -6,6 +6,7 @@
 package com.dot.gallery.core.util
 
 import android.os.Build
+import android.os.Environment
 
 /**
  * SDK compatibility helpers for features that differ between API 29 and 30+.
@@ -47,4 +48,14 @@ object SdkCompat {
      */
     val isApi29: Boolean
         get() = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
+
+    /**
+     * Whether the app has been granted MANAGE_EXTERNAL_STORAGE (All Files Access).
+     * On API 30+ this enables direct file operations on external volumes (SD cards).
+     * On API 29 and below, legacy storage grants full access by default.
+     */
+    val hasFullFileAccess: Boolean
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            Environment.isExternalStorageManager()
+        else true
 }

@@ -10,12 +10,13 @@ import androidx.work.WorkManager
 import com.dot.gallery.core.Settings.Misc.getTrashEnabled
 import com.dot.gallery.core.workers.VaultOperationWorker
 import com.dot.gallery.core.workers.enqueueVaultOperation
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.workers.rotateImage
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.presentation.util.mediaPair
+import com.dot.gallery.feature_node.presentation.util.sdcardRegex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -62,12 +63,18 @@ class MediaHandlerImpl @Inject constructor(
          * Or if user wants to remove existing items from the trash
          * */
         if ((isTrashEnabled || !trash)) {
-            val pair = mediaList.mediaPair()
-            if (pair.first.isNotEmpty()) {
-                repository.trashMedia(result, mediaList, trash)
+            val hasFullAccess = SdkCompat.hasFullFileAccess
+            val internalMedia = mediaList.filter { !it.path.matches(sdcardRegex) }
+            val sdCardMedia = mediaList.filter { it.path.matches(sdcardRegex) }
+            if (internalMedia.isNotEmpty()) {
+                repository.trashMedia(result, internalMedia, trash)
             }
-            if (pair.second.isNotEmpty()) {
-                repository.deleteMedia(result, mediaList)
+            if (sdCardMedia.isNotEmpty()) {
+                if (hasFullAccess) {
+                    repository.trashMediaDirectly(sdCardMedia, trash)
+                } else {
+                    repository.deleteMedia(result, sdCardMedia)
+                }
             }
         } else {
             repository.deleteMedia(result, mediaList)

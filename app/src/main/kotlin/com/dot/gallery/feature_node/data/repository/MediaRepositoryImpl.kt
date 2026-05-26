@@ -268,7 +268,8 @@ class MediaRepositoryImpl(
         MediaUriFlow(
             contentResolver = contentResolver,
             uris = listOfUris,
-            onlyMatchingUris = onlyMatching
+            onlyMatchingUris = onlyMatching,
+            reviewMode = reviewMode
         ).flowData().mapAsResource(errorOnEmpty = true, errorMessage = "Media could not be opened")
 
     override suspend fun <T : Media> toggleFavorite(
@@ -312,6 +313,30 @@ class MediaRepositoryImpl(
             .setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION, 0)
             .build()
         result.launch(senderRequest, ActivityOptionsCompat.makeTaskLaunchBehind())
+    }
+
+    override suspend fun <T : Media> trashMediaDirectly(
+        mediaList: List<T>,
+        trash: Boolean
+    ): Boolean = withContext(Dispatchers.IO) {
+        var allSuccess = true
+        mediaList.forEach { media ->
+            runCatching {
+                val values = ContentValues().apply {
+                    put(MediaStore.Files.FileColumns.IS_TRASHED, if (trash) 1 else 0)
+                }
+                contentResolver.update(media.getUri(), values, null, null) > 0
+            }.onFailure {
+                printWarning("Failed to trash media ${media.id} directly: ${it.message}")
+                allSuccess = false
+            }.onSuccess { success ->
+                if (!success) {
+                    printWarning("ContentResolver update returned 0 for media ${media.id}")
+                    allSuccess = false
+                }
+            }
+        }
+        allSuccess
     }
 
     override suspend fun <T : Media> deleteMedia(
