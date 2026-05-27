@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- GET STARTED: BASICS -->
-    <string name="help_tip_basics_timeline_title">Browse your timeline</string>
-    <string name="help_tip_basics_timeline_subtitle">See all your photos and videos organized by date</string>
+    <string name="help_tip_basics_timeline_title">Tra cứu dòng thời gian của bạn</string>
+    <string name="help_tip_basics_timeline_subtitle">Xem tất cả ảnh và thước phim của bạn được sắp xếp theo mốc thời gian</string>
     <string name="help_tip_basics_timeline_p1_title">Your photos, organized by time</string>
     <string name="help_tip_basics_timeline_p1_desc">The Timeline is your home screen — it displays every photo and video on your device, sorted from newest to oldest. Date headers separate your media by month, making it easy to scroll back to a specific time period. If you have thousands of photos, don\'t worry — Gallery loads them efficiently so scrolling stays smooth.</string>
     <string name="help_tip_basics_timeline_p2_title">Scroll and explore</string>
@@ -105,7 +105,7 @@
     <string name="help_tip_personalize_theme_p2_s3">For OLED screens, also enable \'AMOLED pure black\'</string>
     <string name="help_tip_personalize_colors_title">Customize color palette</string>
     <string name="help_tip_personalize_colors_subtitle">Pick any color to theme the entire app</string>
-    <string name="help_tip_personalize_colors_p1_title">Color palette</string>
+    <string name="help_tip_personalize_colors_p1_title">Bảng màu</string>
     <string name="help_tip_personalize_colors_p1_desc">Make Gallery truly yours by customizing its color scheme. System colors match your phone\'s wallpaper-based theme (Material You). Neutral gives a clean, subtle look. Preset palettes offer curated color combinations. Or pick any custom color you like — Gallery will generate a complete theme from it.</string>
     <string name="help_tip_personalize_colors_p2_title">Make it yours</string>
     <string name="help_tip_personalize_colors_p2_desc">The chosen color affects buttons, highlights, icons, cards, and backgrounds throughout the entire app. Experiment with different options to find what suits you — you can always change it later. Tip: System colors update automatically when you change your phone\'s wallpaper.</string>
