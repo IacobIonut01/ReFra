@@ -326,9 +326,9 @@
     <!-- AI Model Management -->
     <string name="ai_models_not_installed">ШІ моделі не встановлено. Завантажте їх з Налаштування &gt; Розумні Функції.</string>
     <string name="ai_models_manager">Менеджер ШІ Моделей</string>
-    <string name="ai_models_download">Завантажити ШІ Моделі</string>
-    <string name="ai_models_download_summary">Download AI models for image search and classification (~147 MB)</string>
-    <string name="ai_models_downloading">Downloading AI Models…</string>
+    <string name="ai_models_download">Завантажити Моделі ШІ</string>
+    <string name="ai_models_download_summary">Завантажити Моделі ШІ для пошуку та класифікації зображень (~147 МБ)</string>
+    <string name="ai_models_downloading">Завантаження Моделей ШІ…</string>
     <string name="ai_models_ready_summary">AI-powered search and classification are available</string>
     <string name="ai_models_error">AI Model Error</string>
     <string name="ai_models_delete">Delete AI Models</string>
