@@ -488,15 +488,15 @@
     <string name="vault_hide_in_progress">Hiding media…</string>
     <string name="vault_setup_password_prompt">Would you like to set a custom password for this vault?</string>
     <string name="vault_skip_password">Use device security</string>
-    <string name="vault_set_password">Set custom password</string>
-    <string name="vault_deletion_title_named">Delete \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">Vault \"%1$s\" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
-    <string name="vault_manage_security">Manage security</string>
-    <string name="vault_change_security">Set custom password</string>
-    <string name="vault_change_security_summary">Use a PIN, pattern, or password instead of device security</string>
-    <string name="vault_remove_custom_security">Remove custom password</string>
-    <string name="vault_remove_custom_security_summary">Revert to device security (biometric or screen lock)</string>
-    <string name="vault_gate_setup_title">Vault selector security</string>
+    <string name="vault_set_password">Встановити окремий пароль</string>
+    <string name="vault_deletion_title_named">Видалити \"%1$s\"?</string>
+    <string name="vault_deletion_summary_named">Сховище \"%1$s\" та весь його вміст буде видалено назавжди.\nЦя дія не може бути скасована.</string>
+    <string name="vault_manage_security">Керування безпекою</string>
+    <string name="vault_change_security">Встановити окремий пароль</string>
+    <string name="vault_change_security_summary">Використовувати PIN, графічний ключ або пароль замість безпеки пристрою</string>
+    <string name="vault_remove_custom_security">Видалити окремий пароль</string>
+    <string name="vault_remove_custom_security_summary">Повернутися до безпеки пристрою (біометричне або блокування екрана)</string>
+    <string name="vault_gate_setup_title">Безпека вибору сховища</string>
     <string name="vault_gate_setup_subtitle">Would you like to protect the vault selector screen?</string>
     <string name="vault_gate_setup_summary">This adds an extra layer of security before your vault list is visible.</string>
     <string name="vault_gate_none">None</string>
@@ -547,7 +547,7 @@
     <string name="show_date_header_description">Displays the date and time of the current photo at the top of the media viewer screen.</string>
     <string name="show_favorite_button_description">Shows a heart button in the media viewer toolbar, allowing you to quickly add or remove the current photo from your favorites.</string>
     <string name="audio_focus_description">When enabled, the app requests audio focus during video playback. This pauses other audio apps (music, podcasts) while your video plays.\n\nChanging this setting will restart the app.</string>
-    <string name="auto_hide_on_video_play_description">Automatically hides the top and bottom bars when a video starts playing, giving you a full-screen experience. Tap the screen to bring the controls back.</string>
+    <string name="auto_hide_on_video_play_description">Автоматично приховує верхню та нижню смуги, коли відео починає відтворюватися, надаючи вам повноекранний режим. Торкніться екрана, щоб повернути елементи керування.</string>
     <string name="auto_play_video_description">Videos start playing automatically when you swipe to them in the media viewer. Disable this to require a manual tap to play.</string>
     <string name="fancy_blur_description">Applies a blur effect to the background behind photos in the media viewer. Requires Android 12 or higher.</string>
     <string name="shared_elements_description">Enables smooth shared element transitions between the grid thumbnails and the full-screen media viewer. This creates a visual connection as items zoom in and out.</string>
@@ -679,7 +679,7 @@
     <string name="editor_add_text">Add Text</string>
     <string name="editor_pen">Pen</string>
     <string name="editor_highlighter">Highlighter</string>
-    <string name="editor_text">Text</string>
+    <string name="editor_text">Текст</string>
     <string name="editor_add_or_select_text">Add or select a text to change color</string>
     <string name="editor_type_something">Type something</string>
     <string name="editor_remove">Remove</string>
@@ -738,7 +738,7 @@
     <string name="pick_another">Pick another</string>
     <string name="remove_image">Remove image</string>
     <string name="find_similar">Find similar</string>
-    <string name="image_search_preview">Image search preview</string>
+    <string name="image_search_preview">Попередній перегляд пошуку зображень</string>
     <!-- Collections -->
     <string name="create_collection">Create collection</string>
     <string name="new_collection">New collection</string>
