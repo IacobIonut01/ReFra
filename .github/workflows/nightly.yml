@@ -57,7 +57,7 @@ jobs:
         run: echo "INCLUDE_MAPS=false" >> ./app.properties
       - name: Decode Keystore
         id: decode_keystore
-        uses: timheuer/base64-to-file@v1
+        uses: timheuer/base64-to-file@v2
         with:
           fileName: 'release_key.jks'
           fileDir: 'app/'
@@ -101,7 +101,7 @@ jobs:
         run: echo "INCLUDE_MAPS=false" >> ./app.properties
       - name: Decode Keystore
         id: decode_keystore
-        uses: timheuer/base64-to-file@v1
+        uses: timheuer/base64-to-file@v2
         with:
           fileName: 'release_key.jks'
           fileDir: 'app/'
@@ -141,7 +141,7 @@ jobs:
           echo "org.gradle.workers.max=2" >> gradle.properties
       - name: Decode Keystore
         id: decode_keystore
-        uses: timheuer/base64-to-file@v1
+        uses: timheuer/base64-to-file@v2
         with:
           fileName: 'release_key.jks'
           fileDir: 'app/'
