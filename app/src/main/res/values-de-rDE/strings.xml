@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ReFra</string>
-    <string name="app_name_gallery">Gallery</string>
+    <string name="app_name_gallery">Galerie</string>
     <string name="change_app_name">App-Name</string>
     <string name="change_app_name_summary">Ändere den in deinem Launcher angezeigten App-Namen</string>
     <string name="favorite_icon_on_thumbnails">Favorite icon on thumbnails</string>
