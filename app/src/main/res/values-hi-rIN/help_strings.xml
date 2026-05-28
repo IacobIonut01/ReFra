@@ -874,6 +874,147 @@
     <string name="help_tip_vault_overhaul_p2_s1">Create or open a vault</string>
     <string name="help_tip_vault_overhaul_p2_s2">Set a custom password or use device security</string>
     <string name="help_tip_vault_overhaul_p2_s3">Each vault can have its own independent security</string>
+    <!-- SECURITY SETTINGS -->
+    <string name="help_tip_security_sandbox_title">App sandbox protection</string>
+    <string name="help_tip_security_sandbox_subtitle">Isolate untrusted file processing in secure sandbox processes</string>
+    <string name="help_tip_security_sandbox_p1_title">What is sandboxing?</string>
+    <string name="help_tip_security_sandbox_p1_desc">Sandboxing protects the app by processing untrusted files — such as HEIF, AVIF, and JXL images — in isolated system processes. If a malicious file exploits a decoder vulnerability, the damage is contained in the sandbox and cannot reach the main app or your data.</string>
+    <string name="help_tip_security_sandbox_p2_title">Configuring sandbox protection</string>
+    <string name="help_tip_security_sandbox_p2_desc">You can control how aggressively files are sandboxed. Metadata isolation determines whether EXIF parsing happens in a shared process, per-file process, or a hybrid of both. Sandboxed image decoding routes HEIF/AVIF/JXL through an isolated decoder service using shared memory.</string>
+    <string name="help_tip_security_sandbox_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_sandbox_p2_s2">Choose a metadata isolation mode (Shared, Hybrid, or Per-file)</string>
+    <string name="help_tip_security_sandbox_p2_s3">Toggle sandboxed image decoding on or off</string>
+    <string name="help_tip_security_encrypted_storage_title">Encrypted storage</string>
+    <string name="help_tip_security_encrypted_storage_subtitle">Protect your settings and database with Android Keystore encryption</string>
+    <string name="help_tip_security_encrypted_storage_p1_title">What gets encrypted?</string>
+    <string name="help_tip_security_encrypted_storage_p1_desc">When enabled, your app preferences are encrypted using AES-256-GCM with keys stored in the Android Keystore. The Room database is also encrypted using SQLCipher, protecting your trash index, categories, and internal data at rest — even if the device is rooted.</string>
+    <string name="help_tip_security_encrypted_storage_p2_title">Enabling encrypted storage</string>
+    <string name="help_tip_security_encrypted_storage_p2_desc">Encryption is opt-in. Enabling it triggers a one-time migration that encrypts your existing data. This runs in the background and only needs to happen once.</string>
+    <string name="help_tip_security_encrypted_storage_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_encrypted_storage_p2_s2">Toggle Encrypted settings on</string>
+    <string name="help_tip_security_encrypted_storage_p2_s3">The app will migrate your data automatically</string>
+    <string name="help_tip_security_private_folder_title">Private folder</string>
+    <string name="help_tip_security_private_folder_subtitle">Keep sensitive files hidden and protected via Android\'s Storage Access Framework</string>
+    <string name="help_tip_security_private_folder_p1_title">How the private folder works</string>
+    <string name="help_tip_security_private_folder_p1_desc">The private folder uses Android\'s Storage Access Framework (SAF) to store files outside of MediaStore. Files in your private folder never appear in the normal timeline, are not indexed by other apps, and are protected behind the app\'s security gate.</string>
+    <string name="help_tip_security_private_folder_p2_title">Setting up a private folder</string>
+    <string name="help_tip_security_private_folder_p2_desc">Pick any folder on your device as the private folder. The app takes persistent access permission so it survives reboots. You can browse, view, and manage private files just like regular media.</string>
+    <string name="help_tip_security_private_folder_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_private_folder_p2_s2">Tap Private folder and select a directory</string>
+    <string name="help_tip_security_private_folder_p2_s3">Access your private files from the Library</string>
+    <!-- Timeline Filter (4.2.3) -->
+    <string name="help_tip_timeline_filter_title">Timeline filter</string>
+    <string name="help_tip_timeline_filter_subtitle">Filter your timeline by type, favorites, year, or album</string>
+    <string name="help_tip_timeline_filter_p1_title">Filter your timeline</string>
+    <string name="help_tip_timeline_filter_p1_desc">The timeline filter lets you narrow down what you see without leaving the main screen. Filter by media type (photos, videos, GIFs), show only favorites, jump to a specific year, or scope the timeline to a single album. Combine multiple filters for precise results.</string>
+    <string name="help_tip_timeline_filter_p2_title">How to use</string>
+    <string name="help_tip_timeline_filter_p2_desc">Access the filter directly from the search bar at the top of the timeline. Tap the filter icon to expand filter options. Active filters are shown as chips that can be individually removed.</string>
+    <string name="help_tip_timeline_filter_p2_s1">Tap the filter icon in the search bar</string>
+    <string name="help_tip_timeline_filter_p2_s2">Select a filter category (type, favorites, year, album)</string>
+    <string name="help_tip_timeline_filter_p2_s3">Tap a filter chip to remove it</string>
+    <string name="help_tip_timeline_filter_p2_s4">The filter visibility toggle is available in Settings</string>
+    <!-- Animated Format Support (4.2.3) -->
+    <string name="help_tip_animated_formats_title">Animated image support</string>
+    <string name="help_tip_animated_formats_subtitle">View animated AVIF, JXL, and APNG images</string>
+    <string name="help_tip_animated_formats_p1_title">Animated formats</string>
+    <string name="help_tip_animated_formats_p1_desc">Gallery now supports animated AVIF, animated JXL, and APNG image formats. These modern animated image formats offer better compression and quality compared to GIF. Animated images play automatically in the media viewer just like GIFs.</string>
+    <string name="help_tip_animated_formats_p2_title">Supported formats</string>
+    <string name="help_tip_animated_formats_p2_desc">The following animated formats are supported alongside traditional GIF: Animated AVIF (AV1-based animation), Animated JXL (JPEG XL animation), and APNG (Animated PNG). Thumbnail animation in the grid can be controlled from the Timeline &amp; Albums settings.</string>
+    <!-- Video Subtitles (4.2.3) -->
+    <string name="help_tip_video_subtitles_title">Video subtitles</string>
+    <string name="help_tip_video_subtitles_subtitle">Select embedded or external subtitle tracks for videos</string>
+    <string name="help_tip_video_subtitles_p1_title">Subtitle support</string>
+    <string name="help_tip_video_subtitles_p1_desc">Gallery supports both embedded subtitle tracks (built into the video file) and external subtitle files (.srt, .ass, .ssa, etc.). When a video has subtitle tracks available, a subtitle button appears in the video player controls.</string>
+    <string name="help_tip_video_subtitles_p2_title">Managing subtitles</string>
+    <string name="help_tip_video_subtitles_p2_desc">Tap the subtitle button during video playback to open the subtitle selector. You can switch between available tracks, load an external subtitle file, or disable subtitles entirely. External subtitle files can also be deleted from the bottom sheet.</string>
+    <string name="help_tip_video_subtitles_p2_s1">Tap the subtitle icon in the video player</string>
+    <string name="help_tip_video_subtitles_p2_s2">Select an embedded track or load an external file</string>
+    <string name="help_tip_video_subtitles_p2_s3">Tap \'None\' to disable subtitles</string>
+    <!-- Video Pinch-to-Zoom (4.2.3) -->
+    <string name="help_tip_video_zoom_title">Video pinch-to-zoom</string>
+    <string name="help_tip_video_zoom_subtitle">Zoom into videos with pinch and double-tap gestures</string>
+    <string name="help_tip_video_zoom_p1_title">Zoom in videos</string>
+    <string name="help_tip_video_zoom_p1_desc">You can now pinch-to-zoom and double-tap-to-zoom while watching videos, just like with photos. This is useful for examining fine details in video footage. Pan around while zoomed in by dragging with one finger. Double-tap again to reset to the original size.</string>
+    <!-- Search Enhancements (4.2.3) -->
+    <string name="help_tip_search_metadata_title">Search descriptions &amp; metadata</string>
+    <string name="help_tip_search_metadata_subtitle">Find photos by their description or metadata text</string>
+    <string name="help_tip_search_metadata_p1_title">Extended search</string>
+    <string name="help_tip_search_metadata_p1_desc">Search now extends beyond filenames and AI analysis. Your search queries also match against image descriptions, EXIF metadata text fields, and other embedded metadata. This makes it easier to find photos you have annotated or that contain specific camera or lens information.</string>
+    <!-- Copy/Move Album Picker Search (4.2.3) -->
+    <string name="help_tip_album_picker_search_title">Album picker search</string>
+    <string name="help_tip_album_picker_search_subtitle">Search for albums when copying or moving photos</string>
+    <string name="help_tip_album_picker_search_p1_title">Find albums quickly</string>
+    <string name="help_tip_album_picker_search_p1_desc">When copying or moving photos to another album, you can now search for the target album by name. A search bar at the top of the album picker sheet lets you quickly filter the album list, making it much faster to find the right destination when you have many albums.</string>
+    <!-- Redesigned Trash &amp; Favorites (4.2.3) -->
+    <string name="help_tip_trash_fav_redesign_title">Redesigned Trash &amp; Favorites</string>
+    <string name="help_tip_trash_fav_redesign_subtitle">Refreshed screens for Trash and Favorites</string>
+    <string name="help_tip_trash_fav_redesign_p1_title">New look</string>
+    <string name="help_tip_trash_fav_redesign_p1_desc">The Trash and Favorites screens have been completely redesigned with a fresh layout, improved visual hierarchy, and smoother animations. The new design brings them in line with the modern look of the rest of the app.</string>
+    <!-- Story Cards (4.3.0) -->
+    <string name="help_tip_story_cards_title">Story cards</string>
+    <string name="help_tip_story_cards_subtitle">Swipeable photo stories above the timeline</string>
+    <string name="help_tip_story_cards_p1_title">Relive your memories</string>
+    <string name="help_tip_story_cards_p1_desc">Story cards appear as a horizontal carousel above your timeline, surfacing highlights from your recent photos, albums, categories, locations, and favorites. Tap any card to open an immersive full-screen story viewer with auto-advancing slides and progress indicators — just like stories in social media apps.</string>
+    <string name="help_tip_story_cards_p2_title">Customize your cards</string>
+    <string name="help_tip_story_cards_p2_desc">Control which card types are shown and their order. You can toggle memory, album, category, location, and favorites cards individually, reorder them by drag, and configure the story viewer behavior including auto-advance and duration per photo.</string>
+    <string name="help_tip_story_cards_p2_s1">Go to Settings &gt; Timeline &amp; albums &gt; Story cards</string>
+    <string name="help_tip_story_cards_p2_s2">Toggle individual card types on or off</string>
+    <string name="help_tip_story_cards_p2_s3">Drag to reorder card types</string>
+    <string name="help_tip_story_cards_p2_s4">Configure auto-advance and slide duration</string>
+    <!-- Redesigned Video Controls (4.3.0) -->
+    <string name="help_tip_video_options_popup_title">Video options popup</string>
+    <string name="help_tip_video_options_popup_subtitle">Compact animated popup for video controls</string>
+    <string name="help_tip_video_options_popup_p1_title">Cleaner video controls</string>
+    <string name="help_tip_video_options_popup_p1_desc">Video control buttons (subtitle, speed, volume, rotate) have been consolidated into a single \'more options\' button that expands into a blurred animated popup. The popup uses a row layout in landscape and column in portrait, keeping the video view uncluttered while still providing quick access to all controls.</string>
+    <!-- RELEASE NOTES: 4.3.0 -->
+    <string name="help_release_430_story_cards_title">Story cards</string>
+    <string name="help_release_430_story_cards_desc">Swipeable photo stories above the timeline with auto-advancing viewer and configurable card types</string>
+    <string name="help_release_430_video_controls_title">Redesigned video controls</string>
+    <string name="help_release_430_video_controls_desc">Animated more-options popup replaces the tall stack of video control buttons</string>
+    <string name="help_release_430_video_auto_contrast_title">Video auto-contrast</string>
+    <string name="help_release_430_video_auto_contrast_desc">Auto-contrast and adaptive colors now extend to the video options popup</string>
+    <string name="help_release_430_startup_title">Faster cold startup</string>
+    <string name="help_release_430_startup_desc">Cold startup optimized from ~900 ms to ~350 ms with lazy keystore caching and deferred initialization</string>
+    <string name="help_release_430_shared_elements_title">Improved shared element transitions</string>
+    <string name="help_release_430_shared_elements_desc">More accurate photo-to-viewer transitions with single stable registration and Long-based keys</string>
+    <string name="help_release_430_bugfixes_title">Bug fixes</string>
+    <string name="help_release_430_bugfixes_desc">Fixed move/copy album access with MANAGE_MEDIA, screen rotation reset on video exit, status bar sync, ClassCastException after unlock, grid realignment on back navigation, loading shimmer during startup, and empty-media padding</string>
+    <!-- RELEASE NOTES: 4.2.3 -->
+    <string name="help_release_423_timeline_filter_title">Timeline filter</string>
+    <string name="help_release_423_timeline_filter_desc">Filter the timeline by media type, favorites, year, or album</string>
+    <string name="help_release_423_animated_formats_title">Animated format support</string>
+    <string name="help_release_423_animated_formats_desc">Play animated AVIF, JXL, and APNG images alongside GIF</string>
+    <string name="help_release_423_video_subtitles_title">Video subtitles</string>
+    <string name="help_release_423_video_subtitles_desc">Embedded and external subtitle track selection with bottom-sheet management</string>
+    <string name="help_release_423_video_zoom_title">Video pinch-to-zoom</string>
+    <string name="help_release_423_video_zoom_desc">Pinch-to-zoom and double-tap-to-zoom during video playback</string>
+    <string name="help_release_423_search_enhancements_title">Enhanced search</string>
+    <string name="help_release_423_search_enhancements_desc">Search through image descriptions, metadata text fields, and inline timeline filter</string>
+    <string name="help_release_423_trash_fav_redesign_title">Redesigned Trash &amp; Favorites</string>
+    <string name="help_release_423_trash_fav_redesign_desc">Refreshed layout, improved visual hierarchy, and smoother animations</string>
+    <string name="help_release_423_album_picker_search_title">Album picker search</string>
+    <string name="help_release_423_album_picker_search_desc">Search bar in the copy/move album picker for quick album lookup</string>
+    <string name="help_release_423_ux_improvements_title">UX improvements</string>
+    <string name="help_release_423_ux_improvements_desc">Dismissible settings banners, bottom-sheet confirmations, and optimistic trash feedback</string>
+    <string name="help_release_423_bugfixes_title">Bug fixes</string>
+    <string name="help_release_423_bugfixes_desc">Fixed drag-selection tracking, metadata edit keyboard overlap, and preserved original dates when overriding edited photos</string>
+    <!-- RELEASE NOTES: 4.2.2 -->
+    <string name="help_release_422_security_hardening_title">Security hardening</string>
+    <string name="help_release_422_security_hardening_desc">App sandbox (targetSandboxVersion 2), encrypted storage, and isolated file processing</string>
+    <string name="help_release_422_sandboxed_decoding_title">Sandboxed image decoding</string>
+    <string name="help_release_422_sandboxed_decoding_desc">HEIF, AVIF, and JXL images are decoded in isolated processes for exploit protection</string>
+    <string name="help_release_422_isolated_metadata_title">Isolated metadata parsing</string>
+    <string name="help_release_422_isolated_metadata_desc">EXIF and metadata extraction runs in per-file sandbox processes</string>
+    <string name="help_release_422_private_folder_title">Private folder</string>
+    <string name="help_release_422_private_folder_desc">Store sensitive files outside MediaStore via SAF, hidden behind a security gate</string>
+    <string name="help_release_422_encrypted_storage_title">Encrypted storage</string>
+    <string name="help_release_422_encrypted_storage_desc">Encrypt app preferences (AES-256-GCM) and Room database (SQLCipher) at rest</string>
+    <string name="help_release_422_rescan_tracking_title">Persistent rescan tracking</string>
+    <string name="help_release_422_rescan_tracking_desc">MediaStore rescan state is now persisted in the database across app restarts</string>
+    <string name="help_release_422_performance_title">Various performance improvements</string>
+    <string name="help_release_422_performance_desc">Lazy per-album timeline flows, reduced recompositions in media viewer, optimized collection types and state management</string>
+    <string name="help_release_422_bugfixes_title">Bug fixes &amp; improvements</string>
+    <string name="help_release_422_bugfixes_desc">Fixed slow AI classification, dark status bar icons, map intent crash, motion player leak, large batch copy crash, filename date fallback, and updated dependencies</string>
     <!-- RELEASE NOTES: 4.2.1 -->
     <string name="help_release_421_fcast_casting_title">FCast video casting</string>
     <string name="help_release_421_fcast_casting_desc">Cast videos and images to devices on your local network</string>
