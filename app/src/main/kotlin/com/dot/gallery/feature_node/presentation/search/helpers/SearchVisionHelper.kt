@@ -31,15 +31,31 @@ class SearchVisionHelper(private val modelManager: ModelManager) {
     private fun createOrtSessionWithFallback(modelName: String): OrtSession {
         if (!modelManager.isReady) throw ModelsNotAvailableException()
 
-        val options = OrtSession.SessionOptions()
+        val isQuantized = modelName.contains("quant")
 
-        try {
-            printDebug("Available providers: ${OrtEnvironment.getAvailableProviders()}")
-            // Try NNAPI (available on API 27+, our min is 29)
-            printDebug("Using NNAPI for inference")
-            options.addNnapi(EnumSet.of(NNAPIFlags.USE_FP16))
-        } catch (e: Exception) {
-            printDebug("NNAPI not available, falling back to CPU: ${e.message}")
+        val options = OrtSession.SessionOptions().apply {
+            // Enable all graph optimizations (constant folding, op fusion, etc.)
+            setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
+            // Use multiple CPU threads for intra-op parallelism (e.g. matmul)
+            setIntraOpNumThreads(Runtime.getRuntime().availableProcessors().coerceIn(2, 4))
+        }
+
+        // Only try NNAPI for non-quantized models.
+        // Quantized (INT8) models cause severe NNAPI overhead:
+        //  - NNAPI compilation can take minutes for complex models like CLIP
+        //  - Many quantized ops aren't NNAPI-supported, causing graph partitioning
+        //    with expensive CPU↔NNAPI memory copies at each boundary
+        //  - USE_FP16 flag with INT8 model adds unnecessary type conversions
+        if (!isQuantized) {
+            try {
+                printDebug("Available providers: ${OrtEnvironment.getAvailableProviders()}")
+                printDebug("Using NNAPI for inference")
+                options.addNnapi(EnumSet.of(NNAPIFlags.USE_FP16))
+            } catch (e: Exception) {
+                printDebug("NNAPI not available, falling back to CPU: ${e.message}")
+            }
+        } else {
+            printDebug("Using optimized CPU inference for quantized model: $modelName")
         }
 
         // Load model from filesDir using path-based API (memory-mapped, avoids OOM)

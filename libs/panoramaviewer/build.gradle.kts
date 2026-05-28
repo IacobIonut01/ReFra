@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.dot.gallery.libs.panoramaviewer"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 29

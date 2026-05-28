@@ -1,6 +1,7 @@
 package com.dot.gallery.core.decoder.glide
 
 import android.graphics.Bitmap
+import android.util.Log
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapResource
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
@@ -37,7 +38,7 @@ internal class HeifDecoderCore(
                 Result(BitmapResource.obtain(bmp, bitmapPool), true)
             }
         } catch (e: Throwable) {
-            android.util.Log.e(tag, "decode failed mime=$mime: ${e.message}", e)
+            Log.e(tag, "decode failed mime=$mime: ${e.message}", e)
             Result(null, false)
         }
     }

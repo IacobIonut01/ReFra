@@ -23,6 +23,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.isVideo
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoControllerState
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayer
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.hazeSource
@@ -46,7 +47,8 @@ fun <T : Media> MediaPreviewComponent(
     isMotionPhoto: Boolean = false,
     motionPhotoState: MotionPhotoState? = null,
     currentVault: Vault? = null,
-    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float) -> Unit,
+    onZoomChange: (Boolean) -> Unit = {},
+    videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float, VideoControllerState) -> Unit,
 ) {
     AnimatedVisibility(
         modifier = Modifier
@@ -66,6 +68,7 @@ fun <T : Media> MediaPreviewComponent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .then(modifier)
                     .then(containerModifier)
                     .offset { offset },
             ) {
@@ -76,12 +79,13 @@ fun <T : Media> MediaPreviewComponent(
                     exit = fadeOut()
                 ) {
                     VideoPlayer(
-                        modifier = modifier,
+                        modifier = Modifier,
                         media = media,
                         playWhenReady = playWhenReady,
                         videoController = videoController,
                         onItemClick = onItemClick,
-                        onSwipeDown = onSwipeDown
+                        onSwipeDown = onSwipeDown,
+                        onZoomChange = onZoomChange
                     )
                 }
 
@@ -92,7 +96,7 @@ fun <T : Media> MediaPreviewComponent(
                     exit = fadeOut()
                 ) {
                     ZoomablePagerImage(
-                        modifier = modifier,
+                        modifier = Modifier,
                         media = media,
                         uiEnabled = uiEnabled,
                         rotationDisabled = rotationDisabled,
@@ -102,7 +106,7 @@ fun <T : Media> MediaPreviewComponent(
                     )
                 }
 
-                if (!media.isVideo && motionPhotoState != null) {
+                if (!media.isVideo && isMotionPhoto && motionPhotoState != null) {
                     MotionPhotoSurface(state = motionPhotoState)
                 }
 
@@ -115,7 +119,7 @@ fun <T : Media> MediaPreviewComponent(
                     PanoramaImageViewer(
                         media = media,
                         isPhotosphere = isPhotosphere,
-                        modifier = modifier,
+                        modifier = Modifier,
                         onItemClick = onItemClick,
                         currentVault = currentVault
                     )

@@ -637,34 +637,14 @@ class SearchViewModel @Inject constructor(
                 )
                 return@launch
             }
-            val metadataMatches = metadata.value.metadata.filter { mtd ->
-                mtd.toString().contains(query, ignoreCase = true)
-            }
-            if (metadataMatches.isNotEmpty()) {
-                // If the query matches metadata, filter by that metadata
-                val filteredMedia = allMedia.filter { media ->
-                    metadataMatches.any { it.mediaId == media.id }
-                }
+            val metadataMatchIds = metadata.value.metadata
+                .filter { it.searchableText.contains(query, ignoreCase = true) }
+                .mapTo(HashSet()) { it.mediaId }
+            if (metadataMatchIds.isNotEmpty()) {
+                val filteredMedia = allMedia.filter { it.id in metadataMatchIds }
                 results.mergeWithHighestScore(
                     filteredMedia.map { 1f to it }
                 )
-                val mediaState = mapMediaToItem(
-                    data = results.map { it.second },
-                    error = "",
-                    albumId = -1L,
-                    defaultDateFormat = dateFormats.value.first,
-                    extendedDateFormat = dateFormats.value.second,
-                    weeklyDateFormat = dateFormats.value.third
-                )
-                _searchResultsState.tryEmit(
-                    SearchResultsState(
-                        hasSearched = true,
-                        isSearching = false,
-                        progress = 1f,
-                        results = mediaState
-                    )
-                )
-                return@launch
             }
             if (searchHelper.isAvailable) {
                 searchHelper.setupTextSession().use { session ->

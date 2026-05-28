@@ -23,6 +23,7 @@ import com.dot.gallery.feature_node.presentation.util.printError
 @Composable
 fun NavigationBackButton(
     modifier: Modifier = Modifier,
+    paddingModifier: Modifier = Modifier.padding(horizontal = 8.dp),
     icon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack,
     contentDescription: String = stringResource(R.string.back_cd),
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
@@ -33,7 +34,7 @@ fun NavigationBackButton(
     val activity = LocalActivity.current
     IconButton(
         modifier = modifier
-            .padding(horizontal = 8.dp)
+            .then(paddingModifier)
             .then(containerModifier)
             .background(
                 color = containerColor,

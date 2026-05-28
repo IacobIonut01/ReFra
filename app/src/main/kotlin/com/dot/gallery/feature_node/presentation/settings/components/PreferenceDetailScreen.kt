@@ -60,6 +60,7 @@ data class PreferenceOption<T>(
     val value: T,
     val label: String,
     val isSelected: Boolean,
+    val description: String? = null,
 )
 
 /**
@@ -406,6 +407,7 @@ fun <T> ChooserPreferenceDetailScreen(
                     SettingsItem(
                         item = SettingsEntity.Preference(
                             title = option.label,
+                            summary = option.description,
                             onClick = { onOptionSelected?.invoke(option.value) },
                             screenPosition = optionPosition
                         ),

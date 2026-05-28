@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.edit.components.filters
 
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
@@ -77,12 +78,7 @@ fun FiltersSelector(
         val maxSize = 200
         val scale = minOf(maxSize.toFloat() / bitmap.width, maxSize.toFloat() / bitmap.height, 1f)
         if (scale < 1f) {
-            Bitmap.createScaledBitmap(
-                bitmap,
-                (bitmap.width * scale).toInt().coerceAtLeast(1),
-                (bitmap.height * scale).toInt().coerceAtLeast(1),
-                true
-            )
+            bitmap.scale((bitmap.width * scale).toInt().coerceAtLeast(1), (bitmap.height * scale).toInt().coerceAtLeast(1))
         } else bitmap
     }
     val noFilterActive = activeFilterName == null

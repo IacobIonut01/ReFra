@@ -34,10 +34,6 @@ class TiffMimeInputStreamDecoder(
         height: Int,
         options: Options
     ): Resource<Bitmap>? {
-        if (Build.VERSION.SDK_INT < 28) {
-            Log.w("TiffMimeDecoder", "decode() skipping – API < 28")
-            return null
-        }
         return try {
             val data = source.inputStream.readBytes()
             // Size guard: avoid attempting full decode of extremely large TIFFs (> 64MB here)

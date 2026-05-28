@@ -1,7 +1,11 @@
 package com.dot.gallery.feature_node.presentation.edit.components.editor
 
 import android.graphics.Bitmap
+import android.graphics.ColorMatrix as NativeColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.RectF
+import android.graphics.RenderEffect
+import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -280,10 +284,10 @@ fun ImageViewer(
                     modifier = Modifier.graphicsLayer {
                         if (effectiveColorFilter != null) {
                             // API 31+ RenderEffect for color matrix on cropper content
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                                renderEffect = android.graphics.RenderEffect.createColorFilterEffect(
-                                    android.graphics.ColorMatrixColorFilter(
-                                        android.graphics.ColorMatrix(previewMatrix.values)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                renderEffect = RenderEffect.createColorFilterEffect(
+                                    ColorMatrixColorFilter(
+                                        NativeColorMatrix(previewMatrix.values)
                                     )
                                 ).asComposeRenderEffect()
                             }

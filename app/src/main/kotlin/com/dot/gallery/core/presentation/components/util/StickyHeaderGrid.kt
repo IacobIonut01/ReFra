@@ -6,7 +6,6 @@
 package com.dot.gallery.core.presentation.components.util
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -39,17 +38,15 @@ fun StickyHeaderGrid(
             if (showSearchBar) 0 else 64.dp.roundToPx() + statusBarHeightPx
         }
     }
-    val offsetAnimation by animateIntOffsetAsState(
-        remember(headerOffset, toolbarOffset) {
-            IntOffset(
-                x = 0,
-                y = headerOffset + toolbarOffset
-            )
-        }, label = "offsetAnimation"
-    )
+    val totalOffsetY = remember(headerOffset, toolbarOffset) {
+        IntOffset(
+            x = 0,
+            y = headerOffset + toolbarOffset
+        )
+    }
 
     val alphaAnimation by animateFloatAsState(
-        targetValue = remember(offsetAnimation) { if (offsetAnimation.y < -100) 0f else 1f },
+        targetValue = remember(totalOffsetY) { if (totalOffsetY.y < -100) 0f else 1f },
         label = "alphaAnimation",
         animationSpec = tween(100, 10),
     )
@@ -59,7 +56,7 @@ fun StickyHeaderGrid(
         Box(
             modifier = Modifier
                 .alpha(alphaAnimation)
-                .offset { offsetAnimation }
+                .offset { totalOffsetY }
         ) {
             stickyHeader()
         }

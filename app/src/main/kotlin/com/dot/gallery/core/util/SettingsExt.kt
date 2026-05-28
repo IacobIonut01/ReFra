@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dot.gallery.core.dataStore
+import com.dot.gallery.core.activeDataStore
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -27,7 +27,7 @@ fun <T> rememberPreference(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val state by remember {
-        context.dataStore.data
+        context.activeDataStore.data
             .map { it[key] ?: defaultValue }
     }.collectAsStateWithLifecycle(initialValue = defaultValue)
 
@@ -37,7 +37,7 @@ fun <T> rememberPreference(
                 get() = state
                 set(value) {
                     coroutineScope.launch {
-                        context.dataStore.edit {
+                        context.activeDataStore.edit {
                             it[key] = value
                         }
                     }
@@ -57,7 +57,7 @@ inline fun <reified T> rememberPreferenceSerializable(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val state by remember {
-        context.dataStore.data
+        context.activeDataStore.data
             .map { it[keyString] ?: Json.encodeToString(defaultValue) }
     }.collectAsStateWithLifecycle(initialValue = Json.encodeToString(defaultValue))
 
@@ -67,7 +67,7 @@ inline fun <reified T> rememberPreferenceSerializable(
                 get() = Json.decodeFromString(state)
                 set(value) {
                     coroutineScope.launch {
-                        context.dataStore.edit {
+                        context.activeDataStore.edit {
                             it[keyString] = Json.encodeToString(value)
                         }
                     }

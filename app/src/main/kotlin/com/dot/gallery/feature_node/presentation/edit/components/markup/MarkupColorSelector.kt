@@ -1,5 +1,6 @@
 package com.dot.gallery.feature_node.presentation.edit.components.markup
 
+import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -38,10 +39,10 @@ fun MarkupColorSelector(
             currentColor = currentPathProperty.color,
         ) { hue ->
             val hsv = FloatArray(3)
-            android.graphics.Color.colorToHSV(currentPathProperty.color.toArgb(), hsv)
+            AndroidColor.colorToHSV(currentPathProperty.color.toArgb(), hsv)
             hsv[0] = hue
             val newColor = Color(
-                android.graphics.Color.HSVToColor(
+                AndroidColor.HSVToColor(
                     (currentPathProperty.color.alpha * 255).toInt(),
                     hsv
                 )
@@ -55,10 +56,10 @@ fun MarkupColorSelector(
             currentColor = currentPathProperty.color
         ) { saturation ->
             val hsv = FloatArray(3)
-            android.graphics.Color.colorToHSV(currentPathProperty.color.toArgb(), hsv)
+            AndroidColor.colorToHSV(currentPathProperty.color.toArgb(), hsv)
             hsv[1] = saturation
             val newColor = Color(
-                android.graphics.Color.HSVToColor(
+                AndroidColor.HSVToColor(
                     (currentPathProperty.color.alpha * 255).toInt(),
                     hsv
                 )

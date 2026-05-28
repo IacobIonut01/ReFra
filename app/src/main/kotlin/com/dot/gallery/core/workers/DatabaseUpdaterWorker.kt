@@ -72,7 +72,7 @@ class DatabaseUpdaterWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = runCatching {
         delay(5000)
-    if (!currentCoroutineContext().isActive || isStopped) return Result.success()
+        if (!currentCoroutineContext().isActive || isStopped) return Result.success()
         if (database.isMediaUpToDate(appContext)) {
             printDebug("Database is up to date")
             return Result.success()

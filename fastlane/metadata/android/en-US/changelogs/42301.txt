@@ -1,0 +1,20 @@
+What's new in 4.2.3:
+
+• Timeline Filter — Filter the timeline by media type, favorites, year, or album directly from the search bar
+• Animated Format Support — Play animated AVIF, JXL, and APNG images alongside GIF
+• Video Subtitles — Select embedded or external subtitle tracks during video playback with a new bottom-sheet manager
+• Video Pinch-to-Zoom — Pinch-to-zoom and double-tap-to-zoom during video playback
+• Search Descriptions & Metadata — Search now matches image descriptions, EXIF metadata, and other embedded text fields
+• Album Picker Search — Search bar in the copy/move album picker for quick album lookup
+• Redesigned Trash & Favorites — Refreshed layout, improved visual hierarchy, and smoother animations
+
+UX improvements:
+• Filter moved to inline search bar with settings toggle
+• Dismissible Donate/GitHub banners in Settings
+• Bottom sheet confirmations replace dismiss X button
+• Optimistic UI feedback when trashing images
+
+Bug fixes:
+• Fixed drag-selection tracking not initializing without prior selection
+• Fixed keyboard overlapping metadata edit bottom sheet
+• Preserved original DATE_TAKEN and DATE_ADDED when overriding edited photos

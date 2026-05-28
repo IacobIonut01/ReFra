@@ -1,6 +1,8 @@
 package com.dot.gallery.feature_node.presentation.settings.subsettings
 
+import android.content.Intent
 import android.text.format.Formatter
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -209,9 +211,9 @@ fun AIModelsManagerScreen(
                     title = sourceLabel,
                     summary = sourceUrl,
                     onClick = {
-                        val intent = android.content.Intent(
-                            android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse(sourceUrl)
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            sourceUrl.toUri()
                         )
                         context.startActivity(intent)
                     }

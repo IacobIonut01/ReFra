@@ -33,6 +33,7 @@ fun ComponentRegistry.Builder.supportVaultDecoder(): ComponentRegistry.Builder =
 private val RAW_IMAGE_MIME_TYPES = listOf(
     "image/gif",
     "image/webp",
+    "image/jxl",
     "image/svg+xml",
     "image/bmp"
 )

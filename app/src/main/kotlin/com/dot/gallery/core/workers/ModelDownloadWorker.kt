@@ -268,12 +268,7 @@ class ModelDownloadWorker @AssistedInject constructor(
             .setSilent(true)
             .build()
 
-        val foregroundServiceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-        } else {
-            0
-        }
-        return ForegroundInfo(NOTIFICATION_ID, notification, foregroundServiceType)
+        return ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
     }
 
     companion object {

@@ -38,8 +38,8 @@ android {
         applicationId = "com.dot.gallery"
         minSdk = 29
         targetSdk = 37
-        versionCode = 42101
-        versionName = "4.2.1"
+        versionCode = 43001
+        versionName = "4.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -258,6 +258,10 @@ dependencies {
 
     // Kotlin Extensions and Coroutines support for Room
     implementation(libs.room.ktx)
+
+    // SQLCipher for encrypted Room database
+    implementation(libs.sqlcipher.android)
+    implementation(libs.sqlite.ktx)
 
     // Coders
     implementation(libs.jxl.coder.coil)

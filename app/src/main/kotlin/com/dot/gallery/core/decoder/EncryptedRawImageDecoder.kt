@@ -8,7 +8,10 @@ import android.graphics.ImageDecoder
 import android.graphics.Movie
 import android.graphics.drawable.AnimatedImageDrawable
 import android.os.Build
+import android.util.Size as AndroidSize
 import androidx.annotation.RequiresApi
+import com.awxkee.jxlcoder.JxlAnimatedImage
+import com.awxkee.jxlcoder.JxlCoder
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.github.panpf.sketch.asImage
@@ -36,14 +39,15 @@ import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 
 /**
- * Decoder for encrypted raw image formats (GIF, WebP, SVG, BMP).
+ * Decoder for encrypted raw image formats (GIF, WebP, JXL, SVG, BMP).
  * 
  * - GIF: Always animated using MovieDrawable
  * - WebP: Animated using AnimatedImageDrawable on API 28+, static fallback otherwise
+ * - JXL: Animated via [JxlAnimationDrawable], static via [JxlCoder]
  * - SVG, BMP: Static bitmap decoding
  * 
  * This ensures raw image formats in the vault display properly in full-screen MediaView,
- * preserving animation for GIF and animated WebP files.
+ * preserving animation for GIF, animated WebP, and animated JXL files.
  */
 class EncryptedRawImageDecoder(
     private val requestContext: RequestContext,
@@ -77,6 +81,7 @@ class EncryptedRawImageDecoder(
         return when (mimeType) {
             "image/gif" -> readGifImageInfo(bytes)
             "image/webp" -> readWebPImageInfo(bytes)
+            "image/jxl" -> readJxlImageInfo(bytes)
             else -> readBitmapImageInfo(bytes)
         }
     }
@@ -93,6 +98,11 @@ class EncryptedRawImageDecoder(
     
     private fun readWebPImageInfo(bytes: ByteArray): ImageInfo {
         return readBitmapImageInfo(bytes)
+    }
+    
+    private fun readJxlImageInfo(bytes: ByteArray): ImageInfo {
+        val size: AndroidSize = JxlCoder.getSize(bytes) ?: AndroidSize(0, 0)
+        return ImageInfo(size.width, size.height, mimeType)
     }
     
     private fun readBitmapImageInfo(bytes: ByteArray): ImageInfo {
@@ -136,6 +146,8 @@ class EncryptedRawImageDecoder(
         return when (mimeType) {
             "image/gif" -> decodeGif(bytes)
             "image/webp" -> decodeWebP(bytes)
+            "image/apng" -> decodeApng(bytes)
+            "image/jxl" -> decodeJxl(bytes)
             else -> decodeStaticBitmap(bytes)
         }
     }
@@ -179,15 +191,24 @@ class EncryptedRawImageDecoder(
     private suspend fun decodeWebP(bytes: ByteArray): ImageData {
         val isAnimated = isAnimatedWebP(bytes)
         
-        return if (isAnimated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        return if (isAnimated) {
             decodeAnimatedWebP(bytes)
         } else {
             decodeStaticBitmap(bytes)
         }
     }
     
-    @RequiresApi(Build.VERSION_CODES.P)
+    private suspend fun decodeApng(bytes: ByteArray): ImageData {
+        return decodeAnimatedImageDecoder(bytes)
+    }
+
     private suspend fun decodeAnimatedWebP(bytes: ByteArray): ImageData {
+        val request = requestContext.request
+        
+        return decodeAnimatedImageDecoder(bytes)
+    }
+
+    private suspend fun decodeAnimatedImageDecoder(bytes: ByteArray): ImageData {
         val request = requestContext.request
         
         val source = ImageDecoder.createSource(ByteBuffer.wrap(bytes))
@@ -226,6 +247,53 @@ class EncryptedRawImageDecoder(
         }
     }
     
+    private suspend fun decodeJxl(bytes: ByteArray): ImageData {
+        val animatedImage = JxlAnimatedImage(bytes)
+
+        if (animatedImage.numberOfFrames <= 1) {
+            animatedImage.close()
+            // Static JXL – decode as a single bitmap via JxlCoder
+            val size: AndroidSize = JxlCoder.getSize(bytes) ?: AndroidSize(0, 0)
+            val bitmap = JxlCoder.decodeSampled(bytes, size.width, size.height)
+            val resize = requestContext.computeResize(getImageInfo().size)
+            return ImageData(
+                image = bitmap.asImage(),
+                imageInfo = getImageInfo(),
+                dataFrom = dataSource.dataFrom,
+                resize = resize,
+                transformeds = null,
+                extras = null,
+            )
+        }
+
+        // Animated JXL – use lazy JxlAnimationDrawable
+        val request = requestContext.request
+        val drawable = JxlAnimationDrawable(animatedImage).apply {
+            isOneShot = request.repeatCount?.let { it == 1 } ?: false
+        }
+
+        val scaledDrawable = ScaledAnimatableDrawable(drawable).apply {
+            val onStart = request.animationStartCallback
+            val onEnd = request.animationEndCallback
+            if (onStart != null || onEnd != null) {
+                @Suppress("OPT_IN_USAGE")
+                GlobalScope.launch(Dispatchers.Main) {
+                    registerAnimationCallback(animatable2CompatCallbackOf(onStart, onEnd))
+                }
+            }
+        }
+
+        val resize = requestContext.computeResize(getImageInfo().size)
+        return ImageData(
+            image = scaledDrawable.asImage(),
+            imageInfo = getImageInfo(),
+            dataFrom = dataSource.dataFrom,
+            resize = resize,
+            transformeds = null,
+            extras = null,
+        )
+    }
+
     private suspend fun decodeStaticBitmap(bytes: ByteArray): ImageData {
         val request = requestContext.request
         val decodeConfig = DecodeConfig(request, mimeType, isOpaque = false)
@@ -257,7 +325,9 @@ class EncryptedRawImageDecoder(
         
         private val supportedMimeTypes = listOf(
             "image/gif",
+            "image/apng",
             "image/webp",
+            "image/jxl",
             "image/svg+xml",
             "image/bmp"
         )

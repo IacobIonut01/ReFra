@@ -83,6 +83,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
@@ -100,13 +101,22 @@ import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetStat
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
 import com.dot.gallery.feature_node.presentation.util.toggleOrientation
+import com.dot.gallery.feature_node.presentation.vault.components.VaultPasswordUnlockDialog
+import com.dot.gallery.feature_node.presentation.vault.utils.GateMode
+import com.dot.gallery.feature_node.presentation.vault.utils.VaultAuthType
+import com.dot.gallery.feature_node.presentation.vault.utils.VaultPasswordManager
+import com.dot.gallery.feature_node.presentation.vault.utils.VerifyResult
 import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import com.dot.gallery.ui.theme.Dimens
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 
 private sealed class PickerNavState {
     data class Tabs(val tabIndex: Int) : PickerNavState()
     data class AlbumDetail(val album: Album) : PickerNavState()
+    data object PrivateFolder : PickerNavState()
 }
 
 @Suppress("LABEL_NAME_CLASH")
@@ -164,10 +174,101 @@ fun PickerScreen(
 
     PickerSecurityInfoSheet(sheetState = securitySheetState)
 
-    val navState: PickerNavState = if (selectedAlbum != null) {
-        PickerNavState.AlbumDetail(selectedAlbum!!)
-    } else {
-        PickerNavState.Tabs(selectedTabIndex)
+    // Private folder auth state
+    val context = LocalContext.current
+    var showPrivateFolder by remember { mutableStateOf(false) }
+    var showPrivateFolderPasswordDialog by remember { mutableStateOf(false) }
+    var privateFolderAuthType by remember { mutableStateOf<VaultAuthType?>(null) }
+    var privateFolderPasswordError by remember { mutableStateOf<String?>(null) }
+    val privateFolderUri by Settings.Security.rememberPrivateFolderUri()
+
+    val privateFolderBiometricState = rememberBiometricState(
+        title = stringResource(R.string.private_folder_unlock),
+        subtitle = stringResource(R.string.private_folder_unlock_subtitle),
+        onSuccess = { showPrivateFolder = true },
+        onFailed = { /* dismissed */ }
+    )
+
+    val wrongPasswordStr = stringResource(R.string.vault_wrong_password_attempts)
+    val lockedOutStr = stringResource(R.string.vault_locked_out)
+
+    fun authenticatePrivateFolder() {
+        scope.launch {
+            when (VaultPasswordManager.getPrivateFolderMode(context)) {
+                GateMode.NONE -> showPrivateFolder = true
+                GateMode.DEVICE -> {
+                    if (privateFolderBiometricState.isSupported) {
+                        privateFolderBiometricState.authenticate()
+                    } else {
+                        showPrivateFolder = true
+                    }
+                }
+                GateMode.CUSTOM -> {
+                    val authType = VaultPasswordManager.getAuthType(
+                        context, VaultPasswordManager.PRIVATE_FOLDER_UUID
+                    )
+                    if (authType != null) {
+                        privateFolderAuthType = authType
+                        showPrivateFolderPasswordDialog = true
+                    } else {
+                        showPrivateFolder = true
+                    }
+                }
+            }
+        }
+    }
+
+    AnimatedVisibility(
+        visible = showPrivateFolderPasswordDialog,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
+            VaultPasswordUnlockDialog(
+                authType = privateFolderAuthType,
+                onDismiss = {
+                    showPrivateFolderPasswordDialog = false
+                    privateFolderPasswordError = null
+                },
+                onSubmit = { secret ->
+                    scope.launch {
+                        val result = VaultPasswordManager.verifyPassword(
+                            context, VaultPasswordManager.PRIVATE_FOLDER_UUID, secret
+                        )
+                        when (result) {
+                            is VerifyResult.Success -> {
+                                showPrivateFolderPasswordDialog = false
+                                privateFolderPasswordError = null
+                                showPrivateFolder = true
+                            }
+                            is VerifyResult.Failed -> {
+                                privateFolderPasswordError = String.format(
+                                    wrongPasswordStr,
+                                    result.attemptsLeft
+                                )
+                            }
+                            is VerifyResult.LockedOut -> {
+                                val seconds = result.cooldownMs / 1000
+                                privateFolderPasswordError = String.format(
+                                    lockedOutStr, seconds
+                                )
+                            }
+                        }
+                    }
+                },
+                errorMessage = privateFolderPasswordError
+            )
+        }
+    }
+
+    val navState: PickerNavState = when {
+        showPrivateFolder -> PickerNavState.PrivateFolder
+        selectedAlbum != null -> PickerNavState.AlbumDetail(selectedAlbum!!)
+        else -> PickerNavState.Tabs(selectedTabIndex)
     }
 
     LaunchedEffect(selectedAlbum) {
@@ -192,29 +293,35 @@ fun PickerScreen(
                 Scaffold(
                     topBar = {
                         AnimatedContent(
-                            targetState = selectedAlbum != null,
+                            targetState = navState,
                             transitionSpec = {
-                                if (targetState) {
-                                    (slideInVertically { -it } + fadeIn())
-                                        .togetherWith(slideOutVertically { -it } + fadeOut())
-                                } else {
-                                    (slideInVertically { -it } + fadeIn())
-                                        .togetherWith(slideOutVertically { -it } + fadeOut())
-                                }.using(SizeTransform(clip = false))
+                                (slideInVertically { -it } + fadeIn())
+                                    .togetherWith(slideOutVertically { -it } + fadeOut())
+                                    .using(SizeTransform(clip = false))
                             },
                             label = "topBarAnimation"
-                        ) { isAlbumDetail ->
-                            if (isAlbumDetail && selectedAlbum != null) {
+                        ) { currentNavState ->
+                            if (currentNavState is PickerNavState.AlbumDetail || currentNavState is PickerNavState.PrivateFolder) {
+                                val detailTitle = when (currentNavState) {
+                                    is PickerNavState.AlbumDetail -> currentNavState.album.label
+                                    is PickerNavState.PrivateFolder -> stringResource(R.string.security_private_folder)
+                                    else -> ""
+                                }
                                 TopAppBar(
                                     title = {
                                         Text(
-                                            text = selectedAlbum!!.label,
+                                            text = detailTitle,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                     },
                                     navigationIcon = {
-                                        IconButton(onClick = { selectedAlbum = null }) {
+                                        IconButton(onClick = {
+                                            when (currentNavState) {
+                                                is PickerNavState.PrivateFolder -> showPrivateFolder = false
+                                                else -> selectedAlbum = null
+                                            }
+                                        }) {
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                                 contentDescription = stringResource(R.string.navigate_up)
@@ -334,6 +441,15 @@ fun PickerScreen(
                                         animatedVisibilityScope = previewScope,
                                     )
                                 }
+                                is PickerNavState.PrivateFolder -> {
+                                    PickerMediaScreen<Media>(
+                                        mediaState = mediaVM.privateFolderMediaState,
+                                        metadataState = metadataState,
+                                        allowSelection = allowSelection,
+                                        sharedTransitionScope = this@SharedTransitionLayout,
+                                        animatedVisibilityScope = previewScope,
+                                    )
+                                }
                                 is PickerNavState.Tabs -> {
                                     when (state.tabIndex) {
                                         0 -> {
@@ -349,6 +465,8 @@ fun PickerScreen(
                                             PickerAlbumsGrid(
                                                 albums = albumsState.albums.filter { it.id != -1L },
                                                 onAlbumClick = onAlbumClickWithLock,
+                                                showPrivateFolder = privateFolderUri.isNotEmpty(),
+                                                onPrivateFolderClick = { authenticatePrivateFolder() },
                                                 sharedTransitionScope = this@SharedTransitionLayout,
                                                 animatedContentScope = contentScope
                                             )
@@ -416,7 +534,10 @@ fun PickerScreen(
                 }
             } else {
                 val collectedMediaState by mediaVM.mediaState.value.collectAsStateWithLifecycle()
-                val previewMediaList = collectedMediaState.media.selectedMedia(selectedMedia)
+                val collectedPrivateFolderState by mediaVM.privateFolderMediaState.collectAsStateWithLifecycle()
+                val sourceMedia = if (showPrivateFolder) collectedPrivateFolderState.media
+                    else collectedMediaState.media
+                val previewMediaList = sourceMedia.selectedMedia(selectedMedia)
                 if (previewMediaList.isNotEmpty()) {
                     val previewMediaState = remember(previewMediaList) {
                         mutableStateOf(
@@ -464,6 +585,10 @@ fun PickerScreen(
                 }
             }
         }
+    }
+
+    BackHandler(showPrivateFolder) {
+        showPrivateFolder = false
     }
 
     BackHandler(selectedAlbum != null) {
@@ -570,6 +695,8 @@ private fun PickerSecurityInfoSheet(
 private fun PickerAlbumsGrid(
     albums: List<Album>,
     onAlbumClick: (Album) -> Unit,
+    showPrivateFolder: Boolean = false,
+    onPrivateFolderClick: () -> Unit = {},
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope
 ) {
@@ -617,6 +744,40 @@ private fun PickerAlbumsGrid(
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1
                     )
+                }
+            }
+            if (showPrivateFolder) {
+                item(key = "private_folder") {
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clickable { onPrivateFolderClick() }
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.secondaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.FolderOff,
+                                contentDescription = stringResource(R.string.security_private_folder),
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 12.dp)
+                                .padding(horizontal = 16.dp),
+                            text = stringResource(R.string.security_private_folder),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
         }

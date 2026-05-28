@@ -2,6 +2,7 @@ package com.dot.gallery.feature_node.presentation.edit.adjustments.varfilter
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.Shader
@@ -28,7 +29,7 @@ data class Vignette(
         val alpha = (value * 200f).toInt().coerceIn(0, 255)
         val gradient = RadialGradient(
             cx, cy, radius,
-            intArrayOf(0x00000000, 0x00000000, android.graphics.Color.argb(alpha, 0, 0, 0)),
+            intArrayOf(0x00000000, 0x00000000, Color.argb(alpha, 0, 0, 0)),
             floatArrayOf(0f, 0.5f, 1f),
             Shader.TileMode.CLAMP
         )

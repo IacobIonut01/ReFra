@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,7 +44,7 @@ import my.nanihadesuka.compose.ScrollbarSettings
 
 @Composable
 fun <T : Media> rememberScrollbarSettings(
-    headers: SnapshotStateList<MediaItem.Header<T>>,
+    headers: List<MediaItem.Header<T>>,
 ): ScrollbarSettings {
     val enabled by remember(headers) { derivedStateOf { headers.size > 3 } }
     return remember(headers, enabled) {
@@ -66,8 +66,8 @@ fun <T : Media> rememberScrollbarSettings(
 fun <T : Media> TimelineScroller(
     state: LazyGridState,
     modifier: Modifier = Modifier,
-    mappedData: SnapshotStateList<MediaItem<T>>,
-    headers: SnapshotStateList<MediaItem.Header<T>>,
+    mappedData: List<MediaItem<T>>,
+    headers: List<MediaItem.Header<T>>,
     settings: ScrollbarSettings = rememberScrollbarSettings(headers),
     content: @Composable () -> Unit
 ) {

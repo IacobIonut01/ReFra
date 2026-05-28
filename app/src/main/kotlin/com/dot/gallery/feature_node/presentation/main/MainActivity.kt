@@ -27,10 +27,12 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.dot.gallery.core.Constants
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.Settings.Misc.getSecureMode
+import com.dot.gallery.core.presentation.components.util.permissionGranted
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberForceTheme
 import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
@@ -43,6 +45,7 @@ import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.toggleOrientation
 import com.dot.gallery.ui.theme.GalleryTheme
+import com.dot.gallery.core.metrics.StartupTracer
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -71,13 +74,29 @@ class MainActivity : AppCompatActivity() {
 
     @OptIn(ExperimentalHazeMaterialsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-        super.onCreate(savedInstanceState)
+        val activitySpan = StartupTracer.begin("MainActivity.onCreate")
+        StartupTracer.trace("MainActivity.installSplashScreen") {
+            installSplashScreen()
+        }
+        StartupTracer.trace("MainActivity.super.onCreate (Hilt DI)") {
+            super.onCreate(savedInstanceState)
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
         enforceSecureFlag()
         enableEdgeToEdge()
+        // Set permission state eagerly so media queries start immediately
+        // instead of waiting for a LaunchedEffect after the first Compose frame.
+        if (permissionGranted(Constants.PERMISSIONS)) {
+            mediaDistributor.hasPermission.value = true
+        }
+        StartupTracer.end(activitySpan)
         setContent {
+            StartupTracer.trace("MainActivity.firstComposition") {}
             GalleryTheme {
+                LaunchedEffect(Unit) {
+                    StartupTracer.trace("MainActivity.firstFrame") {}
+                    StartupTracer.dump()
+                }
                 val allowBlur by rememberAllowBlur()
                 val hazeState = rememberHazeState(
                     blurEnabled = allowBlur

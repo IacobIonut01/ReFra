@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -41,15 +42,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.snapshots.SnapshotStateList
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants.Animation.enterAnimation
@@ -211,7 +214,7 @@ fun <T : Media> MosaicMediaGrid(
     columns: Int = 4,
     mediaState: State<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
-    mappedData: SnapshotStateList<MediaItem<T>>,
+    mappedData: List<MediaItem<T>>,
     paddingValues: PaddingValues,
     allowSelection: Boolean,
     canScroll: Boolean,
@@ -230,24 +233,39 @@ fun <T : Media> MosaicMediaGrid(
     }
 
     val displayItems = remember(mappedData, allowHeaders, columns) {
-        if (allowHeaders) buildMosaicDisplayItems(mappedData, columns)
-        else buildMosaicDisplayItems(mappedData.filterIsInstance<MediaItem.MediaViewItem<T>>(), columns)
+        val items = if (allowHeaders) mappedData
+            else mappedData.fastFilter { it is MediaItem.MediaViewItem<*> }
+        buildMosaicDisplayItems(items, columns)
     }
 
     val bottomContent: @Composable () -> Unit = {
         Column(
             modifier = Modifier.padding(paddingValues).fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
-            AnimatedVisibility(visible = mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
-                LoadingMedia()
+            if (aboveGridContent != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawWithContent { }
+                ) {
+                    aboveGridContent()
+                }
             }
-            AnimatedVisibility(visible = mediaState.value.media.isEmpty() && !mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
-                emptyContent()
-            }
-            AnimatedVisibility(visible = mediaState.value.error.isNotEmpty()) {
-                Error(errorMessage = mediaState.value.error)
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                AnimatedVisibility(visible = mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
+                    LoadingMedia()
+                }
+                AnimatedVisibility(visible = mediaState.value.media.isEmpty() && !mediaState.value.isLoading, enter = enterAnimation, exit = exitAnimation) {
+                    emptyContent()
+                }
+                AnimatedVisibility(visible = mediaState.value.error.isNotEmpty()) {
+                    Error(errorMessage = mediaState.value.error)
+                }
             }
         }
     }
@@ -450,9 +468,9 @@ fun <T : Media> MosaicMediaGrid(
                                 onItemSelect = {
                                     if (allowSelection) {
                                         feedbackManager.vibrate()
-                                        selector.toggleSelection(
+                                        selector.toggleSelectionById(
                                             mediaState = mediaState.value,
-                                            index = mediaState.value.media.indexOf(it)
+                                            mediaId = it.id
                                         )
                                     }
                                 }
@@ -486,9 +504,9 @@ fun <T : Media> MosaicMediaGrid(
                                                     onItemSelect = {
                                                         if (allowSelection) {
                                                             feedbackManager.vibrate()
-                                                            selector.toggleSelection(
+                                                            selector.toggleSelectionById(
                                                                 mediaState = mediaState.value,
-                                                                index = mediaState.value.media.indexOf(it)
+                                                                mediaId = it.id
                                                             )
                                                         }
                                                     }
@@ -521,9 +539,9 @@ fun <T : Media> MosaicMediaGrid(
                                                     onItemSelect = {
                                                         if (allowSelection) {
                                                             feedbackManager.vibrate()
-                                                            selector.toggleSelection(
+                                                            selector.toggleSelectionById(
                                                                 mediaState = mediaState.value,
-                                                                index = mediaState.value.media.indexOf(it)
+                                                                mediaId = it.id
                                                             )
                                                         }
                                                     }
@@ -561,9 +579,9 @@ fun <T : Media> MosaicMediaGrid(
                                                 onItemSelect = {
                                                     if (allowSelection) {
                                                         feedbackManager.vibrate()
-                                                        selector.toggleSelection(
+                                                        selector.toggleSelectionById(
                                                             mediaState = mediaState.value,
-                                                            index = mediaState.value.media.indexOf(it)
+                                                            mediaId = it.id
                                                         )
                                                     }
                                                 }
@@ -593,9 +611,9 @@ fun <T : Media> MosaicMediaGrid(
                                 onItemSelect = {
                                     if (allowSelection) {
                                         feedbackManager.vibrate()
-                                        selector.toggleSelection(
+                                        selector.toggleSelectionById(
                                             mediaState = mediaState.value,
-                                            index = mediaState.value.media.indexOf(it)
+                                            mediaId = it.id
                                         )
                                     }
                                 }

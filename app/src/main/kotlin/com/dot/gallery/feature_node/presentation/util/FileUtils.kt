@@ -7,6 +7,7 @@ package com.dot.gallery.feature_node.presentation.util
 import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
+import androidx.core.net.toUri
 import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
@@ -104,7 +105,7 @@ class FileUtils(var context: Context) {
                 for (contentUriPrefix in contentUriPrefixesToTry) {
                     return try {
                         val contentUri = ContentUris.withAppendedId(
-                            Uri.parse(contentUriPrefix),
+                            contentUriPrefix.toUri(),
                             id.toLong()
                         )
                         getDataColumn(context, contentUri, null, null)

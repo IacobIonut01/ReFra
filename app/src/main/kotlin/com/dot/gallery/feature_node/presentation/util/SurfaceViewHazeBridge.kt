@@ -1,8 +1,10 @@
 package com.dot.gallery.feature_node.presentation.util
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.RenderEffect
+import androidx.core.graphics.createBitmap
 import android.graphics.Shader
 import android.os.Handler
 import android.os.HandlerThread
@@ -89,7 +91,7 @@ fun rememberSurfaceCapture(
                     val destH = (captureWidth * h.toFloat() / w).toInt().coerceAtLeast(1)
 
                     val dest = reusableBitmap?.takeIf { it.width == destW && it.height == destH }
-                        ?: Bitmap.createBitmap(destW, destH, Bitmap.Config.ARGB_8888).also {
+                        ?: createBitmap(destW, destH).also {
                             reusableBitmap = it
                         }
 
@@ -129,6 +131,7 @@ fun rememberSurfaceCapture(
  * @param blurRadius Blur radius in pixels for the [RenderEffect] shader.
  * @param modifier   Modifier applied to the blur container.
  */
+@SuppressLint("NewApi")
 @Composable
 fun SurfaceBlurBackground(
     bitmap: ImageBitmap?,

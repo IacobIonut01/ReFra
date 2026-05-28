@@ -188,12 +188,13 @@ suspend fun <T : Media> mapMediaToItem(
     extendedDateFormat: String,
     weeklyDateFormat: String
 ) = withContext(Dispatchers.IO) {
-    val mappedData = mutableListOf<MediaItem<T>>()
-    val mappedDataWithMonthly = mutableListOf<MediaItem<T>>()
-    val monthHeaderList: MutableSet<String> = mutableSetOf()
-    val headers = mutableListOf<MediaItem.Header<T>>()
-    val pagerMediaList = mutableListOf<T>()
-    val mediaGroupsMap = mutableMapOf<Long, List<T>>()
+    val estimatedSize = data.size + (data.size / 20) // ~1 header per 20 items
+    val mappedData = ArrayList<MediaItem<T>>(estimatedSize)
+    val mappedDataWithMonthly = if (withMonthHeader) ArrayList<MediaItem<T>>(estimatedSize) else mutableListOf()
+    val monthHeaderList = HashSet<String>()
+    val headers = ArrayList<MediaItem.Header<T>>(estimatedSize / 20 + 1)
+    val pagerMediaList = if (groupSimilarMedia) ArrayList<T>(data.size) else mutableListOf()
+    val mediaGroupsMap = if (groupSimilarMedia) HashMap<Long, List<T>>() else mutableMapOf()
 
     val groupedData = data.groupBy {
         if (groupByMonth) {
@@ -210,7 +211,7 @@ suspend fun <T : Media> mapMediaToItem(
         }
     }
     groupedData.forEach { (date, data) ->
-        val dateHeader = MediaItem.Header<T>("header_$date", date, data.fastMap { it.id }.toSet())
+        val dateHeader = MediaItem.Header<T>("header_$date", date, data.mapTo(HashSet(data.size)) { it.id })
         headers.add(dateHeader)
         val groupedMedia = if (groupSimilarMedia) {
             val groups = data.groupBy { it.groupKey }
@@ -256,7 +257,7 @@ suspend fun <T : Media> mapMediaToItem(
                         MediaItem.Header(
                             "header_big_${month}_${data.size}",
                             month,
-                            data.map { it.id }.toSet()
+                            dateHeader.data
                         )
                     )
                 }

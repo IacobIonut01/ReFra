@@ -1,0 +1,20 @@
+What's new in 4.3.0:
+
+• Story Cards — Swipeable photo stories above the timeline with auto-advancing viewer, surfacing highlights from recent photos, albums, categories, locations, and favorites
+• Redesigned Video Controls — Animated more-options popup replaces the tall stack of video control buttons
+• Video Auto-Contrast — Adaptive colors now extend to the video options popup
+
+Performance:
+• Cold startup optimized from ~900 ms to ~350 ms with lazy keystore caching and deferred initialization
+
+Improvements:
+• Improved shared element transitions with single stable registration and Long-based keys
+• Loading shimmer during timeline startup instead of blank screen
+
+Bug fixes:
+• Fixed move/copy album access with MANAGE_MEDIA permission
+• Fixed screen rotation not resetting when leaving video player
+• Fixed status bar sync with followTheme logic in media viewer
+• Fixed ClassCastException after unlock in StandaloneActivity
+• Fixed grid realignment glitch on back navigation
+• Fixed empty-media padding with above-grid content

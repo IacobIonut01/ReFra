@@ -690,7 +690,7 @@ fun <T : Media> BoxScope.SelectionSheet(
     if (showInfoSheet && selectedMedia.size == 1) {
         val media = selectedMedia.first()
         val metadata = remember(metadataState.value, media) {
-            metadataState.value.metadata.find { it.mediaId == media.id }
+            metadataState.value.metadataMap[media.id]
         }
         val mediaInfoList = rememberMediaInfo(
             media = media,

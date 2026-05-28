@@ -2,9 +2,18 @@ name: Release CI
 
 on: workflow_dispatch
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  build_nomaps:
+  prepare:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       versionCode: ${{ steps.versioncode.outputs.versionCode }}
       versionName: ${{ steps.versionname.outputs.versionName }}
@@ -16,64 +25,33 @@ jobs:
       - name: Get versionName
         id: versionname
         run: echo "versionName=$(grep -E '^\s+versionName\s*=' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
-      - name: Strip internet permission
-        run: chmod +x ./strip_permission.sh && ./strip_permission.sh
-      - name: Disable maps
-        run: echo "INCLUDE_MAPS=false" >> ./app.properties
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          cache: 'gradle'
-          java-version: 21
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-      - name: Make Gradle executable
-        run: chmod +x ./gradlew
-      - name: Decode Keystore
-        id: decode_keystore
-        uses: timheuer/base64-to-file@v1
-        with:
-          fileName: 'release_key.jks'
-          fileDir: 'app/'
-          encodedString: ${{ secrets.SIGNING_KEY }}
-      - name: Build Release APK
-        run: >-
-          ./gradlew
-          :app:assembleArm64-v8aNoMLRelease
-          :app:assembleArmeabi-v7aNoMLRelease
-          :app:assembleX86_64NoMLRelease
-          :app:assembleX86NoMLRelease
-          :app:assembleUniversalNoMLRelease
-        env: 
-          SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-      - uses: actions/upload-artifact@v5
-        with:
-          name: ReFra Release (No Maps)
-          path: app/build/outputs/apk-renamed/**/*.apk
 
-  build_nomaps_withml:
+  build_nomaps:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [Arm64-v8a, Armeabi-v7a, X86_64, X86, Universal]
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
+        run: chmod +x ./gradlew
+      - name: Tune Gradle for CI
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "org.gradle.workers.max=2" >> gradle.properties
       - name: Strip internet permission
         run: chmod +x ./strip_permission.sh && ./strip_permission.sh
       - name: Disable maps
         run: echo "INCLUDE_MAPS=false" >> ./app.properties
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          cache: 'gradle'
-          java-version: 21
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-      - name: Make Gradle executable
-        run: chmod +x ./gradlew
       - name: Decode Keystore
         id: decode_keystore
         uses: timheuer/base64-to-file@v1
@@ -82,46 +60,82 @@ jobs:
           fileDir: 'app/'
           encodedString: ${{ secrets.SIGNING_KEY }}
       - name: Build Release APK
-        run: >-
-          ./gradlew
-          :app:assembleArm64-v8aWithMLRelease
-          :app:assembleArmeabi-v7aWithMLRelease
-          :app:assembleX86_64WithMLRelease
-          :app:assembleX86WithMLRelease
-          :app:assembleUniversalWithMLRelease
-        env: 
+        run: ./gradlew --build-cache :app:assemble${{ matrix.arch }}NoMLRelease
+        env:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
       - uses: actions/upload-artifact@v5
         with:
-          name: ReFra Release (No Maps, WithML)
+          name: nomaps-${{ matrix.arch }}
+          path: app/build/outputs/apk-renamed/**/*.apk
+
+  build_withml:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [Arm64-v8a, Armeabi-v7a, X86_64, X86, Universal]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
+        run: chmod +x ./gradlew
+      - name: Tune Gradle for CI
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "org.gradle.workers.max=2" >> gradle.properties
+      - name: Strip internet permission
+        run: chmod +x ./strip_permission.sh && ./strip_permission.sh
+      - name: Disable maps
+        run: echo "INCLUDE_MAPS=false" >> ./app.properties
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: 'release_key.jks'
+          fileDir: 'app/'
+          encodedString: ${{ secrets.SIGNING_KEY }}
+      - name: Build Release APK
+        run: ./gradlew --build-cache :app:assemble${{ matrix.arch }}WithMLRelease
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      - uses: actions/upload-artifact@v5
+        with:
+          name: withml-${{ matrix.arch }}
           path: app/build/outputs/apk-renamed/**/*.apk
 
   build_maps:
     runs-on: ubuntu-latest
-    outputs:
-      versionCode: ${{ steps.versioncode.outputs.versionCode }}
-      versionName: ${{ steps.versionname.outputs.versionName }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [Arm64-v8a, Armeabi-v7a, X86_64, X86, Universal]
     steps:
       - uses: actions/checkout@v6
-      - name: Get versionCode
-        id: versioncode
-        run: echo "versionCode=$(grep -E '^\s+versionCode\s*=' app/build.gradle.kts | awk '{ print $3 }' | head -n 1)" >> $GITHUB_OUTPUT
-      - name: Get versionName
-        id: versionname
-        run: echo "versionName=$(grep -E '^\s+versionName\s*=' app/build.gradle.kts | head -1 | awk -F\" '{ print $2 }')" >> $GITHUB_OUTPUT
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          cache: 'gradle'
+          distribution: temurin
           java-version: 21
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-      - name: Make Gradle executable
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
         run: chmod +x ./gradlew
+      - name: Tune Gradle for CI
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "org.gradle.workers.max=2" >> gradle.properties
       - name: Decode Keystore
         id: decode_keystore
         uses: timheuer/base64-to-file@v1
@@ -130,21 +144,42 @@ jobs:
           fileDir: 'app/'
           encodedString: ${{ secrets.SIGNING_KEY }}
       - name: Build Release APK
-        run: >-
-          ./gradlew
-          :app:assembleArm64-v8aNoMLRelease
-          :app:assembleArmeabi-v7aNoMLRelease
-          :app:assembleX86_64NoMLRelease
-          :app:assembleX86NoMLRelease
-          :app:assembleUniversalNoMLRelease
-        env: 
+        run: ./gradlew --build-cache :app:assemble${{ matrix.arch }}NoMLRelease
+        env:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
       - uses: actions/upload-artifact@v5
         with:
-          name: ReFra Release (Maps)
+          name: maps-${{ matrix.arch }}
           path: app/build/outputs/apk-renamed/**/*.apk
+
+  build_gplay:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
+      - name: Fix permissions
+        run: chmod +x ./gradlew
+      - name: Tune Gradle for CI
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "org.gradle.workers.max=2" >> gradle.properties
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: 'release_key.jks'
+          fileDir: 'app/'
+          encodedString: ${{ secrets.SIGNING_KEY }}
       - name: Apply Google Play patch
         id: gplay_patcher
         run: git config --global user.email "paulionut2003@gmail.com" &&
@@ -154,8 +189,8 @@ jobs:
           chmod +x ./strip_allfiles_permission.sh && ./strip_allfiles_permission.sh &&
           printf 'ALL_FILES_ACCESS=false\nINCLUDE_MAPS=true\n' > ./app.properties
       - name: Build Google Play Bundle
-        run: ./gradlew :app:bundleUniversalWithMLGplay
-        env: 
+        run: ./gradlew --build-cache :app:bundleUniversalWithMLGplay
+        env:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -166,7 +201,7 @@ jobs:
           packageName: com.dot.gallery.gplay
           releaseFiles: app/build/outputs/bundle/universalWithMLGplay/*.aab
           track: production
-          releaseName: ${{ steps.versionname.outputs.versionName }}-${{ steps.versioncode.outputs.versionCode }} Release
+          releaseName: ${{ needs.prepare.outputs.versionName }}-${{ needs.prepare.outputs.versionCode }} Release
           mappingFile: app/build/outputs/mapping/universalWithMLGplay/mapping.txt
           debugSymbols: app/build/intermediates/merged_native_libs/universalWithMLGplay/mergeUniversalWithMLGplayNativeLibs/out/lib
       - uses: actions/upload-artifact@v5
@@ -175,38 +210,53 @@ jobs:
           path: app/build/outputs/bundle/universalWithMLGplay/*.aab
 
   release:
-    needs: [build_nomaps, build_nomaps_withml, build_maps]
+    needs: [prepare, build_nomaps, build_withml, build_maps]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VERSION: ${{ needs.prepare.outputs.versionName }}-${{ needs.prepare.outputs.versionCode }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           sparse-checkout: .github/RELEASE_BODY.md
           sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v5
         with:
-          name: ReFra Release (No Maps)
+          pattern: nomaps-*
+          path: artifacts/nomaps
+          merge-multiple: true
       - uses: actions/download-artifact@v5
         with:
-          name: ReFra Release (Maps)
+          pattern: maps-*
+          path: artifacts/maps
+          merge-multiple: true
       - uses: actions/download-artifact@v5
         with:
-          name: ReFra Release (No Maps, WithML)
+          pattern: withml-*
+          path: artifacts/withml
+          merge-multiple: true
+      - name: List downloaded artifacts
+        run: find artifacts -name "*.apk" -type f | sort
       - name: Generate changelog
         run: |
-          CHANGELOG=${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
+          CHANGELOG="${VERSION}-changelog.txt"
           cat .github/RELEASE_BODY.md >> "$CHANGELOG"
           echo "" >> "$CHANGELOG"
           echo "### Checksums" >> "$CHANGELOG"
-          find . -name "ReFra-*.apk" -type f -print0 | sort -z | xargs -r0 sha256sum | awk '{gsub(".*/", "", $2); print "**"$2"**:", "`"$1"`"}' >> "$CHANGELOG"
+          find artifacts -name "ReFra-*.apk" -type f | sort | while IFS= read -r apk; do
+            hash=$(sha256sum "$apk" | awk '{print $1}')
+            name=$(basename "$apk")
+            echo "**${name}**: \`${hash}\`" >> "$CHANGELOG"
+          done
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v3
         with:
-          name: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }} Release
-          body_path: ${{ needs.build_maps.outputs.versionName }}-${{ needs.build_maps.outputs.versionCode }}-changelog.txt
+          name: ${{ env.VERSION }} Release
+          body_path: ${{ env.VERSION }}-changelog.txt
           prerelease: false
-          tag_name: ${{ needs.build_maps.outputs.versionName }}
+          tag_name: ${{ needs.prepare.outputs.versionName }}
           files: |
-            ./**/ReFra-*.apk
+            artifacts/**/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

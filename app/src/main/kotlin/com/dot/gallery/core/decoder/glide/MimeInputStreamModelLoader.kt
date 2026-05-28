@@ -3,6 +3,7 @@ package com.dot.gallery.core.decoder.glide
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import com.bumptech.glide.Priority
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.data.DataFetcher
 import com.bumptech.glide.load.data.DataFetcher.DataCallback
@@ -38,7 +39,7 @@ class MimeInputStreamModelLoader(
     ) : DataFetcher<MimeInputStream> {
         private var stream: InputStream? = null
 
-        override fun loadData(priority: com.bumptech.glide.Priority, callback: DataCallback<in MimeInputStream>) {
+        override fun loadData(priority: Priority, callback: DataCallback<in MimeInputStream>) {
             try {
                 val mime = resolver.getType(uri)
                 stream = resolver.openInputStream(uri)

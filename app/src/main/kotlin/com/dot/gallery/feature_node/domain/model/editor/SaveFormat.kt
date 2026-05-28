@@ -1,8 +1,10 @@
 package com.dot.gallery.feature_node.domain.model.editor
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap.CompressFormat
 import androidx.annotation.Keep
 
+@SuppressLint("NewApi")
 @Keep
 sealed interface SaveFormat {
     

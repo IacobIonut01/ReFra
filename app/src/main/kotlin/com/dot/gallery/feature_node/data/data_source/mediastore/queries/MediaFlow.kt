@@ -28,6 +28,7 @@ import com.dot.gallery.feature_node.data.data_source.mediastore.MediaQuery
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaType
 import com.dot.gallery.feature_node.presentation.util.getDate
+import com.dot.gallery.feature_node.presentation.util.parseTimestampFromFilename
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -139,7 +140,8 @@ class MediaFlow(
                 )
             }
         }
-        return if (skipBatching) {
+
+        return if (skipBatching || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
              contentResolver.queryFlow(
                 uri,
                 projection,
@@ -167,6 +169,7 @@ class MediaFlow(
         val albumID = it.getLong(indexCache[i++])
         val albumLabel = it.tryGetString(indexCache[i++], Build.MODEL)
         val takenTimestamp = it.tryGetLong(indexCache[i++])
+            ?: title.parseTimestampFromFilename()
         val modifiedTimestamp = it.getLong(indexCache[i++])
         val duration = it.tryGetString(indexCache[i++])
         val size = it.getLong(indexCache[i++])

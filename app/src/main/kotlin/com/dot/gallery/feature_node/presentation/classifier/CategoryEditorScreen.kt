@@ -126,6 +126,7 @@ import com.dot.gallery.feature_node.presentation.util.Screen
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeEffect
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * Unified screen for creating and editing categories.
@@ -698,7 +699,7 @@ private fun SensitivitySection(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = String.format("%.0f%%", threshold * 100),
+                        text = String.format(Locale.US, "%.0f%%", threshold * 100),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

@@ -3,6 +3,7 @@ package com.dot.gallery.feature_node.presentation.edit.adjustments.filters
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import androidx.core.graphics.createBitmap
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ColorMatrixColorFilter
 import androidx.compose.ui.graphics.asAndroidColorFilter
@@ -20,11 +21,7 @@ data class Negative(override val name: String = "Negative") : ImageFilter {
     )
 
     override fun apply(bitmap: Bitmap): Bitmap {
-        val resultBitmap = Bitmap.createBitmap(
-            bitmap.width,
-            bitmap.height,
-            bitmap.config ?: Bitmap.Config.ARGB_8888
-        )
+        val resultBitmap = createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
         val canvas = Canvas(resultBitmap)
         val paint = Paint()
         paint.colorFilter = ColorMatrixColorFilter(colorMatrix()).asAndroidColorFilter()

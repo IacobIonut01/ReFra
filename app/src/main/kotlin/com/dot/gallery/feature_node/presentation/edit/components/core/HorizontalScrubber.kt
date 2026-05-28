@@ -1,5 +1,6 @@
 package com.dot.gallery.feature_node.presentation.edit.components.core
 
+import android.view.HapticFeedbackConstants
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -136,7 +137,7 @@ fun HorizontalScrubber(
                         && index in (defaultIndex - snapThreshold)..(defaultIndex + snapThreshold)
                     ) {
                         state.animateScrollToItem(defaultIndex)
-                        view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+                        view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                     }
                 }
             }

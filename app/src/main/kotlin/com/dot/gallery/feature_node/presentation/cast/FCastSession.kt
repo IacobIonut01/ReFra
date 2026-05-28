@@ -13,7 +13,9 @@ import android.net.nsd.NsdServiceInfo
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import java.io.File
 import java.net.Inet4Address
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.Media
@@ -258,7 +260,7 @@ class FCastSession @Inject constructor(
         }
     }
 
-    @android.annotation.TargetApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun resolveServiceModern(manager: NsdManager, serviceInfo: NsdServiceInfo) {
         val callback = object : NsdManager.ServiceInfoCallback {
             override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
@@ -564,7 +566,7 @@ class FCastSession @Inject constructor(
         }
     }
 
-    fun castFile(file: java.io.File, mimeType: String, label: String, mediaId: Long) {
+    fun castFile(file: File, mimeType: String, label: String, mediaId: Long) {
         val server = httpServer ?: return
         val out = outputStream ?: return
 

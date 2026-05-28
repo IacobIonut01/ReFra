@@ -6,6 +6,8 @@ package com.dot.gallery.feature_node.presentation.widget.data
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -35,9 +37,9 @@ object WidgetPreferences {
             mediaUris = uris.map { it.toString() }
         )
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString("$KEY_PREFIX$widgetId", json.encodeToString(data))
-            .commit()
+            .edit(commit = true) {
+                putString("$KEY_PREFIX$widgetId", json.encodeToString(data))
+            }
     }
 
     fun getWidgetData(context: Context, widgetId: Int): WidgetData? {
@@ -52,13 +54,13 @@ object WidgetPreferences {
 
     fun deleteWidgetData(context: Context, widgetId: Int) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .remove("$KEY_PREFIX$widgetId")
-            .apply()
+            .edit {
+                remove("$KEY_PREFIX$widgetId")
+            }
     }
 
     fun getMediaUris(context: Context, widgetId: Int): List<Uri> {
         val data = getWidgetData(context, widgetId) ?: return emptyList()
-        return data.mediaUris.map { Uri.parse(it) }
+        return data.mediaUris.map { it.toUri() }
     }
 }

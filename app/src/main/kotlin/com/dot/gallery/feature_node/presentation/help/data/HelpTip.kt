@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SmartDisplay
 import androidx.compose.material.icons.outlined.Swipe
 import androidx.compose.material.icons.outlined.Tune
@@ -116,6 +117,7 @@ enum class HelpCategory {
     SETTINGS_GENERAL,
     SETTINGS_NAVIGATION,
     SETTINGS_SMART,
+    SETTINGS_SECURITY,
     GESTURES,
     SELECTION_ACTIONS,
     ACCESSIBILITY
@@ -143,6 +145,7 @@ fun HelpCategory.displayTitle(): String = when (this) {
     HelpCategory.SETTINGS_GENERAL -> stringResource(R.string.help_cat_settings_general)
     HelpCategory.SETTINGS_NAVIGATION -> stringResource(R.string.help_cat_settings_navigation)
     HelpCategory.SETTINGS_SMART -> stringResource(R.string.help_cat_settings_smart)
+    HelpCategory.SETTINGS_SECURITY -> stringResource(R.string.help_cat_settings_security)
     HelpCategory.GESTURES -> stringResource(R.string.help_cat_gestures)
     HelpCategory.SELECTION_ACTIONS -> stringResource(R.string.help_cat_selection_actions)
     HelpCategory.ACCESSIBILITY -> stringResource(R.string.help_cat_accessibility)
@@ -169,6 +172,7 @@ fun HelpCategory.icon(): ImageVector = when (this) {
     HelpCategory.SETTINGS_GENERAL -> Icons.Outlined.Settings
     HelpCategory.SETTINGS_NAVIGATION -> Icons.Outlined.Explore
     HelpCategory.SETTINGS_SMART -> Icons.Outlined.AutoAwesome
+    HelpCategory.SETTINGS_SECURITY -> Icons.Outlined.Shield
     HelpCategory.GESTURES -> Icons.Outlined.Swipe
     HelpCategory.SELECTION_ACTIONS -> Icons.Outlined.ChecklistRtl
     HelpCategory.ACCESSIBILITY -> Icons.Outlined.AccessibilityNew

@@ -14,6 +14,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.view.View
 import android.widget.RemoteViews
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.main.MainActivity
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
@@ -81,7 +83,7 @@ class GridMediaWidgetReceiver : AppWidgetProvider() {
             val totalWidth = cols * cellSize + (cols - 1) * GRID_SPACING
             val totalHeight = rows * cellSize + (rows - 1) * GRID_SPACING
 
-            val result = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
+            val result = createBitmap(totalWidth, totalHeight)
             val canvas = Canvas(result)
             canvas.drawColor(Color.DKGRAY)
 
@@ -91,7 +93,7 @@ class GridMediaWidgetReceiver : AppWidgetProvider() {
                 val x = col * (cellSize + GRID_SPACING)
                 val y = row * (cellSize + GRID_SPACING)
 
-                val scaled = Bitmap.createScaledBitmap(bitmap, cellSize, cellSize, true)
+                val scaled = bitmap.scale(cellSize, cellSize)
                 canvas.drawBitmap(scaled, x.toFloat(), y.toFloat(), null)
                 if (scaled !== bitmap) scaled.recycle()
             }

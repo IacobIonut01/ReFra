@@ -114,7 +114,7 @@ fun AlbumTimelineScreen(
     albumName: String,
     paddingValues: PaddingValues,
     isScrolling: MutableState<Boolean>,
-    allAlbumsMediaState: State<Map<Long, MediaState<Media.UriMedia>>>,
+    albumMediaState: State<MediaState<Media.UriMedia>>,
     metadataState: State<MediaMetadataState>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
@@ -137,7 +137,6 @@ fun AlbumTimelineScreen(
         } else emptyList()
     }
     var showMergedBanner by rememberSaveable { mutableStateOf(true) }
-    val baseMediaState = rememberedDerivedState(allAlbumsMediaState.value) { allAlbumsMediaState.value[albumId] ?: MediaState() }
     val selector = LocalMediaSelector.current
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
 
@@ -145,7 +144,7 @@ fun AlbumTimelineScreen(
     var albumMediaSort by rememberAlbumMediaSort()
 
     // Media state is already sorted by MediaDistributor based on albumMediaSort
-    val mediaState = baseMediaState
+    val mediaState = albumMediaState
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = rememberTopAppBarState(),

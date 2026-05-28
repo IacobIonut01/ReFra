@@ -65,6 +65,7 @@ fun MainSearchBar(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     menuItems: @Composable (RowScope.() -> Unit)? = null,
+    searchBarTrailingIcon: @Composable (() -> Unit)? = null,
 ) = with(sharedTransitionScope) {
     val isSelectionActive by LocalMediaSelector.current.isSelectionActive.collectAsStateWithLifecycle()
     val hideSearchBarSetting by rememberAutoHideSearchBar()
@@ -166,9 +167,13 @@ fun MainSearchBar(
                 )
 
                 Text(
-                    modifier = weightModifier.padding(end = 16.dp),
+                    modifier = weightModifier.padding(end = if (searchBarTrailingIcon != null) 0.dp else 16.dp),
                     text = stringResource(R.string.search)
                 )
+
+                if (searchBarTrailingIcon != null) {
+                    searchBarTrailingIcon()
+                }
             }
 
             menuItems?.invoke(this@Row)

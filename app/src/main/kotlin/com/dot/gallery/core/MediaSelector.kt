@@ -15,6 +15,11 @@ interface MediaSelector {
         index: Int
     )
 
+    fun <T: Media> toggleSelectionById(
+        mediaState: MediaState<T>,
+        mediaId: Long
+    )
+
     fun addToSelection(
         list: List<Long>
     )

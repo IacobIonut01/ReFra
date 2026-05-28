@@ -30,7 +30,8 @@ fun BaseSettingsScreen(
     settingsBuilder: @Composable (SettingsEntity, Int) -> Unit = { it, index ->
         SettingsItem(it)
     },
-    topContent: @Composable (() -> Unit)? = null
+    topContent: @Composable (() -> Unit)? = null,
+    bottomContent: @Composable (() -> Unit)? = null
 ) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -65,6 +66,11 @@ fun BaseSettingsScreen(
                 key = { index, it -> it.title + it.type.toString() }
             ) { index, it ->
                 settingsBuilder(it, index)
+            }
+            if (bottomContent != null) {
+                item {
+                    bottomContent()
+                }
             }
         }
     }

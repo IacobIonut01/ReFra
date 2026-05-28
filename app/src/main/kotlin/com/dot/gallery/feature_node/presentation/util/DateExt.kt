@@ -163,5 +163,29 @@ fun String?.formatMinSec(): String {
     }
 }
 
+private val FILENAME_DATE_REGEX = Regex("""(\d{4})(\d{2})(\d{2})[_\-](\d{2})(\d{2})(\d{2})""")
+
+/**
+ * Attempts to parse a timestamp (epoch millis) from common camera filename patterns
+ * such as IMG_20180508_213737.jpg, VID_20180508_213737.mp4, PXL_20180508_213737.jpg, etc.
+ * Returns null if the filename does not match a known date pattern.
+ */
+fun String.parseTimestampFromFilename(): Long? {
+    val match = FILENAME_DATE_REGEX.find(this) ?: return null
+    val (year, month, day, hour, minute, second) = match.destructured
+    return try {
+        val y = year.toInt()
+        val m = month.toInt()
+        val d = day.toInt()
+        if (y < 1970 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return null
+        val cal = Calendar.getInstance()
+        cal.set(y, m - 1, d, hour.toInt(), minute.toInt(), second.toInt())
+        cal.set(Calendar.MILLISECOND, 0)
+        cal.timeInMillis
+    } catch (_: Exception) {
+        null
+    }
+}
+
 @Parcelize
 data class DateExt(val month: String, val day: Int, val year: Int): Parcelable

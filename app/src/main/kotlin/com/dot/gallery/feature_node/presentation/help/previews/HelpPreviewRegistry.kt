@@ -5,7 +5,9 @@
 
 package com.dot.gallery.feature_node.presentation.help.previews
 
+import android.graphics.Color as AndroidColor
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.core.graphics.createBitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -378,8 +380,8 @@ private fun ExifPreviewMini(modifier: Modifier = Modifier) {
 @Composable
 private fun EditorPreviewMini(modifier: Modifier = Modifier) {
     val mockBitmap = remember {
-        android.graphics.Bitmap.createBitmap(400, 300, android.graphics.Bitmap.Config.ARGB_8888).apply {
-            eraseColor(android.graphics.Color.DKGRAY)
+        createBitmap(400, 300).apply {
+            eraseColor(AndroidColor.DKGRAY)
         }
     }
     val animation = rememberPreviewAnimation(stepCount = 3)

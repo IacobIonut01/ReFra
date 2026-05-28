@@ -19,9 +19,16 @@ class MediaSelectorImpl : MediaSelector {
         index: Int
     ) {
         val item = mediaState.media[index]
-        val groupIds = mediaState.mediaGroups[item.id]?.map { it.id }
-        val idsToToggle = groupIds ?: listOf(item.id)
-        val isCurrentlySelected = selectedMedia.value.contains(item.id)
+        toggleSelectionById(mediaState, item.id)
+    }
+
+    override fun <T: Media> toggleSelectionById(
+        mediaState: MediaState<T>,
+        mediaId: Long
+    ) {
+        val groupIds = mediaState.mediaGroups[mediaId]?.map { it.id }
+        val idsToToggle = groupIds ?: listOf(mediaId)
+        val isCurrentlySelected = selectedMedia.value.contains(mediaId)
         val newSelection = if (isCurrentlySelected) {
             selectedMedia.value.toMutableSet().apply { removeAll(idsToToggle.toSet()) }
         } else {

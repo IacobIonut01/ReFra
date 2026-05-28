@@ -1,0 +1,21 @@
+What's new in 4.2.2:
+
+• Security Hardening — App sandbox (targetSandboxVersion 2), encrypted storage, and isolated file processing for comprehensive protection
+• Sandboxed Image Decoding — HEIF, AVIF, and JXL images are decoded in isolated processes to protect against decoder exploits
+• Isolated Metadata Parsing — EXIF and metadata extraction runs in per-file sandbox processes with configurable isolation modes
+• Private Folder — Store sensitive files outside MediaStore via Android's Storage Access Framework, hidden behind a security gate
+• Encrypted Storage — Encrypt app preferences (AES-256-GCM) and Room database (SQLCipher) at rest using Android Keystore
+• Persistent Rescan Tracking — MediaStore rescan state is now persisted in the database across app restarts
+• Various Performance Improvements — Lazy per-album timeline flows, reduced recompositions in media viewer bottom sheet, optimized collection types and state management
+
+Bug fixes & improvements:
+• Fixed extremely slow AI classification by skipping NNAPI for quantized CLIP models
+• Fixed status bar icons always dark in media view when auto-contrast is off
+• Handle missing ACCESS_NETWORK_STATE permission gracefully
+• Fixed crash when launching map intent on devices without map apps
+• Fixed AI features not showing on nomaps-withML builds without INTERNET permission
+• Use filename-parsed date as fallback when MediaStore DATE_TAKEN is null
+• Fixed motion player not released when swiping to non-motion photo
+• Fixed crash on large batch copy operations
+• Corrected auto-contrast help tip navigation
+• Updated dependencies

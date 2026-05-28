@@ -30,6 +30,7 @@ import com.dot.gallery.feature_node.domain.model.MediaMetadataVideo
 import com.dot.gallery.feature_node.domain.model.MergedSubfolderAlbum
 import com.dot.gallery.feature_node.domain.model.MediaVersion
 import com.dot.gallery.feature_node.domain.model.PinnedAlbum
+import com.dot.gallery.feature_node.domain.model.ScannedMedia
 import com.dot.gallery.feature_node.domain.model.TimelineSettings
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.Converters
@@ -58,9 +59,10 @@ import com.dot.gallery.feature_node.domain.util.Converters
         MergedSubfolderAlbum::class,
         Collection::class,
         CollectionMedia::class,
-        CollectionAlbum::class
+        CollectionAlbum::class,
+        ScannedMedia::class
     ],
-    version = 22,
+    version = 23,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -84,6 +86,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 19, to = 20),
         AutoMigration(from = 20, to = 21),
         AutoMigration(from = 21, to = 22),
+        AutoMigration(from = 22, to = 23),
     ]
 )
 @TypeConverters(Converters::class)
@@ -119,6 +122,8 @@ abstract class InternalDatabase : RoomDatabase() {
     abstract fun getMergedSubfolderDao(): MergedSubfolderDao
 
     abstract fun getCollectionDao(): CollectionDao
+
+    abstract fun getScannedMediaDao(): ScannedMediaDao
 
     companion object {
         const val NAME = "internal_db"

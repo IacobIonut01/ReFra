@@ -7,12 +7,20 @@ package com.dot.gallery.feature_node.presentation.util
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import androidx.core.graphics.createBitmap
 import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
+import android.graphics.Paint
 import android.net.Uri
+import android.os.PersistableBundle
 import android.provider.MediaStore
 import android.widget.Toast
 import com.dot.gallery.core.util.SdkCompat
@@ -73,10 +81,10 @@ fun FloatArray.to3x3Matrix(): FloatArray {
  * results to Compose's [androidx.compose.ui.graphics.ColorFilter.colorMatrix].
  */
 fun applyColorMatrix(src: Bitmap, matrix: FloatArray): Bitmap {
-    val result = Bitmap.createBitmap(src.width, src.height, src.config ?: Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(result)
-    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        colorFilter = android.graphics.ColorMatrixColorFilter(android.graphics.ColorMatrix(matrix))
+    val result = createBitmap(src.width, src.height, src.config ?: Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(result)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        colorFilter = ColorMatrixColorFilter(ColorMatrix(matrix))
     }
     canvas.drawBitmap(src, 0f, 0f, paint)
     return result
@@ -236,9 +244,9 @@ fun Uri.authorizedUri(context: Context): Uri = if (this.toString()
 )
 
 fun <T : Media> Context.copyMediaToClipboard(media: T) {
-    val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+    val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val uri = media.getUri().authorizedUri(this)
-    val clip = android.content.ClipData.newUri(contentResolver, media.label, uri)
+    val clip = ClipData.newUri(contentResolver, media.label, uri)
     clipboardManager.setPrimaryClip(clip)
     Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
 }
@@ -255,9 +263,9 @@ suspend fun <T : Media> Context.copyEncryptedMediaToClipboard(
             tempFile
         )
         withContext(Dispatchers.Main) {
-            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-            val clip = android.content.ClipData.newUri(contentResolver, media.label, tempUri)
-            clip.description.extras = android.os.PersistableBundle().apply {
+            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newUri(contentResolver, media.label, tempUri)
+            clip.description.extras = PersistableBundle().apply {
                 putString("android.content.extra.IS_SENSITIVE", "false")
             }
             clipboardManager.setPrimaryClip(clip)
@@ -338,7 +346,7 @@ suspend fun <T : Media> Context.shareEncryptedMedia(
                 .addStream(tempUri)
                 .createChooserIntent()
                 .apply {
-                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
             
             startActivity(shareIntent)
@@ -412,7 +420,7 @@ suspend fun <T : Media> Context.shareMediaWithVaultSupport(
                 }
                 
                 val shareIntent = shareBuilder.createChooserIntent().apply {
-                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 
                 startActivity(shareIntent)

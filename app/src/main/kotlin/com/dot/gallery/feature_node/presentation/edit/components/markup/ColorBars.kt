@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.edit.components.markup
 
 import android.graphics.Bitmap
+import android.graphics.Canvas as NativeCanvas
 import android.graphics.Paint
 import android.graphics.RectF
 import androidx.compose.foundation.Canvas
@@ -190,7 +191,7 @@ fun VibrancyBar(
 
         if (drawScopeSize.width > 0 && drawScopeSize.height > 0) {
             val bitmap = createBitmap(size.width.toInt(), size.height.toInt())
-            val vibrancyCanvas = android.graphics.Canvas(bitmap)
+            val vibrancyCanvas = NativeCanvas(bitmap)
             val vibrancyPanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
             val vibrancyColors = IntArray(
                 if (isSupportingPanel) vibrancyPanel.height().toInt() else vibrancyPanel.width()
@@ -320,7 +321,7 @@ fun SaturationBar(
 
         if (drawScopeSize.width > 0 && drawScopeSize.height > 0) {
             val bitmap = createBitmap(size.width.toInt(), size.height.toInt())
-            val saturationCanvas = android.graphics.Canvas(bitmap)
+            val saturationCanvas = NativeCanvas(bitmap)
             val saturationPanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
             val saturationColors = IntArray(
                 if (isSupportingPanel) saturationPanel.height().toInt() else saturationPanel.width()
@@ -488,7 +489,7 @@ fun HueBar(
 
         if (drawScopeSize.width > 0 && drawScopeSize.height > 0) {
             val bitmap = createBitmap(size.width.toInt(), size.height.toInt())
-            val hueCanvas = android.graphics.Canvas(bitmap)
+            val hueCanvas = NativeCanvas(bitmap)
             val huePanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
             val hueColors = IntArray(
                 if (isSupportingPanel) huePanel.height().toInt() else huePanel.width().toInt()

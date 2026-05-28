@@ -65,7 +65,6 @@ open class MockedMediaDistributor: MediaDistributor {
     override val lockedAlbumsFlow: StateFlow<List<LockedAlbum>> = MutableStateFlow(emptyList())
     override val mergedSubfolderAlbumsFlow: StateFlow<List<MergedSubfolderAlbum>> = MutableStateFlow(emptyList())
     override val timelineMediaFlow: StateFlow<MediaState<Media.UriMedia>> = MutableStateFlow(MediaState())
-    override val albumsTimelinesMediaFlow: StateFlow<Map<Long, MediaState<Media.UriMedia>>> = MutableStateFlow(emptyMap())
     override fun albumTimelineMediaFlow(albumId: Long): StateFlow<MediaState<Media.UriMedia>> = MutableStateFlow(MediaState())
     override val favoritesMediaFlow: StateFlow<MediaState<Media.UriMedia>> = MutableStateFlow(MediaState())
     override val trashMediaFlow: StateFlow<MediaState<Media.UriMedia>> = MutableStateFlow(MediaState())
@@ -174,6 +173,7 @@ class MockedMediaSelector: MediaSelector {
     override val isSelectionActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun clearSelection() = Unit
     override fun <T : Media> toggleSelection(mediaState: MediaState<T>, index: Int) = Unit
+    override fun <T : Media> toggleSelectionById(mediaState: MediaState<T>, mediaId: Long) = Unit
     override fun addToSelection(list: List<Long>) = Unit
     override fun removeFromSelection(list: List<Long>) = Unit
     override fun rawUpdateSelection(list: Set<Long>) = Unit

@@ -39,7 +39,7 @@ class LibraryViewModel @Inject constructor(
     private val modelManager: ModelManager
 ) : ViewModel() {
 
-    val hasInternetPermission: Boolean get() = modelManager.hasInternetPermission
+    val areAiFeaturesAvailable: Boolean get() = modelManager.areAiFeaturesAvailable
 
     val modelStatus: StateFlow<ModelStatus> = modelManager.status
 

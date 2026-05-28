@@ -26,9 +26,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gif
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,6 +59,7 @@ import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAllowGifAnimation
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
+import com.dot.gallery.core.Settings.Misc.rememberShowFilterButton
 import com.dot.gallery.core.Settings.Misc.rememberGroupBurstSequences
 import com.dot.gallery.core.Settings.Misc.rememberGroupEditedCopies
 import com.dot.gallery.core.Settings.Misc.rememberGroupRawJpg
@@ -81,6 +85,7 @@ private const val DETAIL_GROUP_BY_MONTH = "group_by_month"
 private const val DETAIL_TIMELINE_LAYOUT = "timeline_layout"
 private const val DETAIL_GROUP_SIMILAR = "group_similar"
 private const val DETAIL_GIF_ANIMATION = "gif_animation"
+private const val DETAIL_FILTER_BUTTON = "filter_button"
 private const val DETAIL_HIDE_TIMELINE = "hide_timeline"
 private const val DETAIL_MERGE_ALBUMS = "merge_albums"
 private const val DETAIL_FAV_ICON = "fav_icon"
@@ -99,6 +104,7 @@ fun SettingsTimelineAlbumsScreen() {
     var groupEditedCopies by rememberGroupEditedCopies()
     var groupBurstSequences by rememberGroupBurstSequences()
     var allowGifAnimation by rememberAllowGifAnimation()
+    var showFilterButton by rememberShowFilterButton()
     var hideTimelineOnAlbum by Settings.Album.rememberHideTimelineOnAlbum()
     var mergeAlbumsByName by Settings.Album.rememberMergeAlbumsByName()
     var favIconPosition by rememberFavoriteIconPosition()
@@ -184,6 +190,17 @@ fun SettingsTimelineAlbumsScreen() {
                 preview = { checked -> AnimateGifsPreview(checked) },
             )
         }
+        DETAIL_FILTER_BUTTON -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(R.string.show_filter_button),
+                isChecked = showFilterButton,
+                onCheckedChange = { showFilterButton = it },
+                description = stringResource(R.string.show_filter_button_description),
+                useColumnLayout = true,
+                preview = { checked -> FilterButtonPreview(checked) },
+            )
+        }
         DETAIL_HIDE_TIMELINE -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -235,6 +252,8 @@ fun SettingsTimelineAlbumsScreen() {
                 onGroupSimilarChange = { groupSimilarMedia = it },
                 allowGifAnimation = allowGifAnimation,
                 onGifAnimationChange = { allowGifAnimation = it },
+                showFilterButton = showFilterButton,
+                onShowFilterButtonChange = { showFilterButton = it },
                 hideTimelineOnAlbum = hideTimelineOnAlbum,
                 onHideTimelineChange = { hideTimelineOnAlbum = it },
                 mergeAlbumsByName = mergeAlbumsByName,
@@ -242,6 +261,7 @@ fun SettingsTimelineAlbumsScreen() {
                 favIconPosition = favIconPosition,
                 onDetailClick = { detailKey = it },
                 onDateFormatClick = { eventHandler.navigate(Screen.DateFormatScreen()) },
+                onStoryCardsClick = { eventHandler.navigate(Screen.StoryCardsSettingsScreen()) },
             )
         }
     }
@@ -256,6 +276,8 @@ private fun TimelineAlbumsListScreen(
     onGroupSimilarChange: (Boolean) -> Unit,
     allowGifAnimation: Boolean,
     onGifAnimationChange: (Boolean) -> Unit,
+    showFilterButton: Boolean,
+    onShowFilterButtonChange: (Boolean) -> Unit,
     hideTimelineOnAlbum: Boolean,
     onHideTimelineChange: (Boolean) -> Unit,
     mergeAlbumsByName: Boolean,
@@ -263,6 +285,7 @@ private fun TimelineAlbumsListScreen(
     favIconPosition: String,
     onDetailClick: (String) -> Unit,
     onDateFormatClick: () -> Unit,
+    onStoryCardsClick: () -> Unit = {},
 ) {
     @Composable
     fun settings(): SnapshotStateList<SettingsEntity> {
@@ -320,6 +343,23 @@ private fun TimelineAlbumsListScreen(
             title = stringResource(R.string.date_header),
             summary = stringResource(R.string.date_header_summary),
             onClick = onDateFormatClick,
+            screenPosition = Position.Middle
+        )
+
+        val showFilterButtonPref = rememberSwitchPreference(
+            showFilterButton,
+            title = stringResource(R.string.show_filter_button),
+            summary = stringResource(R.string.show_filter_button_summary),
+            isChecked = showFilterButton,
+            onCheck = onShowFilterButtonChange,
+            onClick = { onDetailClick(DETAIL_FILTER_BUTTON) },
+            screenPosition = Position.Middle
+        )
+
+        val storyCardsPref = rememberPreference(
+            title = stringResource(R.string.story_cards_settings_title),
+            summary = stringResource(R.string.story_cards_settings_summary),
+            onClick = onStoryCardsClick,
             screenPosition = Position.Bottom
         )
 
@@ -366,8 +406,9 @@ private fun TimelineAlbumsListScreen(
 
         return remember(
             groupByMonthPref, timelineLayoutPref, groupSimilarMediaPref,
-            allowGifAnimationPref, dateHeaderPref, hideTimelineOnAlbumPref,
-            mergeAlbumsByNamePref, favIconPositionPref
+            allowGifAnimationPref, dateHeaderPref, showFilterButtonPref,
+            storyCardsPref,
+            hideTimelineOnAlbumPref, mergeAlbumsByNamePref, favIconPositionPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
@@ -376,6 +417,8 @@ private fun TimelineAlbumsListScreen(
                 add(groupSimilarMediaPref)
                 add(allowGifAnimationPref)
                 add(dateHeaderPref)
+                add(showFilterButtonPref)
+                add(storyCardsPref)
 
                 add(albumsHeader)
                 add(hideTimelineOnAlbumPref)
@@ -784,6 +827,43 @@ private fun FavoriteIconPreview(currentPosition: String) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FilterButtonPreview(isChecked: Boolean) {
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .clip(RoundedCornerShape(100))
+            .background(surfaceColor)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Search,
+            contentDescription = null,
+            tint = onSurfaceColor,
+            modifier = Modifier.size(22.dp)
+        )
+        Text(
+            text = stringResource(R.string.search),
+            style = MaterialTheme.typography.bodyLarge,
+            color = onSurfaceColor,
+            modifier = Modifier.weight(1f)
+        )
+        if (isChecked) {
+            Icon(
+                imageVector = Icons.Outlined.FilterList,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp)
+            )
         }
     }
 }

@@ -6,7 +6,9 @@
 
 package com.dot.gallery.feature_node.presentation.util
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -209,6 +211,7 @@ fun ProvideWindowContext(content: @Composable () -> Unit) {
 }
 
 val Context.mediaStoreVersion: String
+    @SuppressLint("NewApi")
     get() = "${MediaStore.getGeneration(this, MediaStore.VOLUME_EXTERNAL_PRIMARY)}/${MediaStore.getVersion(this)}"
 
 suspend fun InternalDatabase.isMediaUpToDate(context: Context): Boolean {
@@ -407,7 +410,7 @@ fun Context.changeAppAlias(newAlias: String) {
     val aliases = listOf("Launcher_ReFra", "Launcher_Gallery")
     val targetAlias = "Launcher_$newAlias"
     for (alias in aliases) {
-        val component = android.content.ComponentName(packageName, "$namespace.$alias")
+        val component = ComponentName(packageName, "$namespace.$alias")
         val newState = if (alias == targetAlias) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         } else {

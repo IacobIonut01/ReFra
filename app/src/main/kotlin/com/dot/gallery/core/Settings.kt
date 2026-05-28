@@ -39,6 +39,8 @@ import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.Constants.mosaicColumnsList
 import com.dot.gallery.core.Settings.PREFERENCE_NAME
+import com.dot.gallery.core.encryption.EncryptedDataStoreProvider
+import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.rememberPreference
@@ -57,6 +59,24 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
+
+/**
+ * Returns the active [DataStore] — the encrypted store when the device supports
+ * Android Keystore-backed AES-GCM, or the default plaintext store as a fallback.
+ *
+ * Encryption is always enabled automatically; there is no user-facing toggle.
+ */
+val Context.activeDataStore: DataStore<Preferences>
+    get() {
+        return try {
+            EncryptedDataStoreProvider.getOrCreate(this)
+        } catch (_: Exception) {
+            // Device doesn't support hardware-backed keystore or encryption failed —
+            // fall back to plaintext silently.
+            StartupTracer.trace("activeDataStore.fallbackPlaintext") { }
+            dataStore
+        }
+    }
 
 object Settings {
 
@@ -81,7 +101,7 @@ object Settings {
         }
 
         fun getAlbumMediaSortFlow(context: Context): Flow<LastSort> =
-            context.dataStore.data.map { prefs ->
+            context.activeDataStore.data.map { prefs ->
                 prefs[ALBUM_MEDIA_SORT]?.let {
                     runCatching { Json.decodeFromString<LastSort>(it) }.getOrNull()
                 } ?: LastSort(OrderType.Descending, FilterKind.DATE)
@@ -179,7 +199,7 @@ object Settings {
         val EMPTY_HISTORY = Json.encodeToString(emptyList<SearchHistory>())
 
         suspend fun addHistory(context: Context, query: String) {
-            context.dataStore.edit { preferences ->
+            context.activeDataStore.edit { preferences ->
                 val currentHistory = preferences[HISTORY_V2] ?: EMPTY_HISTORY
                 val historyList = Json.decodeFromString<List<SearchHistory>>(currentHistory).apply {
                     filter { it.query != query }
@@ -191,7 +211,7 @@ object Settings {
         }
 
         suspend fun addImageHistory(context: Context, mediaId: Long, mediaLabel: String, mediaUri: String) {
-            context.dataStore.edit { preferences ->
+            context.activeDataStore.edit { preferences ->
                 val currentHistory = preferences[HISTORY_V2] ?: EMPTY_HISTORY
                 val historyList = Json.decodeFromString<List<SearchHistory>>(currentHistory)
                     .filter { it.mediaId != mediaId }
@@ -208,7 +228,7 @@ object Settings {
         }
 
         suspend fun removeHistory(context: Context, query: String) {
-            context.dataStore.edit { preferences ->
+            context.activeDataStore.edit { preferences ->
                 val currentHistory = preferences[HISTORY_V2] ?: EMPTY_HISTORY
                 val historyList = Json.decodeFromString<List<SearchHistory>>(currentHistory)
                 printDebug("Current history: $historyList")
@@ -225,7 +245,7 @@ object Settings {
         }
 
         suspend fun removeImageHistory(context: Context, mediaId: Long) {
-            context.dataStore.edit { preferences ->
+            context.activeDataStore.edit { preferences ->
                 val currentHistory = preferences[HISTORY_V2] ?: EMPTY_HISTORY
                 val historyList = Json.decodeFromString<List<SearchHistory>>(currentHistory)
                 val updatedHistory = historyList.filter { it.mediaId != mediaId }
@@ -260,7 +280,7 @@ object Settings {
             rememberPreference(key = ENABLE_TRASH, defaultValue = SdkCompat.supportsTrash)
 
         fun getTrashEnabled(context: Context) =
-            context.dataStore.data.map { it[ENABLE_TRASH] ?: SdkCompat.supportsTrash }
+            context.activeDataStore.data.map { it[ENABLE_TRASH] ?: SdkCompat.supportsTrash }
 
         private val ENABLE_TRASH_CONFIRMATION = booleanPreferencesKey("enable_trashcan_confirmation")
 
@@ -426,7 +446,7 @@ object Settings {
             rememberPreference(key = SECURE_MODE, defaultValue = false)
 
         fun getSecureMode(context: Context) =
-            context.dataStore.data.map { it[SECURE_MODE] ?: false }
+            context.activeDataStore.data.map { it[SECURE_MODE] ?: false }
 
         private val TIMELINE_GROUP_BY_MONTH = booleanPreferencesKey("timeline_group_by_month")
 
@@ -476,7 +496,7 @@ object Settings {
         private val ALLOW_VIBRATIONS = booleanPreferencesKey("allow_vibrations")
 
         fun allowVibrations(context: Context) =
-            context.dataStore.data.map { it[ALLOW_VIBRATIONS] ?: true }
+            context.activeDataStore.data.map { it[ALLOW_VIBRATIONS] ?: true }
 
         @Composable
         fun rememberAllowVibrations() =
@@ -570,7 +590,7 @@ object Settings {
             )
 
         fun <T> getSetting(context: Context, key: Preferences.Key<T>, defaultValue: T) =
-            context.dataStore.data.map { it[key] ?: defaultValue }
+            context.activeDataStore.data.map { it[key] ?: defaultValue }
 
         private val VIDEO_AUTOPLAY = booleanPreferencesKey("video_autoplay")
 
@@ -630,6 +650,12 @@ object Settings {
         fun rememberShowFavoriteButton() =
             rememberPreference(key = SHOW_FAVORITE_BUTTON, defaultValue = true)
 
+        private val SHOW_FILTER_BUTTON = booleanPreferencesKey("show_filter_button")
+
+        @Composable
+        fun rememberShowFilterButton() =
+            rememberPreference(key = SHOW_FILTER_BUTTON, defaultValue = true)
+
         private val ALLOW_GIF_ANIMATION = booleanPreferencesKey("allow_gif_animation")
 
         @Composable
@@ -651,6 +677,79 @@ object Settings {
         fun rememberDefaultImageEditor() =
             rememberPreference(key = DEFAULT_IMAGE_EDITOR, defaultValue = EDITOR_BUILTIN)
 
+        private val HEADER_BANNER_DISMISSED = booleanPreferencesKey("header_banner_dismissed")
+
+        @Composable
+        fun rememberHeaderBannerDismissed() =
+            rememberPreference(key = HEADER_BANNER_DISMISSED, defaultValue = false)
+
+        private val STORY_CARDS_CONFIG = stringPreferencesKey("story_cards_config")
+
+        @Composable
+        fun rememberStoryCardsConfig() =
+            rememberPreferenceSerializable(
+                keyString = STORY_CARDS_CONFIG,
+                defaultValue = com.dot.gallery.feature_node.domain.model.StoryCardsConfig()
+            )
+
+        fun getStoryCardsConfig(context: Context) =
+            context.activeDataStore.data.map {
+                it[STORY_CARDS_CONFIG]?.let { json ->
+                    runCatching { Json.decodeFromString<com.dot.gallery.feature_node.domain.model.StoryCardsConfig>(json) }.getOrNull()
+                } ?: com.dot.gallery.feature_node.domain.model.StoryCardsConfig()
+            }
+
+        private val STORY_VIEWER_AUTO_ADVANCE = booleanPreferencesKey("story_viewer_auto_advance")
+
+        @Composable
+        fun rememberStoryViewerAutoAdvance() =
+            rememberPreference(key = STORY_VIEWER_AUTO_ADVANCE, defaultValue = true)
+
+        private val STORY_VIEWER_DURATION_SECONDS = stringPreferencesKey("story_viewer_duration_seconds")
+
+        @Composable
+        fun rememberStoryViewerDuration() =
+            rememberPreference(key = STORY_VIEWER_DURATION_SECONDS, defaultValue = "5")
+
+    }
+
+    object Security {
+        const val METADATA_ISOLATION_SHARED = "shared"
+        const val METADATA_ISOLATION_HYBRID = "hybrid"
+        const val METADATA_ISOLATION_PER_FILE = "per_file"
+
+        private val METADATA_ISOLATION_MODE = stringPreferencesKey("metadata_isolation_mode")
+
+        @Composable
+        fun rememberMetadataIsolationMode() =
+            rememberPreference(key = METADATA_ISOLATION_MODE, defaultValue = METADATA_ISOLATION_SHARED)
+
+        fun getMetadataIsolationMode(context: Context) =
+            context.activeDataStore.data.map { it[METADATA_ISOLATION_MODE] ?: METADATA_ISOLATION_SHARED }
+
+        private val SANDBOXED_DECODE = booleanPreferencesKey("sandboxed_decode")
+
+        @Composable
+        fun rememberSandboxedDecode() =
+            rememberPreference(key = SANDBOXED_DECODE, defaultValue = false)
+
+        fun getSandboxedDecode(context: Context) =
+            context.activeDataStore.data.map { it[SANDBOXED_DECODE] ?: false }
+
+        private val PRIVATE_FOLDER_ENABLED = booleanPreferencesKey("private_folder_enabled")
+
+        @Composable
+        fun rememberPrivateFolderEnabled() =
+            rememberPreference(key = PRIVATE_FOLDER_ENABLED, defaultValue = false)
+
+        private val PRIVATE_FOLDER_URI = stringPreferencesKey("private_folder_uri")
+
+        @Composable
+        fun rememberPrivateFolderUri() =
+            rememberPreference(key = PRIVATE_FOLDER_URI, defaultValue = "")
+
+        fun getPrivateFolderUri(context: Context) =
+            context.activeDataStore.data.map { it[PRIVATE_FOLDER_URI] ?: "" }
     }
 
     object Vault {

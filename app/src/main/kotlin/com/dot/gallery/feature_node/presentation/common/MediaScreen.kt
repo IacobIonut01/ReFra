@@ -14,6 +14,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -104,6 +105,7 @@ fun <T: Media> MediaScreen(
     navActionsContent: @Composable ((expandedDropDown: MutableState<Boolean>, result: ActivityResultLauncher<IntentSenderRequest>) -> Unit),
     emptyContent: @Composable () -> Unit = { EmptyMedia() },
     aboveGridContent: @Composable (() -> Unit)? = remember { null },
+    selectionSheetContent: (@Composable BoxScope.() -> Unit)? = null,
     isScrolling: MutableState<Boolean> = remember { mutableStateOf(false) },
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
@@ -205,12 +207,13 @@ fun <T: Media> MediaScreen(
                         isScrolling = isScrolling,
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
-                    ) {
-                        NavigationActions(
-                            actions = navActionsContent,
-                            onActivityResult = onActivityResult
-                        )
-                    }
+                        menuItems = {
+                            NavigationActions(
+                                actions = navActionsContent,
+                                onActivityResult = onActivityResult
+                            )
+                        },
+                    )
                 }
             }
         ) { it ->
@@ -335,20 +338,24 @@ fun <T: Media> MediaScreen(
             }
             } // PullToRefreshBox
         }
-        AnimatedVisibility(
-            modifier = Modifier
-                .align(Alignment.BottomEnd),
-            visible = remember(target) { target != TARGET_TRASH },
-            enter = enterAnimation,
-            exit = exitAnimation
-        ) {
-            val selectedMediaList = mediaState.value.media.selectedMedia(selectedSet = selectedMedia)
-            SelectionSheet(
+        if (selectionSheetContent != null) {
+            selectionSheetContent()
+        } else {
+            AnimatedVisibility(
                 modifier = Modifier
                     .align(Alignment.BottomEnd),
-                allMedia = mediaState.value,
-                selectedMedia = selectedMediaList
-            )
+                visible = remember(target) { target != TARGET_TRASH },
+                enter = enterAnimation,
+                exit = exitAnimation
+            ) {
+                val selectedMediaList = mediaState.value.media.selectedMedia(selectedSet = selectedMedia)
+                SelectionSheet(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd),
+                    allMedia = mediaState.value,
+                    selectedMedia = selectedMediaList
+                )
+            }
         }
     }
 }

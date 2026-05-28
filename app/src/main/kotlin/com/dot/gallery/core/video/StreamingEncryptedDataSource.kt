@@ -1,5 +1,6 @@
 package com.dot.gallery.core.video
 
+import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.BaseDataSource
@@ -38,7 +39,7 @@ class StreamingEncryptedDataSource(
 ) : BaseDataSource(/* isNetwork= */ false), DataSource {
 
     private var opened = false
-    private var uri = android.net.Uri.fromFile(encryptedFile)
+    private var uri = Uri.fromFile(encryptedFile)
     private var fullBytes: ByteArray? = null
     private var readPosition: Long = 0
     private var bytesRemaining: Long = C.LENGTH_UNSET.toLong()
@@ -63,7 +64,7 @@ class StreamingEncryptedDataSource(
         return bytesRemaining
     }
 
-    override fun getUri(): android.net.Uri? = uri
+    override fun getUri(): Uri? = uri
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
         val localBytes = fullBytes ?: return C.RESULT_END_OF_INPUT

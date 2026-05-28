@@ -12,22 +12,27 @@ import androidx.compose.material.icons.outlined.Fullscreen
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SettingsSuggest
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Position
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.navigate
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.components.CustomCircleIcon
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsAppHeader
+import com.dot.gallery.feature_node.presentation.settings.components.SettingsAppHeaderCompact
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -83,6 +88,15 @@ fun SettingsScreen() {
             },
             screenPosition = Position.Middle
         )
+        val securityPref = rememberPreference(
+            icon = Icons.Outlined.Shield,
+            title = stringResource(R.string.settings_security),
+            summary = stringResource(R.string.settings_security_summary),
+            onClick = {
+                eventHandler.navigate(Screen.SettingsSecurityScreen())
+            },
+            screenPosition = Position.Middle
+        )
         val smartPref = rememberPreference(
             icon = Icons.Outlined.SettingsSuggest,
             title = stringResource(R.string.ai_category),
@@ -103,11 +117,11 @@ fun SettingsScreen() {
         )
         return remember(
             appearancePref, timelineAlbumsPref, mediaViewerPref,
-            navigationPref, generalPref, smartPref, helpPref
+            navigationPref, generalPref, securityPref, smartPref, helpPref
         ) {
             mutableStateListOf(
                 appearancePref, timelineAlbumsPref, mediaViewerPref,
-                navigationPref, generalPref, smartPref, helpPref
+                navigationPref, generalPref, securityPref, smartPref, helpPref
             )
         }
     }
@@ -119,13 +133,16 @@ fun SettingsScreen() {
     val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
     val tertiaryContainerColor = MaterialTheme.colorScheme.tertiaryContainer
     val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+    val secondaryContainerColor = MaterialTheme.colorScheme.secondaryContainer
+    val inversePrimaryColor = MaterialTheme.colorScheme.inversePrimary
     val backgroundColors = remember(
         primaryColor, secondaryColor, tertiaryColor,
-        errorColor, primaryContainerColor, tertiaryContainerColor, surfaceVariantColor
+        errorColor, primaryContainerColor, secondaryContainerColor, tertiaryContainerColor, surfaceVariantColor,
+        inversePrimaryColor
     ) {
         listOf(
-            primaryColor, secondaryColor, tertiaryColor,
-            errorColor, primaryContainerColor, tertiaryContainerColor, surfaceVariantColor
+            primaryColor, secondaryColor, inversePrimaryColor, tertiaryColor,
+            errorColor, primaryContainerColor, secondaryContainerColor, tertiaryContainerColor, surfaceVariantColor
         )
     }
     val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
@@ -133,22 +150,30 @@ fun SettingsScreen() {
     val onTertiaryColor = MaterialTheme.colorScheme.onTertiary
     val onErrorColor = MaterialTheme.colorScheme.onError
     val onPrimaryContainerColor = MaterialTheme.colorScheme.onPrimaryContainer
+    val onSecondaryContainerColor = MaterialTheme.colorScheme.onSecondaryContainer
     val onTertiaryContainerColor = MaterialTheme.colorScheme.onTertiaryContainer
     val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
     val onBackgroundColors = remember(
         onPrimaryColor, onSecondaryColor, onTertiaryColor,
-        onErrorColor, onPrimaryContainerColor, onTertiaryContainerColor, onSurfaceVariantColor
+        onErrorColor, onPrimaryContainerColor, onSecondaryContainerColor, onTertiaryContainerColor, onSurfaceVariantColor,
+        onSurfaceColor
     ) {
         listOf(
-            onPrimaryColor, onSecondaryColor, onTertiaryColor,
-            onErrorColor, onPrimaryContainerColor, onTertiaryContainerColor, onSurfaceVariantColor
+            onPrimaryColor, onSecondaryColor, onSurfaceColor, onTertiaryColor,
+            onErrorColor, onPrimaryContainerColor, onSecondaryContainerColor, onTertiaryContainerColor, onSurfaceVariantColor
         )
     }
+    var bannerDismissed by Settings.Misc.rememberHeaderBannerDismissed()
+
     BaseSettingsScreen(
         title = stringResource(R.string.settings_title),
-        topContent = {
-            SettingsAppHeader()
-        },
+        topContent = if (!bannerDismissed) {
+            { SettingsAppHeader(onDismiss = { bannerDismissed = true }) }
+        } else null,
+        bottomContent = if (bannerDismissed) {
+            { SettingsAppHeaderCompact(onRestore = { bannerDismissed = false }) }
+        } else null,
         settingsList = rememberDashboardSettings(),
         settingsBuilder = { setting, index ->
             SettingsItem(

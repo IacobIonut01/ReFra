@@ -7,7 +7,6 @@ package com.dot.gallery.feature_node.presentation.standalone
 
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -42,10 +41,11 @@ import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import androidx.appcompat.app.AppCompatActivity
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class StandaloneActivity : ComponentActivity() {
+class StandaloneActivity : AppCompatActivity() {
 
     private val eventHandler: EventHandler = DefaultEventHandler()
 

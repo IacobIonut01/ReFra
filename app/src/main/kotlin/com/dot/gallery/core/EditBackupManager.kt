@@ -137,6 +137,7 @@ class EditBackupManager(
             context.contentResolver.update(
                 editedMedia.originalUri,
                 ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
+                null,
                 null
             )
 

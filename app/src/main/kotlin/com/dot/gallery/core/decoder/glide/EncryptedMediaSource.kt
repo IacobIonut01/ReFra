@@ -1,7 +1,15 @@
 package com.dot.gallery.core.decoder.glide
 
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
+import com.dot.gallery.core.decryption.DecryptManagerEntryPoint
+import com.dot.gallery.core.decryption.DecryptResult
+import com.dot.gallery.core.decryption.MediaMetadataCacheEntry
+import com.dot.gallery.core.memory.AdaptiveDecryptConfigEntryPoint
+import com.dot.gallery.core.metrics.MetricsCollectorEntryPoint
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import dagger.hilt.android.EntryPointAccessors
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -28,15 +36,15 @@ data class EncryptedMediaSource(
         tempFile?.let { return it.inputStream() }
         // Fallback: decrypt on demand (should rarely happen if created correctly)
         val result = try {
-            val ep = dagger.hilt.android.EntryPointAccessors.fromApplication(
+            val ep = EntryPointAccessors.fromApplication(
                 contextRef.applicationContext,
-                com.dot.gallery.core.decryption.DecryptManagerEntryPoint::class.java
+                DecryptManagerEntryPoint::class.java
             )
             ep.decryptManager().decrypt(file)
         } catch (_: Throwable) {
             val keychainHolder = KeychainHolder(contextRef)
             val d = keychainHolder.decryptVaultMedia(file)
-            com.dot.gallery.core.decryption.DecryptResult(d.readBytes(), d.mimeType)
+            DecryptResult(d.readBytes(), d.mimeType)
         }
         return result.bytes.inputStream()
     }
@@ -45,15 +53,15 @@ data class EncryptedMediaSource(
     fun asMediaStream(): EncryptedMediaStream {
         val bytes = smallBytes ?: tempFile?.readBytes() ?: run {
             val result = try {
-                val ep = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                val ep = EntryPointAccessors.fromApplication(
                     contextRef.applicationContext,
-                    com.dot.gallery.core.decryption.DecryptManagerEntryPoint::class.java
+                    DecryptManagerEntryPoint::class.java
                 )
                 ep.decryptManager().decrypt(file)
             } catch (_: Throwable) {
                 val keychainHolder = KeychainHolder(contextRef)
                 val d = keychainHolder.decryptVaultMedia(file)
-                com.dot.gallery.core.decryption.DecryptResult(d.readBytes(), d.mimeType)
+                DecryptResult(d.readBytes(), d.mimeType)
             }
             result.bytes
         }
@@ -66,15 +74,15 @@ private const val FALLBACK_SMALL_DECRYPT_THRESHOLD = 2 * 1024 * 1024 // 2MB fall
 internal fun createEncryptedMediaSource(context: Context, file: File): EncryptedMediaSource {
     // Obtain decrypt manager via Hilt entry point if available, else fallback to direct decrypt.
     val decryptResult = try {
-        val ep = dagger.hilt.android.EntryPointAccessors.fromApplication(
+        val ep = EntryPointAccessors.fromApplication(
             context.applicationContext,
-            com.dot.gallery.core.decryption.DecryptManagerEntryPoint::class.java
+            DecryptManagerEntryPoint::class.java
         )
         ep.decryptManager().decrypt(file)
     } catch (t: Throwable) {
         val keychainHolder = KeychainHolder(context)
         val d = keychainHolder.decryptVaultMedia(file)
-        com.dot.gallery.core.decryption.DecryptResult(d.readBytes(), d.mimeType)
+        DecryptResult(d.readBytes(), d.mimeType)
     }
     val mime = decryptResult.mimeType
     val isVideo = mime.startsWith("video")
@@ -82,15 +90,15 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
     val size = bytes.size.toLong()
     // Extract lightweight metadata (width/height and duration for video) and write to sidecar cache (best-effort)
     runCatching {
-        val ep = dagger.hilt.android.EntryPointAccessors.fromApplication(
+        val ep = EntryPointAccessors.fromApplication(
             context.applicationContext,
-            com.dot.gallery.core.decryption.DecryptManagerEntryPoint::class.java
+            DecryptManagerEntryPoint::class.java
         )
         val sidecar = ep.sidecar()
         val metrics = runCatching {
-            dagger.hilt.android.EntryPointAccessors.fromApplication(
+            EntryPointAccessors.fromApplication(
                 context.applicationContext,
-                com.dot.gallery.core.metrics.MetricsCollectorEntryPoint::class.java
+                MetricsCollectorEntryPoint::class.java
             ).metrics()
         }.getOrNull()
         val existing = sidecar.read(sidecar.keyForFile(file))
@@ -99,7 +107,7 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
             var height: Int? = null
             var duration: Long? = null
             if (isVideo) {
-                android.media.MediaMetadataRetriever().apply {
+                MediaMetadataRetriever().apply {
                     try {
                         // Need a file: if large we'll spill soon anyway; for now create a temp or reuse below.
                         val tmpForMeta = if (size <= FALLBACK_SMALL_DECRYPT_THRESHOLD) {
@@ -109,23 +117,23 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
                         } else null // For large we will create tmp below; defer reading after spill.
                         val path = tmpForMeta?.absolutePath
                         if (path != null) setDataSource(path)
-                        duration = extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
-                        width = extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull()
-                        height = extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull()
+                        duration = extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+                        width = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull()
+                        height = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull()
                     } catch (_: Throwable) { }
                     finally { try { release() } catch (_: Throwable) {} }
                 }
             } else {
                 // Image: parse dimensions via BitmapFactory decode bounds to avoid full decode
-                val opts = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+                val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
                 if (opts.outWidth > 0 && opts.outHeight > 0) {
                     width = opts.outWidth
                     height = opts.outHeight
                 }
             }
             sidecar.write(
-                com.dot.gallery.core.decryption.MediaMetadataCacheEntry(
+                MediaMetadataCacheEntry(
                     path = file.path,
                     mimeType = mime,
                     width = width,
@@ -139,9 +147,9 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
         }
     }
     val adaptiveThreshold = runCatching {
-        val ep = dagger.hilt.android.EntryPointAccessors.fromApplication(
+        val ep = EntryPointAccessors.fromApplication(
             context.applicationContext,
-            com.dot.gallery.core.memory.AdaptiveDecryptConfigEntryPoint::class.java
+            AdaptiveDecryptConfigEntryPoint::class.java
         )
         ep.adaptiveConfig().threshold()
     }.getOrElse { FALLBACK_SMALL_DECRYPT_THRESHOLD }

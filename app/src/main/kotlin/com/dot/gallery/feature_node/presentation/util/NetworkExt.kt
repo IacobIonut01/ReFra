@@ -42,7 +42,14 @@ private fun Context.observeConnectivityAsFlow() = callbackFlow {
         .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         .build()
 
-    connectivityManager.registerNetworkCallback(networkRequest, callback)
+    try {
+        connectivityManager.registerNetworkCallback(networkRequest, callback)
+    } catch (_: SecurityException) {
+        // ACCESS_NETWORK_STATE permission not available
+        trySend(ConnectionState.Unavailable)
+        awaitClose()
+        return@callbackFlow
+    }
 
     // Set current state
     val currentState = getCurrentConnectivityState(connectivityManager)
@@ -81,10 +88,15 @@ private fun networkCallback(callback: (ConnectionState) -> Unit): ConnectivityMa
 private fun getCurrentConnectivityState(
     connectivityManager: ConnectivityManager
 ): ConnectionState {
-    val connected = connectivityManager.allNetworks.any { network ->
-        connectivityManager.getNetworkCapabilities(network)
-            ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            ?: false
+    val connected = try {
+        connectivityManager.allNetworks.any { network ->
+            connectivityManager.getNetworkCapabilities(network)
+                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                ?: false
+        }
+    } catch (_: SecurityException) {
+        // ACCESS_NETWORK_STATE permission not available
+        false
     }
 
     return if (connected) ConnectionState.Available else ConnectionState.Unavailable

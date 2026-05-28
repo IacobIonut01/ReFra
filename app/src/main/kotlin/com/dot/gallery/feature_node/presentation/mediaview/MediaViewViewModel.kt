@@ -3,6 +3,8 @@ package com.dot.gallery.feature_node.presentation.mediaview
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -89,6 +91,11 @@ class MediaViewViewModel @Inject constructor(
             return
         }
         if (media.id == currentMotionMediaId) return
+
+        // Release any playing motion player before switching to a new media item,
+        // otherwise the old player + progress loop keeps running and its surface
+        // overlays the next page's image (black screen bug).
+        releaseMotionPlayer()
 
         extractionJob?.cancel()
         val oldFile = _motionPhotoExtraction.value.videoFile
@@ -246,10 +253,10 @@ class MediaViewViewModel @Inject constructor(
         val scaled = frames.map { bmp ->
             val scale = thumbHeight.toFloat() / bmp.height
             val w = (bmp.width * scale).toInt().coerceAtLeast(1)
-            Bitmap.createScaledBitmap(bmp, w, thumbHeight, true)
+            bmp.scale(w, thumbHeight)
         }
         val totalWidth = scaled.sumOf { it.width }
-        val composite = Bitmap.createBitmap(totalWidth, thumbHeight, Bitmap.Config.ARGB_8888)
+        val composite = createBitmap(totalWidth, thumbHeight)
         val canvas = Canvas(composite)
         var x = 0f
         for (i in scaled.indices) {

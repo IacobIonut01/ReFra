@@ -11,6 +11,7 @@ import com.dot.gallery.core.Constants
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.sandbox.PrivateFolderRepository
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
@@ -19,18 +20,26 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.presentation.privatefolder.PrivateFolderViewModel.Companion.PRIVATE_FOLDER_ALBUM_ID
+import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.mapMedia
+import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.dot.gallery.feature_node.presentation.util.mediaFlowWithType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 open class PickerViewModel @Inject constructor(
     private val repository: MediaRepository,
-    distributor: MediaDistributor
+    private val privateFolderRepository: PrivateFolderRepository,
+    private val distributor: MediaDistributor
 ) : ViewModel() {
 
     private val defaultDateFormat = repository.getSetting(Settings.Misc.DEFAULT_DATE_FORMAT, Constants.DEFAULT_DATE_FORMAT)
@@ -144,6 +153,39 @@ open class PickerViewModel @Inject constructor(
         timestamp = 0,
         relativePath = ""
     )
+
+    val privateFolderMediaState: StateFlow<MediaState<Media>> by lazy {
+        privateFolderRepository.listMedia().map { list ->
+            list.map { pm ->
+                Media.UriMedia(
+                    id = pm.uri.hashCode().toLong() or (1L shl 62),
+                    label = pm.displayName,
+                    uri = pm.uri,
+                    path = pm.uri.toString(),
+                    relativePath = "",
+                    albumID = PRIVATE_FOLDER_ALBUM_ID,
+                    albumLabel = "Private folder",
+                    timestamp = pm.lastModified / 1000,
+                    fullDate = (pm.lastModified / 1000).getDate(Constants.DEFAULT_DATE_FORMAT),
+                    mimeType = pm.mimeType,
+                    favorite = 0,
+                    trashed = 0,
+                    size = pm.size,
+                    duration = null
+                ) as Media
+            }
+        }.combine(distributor.dateFormatsFlow) { media, (defaultFormat, extendedFormat, weeklyFormat) ->
+            mapMediaToItem(
+                data = media,
+                error = "",
+                albumId = PRIVATE_FOLDER_ALBUM_ID,
+                defaultDateFormat = defaultFormat,
+                extendedDateFormat = extendedFormat,
+                weeklyDateFormat = weeklyFormat
+            )
+        }.flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MediaState())
+    }
 
     private fun IgnoredAlbum.shouldIgnore(media: Media) =
         matchesMedia(media) && (hiddenInTimeline && albumId == -1L || hiddenInAlbums && albumId != -1L)

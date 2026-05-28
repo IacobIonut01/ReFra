@@ -5,9 +5,14 @@
 
 package com.dot.gallery.feature_node.presentation.mediaview
 
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.graphics.createBitmap
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
@@ -76,6 +81,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.media3.common.util.UnstableApi
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoState
 import com.composables.core.BottomSheet
 import com.composables.core.SheetDetent.Companion.FullyExpanded
@@ -94,6 +101,7 @@ import com.dot.gallery.core.Settings.Misc.rememberExtendedDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.navigateUp
+import com.dot.gallery.core.setFollowTheme
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
@@ -113,7 +121,9 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewQ
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewSheetDetails
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoFilmstrip
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.SubtitleBottomSheet
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayerController
+import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.cast.FCastViewModel
 import com.dot.gallery.feature_node.presentation.cast.components.CastButton
 import com.dot.gallery.feature_node.presentation.cast.components.FCastDevicePickerDialog
@@ -140,7 +150,6 @@ import com.github.panpf.sketch.sketch
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -148,7 +157,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -217,6 +226,7 @@ fun <T : Media> MediaViewScreenRoute(
     )
 }
 
+@UnstableApi
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun <T : Media> MediaViewScreen(
@@ -252,10 +262,25 @@ fun <T : Media> MediaViewScreen(
     var showCastPicker by rememberSaveable { mutableStateOf(false) }
     var showCastPermissions by rememberSaveable { mutableStateOf(false) }
 
+    // IDs of media confirmed for trash/delete but not yet removed from mediaState
+    var pendingTrashIds by rememberSaveable { mutableStateOf(emptySet<Long>()) }
+
+    // Clean up pending IDs once the source has caught up
+    LaunchedEffect(mediaState.value) {
+        if (pendingTrashIds.isNotEmpty()) {
+            val sourceIds = mediaState.value.media.map { it.id }.toSet()
+            val confirmed = pendingTrashIds.filterNot { it in sourceIds }
+            if (confirmed.isNotEmpty()) {
+                pendingTrashIds = pendingTrashIds - confirmed.toSet()
+            }
+        }
+    }
+
     // Use pagerMedia for paging (only representatives when grouped, otherwise all media)
-    val pagerItems by rememberedDerivedState(mediaState.value) {
+    val pagerItems by rememberedDerivedState(mediaState.value, pendingTrashIds) {
         val pager = mediaState.value.pagerMedia
-        if (pager.isNotEmpty()) pager else mediaState.value.media
+        val items = pager.ifEmpty { mediaState.value.media }
+        if (pendingTrashIds.isEmpty()) items else items.filter { it.id !in pendingTrashIds }
     }
 
     // Use only primitive ids/sizes as saveable keys (avoid passing full media list object)
@@ -263,6 +288,7 @@ fun <T : Media> MediaViewScreen(
         pagerItems.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
     }
     var currentPage by rememberSaveable(initialPage) { mutableIntStateOf(initialPage) }
+    var isVideoZoomed by rememberSaveable { mutableStateOf(false) }
 
     val pagerState = rememberPagerState(
         initialPage = initialPage,
@@ -271,10 +297,11 @@ fun <T : Media> MediaViewScreen(
     )
 
     // Group members for the current page's media
-    val currentGroupMembers by rememberedDerivedState(mediaState.value, currentPage) {
+    val currentGroupMembers by rememberedDerivedState(mediaState.value, currentPage, pendingTrashIds) {
         val currentId =
             pagerItems.getOrNull(currentPage)?.id ?: return@rememberedDerivedState emptyList()
-        mediaState.value.mediaGroups[currentId] ?: emptyList()
+        val members = mediaState.value.mediaGroups[currentId] ?: emptyList()
+        if (pendingTrashIds.isEmpty()) members else members.filter { it.id !in pendingTrashIds }
     }
 
     // Track which group member is selected (null = show representative/pager item)
@@ -289,6 +316,7 @@ fun <T : Media> MediaViewScreen(
         selectedMemberOverrideId = null
         groupMultiSelectMode = false
         groupMultiSelectedIds = emptySet()
+        isVideoZoomed = false
     }
 
     // Reset selected member if it was deleted (no longer in group members)
@@ -386,10 +414,13 @@ fun <T : Media> MediaViewScreen(
     val activity = LocalActivity.current
     val window = LocalWindowInfo.current
     val density = LocalDensity.current
-    val halfScreenHeight by remember(
-        window,
-        density
-    ) { mutableStateOf(Dp(window.containerSize.height / density.density / 4)) }
+
+    // Reset forced orientation when leaving the media view screen
+    DisposableEffect(activity) {
+        onDispose {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
 
     val configuration = LocalConfiguration.current
     val isLandscape = remember(configuration) {
@@ -435,12 +466,6 @@ fun <T : Media> MediaViewScreen(
     // Override back button/gesture when locked
     BackHandler(enabled = isLocked) { }
 
-    val sheetProgress by rememberedDerivedState {
-        sheetState.progress(
-            imageOnlyDetent,
-            expandedDetent
-        )
-    }
 
     LaunchedEffect(mediaState.value) {
         snapshotFlow { pagerState.currentPage }.collectLatest { page ->
@@ -456,31 +481,40 @@ fun <T : Media> MediaViewScreen(
 
     // set HDR Gain map
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        val hdrCache = remember { HashMap<Long, Boolean>() }
         LaunchedEffect(mediaState.value) {
             withContext(Dispatchers.IO) {
                 snapshotFlow { pagerState.currentPage }.collectLatest {
                     printWarning("Trying to set HDR mode for page $it")
-                    if (currentMedia?.isImage == true) {
-                        val request = ImageRequest(context, currentMedia?.getUri().toString()) {
-                            currentMedia?.let { media ->
+                    val media = currentMedia
+                    if (media?.isImage == true) {
+                        val cached = hdrCache[media.id]
+                        if (cached != null) {
+                            withContext(Dispatchers.Main.immediate) {
+                                context.setHdrMode(cached)
+                            }
+                            printWarning("Setting HDR Mode to $cached (cached)")
+                        } else {
+                            val request = ImageRequest(context, media.getUri().toString()) {
                                 setExtra(
                                     key = "mediaKey",
                                     value = media.idLessKey,
                                 )
+                                setExtra(
+                                    key = "realMimeType",
+                                    value = media.mimeType,
+                                )
                             }
-                            setExtra(
-                                key = "realMimeType",
-                                value = currentMedia?.mimeType,
-                            )
+                            val result = context.sketch.execute(request)
+                            (result.image as? BitmapImage)?.bitmap?.let { bitmap ->
+                                val hasGainmap = bitmap.hasGainmap()
+                                hdrCache[media.id] = hasGainmap
+                                withContext(Dispatchers.Main.immediate) {
+                                    context.setHdrMode(hasGainmap)
+                                }
+                                printWarning("Setting HDR Mode to $hasGainmap")
+                            } ?: printWarning("Resulting image null")
                         }
-                        val result = context.sketch.execute(request)
-                        (result.image as? BitmapImage)?.bitmap?.let { bitmap ->
-                            val hasGainmap = bitmap.hasGainmap()
-                            withContext(Dispatchers.Main.immediate) {
-                                context.setHdrMode(hasGainmap)
-                            }
-                            printWarning("Setting HDR Mode to $hasGainmap")
-                        } ?: printWarning("Resulting image null")
                     } else {
                         withContext(Dispatchers.Main.immediate) {
                             context.setHdrMode(false)
@@ -517,78 +551,73 @@ fun <T : Media> MediaViewScreen(
             return@LaunchedEffect
         }
 
+        // Wait for the image to render before capturing
+        delay(350L)
+
         val window = activity.window
-        val capturing = AtomicBoolean(false)
         val captureW = 32
 
-        while (true) {
-            if (!capturing.get()) {
-                val decorView = window.decorView
-                val screenW = decorView.width
-                val screenH = decorView.height
-                if (screenW > 0 && screenH > 0) {
-                    val captureH = (captureW * screenH.toFloat() / screenW)
-                        .toInt().coerceAtLeast(1)
-                    val dest = Bitmap.createBitmap(
-                        captureW, captureH, Bitmap.Config.ARGB_8888
-                    )
-                    capturing.set(true)
-                    try {
-                        PixelCopy.request(
-                            window,
-                            Rect(0, 0, screenW, screenH),
-                            dest,
-                            { result ->
-                                if (result == PixelCopy.SUCCESS) {
-                                    val w = dest.width
-                                    val h = dest.height
-                                    val pixels = IntArray(w * h)
-                                    dest.getPixels(pixels, 0, w, 0, 0, w, h)
+        val decorView = window.decorView
+        val screenW = decorView.width
+        val screenH = decorView.height
+        if (screenW > 0 && screenH > 0) {
+            val captureH = (captureW * screenH.toFloat() / screenW)
+                .toInt().coerceAtLeast(1)
+            val dest = createBitmap(captureW, captureH)
+            try {
+                suspendCoroutine { cont ->
+                    PixelCopy.request(
+                        window,
+                        Rect(0, 0, screenW, screenH),
+                        dest,
+                        { result ->
+                            if (result == PixelCopy.SUCCESS) {
+                                val w = dest.width
+                                val h = dest.height
+                                val pixels = IntArray(w * h)
+                                dest.getPixels(pixels, 0, w, 0, 0, w, h)
 
-                                    val topRows = (h * 0.15f).toInt().coerceAtLeast(1)
-                                    val bottomStart = h - (h * 0.15f).toInt().coerceAtLeast(1)
+                                val topRows = (h * 0.15f).toInt().coerceAtLeast(1)
+                                val bottomStart = h - (h * 0.15f).toInt().coerceAtLeast(1)
 
-                                    var topLum = 0.0
-                                    var topCnt = 0
-                                    for (y in 0 until topRows) {
-                                        for (x in 0 until w) {
-                                            val p = pixels[y * w + x]
-                                            topLum += 0.299 * ((p shr 16) and 0xFF) +
-                                                    0.587 * ((p shr 8) and 0xFF) +
-                                                    0.114 * (p and 0xFF)
-                                            topCnt++
-                                        }
+                                var topLum = 0.0
+                                var topCnt = 0
+                                for (y in 0 until topRows) {
+                                    for (x in 0 until w) {
+                                        val p = pixels[y * w + x]
+                                        topLum += 0.299 * ((p shr 16) and 0xFF) +
+                                                0.587 * ((p shr 8) and 0xFF) +
+                                                0.114 * (p and 0xFF)
+                                        topCnt++
                                     }
-
-                                    var btmLum = 0.0
-                                    var btmCnt = 0
-                                    for (y in bottomStart until h) {
-                                        for (x in 0 until w) {
-                                            val p = pixels[y * w + x]
-                                            btmLum += 0.299 * ((p shr 16) and 0xFF) +
-                                                    0.587 * ((p shr 8) and 0xFF) +
-                                                    0.114 * (p and 0xFF)
-                                            btmCnt++
-                                        }
-                                    }
-
-                                    isTopDark = topCnt > 0 &&
-                                            (topLum / topCnt / 255.0) < 0.4
-                                    isBottomDark = btmCnt > 0 &&
-                                            (btmLum / btmCnt / 255.0) < 0.4
                                 }
-                                dest.recycle()
-                                capturing.set(false)
-                            },
-                            pixelCopyHandler
-                        )
-                    } catch (_: Exception) {
-                        dest.recycle()
-                        capturing.set(false)
-                    }
+
+                                var btmLum = 0.0
+                                var btmCnt = 0
+                                for (y in bottomStart until h) {
+                                    for (x in 0 until w) {
+                                        val p = pixels[y * w + x]
+                                        btmLum += 0.299 * ((p shr 16) and 0xFF) +
+                                                0.587 * ((p shr 8) and 0xFF) +
+                                                0.114 * (p and 0xFF)
+                                        btmCnt++
+                                    }
+                                }
+
+                                isTopDark = topCnt > 0 &&
+                                        (topLum / topCnt / 255.0) < 0.4
+                                isBottomDark = btmCnt > 0 &&
+                                        (btmLum / btmCnt / 255.0) < 0.4
+                            }
+                            dest.recycle()
+                            cont.resumeWith(Result.success(Unit))
+                        },
+                        pixelCopyHandler
+                    )
                 }
+            } catch (_: Exception) {
+                dest.recycle()
             }
-            delay(300L)
         }
     }
 
@@ -615,7 +644,7 @@ fun <T : Media> MediaViewScreen(
         ) {
             HorizontalPager(
                 modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = if (isLocked) false else userScrollEnabled,
+                userScrollEnabled = if (isLocked || isVideoZoomed) false else userScrollEnabled,
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(
                     state = pagerState,
@@ -652,7 +681,7 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
                 val mediaMetadata by rememberedDerivedState(metadataState.value, media) {
-                    metadataState.value.metadata.find { it.mediaId == media?.id }
+                    media?.id?.let { metadataState.value.metadataMap[it] }
                 }
                 val canPlay = rememberSaveable(media) { mutableStateOf(false) }
                 var canAnimateContent by rememberSaveable(media) { mutableStateOf(true) }
@@ -671,25 +700,16 @@ fun <T : Media> MediaViewScreen(
                         mutableStateOf(IntOffset(0, 0))
                     }
                     val displayMedia = media ?: return@AnimatedVisibility
+                    val sharedElementMedia = pagerMedia ?: displayMedia
                     with(sharedTransitionScope) {
                             MediaPreviewComponent(
                                 modifier = Modifier
                                     .mediaSharedElement(
                                         allowAnimation = canAnimateContent,
-                                        media = displayMedia,
+                                        media = sharedElementMedia,
                                         animatedVisibilityScope = animatedContentScope
                                     ),
-                                containerModifier = Modifier
-                                    .graphicsLayer {
-                                        translationY =
-                                            -((halfScreenHeight -
-                                                    bottomBarHeightDefault -
-                                                    bottomPadding -
-                                                    extraPaddingWithNavButtons -
-                                                    16.dp -
-                                                    if (!isGestureEnabled && isLandscape) navigationBarHeight else 0.dp
-                                                    ).toPx() * sheetProgress)
-                                    },
+                                containerModifier = Modifier,
                                 media = media,
                                 uiEnabled = showUI,
                                 playWhenReady = canPlay,
@@ -721,14 +741,20 @@ fun <T : Media> MediaViewScreen(
                                         showUI = !showUI
                                         windowInsetsController.toggleSystemBars(showUI)
                                     }
-                                }
-                            ) { player, isPlaying, currentTime, totalTime, buffer, frameRate ->
+                                },
+                                onZoomChange = { zoomed -> isVideoZoomed = zoomed }
+                            ) { player, isPlaying, currentTime, totalTime, buffer, frameRate, subtitleState ->
+                                val subtitleTracks = subtitleState.subtitleTracks
+                                val onSelectSubtitle = subtitleState.onSelectSubtitle
+                                val onDisableSubtitles = subtitleState.onDisableSubtitles
+                                val addExternalSubtitle = subtitleState.onAddExternalSubtitle
                                 Box(
                                     modifier = Modifier.fillMaxSize()
                                 ) {
                                     val hideUiOnPlay by rememberAutoHideOnVideoPlay()
+                                    var uiInteracted by remember { mutableStateOf(false) }
                                     LaunchedEffect(isPlaying.value, hideUiOnPlay) {
-                                        if (isPlaying.value && showUI && hideUiOnPlay) {
+                                        if (isPlaying.value && showUI && hideUiOnPlay && !uiInteracted) {
                                             delay(2.seconds)
                                             showUI = false
                                             windowInsetsController.toggleSystemBars(false)
@@ -746,72 +772,102 @@ fun <T : Media> MediaViewScreen(
                                     val resources = LocalResources.current
                                     val width =
                                         remember(context) { resources.displayMetrics.widthPixels }
-                                    Spacer(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .graphicsLayer {
-                                                translationX = width / 1.5f
-                                            }
-                                            .align(Alignment.TopEnd)
-                                            .clip(CircleShape)
-                                            .combinedClickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null,
-                                                onDoubleClick = {
-                                                    scope.launch {
-                                                        currentTime.longValue += 10 * 1000
-                                                        player.seekTo(currentTime.longValue)
-                                                        delay(100)
-                                                        player.play()
-                                                    }
-                                                },
-                                                onClick = {
-                                                    if (sheetState.currentDetent == imageOnlyDetent) {
-                                                        showUI = !showUI
-                                                        windowInsetsController.toggleSystemBars(
-                                                            showUI
-                                                        )
-                                                    }
+                                    if (!isVideoZoomed) {
+                                        Spacer(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .graphicsLayer {
+                                                    translationX = width / 1.5f
                                                 }
-                                            )
-                                            .swipe(onOffset = { offset = it }) {
-                                                windowInsetsController.toggleSystemBars(show = true)
-                                                eventHandler.navigateUp()
-                                            }
-                                    )
+                                                .align(Alignment.TopEnd)
+                                                .clip(CircleShape)
+                                                .combinedClickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null,
+                                                    onDoubleClick = {
+                                                        scope.launch {
+                                                            currentTime.longValue += 10 * 1000
+                                                            player.seekTo(currentTime.longValue)
+                                                            delay(100)
+                                                            player.play()
+                                                        }
+                                                    },
+                                                    onClick = {
+                                                        if (sheetState.currentDetent == imageOnlyDetent) {
+                                                            showUI = !showUI
+                                                            windowInsetsController.toggleSystemBars(
+                                                                showUI
+                                                            )
+                                                        }
+                                                    }
+                                                )
+                                                .swipe(onOffset = { offset = it }) {
+                                                    windowInsetsController.toggleSystemBars(show = true)
+                                                    eventHandler.navigateUp()
+                                                }
+                                        )
 
-                                    Spacer(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .graphicsLayer {
-                                                translationX = -width / 1.5f
-                                            }
-                                            .align(Alignment.TopStart)
-                                            .clip(CircleShape)
-                                            .combinedClickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null,
-                                                onDoubleClick = {
-                                                    scope.launch {
-                                                        currentTime.longValue -= 10 * 1000
-                                                        player.seekTo(currentTime.longValue)
-                                                        delay(100)
-                                                        player.play()
-                                                    }
-                                                },
-                                                onClick = {
-                                                    if (sheetState.currentDetent == imageOnlyDetent) {
-                                                        showUI = !showUI
-                                                        windowInsetsController.toggleSystemBars(
-                                                            showUI
-                                                        )
-                                                    }
+                                        Spacer(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .graphicsLayer {
+                                                    translationX = -width / 1.5f
                                                 }
+                                                .align(Alignment.TopStart)
+                                                .clip(CircleShape)
+                                                .combinedClickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null,
+                                                    onDoubleClick = {
+                                                        scope.launch {
+                                                            currentTime.longValue -= 10 * 1000
+                                                            player.seekTo(currentTime.longValue)
+                                                            delay(100)
+                                                            player.play()
+                                                        }
+                                                    },
+                                                    onClick = {
+                                                        if (sheetState.currentDetent == imageOnlyDetent) {
+                                                            showUI = !showUI
+                                                            windowInsetsController.toggleSystemBars(
+                                                                showUI
+                                                            )
+                                                        }
+                                                    }
+                                                )
+                                                .swipe(onOffset = { offset = it }) {
+                                                    windowInsetsController.toggleSystemBars(show = true)
+                                                    eventHandler.navigateUp()
+                                                }
+                                        )
+                                    }
+
+                                    val onRemoveSubtitle = subtitleState.onRemoveSubtitle
+                                    val subtitleSheetState = rememberAppBottomSheetState()
+
+                                    val subtitleFilePicker = rememberLauncherForActivityResult(
+                                        contract = ActivityResultContracts.OpenDocument()
+                                    ) { uri: Uri? ->
+                                        uri?.let { addExternalSubtitle(it) }
+                                    }
+
+                                    SubtitleBottomSheet(
+                                        state = subtitleSheetState,
+                                        subtitleTracks = subtitleTracks,
+                                        onSelectSubtitle = onSelectSubtitle,
+                                        onDisableSubtitles = onDisableSubtitles,
+                                        onAddSubtitle = {
+                                            subtitleFilePicker.launch(
+                                                arrayOf(
+                                                    "application/x-subrip",
+                                                    "application/ttml+xml",
+                                                    "text/vtt",
+                                                    "text/x-ssa",
+                                                    "text/plain"
+                                                )
                                             )
-                                            .swipe(onOffset = { offset = it }) {
-                                                windowInsetsController.toggleSystemBars(show = true)
-                                                eventHandler.navigateUp()
-                                            }
+                                        },
+                                        onRemoveSubtitle = onRemoveSubtitle
                                     )
 
                                     AnimatedVisibility(
@@ -842,7 +898,14 @@ fun <T : Media> MediaViewScreen(
                                             } else null,
                                             onCastSpeed = if (fcastState.connectedDevice != null) {
                                                 { spd -> fcastVm.setSpeed(spd) }
-                                            } else null
+                                            } else null,
+                                            anySubtitleSelected = subtitleTracks.any { it.isSelected },
+                                            onSubtitleClick = {
+                                                scope.launch { subtitleSheetState.show() }
+                                            },
+                                            onInteraction = { uiInteracted = true },
+                                            isBottomDark = isBottomDark,
+                                            autoContrast = autoContrast
                                         )
                                     }
                                 }
@@ -851,14 +914,19 @@ fun <T : Media> MediaViewScreen(
                 }
             }
             // Sync status bar icon color with the top image luminance
-            LaunchedEffect(isTopDark) {
-                // Dark top → white status icons; bright top → dark status icons
-                windowInsetsController.isAppearanceLightStatusBars = !isTopDark
+            val isCurrentVideo by rememberedDerivedState(currentMedia) {
+                currentMedia?.isVideo == true
+            }
+            LaunchedEffect(isTopDark, autoContrast, isDarkTheme, allowBlur, isCurrentVideo) {
+                val followTheme = if (autoContrast) !isTopDark
+                    else !allowBlur && !isCurrentVideo
+                windowInsetsController.isAppearanceLightStatusBars =
+                    if (followTheme) !isDarkTheme else false
+                eventHandler.setFollowTheme(followTheme)
             }
             DisposableEffect(Unit) {
-                val previousLightStatusBars = windowInsetsController.isAppearanceLightStatusBars
                 onDispose {
-                    windowInsetsController.isAppearanceLightStatusBars = previousLightStatusBars
+                    eventHandler.setFollowTheme(true)
                 }
             }
 
@@ -1009,7 +1077,7 @@ fun <T : Media> MediaViewScreen(
                     .align(Alignment.BottomCenter)
                     .graphicsLayer {
                         translationY =
-                            bottomBarHeightDefault.toPx() * sheetProgress
+                            bottomBarHeightDefault.toPx() * sheetState.progress(imageOnlyDetent, expandedDetent)
                     }
                     .padding(horizontal = 16.dp)
                     .padding(
@@ -1109,10 +1177,6 @@ fun <T : Media> MediaViewScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    val actionsAlpha by animateFloatAsState(
-                        targetValue = 1f - sheetProgress,
-                        label = "MediaViewActions2Alpha"
-                    )
                     AnimatedVisibility(
                         visible = currentMedia != null,
                         enter = enterAnimation,
@@ -1143,9 +1207,10 @@ fun <T : Media> MediaViewScreen(
                         Box(
                             modifier = Modifier
                                 .graphicsLayer {
-                                    alpha = actionsAlpha
+                                    val progress = sheetState.progress(imageOnlyDetent, expandedDetent)
+                                    alpha = 1f - progress
                                     translationY =
-                                        bottomBarHeightDefault.toPx() * sheetProgress
+                                        bottomBarHeightDefault.toPx() * progress
                                 }
                                 .padding(
                                     bottom = bottomPadding + extraPaddingWithNavButtons + 16.dp
@@ -1175,7 +1240,22 @@ fun <T : Media> MediaViewScreen(
                                     restoreMedia = restoreMedia,
                                     currentVault = currentVault,
                                     isImageDark = isBottomDark,
-                                    autoContrast = autoContrast
+                                    autoContrast = autoContrast,
+                                    onTrashConfirmed = {
+                                        val trashedId = currentMedia?.id
+                                        if (trashedId != null) {
+                                            val newPending = pendingTrashIds + trashedId
+                                            pendingTrashIds = newPending
+                                            // If all items are now filtered out, navigate up
+                                            val state = mediaState.value
+                                            val allItems = state.pagerMedia.ifEmpty { state.media }
+                                            val remaining = allItems.count { it.id !in newPending }
+                                            if (remaining <= 0 && !isStandalone) {
+                                                windowInsetsController.toggleSystemBars(show = true)
+                                                eventHandler.navigateUp()
+                                            }
+                                        }
+                                    }
                                 )
                             }
                         }

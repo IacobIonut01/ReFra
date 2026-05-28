@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.dot.gallery.core.dataStore
+import com.dot.gallery.core.activeDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
@@ -42,15 +42,28 @@ object VaultPasswordManager {
     /** Fixed UUID used to store the global gate authentication credentials. */
     val GATE_UUID: UUID = UUID.fromString("00000000-0000-0000-0000-000000000000")
 
+    /** Fixed UUID used to store private folder authentication credentials. */
+    val PRIVATE_FOLDER_UUID: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
+
     private val GATE_MODE_KEY = stringPreferencesKey("vault_gate_mode")
+    private val PRIVATE_FOLDER_MODE_KEY = stringPreferencesKey("private_folder_gate_mode")
 
     suspend fun getGateMode(context: Context): GateMode {
-        val raw = context.dataStore.data.first()[GATE_MODE_KEY]
+        val raw = context.activeDataStore.data.first()[GATE_MODE_KEY]
         return raw?.let { runCatching { GateMode.valueOf(it) }.getOrNull() } ?: GateMode.NONE
     }
 
     suspend fun setGateMode(context: Context, mode: GateMode) {
-        context.dataStore.edit { it[GATE_MODE_KEY] = mode.name }
+        context.activeDataStore.edit { it[GATE_MODE_KEY] = mode.name }
+    }
+
+    suspend fun getPrivateFolderMode(context: Context): GateMode {
+        val raw = context.activeDataStore.data.first()[PRIVATE_FOLDER_MODE_KEY]
+        return raw?.let { runCatching { GateMode.valueOf(it) }.getOrNull() } ?: GateMode.NONE
+    }
+
+    suspend fun setPrivateFolderMode(context: Context, mode: GateMode) {
+        context.activeDataStore.edit { it[PRIVATE_FOLDER_MODE_KEY] = mode.name }
     }
 
     private const val SALT_LENGTH = 16
@@ -74,13 +87,13 @@ object VaultPasswordManager {
     /** Returns true if any custom auth has been set for the given vault. */
     suspend fun hasCustomPassword(context: Context, vaultUuid: UUID): Boolean {
         val key = keyFor(vaultUuid)
-        return context.dataStore.data.map { prefs -> prefs[key] != null }.first()
+        return context.activeDataStore.data.map { prefs -> prefs[key] != null }.first()
     }
 
     /** Returns the auth type for the given vault, or null if none is set. */
     suspend fun getAuthType(context: Context, vaultUuid: UUID): VaultAuthType? {
         val key = keyFor(vaultUuid)
-        val stored = context.dataStore.data.map { prefs -> prefs[key] }.first() ?: return null
+        val stored = context.activeDataStore.data.map { prefs -> prefs[key] }.first() ?: return null
         val typePart = stored.substringBefore(":")
         return runCatching { VaultAuthType.valueOf(typePart) }.getOrNull()
     }
@@ -96,18 +109,18 @@ object VaultPasswordManager {
         val salt = ByteArray(SALT_LENGTH).also { SecureRandom().nextBytes(it) }
         val hash = pbkdf2Hash(secret, salt)
         val stored = "${type.name}:$HASH_ALGORITHM:${salt.toHex()}:${hash.toHex()}"
-        context.dataStore.edit { prefs -> prefs[key] = stored }
+        context.activeDataStore.edit { prefs -> prefs[key] = stored }
     }
 
     /** Removes custom auth, reverting to device security. */
     suspend fun removePassword(context: Context, vaultUuid: UUID) {
         val key = keyFor(vaultUuid)
-        context.dataStore.edit { prefs -> prefs.remove(key) }
+        context.activeDataStore.edit { prefs -> prefs.remove(key) }
     }
 
     /** Returns remaining lockout time in ms, or 0 if not locked out. */
     suspend fun getRemainingLockout(context: Context, vaultUuid: UUID): Long {
-        val lockoutUntil = context.dataStore.data.map { prefs ->
+        val lockoutUntil = context.activeDataStore.data.map { prefs ->
             prefs[lockoutKeyFor(vaultUuid)] ?: 0L
         }.first()
         return (lockoutUntil - System.currentTimeMillis()).coerceAtLeast(0L)
@@ -125,7 +138,7 @@ object VaultPasswordManager {
         }
 
         val key = keyFor(vaultUuid)
-        val stored = context.dataStore.data.map { prefs -> prefs[key] }.first()
+        val stored = context.activeDataStore.data.map { prefs -> prefs[key] }.first()
             ?: return VerifyResult.Failed(MAX_ATTEMPTS)
         val parts = stored.split(":")
         // New format: type:pbkdf2:salt:hash (4 parts)
@@ -179,7 +192,7 @@ object VaultPasswordManager {
         val attemptsKey = attemptsKeyFor(vaultUuid)
         val lockoutKey = lockoutKeyFor(vaultUuid)
         var currentAttempts = 0
-        context.dataStore.edit { prefs ->
+        context.activeDataStore.edit { prefs ->
             currentAttempts = (prefs[attemptsKey] ?: 0) + 1
             prefs[attemptsKey] = currentAttempts
             if (currentAttempts >= MAX_ATTEMPTS) {
@@ -198,7 +211,7 @@ object VaultPasswordManager {
     }
 
     private suspend fun resetAttempts(context: Context, vaultUuid: UUID) {
-        context.dataStore.edit { prefs ->
+        context.activeDataStore.edit { prefs ->
             prefs.remove(attemptsKeyFor(vaultUuid))
             prefs.remove(lockoutKeyFor(vaultUuid))
         }

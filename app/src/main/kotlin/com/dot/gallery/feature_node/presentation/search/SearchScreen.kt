@@ -27,7 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.toMutableStateList
+
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -667,15 +667,11 @@ fun SearchScreen(
                             lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
                         }
 
-                        val mappedData by remember(mediaState) {
-                            derivedStateOf {
-                                mediaState.value.mappedMedia.toMutableStateList()
-                            }
+                        val mappedData by rememberedDerivedState(mediaState.value) {
+                            mediaState.value.mappedMedia
                         }
-                        val headers by remember(mediaState) {
-                            derivedStateOf {
-                                mediaState.value.headers.toMutableStateList()
-                            }
+                        val headers by rememberedDerivedState(mediaState.value) {
+                            mediaState.value.headers
                         }
                         val mosaicPaddingValues = remember(contentPadding) {
                             PaddingValues(

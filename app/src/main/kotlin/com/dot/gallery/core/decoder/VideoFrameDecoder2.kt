@@ -16,6 +16,7 @@ package com.dot.gallery.core.decoder
  * limitations under the License.
  */
 
+import android.annotation.SuppressLint
 import android.media.MediaMetadataRetriever
 import android.media.MediaMetadataRetriever.BitmapParams
 import androidx.exifinterface.media.ExifInterface
@@ -170,6 +171,7 @@ class VideoFrameDecodeHelper2(
     private val exifOrientation: Int by lazy { readExifOrientation() }
     private val exifOrientationHelper by lazy { ExifOrientationHelper(exifOrientation) }
 
+    @SuppressLint("NewApi")
     override suspend fun decode(sampleSize: Int): Image {
         val frameMicros = 0L
         val option = request.videoFrameOption ?: MediaMetadataRetriever.OPTION_CLOSEST_SYNC

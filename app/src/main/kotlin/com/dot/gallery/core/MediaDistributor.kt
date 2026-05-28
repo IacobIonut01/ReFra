@@ -57,7 +57,6 @@ interface MediaDistributor {
      * Media
      */
     val timelineMediaFlow: SharedFlow<MediaState<Media.UriMedia>>
-    val albumsTimelinesMediaFlow: StateFlow<Map<Long, MediaState<Media.UriMedia>>>
     fun albumTimelineMediaFlow(albumId: Long): StateFlow<MediaState<Media.UriMedia>>
     val favoritesMediaFlow: SharedFlow<MediaState<Media.UriMedia>>
     val trashMediaFlow: SharedFlow<MediaState<Media.UriMedia>>

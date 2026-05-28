@@ -1,7 +1,6 @@
 package com.dot.gallery.feature_node.presentation.common.components
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Box
@@ -100,23 +99,14 @@ inline fun <LazyState : ScrollableState, LazyItem> StickyHeaderLayout(
             }
         }
     }
-    val toolbarOffsetValue by remember(headerOffset, toolbarOffset()) {
-        derivedStateOf {
-            toolbarOffset()
-        }
+    val toolbarOffsetValue = toolbarOffset()
+
+    val totalOffsetY by remember {
+        derivedStateOf { headerOffset + toolbarOffsetValue }
     }
 
-    val offsetAnimation by animateIntOffsetAsState(
-        remember(headerOffset, toolbarOffsetValue) {
-            IntOffset(
-                x = 0,
-                y = headerOffset + toolbarOffsetValue
-            )
-        }, label = "offsetAnimation"
-    )
-
     val alphaAnimation by animateFloatAsState(
-        targetValue = remember(offsetAnimation) { if (offsetAnimation.y < -100) 0f else 1f },
+        targetValue = if (totalOffsetY < -100) 0f else 1f,
         label = "alphaAnimation",
         animationSpec = tween(100, 10),
     )
@@ -128,7 +118,7 @@ inline fun <LazyState : ScrollableState, LazyItem> StickyHeaderLayout(
                 .graphicsLayer {
                     alpha = alphaAnimation
                 }
-                .offset { offsetAnimation }
+                .offset { IntOffset(x = 0, y = totalOffsetY) }
         ) {
             stickyHeader()
         }

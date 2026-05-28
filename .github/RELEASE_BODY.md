@@ -1,22 +1,26 @@
-## What's new in 4.2.1
+## What's new in 4.3.0
 
 ### New Features
 
-- **FCast Video Casting** — Cast videos and images to FCast-compatible devices on your local network. Includes mDNS device discovery, remote playback controls (play, pause, seek, volume, speed), local streaming server, and encrypted vault media casting via temporary decryption.
-- **Auto-Contrast (Beta)** — Real-time luminance detection automatically enhances display contrast in the media viewer. Dark images become easier to see and bright images appear more vivid — without modifying your files.
-- **Vault Overhaul** — Complete redesign of vault security and navigation:
-  - Global gate authentication before the vault selector (None / Device Security / Custom Password)
-  - Custom per-vault passwords with independent security levels
-  - Streamlined vault creation flow: create → set password → configure gate
-  - Vault deletion returns to selector with re-authentication; last vault exits to library
-  - Unified confirmation sheets replacing duplicated dialog code
-- **Right-Align Selection Actions** — New option to push top action buttons to the right edge of the selection bar for easier one-handed reach on larger phones.
-- **NoMaps WithML Build Variant** — New build variant that includes AI models but strips all map dependencies and network permissions.
+- **Story Cards** — A new horizontal carousel above the timeline surfaces highlights from your recent photos, albums, categories, locations, and favorites. Tap any card to open an immersive full-screen story viewer with auto-advancing slides and progress indicators. Fully configurable: toggle card types, reorder them, and adjust viewer timing in Settings > Timeline & albums > Story cards.
+- **Redesigned Video Controls** — Video control buttons (subtitle, speed, volume, rotate) have been consolidated into a single "more options" button that expands into a blurred animated popup with scale+fade transitions. Uses row layout in landscape, column in portrait.
+- **Video Auto-Contrast** — Auto-contrast and adaptive surfaceContainer colors now extend to the video options popup, matching the viewer's luminance-based theme.
 
-### Bug Fixes & Improvements
+### Performance
 
-- Fixed phantom selections when media is externally deleted (#854)
-- Corrected permission list on setup screen for maps/nomaps variants
-- Capitalized ML in product flavor names (#848)
-- Improved image loading with sketch lib update (4.4.0 → 4.5.0-alpha03)
+- **Faster Cold Startup** — Cold startup optimized from ~900 ms to ~350 ms through lazy Keystore SecretKey caching, deferred database passphrase validation, async media distribution loading, and eager permission checks.
+
+### Improvements
+
+- Improved shared element transitions: single stable registration per media item, switched from sharedBounds to sharedElement, Long-based keys for more accurate photo-to-viewer animations
+- Loading shimmer now shows during timeline startup instead of a blank screen
+
+### Bug Fixes
+
+- Fixed move/copy failing for albums outside Pictures/DCIM when app has MANAGE_MEDIA permission (#875)
+- Fixed forced screen orientation not resetting when leaving video player (#880)
+- Fixed status bar icons not syncing with followTheme logic in media viewer
+- Fixed ClassCastException when viewing media from lock screen after unlock (StandaloneActivity) (#877)
+- Fixed grid realignment glitch on back navigation caused by animated sticky header offset
+- Fixed empty-media/loading overlapping above-grid content; hidden collection card when albums list is empty
 

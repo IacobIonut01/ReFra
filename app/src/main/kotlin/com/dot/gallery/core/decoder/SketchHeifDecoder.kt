@@ -1,5 +1,6 @@
 package com.dot.gallery.core.decoder
 
+import android.os.Build
 import com.github.panpf.sketch.ComponentRegistry
 import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.decode.Decoder
@@ -9,6 +10,7 @@ import com.github.panpf.sketch.request.RequestContext
 import com.github.panpf.sketch.request.get
 import com.github.panpf.sketch.source.DataSource
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
+import okio.buffer
 
 fun ComponentRegistry.Builder.supportHeifDecoder(): ComponentRegistry.Builder = apply {
     add(SketchHeifDecoder.Factory())
@@ -63,8 +65,27 @@ class SketchHeifDecoder(
     }
 
     override suspend fun decode(): ImageData {
-        return dataSource.withCustomDecoder(
+        val sourceData = dataSource.openSource().use { src ->
+            src.buffer().readByteArray()
+        }
+
+        // Animated AVIF: requires API 31+ for ImageDecoder AVIF support
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isAnimatedAvif(sourceData)) {
+            val animated = decodeAnimatedAvif(
+                bytes = sourceData,
+                requestContext = requestContext,
+                dataFrom = dataSource.dataFrom,
+                mimeType = mimeType,
+                getSize = coder::getSize
+            )
+            if (animated != null) return animated
+        }
+
+        // Static: use HeifCoder (works on all API levels)
+        return decodeStaticFromBytes(
+            sourceData = sourceData,
             requestContext = requestContext,
+            dataFrom = dataSource.dataFrom,
             mimeType = mimeType,
             getSize = coder::getSize,
             decodeSampled = coder::decodeSampled

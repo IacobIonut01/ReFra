@@ -9,6 +9,7 @@ import android.database.Cursor
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import com.dot.gallery.core.Resource
+import com.dot.gallery.core.metrics.StartupTracer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -21,6 +22,9 @@ fun <T> Cursor?.mapEachRow(
     if (!cursor.moveToFirst()) {
         return@use emptyList<T>()
     }
+
+    val rowCount = cursor.count
+    val mapSpan = StartupTracer.begin("Cursor.mapEachRow($rowCount rows)")
 
     val indexCache = projection.map { column ->
         cursor.getColumnIndexOrThrow(column)
@@ -37,6 +41,7 @@ fun <T> Cursor?.mapEachRow(
         emptyList()
     }
 
+    StartupTracer.end(mapSpan)
     data.toList()
 } ?: emptyList()
 

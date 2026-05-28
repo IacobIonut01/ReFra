@@ -13,7 +13,7 @@ import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.search.helpers.SearchVisionHelper
-import com.dot.gallery.feature_node.presentation.search.util.centerCrop
+
 import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import com.github.panpf.sketch.asBitmapOrNull
@@ -23,7 +23,7 @@ import com.github.panpf.sketch.sketch
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
+
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
@@ -41,7 +41,6 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = runCatching {
         setProgress(workDataOf("progress" to -1f))
-        delay(2000)
         if (!BuildConfig.ENABLE_INDEXING) return Result.success()
         if (!modelManager.isReady) {
             printInfo("ML models not installed, skipping indexing")
@@ -74,8 +73,7 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
                 val result = appContext.sketch.execute(request)
                 val bitmap = result.image?.asBitmapOrNull()
                 if (bitmap != null) {
-                    val rawBitmap = centerCrop(bitmap, 224)
-                    val embedding = visionHelper.getImageEmbedding(session, rawBitmap)
+                    val embedding = visionHelper.getImageEmbedding(session, bitmap)
                     printInfo("Indexed media item $index/${total - 1} in ${System.currentTimeMillis() - startMillis} ms")
                     repository.addImageEmbedding(
                         ImageEmbedding(

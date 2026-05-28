@@ -35,7 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.toMutableStateList
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -80,8 +80,8 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit = {},
 ) {
     val mappedData by rememberedDerivedState(mediaState, showMonthlyHeader) {
-        (if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
-        else mediaState.value.mappedMedia).toMutableStateList()
+        if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
+        else mediaState.value.mappedMedia
     }
     val selector = LocalMediaSelector.current
     val isSelectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()

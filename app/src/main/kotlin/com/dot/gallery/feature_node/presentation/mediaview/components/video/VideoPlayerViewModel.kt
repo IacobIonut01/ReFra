@@ -10,11 +10,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
+import com.dot.gallery.feature_node.domain.model.SubtitleTrack
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import java.util.Locale
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isEncrypted
@@ -69,7 +75,8 @@ class VideoPlayerViewModel @AssistedInject constructor(
         val positionMs: Long = 0L,
         val bufferedPercent: Int = 0,
         val frameRate: Float = 60f,
-        val isPlaying: Boolean = false
+        val isPlaying: Boolean = false,
+        val subtitleTracks: List<SubtitleTrack> = emptyList()
     )
 
     private val keychainHolder = KeychainHolder(appContext)
@@ -77,6 +84,7 @@ class VideoPlayerViewModel @AssistedInject constructor(
     private var decryptedFile: File? = null
     private var initialSeekApplied = false
     private var progressJob: Job? = null
+    private val _manualSubtitleConfigs = mutableListOf<MediaItem.SubtitleConfiguration>()
 
     // Public immutable flow
     private val _state =
@@ -101,6 +109,11 @@ class VideoPlayerViewModel @AssistedInject constructor(
         return ExoPlayer.Builder(appContext).build().apply {
             setSeekParameters(SeekParameters.EXACT)
             repeatMode = Player.REPEAT_MODE_ONE
+            // Ensure text tracks are not disabled so embedded subtitles are available
+            trackSelectionParameters = trackSelectionParameters
+                .buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                .build()
             addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     if (playbackState == Player.STATE_READY) {
@@ -123,6 +136,10 @@ class VideoPlayerViewModel @AssistedInject constructor(
                     if (!playWhenReady) {
                         _state.update { it.copy(isPlaying = false) }
                     }
+                }
+
+                override fun onTracksChanged(tracks: Tracks) {
+                    updateSubtitleTracks(tracks)
                 }
             })
         }
@@ -327,6 +344,119 @@ class VideoPlayerViewModel @AssistedInject constructor(
         decryptedFile?.delete()
         decryptedFile = null
         super.onCleared()
+    }
+
+    private fun updateSubtitleTracks(tracks: Tracks) {
+        val subs = mutableListOf<SubtitleTrack>()
+        for ((groupIndex, group) in tracks.groups.withIndex()) {
+            if (group.type != C.TRACK_TYPE_TEXT) continue
+            for (i in 0 until group.length) {
+                val format = group.getTrackFormat(i)
+                val lang = format.language
+                val displayName = format.label
+                    ?: lang?.let { Locale.forLanguageTag(it).displayLanguage }
+                    ?: "Track ${subs.size + 1}"
+                printDebug("Subtitle track found: groupIndex=$groupIndex, trackIndex=$i, label=$displayName, lang=$lang, selected=${group.isTrackSelected(i)}, supported=${group.isTrackSupported(i)}")
+                subs.add(
+                    SubtitleTrack(
+                        groupIndex = groupIndex,
+                        trackIndex = i,
+                        label = displayName,
+                        language = lang,
+                        isSelected = group.isTrackSelected(i)
+                    )
+                )
+            }
+        }
+        // Mark manually-added tracks (they appear after embedded ones)
+        val manualCount = _manualSubtitleConfigs.size
+        val embeddedCount = (subs.size - manualCount).coerceAtLeast(0)
+        for (i in embeddedCount until subs.size) {
+            val manualIdx = i - embeddedCount
+            val uri = _manualSubtitleConfigs.getOrNull(manualIdx)?.uri
+            val filename = uri?.lastPathSegment?.substringAfterLast('/') ?: subs[i].label
+            subs[i] = subs[i].copy(
+                label = filename,
+                isManuallyAdded = true,
+                manualIndex = manualIdx
+            )
+        }
+        printDebug("Subtitle tracks total: ${subs.size} (embedded=$embeddedCount, manual=$manualCount)")
+        _state.update { it.copy(subtitleTracks = subs) }
+    }
+
+    fun selectSubtitleTrack(track: SubtitleTrack) {
+        val tracks = player.currentTracks
+        val groups = tracks.groups
+        if (track.groupIndex !in groups.indices) return
+        val trackGroup = groups[track.groupIndex].mediaTrackGroup
+
+        player.trackSelectionParameters = player.trackSelectionParameters
+            .buildUpon()
+            .setOverrideForType(
+                TrackSelectionOverride(trackGroup, listOf(track.trackIndex))
+            )
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+            .build()
+        // Force refresh so the UI reflects the new selection immediately
+        updateSubtitleTracks(player.currentTracks)
+    }
+
+    fun disableSubtitles() {
+        player.trackSelectionParameters = player.trackSelectionParameters
+            .buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            .build()
+        updateSubtitleTracks(player.currentTracks)
+    }
+
+    @OptIn(UnstableApi::class)
+    fun addExternalSubtitle(uri: Uri) {
+        val subtitleConfig = buildSubtitleConfig(uri)
+        _manualSubtitleConfigs.add(subtitleConfig)
+        rebuildMediaItemWithSubtitles()
+    }
+
+    @OptIn(UnstableApi::class)
+    fun removeExternalSubtitle(track: SubtitleTrack) {
+        if (!track.isManuallyAdded || track.manualIndex !in _manualSubtitleConfigs.indices) return
+        _manualSubtitleConfigs.removeAt(track.manualIndex)
+        rebuildMediaItemWithSubtitles()
+    }
+
+    private fun buildSubtitleConfig(uri: Uri): MediaItem.SubtitleConfiguration {
+        val path = uri.path?.lowercase() ?: ""
+        val subtitleMime = when {
+            path.endsWith(".srt") -> MimeTypes.APPLICATION_SUBRIP
+            path.endsWith(".ass") || path.endsWith(".ssa") -> MimeTypes.TEXT_SSA
+            path.endsWith(".vtt") || path.endsWith(".webvtt") -> MimeTypes.TEXT_VTT
+            path.endsWith(".ttml") || path.endsWith(".xml") || path.endsWith(".dfxp") -> MimeTypes.APPLICATION_TTML
+            else -> MimeTypes.APPLICATION_SUBRIP // fallback
+        }
+        return MediaItem.SubtitleConfiguration.Builder(uri)
+            .setMimeType(subtitleMime)
+            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+            .build()
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun rebuildMediaItemWithSubtitles() {
+        val currentItem = player.currentMediaItem ?: return
+        val currentPosition = player.currentPosition
+        val wasPlaying = player.isPlaying
+
+        val newItem = currentItem.buildUpon()
+            .setSubtitleConfigurations(_manualSubtitleConfigs.toList())
+            .build()
+
+        player.setMediaItem(newItem, currentPosition)
+        player.prepare()
+        // Re-enable text tracks in case they were disabled
+        player.trackSelectionParameters = player.trackSelectionParameters
+            .buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+            .build()
+        if (wasPlaying) player.play()
     }
 
     companion object {

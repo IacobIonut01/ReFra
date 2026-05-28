@@ -23,6 +23,9 @@ import com.dot.gallery.core.decoder.glide.HeifEncryptedDecoder
 import com.dot.gallery.core.decoder.glide.HeifEncryptedSourceDecoder
 import com.dot.gallery.core.decoder.glide.HeifMimeInputStreamDecoder
 import com.dot.gallery.core.decoder.glide.JxlBitmapDecoder
+import com.dot.gallery.core.decoder.glide.SandboxedHeifBitmapDecoder
+import com.dot.gallery.core.decoder.glide.SandboxedHeifMimeDecoder
+import com.dot.gallery.core.decoder.glide.SandboxedJxlBitmapDecoder
 import com.dot.gallery.core.decoder.glide.JxlEncryptedDecoder
 import com.dot.gallery.core.decoder.glide.JxlEncryptedSourceDecoder
 import com.dot.gallery.core.decoder.glide.MimeInputStream
@@ -75,12 +78,29 @@ class GlideModule: AppGlideModule() {
         registry.prepend(
             MimeInputStream::class.java,
             Bitmap::class.java,
-            HeifMimeInputStreamDecoder(pool)
+            HeifMimeInputStreamDecoder(context, pool)
+        )
+        // Sandboxed MIME decoder: when enabled, intercepts HEIF before HeifMimeInputStreamDecoder
+        registry.prepend(
+            MimeInputStream::class.java,
+            Bitmap::class.java,
+            SandboxedHeifMimeDecoder(context, pool)
         )
         registry.prepend(
             InputStream::class.java,
             Bitmap::class.java,
             JxlBitmapDecoder(pool)
+        )
+        // Sandboxed decoders: when enabled, intercept before the standard decoders above
+        registry.prepend(
+            InputStream::class.java,
+            Bitmap::class.java,
+            SandboxedHeifBitmapDecoder(context, pool)
+        )
+        registry.prepend(
+            InputStream::class.java,
+            Bitmap::class.java,
+            SandboxedJxlBitmapDecoder(context, pool)
         )
 
         // Decoders for our custom model type

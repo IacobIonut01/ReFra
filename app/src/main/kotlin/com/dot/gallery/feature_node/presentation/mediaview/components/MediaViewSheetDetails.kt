@@ -106,7 +106,7 @@ fun <T : Media> MediaViewSheetDetails(
     motionPhotoState: MotionPhotoState? = null,
 ) {
     val metadata by rememberedDerivedState(metadataState.value, currentMedia) {
-        metadataState.value.metadata.find { it.mediaId == currentMedia?.id }
+        currentMedia?.id?.let { metadataState.value.metadataMap[it] }
     }
     val handler = LocalMediaHandler.current
     val isBlurEnabled by rememberAllowBlur()
@@ -275,6 +275,18 @@ fun <T : Media> MediaViewSheetDetails(
                         category = handler.getCategoryForMediaId(currentMedia.id)
                     }
                 }
+                val mediaCategoryCounter by if (category != null) {
+                    handler.getClassifiedMediaCountAtCategory(category!!)
+                        .collectAsStateWithLifecycle(0)
+                } else {
+                    remember { mutableStateOf(0) }
+                }
+                val mediaCategoryThumbnail by if (category != null) {
+                    handler.getClassifiedMediaThumbnailByCategory(category!!)
+                        .collectAsStateWithLifecycle(null)
+                } else {
+                    remember { mutableStateOf(null) }
+                }
 
                 LazyColumn(
                     modifier = Modifier
@@ -285,7 +297,7 @@ fun <T : Media> MediaViewSheetDetails(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    item {
+                    item(key = "date_location") {
                         Column(
                             modifier = Modifier
                                 .widthIn(max = 600.dp)
@@ -442,7 +454,7 @@ fun <T : Media> MediaViewSheetDetails(
                         }
                     }
                     if (motionPhotoState != null) {
-                        item {
+                        item(key = "motion_photo") {
                             MotionPhotoShotsSection(
                                 state = motionPhotoState,
                                 modifier = Modifier
@@ -458,7 +470,7 @@ fun <T : Media> MediaViewSheetDetails(
                             )
                         }
                     }
-                    item {
+                    item(key = "media_info") {
                         Column(
                             modifier = Modifier
                                 .widthIn(max = 600.dp)
@@ -529,12 +541,6 @@ fun <T : Media> MediaViewSheetDetails(
                                 )
                             }
                             if (category != null) {
-                                val mediaCategoryCounter by handler.getClassifiedMediaCountAtCategory(
-                                    category!!
-                                ).collectAsStateWithLifecycle(0)
-                                val mediaCategoryThumbnail by handler.getClassifiedMediaThumbnailByCategory(
-                                    category!!
-                                ).collectAsStateWithLifecycle(null)
                                 val eventHandler = LocalEventHandler.current
                                 MediaInfoRow(
                                     modifier = Modifier
@@ -581,7 +587,7 @@ fun <T : Media> MediaViewSheetDetails(
                             }
                         }
                     }
-                    item {
+                    item(key = "actions") {
                         MediaViewSheetActions(
                             media = currentMedia,
                             albumsState = albumsState,
@@ -590,7 +596,7 @@ fun <T : Media> MediaViewSheetDetails(
                             currentVault = currentVault
                         )
                     }
-                    item {
+                    item(key = "spacer") {
                         NavigationBarSpacer()
                     }
                 }

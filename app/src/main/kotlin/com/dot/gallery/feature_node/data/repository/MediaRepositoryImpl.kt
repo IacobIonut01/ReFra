@@ -10,6 +10,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import android.location.Geocoder
 import android.net.Uri
 import android.os.Environment
@@ -22,7 +24,7 @@ import com.dot.gallery.core.util.SdkCompat
 import androidx.datastore.preferences.core.Preferences
 import androidx.work.WorkManager
 import com.dot.gallery.core.Resource
-import com.dot.gallery.core.dataStore
+import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.core.util.MediaStoreBuckets
 import com.dot.gallery.core.util.ext.deleteGpsMetadata
 import com.dot.gallery.core.util.ext.deleteMetadata
@@ -61,6 +63,7 @@ import com.dot.gallery.feature_node.domain.model.Media.EncryptedMedia
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.feature_node.domain.model.LockedAlbum
 import com.dot.gallery.feature_node.domain.model.MergedSubfolderAlbum
@@ -85,6 +88,7 @@ import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.BOTH
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.PHOTOS
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia.VIDEOS
+import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
@@ -112,6 +116,16 @@ class MediaRepositoryImpl(
 ) : MediaRepository {
 
     private val contentResolver = context.contentResolver
+
+    /**
+     * Whether on-demand metadata operations should use per-file isolation.
+     * This is true for both hybrid and per-file modes.
+     */
+    private suspend fun shouldUsePerFileIsolation(): Boolean {
+        val mode = Settings.Security.getMetadataIsolationMode(context)
+            .firstOrNull() ?: Settings.Security.METADATA_ISOLATION_SHARED
+        return mode != Settings.Security.METADATA_ISOLATION_SHARED
+    }
 
     private var updateDatabaseMutex = Mutex()
     override suspend fun updateInternalDatabase() {
@@ -363,7 +377,7 @@ class MediaRepositoryImpl(
             media = media,
             action = { deleteGpsMetadata() },
             postAction = {
-                context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
+                context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it, shouldUsePerFileIsolation())?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }
@@ -374,7 +388,7 @@ class MediaRepositoryImpl(
             media = media,
             action = { deleteMetadata() },
             postAction = {
-                context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
+                context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it, shouldUsePerFileIsolation())?.let { metadata ->
                     database.getMetadataDao().addMetadata(metadata)
                 }
             }
@@ -407,7 +421,7 @@ class MediaRepositoryImpl(
                 media = media,
                 action = { updateImageDescription(description) },
                 postAction = {
-                    context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it)?.let { metadata ->
+                    context.retrieveExtraMediaMetadata(isolatedParser, geocoder, it, shouldUsePerFileIsolation())?.let { metadata ->
                         database.getMetadataDao().addMetadata(metadata)
                     }
                 }
@@ -634,7 +648,7 @@ class MediaRepositoryImpl(
                 }
                 val targetFile = targetVault.mediaFile(media.id).apply { if (exists()) delete() }
                 // Decrypt from source, re-encrypt into target
-                val buffer = java.io.ByteArrayOutputStream()
+                val buffer = ByteArrayOutputStream()
                 if (isPortableFile(sourceFile)) {
                     decryptPortableStream(sourceVault, sourceFile, buffer)
                 } else {
@@ -646,7 +660,7 @@ class MediaRepositoryImpl(
                     printError("Transfer failed: decrypted data is empty for ${media.label}")
                     return@withContext false
                 }
-                java.io.ByteArrayInputStream(decryptedBytes).use { input ->
+                ByteArrayInputStream(decryptedBytes).use { input ->
                     encryptPortableStream(targetVault, input, targetFile)
                 }
                 targetFile.setLastModified(System.currentTimeMillis())
@@ -855,7 +869,7 @@ class MediaRepositoryImpl(
         key: Preferences.Key<Result>,
         defaultValue: Result
     ): Flow<Result> {
-        return context.dataStore.data.map { it[key] ?: defaultValue }
+        return context.activeDataStore.data.map { it[key] ?: defaultValue }
     }
 
     override fun getClassifiedCategories(): Flow<List<String>> =
@@ -1005,8 +1019,12 @@ class MediaRepositoryImpl(
         database.getAlbumThumbnailDao().getAlbumThumbnailsFlow()
 
     override suspend fun collectMetadataFor(media: Media) {
-        context.retrieveExtraMediaMetadata(isolatedParser, geocoder, media)?.let { metadata ->
+        val metadata = context.retrieveExtraMediaMetadata(isolatedParser, geocoder, media, shouldUsePerFileIsolation())
+        if (metadata != null) {
             database.getMetadataDao().addMetadata(metadata)
+            printDebug("collectMetadataFor: saved metadata for ${media.id}")
+        } else {
+            printWarning("collectMetadataFor: no metadata returned for ${media.id} (uri=${media.getUri()})")
         }
     }
 

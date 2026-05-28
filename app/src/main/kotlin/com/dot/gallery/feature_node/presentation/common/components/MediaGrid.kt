@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -30,10 +31,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -74,7 +74,7 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
     gridState: LazyGridState,
     mediaState: State<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
-    mappedData: SnapshotStateList<MediaItem<T>>,
+    mappedData: List<MediaItem<T>>,
     paddingValues: PaddingValues,
     allowSelection: Boolean,
     canScroll: Boolean,
@@ -110,24 +110,38 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
         Column(
             modifier = Modifier.padding(paddingValues).fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
-            AnimatedVisibility(
-                visible = mediaState.value.isLoading,
-                enter = enterAnimation,
-                exit = exitAnimation
-            ) {
-                LoadingMedia()
+            if (aboveGridContent != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawWithContent { }
+                ) {
+                    aboveGridContent()
+                }
             }
-            AnimatedVisibility(
-                visible = mediaState.value.media.isEmpty() && !mediaState.value.isLoading,
-                enter = enterAnimation,
-                exit = exitAnimation
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                emptyContent()
-            }
-            AnimatedVisibility(visible = mediaState.value.error.isNotEmpty()) {
-                Error(errorMessage = mediaState.value.error)
+                AnimatedVisibility(
+                    visible = mediaState.value.isLoading,
+                    enter = enterAnimation,
+                    exit = exitAnimation
+                ) {
+                    LoadingMedia()
+                }
+                AnimatedVisibility(
+                    visible = mediaState.value.media.isEmpty() && !mediaState.value.isLoading,
+                    enter = enterAnimation,
+                    exit = exitAnimation
+                ) {
+                    emptyContent()
+                }
+                AnimatedVisibility(visible = mediaState.value.error.isNotEmpty()) {
+                    Error(errorMessage = mediaState.value.error)
+                }
             }
         }
     }
@@ -172,7 +186,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
     modifier: Modifier = Modifier,
     mediaState: State<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
-    mappedData: SnapshotStateList<MediaItem<T>>,
+    mappedData: List<MediaItem<T>>,
     paddingValues: PaddingValues,
     allowSelection: Boolean,
     canScroll: Boolean,
@@ -186,7 +200,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
     val stringYesterday = stringResource(id = R.string.header_yesterday)
     val feedbackManager = rememberFeedbackManager()
     val headers by rememberedDerivedState(mediaState.value) {
-        mediaState.value.headers.toMutableStateList()
+        mediaState.value.headers
     }
     TimelineScroller(
         modifier = modifier
@@ -354,9 +368,9 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
                             onItemSelect = {
                                 if (allowSelection) {
                                     feedbackManager.vibrate()
-                                    selector.toggleSelection(
+                                    selector.toggleSelectionById(
                                         mediaState = mediaState.value,
-                                        index = mediaState.value.media.indexOf(it)
+                                        mediaId = it.id
                                     )
                                 }
                             }
@@ -462,11 +476,10 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
                     onMediaClick = { onMediaClick(it) },
                     onItemSelect = {
                         if (allowSelection) {
-                            val index = items.indexOf(it)
                             feedbackManager.vibrate()
-                            selector.toggleSelection(
+                            selector.toggleSelectionById(
                                 mediaState = mediaState.value,
-                                index = index
+                                mediaId = it.id
                             )
                         }
                     }

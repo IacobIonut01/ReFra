@@ -50,8 +50,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
+import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
+import com.dot.gallery.feature_node.domain.model.Album
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.dot.gallery.core.Constants.Animation.navigateInAnimation
 import com.dot.gallery.core.Constants.Animation.navigateUpAnimation
@@ -88,6 +91,7 @@ import com.dot.gallery.feature_node.presentation.collection.CollectionAlbumSelec
 import com.dot.gallery.feature_node.presentation.collection.CollectionViewScreen
 import com.dot.gallery.feature_node.presentation.dateformat.DateFormatScreen
 import com.dot.gallery.feature_node.presentation.exif.MetadataViewScreen
+import com.dot.gallery.feature_node.presentation.exif.MetadataViewViewModel
 import com.dot.gallery.feature_node.presentation.favorites.FavoriteScreen
 import com.dot.gallery.feature_node.presentation.help.HelpScreen
 import com.dot.gallery.feature_node.presentation.help.TutorialCategoryScreen
@@ -111,11 +115,18 @@ import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSe
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsTimelineAlbumsScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.EditBackupsViewerScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.AIModelsManagerScreen
+import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSecurityScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSmartFeaturesScreen
 import com.dot.gallery.feature_node.presentation.setup.SetupScreen
+import com.dot.gallery.feature_node.presentation.storycards.StoryCardsSettingsScreen
+import com.dot.gallery.feature_node.presentation.storycards.StoryCardsViewModel
+import com.dot.gallery.feature_node.presentation.storycards.StoryViewerScreen
 import com.dot.gallery.feature_node.presentation.timeline.TimelineScreen
 import com.dot.gallery.feature_node.presentation.trashed.TrashedGridScreen
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.privatefolder.PrivateFolderScreen
+import com.dot.gallery.feature_node.presentation.privatefolder.PrivateFolderSecuritySetupScreen
+import com.dot.gallery.feature_node.presentation.privatefolder.PrivateFolderViewModel
 import com.dot.gallery.feature_node.presentation.vault.VaultScreen
 import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -193,7 +204,7 @@ fun NavigationComp(
     val eventHandler = LocalEventHandler.current
 
     // Preloaded viewModels
-    val allAlbumsMediaState = navViewModel.allAlbumsMediaState.collectAsStateWithLifecycle()
+    val distributor = LocalMediaDistributor.current
     val albumsState = navViewModel.albumsState.collectAsStateWithLifecycle()
     val timelineState = navViewModel.timelineMediaState.collectAsStateWithLifecycle()
     val metadataState = navViewModel.metadataState.collectAsStateWithLifecycle()
@@ -272,9 +283,9 @@ fun NavigationComp(
             ) {
                 val albumsViewModel = hiltViewModel<AlbumsViewModel>()
                 val scope = rememberCoroutineScope()
-                var pendingAlbum by remember { mutableStateOf<com.dot.gallery.feature_node.domain.model.Album?>(null) }
+                var pendingAlbum by remember { mutableStateOf<Album?>(null) }
                 var biometricAction by remember { mutableStateOf<String?>(null) }
-                var pendingLockAlbum by remember { mutableStateOf<com.dot.gallery.feature_node.domain.model.Album?>(null) }
+                var pendingLockAlbum by remember { mutableStateOf<Album?>(null) }
                 val securitySheetState = rememberAppBottomSheetState()
                 val lockDisclaimerSheetState = rememberAppBottomSheetState()
                 val biometricState = rememberBiometricState(
@@ -297,7 +308,7 @@ fun NavigationComp(
                         biometricAction = null
                     }
                 )
-                val onAlbumClickWithLock: (com.dot.gallery.feature_node.domain.model.Album) -> Unit = remember(biometricState) {
+                val onAlbumClickWithLock: (Album) -> Unit = remember(biometricState) {
                     { album ->
                         if (album.isLocked) {
                             if (!biometricState.isSupported) {
@@ -312,7 +323,7 @@ fun NavigationComp(
                         }
                     }
                 }
-                val onLockAlbumWithCheck: (com.dot.gallery.feature_node.domain.model.Album) -> Unit = remember(biometricState) {
+                val onLockAlbumWithCheck: (Album) -> Unit = remember(biometricState) {
                     { album ->
                         if (!biometricState.isSupported) {
                             scope.launch { securitySheetState.show() }
@@ -339,11 +350,11 @@ fun NavigationComp(
                 var groupDialogMode by remember { mutableStateOf("create") }
                 var groupDialogGroupId by remember { mutableStateOf<Long?>(null) }
                 var groupDialogInitialName by remember { mutableStateOf("") }
-                var pendingGroupAlbum by remember { mutableStateOf<com.dot.gallery.feature_node.domain.model.Album?>(null) }
+                var pendingGroupAlbum by remember { mutableStateOf<Album?>(null) }
                 val deleteGroupSheetState = rememberAppBottomSheetState()
                 var pendingDeleteGroupId by remember { mutableStateOf<Long?>(null) }
 
-                val distributor = com.dot.gallery.core.LocalMediaDistributor.current
+                val distributor = LocalMediaDistributor.current
                 val albumsStateForGroups by distributor.albumsFlow.collectAsStateWithLifecycle()
 
                 AlbumGroupSheet(
@@ -494,11 +505,13 @@ fun NavigationComp(
                 val argumentAlbumId = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("albumId") ?: -1
                 }
+                val albumMediaState = distributor.albumTimelineMediaFlow(argumentAlbumId)
+                    .collectAsStateWithLifecycle()
                 AlbumTimelineScreen(
                     albumId = argumentAlbumId,
                     albumName = argumentAlbumName,
                     paddingValues = paddingValues,
-                    allAlbumsMediaState = allAlbumsMediaState,
+                    albumMediaState = albumMediaState,
                     metadataState = metadataState,
                     isScrolling = isScrolling,
                     sharedTransitionScope = this@SharedTransitionLayout,
@@ -640,11 +653,19 @@ fun NavigationComp(
                 val albumId: Long = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("albumId") ?: -1L
                 }
-                val albumMediaState = rememberedDerivedState(allAlbumsMediaState.value) {
-                    allAlbumsMediaState.value[albumId] ?: MediaState()
-                }
-                val mediaState by rememberedDerivedState(albumId) {
-                    if (albumId != -1L) {
+                val isPrivateFolder = albumId == PrivateFolderViewModel.PRIVATE_FOLDER_ALBUM_ID
+                val privateFolderViewModel = if (isPrivateFolder) {
+                    hiltViewModel<PrivateFolderViewModel>(
+                        navController.getBackStackEntry(Screen.PrivateFolderScreen())
+                    )
+                } else null
+                val privateFolderState = privateFolderViewModel?.mediaState?.collectAsStateWithLifecycle()
+                val albumMediaState = distributor.albumTimelineMediaFlow(albumId)
+                    .collectAsStateWithLifecycle()
+                val mediaState by rememberedDerivedState(albumId, privateFolderState?.value, albumMediaState.value) {
+                    if (isPrivateFolder) {
+                        privateFolderState ?: albumMediaState
+                    } else if (albumId != -1L) {
                         albumMediaState
                     } else timelineState
                 }
@@ -753,6 +774,29 @@ fun NavigationComp(
             }
 
             composable(
+                route = Screen.PrivateFolderScreen()
+            ) {
+                PrivateFolderScreen(
+                    paddingValues = paddingValues,
+                    isScrolling = isScrolling,
+                    metadataState = metadataState,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
+            }
+
+            composable(
+                route = Screen.PrivateFolderSecurityScreen()
+            ) {
+                PrivateFolderSecuritySetupScreen(
+                    onBack = { navController.navigateUp() },
+                    onNone = { navController.navigateUp() },
+                    onDeviceSecurity = { navController.navigateUp() },
+                    onCustomComplete = { navController.navigateUp() }
+                )
+            }
+
+            composable(
                 route = Screen.LibraryScreen()
             ) {
                 LibraryScreen(
@@ -768,10 +812,10 @@ fun NavigationComp(
             ) {
                 val categoriesViewModel = hiltViewModel<CategoriesViewModel>()
                 val categoriesWithCount by categoriesViewModel.categoriesWithCount.collectAsStateWithLifecycle()
-                val distributor = com.dot.gallery.core.LocalMediaDistributor.current
+                val distributor = LocalMediaDistributor.current
                 val categoryMediaState by distributor.timelineMediaFlow.collectAsStateWithLifecycle(
-                    context = kotlinx.coroutines.Dispatchers.IO,
-                    initialValue = com.dot.gallery.feature_node.domain.model.MediaState()
+                    context = Dispatchers.IO,
+                    initialValue = MediaState()
                 )
                 CategoriesScreen(
                     categoriesWithCount = categoriesWithCount,
@@ -1060,7 +1104,7 @@ fun NavigationComp(
                     backStackEntry.arguments?.getLong("collectionId") ?: -1
                 }
 
-                val distributor = com.dot.gallery.core.LocalMediaDistributor.current
+                val distributor = LocalMediaDistributor.current
                 val collectionMediaFlow = remember(collectionId) {
                     distributor.collectionMediaFlow(collectionId)
                 }
@@ -1106,6 +1150,9 @@ fun NavigationComp(
             }
             composable(Screen.SettingsNavigationScreen()) {
                 SettingsNavigationScreen()
+            }
+            composable(Screen.SettingsSecurityScreen()) {
+                SettingsSecurityScreen()
             }
             composable(Screen.SettingsSelectionActionsScreen()) {
                 SettingsSelectionActionsScreen()
@@ -1211,7 +1258,7 @@ fun NavigationComp(
                 val isVideo = remember(backStackEntry) {
                     backStackEntry.arguments?.getBoolean("isVideo") ?: false
                 }
-                val metadataViewViewModel = hiltViewModel<com.dot.gallery.feature_node.presentation.exif.MetadataViewViewModel>()
+                val metadataViewViewModel = hiltViewModel<MetadataViewViewModel>()
                 val metadataViewState by metadataViewViewModel.state.collectAsStateWithLifecycle()
                 LaunchedEffect(mediaUri) {
                     metadataViewViewModel.loadMetadata(mediaUri, isVideo)
@@ -1256,6 +1303,34 @@ fun NavigationComp(
                     target = "location_${gpsLocationNameCity}_$gpsLocationNameCountry",
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
+                )
+            }
+
+            composable(
+                route = Screen.StoryViewerScreen.cardId(),
+                arguments = listOf(
+                    navArgument(name = "cardId") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    }
+                )
+            ) { backStackEntry ->
+                val cardId = remember(backStackEntry) {
+                    backStackEntry.arguments?.getLong("cardId") ?: -1L
+                }
+                val storyCardsViewModel = hiltViewModel<StoryCardsViewModel>()
+                val cards by storyCardsViewModel.allCards.collectAsStateWithLifecycle()
+
+                StoryViewerScreen(
+                    cards = cards,
+                    initialCardId = cardId,
+                    onDismiss = { navController.navigateUp() }
+                )
+            }
+
+            composable(Screen.StoryCardsSettingsScreen()) {
+                StoryCardsSettingsScreen(
+                    onNavigateBack = { navController.navigateUp() }
                 )
             }
 

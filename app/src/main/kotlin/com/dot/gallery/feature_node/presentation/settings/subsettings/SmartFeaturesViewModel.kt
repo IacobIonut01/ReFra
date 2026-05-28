@@ -42,6 +42,7 @@ class SmartFeaturesViewModel @Inject constructor(
     fun getFileInfos(): List<ModelFileInfo> = modelManager.getFileInfos()
 
     val hasInternetPermission: Boolean get() = modelManager.hasInternetPermission
+    val areAiFeaturesAvailable: Boolean get() = modelManager.areAiFeaturesAvailable
 
     val isMetadataWorkerRunning: StateFlow<Boolean> = workManager.getWorkInfosFlow(
         WorkQuery.fromUniqueWorkNames("MetadataCollection")

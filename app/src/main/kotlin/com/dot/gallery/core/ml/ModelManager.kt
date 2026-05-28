@@ -69,14 +69,23 @@ class ModelManager @Inject constructor(
 
     /**
      * Whether the app has INTERNET permission declared in its manifest.
-     * When false, AI model download and all dependent features (categories, AI search)
-     * should be hidden/disabled since models cannot be downloaded.
+     * When false, model *download* is not possible, but bundled models still work.
      */
     val hasInternetPermission: Boolean by lazy {
         context.packageManager.checkPermission(
             Manifest.permission.INTERNET,
             context.packageName
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * Whether AI features (categories, smart search, etc.) should be shown in the UI.
+     * True when models are bundled (withML builds) OR the app can download them (has INTERNET).
+     * This decouples AI feature visibility from INTERNET permission so that
+     * nomaps-withML builds (which strip INTERNET but bundle models) still expose AI features.
+     */
+    val areAiFeaturesAvailable: Boolean by lazy {
+        BuildConfig.ML_MODELS_BUNDLED || hasInternetPermission
     }
 
     val modelsDir: File get() = File(context.filesDir, MODELS_DIR)

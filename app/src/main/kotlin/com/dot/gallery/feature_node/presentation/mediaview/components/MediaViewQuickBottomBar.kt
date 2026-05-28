@@ -49,7 +49,8 @@ fun <T : Media> MediaViewQuickBottomBar(
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?,
     isImageDark: Boolean = false,
-    autoContrast: Boolean = false
+    autoContrast: Boolean = false,
+    onTrashConfirmed: () -> Unit = {}
 ) {
     val handler = LocalMediaHandler.current
     val allowBlur by rememberAllowBlur()
@@ -77,7 +78,7 @@ fun <T : Media> MediaViewQuickBottomBar(
     if (currentMedia != null) {
         if (currentMedia.isTrashed) {
             val scope = rememberCoroutineScope()
-            val result = rememberActivityResult()
+            val result = rememberActivityResult(onResultOk = onTrashConfirmed)
             // Restore Component
             MediaViewButton(
                 currentMedia = currentMedia,
@@ -156,7 +157,8 @@ fun <T : Media> MediaViewQuickBottomBar(
                     enabled = enabled,
                     deleteMedia = deleteMedia,
                     currentVault = currentVault,
-                    followTheme = followTheme
+                    followTheme = followTheme,
+                    onTrashConfirmed = onTrashConfirmed
                 )
             }
         }

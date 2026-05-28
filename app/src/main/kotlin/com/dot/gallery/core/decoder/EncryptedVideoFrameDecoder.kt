@@ -1,5 +1,6 @@
 package com.dot.gallery.core.decoder
 
+import android.annotation.SuppressLint
 import android.media.MediaMetadataRetriever
 import android.media.MediaMetadataRetriever.BitmapParams
 import androidx.exifinterface.media.ExifInterface
@@ -148,6 +149,7 @@ private class EncryptedVideoFrameDecodeHelper(
         val bitmapParams = BitmapParams().apply {
             config.colorType?.also { preferredConfig = it }
         }
+        @SuppressLint("NewApi")
         val bitmap = mediaMetadataRetriever.getScaledFrameAtTime(
             /* timeUs = */ frameMicros,
             /* option = */ option,

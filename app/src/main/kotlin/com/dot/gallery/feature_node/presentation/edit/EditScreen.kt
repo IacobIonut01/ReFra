@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.edit
 
 import android.graphics.Bitmap
+import android.graphics.RectF
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -134,7 +135,7 @@ fun EditScreen2(
     onToggleFilter: (ImageFilter) -> Unit,
     commitFilter: () -> Unit = {},
     removeLast: () -> Unit,
-    onCropRect: (android.graphics.RectF) -> Unit,
+    onCropRect: (RectF) -> Unit,
     addPath: (Path, PathProperties) -> Unit,
     clearPathsUndone: () -> Unit,
     setCurrentPosition: (Offset) -> Unit,

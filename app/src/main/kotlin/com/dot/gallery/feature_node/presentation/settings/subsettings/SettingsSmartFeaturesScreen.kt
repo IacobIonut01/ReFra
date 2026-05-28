@@ -35,7 +35,7 @@ fun SettingsSmartFeaturesScreen(
     viewModel: SmartFeaturesViewModel = hiltViewModel()
 ) {
     val handler = LocalEventHandler.current
-    val hasInternet = viewModel.hasInternetPermission
+    val aiAvailable = viewModel.areAiFeaturesAvailable
     val modelStatus by viewModel.modelStatus.collectAsStateWithLifecycle()
     val isMetadataWorkerRunning by viewModel.isMetadataWorkerRunning.collectAsStateWithLifecycle()
     val metadataProgress by viewModel.metadataProgress.collectAsStateWithLifecycle()
@@ -58,15 +58,15 @@ fun SettingsSmartFeaturesScreen(
     ) { padding ->
         // Resolve strings outside the non-composable settings{} DSL
         val smartFeaturesHeader = stringResource(R.string.ai_category)
-        val aiModelsManagerTitle = if (hasInternet) stringResource(R.string.ai_models_manager) else ""
-        val modelSummary = if (hasInternet) when (modelStatus) {
+        val aiModelsManagerTitle = if (aiAvailable) stringResource(R.string.ai_models_manager) else ""
+        val modelSummary = if (aiAvailable) when (modelStatus) {
             ModelStatus.READY -> stringResource(R.string.ai_models_ready_summary)
             ModelStatus.NOT_INSTALLED -> stringResource(R.string.ai_models_download_summary)
             ModelStatus.DOWNLOADING, ModelStatus.COPYING -> stringResource(R.string.ai_models_downloading)
             ModelStatus.ERROR -> stringResource(R.string.ai_models_error)
         } else ""
-        val categoriesTitle = if (hasInternet) stringResource(R.string.categories) else ""
-        val categoriesSummary = if (hasInternet) {
+        val categoriesTitle = if (aiAvailable) stringResource(R.string.categories) else ""
+        val categoriesSummary = if (aiAvailable) {
             if (modelStatus == ModelStatus.READY) {
                 stringResource(R.string.categorise_your_media)
             } else {
@@ -97,7 +97,7 @@ fun SettingsSmartFeaturesScreen(
             )
         ) {
             settings {
-                if (hasInternet) {
+                if (aiAvailable) {
                     Header(smartFeaturesHeader)
 
                     Preference(

@@ -37,11 +37,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
-import androidx.compose.ui.util.fastFirstOrNull
+
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
@@ -80,30 +81,43 @@ fun <T : Media> MediaImage(
         selectionState && selectedMedia.any { it == media.id }
     }
     val metadata by rememberedDerivedState(metadataState.value) {
-        metadataState.value.metadata.fastFirstOrNull { it.mediaId == media.id }
+        metadataState.value.metadataMap[media.id]
     }
 
-    val selectedSize by animateDpAsState(
-        targetValue = if (isSelected) 12.dp else 0.dp,
-        label = "selectedSize"
-    )
-    val scale by animateFloatAsState(
-        targetValue = if (isSelected) 0.5f else 1f,
-        label = "scale"
-    )
-    val selectedShapeSize by animateDpAsState(
-        targetValue = if (isSelected) 16.dp else 0.dp,
-        label = "selectedShapeSize"
-    )
-    val strokeSize by animateDpAsState(
-        targetValue = if (isSelected) 2.dp else 0.dp,
-        label = "strokeSize"
-    )
-    val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
-    val strokeColor by animateColorAsState(
-        targetValue = if (isSelected) primaryContainerColor else Color.Transparent,
-        label = "strokeColor"
-    )
+    val selectedSize: Dp
+    val scale: Float
+    val selectedShapeSize: Dp
+    val strokeSize: Dp
+    val strokeColor: Color
+    if (selectionState) {
+        selectedSize = animateDpAsState(
+            targetValue = if (isSelected) 12.dp else 0.dp,
+            label = "selectedSize"
+        ).value
+        scale = animateFloatAsState(
+            targetValue = if (isSelected) 0.5f else 1f,
+            label = "scale"
+        ).value
+        selectedShapeSize = animateDpAsState(
+            targetValue = if (isSelected) 16.dp else 0.dp,
+            label = "selectedShapeSize"
+        ).value
+        strokeSize = animateDpAsState(
+            targetValue = if (isSelected) 2.dp else 0.dp,
+            label = "strokeSize"
+        ).value
+        val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
+        strokeColor = animateColorAsState(
+            targetValue = if (isSelected) primaryContainerColor else Color.Transparent,
+            label = "strokeColor"
+        ).value
+    } else {
+        selectedSize = 0.dp
+        scale = 1f
+        selectedShapeSize = 0.dp
+        strokeSize = 0.dp
+        strokeColor = Color.Transparent
+    }
     val roundedShape = remember(selectedShapeSize) {
         RoundedCornerShape(selectedShapeSize)
     }
