@@ -535,15 +535,15 @@
     <string name="group_similar_media_description">Agrupa automáticamente las fotos relacionadas: pares RAW+JPG, copias editadas y secuencias de ráfagas. Cuando está activada, solo se muestra la foto principal en la cuadrícula; los elementos agrupados aparecen en el visor multimedia.</string>
     <!-- Group similar: sub-type toggles -->
     <string name="group_raw_jpg_title">Pares RAW+JPG</string>
-    <string name="group_raw_jpg_summary">Matches RAW files with their JPG/HEIF counterpart that share the same base filename and folder.\n\nSupported RAW formats:\nDNG, CR2, CR3, NEF, ARW, RAF, ORF, RW2, PEF, SRW, NRW</string>
-    <string name="group_edited_copies_title">Edited copies</string>
-    <string name="group_edited_copies_summary">Matches files with edit suffixes to the original.\n\nPatterns detected:\n• (1), (2) — copy/duplicate numbering\n• ~2, ~3 — tilde duplicates\n• _edited, -edited\n• _HDR\n• .NIGHT, .PORTRAIT, .LONG_EXPOSURE\n• .ORIGINAL, .PANO, .COVER</string>
-    <string name="group_burst_sequences_title">Burst sequences</string>
-    <string name="group_burst_sequences_summary">Matches burst photos that share a timestamp.\n\nPatterns detected:\n• Samsung — 20151021_072800_007\n• Pixel/Motorola — IMG_20151021_072800_BURST007\n• Sony — DSC_0007_BURST20151021072800\n• OnePlus — IMG_20151021_072800_BURST(007)\n• Generic — _BURST###, _COVER suffixes</string>
-    <string name="allow_gif_animation_description">When enabled, GIF images play their animation directly in the timeline and album grids. Disable this to show static thumbnails instead, which can reduce lag in folders with many GIFs.</string>
-    <string name="hide_timeline_for_albums_description">Removes the date section headers when browsing inside an album, showing a cleaner continuous grid of media.</string>
-    <string name="merge_albums_by_name_description">Combines albums that share the same name from different storage locations into a single album. Useful if you have media spread across internal storage and SD card.</string>
-    <string name="full_brightness_view_description">Automatically sets screen brightness to maximum when viewing a photo or video in full screen. Brightness returns to your normal level when you leave the viewer.</string>
+    <string name="group_raw_jpg_summary">Compara los archivos RAW con sus equivalentes JPG/HEIF que comparten el mismo nombre de archivo y carpeta.\n\nFormatos RAW compatibles:\nDNG, CR2, CR3, NEF, ARW, RAF, ORF, RW2, PEF, SRW, NRW</string>
+    <string name="group_edited_copies_title">Copias editadas</string>
+    <string name="group_edited_copies_summary">Compara archivos con sufijos de edición con el original.\n\nPatrones detectados:\n- (1), (2) - numeración de copias/duplicados\n- ~2, ~3 - duplicados con tilde\n- _editado, -editado\n- _HDR\n- .NIGHT, .PORTRAIT, .LONG_EXPOSURE\n- .ORIGINAL, .PANO, .COVER</string>
+    <string name="group_burst_sequences_title">Secuencias de ráfaga</string>
+    <string name="group_burst_sequences_summary">Coincide fotos de ráfagas que comparten una marca de tiempo.\n\nPatrones detectados:\n- Samsung - 20151021_072800_007\n- Pixel/Motorola - IMG_20151021_072800_BURST007\n- Sony - DSC_0007_BURST20151021072800\n- OnePlus - IMG_20151021_072800_BURST(007)\n- Genérico - sufijos _BURST###, _COVER</string>
+    <string name="allow_gif_animation_description">Cuando está activado, las imágenes GIF reproducen su animación directamente en la línea de tiempo y en las rejillas de álbumes. Deshabilita esto para mostrar miniaturas estáticas en su lugar, lo que puede reducir el retraso en las carpetas con muchos GIFs.</string>
+    <string name="hide_timeline_for_albums_description">Elimina las cabeceras de las secciones de fechas al navegar dentro de un álbum, mostrando una cuadrícula continua más limpia de medios.</string>
+    <string name="merge_albums_by_name_description">Combina álbumes que comparten el mismo nombre desde diferentes ubicaciones de almacenamiento en un único álbum. Resulta útil si tienes medios repartidos entre el almacenamiento interno y la tarjeta SD.</string>
+    <string name="full_brightness_view_description">Ajusta automáticamente el brillo de la pantalla al máximo cuando ves una foto o un vídeo a pantalla completa. El brillo vuelve a su nivel normal al salir del visor.</string>
     <string name="show_date_header_description">Displays the date and time of the current photo at the top of the media viewer screen.</string>
     <string name="show_favorite_button_description">Shows a heart button in the media viewer toolbar, allowing you to quickly add or remove the current photo from your favorites.</string>
     <string name="audio_focus_description">When enabled, the app requests audio focus during video playback. This pauses other audio apps (music, podcasts) while your video plays.\n\nChanging this setting will restart the app.</string>
