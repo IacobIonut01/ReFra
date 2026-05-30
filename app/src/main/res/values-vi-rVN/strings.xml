@@ -547,16 +547,16 @@
     <string name="show_date_header_description">Hiển thị ngày và giờ của ảnh hiện tại ở phía trên cùng của màn hình trình xem ảnh.</string>
     <string name="show_favorite_button_description">Hiển thị nút yêu thích trên thanh công cụ của trình xem ảnh, cho phép bạn nhanh chóng thêm hoặc xóa ảnh hiện tại khỏi mục Yêu thích.</string>
     <string name="audio_focus_description">Khi bật, ứng dụng sẽ yêu cầu quyền ưu tiên âm thanh khi phát video. Điều này sẽ tạm dừng các ứng dụng âm thanh khác (nhạc, podcast, v.v.) trong khi video đang phát.\n\nThay đổi cài đặt này sẽ khởi động lại ứng dụng.</string>
-    <string name="auto_hide_on_video_play_description">Automatically hides the top and bottom bars when a video starts playing, giving you a full-screen experience. Tap the screen to bring the controls back.</string>
-    <string name="auto_play_video_description">Videos start playing automatically when you swipe to them in the media viewer. Disable this to require a manual tap to play.</string>
-    <string name="fancy_blur_description">Applies a blur effect to the background behind photos in the media viewer. Requires Android 12 or higher.</string>
-    <string name="shared_elements_description">Enables smooth shared element transitions between the grid thumbnails and the full-screen media viewer. This creates a visual connection as items zoom in and out.</string>
-    <string name="old_navbar_description">Switches to the classic Material navigation bar with text labels. On larger screens, this shows a navigation rail on the side instead.</string>
-    <string name="auto_hide_searchbar_description">The search bar or top bar slides out of view when you scroll down, giving more space for content. It reappears when you scroll back up.</string>
-    <string name="auto_hide_navigationbar_description">The bottom navigation bar slides out of view when you scroll down, giving more space for content. It reappears when you scroll back up.</string>
-    <string name="show_selection_titles_description">Shows the title text beneath each item in the bottom selection bar (Timeline, Albums, Library). Disable for a more compact icon-only navigation.</string>
-    <string name="secure_mode_description">Prevents the app content from appearing in screenshots, the recent apps overview, and screen recordings. Useful for privacy when your gallery contains sensitive content.</string>
-    <string name="allow_vibrations_description">Allows the app to send haptic feedback during certain actions and gestures, such as long-pressing to select or pinch-to-zoom transitions.</string>
+    <string name="auto_hide_on_video_play_description">Tự động ẩn thanh trên cùng và dưới cùng khi video bắt đầu phát, mang lại trải nghiệm toàn màn hình. Chạm vào màn hình để hiện lại các điều khiển.</string>
+    <string name="auto_play_video_description">Video sẽ tự động phát khi bạn vuốt đến chúng trong trình xem ảnh. Tắt tùy chọn này nếu muốn chạm thủ công để phát video.</string>
+    <string name="fancy_blur_description">Áp dụng hiệu ứng làm mờ cho nền phía sau ảnh trong trình xem ảnh. Yêu cầu Android 12 trở lên.</string>
+    <string name="shared_elements_description">Bật hiệu ứng chuyển tiếp mượt mà giữa ảnh thu nhỏ trong lưới và trình xem ảnh toàn màn hình. Hiệu ứng này tạo sự liền mạch về mặt thị giác khi ảnh được phóng to hoặc thu nhỏ.</string>
+    <string name="old_navbar_description">Chuyển sang thanh điều hướng Material cổ điển có nhãn văn bản. Trên màn hình lớn hơn, thanh điều hướng bên sẽ được hiển thị thay thế.</string>
+    <string name="auto_hide_searchbar_description">Thanh tìm kiếm hoặc thanh trên cùng sẽ tự động ẩn khi bạn cuộn xuống, giúp có thêm không gian hiển thị nội dung. Thanh sẽ xuất hiện lại khi bạn cuộn lên.</string>
+    <string name="auto_hide_navigationbar_description">Thanh điều hướng dưới cùng sẽ tự động ẩn khi bạn cuộn xuống, giúp có thêm không gian hiển thị nội dung. Thanh sẽ xuất hiện lại khi bạn cuộn lên.</string>
+    <string name="show_selection_titles_description">Hiển thị tên bên dưới mỗi mục trong thanh điều hướng dưới cùng (Dòng thời gian, Album, Thư viện). Tắt tùy chọn này để sử dụng thanh điều hướng chỉ có biểu tượng, gọn gàng hơn.</string>
+    <string name="secure_mode_description">Ngăn nội dung của ứng dụng xuất hiện trong ảnh chụp màn hình, màn hình ứng dụng gần đây và bản ghi màn hình. Hữu ích để bảo vệ quyền riêng tư khi thư viện của bạn chứa nội dung nhạy cảm.</string>
+    <string name="allow_vibrations_description">Cho phép ứng dụng tạo phản hồi rung trong một số thao tác và cử chỉ, chẳng hạn như nhấn giữ để chọn hoặc chuyển tiếp khi chụm để thu phóng.</string>
     <string name="trash_enabled_description">When enabled, deleted photos and videos are moved to trash and kept for 30 days before permanent deletion. When disabled, deleting is immediate and irreversible.</string>
     <string name="trash_confirmation_description">Shows a confirmation dialog before moving items to the trash, preventing accidental deletions.</string>
     <string name="follow_system_theme_description">When enabled, the app follows your device\'s light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
@@ -645,7 +645,7 @@
     <string name="group_type_raw_jpg">RAW + JPG</string>
     <string name="group_type_edits">Edits</string>
     <string name="sort_most_accurate">Most accurate</string>
-    <string name="sort_by_date">Date</string>
+    <string name="sort_by_date">Ngày</string>
     <plurals name="item_count">
         <item quantity="other">%s mục</item>
     </plurals>
