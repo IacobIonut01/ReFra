@@ -173,7 +173,7 @@
     <string name="edit_backups_storage">Storage Used</string>
     <string name="edit_backups_storage_summary">%1$s used by %2$d backup(s)</string>
     <string name="edit_backups_no_backups">No edit backups</string>
-    <string name="edit_backups_no_backups_summary">Original images will be backed up when you override an edit</string>
+    <string name="edit_backups_no_backups_summary">Ảnh gốc sẽ được sao lưu khi bạn ghi đè chỉnh sửa</string>
     <string name="edit_backups_auto_cleanup">Auto-cleanup</string>
     <string name="edit_backups_auto_cleanup_summary">Automatically delete backups older than 90 days</string>
     <string name="edit_backups_delete_all">Delete All Backups</string>
