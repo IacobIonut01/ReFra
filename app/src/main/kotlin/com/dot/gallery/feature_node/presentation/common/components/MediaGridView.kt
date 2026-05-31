@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
@@ -74,7 +75,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
     allowHeaders: Boolean = true,
     enableStickyHeaders: Boolean = false,
     hasToolbarOffset: Boolean = true,
-    showMonthlyHeader: Boolean = false,
+    groupMethod: String = Settings.Misc.GROUP_NORMAL,
     aboveGridContent: @Composable (() -> Unit)? = null,
     isScrolling: MutableState<Boolean>,
     emptyContent: @Composable () -> Unit,
@@ -82,9 +83,12 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
     animatedContentScope: AnimatedContentScope,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit = {},
 ) {
-    val mappedData by rememberedDerivedState(mediaState, showMonthlyHeader) {
-        if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
-        else mediaState.value.mappedMedia
+    val mappedData by rememberedDerivedState(mediaState, groupMethod) {
+        when (groupMethod) {
+            Settings.Misc.GROUP_MONTHLY -> mediaState.value.mappedMediaWithMonthly
+            Settings.Misc.GROUP_YEARLY -> mediaState.value.mappedMediaWithYearly
+            else -> mediaState.value.mappedMedia
+        }
     }
     val selector = LocalMediaSelector.current
     val isSelectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()

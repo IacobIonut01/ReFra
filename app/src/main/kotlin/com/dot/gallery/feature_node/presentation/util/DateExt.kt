@@ -140,6 +140,11 @@ fun Long.getMonth(): String {
     else month
 }
 
+fun Long.getYear(): String {
+    val mediaDate = Calendar.getInstance(ComposeLocale.getCurrentAndroid()).apply { timeInMillis = this@getYear * 1000L }
+    return mediaDate.get(Calendar.YEAR).toString()
+}
+
 fun Long.formatMinSec(): String {
     return if (this == 0L) {
         "00:00"

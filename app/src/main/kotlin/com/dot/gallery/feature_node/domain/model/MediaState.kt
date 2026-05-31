@@ -9,6 +9,7 @@ data class MediaState<Type: Media>(
     val mediaGroups: Map<Long, List<Type>> = emptyMap(),
     val mappedMedia: List<MediaItem<Type>> = emptyList(),
     val mappedMediaWithMonthly: List<MediaItem<Type>> = emptyList(),
+    val mappedMediaWithYearly: List<MediaItem<Type>> = emptyList(),
     val headers: List<MediaItem.Header<Type>> = emptyList(),
     val dateHeader: String = "",
     val error: String = "",

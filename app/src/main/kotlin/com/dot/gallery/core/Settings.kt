@@ -460,6 +460,12 @@ object Settings {
         fun rememberTimelineGroupByMonth() =
             rememberPreference(key = TIMELINE_GROUP_BY_MONTH, defaultValue = false)
 
+        private val TIMELINE_GROUP_BY_YEAR = booleanPreferencesKey("timeline_group_by_year")
+
+        @Composable
+        fun rememberTimelineGroupByYear() =
+            rememberPreference(key = TIMELINE_GROUP_BY_YEAR, defaultValue = false)
+
         val GROUP_SIMILAR_MEDIA = booleanPreferencesKey("group_similar_media")
 
         @Composable
@@ -673,6 +679,70 @@ object Settings {
         @Composable
         fun rememberShowFilterButton() =
             rememberPreference(key = SHOW_FILTER_BUTTON, defaultValue = true)
+
+        private val FAVORITES_GROUP_BY_DATE = booleanPreferencesKey("favorites_group_by_date")
+
+        @Composable
+        fun rememberFavoritesGroupByDate() =
+            rememberPreference(key = FAVORITES_GROUP_BY_DATE, defaultValue = true)
+
+        private val TIMELINE_GROUP_BY_DATE = booleanPreferencesKey("timeline_group_by_date")
+
+        @Composable
+        fun rememberTimelineGroupByDate() =
+            rememberPreference(key = TIMELINE_GROUP_BY_DATE, defaultValue = true)
+
+        private val VAULT_GROUP_BY_DATE = booleanPreferencesKey("vault_group_by_date")
+
+        @Composable
+        fun rememberVaultGroupByDate() =
+            rememberPreference(key = VAULT_GROUP_BY_DATE, defaultValue = true)
+
+        private val CLOUD_ARCHIVE_GROUP_BY_DATE = booleanPreferencesKey("cloud_archive_group_by_date")
+
+        @Composable
+        fun rememberCloudArchiveGroupByDate() =
+            rememberPreference(key = CLOUD_ARCHIVE_GROUP_BY_DATE, defaultValue = false)
+
+        private val LOCATION_GROUP_BY_DATE = booleanPreferencesKey("location_group_by_date")
+
+        @Composable
+        fun rememberLocationGroupByDate() =
+            rememberPreference(key = LOCATION_GROUP_BY_DATE, defaultValue = true)
+
+        const val GROUP_NORMAL = "normal"
+        const val GROUP_MONTHLY = "monthly"
+        const val GROUP_YEARLY = "yearly"
+
+        private val TIMELINE_GROUP_METHOD = stringPreferencesKey("timeline_group_method")
+        @Composable
+        fun rememberTimelineGroupMethod() =
+            rememberPreference(key = TIMELINE_GROUP_METHOD, defaultValue = GROUP_MONTHLY)
+
+        private val ALBUMS_GROUP_METHOD = stringPreferencesKey("albums_group_method")
+        @Composable
+        fun rememberAlbumsGroupMethod() =
+            rememberPreference(key = ALBUMS_GROUP_METHOD, defaultValue = GROUP_NORMAL)
+
+        private val FAVORITES_GROUP_METHOD = stringPreferencesKey("favorites_group_method")
+        @Composable
+        fun rememberFavoritesGroupMethod() =
+            rememberPreference(key = FAVORITES_GROUP_METHOD, defaultValue = GROUP_NORMAL)
+
+        private val VAULT_GROUP_METHOD = stringPreferencesKey("vault_group_method")
+        @Composable
+        fun rememberVaultGroupMethod() =
+            rememberPreference(key = VAULT_GROUP_METHOD, defaultValue = GROUP_NORMAL)
+
+        private val CLOUD_ARCHIVE_GROUP_METHOD = stringPreferencesKey("cloud_archive_group_method")
+        @Composable
+        fun rememberCloudArchiveGroupMethod() =
+            rememberPreference(key = CLOUD_ARCHIVE_GROUP_METHOD, defaultValue = GROUP_NORMAL)
+
+        private val LOCATION_GROUP_METHOD = stringPreferencesKey("location_group_method")
+        @Composable
+        fun rememberLocationGroupMethod() =
+            rememberPreference(key = LOCATION_GROUP_METHOD, defaultValue = GROUP_NORMAL)
 
         private val ALLOW_GIF_ANIMATION = booleanPreferencesKey("allow_gif_animation")
 

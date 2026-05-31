@@ -728,6 +728,7 @@ class MediaDistributorImpl @Inject constructor(
                             error = error,
                             albumId = albumId,
                             groupByMonth = settings?.groupTimelineByMonth == true,
+                            groupByYear = settings?.groupTimelineByYear == true,
                             defaultDateFormat = defaultDateFormat,
                             extendedDateFormat = extendedDateFormat,
                             weeklyDateFormat = weeklyDateFormat
@@ -759,6 +760,7 @@ class MediaDistributorImpl @Inject constructor(
                 error = "",
                 albumId = albumId,
                 groupByMonth = settings?.groupTimelineByMonth == true,
+                groupByYear = settings?.groupTimelineByYear == true,
                 defaultDateFormat = defaultDateFormat,
                 extendedDateFormat = extendedDateFormat,
                 weeklyDateFormat = weeklyDateFormat
@@ -807,6 +809,7 @@ class MediaDistributorImpl @Inject constructor(
                         error = if (mediaResult is Resource.Error) mediaResult.message ?: "" else "",
                         albumId = albumId,
                         groupByMonth = settings?.groupTimelineByMonth == true,
+                        groupByYear = settings?.groupTimelineByYear == true,
                         groupSimilarMedia = shouldGroupSimilar,
                         enabledGroupTypes = groupTypes,
                         defaultDateFormat = defaultDateFormat,
@@ -945,6 +948,7 @@ class MediaDistributorImpl @Inject constructor(
                 error = result.message ?: "",
                 albumId = albumId,
                 groupByMonth = settings?.groupTimelineByMonth == true,
+                groupByYear = settings?.groupTimelineByYear == true,
                 groupSimilarMedia = shouldGroupSimilar,
                 enabledGroupTypes = groupTypes,
                 cloudGroupKeyOverrides = cloudOverrides,
@@ -1098,6 +1102,7 @@ class MediaDistributorImpl @Inject constructor(
             error = result.message ?: "",
             albumId = -1L,
             groupByMonth = settings?.groupTimelineByMonth == true,
+            groupByYear = settings?.groupTimelineByYear == true,
             defaultDateFormat = defaultDateFormat,
             extendedDateFormat = extendedDateFormat,
             weeklyDateFormat = weeklyDateFormat
@@ -1146,6 +1151,7 @@ class MediaDistributorImpl @Inject constructor(
                 error = allMediaResult.message ?: "",
                 albumId = collectionId,
                 groupByMonth = settings?.groupTimelineByMonth == true,
+                groupByYear = settings?.groupTimelineByYear == true,
                 groupSimilarMedia = shouldGroupSimilar,
                 enabledGroupTypes = groupTypes,
                 defaultDateFormat = defaultDateFormat,

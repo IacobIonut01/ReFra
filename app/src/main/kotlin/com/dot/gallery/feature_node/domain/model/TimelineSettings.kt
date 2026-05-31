@@ -21,6 +21,8 @@ data class TimelineSettings(
     @ColumnInfo(defaultValue = "0")
     val groupTimelineByMonth: Boolean = false,
     @ColumnInfo(defaultValue = "0")
+    val groupTimelineByYear: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
     val groupTimelineInAlbums: Boolean = false,
     @ColumnInfo(defaultValue = "{\"orderType\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"},\"orderType_date\":{\"type\":\"com.dot.gallery.feature_node.domain.util.OrderType.Descending\"}}")
     val timelineMediaOrder: MediaOrder = MediaOrder.Date(OrderType.Descending),

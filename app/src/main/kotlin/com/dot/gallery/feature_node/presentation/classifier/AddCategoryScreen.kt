@@ -192,7 +192,7 @@ fun AddCategoryScreen(
                         ),
                         canScroll = true,
                         allowHeaders = false,
-                        showMonthlyHeader = false,
+                        
                         isScrolling = isScrolling,
                         emptyContent = {
                             EmptyMedia(

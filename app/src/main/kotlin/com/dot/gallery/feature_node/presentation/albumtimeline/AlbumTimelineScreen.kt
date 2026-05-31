@@ -81,6 +81,7 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Album.rememberAlbumMediaSort
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Album.rememberHideTimelineOnAlbum
+import com.dot.gallery.core.Settings.Misc.rememberAlbumsGroupMethod
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
 import com.dot.gallery.core.Settings.Misc.rememberTimelineLayoutType
@@ -254,6 +255,7 @@ fun AlbumTimelineScreen(
                 onRefresh = { refreshScope.launch { distributor.invalidate() } },
             ) {
             val hideTimelineOnAlbum by rememberHideTimelineOnAlbum()
+            val albumsGroupMethod by rememberAlbumsGroupMethod()
             val timelineLayoutType by rememberTimelineLayoutType()
             val isMosaicLayout = timelineLayoutType == Settings.Misc.LAYOUT_MOSAIC && !hideTimelineOnAlbum
             if (isMosaicLayout) {
@@ -270,9 +272,13 @@ fun AlbumTimelineScreen(
                     lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
                 }
 
-                val mappedData by remember(mediaState) {
+                val mappedData by remember(mediaState, albumsGroupMethod) {
                     derivedStateOf {
-                        mediaState.value.mappedMedia.toMutableStateList()
+                        when (albumsGroupMethod) {
+                            Settings.Misc.GROUP_MONTHLY -> mediaState.value.mappedMediaWithMonthly
+                            Settings.Misc.GROUP_YEARLY -> mediaState.value.mappedMediaWithYearly
+                            else -> mediaState.value.mappedMedia
+                        }.toMutableStateList()
                     }
                 }
                 val headers by remember(mediaState) {
@@ -338,13 +344,13 @@ fun AlbumTimelineScreen(
                         allowSelection = true,
                         showSearchBar = false,
                         enableStickyHeaders = !hideTimelineOnAlbum,
+                        groupMethod = if (!hideTimelineOnAlbum) albumsGroupMethod else Settings.Misc.GROUP_NORMAL,
                         paddingValues = PaddingValues(
                             top = it.calculateTopPadding(),
                             bottom = paddingValues.calculateBottomPadding() + 128.dp
                         ),
                         canScroll = canScroll,
                         allowHeaders = !hideTimelineOnAlbum,
-                        showMonthlyHeader = false,
                         aboveGridContent = if (constituentAlbums.size > 1 && showMergedBanner) {
                             {
                                 AlbumsMergedBanner(

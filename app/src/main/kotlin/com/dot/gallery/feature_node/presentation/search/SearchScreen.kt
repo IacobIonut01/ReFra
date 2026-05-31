@@ -733,7 +733,7 @@ fun SearchScreen(
                                 },
                                 canScroll = canScroll,
                                 allowHeaders = !useRelevanceOrder,
-                                showMonthlyHeader = false,
+                                
                                 aboveGridContent = sortChipsContent,
                                 isScrolling = isScrolling,
                                 emptyContent = { EmptyMedia() },

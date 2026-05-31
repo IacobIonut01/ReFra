@@ -6,28 +6,39 @@
 package com.dot.gallery.feature_node.presentation.settings.subsettings
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DragHandle
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gif
@@ -35,35 +46,67 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAllowGifAnimation
+import com.dot.gallery.core.Settings.Misc.rememberCloudArchiveGroupByDate
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
+import com.dot.gallery.core.Settings.Misc.rememberFavoritesGroupByDate
+import com.dot.gallery.core.Settings.Misc.rememberLocationGroupByDate
 import com.dot.gallery.core.Settings.Misc.rememberShowFilterButton
 import com.dot.gallery.core.Settings.Misc.rememberShowSearchBarFavoriteButton
+import com.dot.gallery.core.Settings.Misc.rememberAlbumsGroupMethod
+import com.dot.gallery.core.Settings.Misc.rememberCloudArchiveGroupMethod
+import com.dot.gallery.core.Settings.Misc.rememberFavoritesGroupMethod
+import com.dot.gallery.core.Settings.Misc.rememberLocationGroupMethod
+import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupByDate
+import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupMethod
+import com.dot.gallery.core.Settings.Misc.rememberVaultGroupByDate
+import com.dot.gallery.core.Settings.Misc.rememberVaultGroupMethod
 import com.dot.gallery.core.Settings.Misc.rememberGroupBurstSequences
 import com.dot.gallery.core.Settings.Misc.rememberGroupCloudLocal
 import com.dot.gallery.core.Settings.Misc.rememberGroupEditedCopies
@@ -81,29 +124,42 @@ import com.dot.gallery.feature_node.presentation.settings.components.SwitchPrefe
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
 import com.dot.gallery.feature_node.presentation.util.Screen
-import com.dot.gallery.feature_node.presentation.util.restartApplication
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import com.dot.gallery.core.presentation.components.AlbumSectionNameSheet
+import com.dot.gallery.core.presentation.components.DeleteSectionSheet
+import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.core.presentation.components.SectionDialogMode
+import com.dot.gallery.feature_node.domain.model.AlbumSection
+import com.dot.gallery.feature_node.domain.model.AlbumSectionType
+import com.dot.gallery.feature_node.presentation.albums.AlbumsViewModel
+import com.dot.gallery.feature_node.presentation.common.components.OptionItem
+import com.dot.gallery.feature_node.presentation.common.components.OptionSheet
+import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
+import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
-private const val DETAIL_GROUP_BY_MONTH = "group_by_month"
 private const val DETAIL_TIMELINE_LAYOUT = "timeline_layout"
 private const val DETAIL_GROUP_SIMILAR = "group_similar"
 private const val DETAIL_GIF_ANIMATION = "gif_animation"
 private const val DETAIL_FILTER_BUTTON = "filter_button"
 private const val DETAIL_HIDE_TIMELINE = "hide_timeline"
 private const val DETAIL_MERGE_ALBUMS = "merge_albums"
+private const val DETAIL_ALBUM_SECTIONS = "album_sections"
 private const val DETAIL_FAV_ICON = "fav_icon"
 private const val DETAIL_SEARCHBAR_FAV_BUTTON = "searchbar_fav_button"
+private const val DETAIL_DATE_HEADERS = "date_headers"
+private const val DETAIL_GROUP_METHOD = "group_method"
 
 @Composable
 fun SettingsTimelineAlbumsScreen() {
     var detailKey by rememberSaveable { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val eventHandler = LocalEventHandler.current
 
     var groupByMonth by Settings.Misc.rememberTimelineGroupByMonth()
+    var groupByYear by Settings.Misc.rememberTimelineGroupByYear()
     var timelineLayoutType by rememberTimelineLayoutType()
     var groupSimilarMedia by rememberGroupSimilarMedia()
     var groupRawJpg by rememberGroupRawJpg()
@@ -115,25 +171,21 @@ fun SettingsTimelineAlbumsScreen() {
     var showSearchBarFavButton by rememberShowSearchBarFavoriteButton()
     var hideTimelineOnAlbum by Settings.Album.rememberHideTimelineOnAlbum()
     var mergeAlbumsByName by Settings.Album.rememberMergeAlbumsByName()
+    var albumSectionsEnabled by Settings.Album.rememberAlbumSectionsEnabled()
     var favIconPosition by rememberFavoriteIconPosition()
+    var dateHeaderTimeline by rememberTimelineGroupByDate()
+    var dateHeaderFavorites by rememberFavoritesGroupByDate()
+    var dateHeaderVault by rememberVaultGroupByDate()
+    var dateHeaderCloudArchive by rememberCloudArchiveGroupByDate()
+    var dateHeaderLocation by rememberLocationGroupByDate()
+    var groupMethodTimeline by rememberTimelineGroupMethod()
+    var groupMethodAlbums by rememberAlbumsGroupMethod()
+    var groupMethodFavorites by rememberFavoritesGroupMethod()
+    var groupMethodVault by rememberVaultGroupMethod()
+    var groupMethodCloudArchive by rememberCloudArchiveGroupMethod()
+    var groupMethodLocation by rememberLocationGroupMethod()
 
     when (detailKey) {
-        DETAIL_GROUP_BY_MONTH -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(R.string.monthly_timeline_title),
-                isChecked = groupByMonth,
-                onCheckedChange = {
-                    scope.launch {
-                        scope.async { groupByMonth = it }.await()
-                        delay(50)
-                        context.restartApplication()
-                    }
-                },
-                description = stringResource(R.string.monthly_timeline_description),
-                preview = { checked -> GroupByMonthPreview(checked) },
-            )
-        }
         DETAIL_TIMELINE_LAYOUT -> {
             BackHandler { detailKey = null }
             ChooserPreferenceDetailScreen(
@@ -249,6 +301,13 @@ fun SettingsTimelineAlbumsScreen() {
                 preview = { checked -> MergeAlbumsPreview(checked) },
             )
         }
+        DETAIL_ALBUM_SECTIONS -> {
+            BackHandler { detailKey = null }
+            AlbumSectionsDetailScreen(
+                isEnabled = albumSectionsEnabled,
+                onEnabledChange = { albumSectionsEnabled = it },
+            )
+        }
         DETAIL_FAV_ICON -> {
             BackHandler { detailKey = null }
             ChooserPreferenceDetailScreen(
@@ -265,16 +324,104 @@ fun SettingsTimelineAlbumsScreen() {
                 onOptionSelected = { favIconPosition = it },
             )
         }
-        else -> {
-            TimelineAlbumsListScreen(
-                groupByMonth = groupByMonth,
-                onGroupByMonthChange = {
-                    scope.launch {
-                        scope.async { groupByMonth = it }.await()
-                        delay(50)
-                        context.restartApplication()
+        DETAIL_DATE_HEADERS -> {
+            BackHandler { detailKey = null }
+            ChooserPreferenceDetailScreen<Unit>(
+                title = stringResource(R.string.date_headers_title),
+                description = stringResource(R.string.date_headers_description),
+                customContent = {
+                    Column {
+                        val sections = buildList {
+                            add(Triple(R.string.date_headers_timeline, dateHeaderTimeline) { v: Boolean -> dateHeaderTimeline = v })
+                            add(Triple(R.string.date_headers_albums, !hideTimelineOnAlbum) { v: Boolean -> hideTimelineOnAlbum = !v })
+                            if (SdkCompat.supportsFavorites) {
+                                add(Triple(R.string.date_headers_favorites, dateHeaderFavorites) { v: Boolean -> dateHeaderFavorites = v })
+                            }
+                            add(Triple(R.string.date_headers_vault, dateHeaderVault) { v: Boolean -> dateHeaderVault = v })
+                            add(Triple(R.string.date_headers_cloud_archive, dateHeaderCloudArchive) { v: Boolean -> dateHeaderCloudArchive = v })
+                            add(Triple(R.string.date_headers_location, dateHeaderLocation) { v: Boolean -> dateHeaderLocation = v })
+                        }
+                        sections.forEachIndexed { index, (titleRes, isChecked, onCheck) ->
+                            val position = when {
+                                sections.size == 1 -> Position.Alone
+                                index == 0 -> Position.Top
+                                index == sections.lastIndex -> Position.Bottom
+                                else -> Position.Middle
+                            }
+                            SettingsItem(
+                                item = SettingsEntity.SwitchPreference(
+                                    title = stringResource(titleRes),
+                                    isChecked = isChecked,
+                                    onCheck = onCheck,
+                                    screenPosition = position
+                                )
+                            )
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+
+                        SettingsItem(
+                            item = SettingsEntity.Preference(
+                                title = stringResource(R.string.customize_date_formats),
+                                summary = stringResource(R.string.date_header_summary),
+                                onClick = { eventHandler.navigate(Screen.DateFormatScreen()) },
+                                screenPosition = Position.Alone
+                            )
+                        )
                     }
                 },
+            )
+        }
+        DETAIL_GROUP_METHOD -> {
+            BackHandler { detailKey = null }
+            val groupMethodOptions = listOf(
+                Settings.Misc.GROUP_NORMAL to stringResource(R.string.group_method_normal),
+                Settings.Misc.GROUP_MONTHLY to stringResource(R.string.group_method_monthly),
+                Settings.Misc.GROUP_YEARLY to stringResource(R.string.group_method_yearly),
+            )
+            ChooserPreferenceDetailScreen<Unit>(
+                title = stringResource(R.string.group_method_title),
+                description = stringResource(R.string.group_method_description),
+                customContent = {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        val sections = buildList {
+                            add(Triple(R.string.group_method_timeline, groupMethodTimeline) { v: String ->
+                                if (v != groupMethodTimeline) {
+                                    groupMethodTimeline = v
+                                    groupByMonth = v == Settings.Misc.GROUP_MONTHLY
+                                    groupByYear = v == Settings.Misc.GROUP_YEARLY
+                                }
+                            })
+                            add(Triple(R.string.group_method_albums, groupMethodAlbums) { v: String -> groupMethodAlbums = v })
+                            if (SdkCompat.supportsFavorites) {
+                                add(Triple(R.string.group_method_favorites, groupMethodFavorites) { v: String -> groupMethodFavorites = v })
+                            }
+                            add(Triple(R.string.group_method_vault, groupMethodVault) { v: String -> groupMethodVault = v })
+                            add(Triple(R.string.group_method_cloud_archive, groupMethodCloudArchive) { v: String -> groupMethodCloudArchive = v })
+                            add(Triple(R.string.group_method_location, groupMethodLocation) { v: String -> groupMethodLocation = v })
+                        }
+                        sections.forEachIndexed { index, (titleRes, currentValue, onValueChange) ->
+                            val position = when {
+                                sections.size == 1 -> Position.Alone
+                                index == 0 -> Position.Top
+                                index == sections.lastIndex -> Position.Bottom
+                                else -> Position.Middle
+                            }
+                            GroupMethodSectionRow(
+                                title = stringResource(titleRes),
+                                currentValue = currentValue,
+                                options = groupMethodOptions,
+                                onValueChange = onValueChange,
+                                position = position,
+                                showRestartNote = false,
+                            )
+                        }
+                    }
+                },
+            )
+        }
+        else -> {
+            TimelineAlbumsListScreen(
                 timelineLayoutType = timelineLayoutType,
                 groupSimilarMedia = groupSimilarMedia,
                 onGroupSimilarChange = { groupSimilarMedia = it },
@@ -288,6 +435,8 @@ fun SettingsTimelineAlbumsScreen() {
                 onHideTimelineChange = { hideTimelineOnAlbum = it },
                 mergeAlbumsByName = mergeAlbumsByName,
                 onMergeAlbumsChange = { mergeAlbumsByName = it },
+                albumSectionsEnabled = albumSectionsEnabled,
+                onAlbumSectionsChange = { albumSectionsEnabled = it },
                 favIconPosition = favIconPosition,
                 onDetailClick = { detailKey = it },
                 onDateFormatClick = { eventHandler.navigate(Screen.DateFormatScreen()) },
@@ -299,8 +448,6 @@ fun SettingsTimelineAlbumsScreen() {
 
 @Composable
 private fun TimelineAlbumsListScreen(
-    groupByMonth: Boolean,
-    onGroupByMonthChange: (Boolean) -> Unit,
     timelineLayoutType: String,
     groupSimilarMedia: Boolean,
     onGroupSimilarChange: (Boolean) -> Unit,
@@ -314,6 +461,8 @@ private fun TimelineAlbumsListScreen(
     onHideTimelineChange: (Boolean) -> Unit,
     mergeAlbumsByName: Boolean,
     onMergeAlbumsChange: (Boolean) -> Unit,
+    albumSectionsEnabled: Boolean = false,
+    onAlbumSectionsChange: (Boolean) -> Unit = {},
     favIconPosition: String,
     onDetailClick: (String) -> Unit,
     onDateFormatClick: () -> Unit,
@@ -327,16 +476,6 @@ private fun TimelineAlbumsListScreen(
             SettingsEntity.Header(title = context.getString(R.string.timeline))
         }
 
-        val groupByMonthPref = rememberSwitchPreference(
-            groupByMonth,
-            title = stringResource(R.string.monthly_timeline_title),
-            summary = stringResource(R.string.monthly_timeline_summary),
-            isChecked = groupByMonth,
-            onCheck = onGroupByMonthChange,
-            onClick = { onDetailClick(DETAIL_GROUP_BY_MONTH) },
-            screenPosition = Position.Top
-        )
-
         val layoutLabel = remember(timelineLayoutType) {
             when (timelineLayoutType) {
                 Settings.Misc.LAYOUT_MOSAIC -> context.getString(R.string.timeline_layout_mosaic)
@@ -348,7 +487,7 @@ private fun TimelineAlbumsListScreen(
             title = stringResource(R.string.timeline_layout_type),
             summary = stringResource(R.string.timeline_layout_type_summary) + " ($layoutLabel)",
             onClick = { onDetailClick(DETAIL_TIMELINE_LAYOUT) },
-            screenPosition = Position.Middle
+            screenPosition = Position.Top
         )
 
         val groupSimilarMediaPref = rememberSwitchPreference(
@@ -426,7 +565,17 @@ private fun TimelineAlbumsListScreen(
             isChecked = mergeAlbumsByName,
             onCheck = onMergeAlbumsChange,
             onClick = { onDetailClick(DETAIL_MERGE_ALBUMS) },
-            screenPosition = if (SdkCompat.supportsFavorites) Position.Middle else Position.Bottom
+            screenPosition = Position.Middle
+        )
+
+        val albumSectionsPref = rememberSwitchPreference(
+            albumSectionsEnabled,
+            title = stringResource(R.string.album_sections_title),
+            summary = stringResource(R.string.album_sections_summary),
+            isChecked = albumSectionsEnabled,
+            onCheck = onAlbumSectionsChange,
+            onClick = { onDetailClick(DETAIL_ALBUM_SECTIONS) },
+            screenPosition = Position.Bottom
         )
 
         val favIconPositionLabel = remember(favIconPosition) {
@@ -438,6 +587,7 @@ private fun TimelineAlbumsListScreen(
                 else -> context.getString(R.string.fav_position_bottom_end)
             }
         }
+        val hasFavorites = SdkCompat.supportsFavorites
         val favIconPositionPref = rememberPreference(
             favIconPosition,
             title = stringResource(R.string.favorite_icon_on_thumbnails),
@@ -446,15 +596,33 @@ private fun TimelineAlbumsListScreen(
             screenPosition = Position.Bottom
         )
 
+        val displayHeader = remember(context) {
+            SettingsEntity.Header(title = context.getString(R.string.settings_display_header))
+        }
+
+        val dateHeadersPref = rememberPreference(
+            title = stringResource(R.string.date_headers_title),
+            summary = stringResource(R.string.date_headers_summary),
+            onClick = { onDetailClick(DETAIL_DATE_HEADERS) },
+            screenPosition = Position.Top
+        )
+
+        val groupMethodPref = rememberPreference(
+            title = stringResource(R.string.group_method_title),
+            summary = stringResource(R.string.group_method_summary),
+            onClick = { onDetailClick(DETAIL_GROUP_METHOD) },
+            screenPosition = if (hasFavorites) Position.Middle else Position.Bottom
+        )
+
         return remember(
-            groupByMonthPref, timelineLayoutPref, groupSimilarMediaPref,
+            timelineLayoutPref, groupSimilarMediaPref,
             allowGifAnimationPref, dateHeaderPref, showFilterButtonPref,
             showSearchBarFavButtonPref, storyCardsPref,
-            hideTimelineOnAlbumPref, mergeAlbumsByNamePref, favIconPositionPref
+            hideTimelineOnAlbumPref, mergeAlbumsByNamePref, albumSectionsPref, favIconPositionPref,
+            dateHeadersPref, groupMethodPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
-                add(groupByMonthPref)
                 add(timelineLayoutPref)
                 add(groupSimilarMediaPref)
                 add(allowGifAnimationPref)
@@ -468,6 +636,11 @@ private fun TimelineAlbumsListScreen(
                 add(albumsHeader)
                 add(hideTimelineOnAlbumPref)
                 add(mergeAlbumsByNamePref)
+                add(albumSectionsPref)
+
+                add(displayHeader)
+                add(dateHeadersPref)
+                add(groupMethodPref)
                 if (SdkCompat.supportsFavorites) {
                     add(favIconPositionPref)
                 }
@@ -984,6 +1157,536 @@ private fun SearchBarFavoriteButtonPreview(isChecked: Boolean) {
                 contentDescription = null,
                 tint = onSettingsColor,
                 modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AlbumSectionsDetailScreen(
+    isEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+) {
+    val albumsViewModel = hiltViewModel<AlbumsViewModel>()
+    val sections by albumsViewModel.sectionsFlow.collectAsStateWithLifecycle()
+    val mediaDistributor = LocalMediaDistributor.current
+    val albumState by mediaDistributor.albumsFlow.collectAsStateWithLifecycle()
+    val albumCountBySection = remember(albumState.albumSections) {
+        albumState.albumSections.associate { it.section.id to it.albums.size }
+    }
+    val scope = rememberCoroutineScope()
+
+    val sectionNameSheetState = rememberAppBottomSheetState()
+    val deleteSectionSheetState = rememberAppBottomSheetState()
+    val sectionActionsSheetState = rememberAppBottomSheetState()
+    var sectionDialogMode by remember { mutableStateOf(SectionDialogMode.Create) }
+    var sectionDialogInitialName by remember { mutableStateOf("") }
+    var pendingSection by remember { mutableStateOf<AlbumSection?>(null) }
+
+    // Drag-to-reorder state
+    var draggingIndex by remember { mutableIntStateOf(-1) }
+    var dragOffsetY by remember { mutableFloatStateOf(0f) }
+    val haptic = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    val itemHeightPx = remember(density) { with(density) { 72.dp.toPx() } }
+
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+    AlbumSectionNameSheet(
+        sheetState = sectionNameSheetState,
+        mode = sectionDialogMode,
+        initialName = sectionDialogInitialName,
+        onCreateSection = { name ->
+            albumsViewModel.createSection(name)
+        },
+        onRenameSection = { newName ->
+            pendingSection?.let { albumsViewModel.renameSection(it.id, newName) }
+            pendingSection = null
+        }
+    )
+
+    DeleteSectionSheet(
+        sheetState = deleteSectionSheetState,
+        onConfirmDelete = {
+            pendingSection?.let { albumsViewModel.deleteSection(it.id) }
+            pendingSection = null
+        }
+    )
+
+    SectionActionsSheet(
+        sheetState = sectionActionsSheetState,
+        sectionName = pendingSection?.label ?: "",
+        onRename = {
+            pendingSection?.let { section ->
+                sectionDialogMode = SectionDialogMode.Rename
+                sectionDialogInitialName = section.label
+                scope.launch { sectionNameSheetState.show() }
+            }
+        },
+        onDelete = {
+            scope.launch { deleteSectionSheetState.show() }
+        }
+    )
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            LargeTopAppBar(
+                title = { Text(stringResource(R.string.album_sections_title)) },
+                navigationIcon = { NavigationBackButton() },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            userScrollEnabled = draggingIndex == -1,
+            contentPadding = PaddingValues(
+                start = padding.calculateStartPadding(LocalLayoutDirection.current),
+                end = padding.calculateEndPadding(LocalLayoutDirection.current),
+                top = 16.dp + padding.calculateTopPadding(),
+                bottom = padding.calculateBottomPadding() + 16.dp
+            ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Master toggle
+            item(key = "master_toggle") {
+                SettingsItem(
+                    item = SettingsEntity.SwitchPreference(
+                        title = stringResource(R.string.album_sections_title),
+                        summary = stringResource(R.string.album_sections_summary),
+                        isChecked = isEnabled,
+                        onCheck = {
+                            onEnabledChange(it)
+                            if (it) albumsViewModel.ensureDefaultSections()
+                        },
+                        screenPosition = Position.Alone
+                    ),
+                    modifier = Modifier
+                        .widthIn(max = 600.dp)
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
+            }
+
+            // Description
+            item(key = "description") {
+                Text(
+                    text = stringResource(R.string.album_sections_detail_description),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .widthIn(max = 600.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 16.dp)
+                )
+            }
+
+            // Section management header
+            if (isEnabled) {
+                item(key = "sections_header") {
+                    Text(
+                        text = stringResource(R.string.album_sections_manage_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .widthIn(max = 600.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .padding(bottom = 8.dp)
+                    )
+                }
+
+                // Section items with drag-to-reorder
+                itemsIndexed(
+                    items = sections,
+                    key = { _, section -> "section_${section.id}" }
+                ) { index, section ->
+                    val isCustom = section.sectionType == AlbumSectionType.CUSTOM
+                    val position = sectionItemPosition(index, sections.size)
+                    val isDragged = draggingIndex == index
+
+                    AlbumSectionListItem(
+                        section = section,
+                        albumCount = albumCountBySection[section.id] ?: 0,
+                        isGlobalEnabled = isEnabled,
+                        position = position,
+                        isDragging = isDragged,
+                        dragOffset = if (isDragged) dragOffsetY else 0f,
+                        onDragStart = {
+                            draggingIndex = index
+                            dragOffsetY = 0f
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
+                        onDrag = { delta ->
+                            dragOffsetY += delta
+                            val swapThreshold = itemHeightPx * 0.5f
+                            if (dragOffsetY > swapThreshold && draggingIndex < sections.lastIndex) {
+                                val reordered = sections.map { it.id }.toMutableList()
+                                val item = reordered.removeAt(draggingIndex)
+                                reordered.add(draggingIndex + 1, item)
+                                albumsViewModel.reorderSections(reordered)
+                                draggingIndex++
+                                dragOffsetY -= itemHeightPx
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            } else if (dragOffsetY < -swapThreshold && draggingIndex > 0) {
+                                val reordered = sections.map { it.id }.toMutableList()
+                                val item = reordered.removeAt(draggingIndex)
+                                reordered.add(draggingIndex - 1, item)
+                                albumsViewModel.reorderSections(reordered)
+                                draggingIndex--
+                                dragOffsetY += itemHeightPx
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            }
+                        },
+                        onDragEnd = {
+                            draggingIndex = -1
+                            dragOffsetY = 0f
+                        },
+                        onToggleVisibility = { visible ->
+                            albumsViewModel.toggleSectionVisibility(section.id, visible)
+                        },
+                        onClick = if (isCustom) {
+                            {
+                                pendingSection = section
+                                scope.launch { sectionActionsSheetState.show() }
+                            }
+                        } else null,
+                        modifier = Modifier
+                            .widthIn(max = 600.dp)
+                            .fillMaxWidth()
+                    )
+                }
+
+                // Create section button
+                item(key = "create_section") {
+                    OutlinedButton(
+                        onClick = {
+                            sectionDialogMode = SectionDialogMode.Create
+                            sectionDialogInitialName = ""
+                            scope.launch { sectionNameSheetState.show() }
+                        },
+                        modifier = Modifier
+                            .widthIn(max = 600.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp),
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.size(8.dp))
+                        Text(stringResource(R.string.create_section))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlbumSectionListItem(
+    section: AlbumSection,
+    albumCount: Int = 0,
+    isGlobalEnabled: Boolean,
+    position: Position,
+    isDragging: Boolean = false,
+    dragOffset: Float = 0f,
+    onDragStart: () -> Unit = {},
+    onDrag: (Float) -> Unit = {},
+    onDragEnd: () -> Unit = {},
+    onToggleVisibility: (Boolean) -> Unit,
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    val backgroundColor = MaterialTheme.colorScheme.surfaceContainer
+    val isCustom = section.sectionType == AlbumSectionType.CUSTOM
+    val isVisible = section.isVisible
+
+    val fullCornerRadius by animateDpAsState(
+        targetValue = 24.dp,
+        label = "fullCornerRadius"
+    )
+    val normalCornerRadius by animateDpAsState(
+        targetValue = 8.dp,
+        label = "normalCornerRadius"
+    )
+
+    val shape by rememberedDerivedState(position, fullCornerRadius, normalCornerRadius) {
+        when (position) {
+            Position.Alone -> RoundedCornerShape(fullCornerRadius)
+            Position.Top -> RoundedCornerShape(
+                topStart = fullCornerRadius, topEnd = fullCornerRadius,
+                bottomStart = normalCornerRadius, bottomEnd = normalCornerRadius
+            )
+            Position.Middle -> RoundedCornerShape(normalCornerRadius)
+            Position.Bottom -> RoundedCornerShape(
+                topStart = normalCornerRadius, topEnd = normalCornerRadius,
+                bottomStart = fullCornerRadius, bottomEnd = fullCornerRadius
+            )
+        }
+    }
+
+    val paddingModifier = when (position) {
+        Position.Alone -> Modifier.padding(bottom = 16.dp)
+        Position.Bottom -> Modifier.padding(top = 1.dp, bottom = 16.dp)
+        Position.Middle -> Modifier.padding(vertical = 1.dp)
+        Position.Top -> Modifier.padding(bottom = 1.dp)
+    }
+
+    val elevation by animateFloatAsState(
+        targetValue = if (isDragging) 8f else 0f,
+        label = "dragElevation"
+    )
+
+    val currentOnDragStart by rememberUpdatedState(onDragStart)
+    val currentOnDrag by rememberUpdatedState(onDrag)
+    val currentOnDragEnd by rememberUpdatedState(onDragEnd)
+
+    val sectionTypeLabel = when (section.sectionType) {
+        AlbumSectionType.COMMON -> stringResource(R.string.section_type_common)
+        AlbumSectionType.APPS -> stringResource(R.string.section_type_apps)
+        AlbumSectionType.UNCATEGORIZED -> stringResource(R.string.section_type_uncategorized)
+        AlbumSectionType.CUSTOM -> stringResource(R.string.section_type_custom)
+    }
+
+    Box(
+        modifier = Modifier
+            .then(paddingModifier)
+            .graphicsLayer {
+                translationY = dragOffset
+                shadowElevation = elevation
+                scaleX = if (isDragging) 1.02f else 1f
+                scaleY = if (isDragging) 1.02f else 1f
+            }
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { currentOnDragStart() },
+                    onDrag = { change, offset ->
+                        change.consume()
+                        currentOnDrag(offset.y)
+                    },
+                    onDragEnd = { currentOnDragEnd() },
+                    onDragCancel = { currentOnDragEnd() }
+                )
+            }
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = modifier
+                    .padding(horizontal = 16.dp)
+                    .clip(shape)
+                    .background(color = backgroundColor)
+                    .then(
+                        if (onClick != null) Modifier.clickable(onClick = onClick)
+                        else Modifier
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Drag handle
+                    Icon(
+                        Icons.Outlined.DragHandle, null,
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .size(22.dp),
+                        tint = if (isDragging) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+
+                    // Label + type
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = section.label,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isVisible) MaterialTheme.colorScheme.onSurface
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        )
+                        Text(
+                            text = if (albumCount > 0) {
+                                "$sectionTypeLabel · ${pluralStringResource(R.plurals.album_count, albumCount, albumCount)}"
+                            } else sectionTypeLabel,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                alpha = if (isVisible) 1f else 0.38f
+                            ),
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+
+                    // Visibility switch
+                    Switch(
+                        checked = isVisible,
+                        onCheckedChange = onToggleVisibility,
+                        enabled = isGlobalEnabled
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionActionsSheet(
+    sheetState: AppBottomSheetState,
+    sectionName: String,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val renameLabel = stringResource(R.string.rename_section)
+    val deleteLabel = stringResource(R.string.delete_section)
+    val errorContainerColor = MaterialTheme.colorScheme.errorContainer
+    val onErrorContainerColor = MaterialTheme.colorScheme.onErrorContainer
+
+    val options = remember(renameLabel, deleteLabel, errorContainerColor, onErrorContainerColor) {
+        listOf(
+            OptionItem(
+                icon = Icons.Outlined.Edit,
+                text = renameLabel,
+                onClick = { _ ->
+                    scope.launch { sheetState.hide() }
+                    onRename()
+                }
+            ),
+            OptionItem(
+                icon = Icons.Outlined.Delete,
+                text = deleteLabel,
+                containerColor = errorContainerColor,
+                contentColor = onErrorContainerColor,
+                onClick = { _ ->
+                    scope.launch { sheetState.hide() }
+                    onDelete()
+                }
+            ),
+        ).toMutableStateList()
+    }
+
+    OptionSheet(
+        state = sheetState,
+        headerContent = {
+            Text(
+                text = sectionName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+            )
+        },
+        optionList = arrayOf(options)
+    )
+}
+
+private fun sectionItemPosition(index: Int, size: Int): Position {
+    return when {
+        size == 1 -> Position.Alone
+        index == 0 -> Position.Top
+        index == size - 1 -> Position.Bottom
+        else -> Position.Middle
+    }
+}
+
+@Composable
+private fun GroupMethodSectionRow(
+    title: String,
+    currentValue: String,
+    options: List<Pair<String, String>>,
+    onValueChange: (String) -> Unit,
+    position: Position,
+    showRestartNote: Boolean = false,
+) {
+    val fullCornerRadius = 24.dp
+    val normalCornerRadius = 8.dp
+    val shape = when (position) {
+        Position.Alone -> RoundedCornerShape(fullCornerRadius)
+        Position.Top -> RoundedCornerShape(
+            topStart = fullCornerRadius, topEnd = fullCornerRadius,
+            bottomStart = normalCornerRadius, bottomEnd = normalCornerRadius
+        )
+        Position.Middle -> RoundedCornerShape(normalCornerRadius)
+        Position.Bottom -> RoundedCornerShape(
+            topStart = normalCornerRadius, topEnd = normalCornerRadius,
+            bottomStart = fullCornerRadius, bottomEnd = fullCornerRadius
+        )
+    }
+    val paddingModifier = when (position) {
+        Position.Alone -> Modifier.padding(bottom = 16.dp)
+        Position.Bottom -> Modifier.padding(top = 1.dp, bottom = 16.dp)
+        Position.Middle -> Modifier.padding(vertical = 1.dp)
+        Position.Top -> Modifier.padding(bottom = 1.dp)
+    }
+
+    Column(
+        modifier = Modifier
+            .then(paddingModifier)
+            .padding(horizontal = 16.dp)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(10.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            options.forEach { (value, label) ->
+                val isSelected = currentValue == value
+                val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceContainerHigh
+                val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(100))
+                        .background(backgroundColor)
+                        .clickable { onValueChange(value) }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = contentColor,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    )
+                }
+            }
+        }
+        if (showRestartNote) {
+            Text(
+                text = stringResource(R.string.media_grouping_restart_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.padding(top = 6.dp),
             )
         }
     }

@@ -97,7 +97,7 @@ fun <T: Media> MediaScreen(
     mediaState: State<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
     allowHeaders: Boolean = true,
-    showMonthlyHeader: Boolean = false,
+    groupMethod: String = Settings.Misc.GROUP_NORMAL,
     enableStickyHeaders: Boolean = true,
     allowNavBar: Boolean = false,
     customDateHeader: String? = null,
@@ -237,10 +237,13 @@ fun <T: Media> MediaScreen(
                         lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
                     }
 
-                    val mappedData by remember(mediaState, showMonthlyHeader) {
+                    val mappedData by remember(mediaState, groupMethod) {
                         derivedStateOf {
-                            (if (showMonthlyHeader) mediaState.value.mappedMediaWithMonthly
-                            else mediaState.value.mappedMedia).toMutableStateList()
+                            when (groupMethod) {
+                                Settings.Misc.GROUP_MONTHLY -> mediaState.value.mappedMediaWithMonthly
+                                Settings.Misc.GROUP_YEARLY -> mediaState.value.mappedMediaWithYearly
+                                else -> mediaState.value.mappedMedia
+                            }.toMutableStateList()
                         }
                     }
                     val headers by remember(mediaState) {
@@ -316,7 +319,7 @@ fun <T: Media> MediaScreen(
                         canScroll = canScroll,
                         allowHeaders = allowHeaders,
                         enableStickyHeaders = enableStickyHeaders,
-                        showMonthlyHeader = showMonthlyHeader,
+                        groupMethod = groupMethod,
                         aboveGridContent = aboveGridContent,
                         isScrolling = isScrolling,
                         emptyContent = emptyContent,

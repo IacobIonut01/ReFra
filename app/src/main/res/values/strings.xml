@@ -540,6 +540,7 @@
     <string name="settings_appearance_summary">Theme, colors, dark mode, visual effects</string>
     <string name="settings_timeline_albums">Timeline &amp; Albums</string>
     <string name="settings_timeline_albums_summary">Layout, grouping, date format, album behavior</string>
+    <string name="settings_display_header">Display</string>
     <string name="settings_media_viewer">Media Viewer</string>
     <string name="settings_media_viewer_summary">Viewing experience, editor, video playback</string>
     <string name="settings_navigation">Navigation</string>
@@ -951,6 +952,37 @@
     <string name="trash_delete_all">Delete all</string>
     <string name="favorites_info_title">Your Favorites</string>
     <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <string name="favorites_group_by_date">Group by date</string>
+    <string name="favorites_group_by_date_on">Grouped by date</string>
+    <string name="favorites_group_by_date_off">Showing all</string>
+
+    <!-- Per-section date headers settings -->
+    <string name="date_headers_title">Date separators</string>
+    <string name="date_headers_summary">Show or hide date separators per section</string>
+    <string name="date_headers_description">Date separators organize your media into groups by date. Enable or disable them for each section of the app.</string>
+    <string name="date_headers_timeline">Timeline</string>
+    <string name="date_headers_albums">Albums</string>
+    <string name="date_headers_favorites">Favorites</string>
+    <string name="date_headers_vault">Vault</string>
+    <string name="date_headers_cloud_archive">Cloud archive</string>
+    <string name="date_headers_location">Map &amp; location</string>
+
+    <!-- Per-section group method settings -->
+    <string name="group_method_title">Media grouping</string>
+    <string name="group_method_summary">Set how media is grouped per section</string>
+    <string name="group_method_description">Choose how media is grouped in each section. Daily shows one header per day, Monthly combines into month groups, and Yearly groups by year.</string>
+    <string name="group_method_normal">Daily</string>
+    <string name="media_grouping_restart_note">Changes apply instantly across the app</string>
+    <string name="group_method_monthly">Monthly</string>
+    <string name="group_method_yearly">Yearly</string>
+    <string name="group_method_timeline">Timeline</string>
+    <string name="group_method_albums">Albums</string>
+    <string name="group_method_favorites">Favorites</string>
+    <string name="group_method_vault">Vault</string>
+    <string name="group_method_cloud_archive">Cloud archive</string>
+    <string name="group_method_location">Map &amp; location</string>
+
+    <string name="customize_date_formats">Customize date formats</string>
 
     <!-- Story Cards -->
     <string name="story_cards_settings_title">Story Cards</string>

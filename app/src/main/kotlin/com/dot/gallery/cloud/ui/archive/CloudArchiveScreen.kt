@@ -25,12 +25,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.Position
+import com.dot.gallery.core.Settings
+import com.dot.gallery.core.Settings.Misc.rememberCloudArchiveGroupByDate
+import com.dot.gallery.core.Settings.Misc.rememberCloudArchiveGroupMethod
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
@@ -47,17 +51,22 @@ fun CloudArchiveScreen(
     clearSelection: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
-) = MediaScreen(
-    paddingValues = paddingValues,
-    target = "cloud_archive",
-    albumName = stringResource(R.string.cloud_archive),
-    mediaState = mediaState,
-    metadataState = metadataState,
-    allowHeaders = false,
-    enableStickyHeaders = false,
-    navActionsContent = { _: MutableState<Boolean>,
-                          _: ActivityResultLauncher<IntentSenderRequest> ->
-    },
+) {
+    val cloudArchiveGroupByDate by rememberCloudArchiveGroupByDate()
+    val cloudArchiveGroupMethod by rememberCloudArchiveGroupMethod()
+
+    MediaScreen(
+        paddingValues = paddingValues,
+        target = "cloud_archive",
+        albumName = stringResource(R.string.cloud_archive),
+        mediaState = mediaState,
+        metadataState = metadataState,
+        allowHeaders = cloudArchiveGroupByDate,
+        enableStickyHeaders = cloudArchiveGroupByDate,
+        groupMethod = if (cloudArchiveGroupByDate) cloudArchiveGroupMethod else Settings.Misc.GROUP_NORMAL,
+        navActionsContent = { _: MutableState<Boolean>,
+                              _: ActivityResultLauncher<IntentSenderRequest> ->
+        },
     emptyContent = { EmptyArchive() },
     aboveGridContent = {
         SettingsItem(
@@ -72,11 +81,12 @@ fun CloudArchiveScreen(
             ),
         )
     },
-    sharedTransitionScope = sharedTransitionScope,
-    animatedContentScope = animatedContentScope,
-) { result ->
-    if (result.resultCode == Activity.RESULT_OK) {
-        clearSelection()
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope,
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            clearSelection()
+        }
     }
 }
 

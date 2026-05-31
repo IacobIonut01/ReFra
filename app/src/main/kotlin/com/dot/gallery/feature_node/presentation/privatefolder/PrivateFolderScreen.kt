@@ -50,6 +50,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.navigateUp
@@ -269,7 +270,7 @@ fun PrivateFolderScreen(
                     ),
                     canScroll = canScroll,
                     allowHeaders = true,
-                    showMonthlyHeader = false,
+                    groupMethod = Settings.Misc.GROUP_NORMAL,
                     isScrolling = isScrolling,
                     emptyContent = { EmptyMedia() },
                     sharedTransitionScope = sharedTransitionScope,

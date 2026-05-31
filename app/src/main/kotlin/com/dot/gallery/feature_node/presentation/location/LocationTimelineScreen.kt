@@ -45,8 +45,10 @@ import com.dot.gallery.BuildConfig
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
-import com.dot.gallery.core.Settings.Album.rememberHideTimelineOnAlbum
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
+import com.dot.gallery.core.Settings.Misc.rememberLocationGroupByDate
+import com.dot.gallery.core.Settings.Misc.rememberLocationGroupMethod
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.NavigationButton
@@ -157,20 +159,22 @@ fun LocationTimelineScreen(
                 modifier = Modifier.hazeSource(LocalHazeState.current),
                 indicatorTopPadding = it.calculateTopPadding() + 16.dp,
             ) {
-                val hideTimelineOnAlbum by rememberHideTimelineOnAlbum()
+                val locationGroupByDate by rememberLocationGroupByDate()
+                val locationGroupMethod by rememberLocationGroupMethod()
                 MediaGridView(
                     mediaState = mediaState,
                     metadataState = metadataState,
                     allowSelection = true,
                     showSearchBar = false,
-                    enableStickyHeaders = !hideTimelineOnAlbum,
+                    enableStickyHeaders = locationGroupByDate,
+                    groupMethod = if (locationGroupByDate) locationGroupMethod else Settings.Misc.GROUP_NORMAL,
                     paddingValues = PaddingValues(
                         top = it.calculateTopPadding(),
                         bottom = paddingValues.calculateBottomPadding() + 128.dp
                     ),
                     canScroll = canScroll,
-                    allowHeaders = !hideTimelineOnAlbum,
-                    showMonthlyHeader = false,
+                    allowHeaders = locationGroupByDate,
+                    
                     aboveGridContent = if (BuildConfig.MAPS_ENABLED && latestGeoMedia != null) {
                         {
                             val isDark = isDarkTheme()

@@ -66,7 +66,9 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupByMonth
+import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupByYear
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.util.OnLifecycleEvent
 import com.dot.gallery.core.presentation.components.util.permissionGranted
@@ -177,6 +179,7 @@ fun NavigationComp(
     val bottomNavEntries = rememberNavigationItems()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val groupTimelineByMonth by rememberTimelineGroupByMonth()
+    val groupTimelineByYear by rememberTimelineGroupByYear()
     val context = LocalContext.current
     var permissionState by rememberSaveable { mutableStateOf(context.permissionGranted(Constants.PERMISSIONS)) }
     rememberMultiplePermissionsState(Constants.PERMISSIONS) {
@@ -244,6 +247,10 @@ fun NavigationComp(
 
     LaunchedEffect(groupTimelineByMonth) {
         navViewModel.updateGroupByMonth(groupTimelineByMonth)
+    }
+
+    LaunchedEffect(groupTimelineByYear) {
+        navViewModel.updateGroupByYear(groupTimelineByYear)
     }
 
     val searchViewModel = hiltViewModel<SearchViewModel>()

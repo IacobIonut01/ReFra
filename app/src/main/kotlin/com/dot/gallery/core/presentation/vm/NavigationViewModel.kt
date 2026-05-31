@@ -50,6 +50,12 @@ class NavigationViewModel @Inject constructor(
         }
     }
 
+    fun updateGroupByYear(value: Boolean) {
+        viewModelScope.launch {
+            distributor.groupByYear = value
+        }
+    }
+
     fun updatePermissionGranted(permissionState: Boolean) {
         viewModelScope.launch {
             StartupTracer.begin("NavigationVM.hasPermission→$permissionState").also { s -> StartupTracer.end(s) }

@@ -79,6 +79,8 @@ import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberLastSeenVersion
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
 import com.dot.gallery.core.Settings.Misc.rememberShowFilterButton
+import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupByDate
+import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupMethod
 import com.dot.gallery.core.Settings.Misc.rememberTimelineLayoutType
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
@@ -133,7 +135,9 @@ fun TimelineScreen(
     var canScroll by rememberSaveable { mutableStateOf(true) }
     var lastCellIndex by rememberGridSize()
     val timelineLayoutType by rememberTimelineLayoutType()
-    val isMosaicLayout = timelineLayoutType == Settings.Misc.LAYOUT_MOSAIC
+    val timelineGroupByDate by rememberTimelineGroupByDate()
+    val timelineGroupMethod by rememberTimelineGroupMethod()
+    val isMosaicLayout = timelineLayoutType == Settings.Misc.LAYOUT_MOSAIC && timelineGroupByDate
     val eventHandler = LocalEventHandler.current
     val distributor = LocalMediaDistributor.current
     val isRefreshing by distributor.isRefreshing.collectAsStateWithLifecycle()
@@ -189,6 +193,12 @@ fun TimelineScreen(
                     }
                 },
                 mappedMediaWithMonthly = state.mappedMediaWithMonthly.filter { item ->
+                    when (item) {
+                        is com.dot.gallery.feature_node.domain.model.MediaItem.MediaViewItem -> item.media.id in filteredIds
+                        is com.dot.gallery.feature_node.domain.model.MediaItem.Header -> item.data.any { it in filteredIds }
+                    }
+                },
+                mappedMediaWithYearly = state.mappedMediaWithYearly.filter { item ->
                     when (item) {
                         is com.dot.gallery.feature_node.domain.model.MediaItem.MediaViewItem -> item.media.id in filteredIds
                         is com.dot.gallery.feature_node.domain.model.MediaItem.Header -> item.data.any { it in filteredIds }
@@ -326,8 +336,12 @@ fun TimelineScreen(
                     lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
                 }
 
-                val mappedData by rememberedDerivedState(filteredMediaState.value) {
-                    filteredMediaState.value.mappedMediaWithMonthly
+                val mappedData by rememberedDerivedState(filteredMediaState.value, timelineGroupMethod) {
+                    when (timelineGroupMethod) {
+                        Settings.Misc.GROUP_MONTHLY -> filteredMediaState.value.mappedMediaWithMonthly
+                        Settings.Misc.GROUP_YEARLY -> filteredMediaState.value.mappedMediaWithYearly
+                        else -> filteredMediaState.value.mappedMedia
+                    }
                 }
                 val headers by rememberedDerivedState(filteredMediaState.value) {
                     filteredMediaState.value.headers
@@ -435,7 +449,7 @@ fun TimelineScreen(
                             paddingValues = mosaicPaddingValues,
                             allowSelection = true,
                             canScroll = !mosaicPinchState.isZooming,
-                            allowHeaders = true,
+                            allowHeaders = timelineGroupByDate,
                             aboveGridContent = aboveGridContent,
                             isScrolling = isScrolling,
                             emptyContent = { EmptyMedia() },
@@ -469,8 +483,9 @@ fun TimelineScreen(
                         showSearchBar = true,
                         allowSelection = true,
                         canScroll = canScroll,
-                        enableStickyHeaders = true,
-                        showMonthlyHeader = true,
+                        allowHeaders = timelineGroupByDate,
+                        enableStickyHeaders = timelineGroupByDate,
+                        groupMethod = if (timelineGroupByDate) timelineGroupMethod else Settings.Misc.GROUP_NORMAL,
                         aboveGridContent = aboveGridContent,
                         isScrolling = isScrolling,
                         emptyContent = { EmptyMedia() },

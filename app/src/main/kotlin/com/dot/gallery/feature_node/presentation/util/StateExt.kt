@@ -125,6 +125,7 @@ fun MediaRepository.mediaFlow(albumId: Long, target: String?): Flow<Resource<Lis
 fun <T : Media> Flow<Resource<List<T>>>.mapMedia(
     albumId: Long,
     groupByMonth: Boolean = false,
+    groupByYear: Boolean = false,
     withMonthHeader: Boolean = true,
     groupSimilarMedia: Boolean = false,
     enabledGroupTypes: Set<MediaGroupType> = MediaGroupType.entries.toSet(),
@@ -139,6 +140,7 @@ fun <T : Media> Flow<Resource<List<T>>>.mapMedia(
         error = it.message ?: "",
         albumId = albumId,
         groupByMonth = groupByMonth,
+        groupByYear = groupByYear,
         withMonthHeader = withMonthHeader,
         groupSimilarMedia = groupSimilarMedia,
         enabledGroupTypes = enabledGroupTypes,
@@ -153,6 +155,7 @@ suspend fun <T : Media> MutableStateFlow<MediaState<T>>.collectMedia(
     error: String,
     albumId: Long,
     groupByMonth: Boolean = false,
+    groupByYear: Boolean = false,
     withMonthHeader: Boolean = true,
     groupSimilarMedia: Boolean = false,
     enabledGroupTypes: Set<MediaGroupType> = MediaGroupType.entries.toSet(),
@@ -167,6 +170,7 @@ suspend fun <T : Media> MutableStateFlow<MediaState<T>>.collectMedia(
             error = error,
             albumId = albumId,
             groupByMonth = groupByMonth,
+            groupByYear = groupByYear,
             withMonthHeader = withMonthHeader,
             groupSimilarMedia = groupSimilarMedia,
             enabledGroupTypes = enabledGroupTypes,
@@ -183,6 +187,7 @@ suspend fun <T : Media> mapMediaToItem(
     error: String,
     albumId: Long,
     groupByMonth: Boolean = false,
+    groupByYear: Boolean = false,
     withMonthHeader: Boolean = true,
     groupSimilarMedia: Boolean = false,
     enabledGroupTypes: Set<MediaGroupType> = MediaGroupType.entries.toSet(),
@@ -194,14 +199,16 @@ suspend fun <T : Media> mapMediaToItem(
     val estimatedSize = data.size + (data.size / 20) // ~1 header per 20 items
     val mappedData = ArrayList<MediaItem<T>>(estimatedSize)
     val mappedDataWithMonthly = if (withMonthHeader) ArrayList<MediaItem<T>>(estimatedSize) else mutableListOf()
+    val mappedDataWithYearly = if (withMonthHeader) ArrayList<MediaItem<T>>(estimatedSize) else mutableListOf()
     val monthHeaderList = HashSet<String>()
+    val yearHeaderList = HashSet<String>()
     val headers = ArrayList<MediaItem.Header<T>>(estimatedSize / 20 + 1)
     val pagerMediaList = if (groupSimilarMedia) ArrayList<T>(data.size) else mutableListOf()
     val mediaGroupsMap = if (groupSimilarMedia) HashMap<Long, List<T>>() else mutableMapOf()
 
     // DateGrouper pre-computes locale, todayStartMillis, and currentYear once,
     // then reuses a single Calendar per item instead of allocating 4 new ones.
-    val dateGrouper = if (!groupByMonth) DateGrouper(
+    val dateGrouper = if (!groupByMonth && !groupByYear) DateGrouper(
         format = defaultDateFormat,
         weeklyFormat = weeklyDateFormat,
         extendedFormat = extendedDateFormat,
@@ -210,10 +217,10 @@ suspend fun <T : Media> mapMediaToItem(
         stringYesterday = "Yesterday"
     ) else null
     val groupedData = data.groupBy {
-        if (groupByMonth) {
-            it.definedTimestamp.getMonth()
-        } else {
-            dateGrouper!!.classify(it.definedTimestamp)
+        when {
+            groupByYear -> it.definedTimestamp.getYear()
+            groupByMonth -> it.definedTimestamp.getMonth()
+            else -> dateGrouper!!.classify(it.definedTimestamp)
         }
     }
     val hasCloudOverrides = cloudGroupKeyOverrides.isNotEmpty()
@@ -254,7 +261,12 @@ suspend fun <T : Media> mapMediaToItem(
                 MediaItem.MediaViewItem("media_${it.id}_${it.label}", it)
             }
         }
-        if (groupByMonth) {
+        if (groupByYear) {
+            mappedData.add(dateHeader)
+            mappedData.addAll(groupedMedia)
+            mappedDataWithYearly.add(dateHeader)
+            mappedDataWithYearly.addAll(groupedMedia)
+        } else if (groupByMonth) {
             mappedData.add(dateHeader)
             mappedData.addAll(groupedMedia)
             mappedDataWithMonthly.add(dateHeader)
@@ -286,6 +298,23 @@ suspend fun <T : Media> mapMediaToItem(
                 mappedDataWithMonthly.addAll(groupedMedia)
             }
         }
+        if (!groupByYear && withMonthHeader) {
+            val year = data.firstOrNull()?.definedTimestamp?.getYear() ?: ""
+            if (year.isNotEmpty() && !yearHeaderList.contains(year)) {
+                yearHeaderList.add(year)
+                if (mappedDataWithYearly.isNotEmpty()) {
+                    mappedDataWithYearly.add(
+                        MediaItem.Header(
+                            "header_big_${year}_${data.size}",
+                            year,
+                            dateHeader.data
+                        )
+                    )
+                }
+            }
+            mappedDataWithYearly.add(dateHeader)
+            mappedDataWithYearly.addAll(groupedMedia)
+        }
     }
     MediaState(
         isLoading = false,
@@ -296,6 +325,7 @@ suspend fun <T : Media> mapMediaToItem(
         headers = headers,
         mappedMedia = mappedData,
         mappedMediaWithMonthly = if (withMonthHeader) mappedDataWithMonthly else emptyList(),
+        mappedMediaWithYearly = if (withMonthHeader) mappedDataWithYearly else emptyList(),
         dateHeader = data.dateHeader(albumId)
     )
 }

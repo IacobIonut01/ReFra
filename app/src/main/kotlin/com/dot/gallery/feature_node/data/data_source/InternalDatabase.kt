@@ -89,7 +89,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AlbumSection::class,
         AlbumSectionMember::class
     ],
-    version = 32,
+    version = 33,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -123,6 +123,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 29, to = 30),
         AutoMigration(from = 30, to = 31),
         AutoMigration(from = 31, to = 32),
+        AutoMigration(from = 32, to = 33),
     ]
 )
 @TypeConverters(Converters::class, CloudConverters::class)

@@ -226,7 +226,7 @@ fun EditCategoryScreen(
                             ),
                             canScroll = true,
                             allowHeaders = false,
-                            showMonthlyHeader = false,
+                            
                             isScrolling = isScrolling,
                             emptyContent = {
                                 EmptyMedia(

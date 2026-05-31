@@ -280,7 +280,7 @@ fun CategoryEditorScreen(
                         paddingValues = PaddingValues(bottom = 128.dp),
                         canScroll = true,
                         allowHeaders = false,
-                        showMonthlyHeader = false,
+                        
                         isScrolling = isScrolling,
                         emptyContent = {
                             EmptyMedia(title = stringResource(R.string.no_matching_photos))

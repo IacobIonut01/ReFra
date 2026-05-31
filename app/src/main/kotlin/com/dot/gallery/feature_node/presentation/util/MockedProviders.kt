@@ -56,6 +56,7 @@ open class MockedMediaDistributor: MediaDistributor {
     override val hasPermission: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val dateFormatsFlow: StateFlow<Triple<String, String, String>> = MutableStateFlow(Triple("", "", ""))
     override var groupByMonth: Boolean = false
+    override var groupByYear: Boolean = false
     override val groupSimilarMedia: StateFlow<Boolean> = MutableStateFlow(false)
     override val enabledGroupTypes: StateFlow<Set<MediaGroupType>> = MutableStateFlow(MediaGroupType.entries.toSet())
     override val mergeAlbumsByName: StateFlow<Boolean> = MutableStateFlow(false)
