@@ -281,7 +281,8 @@ fun <T : Media> MediaViewScreen(
     val pagerItems by rememberedDerivedState(mediaState.value, pendingTrashIds) {
         val pager = mediaState.value.pagerMedia
         val items = pager.ifEmpty { mediaState.value.media }
-        if (pendingTrashIds.isEmpty()) items else items.filter { it.id !in pendingTrashIds }
+        val filtered = if (pendingTrashIds.isEmpty()) items else items.filter { it.id !in pendingTrashIds }
+        filtered.distinctBy { it.id }
     }
 
     // Use only primitive ids/sizes as saveable keys (avoid passing full media list object)

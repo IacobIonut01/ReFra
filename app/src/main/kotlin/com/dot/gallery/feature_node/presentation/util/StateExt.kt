@@ -291,7 +291,7 @@ suspend fun <T : Media> mapMediaToItem(
         isLoading = false,
         error = error,
         media = data,
-        pagerMedia = if (groupSimilarMedia) pagerMediaList else data,
+        pagerMedia = (if (groupSimilarMedia) pagerMediaList else data).distinctBy { it.id },
         mediaGroups = mediaGroupsMap,
         headers = headers,
         mappedMedia = mappedData,
