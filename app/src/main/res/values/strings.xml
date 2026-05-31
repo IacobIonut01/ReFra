@@ -908,6 +908,9 @@
     <string name="show_filter_button">Filter button</string>
     <string name="show_filter_button_summary">Show filter button in search bar</string>
     <string name="show_filter_button_description">Shows a filter icon inside the search bar on the timeline screen. Tap it to open a sheet where you can narrow down your gallery by media type, favorites, year, or album.</string>
+    <string name="show_searchbar_favorite_button">Favorite button</string>
+    <string name="show_searchbar_favorite_button_summary">Show favorite button next to search bar</string>
+    <string name="show_searchbar_favorite_button_description">Shows a heart button next to the search bar on the timeline screen. Tap it to quickly open your favorites collection.</string>
     <string name="trash_restore_all">Restore all</string>
     <string name="trash_delete_all">Delete all</string>
     <string name="favorites_info_title">Your Favorites</string>

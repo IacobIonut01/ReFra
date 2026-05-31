@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -32,6 +33,8 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gif
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -60,6 +63,7 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAllowGifAnimation
 import com.dot.gallery.core.Settings.Misc.rememberFavoriteIconPosition
 import com.dot.gallery.core.Settings.Misc.rememberShowFilterButton
+import com.dot.gallery.core.Settings.Misc.rememberShowSearchBarFavoriteButton
 import com.dot.gallery.core.Settings.Misc.rememberGroupBurstSequences
 import com.dot.gallery.core.Settings.Misc.rememberGroupCloudLocal
 import com.dot.gallery.core.Settings.Misc.rememberGroupEditedCopies
@@ -90,6 +94,7 @@ private const val DETAIL_FILTER_BUTTON = "filter_button"
 private const val DETAIL_HIDE_TIMELINE = "hide_timeline"
 private const val DETAIL_MERGE_ALBUMS = "merge_albums"
 private const val DETAIL_FAV_ICON = "fav_icon"
+private const val DETAIL_SEARCHBAR_FAV_BUTTON = "searchbar_fav_button"
 
 @Composable
 fun SettingsTimelineAlbumsScreen() {
@@ -107,6 +112,7 @@ fun SettingsTimelineAlbumsScreen() {
     var groupCloudLocal by rememberGroupCloudLocal()
     var allowGifAnimation by rememberAllowGifAnimation()
     var showFilterButton by rememberShowFilterButton()
+    var showSearchBarFavButton by rememberShowSearchBarFavoriteButton()
     var hideTimelineOnAlbum by Settings.Album.rememberHideTimelineOnAlbum()
     var mergeAlbumsByName by Settings.Album.rememberMergeAlbumsByName()
     var favIconPosition by rememberFavoriteIconPosition()
@@ -212,6 +218,17 @@ fun SettingsTimelineAlbumsScreen() {
                 preview = { checked -> FilterButtonPreview(checked) },
             )
         }
+        DETAIL_SEARCHBAR_FAV_BUTTON -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(R.string.show_searchbar_favorite_button),
+                isChecked = showSearchBarFavButton,
+                onCheckedChange = { showSearchBarFavButton = it },
+                description = stringResource(R.string.show_searchbar_favorite_button_description),
+                useColumnLayout = true,
+                preview = { checked -> SearchBarFavoriteButtonPreview(checked) },
+            )
+        }
         DETAIL_HIDE_TIMELINE -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -265,6 +282,8 @@ fun SettingsTimelineAlbumsScreen() {
                 onGifAnimationChange = { allowGifAnimation = it },
                 showFilterButton = showFilterButton,
                 onShowFilterButtonChange = { showFilterButton = it },
+                showSearchBarFavButton = showSearchBarFavButton,
+                onShowSearchBarFavButtonChange = { showSearchBarFavButton = it },
                 hideTimelineOnAlbum = hideTimelineOnAlbum,
                 onHideTimelineChange = { hideTimelineOnAlbum = it },
                 mergeAlbumsByName = mergeAlbumsByName,
@@ -289,6 +308,8 @@ private fun TimelineAlbumsListScreen(
     onGifAnimationChange: (Boolean) -> Unit,
     showFilterButton: Boolean,
     onShowFilterButtonChange: (Boolean) -> Unit,
+    showSearchBarFavButton: Boolean,
+    onShowSearchBarFavButtonChange: (Boolean) -> Unit,
     hideTimelineOnAlbum: Boolean,
     onHideTimelineChange: (Boolean) -> Unit,
     mergeAlbumsByName: Boolean,
@@ -367,6 +388,16 @@ private fun TimelineAlbumsListScreen(
             screenPosition = Position.Middle
         )
 
+        val showSearchBarFavButtonPref = rememberSwitchPreference(
+            showSearchBarFavButton,
+            title = stringResource(R.string.show_searchbar_favorite_button),
+            summary = stringResource(R.string.show_searchbar_favorite_button_summary),
+            isChecked = showSearchBarFavButton,
+            onCheck = onShowSearchBarFavButtonChange,
+            onClick = { onDetailClick(DETAIL_SEARCHBAR_FAV_BUTTON) },
+            screenPosition = Position.Middle
+        )
+
         val storyCardsPref = rememberPreference(
             title = stringResource(R.string.story_cards_settings_title),
             summary = stringResource(R.string.story_cards_settings_summary),
@@ -418,7 +449,7 @@ private fun TimelineAlbumsListScreen(
         return remember(
             groupByMonthPref, timelineLayoutPref, groupSimilarMediaPref,
             allowGifAnimationPref, dateHeaderPref, showFilterButtonPref,
-            storyCardsPref,
+            showSearchBarFavButtonPref, storyCardsPref,
             hideTimelineOnAlbumPref, mergeAlbumsByNamePref, favIconPositionPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
@@ -429,6 +460,9 @@ private fun TimelineAlbumsListScreen(
                 add(allowGifAnimationPref)
                 add(dateHeaderPref)
                 add(showFilterButtonPref)
+                if (SdkCompat.supportsFavorites) {
+                    add(showSearchBarFavButtonPref)
+                }
                 add(storyCardsPref)
 
                 add(albumsHeader)
@@ -874,6 +908,82 @@ private fun FilterButtonPreview(isChecked: Boolean) {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(22.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchBarFavoriteButtonPreview(isChecked: Boolean) {
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    val favColor = MaterialTheme.colorScheme.primaryFixed
+    val onFavColor = MaterialTheme.colorScheme.onPrimaryFixed
+    val settingsColor = MaterialTheme.colorScheme.tertiaryFixed
+    val onSettingsColor = MaterialTheme.colorScheme.onTertiaryFixed
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(100))
+                .background(surfaceColor)
+                .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+                tint = onSurfaceColor,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                text = stringResource(R.string.search),
+                style = MaterialTheme.typography.bodyLarge,
+                color = onSurfaceColor,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.Outlined.FilterList,
+                contentDescription = null,
+                tint = onSurfaceColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        if (isChecked) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(favColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Favorite,
+                    contentDescription = null,
+                    tint = onFavColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(settingsColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Settings,
+                contentDescription = null,
+                tint = onSettingsColor,
+                modifier = Modifier.size(20.dp)
             )
         }
     }

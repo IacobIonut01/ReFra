@@ -656,6 +656,12 @@ object Settings {
         fun rememberShowFavoriteButton() =
             rememberPreference(key = SHOW_FAVORITE_BUTTON, defaultValue = true)
 
+        private val SHOW_SEARCHBAR_FAVORITE_BUTTON = booleanPreferencesKey("show_searchbar_favorite_button")
+
+        @Composable
+        fun rememberShowSearchBarFavoriteButton() =
+            rememberPreference(key = SHOW_SEARCHBAR_FAVORITE_BUTTON, defaultValue = true)
+
         private val SHOW_FILTER_BUTTON = booleanPreferencesKey("show_filter_button")
 
         @Composable
