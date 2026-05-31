@@ -36,6 +36,7 @@ import com.dot.gallery.feature_node.presentation.settings.components.SettingsApp
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsAppHeaderCompact
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
+import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.feature_node.presentation.util.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,7 +99,8 @@ fun SettingsScreen() {
             },
             screenPosition = Position.Middle
         )
-        val cloudPref = rememberPreference(
+        val hasCloudProviders = remember { ProviderType.hasAnyRemoteProvider() }
+        val cloudPref = if (hasCloudProviders) rememberPreference(
             icon = Icons.Outlined.Cloud,
             title = stringResource(R.string.settings_cloud_accounts),
             summary = stringResource(R.string.settings_cloud_accounts_summary),
@@ -106,7 +108,7 @@ fun SettingsScreen() {
                 eventHandler.navigate(Screen.CloudAccountsScreen())
             },
             screenPosition = Position.Middle
-        )
+        ) else null
         val smartPref = rememberPreference(
             icon = Icons.Outlined.SettingsSuggest,
             title = stringResource(R.string.ai_category),
@@ -129,10 +131,13 @@ fun SettingsScreen() {
             appearancePref, timelineAlbumsPref, mediaViewerPref,
             navigationPref, generalPref, securityPref, cloudPref, smartPref, helpPref
         ) {
-            mutableStateListOf(
+            mutableStateListOf<SettingsEntity>(
                 appearancePref, timelineAlbumsPref, mediaViewerPref,
-                navigationPref, generalPref, securityPref, cloudPref, smartPref, helpPref
-            )
+                navigationPref, generalPref, securityPref,
+            ).apply {
+                if (cloudPref != null) add(cloudPref)
+                addAll(listOf(smartPref, helpPref))
+            }
         }
     }
 

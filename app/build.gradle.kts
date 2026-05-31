@@ -392,7 +392,7 @@ dependencies {
         implementation(libs.maplibre.native)
     }
 
-    // Cloud Providers - shared networking (only if any cloud provider is enabled)
+    implementation(libs.okhttp)
     if (includeImmich || includeOwncloud) {
         implementation(libs.okhttp.logging)
     }
@@ -402,11 +402,6 @@ dependencies {
         implementation(libs.retrofit)
         implementation(libs.retrofit.kotlinx.serialization)
         implementation(libs.retrofit.converter.gson)
-    }
-
-    // ownCloud (WebDAV via OkHttp - no extra dependency needed)
-    if (includeOwncloud) {
-        implementation(libs.okhttp.logging)
     }
 
     // Tests

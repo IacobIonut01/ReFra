@@ -25,17 +25,16 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.json.Json
 
 private fun parseExternalUrls(json: String): List<String> {
     return try {
-        Gson().fromJson(json, object : TypeToken<List<String>>() {}.type) ?: emptyList()
+        Json.decodeFromString<List<String>>(json)
     } catch (_: Exception) { emptyList() }
 }
 
 private fun serializeExternalUrls(urls: List<String>): String {
-    return Gson().toJson(urls)
+    return Json.encodeToString(urls)
 }
 
 @Composable

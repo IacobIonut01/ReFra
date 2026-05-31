@@ -84,7 +84,7 @@ fun CloudAccountsScreen(
     }
 
     val configuredTypes = remember(configs) { configs.map { it.providerType }.toSet() }
-    val remoteProviderTypes = remember { ProviderType.entries.filter { it.isRemote } }
+    val remoteProviderTypes = remember { ProviderType.availableRemoteTypes() }
 
     val emptySettingsList = remember { mutableStateListOf<SettingsEntity>() }
 
