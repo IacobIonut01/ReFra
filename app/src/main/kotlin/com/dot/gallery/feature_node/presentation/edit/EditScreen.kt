@@ -328,7 +328,7 @@ fun EditScreen2(
     }
 
     val animatedBlurRadius by animateDpAsState(
-        if (isSaving || isReverting || cropState.isCropping || requestMarkupApply) 50.dp else 0.dp,
+        if (isSaving || isReverting || isProcessing || cropState.isCropping || requestMarkupApply) 50.dp else 0.dp,
         label = "animatedBlurRadius"
     )
 
@@ -387,7 +387,7 @@ fun EditScreen2(
                 .hazeSource(LocalHazeState.current)
                 .fillMaxSize()
                 .then(
-                    if (isSaving || isReverting || cropState.isCropping || requestMarkupApply)
+                    if (isSaving || isReverting || isProcessing || cropState.isCropping || requestMarkupApply)
                     // Snap the animated radius to buckets so the ramp reuses a few blur shaders
                     // instead of compiling a new GPU pipeline on every animation frame.
                         Modifier.stableBlur(animatedBlurRadius, step = 10.dp)
@@ -822,6 +822,7 @@ fun EditScreen2(
                             cutoutState = cutoutState,
                             onCutoutAddPoint = onCutoutAddPoint,
                             paths = paths,
+                            pathsUndone = pathsUndone,
                             currentPosition = currentPosition,
                             previousPosition = previousPosition,
                             drawMode = drawMode,
@@ -1224,7 +1225,7 @@ fun EditScreen2(
 
         // Loading overlay
         AnimatedVisibility(
-            visible = isSaving || isReverting || requestMarkupApply,
+            visible = isSaving || isReverting || isProcessing || requestMarkupApply,
             enter = enterAnimation,
             exit = exitAnimation
         ) {
@@ -1232,7 +1233,7 @@ fun EditScreen2(
                 modifier = Modifier
                     .background(color = Color.Black.copy(alpha = 0.4f))
                     .fillMaxSize()
-                    .pointerInput(isSaving, isReverting, requestMarkupApply) {
+                    .pointerInput(isSaving, isReverting, isProcessing, requestMarkupApply) {
                         awaitPointerEventScope {
                             while (true) {
                                 awaitPointerEvent().changes.forEach { it.consume() }
@@ -1273,6 +1274,7 @@ fun EditScreen2(
             BackHandler { showTextOverlay = false }
             TextMarkupOverlay(
                 onDone = { text, color ->
+                    selectedTextIndex = textAnnotations.size
                     textAnnotations = textAnnotations + TextAnnotation(
                         text = text,
                         color = color,

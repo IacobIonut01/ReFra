@@ -2,6 +2,7 @@ package com.dot.gallery.feature_node.presentation.edit.components.markup
 
 import android.graphics.Bitmap
 import android.graphics.BitmapShader
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Shader
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -53,9 +55,24 @@ import com.dot.gallery.feature_node.presentation.edit.utils.ImageObscure
 import com.dot.gallery.feature_node.presentation.edit.utils.dragMotionEvent
 import androidx.core.graphics.scale
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.math.roundToInt
+
+internal fun rescaleMarkupPaths(
+    paths: List<Pair<Path, PathProperties>>,
+    oldSize: IntSize,
+    newSize: IntSize,
+) {
+    if (oldSize.width <= 0 || oldSize.height <= 0 || newSize.width <= 0 || newSize.height <= 0 || oldSize == newSize) return
+    val scaleX = newSize.width / oldSize.width.toFloat()
+    val scaleY = newSize.height / oldSize.height.toFloat()
+    val matrix = Matrix().apply { setScale(scaleX, scaleY) }
+    val strokeScale = minOf(newSize.width, newSize.height) /
+            minOf(oldSize.width, oldSize.height).toFloat()
+    paths.forEach { (path, properties) ->
+        path.asAndroidPath().transform(matrix)
+        properties.strokeWidth *= strokeScale
+    }
+}
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -63,6 +80,7 @@ fun MarkupPainter(
     modifier: Modifier = Modifier,
     bitmap: Any?,
     paths: List<Pair<Path, PathProperties>>,
+    pathsUndone: List<Pair<Path, PathProperties>>,
     addPath: (Path, PathProperties) -> Unit,
     clearPathsUndone: () -> Unit,
     currentPosition: Offset,
@@ -121,8 +139,6 @@ fun MarkupPainter(
         derivedStateOf { (paths.isNotEmpty() || textAnnotations.isNotEmpty()) && currentImage != null }
     }
 
-    val mutex = remember { Mutex() }
-
     // Cache of processed (blurred/mosaicked) copies of the base image, keyed by
     // (brush, quantized-strength) and scaled to the current canvas size. Reset when either the
     // source bitmap or the canvas size changes so shader pixels always align with the strokes.
@@ -154,18 +170,17 @@ fun MarkupPainter(
     LaunchedEffect(requestApply) {
         if (requestApply && shouldSaveDrawing) {
             delay(100)
-            mutex.withLock {
-                val image = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                applyDrawing(image) { applied ->
-                    if (applied) {
-                        onTextAnnotationsChange(emptyList())
-                        onSelectedTextIndexChange(-1)
-                        onNavigateBack()
-                    }
-                    onApplyHandled()
+            val image = graphicsLayer.toImageBitmap().asAndroidBitmap()
+            applyDrawing(image) { applied ->
+                if (applied) {
+                    onTextAnnotationsChange(emptyList())
+                    onSelectedTextIndexChange(-1)
+                    onNavigateBack()
                 }
+                onApplyHandled()
             }
         } else if (requestApply) {
+            onNavigateBack()
             onApplyHandled()
         }
     }
@@ -184,7 +199,14 @@ fun MarkupPainter(
                 val bottom = (r.bottom + pad).coerceIn(0f, 1f) * h
                 if (right > left && bottom > top) {
                     val path = Path().apply { addOval(Rect(left, top, right, bottom)) }
-                    addPath(path, currentPathProperty.copy(fillRegion = true))
+                    addPath(
+                        path,
+                        currentPathProperty.copy(
+                            eraseMode = false,
+                            brush = MarkupBrush.Blur,
+                            fillRegion = true
+                        )
+                    )
                 }
             }
             onFaceRegionsConsumed()
@@ -196,9 +218,18 @@ fun MarkupPainter(
         contentDescription = null,
         modifier = Modifier
             .wrapContentSize()
-            .onSizeChanged { canvasLayoutSize = it }
+            .onSizeChanged { newSize ->
+                if (newSize.width > 0 && newSize.height > 0) {
+                    rescaleMarkupPaths(
+                        paths + pathsUndone + (currentPath to currentPathProperty),
+                        canvasLayoutSize,
+                        newSize
+                    )
+                    canvasLayoutSize = newSize
+                }
+            }
             // Pinch-to-zoom, two-finger pan, and two-finger text rotation
-            .pointerInput(Unit) {
+            .pointerInput(drawMode, currentPath) {
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false)
                     var isTextTwoFingerRotating = false
@@ -523,9 +554,9 @@ fun MarkupPainter(
                                         color = Color.Transparent,
                                         path = path,
                                         style = Stroke(
-                                            width = currentPathProperty.strokeWidth,
-                                            cap = currentPathProperty.strokeCap,
-                                            join = currentPathProperty.strokeJoin
+                                            width = property.strokeWidth,
+                                            cap = property.strokeCap,
+                                            join = property.strokeJoin
                                         ),
                                         blendMode = BlendMode.Clear
                                     )
@@ -592,9 +623,9 @@ fun MarkupPainter(
                                     color = Color.Transparent,
                                     path = path,
                                     style = Stroke(
-                                        width = currentPathProperty.strokeWidth,
-                                        cap = currentPathProperty.strokeCap,
-                                        join = currentPathProperty.strokeJoin
+                                        width = property.strokeWidth,
+                                        cap = property.strokeCap,
+                                        join = property.strokeJoin
                                     ),
                                     blendMode = BlendMode.Clear
                                 )

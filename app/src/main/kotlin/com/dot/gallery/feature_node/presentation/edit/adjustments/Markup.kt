@@ -17,17 +17,22 @@ import com.dot.gallery.feature_node.domain.model.editor.TileableAdjustment
  */
 data class Markup(val overlay: Bitmap): TileableAdjustment {
 
+    private val renderableOverlay = overlay.config
+        ?.takeUnless { it == Bitmap.Config.HARDWARE }
+        ?.let { overlay }
+        ?: overlay.copy(Bitmap.Config.ARGB_8888, false)
+
     override fun apply(bitmap: Bitmap): Bitmap {
         val config = bitmap.config?.takeUnless { it == Bitmap.Config.HARDWARE }
             ?: Bitmap.Config.ARGB_8888
         val result = bitmap.copy(config, true)
         val matrix = Matrix().apply {
             setScale(
-                bitmap.width / overlay.width.toFloat(),
-                bitmap.height / overlay.height.toFloat()
+                bitmap.width / renderableOverlay.width.toFloat(),
+                bitmap.height / renderableOverlay.height.toFloat()
             )
         }
-        Canvas(result).drawBitmap(overlay, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
+        Canvas(result).drawBitmap(renderableOverlay, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
         return result
     }
 
@@ -45,12 +50,12 @@ data class Markup(val overlay: Bitmap): TileableAdjustment {
         // cropping the tile region out of apply()'s full-size composite.
         val matrix = Matrix().apply {
             setScale(
-                fullWidth / overlay.width.toFloat(),
-                fullHeight / overlay.height.toFloat()
+                fullWidth / renderableOverlay.width.toFloat(),
+                fullHeight / renderableOverlay.height.toFloat()
             )
             postTranslate(-tileX.toFloat(), -tileY.toFloat())
         }
-        canvas.drawBitmap(overlay, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
+        canvas.drawBitmap(renderableOverlay, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
         return result
     }
 

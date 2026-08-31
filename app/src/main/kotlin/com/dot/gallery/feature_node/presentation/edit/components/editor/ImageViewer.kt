@@ -87,6 +87,7 @@ fun ImageViewer(
     cutoutState: CutoutState? = null,
     onCutoutAddPoint: (Float, Float, Boolean) -> Unit = { _, _, _ -> },
     paths: List<Pair<Path, PathProperties>>,
+    pathsUndone: List<Pair<Path, PathProperties>>,
     currentPosition: Offset,
     previousPosition: Offset,
     drawMode: DrawMode,
@@ -265,6 +266,7 @@ fun ImageViewer(
                     MarkupPainter(
                         bitmap = resizedBitmap!!,
                         paths = paths,
+                        pathsUndone = pathsUndone,
                         addPath = addPath,
                         clearPathsUndone = clearPathsUndone,
                         currentPosition = currentPosition,

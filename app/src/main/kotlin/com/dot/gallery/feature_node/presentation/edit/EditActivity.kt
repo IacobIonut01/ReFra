@@ -127,6 +127,7 @@ class EditActivity : ComponentActivity() {
                     val canRedo by viewModel.canRedo.collectAsStateWithLifecycle()
                     val filterIntensity by viewModel.filterIntensity.collectAsStateWithLifecycle()
                     val activeFilter by viewModel.activeFilter.collectAsStateWithLifecycle()
+                    val hasPendingFilter by viewModel.hasPendingFilter.collectAsStateWithLifecycle()
                     val vignetteIntensity by viewModel.previewVignette.collectAsStateWithLifecycle()
                     val blurRadius by viewModel.previewBlur.collectAsStateWithLifecycle()
                     val sharpnessValue by viewModel.previewSharpness.collectAsStateWithLifecycle()
@@ -180,7 +181,7 @@ class EditActivity : ComponentActivity() {
 
                     if (showRawExportSheet) {
                         RawExportSheet(
-                            allowTiff = appliedAdjustments.isEmpty(),
+                            allowTiff = appliedAdjustments.isEmpty() && !hasPendingFilter,
                             onFormatSelected = { format ->
                                 showRawExportSheet = false
                                 viewModel.saveRawCopy(
@@ -334,7 +335,7 @@ class EditActivity : ComponentActivity() {
                         onResultOk = doRestoreAndReload
                     )
 
-                    val hasUnsavedChanges = appliedAdjustments.isNotEmpty() ||
+                    val hasUnsavedChanges = appliedAdjustments.isNotEmpty() || hasPendingFilter ||
                         (isRawEdit && rawDevelopParams != null && rawDevelopParams != RawDevelopParams.AUTO)
                     val requestEditorClose: () -> Unit = {
                         if (!isSaving) {
@@ -414,7 +415,7 @@ class EditActivity : ComponentActivity() {
                         isReverting = isReverting,
                         canOverride = canOverride,
                         // RAW is always saveable (developing to a copy is valid even at defaults).
-                        isChanged = appliedAdjustments.isNotEmpty() || isRawEdit,
+                        isChanged = appliedAdjustments.isNotEmpty() || hasPendingFilter || isRawEdit,
                         isSaving = isSaving,
                         saveProgress = saveProgress,
                         isProcessing = isProcessing,

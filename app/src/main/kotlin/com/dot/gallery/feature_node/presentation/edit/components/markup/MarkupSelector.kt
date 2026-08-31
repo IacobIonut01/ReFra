@@ -59,6 +59,9 @@ import com.dot.gallery.feature_node.presentation.edit.components.core.Supportive
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.horizontalFadingEdge
 
+internal fun markupPresetColor(color: Color, currentColor: Color): Color =
+    color.copy(alpha = currentColor.alpha)
+
 private val presetColors = listOf(
     Color(0xFF1A1A1A),
     Color.Red,
@@ -101,6 +104,9 @@ fun MarkupSelector(
             currentPathProperty = currentPathProperty,
             setCurrentPathProperty = setCurrentPathProperty,
             onRequestTextInput = onRequestTextInput,
+            textAnnotations = textAnnotations,
+            onTextAnnotationsChange = onTextAnnotationsChange,
+            selectedTextIndex = selectedTextIndex,
             onDetectFaces = onDetectFaces,
             faceDetectAvailable = faceDetectAvailable,
             isDetectingFaces = isDetectingFaces
@@ -141,9 +147,7 @@ private fun MarkupSelectorPhone(
     isDetectingFaces: Boolean = false,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = if (faceDetectAvailable) 212.dp else 160.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Tool type text tabs (Pen / Highlighter / Blur / Mosaic / Text)
@@ -236,7 +240,7 @@ private fun MarkupSelectorPhone(
                 currentPathProperty = currentPathProperty,
                 setCurrentPathProperty = setCurrentPathProperty,
                 onDetectFaces = onDetectFaces,
-                faceDetectAvailable = faceDetectAvailable,
+                faceDetectAvailable = faceDetectAvailable && drawType == DrawType.Blur,
                 isDetectingFaces = isDetectingFaces
             )
             return@Column
@@ -310,7 +314,11 @@ private fun MarkupSelectorPhone(
                                         updated[selectedTextIndex] = updated[selectedTextIndex].copy(color = color)
                                         onTextAnnotationsChange(updated)
                                     } else {
-                                        setCurrentPathProperty(currentPathProperty.copy(color = color))
+                                        setCurrentPathProperty(
+                                            currentPathProperty.copy(
+                                                color = markupPresetColor(color, currentPathProperty.color)
+                                            )
+                                        )
                                     }
                                 }
                         )
@@ -352,48 +360,67 @@ private fun MarkupSelectorTablet(
     currentPathProperty: PathProperties,
     setCurrentPathProperty: (PathProperties) -> Unit,
     onRequestTextInput: () -> Unit = {},
-    @Suppress("UNUSED_PARAMETER") onDetectFaces: () -> Unit = {},
-    @Suppress("UNUSED_PARAMETER") faceDetectAvailable: Boolean = false,
-    @Suppress("UNUSED_PARAMETER") isDetectingFaces: Boolean = false,
+    textAnnotations: List<TextAnnotation> = emptyList(),
+    onTextAnnotationsChange: (List<TextAnnotation>) -> Unit = {},
+    selectedTextIndex: Int = -1,
+    onDetectFaces: () -> Unit = {},
+    faceDetectAvailable: Boolean = false,
+    isDetectingFaces: Boolean = false,
 ) {
     val padding = remember { PaddingValues(0.dp) }
+    val isEffectBrush = drawMode == DrawMode.Draw &&
+            (drawType == DrawType.Blur || drawType == DrawType.Mosaic)
+    val selectedText = textAnnotations.getOrNull(selectedTextIndex)
+    val effectiveColor = selectedText?.color ?: currentPathProperty.color
+    val setEffectiveColor: (Color) -> Unit = { color ->
+        if (selectedText != null) {
+            val updated = textAnnotations.toMutableList()
+            updated[selectedTextIndex] = selectedText.copy(color = color)
+            onTextAnnotationsChange(updated)
+        } else {
+            setCurrentPathProperty(currentPathProperty.copy(color = color))
+        }
+    }
 
     SupportiveLayout(
         isSupportingPanel = true
     ) {
-        HSVColorBars(
-            modifier = Modifier.padding(end = 8.dp),
-            enabled = drawMode == DrawMode.Draw,
-            currentColor = currentPathProperty.color,
-            isSupportingPanel = true,
-            onHueChange = { hue ->
-                val hsv = FloatArray(3)
-                colorToHSV(currentPathProperty.color.toArgb(), hsv)
-                hsv[0] = hue
-                val newColor = Color(
-                    HSVToColor((currentPathProperty.color.alpha * 255).toInt(), hsv)
-                )
-                setCurrentPathProperty(currentPathProperty.copy(color = newColor))
-            },
-            onVibrancyChange = { vibrancy ->
-                val hsv = FloatArray(3)
-                colorToHSV(currentPathProperty.color.toArgb(), hsv)
-                hsv[2] = vibrancy
-                val newColor = Color(
-                    HSVToColor((currentPathProperty.color.alpha * 255).toInt(), hsv)
-                )
-                setCurrentPathProperty(currentPathProperty.copy(color = newColor))
-            },
-            onSaturationChange = { saturation ->
-                val hsv = FloatArray(3)
-                colorToHSV(currentPathProperty.color.toArgb(), hsv)
-                hsv[1] = saturation
-                val newColor = Color(
-                    HSVToColor((currentPathProperty.color.alpha * 255).toInt(), hsv)
-                )
-                setCurrentPathProperty(currentPathProperty.copy(color = newColor))
-            }
-        )
+        if (isEffectBrush) {
+            BrushEffectControls(
+                modifier = Modifier.width(260.dp),
+                toolIcon = if (drawType == DrawType.Blur) MarkupItems.Blur.icon else MarkupItems.Mosaic.icon,
+                currentPathProperty = currentPathProperty,
+                setCurrentPathProperty = setCurrentPathProperty,
+                onDetectFaces = onDetectFaces,
+                faceDetectAvailable = faceDetectAvailable && drawType == DrawType.Blur,
+                isDetectingFaces = isDetectingFaces
+            )
+        } else {
+            HSVColorBars(
+                modifier = Modifier.padding(end = 8.dp),
+                enabled = drawMode == DrawMode.Draw || selectedText != null,
+                currentColor = effectiveColor,
+                isSupportingPanel = true,
+                onHueChange = { hue ->
+                    val hsv = FloatArray(3)
+                    colorToHSV(effectiveColor.toArgb(), hsv)
+                    hsv[0] = hue
+                    setEffectiveColor(Color(HSVToColor((effectiveColor.alpha * 255).toInt(), hsv)))
+                },
+                onVibrancyChange = { vibrancy ->
+                    val hsv = FloatArray(3)
+                    colorToHSV(effectiveColor.toArgb(), hsv)
+                    hsv[2] = vibrancy
+                    setEffectiveColor(Color(HSVToColor((effectiveColor.alpha * 255).toInt(), hsv)))
+                },
+                onSaturationChange = { saturation ->
+                    val hsv = FloatArray(3)
+                    colorToHSV(effectiveColor.toArgb(), hsv)
+                    hsv[1] = saturation
+                    setEffectiveColor(Color(HSVToColor((effectiveColor.alpha * 255).toInt(), hsv)))
+                }
+            )
+        }
 
         SupportiveLazyLayout(
             modifier = Modifier
@@ -448,7 +475,7 @@ private fun MarkupSelectorTablet(
                             }
                             MarkupItems.Text -> {
                                 setDrawMode(DrawMode.Text)
-                                onRequestTextInput()
+                                if (textAnnotations.isEmpty()) onRequestTextInput()
                             }
                             MarkupItems.Eraser -> {
                                 setDrawMode(DrawMode.Erase)
@@ -473,6 +500,7 @@ private fun MarkupSelectorTablet(
  */
 @Composable
 private fun BrushEffectControls(
+    modifier: Modifier = Modifier,
     toolIcon: ImageVector,
     currentPathProperty: PathProperties,
     setCurrentPathProperty: (PathProperties) -> Unit,
@@ -481,7 +509,7 @@ private fun BrushEffectControls(
     isDetectingFaces: Boolean = false,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .background(

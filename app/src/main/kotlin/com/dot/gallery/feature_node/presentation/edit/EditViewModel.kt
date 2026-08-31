@@ -88,6 +88,26 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+internal fun updatedEditorRecipe(
+    adjustments: List<Adjustment>,
+    adjustment: Adjustment,
+): List<Adjustment> {
+    val matches: (Adjustment) -> Boolean = when (adjustment) {
+        is VariableFilter -> { existing -> existing.name.equals(adjustment.name, ignoreCase = true) }
+        is ImageFilter -> { existing -> existing is ImageFilter }
+        else -> return adjustments + adjustment
+    }
+    val existingIndex = adjustments.indexOfFirst(matches)
+    val remaining = adjustments.filterNot(matches)
+    val isDefault = adjustment is VariableFilter &&
+            kotlin.math.abs(adjustment.value - adjustment.defaultValue) < 1e-4f
+    if (isDefault) return remaining
+    if (existingIndex < 0) return adjustments + adjustment
+    return remaining.toMutableList().apply {
+        add(existingIndex.coerceAtMost(size), adjustment)
+    }
+}
+
 @HiltViewModel
 class EditViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -104,6 +124,7 @@ class EditViewModel @Inject constructor(
 
     private val _isDetectingFaces = MutableStateFlow(false)
     val isDetectingFaces = _isDetectingFaces.asStateFlow()
+    private var faceDetectionJob: Job? = null
 
     /** True when the on-device face detector model is installed (gates the "Blur faces" action). */
     val faceDetectAvailable: Boolean
@@ -113,7 +134,8 @@ class EditViewModel @Inject constructor(
     fun detectFacesForMarkup() {
         if (!faceDetectAvailable) return
         val bmp = lastRealBitmap() ?: return
-        viewModelScope.launch(Dispatchers.IO) {
+        faceDetectionJob?.cancel()
+        faceDetectionJob = viewModelScope.launch(Dispatchers.IO) {
             _isDetectingFaces.value = true
             val helper = com.dot.gallery.core.ml.FaceHelper(modelManager)
             try {
@@ -121,6 +143,8 @@ class EditViewModel @Inject constructor(
                 _pendingFaceRegions.value = faces.map {
                     android.graphics.RectF(it.left, it.top, it.right, it.bottom)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
@@ -416,6 +440,8 @@ class EditViewModel @Inject constructor(
         get() = _isRawEdit.value && _rawDevelopParams.value?.let { it != RawDevelopParams.AUTO } == true
 
     private var rawToneJob: Job? = null
+    private val rawDevelopMutex = Mutex()
+    private var rawDevelopGeneration = 0L
 
     private data class SaveSnapshot(
         val media: UriMedia,
@@ -497,6 +523,8 @@ class EditViewModel @Inject constructor(
 
     private val _activeFilterFlow = MutableStateFlow<ImageFilter?>(null)
     val activeFilter = _activeFilterFlow.asStateFlow()
+    private val _hasPendingFilter = MutableStateFlow(false)
+    val hasPendingFilter = _hasPendingFilter.asStateFlow()
     private var _activeFilter: ImageFilter?
         get() = _activeFilterFlow.value
         set(value) { _activeFilterFlow.value = value }
@@ -587,7 +615,7 @@ class EditViewModel @Inject constructor(
         updateUndoRedoState()
     }
 
-    val mutex = Mutex()
+    private val mutex = Mutex()
 
     fun addPath(path: Path, properties: PathProperties) {
         _paths.value += path to properties
@@ -615,6 +643,7 @@ class EditViewModel @Inject constructor(
     }
 
     fun setDrawType(type: DrawType) {
+        if (_drawMode.value == DrawMode.Draw && _drawType.value == type) return
         when (type) {
             DrawType.Stylus -> {
                 setCurrentPathProperty(
@@ -720,11 +749,16 @@ class EditViewModel @Inject constructor(
     }
 
     fun clearDrawingBoard() {
+        faceDetectionJob?.cancel()
+        faceDetectionJob = null
+        _pendingFaceRegions.value = emptyList()
+        _isDetectingFaces.value = false
         _paths.value = emptyList()
         _pathsUndone.value = emptyList()
         _currentPath.value = Path()
         _currentPathProperty.value = PathProperties()
         _drawMode.value = DrawMode.Draw
+        _drawType.value = DrawType.Stylus
     }
 
     fun setSourceData(context: Context, uri: Uri, forceReload: Boolean = false) {
@@ -867,6 +901,9 @@ class EditViewModel @Inject constructor(
         bitmaps.add(base to null)
         _appliedAdjustments.value = emptyList()
         clearRedoStack()
+        _activeFilter = null
+        _filterIntensity.value = 1f
+        _hasPendingFilter.value = false
         _previewMatrix.value = null
         _isSaving.value = false
         updateUndoRedoState()
@@ -880,6 +917,7 @@ class EditViewModel @Inject constructor(
      */
     fun updateRawDevelop(newParams: RawDevelopParams) {
         val old = _rawDevelopParams.value ?: return
+        val generation = ++rawDevelopGeneration
         _rawDevelopParams.value = newParams
         activeMedia.value?.id?.let { RawDevelopStore.update(it, newParams) }
         rawToneJob?.cancel()
@@ -887,20 +925,43 @@ class EditViewModel @Inject constructor(
             rawToneJob = viewModelScope.launch(Dispatchers.Default) {
                 delay(40) // debounce rapid slider ticks
                 if (!isActive) return@launch
-                regenerateDeveloped(newParams)
+                _isProcessing.value = true
+                try {
+                    rawDevelopMutex.withLock {
+                        if (generation == rawDevelopGeneration) regenerateDeveloped(newParams)
+                    }
+                } finally {
+                    if (generation == rawDevelopGeneration) _isProcessing.value = false
+                }
             }
         } else {
             rawToneJob = viewModelScope.launch(Dispatchers.IO) {
                 delay(180) // debounce so dragging a base slider (exposure/WB) doesn't thrash decodes
                 if (!isActive) return@launch
                 _isProcessing.value = true
-                val bytes = rawBytes
-                if (bytes != null) {
-                    val base = NativeRawDecoder.demosaic(bytes, rawProxyParams(newParams).baseOnly, rawUserFlip)
-                    if (base != null) rawBaseBitmap = boundProxy(base)
+                try {
+                    rawDevelopMutex.withLock {
+                        val bytes = rawBytes
+                        if (bytes != null) {
+                            val base = NativeRawDecoder.demosaic(
+                                bytes,
+                                rawProxyParams(newParams).baseOnly,
+                                rawUserFlip
+                            )
+                            val latest = _rawDevelopParams.value
+                            if (base != null &&
+                                (generation == rawDevelopGeneration || latest?.sharesBaseWith(newParams) == true)
+                            ) {
+                                rawBaseBitmap = boundProxy(base)
+                            } else if (base != null && !base.isRecycled) {
+                                base.recycle()
+                            }
+                        }
+                        if (generation == rawDevelopGeneration) regenerateDeveloped(newParams)
+                    }
+                } finally {
+                    if (generation == rawDevelopGeneration) _isProcessing.value = false
                 }
-                regenerateDeveloped(newParams)
-                _isProcessing.value = false
             }
         }
     }
@@ -916,7 +977,11 @@ class EditViewModel @Inject constructor(
     private suspend fun regenerateDeveloped(params: RawDevelopParams) {
         val base = rawBaseBitmap ?: return
         val developed = developWithTone(base, params)
-        rebuildStackWithNewBase(developed)
+        mutex.withLock {
+            commitFilterAndWait()
+            rebuildStackWithNewBase(developed)
+            clearRedoStack()
+        }
     }
 
     /**
@@ -925,22 +990,38 @@ class EditViewModel @Inject constructor(
      */
     private suspend fun rebuildStackWithNewBase(developed: Bitmap) {
         flattenComposedMatrix() // bake any pending matrix preview so every entry is a real bitmap
-        val adjustments = _appliedAdjustments.value
-        val newStack = mutableListOf<Pair<Bitmap?, Adjustment?>>(developed to null)
-        var prev = developed
-        for (adj in adjustments) {
-            prev = adj.apply(prev)
-            newStack.add(prev to adj)
+        rebuildStack(developed, _appliedAdjustments.value, updateOriginal = true)
+    }
+
+    private suspend fun rebuildStack(
+        base: Bitmap,
+        adjustments: List<Adjustment>,
+        updateOriginal: Boolean = false,
+    ) {
+        val newStack = mutableListOf<Pair<Bitmap?, Adjustment?>>(base to null)
+        var current = base
+        for (adjustment in adjustments) {
+            current = adjustment.apply(current)
+            newStack.add(current to adjustment)
         }
         withContext(Dispatchers.Main) {
             bitmaps.clear()
             bitmaps.addAll(newStack)
-            _originalBitmap.value = developed
-            _currentBitmap.value = newStack.last().first
-            _targetBitmap.value = _currentBitmap.value
+            if (updateOriginal) _originalBitmap.value = base
+            _appliedAdjustments.value = adjustments
+            _currentBitmap.value = current
+            _targetBitmap.value = current
             _previewMatrix.value = null
+            _previewRotation.value = 0f
+            _previewRotation90.value = 0f
+            _previewFlipH.value = false
+            clearGpuPreviewEffects()
             updateUndoRedoState()
         }
+    }
+
+    private suspend fun rebuildStack(adjustments: List<Adjustment>) {
+        _originalBitmap.value?.let { rebuildStack(it, adjustments) }
     }
 
     /**
@@ -1078,75 +1159,84 @@ class EditViewModel @Inject constructor(
     }
 
     fun removeLast() {
+        if (_isProcessing.value) return
+        _isProcessing.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            val adjustments = _appliedAdjustments.value
-            if (adjustments.isNotEmpty()) {
-                val removedAdj = adjustments.last()
-                _appliedAdjustments.value = adjustments.dropLast(1)
+            mutex.withLock {
+                try {
+                    commitFilterAndWait()
+                    val adjustments = _appliedAdjustments.value
+                    if (adjustments.isNotEmpty()) {
+                        val removedAdj = adjustments.last()
+                        _appliedAdjustments.value = adjustments.dropLast(1)
 
-                // Push to redo stack
-                if (bitmaps.isNotEmpty()) {
-                    val removedEntry = bitmaps.last()
-                    redoStack.add(removedEntry)
-                    _redoAdjustments.value = _redoAdjustments.value + removedAdj
-                    bitmaps.removeAt(bitmaps.lastIndex)
+                        // Push to redo stack
+                        if (bitmaps.isNotEmpty()) {
+                            val removedEntry = bitmaps.last()
+                            redoStack.add(removedEntry)
+                            _redoAdjustments.value = _redoAdjustments.value + removedAdj
+                            bitmaps.removeAt(bitmaps.lastIndex)
+                        }
+
+                        // Update current bitmap to last real bitmap
+                        _currentBitmap.value = lastRealBitmap()
+                        _targetBitmap.value = _currentBitmap.value
+                        _previewMatrix.value = null
+
+                        // If we undid a filter, check if there's a previous filter underneath
+                        if (removedAdj is ImageFilter) {
+                            val prevFilter = _appliedAdjustments.value
+                                .filterIsInstance<ImageFilter>()
+                                .lastOrNull()
+                            _activeFilter = if (prevFilter != null && prevFilter.name != "None") prevFilter else null
+                            _filterIntensity.value = 1f
+                        }
+
+                        updateUndoRedoState()
+                    }
+                } finally {
+                    _isProcessing.value = false
                 }
-
-                // Update current bitmap to last real bitmap
-                _currentBitmap.value = lastRealBitmap()
-                _targetBitmap.value = _currentBitmap.value
-                _previewMatrix.value = null
-
-                // If we undid a filter, check if there's a previous filter underneath
-                if (removedAdj is ImageFilter) {
-                    val prevFilter = _appliedAdjustments.value
-                        .filterIsInstance<ImageFilter>()
-                        .lastOrNull()
-                    _activeFilter = if (prevFilter != null && prevFilter.name != "None") prevFilter else null
-                    _filterIntensity.value = 1f
-                }
-
-                updateUndoRedoState()
             }
         }
     }
 
     fun redoLast() {
+        if (_isProcessing.value) return
+        _isProcessing.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            val redoAdjs = _redoAdjustments.value
-            if (redoAdjs.isNotEmpty() && redoStack.isNotEmpty()) {
-                val restoredAdj = redoAdjs.last()
-                val restoredEntry = redoStack.last()
-                _redoAdjustments.value = redoAdjs.dropLast(1)
-                redoStack.removeAt(redoStack.lastIndex)
+            mutex.withLock {
+                try {
+                    val redoAdjs = _redoAdjustments.value
+                    if (redoAdjs.isNotEmpty() && redoStack.isNotEmpty()) {
+                        val restoredAdj = redoAdjs.last()
+                        val restoredEntry = redoStack.last()
+                        _redoAdjustments.value = redoAdjs.dropLast(1)
+                        redoStack.removeAt(redoStack.lastIndex)
 
-                _appliedAdjustments.value = _appliedAdjustments.value + restoredAdj
-                bitmaps.add(restoredEntry)
-                _currentBitmap.value = lastRealBitmap()
-                _targetBitmap.value = _currentBitmap.value
-                _previewMatrix.value = null
-                updateUndoRedoState()
+                        _appliedAdjustments.value = _appliedAdjustments.value + restoredAdj
+                        bitmaps.add(restoredEntry)
+                        _currentBitmap.value = lastRealBitmap()
+                        _targetBitmap.value = _currentBitmap.value
+                        _previewMatrix.value = null
+                        updateUndoRedoState()
+                    }
+                } finally {
+                    _isProcessing.value = false
+                }
             }
         }
     }
 
     fun setFilterIntensity(intensity: Float) {
-        val clamped = intensity.coerceIn(0f, 1f)
-        _filterIntensity.value = clamped
-        val filter = _activeFilter ?: return
-
-        // GPU-only preview — commitFilter() bakes when leaving Filters section
-        val baseBitmap = bitmaps.toList()
-            .filter { it.second !is ImageFilter }
-            .lastOrNull()?.first ?: return
-
-        if (clamped <= 0f) {
-            _currentBitmap.value = baseBitmap
-            _previewMatrix.value = null
+        _filterIntensity.value = intensity.coerceIn(0f, 1f)
+        if (_activeFilter == null) return
+        _hasPendingFilter.value = recipeWithPendingFilter() != _appliedAdjustments.value
+        if (_hasPendingFilter.value) {
+            renderPendingFilterPreview(delayMillis = 32L)
         } else {
-            val blendedMatrix = lerpColorMatrix(identityColorMatrix(), filter.colorMatrix(), clamped)
-            _currentBitmap.value = baseBitmap
-            _previewMatrix.value = blendedMatrix
+            _previewJob?.cancel()
+            _currentBitmap.value = lastRealBitmap()
         }
     }
 
@@ -1167,21 +1257,36 @@ class EditViewModel @Inject constructor(
     }
 
     fun removeKind(variableFilterTypes: VariableFilterTypes) {
+        if (_isProcessing.value) return
+        _isProcessing.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            val filters = _appliedAdjustments.value.toMutableList()
-            filters.removeAll { it.name.equals(variableFilterTypes.name, ignoreCase = true) }
-            bitmaps.removeAll { it.second?.name.equals(variableFilterTypes.name, ignoreCase = true) }
-            _appliedAdjustments.value = filters
-            _currentBitmap.value = lastRealBitmap()
-            _targetBitmap.value = _currentBitmap.value
-            _previewMatrix.value = null
+            mutex.withLock {
+                try {
+                    commitFilterAndWait()
+                    val adjustments = _appliedAdjustments.value.filterNot {
+                        it.name.equals(variableFilterTypes.name, ignoreCase = true)
+                    }
+                    rebuildStack(adjustments)
+                    clearRedoStack()
+                } finally {
+                    _isProcessing.value = false
+                }
+            }
         }
     }
 
     fun applyAdjustment(adjustment: Adjustment) {
+        if (_isProcessing.value) return
         _isProcessing.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            applyAdjustmentAndWait(adjustment)
+            mutex.withLock {
+                try {
+                    commitFilterAndWait()
+                    applyAdjustmentAndWait(adjustment)
+                } finally {
+                    _isProcessing.value = false
+                }
+            }
         }
     }
 
@@ -1194,11 +1299,19 @@ class EditViewModel @Inject constructor(
         // Update applied-adjustments list (dedup same-kind for VariableFilter / ImageFilter).
         // adjustmentsWithout is the list with any previous entry of this kind removed; it is
         // also what we fall back to when the new adjustment turns out to be a no-op (#957/#961).
-        val adjustmentsWithout: List<Adjustment> = when (adjustment) {
-            is VariableFilter -> filters.filterNot { it.name.equals(adjustment.name, ignoreCase = true) }
-            is ImageFilter -> filters.filterNot { it is ImageFilter }
-            else -> filters
+        val updatedRecipe = updatedEditorRecipe(filters, adjustment)
+        val replacesExistingAdjustment = when (adjustment) {
+            is VariableFilter -> filters.any { it.name.equals(adjustment.name, ignoreCase = true) } ||
+                    kotlin.math.abs(adjustment.value - adjustment.defaultValue) < 1e-4f
+            is ImageFilter -> filters.any { it is ImageFilter }
+            else -> false
         }
+        if (replacesExistingAdjustment) {
+            rebuildStack(updatedRecipe)
+            _isProcessing.value = false
+            return
+        }
+        val adjustmentsWithout = filters
 
         // Always create a new bitmap (original behaviour)
         _currentBitmap.value?.let {
@@ -1225,9 +1338,7 @@ class EditViewModel @Inject constructor(
             // because some filters aren't perfectly pixel-identical at their default and,
             // when this is the only filter, the base falls back to the already-filtered
             // bitmap. Falling back to adjustmentsWithout removes the filter entirely.
-            val isDefaultVariableFilter = adjustment is VariableFilter &&
-                    kotlin.math.abs(adjustment.value - adjustment.defaultValue) < 1e-4f
-            if (isDefaultVariableFilter || newBitmap.sameAs(baseBitmap)) {
+            if (newBitmap.sameAs(baseBitmap)) {
                 if (newBitmap !== baseBitmap && !newBitmap.isRecycled) newBitmap.recycle()
                 _appliedAdjustments.value = adjustmentsWithout
                 withContext(Dispatchers.Main) {
@@ -1282,16 +1393,22 @@ class EditViewModel @Inject constructor(
     }
 
     fun applyDrawing(graphicsImage: Bitmap, onFinish: (Boolean) -> Unit) {
+        if (_isProcessing.value) {
+            onFinish(false)
+            return
+        }
+        _isProcessing.value = true
         viewModelScope.launch(Dispatchers.IO) {
             mutex.withLock {
-                // Flatten any pending matrix adjustments before markup
-                flattenComposedMatrix()
-                val currentImage = lastRealBitmap()
-                if (currentImage == null) {
-                    withContext(Dispatchers.Main) { onFinish(false) }
-                    return@withLock
-                }
                 try {
+                    commitFilterAndWait()
+                    // Flatten any pending matrix adjustments before markup
+                    flattenComposedMatrix()
+                    val currentImage = lastRealBitmap()
+                    if (currentImage == null) {
+                        withContext(Dispatchers.Main) { onFinish(false) }
+                        return@withLock
+                    }
                     if (currentImage.width > 0 && currentImage.height > 0) {
                         // graphicsImage is a transparent overlay captured at the markup canvas
                         // resolution. Markup.apply composes it against the base for the no-op
@@ -1304,9 +1421,10 @@ class EditViewModel @Inject constructor(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    _isProcessing.value = false
                     printError("Failed to apply markup: ${e.message}")
                     withContext(Dispatchers.Main) { onFinish(false) }
+                } finally {
+                    _isProcessing.value = false
                 }
             }
         }
@@ -1314,23 +1432,62 @@ class EditViewModel @Inject constructor(
 
     fun toggleFilter(filter: ImageFilter) {
         _intensityJob?.cancel()
-        // GPU-only preview — bitmap is baked later by commitFilter()
-        val baseBitmap = bitmaps.toList()
-            .filter { it.second !is ImageFilter }
-            .lastOrNull()?.first ?: return
-
-        if (filter.name != "None") {
-            _activeFilter = filter
-            _filterIntensity.value = 1f
-            // Show base + GPU color matrix overlay
-            _currentBitmap.value = baseBitmap
-            _previewMatrix.value = filter.colorMatrix()
-            clearGpuPreviewEffects()
+        _activeFilter = filter.takeUnless { it.name == "None" }
+        _filterIntensity.value = 1f
+        _hasPendingFilter.value = recipeWithPendingFilter() != _appliedAdjustments.value
+        _previewMatrix.value = null
+        clearGpuPreviewEffects()
+        if (_hasPendingFilter.value) {
+            renderPendingFilterPreview()
         } else {
-            _activeFilter = null
-            _filterIntensity.value = 1f
-            _currentBitmap.value = baseBitmap
-            _previewMatrix.value = null
+            _currentBitmap.value = lastRealBitmap()
+        }
+    }
+
+    private fun effectiveFilterAdjustment(): Adjustment? {
+        val filter = _activeFilter ?: return null
+        val intensity = _filterIntensity.value
+        if (filter.name == "None" || intensity <= 0f) return null
+        val matrix = if (intensity < 1f) {
+            lerpColorMatrix(identityColorMatrix(), filter.colorMatrix(), intensity)
+        } else {
+            filter.colorMatrix()
+        }
+        // Record the *effective* operation so the full-res bake reproduces it exactly:
+        // an intensity-blended (or full) matrix becomes a MatrixAdjustment; a non-matrix
+        // filter is resolution-independent via its own apply() and is recorded as-is.
+        return if (matrix != null) {
+            MatrixAdjustment(matrix.values.copyOf(), filter.name)
+        } else {
+            filter
+        }
+    }
+
+    private fun recipeWithPendingFilter(): List<Adjustment> {
+        val current = _appliedAdjustments.value
+        return effectiveFilterAdjustment()?.let { updatedEditorRecipe(current, it) }
+            ?: current.filterNot { it is ImageFilter }
+    }
+
+    private fun renderPendingFilterPreview(delayMillis: Long = 0L) {
+        val base = _originalBitmap.value ?: return
+        val recipe = recipeWithPendingFilter()
+        _previewJob?.cancel()
+        _previewJob = viewModelScope.launch(Dispatchers.Default) {
+            if (delayMillis > 0L) delay(delayMillis)
+            val result = EditReplay.replay(base, recipe)
+            try {
+                withContext(Dispatchers.Main) {
+                    if (_hasPendingFilter.value) {
+                        _currentBitmap.value = result
+                    } else if (result !== base && !result.isRecycled) {
+                        result.recycle()
+                    }
+                }
+            } catch (e: CancellationException) {
+                if (result !== base && !result.isRecycled) result.recycle()
+                throw e
+            }
         }
     }
 
@@ -1339,53 +1496,30 @@ class EditViewModel @Inject constructor(
      * Called when navigating away from the Filters section.
      */
     fun commitFilter() {
-        val filter = _activeFilter
+        if (!_hasPendingFilter.value || _isProcessing.value) return
+        _isProcessing.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            _isProcessing.value = true
-            _intensityJob?.cancel()
-
-            val baseBitmap = bitmaps.toList()
-                .filter { it.second !is ImageFilter }
-                .lastOrNull()?.first ?: run { _isProcessing.value = false; return@launch }
-
-            val intensity = _filterIntensity.value
-
-            if (filter != null && filter.name != "None") {
-                val matrix = if (intensity < 1f) {
-                    lerpColorMatrix(identityColorMatrix(), filter.colorMatrix(), intensity)
-                } else {
-                    filter.colorMatrix()
+            mutex.withLock {
+                try {
+                    commitFilterAndWait()
+                } finally {
+                    _isProcessing.value = false
                 }
-
-                // Record the *effective* operation so the full-res bake reproduces it exactly:
-                // an intensity-blended (or full) matrix becomes a MatrixAdjustment; a non-matrix
-                // filter is resolution-independent via its own apply() and is recorded as-is.
-                val recorded: Adjustment = if (matrix != null) {
-                    MatrixAdjustment(matrix.values.copyOf(), filter.name)
-                } else {
-                    filter
-                }
-                val newBitmap = if (matrix != null) {
-                    applyColorMatrix(baseBitmap, matrix.values)
-                } else {
-                    filter.apply(baseBitmap)
-                }
-                _currentBitmap.value = newBitmap
-                bitmaps.add(newBitmap to recorded)
-                _appliedAdjustments.value = _appliedAdjustments.value + recorded
-            } else if (_previewMatrix.value != null) {
-                // Had a preview but switched to None — nothing to bake
-                _currentBitmap.value = baseBitmap
             }
-
-            // Clear preview on Main so the UI renders the new bitmap first
-            withContext(Dispatchers.Main) {
-                _previewMatrix.value = null
-            }
-            clearRedoStack()
-            updateUndoRedoState()
-            _isProcessing.value = false
         }
+    }
+
+    private suspend fun commitFilterAndWait() {
+        if (!_hasPendingFilter.value) return
+        _previewJob?.cancel()
+        _intensityJob?.cancel()
+        val adjustment = effectiveFilterAdjustment()
+        val adjustments = recipeWithPendingFilter()
+        if (adjustment == null) _activeFilter = null
+        rebuildStack(adjustments)
+        _previewMatrix.value = null
+        _hasPendingFilter.value = false
+        clearRedoStack()
     }
 
     private fun clearGpuPreviewEffects() {
@@ -1413,6 +1547,29 @@ class EditViewModel @Inject constructor(
 
     fun previewAdjustment(adjustment: Adjustment) {
         _previewJob?.cancel()
+        if (adjustment is VariableFilter) {
+            val adjustments = _appliedAdjustments.value
+            val existingIndex = adjustments.indexOfFirst {
+                it.name.equals(adjustment.name, ignoreCase = true)
+            }
+            if (existingIndex in 0 until adjustments.lastIndex) {
+                val base = _originalBitmap.value ?: return
+                val recipe = updatedEditorRecipe(adjustments, adjustment)
+                _previewMatrix.value = null
+                clearGpuPreviewEffects()
+                _previewJob = viewModelScope.launch(Dispatchers.Default) {
+                    delay(48)
+                    val result = EditReplay.replay(base, recipe)
+                    try {
+                        withContext(Dispatchers.Main) { _currentBitmap.value = result }
+                    } catch (e: CancellationException) {
+                        if (result !== base && !result.isRecycled) result.recycle()
+                        throw e
+                    }
+                }
+                return
+            }
+        }
         when {
             adjustment is Vignette -> {
                 // Show base bitmap without existing vignette, then overlay GPU preview
@@ -1499,6 +1656,7 @@ class EditViewModel @Inject constructor(
         _saveProgress.value = null
         viewModelScope.launch(Dispatchers.IO) {
             val succeeded = try {
+                mutex.withLock { commitFilterAndWait() }
                 operation()
             } catch (e: CancellationException) {
                 throw e

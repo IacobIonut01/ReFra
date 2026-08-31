@@ -2,9 +2,13 @@ package com.dot.gallery
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.unit.IntSize
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.dot.gallery.feature_node.domain.model.editor.PathProperties
 import com.dot.gallery.feature_node.presentation.edit.adjustments.Markup
 import com.dot.gallery.feature_node.presentation.edit.bake.EditReplay
+import com.dot.gallery.feature_node.presentation.edit.components.markup.rescaleMarkupPaths
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -41,6 +45,53 @@ class MarkupAdjustmentTest {
             fullBase.recycle()
             fullResult.recycle()
         }
+    }
+
+    @Test
+    fun hardwareOverlayCompositesOntoSoftwareBase() {
+        val softwareOverlay = solidBitmap(4, 4, Color.TRANSPARENT).apply {
+            setPixel(0, 0, Color.RED)
+        }
+        val hardwareOverlay = softwareOverlay.copy(Bitmap.Config.HARDWARE, false)
+        val base = solidBitmap(4, 4, Color.BLUE)
+        val result = Markup(hardwareOverlay).apply(base)
+
+        try {
+            assertEquals(Color.RED, result.getPixel(0, 0))
+            assertEquals(Color.BLUE, result.getPixel(3, 3))
+        } finally {
+            softwareOverlay.recycle()
+            hardwareOverlay.recycle()
+            base.recycle()
+            result.recycle()
+        }
+    }
+
+    @Test
+    fun markupPathsTrackAnimatedCanvasSizeChanges() {
+        val path = Path().apply {
+            moveTo(1f, 2f)
+            lineTo(4f, 6f)
+        }
+        val properties = PathProperties(strokeWidth = 5f)
+
+        rescaleMarkupPaths(
+            paths = listOf(path to properties),
+            oldSize = IntSize(10, 10),
+            newSize = IntSize(20, 10),
+        )
+        rescaleMarkupPaths(
+            paths = listOf(path to properties),
+            oldSize = IntSize(20, 10),
+            newSize = IntSize(20, 30),
+        )
+
+        val bounds = path.getBounds()
+        assertEquals(2f, bounds.left, 0f)
+        assertEquals(6f, bounds.top, 0f)
+        assertEquals(8f, bounds.right, 0f)
+        assertEquals(18f, bounds.bottom, 0f)
+        assertEquals(10f, properties.strokeWidth, 0f)
     }
 
     @Test
