@@ -176,6 +176,7 @@
             android:name=".feature_node.presentation.standalone.StandaloneActivity"
             android:exported="true"
             android:launchMode="singleTask"
+            android:documentLaunchMode="never"
             android:taskAffinity=""
             android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:theme="@style/Theme.Gallery">
