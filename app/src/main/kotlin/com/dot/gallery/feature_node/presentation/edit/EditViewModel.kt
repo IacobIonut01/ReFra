@@ -29,8 +29,10 @@ import com.dot.gallery.feature_node.presentation.edit.bake.NativeHeifEncoder
 import com.dot.gallery.feature_node.presentation.edit.bake.NativeImageEncoder
 import com.dot.gallery.feature_node.presentation.edit.bake.TiledBakeEngine
 import com.dot.gallery.feature_node.presentation.edit.components.develop.RawSaveFormat
-import com.dot.gallery.core.util.ext.saveImageStreaming
 import com.dot.gallery.core.util.ext.overrideImageStreaming
+import com.dot.gallery.core.util.ext.restoreMediaTimestamp
+import com.dot.gallery.core.util.ext.saveImageStreaming
+import com.dot.gallery.core.util.ext.selectedModifiedTimestamp
 import com.dot.gallery.core.EditBackupManager
 import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.core.Settings
@@ -1674,6 +1676,15 @@ class EditViewModel @Inject constructor(
         }
     }
 
+    private suspend fun applyModifiedDatePolicy(uri: Uri, media: Media.UriMedia, mimeType: String) {
+        val updateModifiedDate = Settings.Album.updateModifiedDate(context).firstOrNull() ?: false
+        selectedModifiedTimestamp(
+            updateModifiedDate = updateModifiedDate,
+            sourceDateModified = media.timestamp,
+            currentTimeSeconds = System.currentTimeMillis() / 1000L
+        )?.let { timestamp -> context.restoreMediaTimestamp(uri, mimeType, timestamp) }
+    }
+
     fun saveCopy(
         forcePng: Boolean = false,
         flattenColor: Int? = null,
@@ -1703,20 +1714,25 @@ class EditViewModel @Inject constructor(
                     displayName = output.displayName,
                     write = streamWriter,
                 )
-                if (streamedUri != null) return@launchSingleFlightSave true
+                if (streamedUri != null) {
+                    applyModifiedDatePolicy(streamedUri, snapshot.media, writeFormat.mimeType)
+                    return@launchSingleFlightSave true
+                }
                 _saveProgress.value = null
             }
 
             val bitmap = bakeFullRes(context, snapshot) ?: return@launchSingleFlightSave false
             try {
-                mediaHandler.saveImage(
+                val savedUri = mediaHandler.saveImage(
                     bitmap = bitmap,
                     writeFormat = writeFormat,
                     config = config,
                     relativePath = relativePath,
                     displayName = output.displayName,
                     mimeType = writeFormat.mimeType,
-                ) != null
+                )
+                if (savedUri != null) applyModifiedDatePolicy(savedUri, snapshot.media, writeFormat.mimeType)
+                savedUri != null
             } finally {
                 if (!bitmap.isRecycled) bitmap.recycle()
             }
@@ -1743,7 +1759,7 @@ class EditViewModel @Inject constructor(
             val relativePath = Environment.DIRECTORY_PICTURES + "/Edited"
 
             if (format.isTiff) {
-                return@launchSingleFlightSave context.contentResolver.saveImageStreaming(
+                val savedUri = context.contentResolver.saveImageStreaming(
                     mimeType = format.mimeType,
                     relativePath = relativePath,
                     displayName = displayName,
@@ -1755,7 +1771,9 @@ class EditViewModel @Inject constructor(
                         bits = format.bits,
                         userFlip = snapshot.rawUserFlip,
                     )
-                } != null
+                }
+                if (savedUri != null) applyModifiedDatePolicy(savedUri, snapshot.media, format.mimeType)
+                return@launchSingleFlightSave savedUri != null
             }
 
             // JPEG/PNG: bake the full recipe (develop + crop/filters/markup) onto the full-res image.
@@ -1767,14 +1785,16 @@ class EditViewModel @Inject constructor(
             val config = reencodeConfigForSource(snapshot.media)
             val bitmap = bakeFullRes(context, snapshot) ?: return@launchSingleFlightSave false
             try {
-                mediaHandler.saveImage(
+                val savedUri = mediaHandler.saveImage(
                     bitmap = bitmap,
                     writeFormat = writeFormat,
                     config = config,
                     relativePath = relativePath,
                     displayName = displayName,
                     mimeType = writeFormat.mimeType,
-                ) != null
+                )
+                if (savedUri != null) applyModifiedDatePolicy(savedUri, snapshot.media, writeFormat.mimeType)
+                savedUri != null
             } finally {
                 if (!bitmap.isRecycled) bitmap.recycle()
             }
@@ -1821,6 +1841,7 @@ class EditViewModel @Inject constructor(
                     java.io.File.createTempFile("edit_override_", ".tmp", context.cacheDir)
                 }.getOrNull() ?: return@launchSingleFlightSave false
                 if (context.contentResolver.overrideImageStreaming(media.uri, stagingFile, streamWriter)) {
+                    applyModifiedDatePolicy(media.uri, media, writeFormat.mimeType)
                     _hasOriginalBackup.value = true
                     evictImageCaches(media.uri)
                     return@launchSingleFlightSave true
@@ -1848,6 +1869,7 @@ class EditViewModel @Inject constructor(
                     mimeType = writeFormat.mimeType,
                 )
                 if (overridden) {
+                    applyModifiedDatePolicy(media.uri, media, writeFormat.mimeType)
                     _hasOriginalBackup.value = true
                     evictImageCaches(media.uri)
                 }

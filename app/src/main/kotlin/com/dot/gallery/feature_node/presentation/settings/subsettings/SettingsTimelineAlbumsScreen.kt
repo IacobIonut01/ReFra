@@ -174,6 +174,7 @@ fun SettingsTimelineAlbumsScreen() {
     var albumSectionsEnabled by Settings.Album.rememberAlbumSectionsEnabled()
     var pinnedAlbumsAsGrid by Settings.Album.rememberPinnedAlbumsAsGrid()
     var showMediaTypeAlbums by Settings.Album.rememberShowMediaTypeAlbums()
+    var updateModifiedDate by Settings.Album.rememberUpdateModifiedDate()
     var favIconPosition by rememberFavoriteIconPosition()
     var dateHeaderTimeline by rememberTimelineGroupByDate()
     var dateHeaderFavorites by rememberFavoritesGroupByDate()
@@ -437,6 +438,8 @@ fun SettingsTimelineAlbumsScreen() {
                 onPinnedAlbumsAsGridChange = { pinnedAlbumsAsGrid = it },
                 showMediaTypeAlbums = showMediaTypeAlbums,
                 onShowMediaTypeAlbumsChange = { showMediaTypeAlbums = it },
+                updateModifiedDate = updateModifiedDate,
+                onUpdateModifiedDateChange = { updateModifiedDate = it },
                 favIconPosition = favIconPosition,
                 onDetailClick = { detailKey = it },
                 onDateFormatClick = { eventHandler.navigate(Screen.DateFormatScreen()) },
@@ -466,6 +469,8 @@ private fun TimelineAlbumsListScreen(
     onPinnedAlbumsAsGridChange: (Boolean) -> Unit = {},
     showMediaTypeAlbums: Boolean = true,
     onShowMediaTypeAlbumsChange: (Boolean) -> Unit = {},
+    updateModifiedDate: Boolean,
+    onUpdateModifiedDateChange: (Boolean) -> Unit,
     favIconPosition: String,
     onDetailClick: (String) -> Unit,
     onDateFormatClick: () -> Unit,
@@ -564,6 +569,15 @@ private fun TimelineAlbumsListScreen(
             screenPosition = Position.Top
         )
 
+        val updateModifiedDatePref = rememberSwitchPreference(
+            updateModifiedDate,
+            title = stringResource(R.string.update_modified_date_title),
+            summary = stringResource(R.string.update_modified_date_summary),
+            isChecked = updateModifiedDate,
+            onCheck = onUpdateModifiedDateChange,
+            screenPosition = Position.Middle
+        )
+
         val albumSectionsPref = rememberSwitchPreference(
             albumSectionsEnabled,
             title = stringResource(R.string.album_sections_title),
@@ -646,8 +660,9 @@ private fun TimelineAlbumsListScreen(
             timelineHeader, timelineLayoutPref, groupSimilarMediaPref,
             allowGifAnimationPref, dateHeaderPref, showFilterButtonPref,
             showSearchBarFavButtonPref, storyCardsPref,
-            albumsHeader, mergeAlbumsByNamePref, albumSectionsPref, pinnedAlbumsAsGridPref,
-            showMediaTypeAlbumsPref, displayHeader, favIconPositionPref, dateHeadersPref, groupMethodPref
+            albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
+            pinnedAlbumsAsGridPref, showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
+            dateHeadersPref, groupMethodPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
@@ -663,6 +678,7 @@ private fun TimelineAlbumsListScreen(
 
                 add(albumsHeader)
                 add(mergeAlbumsByNamePref)
+                add(updateModifiedDatePref)
                 add(albumSectionsPref)
                 add(pinnedAlbumsAsGridPref)
                 add(showMediaTypeAlbumsPref)

@@ -24,6 +24,7 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.feature_node.domain.model.Media
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -72,6 +74,12 @@ internal fun isVerifiedMediaCopy(sourceSize: Long, copiedBytes: Long, destinatio
     copiedBytes > 0L &&
         (sourceSize < 0L || copiedBytes == sourceSize) &&
         (destinationSize < 0L || copiedBytes == destinationSize)
+
+internal fun selectedModifiedTimestamp(
+    updateModifiedDate: Boolean,
+    sourceDateModified: Long,
+    currentTimeSeconds: Long,
+): Long? = if (updateModifiedDate) currentTimeSeconds else sourceDateModified.takeIf { it > 0L }
 
 internal suspend fun InputStream.copyToCancellable(
     output: OutputStream,
@@ -539,17 +547,26 @@ private suspend fun ContentResolver.performInsertWrite(
 suspend fun <T : Media> Context.renameMedia(media: T, newName: String): Boolean =
     withContext(Dispatchers.IO) {
         runCatching {
-            contentResolver.update(
-                media.getUri(),
+            val uri = media.getUri()
+            val sourceDateModified = contentResolver.mediaDateModified(uri)
+            val updateModifiedDate = Settings.Album.updateModifiedDate(this@renameMedia)
+                .firstOrNull() ?: false
+            val renamed = contentResolver.update(
+                uri,
                 ContentValues().apply { put(MediaStore.MediaColumns.DISPLAY_NAME, newName) },
                 null,
                 null
             ) > 0
-        }.onSuccess {
-            MediaScannerConnection.scanFile(
-                this@renameMedia, arrayOf(media.path.removeSuffix(media.label)),
-                arrayOf(media.mimeType), null
-            )
+            if (renamed) {
+                selectedModifiedTimestamp(
+                    updateModifiedDate = updateModifiedDate,
+                    sourceDateModified = sourceDateModified,
+                    currentTimeSeconds = System.currentTimeMillis() / 1000L
+                )?.let { timestamp ->
+                    restoreMediaTimestamp(uri, media.mimeType, timestamp)
+                }
+            }
+            renamed
         }.getOrElse {
             printWarning(it.message.toString())
             false
@@ -594,15 +611,21 @@ suspend fun <T : Media> Context.updateMediaExif(
     postAction: suspend (T) -> Unit
 ): Boolean = withContext(Dispatchers.IO) {
     runCatching {
-        contentResolver.openFileDescriptor(media.getUri(), "rw")?.use { pfd ->
+        val uri = media.getUri()
+        val sourceDateModified = contentResolver.mediaDateModified(uri)
+        val updateModifiedDate = Settings.Album.updateModifiedDate(this@updateMediaExif)
+            .firstOrNull() ?: false
+        contentResolver.openFileDescriptor(uri, "rw")?.use { pfd ->
             ExifInterface(pfd.fileDescriptor).apply {
                 action(media)
                 saveAttributes()
             }
         } ?: throw IOException("PFD null")
-        updateMedia(media, ContentValues().apply {
-            put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis() / 1000)
-        })
+        selectedModifiedTimestamp(
+            updateModifiedDate = updateModifiedDate,
+            sourceDateModified = sourceDateModified,
+            currentTimeSeconds = System.currentTimeMillis() / 1000L
+        )?.let { timestamp -> restoreMediaTimestamp(uri, media.mimeType, timestamp) }
         postAction(media)
         true
     }.getOrElse {

@@ -258,6 +258,17 @@ object Settings {
         @Composable
         fun rememberShowMediaTypeAlbums() =
             rememberPreference(key = SHOW_MEDIA_TYPE_ALBUMS, defaultValue = true)
+
+        private val UPDATE_MODIFIED_DATE = booleanPreferencesKey("update_modified_date")
+
+        internal fun resolveUpdateModifiedDate(storedValue: Boolean?): Boolean = storedValue ?: false
+
+        fun updateModifiedDate(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { resolveUpdateModifiedDate(it[UPDATE_MODIFIED_DATE]) }
+
+        @Composable
+        fun rememberUpdateModifiedDate() =
+            rememberPreference(key = UPDATE_MODIFIED_DATE, defaultValue = false)
     }
 
     object Slideshow {

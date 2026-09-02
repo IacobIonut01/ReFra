@@ -158,6 +158,7 @@ internal object PortableBackupSettings {
         "album_sections_enabled",
         "pinned_albums_as_grid",
         "show_media_type_albums",
+        "update_modified_date",
         "slideshow_random_order",
         "slideshow_reverse_order",
         "slideshow_include_gifs",

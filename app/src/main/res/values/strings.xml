@@ -1114,6 +1114,8 @@
     <string name="folders_combined_description">Media from %1$d folders is shown together by name and folder structure.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">Merge subfolders of parent folder</string>

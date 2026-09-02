@@ -31,6 +31,19 @@ class MediaCopyValidationTest {
     }
 
     @Test
+    fun modifiedTimestampFollowsTheSelectedPolicy() {
+        assertEquals(
+            1_600_000_000L,
+            selectedModifiedTimestamp(false, 1_600_000_000L, 2_000_000_000L)
+        )
+        assertEquals(
+            2_000_000_000L,
+            selectedModifiedTimestamp(true, 1_600_000_000L, 2_000_000_000L)
+        )
+        assertEquals(null, selectedModifiedTimestamp(false, 0L, 2_000_000_000L))
+    }
+
+    @Test
     fun streamCopyStopsAtTheNextChunkAfterCancellation() = runBlocking {
         val output = ByteArrayOutputStream()
         val job = launch {

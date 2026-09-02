@@ -27,6 +27,8 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.decoder.format.SourceQualityProbe
 import com.dot.gallery.core.util.ext.overrideImageStreaming
+import com.dot.gallery.core.util.ext.restoreMediaTimestamp
+import com.dot.gallery.core.util.ext.selectedModifiedTimestamp
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.github.panpf.sketch.util.rotate
@@ -34,6 +36,7 @@ import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
@@ -57,6 +60,7 @@ fun WorkManager.rotateImage(
                 RotateMediaWorker.KEY_MIME_TYPE to media.mimeType,
                 RotateMediaWorker.KEY_LABEL to media.label,
                 RotateMediaWorker.KEY_FORCE_COPY to forceCopy,
+                RotateMediaWorker.KEY_SOURCE_DATE_MODIFIED to media.timestamp,
             )
         )
         .build()
@@ -109,6 +113,12 @@ class RotateMediaWorker @AssistedInject constructor(
         update(Status.STARTED, "Begin")
         val mime = inputData.getString(KEY_MIME_TYPE)
             ?: (cr.getType(sourceUri) ?: "image/jpeg")
+        val updateModifiedDate = Settings.Album.updateModifiedDate(appContext).firstOrNull() ?: false
+        val modifiedTimestamp = selectedModifiedTimestamp(
+            updateModifiedDate = updateModifiedDate,
+            sourceDateModified = inputData.getLong(KEY_SOURCE_DATE_MODIFIED, 0L),
+            currentTimeSeconds = System.currentTimeMillis() / 1000L
+        )
 
         val isCloud = sourceUri.scheme == CloudUri.SCHEME
         val cloudTarget = if (isCloud) {
@@ -140,7 +150,7 @@ class RotateMediaWorker @AssistedInject constructor(
             } else null
             val config = Settings.Misc.getReencodeConfig(appContext, detectedQuality)
             if (isCloud) {
-                val localUri = saveRotatedAsNewLocalUri(rotated, writeFormat, config, label)
+                val localUri = saveRotatedAsNewLocalUri(rotated, writeFormat, config, label, null)
                 rotated.recycle()
                 if (localUri == null) return@withContext failure("Save failed")
 
@@ -180,7 +190,13 @@ class RotateMediaWorker @AssistedInject constructor(
                 runCatching { cr.delete(localUri, null, null) }
             } else if (forceCopy) {
                 // Source can't be overwritten in place — write a new (PNG) copy instead.
-                val newUri = saveRotatedAsNewLocalUri(rotated, writeFormat, config, label)
+                val newUri = saveRotatedAsNewLocalUri(
+                    rotated,
+                    writeFormat,
+                    config,
+                    label,
+                    modifiedTimestamp
+                )
                 rotated.recycle()
                 if (newUri == null) return@withContext failure("Save failed")
                 update(Status.COMPLETED, "Done")
@@ -190,7 +206,8 @@ class RotateMediaWorker @AssistedInject constructor(
                     sourceUri = sourceUri,
                     rotated = rotated,
                     writeFormat = writeFormat,
-                    config = config
+                    config = config,
+                    modifiedTimestamp = modifiedTimestamp
                 )
                 rotated.recycle()
                 if (!saved) return@withContext failure("Save failed")
@@ -210,7 +227,8 @@ class RotateMediaWorker @AssistedInject constructor(
         sourceUri: Uri,
         rotated: Bitmap,
         writeFormat: ImageReencoder.ImageWriteFormat,
-        config: ImageReencoder.ReencodeConfig
+        config: ImageReencoder.ReencodeConfig,
+        modifiedTimestamp: Long?
     ): Boolean = withContext(Dispatchers.IO) {
         val stagingFile = File.createTempFile("rotate-override-", ".tmp", appContext.cacheDir)
         val saved = cr.overrideImageStreaming(sourceUri, stagingFile) { fd ->
@@ -220,15 +238,8 @@ class RotateMediaWorker @AssistedInject constructor(
                 true
             }
         }
-        if (saved) {
-            cr.update(
-                sourceUri,
-                ContentValues().apply {
-                    put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis() / 1000)
-                },
-                null,
-                null,
-            )
+        if (saved && modifiedTimestamp != null) {
+            appContext.restoreMediaTimestamp(sourceUri, writeFormat.mimeType, modifiedTimestamp)
         }
         saved
     }
@@ -258,11 +269,12 @@ class RotateMediaWorker @AssistedInject constructor(
         return CloudMediaDownloader.downloadCloudMedia(cloudUri)
     }
 
-    private fun saveRotatedAsNewLocalUri(
+    private suspend fun saveRotatedAsNewLocalUri(
         rotated: Bitmap,
         writeFormat: ImageReencoder.ImageWriteFormat,
         config: ImageReencoder.ReencodeConfig,
-        label: String
+        label: String,
+        modifiedTimestamp: Long?
     ): Uri? {
         var targetUri: Uri? = null
         return try {
@@ -283,13 +295,13 @@ class RotateMediaWorker @AssistedInject constructor(
 
             cr.update(
                 targetUri,
-                ContentValues().apply {
-                    put(MediaStore.MediaColumns.IS_PENDING, 0)
-                    put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis() / 1000)
-                },
+                ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
                 null,
                 null,
             )
+            modifiedTimestamp?.let {
+                appContext.restoreMediaTimestamp(targetUri, writeFormat.mimeType, it)
+            }
             targetUri
         } catch (e: Exception) {
             e.printStackTrace()
@@ -358,6 +370,7 @@ class RotateMediaWorker @AssistedInject constructor(
         const val KEY_MIME_TYPE = "mime_type"
         const val KEY_LABEL = "label"
         const val KEY_FORCE_COPY = "force_copy"
+        const val KEY_SOURCE_DATE_MODIFIED = "source_date_modified"
 
         const val KEY_STATUS = "status"
         const val KEY_MESSAGE = "message"

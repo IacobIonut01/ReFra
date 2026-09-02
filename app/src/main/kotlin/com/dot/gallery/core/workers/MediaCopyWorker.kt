@@ -16,7 +16,9 @@ import androidx.work.workDataOf
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.util.ProgressThrottler
+import com.dot.gallery.core.util.ext.selectedModifiedTimestamp
 import com.dot.gallery.core.util.ext.copyToCancellable
 import com.dot.gallery.core.util.ext.isVerifiedMediaCopy
 import com.dot.gallery.core.util.ext.mediaDateModified
@@ -31,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -90,6 +93,7 @@ class MediaCopyWorker @AssistedInject constructor(
         if (uris.size != paths.size) return@withContext Result.failure()
 
         val total = uris.size
+        val updateModifiedDate = Settings.Album.updateModifiedDate(appContext).firstOrNull() ?: false
         val completed = AtomicInteger(0)
         val throttler = ProgressThrottler()
         // Track byte-level progress
@@ -116,7 +120,7 @@ class MediaCopyWorker @AssistedInject constructor(
                     val uri = uriStr.toUri()
                     val mime = mimeTypes?.getOrNull(idx)
                     val label = labels?.getOrNull(idx)
-                    val result = copyOne(uri, relPath, mime, label) { delta ->
+                    val result = copyOne(uri, relPath, mime, label, updateModifiedDate) { delta ->
                         if (bytesTotal.get() > 0L) {
                             val newTotal = bytesCopied.addAndGet(delta.toLong())
                             val pctBytes = ((newTotal.toFloat() / bytesTotal.get().toFloat()) * 100f).toInt().coerceIn(0, 100)
@@ -152,8 +156,14 @@ class MediaCopyWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun copyOne(src: Uri, destPath: String, mimeTypeHint: String? = null, labelHint: String? = null, onBytesCopied: suspend (Int) -> Unit = {}): Boolean =
-        withContext(Dispatchers.IO) {
+    private suspend fun copyOne(
+        src: Uri,
+        destPath: String,
+        mimeTypeHint: String? = null,
+        labelHint: String? = null,
+        updateModifiedDate: Boolean,
+        onBytesCopied: suspend (Int) -> Unit = {}
+    ): Boolean = withContext(Dispatchers.IO) {
             val cr: ContentResolver = appContext.contentResolver
             var targetUri: Uri? = null
             var committed = false
@@ -206,9 +216,14 @@ class MediaCopyWorker @AssistedInject constructor(
                 if (cr.update(insertedUri, updateValues, null, null) <= 0) {
                     throw IOException("Unable to publish copied media")
                 }
-                // Keep the copy where the source sits in the timeline instead of sending it to
-                // the top of the destination album with today's date.
-                appContext.restoreMediaTimestamp(insertedUri, mediaType, sourceDateModified)
+                selectedModifiedTimestamp(
+                    updateModifiedDate = updateModifiedDate,
+                    sourceDateModified = sourceDateModified,
+                    currentTimeSeconds = System.currentTimeMillis() / 1000L
+                )?.let { timestamp ->
+                    // Apply the selected modified-date position after MediaStore publishes the copy.
+                    appContext.restoreMediaTimestamp(insertedUri, mediaType, timestamp)
+                }
                 committed = true
                 true
             } catch (e: IOException) {

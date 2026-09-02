@@ -714,6 +714,13 @@ class MediaRepositoryImpl(
                         imageWidth = 0,
                         imageHeight = 0
                     )
+                    if (Settings.Album.updateModifiedDate(context).firstOrNull() == true) {
+                        context.restoreMediaTimestamp(
+                            media.getUri(),
+                            media.mimeType,
+                            System.currentTimeMillis() / 1000L
+                        )
+                    }
                     true
                 }.getOrElse {
                     printWarning("Failed to update video description in database: ${it.message}")

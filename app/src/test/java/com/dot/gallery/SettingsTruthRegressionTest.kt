@@ -54,6 +54,13 @@ class SettingsTruthRegressionTest {
     }
 
     @Test
+    fun modifiedTimestampUpdatesDefaultToDisabled() {
+        assertFalse(Settings.Album.resolveUpdateModifiedDate(null))
+        assertTrue(Settings.Album.resolveUpdateModifiedDate(true))
+        assertFalse(Settings.Album.resolveUpdateModifiedDate(false))
+    }
+
+    @Test
     fun dateEditorKeepsBlankRawValueInsteadOfResolvedPreview() {
         assertEquals("", dateFormatEditorText(""))
         assertEquals("dd/MM/yyyy", dateFormatEditorText("dd/MM/yyyy"))
