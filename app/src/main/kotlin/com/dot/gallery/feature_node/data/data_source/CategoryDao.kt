@@ -15,6 +15,7 @@ import androidx.room.Update
 import androidx.room.Upsert
 import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.MediaCategory
+import com.dot.gallery.feature_node.domain.util.FloatVectorCodec
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -32,7 +33,10 @@ interface CategoryDao {
     suspend fun updateCategory(category: Category)
 
     @Query("UPDATE categories SET embedding = :embedding WHERE id = :categoryId")
-    suspend fun updateCategoryEmbedding(categoryId: Long, embedding: FloatArray)
+    suspend fun updateCategoryEmbeddingBytes(categoryId: Long, embedding: ByteArray)
+
+    suspend fun updateCategoryEmbedding(categoryId: Long, embedding: FloatArray) =
+        updateCategoryEmbeddingBytes(categoryId, FloatVectorCodec.encode(embedding))
 
     @Delete
     suspend fun deleteCategory(category: Category)

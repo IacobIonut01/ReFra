@@ -18,6 +18,7 @@ import com.dot.gallery.feature_node.domain.model.MediaCategory
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -79,6 +80,16 @@ class CategoryIntegrityDaoTest {
             similarityScore = score,
             isManuallyAdded = isManual
         )
+
+    @Test
+    fun updateCategoryEmbedding_persistsConvertedVector() = runBlocking {
+        val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = "art"))
+        val embedding = floatArrayOf(-1.25f, 0f, 0.5f, 42.75f)
+
+        categoryDao.updateCategoryEmbedding(categoryId, embedding)
+
+        assertArrayEquals(embedding, categoryDao.getCategoryById(categoryId)?.embedding, 0f)
+    }
 
     @Test
     fun countAndCover_ignoreMediaMissingFromMirror() = runBlocking {
