@@ -18,6 +18,7 @@ import com.dot.gallery.cloud.immich.data.api.ImmichAuthInterceptor
 import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.domain.model.Media
+import com.google.gson.JsonParser
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.Dispatcher
@@ -211,7 +212,7 @@ class ImmichProviderMockServerTest {
                 sawTemporaryUploadCopy.set(
                     context.cacheDir.listFiles().orEmpty().any { it.name.startsWith("upload_") }
                 )
-                assertEquals("sha1-checksum", req.getHeader("x-immich-checksum"))
+                assertEquals("AAECAwQFBgcICQoLDA0ODxAREhM=", req.getHeader("x-immich-checksum"))
                 assertTrue(req.body.readUtf8().contains("streamed-upload-payload"))
                 json("""{ "id": "uploaded-1", "status": "created" }""")
             } else {
@@ -238,14 +239,41 @@ class ImmichProviderMockServerTest {
             size = source.length()
         )
 
-        val result = provider.uploadAsset(media, checksum = "sha1-checksum")
+        val checksum = "000102030405060708090a0b0c0d0e0f10111213"
+        val result = provider.uploadAsset(media, checksum = checksum)
 
         assertTrue("upload should succeed: ${result.exceptionOrNull()}", result.isSuccess)
         assertEquals("source.jpg", result.getOrThrow().label)
         assertEquals("image/jpeg", result.getOrThrow().mimeType)
-        assertEquals("sha1-checksum", result.getOrThrow().contentHash)
+        assertEquals(checksum, result.getOrThrow().contentHash)
         assertTrue(!sawTemporaryUploadCopy.get())
         assertTrue(source.delete())
+    }
+
+    @Test
+    fun bulkUploadCheckSendsBase64Checksum() = runBlocking {
+        server.dispatcher = dispatcher { req ->
+            if (req.path?.endsWith("/api/assets/bulk-upload-check") == true) {
+                val requestJson = JsonParser.parseString(req.body.readUtf8()).asJsonObject
+                val checksum = requestJson["assets"].asJsonArray[0].asJsonObject["checksum"].asString
+                assertEquals("AAECAwQFBgcICQoLDA0ODxAREhM=", checksum)
+                json(
+                    """{ "results": [ { "id": "0", "action": "reject", "assetId": "asset-1", "reason": "duplicate", "isTrashed": false } ] }"""
+                )
+            } else {
+                null
+            }
+        }
+        provider.configure(
+            CloudServerConfig(id = 6, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        val result = provider.bulkUploadCheck(
+            listOf("000102030405060708090a0b0c0d0e0f10111213")
+        )
+
+        assertTrue("bulk check should succeed: ${result.exceptionOrNull()}", result.isSuccess)
+        assertEquals(true, result.getOrThrow()["0"])
     }
 
     @Test

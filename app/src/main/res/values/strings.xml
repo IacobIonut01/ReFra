@@ -1828,6 +1828,9 @@
     <string name="cloud_free_space_verified_count">Verified %1$d local copies on every configured destination.</string>
     <string name="cloud_local_deletion_unavailable">Local deletion is temporarily unavailable while backup safety checks are being upgraded.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Preferences</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>

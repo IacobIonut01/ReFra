@@ -70,6 +70,11 @@ import com.dot.gallery.feature_node.presentation.ignored.setup.components.Select
 import com.dot.gallery.feature_node.presentation.settings.components.RequestInitialSettingsFocus
 import com.dot.gallery.feature_node.presentation.settings.components.settingsFocusGroup
 
+internal fun deleteLocalEnabledForSelection(
+    enabledAlbums: Set<Long>,
+    deleteLocalPreferences: Map<Long, Boolean>
+): Boolean = enabledAlbums.isNotEmpty() && enabledAlbums.all { deleteLocalPreferences[it] == true }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CloudUploadSettingsScreen(
@@ -256,7 +261,7 @@ fun CloudUploadSettingsScreen(
                                 )
                             }
                             Switch(
-                                checked = deleteLocalPrefs.any { it.value },
+                                checked = deleteLocalEnabledForSelection(enabledAlbums, deleteLocalPrefs),
                                 onCheckedChange = { enabled ->
                                     enabledAlbums.forEach { albumId ->
                                         val album = localAlbums.find { it.id == albumId }

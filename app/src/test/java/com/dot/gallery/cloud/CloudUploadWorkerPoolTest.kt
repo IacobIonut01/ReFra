@@ -23,7 +23,12 @@ import com.dot.gallery.cloud.sync.runWorkerPool
 import com.dot.gallery.cloud.sync.shouldDeferChecksumCheck
 import com.dot.gallery.cloud.immich.data.dto.ImmichAssetDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichBulkCheckResultItemDto
+import com.dot.gallery.cloud.immich.immichChecksum
 import com.dot.gallery.cloud.immich.verifiedImmichAssetHashes
+import com.dot.gallery.cloud.netfs.contentSha1
+import com.dot.gallery.cloud.ui.deleteLocalEnabledForSelection
+import com.dot.gallery.cloud.ui.space.freeUpSpaceDeletionBatch
+import com.dot.gallery.cloud.ui.space.verifiedLocalRevisionMatches
 import com.dot.gallery.cloud.webdav.canCacheWebDavChecksum
 import com.dot.gallery.cloud.webdav.data.api.WebDavClient
 import kotlinx.coroutines.delay
@@ -34,6 +39,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.ByteArrayInputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -171,6 +177,46 @@ class CloudUploadWorkerPoolTest {
             listOf(hex, "AAECAwQFBgcICQoLDA0ODxAREhM="),
             backupChecksumVariants(hex)
         )
+    }
+
+    @Test
+    fun immichRequestsEncodeHexSha1AsBase64() {
+        assertEquals(
+            "AAECAwQFBgcICQoLDA0ODxAREhM=",
+            immichChecksum("000102030405060708090a0b0c0d0e0f10111213")
+        )
+        assertEquals("already-encoded", immichChecksum("already-encoded"))
+    }
+
+    @Test
+    fun deleteLocalSwitchOnlyReflectsSelectedAlbums() {
+        assertTrue(
+            !deleteLocalEnabledForSelection(
+                enabledAlbums = setOf(10L),
+                deleteLocalPreferences = mapOf(20L to true)
+            )
+        )
+        assertTrue(
+            deleteLocalEnabledForSelection(
+                enabledAlbums = setOf(10L, 20L),
+                deleteLocalPreferences = mapOf(10L to true, 20L to true)
+            )
+        )
+    }
+
+    @Test
+    fun freeUpSpaceDeletionBatchesStayWithinMediaStoreLimit() {
+        assertEquals(2_000, freeUpSpaceDeletionBatch((0 until 2_000).toList()).size)
+        assertEquals(2_000, freeUpSpaceDeletionBatch((0 until 2_001).toList()).size)
+    }
+
+    @Test
+    fun freeUpSpaceRejectsLocalContentChangedAfterVerification() {
+        val verifiedHashes = mapOf(42L to "verified")
+
+        assertTrue(verifiedLocalRevisionMatches(42L, "verified", verifiedHashes))
+        assertTrue(!verifiedLocalRevisionMatches(42L, "changed", verifiedHashes))
+        assertTrue(!verifiedLocalRevisionMatches(42L, null, verifiedHashes))
     }
 
     @Test
@@ -338,6 +384,14 @@ class CloudUploadWorkerPoolTest {
         } finally {
             server.shutdown()
         }
+    }
+
+    @Test
+    fun networkFileSystemChecksumStreamsRemoteContent() {
+        assertEquals(
+            "ec734b651574683f36974c7f12847fbbe084dbe2",
+            contentSha1(ByteArrayInputStream("verified".toByteArray()))
+        )
     }
 
     @Test

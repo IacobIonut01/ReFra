@@ -71,6 +71,7 @@ import java.io.File
 import java.io.IOException
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -78,6 +79,17 @@ import javax.inject.Singleton
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
+
+internal fun immichChecksum(contentHash: String): String {
+    val normalized = contentHash.lowercase()
+    if (normalized.length != 40 || normalized.any { it !in '0'..'9' && it !in 'a'..'f' }) {
+        return contentHash
+    }
+    val bytes = ByteArray(normalized.length / 2) { index ->
+        normalized.substring(index * 2, index * 2 + 2).toInt(16).toByte()
+    }
+    return Base64.getEncoder().encodeToString(bytes)
+}
 
 internal fun verifiedImmichAssetHashes(
     hashes: List<String>,
@@ -820,7 +832,7 @@ class ImmichProvider @Inject constructor(
                 deviceId = deviceId,
                 fileCreatedAt = fileCreatedAt,
                 fileModifiedAt = fileModifiedAt,
-                checksum = checksum
+                checksum = checksum?.let(::immichChecksum)
             )
             if (response.isSuccessful) {
                 val uploaded = response.body()
@@ -915,7 +927,7 @@ class ImmichProvider @Inject constructor(
     override suspend fun bulkUploadCheck(hashes: List<String>): Result<Map<String, Boolean>> {
         return try {
             val items = hashes.mapIndexed { i, hash ->
-                ImmichBulkCheckItemDto(id = i.toString(), checksum = hash)
+                ImmichBulkCheckItemDto(id = i.toString(), checksum = immichChecksum(hash))
             }
             val api = requireApi()
             val response = api.bulkUploadCheck(ImmichBulkUploadCheckDto(assets = items))
