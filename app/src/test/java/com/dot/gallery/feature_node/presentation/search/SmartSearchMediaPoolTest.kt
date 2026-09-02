@@ -26,6 +26,20 @@ class SmartSearchMediaPoolTest {
     }
 
     @Test
+    fun dateProjectionSortsNewestFirstWithoutChangingRelevanceOrder() {
+        val relevanceOrder = listOf(
+            TestMedia(id = 1L, timestamp = 10L),
+            TestMedia(id = 2L, timestamp = 30L),
+            TestMedia(id = 3L, timestamp = 20L)
+        )
+
+        val dateOrder = dateOrderedSearchResults(relevanceOrder, TestMedia::timestamp)
+
+        assertEquals(listOf(2L, 3L, 1L), dateOrder.map(TestMedia::id))
+        assertEquals(listOf(1L, 2L, 3L), relevanceOrder.map(TestMedia::id))
+    }
+
+    @Test
     fun disabledSettingKeepsTimelinePoolUnchanged() {
         val timeline = listOf(TestMedia(id = 1L))
 

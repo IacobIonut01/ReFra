@@ -604,7 +604,12 @@ fun SearchScreen(
                         }
                     }
 
-                    val dateGroupedState = rememberedDerivedState { searchResults.results }
+                    val dateGroupedState = rememberedDerivedState(
+                        searchResults.results,
+                        searchResults.dateResults
+                    ) {
+                        searchResults.dateResults ?: searchResults.results
+                    }
                     val relevanceOrderedState = rememberedDerivedState(searchResults.results) {
                         val results = searchResults.results
                         val flatMapped = results.media.map { media ->

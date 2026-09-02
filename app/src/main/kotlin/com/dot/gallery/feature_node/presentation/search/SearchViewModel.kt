@@ -63,7 +63,8 @@ data class SearchResultsState(
     val isSearching: Boolean = false,
     val isRelevanceSearch: Boolean = false,
     val progress: Float = 0f,
-    val results: MediaState<Media.UriMedia> = MediaState(isLoading = false)
+    val results: MediaState<Media.UriMedia> = MediaState(isLoading = false),
+    val dateResults: MediaState<Media.UriMedia>? = null
 )
 
 internal fun <T, K> reconcileSearchResults(
@@ -74,6 +75,11 @@ internal fun <T, K> reconcileSearchResults(
     val currentById = currentMedia.associateBy(identity)
     return previousResults.mapNotNull { currentById[identity(it)] }
 }
+
+internal fun <T> dateOrderedSearchResults(
+    results: List<T>,
+    timestamp: (T) -> Long,
+): List<T> = results.sortedByDescending(timestamp)
 
 internal fun <T, K> smartSearchMediaPool(
     timelineMedia: List<T>,
@@ -356,7 +362,20 @@ class SearchViewModel @Inject constructor(
         dateFormats
     ) { state, searchableIds, formats ->
         val filteredMedia = state.results.media.filter { it.id in searchableIds }
-        if (filteredMedia.size == state.results.media.size) state else {
+        if (filteredMedia.size == state.results.media.size) state else if (state.isRelevanceSearch) {
+            val filteredIds = filteredMedia.mapTo(hashSetOf()) { it.id }
+            val (filteredResults, filteredDateResults) = mapRelevanceResults(
+                media = filteredMedia,
+                error = state.results.error,
+                groupSimilarMedia = state.results.mediaGroups.isNotEmpty(),
+                cloudBackups = state.results.cloudBackups.filterKeys { it in filteredIds },
+                formats = formats
+            )
+            state.copy(
+                results = filteredResults.copy(isLoading = state.results.isLoading),
+                dateResults = filteredDateResults.copy(isLoading = state.results.isLoading)
+            )
+        } else {
             state.copy(
                 results = mapMediaToItem(
                     data = filteredMedia,
@@ -497,13 +516,8 @@ class SearchViewModel @Inject constructor(
                         val m = allMediaList.find { it.id == id }
                         if (m != null) score to m else null
                     }
-                    val mediaState = mapMediaToItem(
-                        data = currentlySearchable(results.map { it.second }),
-                        error = "",
-                        albumId = -1L,
-                        defaultDateFormat = dateFormats.value.first,
-                        extendedDateFormat = dateFormats.value.second,
-                        weeklyDateFormat = dateFormats.value.third
+                    val (mediaState, dateMediaState) = mapRelevanceResults(
+                        currentlySearchable(results.map { it.second })
                     )
                     _searchResultsState.tryEmit(
                         SearchResultsState(
@@ -511,7 +525,8 @@ class SearchViewModel @Inject constructor(
                             isSearching = false,
                             isRelevanceSearch = true,
                             progress = 1f,
-                            results = mediaState
+                            results = mediaState,
+                            dateResults = dateMediaState
                         )
                     )
                 }
@@ -536,6 +551,26 @@ class SearchViewModel @Inject constructor(
     private fun currentlySearchable(media: List<Media.UriMedia>): List<Media.UriMedia> {
         val currentMedia = allMedia.value.media.associateBy { it.id }
         return media.mapNotNull { currentMedia[it.id] }
+    }
+
+    private suspend fun mapRelevanceResults(
+        media: List<Media.UriMedia>,
+        error: String = "",
+        groupSimilarMedia: Boolean = false,
+        cloudBackups: Map<Long, List<Media.UriMedia>> = emptyMap(),
+        formats: Triple<String, String, String> = dateFormats.value,
+    ): Pair<MediaState<Media.UriMedia>, MediaState<Media.UriMedia>> {
+        suspend fun map(data: List<Media.UriMedia>) = mapMediaToItem(
+            data = data,
+            error = error,
+            albumId = -1L,
+            groupSimilarMedia = groupSimilarMedia,
+            cloudBackups = cloudBackups,
+            defaultDateFormat = formats.first,
+            extendedDateFormat = formats.second,
+            weeklyDateFormat = formats.third
+        )
+        return map(media) to map(dateOrderedSearchResults(media, Media.UriMedia::definedTimestamp))
     }
 
     private suspend fun updateQueriedMedia(newMediaState: MediaState<Media.UriMedia>) {
@@ -572,17 +607,34 @@ class SearchViewModel @Inject constructor(
         )
         val updatedIds = updatedResults.mapTo(hashSetOf()) { it.id }
         val formats = dateFormats.value
-        val rebuiltResults = mapMediaToItem(
-            data = updatedResults,
-            error = resultsState.results.error,
-            albumId = -1L,
-            groupSimilarMedia = resultsState.results.mediaGroups.isNotEmpty(),
-            cloudBackups = resultsState.results.cloudBackups.filterKeys { it in updatedIds },
-            defaultDateFormat = formats.first,
-            extendedDateFormat = formats.second,
-            weeklyDateFormat = formats.third,
-        ).copy(isLoading = false)
-        _searchResultsState.emit(resultsState.copy(results = rebuiltResults))
+        val cloudBackups = resultsState.results.cloudBackups.filterKeys { it in updatedIds }
+        if (resultsState.isRelevanceSearch) {
+            val (rebuiltResults, rebuiltDateResults) = mapRelevanceResults(
+                media = updatedResults,
+                error = resultsState.results.error,
+                groupSimilarMedia = resultsState.results.mediaGroups.isNotEmpty(),
+                cloudBackups = cloudBackups,
+                formats = formats
+            )
+            _searchResultsState.emit(
+                resultsState.copy(
+                    results = rebuiltResults.copy(isLoading = false),
+                    dateResults = rebuiltDateResults.copy(isLoading = false)
+                )
+            )
+        } else {
+            val rebuiltResults = mapMediaToItem(
+                data = updatedResults,
+                error = resultsState.results.error,
+                albumId = -1L,
+                groupSimilarMedia = resultsState.results.mediaGroups.isNotEmpty(),
+                cloudBackups = cloudBackups,
+                defaultDateFormat = formats.first,
+                extendedDateFormat = formats.second,
+                weeklyDateFormat = formats.third,
+            ).copy(isLoading = false)
+            _searchResultsState.emit(resultsState.copy(results = rebuiltResults))
+        }
     }
 
     fun setMimeTypeQuery(mimeType: String, hideExplicitQuery: Boolean = false) {
@@ -798,40 +850,34 @@ class SearchViewModel @Inject constructor(
                     }
 
                     results.mergeWithHighestScore(searchResultsMedia)
+                    val (mediaState, dateMediaState) = mapRelevanceResults(
+                        currentlySearchable(results.map { it.second })
+                    )
                     _searchResultsState.tryEmit(
                         SearchResultsState(
                             hasSearched = true,
                             isSearching = false,
                             isRelevanceSearch = true,
                             progress = 0.5f,
-                            results = mapMediaToItem(
-                                data = currentlySearchable(results.map { it.second }),
-                                error = "",
-                                albumId = -1L,
-                                defaultDateFormat = dateFormats.value.first,
-                                extendedDateFormat = dateFormats.value.second,
-                                weeklyDateFormat = dateFormats.value.third
-                            )
+                            results = mediaState,
+                            dateResults = dateMediaState
                         )
                     )
                 }
             }
             val fuzzySearchResults = allMedia.parseFuzzySearch(query)
             results.mergeWithHighestScore(fuzzySearchResults)
+            val (mediaState, dateMediaState) = mapRelevanceResults(
+                currentlySearchable(results.map { it.second })
+            )
             _searchResultsState.tryEmit(
                 SearchResultsState(
                     hasSearched = true,
                     isSearching = false,
                     isRelevanceSearch = true,
                     progress = 1f,
-                    results = mapMediaToItem(
-                        data = currentlySearchable(results.map { it.second }),
-                        error = "",
-                        albumId = -1L,
-                        defaultDateFormat = dateFormats.value.first,
-                        extendedDateFormat = dateFormats.value.second,
-                        weeklyDateFormat = dateFormats.value.third
-                    )
+                    results = mediaState,
+                    dateResults = dateMediaState
                 )
             )
             } catch (error: CancellationException) {
