@@ -25,6 +25,10 @@
     alt='Get it on GitHub'
     src='./screenshots/items/get-it-on-github.png'
     height="80" />](https://github.com/IacobIonut01/Gallery/releases/latest)
+[<img
+    alt='Get it on Obtainium'
+    src='./screenshots/items/get-it-on-obtainium.png'
+    height="80" />](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/IacobIonut01/ReFra)
 
 ## Support
 - Translate the project using the link from above
