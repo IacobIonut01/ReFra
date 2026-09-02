@@ -1,5 +1,7 @@
 package com.dot.gallery.feature_node.presentation.common.components
 
+import androidx.compose.ui.unit.dp
+import com.dot.gallery.scrollbar.ScrollbarSelectionActionable
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -14,6 +16,16 @@ class MosaicGridBoundsTest {
         assertEquals(5, safeMosaicColumns(5))
         assertEquals(6, safeMosaicColumns(6))
         assertEquals(6, safeMosaicColumns(Int.MAX_VALUE))
+    }
+
+    @Test
+    fun `timeline scrollbar remains available after scrolling stops`() {
+        val settings = timelineScrollbarSettings(enabled = true)
+
+        assertEquals(2_000, settings.hideDelayMillis)
+        assertEquals(24.dp, settings.indicatorOffset)
+        assertEquals(48.dp, settings.hideDisplacement)
+        assertEquals(ScrollbarSelectionActionable.WhenVisible, settings.selectionActionable)
     }
 
     @Test

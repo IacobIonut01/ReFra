@@ -142,6 +142,10 @@ internal fun VerticalScrollbarLayout(
                     ScrollbarLayoutSide.Start -> -hideDisplacement.roundToPx()
                     ScrollbarLayoutSide.End -> +hideDisplacement.roundToPx()
                 }
+                val indicatorOffsetPx = when (settings.side) {
+                    ScrollbarLayoutSide.Start -> -settings.indicatorOffset.roundToPx()
+                    ScrollbarLayoutSide.End -> +settings.indicatorOffset.roundToPx()
+                }
 
                 placeableThumb.placeRelative(
                     x = when (settings.side) {
@@ -154,7 +158,7 @@ internal fun VerticalScrollbarLayout(
                     x = when (settings.side) {
                         ScrollbarLayoutSide.Start -> placeableThumb.width
                         ScrollbarLayoutSide.End -> constraints.maxWidth - placeableThumb.width - placeableIndicator.width
-                    } + hideDisplacementPx,
+                    } + indicatorOffsetPx + hideDisplacementPx,
                     y = offset + placeableThumb.height / 2 - placeableIndicator.height / 2
                 )
                 placeableScrollbarArea.placeRelative(

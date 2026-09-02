@@ -1,12 +1,10 @@
 package com.dot.gallery.feature_node.presentation.common.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -24,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.intl.Locale as ComposeLocale
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.zIndex
@@ -34,7 +31,6 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaItem
 import com.dot.gallery.feature_node.domain.model.MosaicDisplayItem
-import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.getCurrentAndroid
 import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.scrollbar.InternalLazyVerticalGridScrollbar
@@ -189,24 +185,27 @@ fun <T : Media> rememberMosaicMonthSegments(
     }
 }
 
+internal fun timelineScrollbarSettings(enabled: Boolean): ScrollbarSettings =
+    ScrollbarSettings.Default.copy(
+        enabled = enabled,
+        side = ScrollbarLayoutSide.End,
+        selectionMode = ScrollbarSelectionMode.Thumb,
+        selectionActionable = ScrollbarSelectionActionable.WhenVisible,
+        scrollbarPadding = 0.dp,
+        indicatorOffset = 24.dp,
+        thumbThickness = 24.dp,
+        thumbUnselectedColor = Color.Transparent,
+        thumbSelectedColor = Color.Transparent,
+        hideDelayMillis = 2_000,
+        hideDisplacement = 48.dp
+    )
+
 @Composable
 fun <T : Media> rememberScrollbarSettings(
     headers: List<MediaItem.Header<T>>,
 ): ScrollbarSettings {
     val enabled by remember(headers) { derivedStateOf { headers.size > 3 } }
-    return remember(headers, enabled) {
-        ScrollbarSettings.Default.copy(
-            enabled = enabled,
-            side = ScrollbarLayoutSide.End,
-            selectionMode = ScrollbarSelectionMode.Thumb,
-            selectionActionable = ScrollbarSelectionActionable.WhenVisible,
-            scrollbarPadding = 0.dp,
-            thumbThickness = 24.dp,
-            thumbUnselectedColor = Color.Transparent,
-            thumbSelectedColor = Color.Transparent,
-            hideDisplacement = 0.dp
-        )
-    }
+    return remember(headers, enabled) { timelineScrollbarSettings(enabled) }
 }
 
 @Composable
@@ -235,17 +234,8 @@ fun <T : Media> TimelineScroller(
                 // Resolved via a precomputed binary-searchable segment table, so there is no
                 // per-frame list walk or date formatting during fast scroll.
                 val currentLabel = remember(index, segments) { segments.labelAt(index) }
-                val isScrolling by rememberedDerivedState(state) { state.isScrollInProgress }
-                val offset by animateDpAsState(
-                    targetValue = if (isScrolling || isSelected) 24.dp else 72.dp,
-                    label = "thumbOffset"
-                )
                 Row(
-                    modifier = Modifier
-                        .offset {
-                            IntOffset(offset.roundToPx(), 0)
-                        }
-                        .zIndex(5f),
+                    modifier = Modifier.zIndex(5f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {

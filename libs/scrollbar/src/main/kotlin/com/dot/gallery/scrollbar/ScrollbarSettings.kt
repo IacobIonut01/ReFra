@@ -49,6 +49,7 @@ data class ScrollbarSettings(
     val side: ScrollbarLayoutSide = ScrollbarLayoutSide.End,
     val alwaysShowScrollbar: Boolean = false,
     val scrollbarPadding: Dp = 8.dp,
+    val indicatorOffset: Dp = 0.dp,
     val thumbThickness: Dp = 6.dp,
     val thumbShape: Shape = CircleShape,
     val thumbMinLength: Float = 0.1f,
