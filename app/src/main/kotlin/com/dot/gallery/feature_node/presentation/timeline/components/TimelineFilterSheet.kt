@@ -10,13 +10,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +49,8 @@ import com.dot.gallery.feature_node.domain.model.MediaTypeFilter
 import com.dot.gallery.feature_node.domain.model.TimelineFilter
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import kotlinx.coroutines.launch
+
+internal const val TIMELINE_FILTER_CHIP_VISUAL_TAG = "TimelineFilterChipVisual"
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -240,20 +245,32 @@ internal fun TimelineFilterChip(
     )
 
     val shape = RoundedCornerShape(100)
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodyMedium,
-        color = contentColor,
+    Box(
         modifier = Modifier
-            .heightIn(min = 48.dp)
+            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
             .clip(shape)
-            .background(backgroundColor, shape)
-            .border(1.dp, borderColor, shape)
             .selectable(
                 selected = selected,
                 role = Role.Checkbox,
                 onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .testTag(TIMELINE_FILTER_CHIP_VISUAL_TAG)
+                .height(32.dp)
+                .clip(shape)
+                .background(backgroundColor, shape)
+                .border(1.dp, borderColor, shape)
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = contentColor,
             )
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    )
+        }
+    }
 }

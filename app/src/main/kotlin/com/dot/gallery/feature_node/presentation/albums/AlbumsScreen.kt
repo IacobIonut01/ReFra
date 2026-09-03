@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -40,9 +43,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.cloud.core.ProviderType
@@ -102,9 +107,18 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import kotlinx.coroutines.Dispatchers
 
+internal fun albumScreenHorizontalInsets(
+    paddingValues: PaddingValues,
+    layoutDirection: LayoutDirection,
+): PaddingValues = PaddingValues(
+    start = paddingValues.calculateStartPadding(layoutDirection),
+    end = paddingValues.calculateEndPadding(layoutDirection),
+)
+
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun AlbumsScreen(
+    paddingValues: PaddingValues,
     filterOptions: SnapshotStateList<FilterOption>,
     isScrolling: MutableState<Boolean>,
     onAlbumClick: (Album) -> Unit,
@@ -216,7 +230,14 @@ fun AlbumsScreen(
         }
     }
 
+    val horizontalInsets = albumScreenHorizontalInsets(
+        paddingValues = paddingValues,
+        layoutDirection = LocalLayoutDirection.current,
+    )
     Scaffold(
+        modifier = Modifier
+            .padding(horizontalInsets)
+            .consumeWindowInsets(horizontalInsets),
         topBar = {
             MainSearchBar(
                 isScrolling = isScrolling,

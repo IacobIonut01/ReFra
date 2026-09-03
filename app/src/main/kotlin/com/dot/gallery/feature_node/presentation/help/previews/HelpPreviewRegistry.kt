@@ -177,6 +177,7 @@ private fun AlbumGridPreviewMini(modifier: Modifier = Modifier) {
         ) {
             PreviewScreenProvider { sharedScope, animScope ->
                 AlbumsScreen(
+                    paddingValues = PaddingValues(0.dp),
                     filterOptions = remember {
                         mutableStateListOf(
                             FilterOption(titleRes = R.string.filter_type_date, filterKind = FilterKind.DATE),

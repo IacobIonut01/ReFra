@@ -488,6 +488,7 @@ fun NavigationComp(
                 )
 
                 AlbumsScreen(
+                    paddingValues = paddingValues,
                     isScrolling = isScrolling,
                     onAlbumClick = onAlbumClickWithLock,
                     onAlbumLongClick = albumsViewModel.onAlbumLongClick,
