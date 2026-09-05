@@ -143,11 +143,12 @@ jobs:
           fileDir: 'app/'
           encodedString: ${{ secrets.SIGNING_KEY }}
       - name: Build Release APK
-        run: ./gradlew --build-cache :app:assemble${{ matrix.arch }}NoMLRelease
+        run: test -n "$CARTO_BASEMAP_KEY" && ./gradlew --build-cache :app:assemble${{ matrix.arch }}NoMLRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          CARTO_BASEMAP_KEY: ${{ secrets.CARTO_BASEMAP_KEY }}
       - uses: actions/upload-artifact@v5
         with:
           name: maps-${{ matrix.arch }}

@@ -28,6 +28,7 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isImage
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.formattedAddress
+import com.dot.gallery.feature_node.presentation.util.locationGroupName
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -209,10 +210,7 @@ fun MediaMetadata.getIcon(): ImageVector? {
 
 enum class MetadataParsingPolicy {
     ON_DEMAND_COMPATIBLE,
-    BULK_ISOLATED_ONLY;
-
-    val allowsReverseGeocoding: Boolean
-        get() = this == ON_DEMAND_COMPATIBLE
+    BULK_ISOLATED_ONLY
 }
 
 internal fun metadataParsingPolicy(bulk: Boolean): MetadataParsingPolicy =
@@ -264,8 +262,7 @@ suspend fun Context.retrieveExtraMediaMetadata(
                         bundle,
                         geocoder,
                         this@retrieveExtraMediaMetadata,
-                        allowInProcessFallback = policy == MetadataParsingPolicy.ON_DEMAND_COMPATIBLE,
-                        allowReverseGeocoding = policy.allowsReverseGeocoding
+                        allowInProcessFallback = policy == MetadataParsingPolicy.ON_DEMAND_COMPATIBLE
                     )
                 } else if (policy == MetadataParsingPolicy.ON_DEMAND_COMPATIBLE) {
                     buildFallbackImageMetadata(media.id, uri, geocoder, this@retrieveExtraMediaMetadata)
@@ -303,15 +300,14 @@ private suspend fun mediaMetadataFromImageBundle(
     bundle: Bundle,
     geocoder: Geocoder?,
     context: Context,
-    allowInProcessFallback: Boolean,
-    allowReverseGeocoding: Boolean
+    allowInProcessFallback: Boolean
 ): MediaMetadata {
     val gpsLatitude = if (bundle.containsKey(Keys.KEY_GPS_LAT)) bundle.getDouble(Keys.KEY_GPS_LAT) else null
     val gpsLongitude = if (bundle.containsKey(Keys.KEY_GPS_LON)) bundle.getDouble(Keys.KEY_GPS_LON) else null
 
     // Geocoding runs in the main app process (needs network + GMS)
     val address = bestEffortReverseGeocode(
-        enabled = allowReverseGeocoding && geocoder != null,
+        enabled = geocoder != null,
         latitude = gpsLatitude,
         longitude = gpsLongitude
     ) { latitude, longitude ->
@@ -363,7 +359,7 @@ private suspend fun mediaMetadataFromImageBundle(
         gpsLongitude = gpsLongitude,
         gpsLocationName = address?.formattedAddress,
         gpsLocationNameCountry = address?.countryName,
-        gpsLocationNameCity = address?.locality,
+        gpsLocationNameCity = address?.locationGroupName,
         imageWidth = imgW,
         imageHeight = imgH,
         imageResolutionX = if (bundle.containsKey(Keys.KEY_RES_X)) bundle.getDouble(Keys.KEY_RES_X) else null,
@@ -529,7 +525,7 @@ private suspend fun buildFallbackImageMetadata(
         gpsLongitude = gpsLongitude,
         gpsLocationName = address?.formattedAddress,
         gpsLocationNameCountry = address?.countryName,
-        gpsLocationNameCity = address?.locality,
+        gpsLocationNameCity = address?.locationGroupName,
         imageWidth = imgW,
         imageHeight = imgH,
         imageResolutionX = resX,

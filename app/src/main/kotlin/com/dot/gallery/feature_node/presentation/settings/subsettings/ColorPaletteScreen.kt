@@ -36,6 +36,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
@@ -45,13 +46,16 @@ import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -74,6 +78,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,6 +99,7 @@ import com.dot.gallery.feature_node.presentation.settings.components.settingsFoc
 import com.dot.gallery.feature_node.presentation.settings.components.SwitchPreferenceDetailScreen
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
+import com.dot.gallery.feature_node.presentation.util.shouldShowManualCartoKeySetting
 import com.dot.gallery.ui.core.icons.Albums
 import com.dot.gallery.ui.theme.colorSchemeFromSeed
 import com.dot.gallery.ui.theme.isDarkTheme
@@ -124,6 +131,13 @@ fun ColorPaletteScreen() {
     var sharedElements by Settings.Misc.rememberSharedElements()
     var useSystemFont by Settings.Misc.rememberUseSystemFont()
     var mapAppearance by Settings.Misc.rememberMapAppearance()
+    var userCartoKey by Settings.Misc.rememberCartoBasemapKey()
+    var cartoKeyDraft by remember { mutableStateOf("") }
+    var showCartoKeyDialog by remember { mutableStateOf(false) }
+    val showManualCartoKey = shouldShowManualCartoKeySetting(
+        mapsEnabled = BuildConfig.MAPS_ENABLED,
+        embeddedKey = BuildConfig.CARTO_BASEMAP_KEY,
+    )
     val isDark = isDarkTheme()
 
     when (detailKey) {
@@ -384,7 +398,20 @@ fun ColorPaletteScreen() {
             title = stringResource(R.string.map_appearance_title),
             summary = mapAppearanceLabel,
             onClick = { detailKey = DETAIL_MAP_APPEARANCE },
-            screenPosition = Position.Alone
+            screenPosition = if (showManualCartoKey) Position.Top else Position.Alone
+        )
+        val cartoKeyPref = rememberPreference(
+            userCartoKey,
+            title = stringResource(R.string.carto_basemap_key_title),
+            summary = stringResource(
+                if (userCartoKey.isBlank()) R.string.carto_basemap_key_not_configured
+                else R.string.carto_basemap_key_configured
+            ),
+            onClick = {
+                cartoKeyDraft = userCartoKey
+                showCartoKeyDialog = true
+            },
+            screenPosition = Position.Bottom
         )
 
         val swatchesContent: @Composable () -> Unit = {
@@ -556,6 +583,7 @@ fun ColorPaletteScreen() {
                         Spacer(modifier = Modifier.height(16.dp))
                         SettingsItem(item = SettingsEntity.Header(title = stringResource(R.string.map_appearance_header)))
                         SettingsItem(item = mapAppearancePref)
+                        if (showManualCartoKey) SettingsItem(item = cartoKeyPref)
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -616,11 +644,60 @@ fun ColorPaletteScreen() {
                     Spacer(modifier = Modifier.height(16.dp))
                     SettingsItem(item = SettingsEntity.Header(title = stringResource(R.string.map_appearance_header)))
                     SettingsItem(item = mapAppearancePref)
+                    if (showManualCartoKey) SettingsItem(item = cartoKeyPref)
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+    }
+
+    if (showManualCartoKey && showCartoKeyDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                cartoKeyDraft = ""
+                showCartoKeyDialog = false
+            },
+            title = { Text(stringResource(R.string.carto_basemap_key_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = stringResource(R.string.carto_basemap_key_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    OutlinedTextField(
+                        value = cartoKeyDraft,
+                        onValueChange = { cartoKeyDraft = it },
+                        label = { Text(stringResource(R.string.carto_basemap_key_field)) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        userCartoKey = cartoKeyDraft.trim()
+                        cartoKeyDraft = ""
+                        showCartoKeyDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        cartoKeyDraft = ""
+                        showCartoKeyDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 }
 

@@ -27,6 +27,12 @@ import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.style.sources.GeoJsonOptions
 import org.maplibre.android.style.sources.GeoJsonSource
 
+enum class GalleryMapLoadState {
+    LOADING,
+    READY,
+    FAILED,
+}
+
 @Stable
 class GalleryMapState(
     initialPosition: GalleryCameraPosition,
@@ -34,6 +40,12 @@ class GalleryMapState(
     // ── Compose-observable state ──
     var isStyleLoaded by mutableStateOf(false)
         internal set
+    var loadState by mutableStateOf(GalleryMapLoadState.LOADING)
+        private set
+    var loadAttempt by mutableStateOf(0L)
+        private set
+    var mapViewGeneration by mutableStateOf(0L)
+        private set
 
     var cameraPosition by mutableStateOf(initialPosition)
 
@@ -315,22 +327,53 @@ class GalleryMapState(
 
     internal fun attachMap(mapLibreMap: MapLibreMap) {
         map = mapLibreMap
-        requestedStyleUri?.let(::loadStyle)
+        val styleUri = requestedStyleUri ?: return
+        if (loadState != GalleryMapLoadState.LOADING || loadAttempt != styleGeneration) {
+            loadStyle(styleUri, force = true)
+        } else {
+            applyStyle(mapLibreMap, styleUri, styleGeneration)
+        }
     }
 
-    internal fun loadStyle(styleUri: String) {
+    internal fun loadStyle(styleUri: String, force: Boolean = false) {
         requestedStyleUri = styleUri
-        val currentMap = map ?: return
-        if (loadedStyleUri == styleUri && isStyleLoaded) return
+        if (!force && loadedStyleUri == styleUri && isStyleLoaded) return
         val generation = ++styleGeneration
+        loadAttempt = generation
+        loadState = GalleryMapLoadState.LOADING
         isStyleLoaded = false
         style = null
+        map?.let { applyStyle(it, styleUri, generation) }
+    }
+
+    private fun applyStyle(currentMap: MapLibreMap, styleUri: String, generation: Long) {
         currentMap.setStyle(styleUri) { loadedStyle ->
             if (generation != styleGeneration || map !== currentMap) return@setStyle
             style = loadedStyle
             loadedStyleUri = styleUri
             stripHeavyLayers(loadedStyle)
             isStyleLoaded = true
+            loadState = GalleryMapLoadState.READY
+        }
+    }
+
+    fun retryStyle() {
+        val styleUri = requestedStyleUri ?: return
+        val recreateMapView = map == null
+        loadedStyleUri = null
+        loadStyle(styleUri, force = true)
+        if (recreateMapView) mapViewGeneration++
+    }
+
+    internal fun onMapLoadFailed() {
+        if (loadState != GalleryMapLoadState.LOADING) return
+        isStyleLoaded = false
+        loadState = GalleryMapLoadState.FAILED
+    }
+
+    internal fun onMapLoadTimedOut(attempt: Long) {
+        if (attempt == styleGeneration && loadState == GalleryMapLoadState.LOADING) {
+            onMapLoadFailed()
         }
     }
 
@@ -364,13 +407,16 @@ class GalleryMapState(
         try { s.removeSource("ne2_shaded") } catch (_: Exception) {}
     }
 
-    internal fun onDestroy() {
-        isStyleLoaded = false
-        style = null
-        map = null
-        mapView = null
-        loadedStyleUri = null
-        styleGeneration++
+    internal fun onMapViewDestroyed(ownerView: MapView, ownerMap: MapLibreMap?) {
+        val ownsCurrentView = mapView === ownerView
+        if (ownsCurrentView) mapView = null
+        if (ownerMap != null && map === ownerMap) {
+            map = null
+            style = null
+            loadedStyleUri = null
+            isStyleLoaded = false
+        }
+        if (ownsCurrentView) styleGeneration++
     }
 }
 

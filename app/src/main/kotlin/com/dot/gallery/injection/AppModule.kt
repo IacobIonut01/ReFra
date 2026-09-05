@@ -9,7 +9,6 @@ import android.app.Application
 import android.content.ContentResolver
 import android.content.Context
 import android.location.Geocoder
-import android.os.Build
 import androidx.room.Room
 import androidx.work.WorkManager
 import com.dot.gallery.core.DefaultEventHandler
@@ -210,7 +209,7 @@ object AppModule {
     @Singleton
     fun provideGeocoder(@ApplicationContext context: Context): Geocoder? =
         StartupTracer.trace("AppModule.provideGeocoder") {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && Geocoder.isPresent()) Geocoder(context) else null
+            if (Geocoder.isPresent()) Geocoder(context) else null
         }
 
     @Provides

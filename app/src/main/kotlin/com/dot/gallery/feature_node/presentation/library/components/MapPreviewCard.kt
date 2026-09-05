@@ -5,6 +5,7 @@
 
 package com.dot.gallery.feature_node.presentation.library.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -23,11 +28,13 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.dot.gallery.BuildConfig
 import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.StaticMapURL
+import com.dot.gallery.feature_node.presentation.util.effectiveCartoBasemapKey
 
 /**
  * A card showing a static map preview with a circular photo thumbnail,
@@ -43,14 +50,23 @@ fun MapPreviewCard(
     effectiveAppIsDark: Boolean,
 ) {
     val mapAppearance by Settings.Misc.rememberMapAppearance()
-    val mapTileUrl = remember(latitude, longitude, mapAppearance, effectiveAppIsDark) {
-        StaticMapURL(
-            latitude = latitude ?: 46.77,
-            longitude = longitude ?: 23.59,
-            appearance = mapAppearance,
-            effectiveAppIsDark = effectiveAppIsDark,
-            zoom = 8,
-        )
+    val userCartoKey by Settings.Misc.rememberCartoBasemapKey()
+    val cartoKey = remember(userCartoKey) {
+        effectiveCartoBasemapKey(BuildConfig.CARTO_BASEMAP_KEY, userCartoKey)
+    }
+    val mapTileUrl = remember(latitude, longitude, mapAppearance, effectiveAppIsDark, cartoKey) {
+        if (latitude != null && longitude != null) {
+            StaticMapURL(
+                latitude = latitude,
+                longitude = longitude,
+                appearance = mapAppearance,
+                effectiveAppIsDark = effectiveAppIsDark,
+                zoom = 8,
+                apiKey = cartoKey,
+            )
+        } else {
+            null
+        }
     }
 
     Box(
@@ -58,17 +74,28 @@ fun MapPreviewCard(
             .fillMaxWidth()
             .height(200.dp)
             .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
         // Map tile background
-        GlideImage(
-            model = mapTileUrl,
+        Icon(
+            imageVector = Icons.Outlined.LocationOn,
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            requestBuilderTransform = {
-                it.diskCacheStrategy(DiskCacheStrategy.ALL)
-            }
+            modifier = Modifier
+                .size(48.dp)
+                .align(Alignment.Center),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (mapTileUrl != null) {
+            GlideImage(
+                model = mapTileUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                requestBuilderTransform = {
+                    it.diskCacheStrategy(DiskCacheStrategy.ALL)
+                }
+            )
+        }
 
         // Circular photo thumbnail at center
         if (latestMedia != null) {

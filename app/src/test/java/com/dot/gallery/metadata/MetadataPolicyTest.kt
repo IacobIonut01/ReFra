@@ -64,14 +64,17 @@ class MetadataPolicyTest {
     }
 
     @Test
-    fun bulkMetadataSkipsReverseGeocoding() = runTest {
-        val policy = metadataParsingPolicy(bulk = true)
+    fun metadataParsingPolicyKeepsBulkIsolation() {
+        assertEquals(MetadataParsingPolicy.BULK_ISOLATED_ONLY, metadataParsingPolicy(bulk = true))
+        assertEquals(MetadataParsingPolicy.ON_DEMAND_COMPATIBLE, metadataParsingPolicy(bulk = false))
+    }
+
+    @Test
+    fun reverseGeocoderRunsWhenEnabled() = runTest {
         var lookupCalled = false
 
-        assertEquals(MetadataParsingPolicy.BULK_ISOLATED_ONLY, policy)
-        assertEquals(MetadataParsingPolicy.ON_DEMAND_COMPATIBLE, metadataParsingPolicy(bulk = false))
         val result = bestEffortReverseGeocode(
-            enabled = policy.allowsReverseGeocoding,
+            enabled = true,
             latitude = 51.5,
             longitude = -0.1
         ) { _, _ ->
@@ -79,14 +82,14 @@ class MetadataPolicyTest {
             "London"
         }
 
-        assertNull(result)
-        assertFalse(lookupCalled)
+        assertEquals("London", result)
+        assertTrue(lookupCalled)
     }
 
     @Test
     fun reverseGeocoderFailureIsNonFatal() = runTest {
         val result = bestEffortReverseGeocode<String>(
-            enabled = MetadataParsingPolicy.ON_DEMAND_COMPATIBLE.allowsReverseGeocoding,
+            enabled = true,
             latitude = 51.5,
             longitude = -0.1
         ) { _, _ -> throw IllegalStateException("geocoder unavailable") }

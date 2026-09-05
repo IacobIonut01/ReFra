@@ -1117,6 +1117,12 @@ object Settings {
             }
         }
 
+        private val CARTO_BASEMAP_KEY = stringPreferencesKey("carto_basemap_key")
+
+        @Composable
+        fun rememberCartoBasemapKey() =
+            rememberPreference(key = CARTO_BASEMAP_KEY, defaultValue = "")
+
         private val ALLOW_GIF_ANIMATION = booleanPreferencesKey("allow_gif_animation")
 
         @Composable

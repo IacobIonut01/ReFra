@@ -15,6 +15,12 @@ import com.dot.gallery.feature_node.domain.model.toFlags
 import com.dot.gallery.feature_node.domain.model.toVideo
 import kotlinx.coroutines.flow.Flow
 
+data class PendingMetadataLocation(
+    val mediaId: Long,
+    val gpsLatitude: Double,
+    val gpsLongitude: Double,
+)
+
 @Dao
 interface MetadataDao {
 
@@ -111,6 +117,45 @@ interface MetadataDao {
 
     @Query("SELECT * FROM media_metadata_core WHERE mediaId = :id")
     suspend fun getCoreMetadata(id: Long): MediaMetadataCore?
+
+    @Query(
+        """
+        SELECT mediaId, gpsLatitude, gpsLongitude
+        FROM media_metadata_core
+        WHERE gpsLatitude IS NOT NULL
+          AND gpsLongitude IS NOT NULL
+          AND COALESCE(TRIM(gpsLocationNameCountry), '') = ''
+          AND COALESCE(TRIM(gpsLocationNameCity), '') = ''
+        ORDER BY mediaId
+        LIMIT :limit
+        """
+    )
+    suspend fun getPendingMetadataLocations(limit: Int): List<PendingMetadataLocation>
+
+    @Query(
+        """
+        UPDATE media_metadata_core
+        SET gpsLocationName = CASE
+                WHEN COALESCE(TRIM(gpsLocationName), '') = '' THEN :locationName
+                ELSE gpsLocationName
+            END,
+            gpsLocationNameCountry = :country,
+            gpsLocationNameCity = :city
+        WHERE mediaId = :mediaId
+          AND gpsLatitude = :latitude
+          AND gpsLongitude = :longitude
+          AND COALESCE(TRIM(gpsLocationNameCountry), '') = ''
+          AND COALESCE(TRIM(gpsLocationNameCity), '') = ''
+        """
+    )
+    suspend fun updateGeocodedLocation(
+        mediaId: Long,
+        latitude: Double,
+        longitude: Double,
+        locationName: String?,
+        country: String?,
+        city: String?,
+    ): Int
 
     @Query(
         """

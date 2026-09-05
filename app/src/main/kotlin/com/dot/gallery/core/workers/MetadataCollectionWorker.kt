@@ -1,6 +1,7 @@
 package com.dot.gallery.core.workers
 
 import android.content.Context
+import android.location.Address
 import android.location.Geocoder
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
@@ -18,20 +19,28 @@ import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.MediaVersion
+import com.dot.gallery.feature_node.domain.model.bestEffortReverseGeocode
 import com.dot.gallery.feature_node.domain.model.metadataParsingPolicy
 import com.dot.gallery.feature_node.domain.model.retrieveExtraMediaMetadata
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.presentation.util.formattedAddress
 import com.dot.gallery.feature_node.presentation.util.isMetadataUpToDate
+import com.dot.gallery.feature_node.presentation.util.locationGroupName
 import com.dot.gallery.feature_node.presentation.util.mediaStoreVersion
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
+
+private const val METADATA_GEOCODE_REPAIR_BATCH = 200
 
 fun WorkManager.forceMetadataCollect() {
     val metadataWork = OneTimeWorkRequestBuilder<MetadataCollectionWorker>()
@@ -58,6 +67,7 @@ class MetadataCollectionWorker @AssistedInject constructor(
             return Result.success()
         }
         val forceReload = inputData.getBoolean("forceReload", false)
+        reverseGeocodePendingMetadata()
         if (database.isMetadataUpToDate(appContext) && !forceReload) {
             printDebug("Metadata is up to date")
             collectCloudMediaMetadata()
@@ -125,6 +135,47 @@ class MetadataCollectionWorker @AssistedInject constructor(
         if (exception is CancellationException) throw exception
         printDebug("MetadataCollectionWorker failed with exception: ${exception.message}")
         return Result.failure()
+    }
+
+    @Suppress("DEPRECATION")
+    private suspend fun reverseGeocodePendingMetadata() {
+        val activeGeocoder = geocoder ?: return
+        val metadataDao = database.getMetadataDao()
+        val pending = metadataDao.getPendingMetadataLocations(METADATA_GEOCODE_REPAIR_BATCH)
+        if (pending.isEmpty()) return
+        val addressByCoordinate = HashMap<Pair<Long, Long>, Address?>()
+        var repaired = 0
+        for (item in pending) {
+            if (!currentCoroutineContext().isActive || isStopped) return
+            val coordinateKey = item.gpsLatitude.toBits() to item.gpsLongitude.toBits()
+            val address = if (addressByCoordinate.containsKey(coordinateKey)) {
+                addressByCoordinate[coordinateKey]
+            } else {
+                bestEffortReverseGeocode(
+                    enabled = true,
+                    latitude = item.gpsLatitude,
+                    longitude = item.gpsLongitude
+                ) { latitude, longitude ->
+                    withContext(Dispatchers.IO) {
+                        activeGeocoder.getFromLocation(latitude, longitude, 1).orEmpty().firstOrNull()
+                    }
+                }.also { addressByCoordinate[coordinateKey] = it }
+            } ?: continue
+            currentCoroutineContext().ensureActive()
+            val locationName = address.formattedAddress.takeIf(String::isNotBlank)
+            val country = address.countryName?.takeIf(String::isNotBlank)
+            val city = address.locationGroupName
+            if (locationName == null && country == null && city == null) continue
+            repaired += metadataDao.updateGeocodedLocation(
+                mediaId = item.mediaId,
+                latitude = item.gpsLatitude,
+                longitude = item.gpsLongitude,
+                locationName = locationName,
+                country = country,
+                city = city,
+            )
+        }
+        printDebug("Reverse geocoded $repaired of ${pending.size} pending metadata locations")
     }
 
     private suspend fun collectCloudMediaMetadata() {

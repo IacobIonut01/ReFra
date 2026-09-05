@@ -159,6 +159,15 @@ android {
         }
         val offlinePrefix = if (isOffline) "-offline" else ""
         base.archivesName.set("ReFra-${versionName}-$versionCode$offlinePrefix")
+        val cartoBasemapKey = if (includeMaps) {
+            providers.environmentVariable("CARTO_BASEMAP_KEY").orNull.orEmpty()
+        } else {
+            ""
+        }
+        val escapedCartoBasemapKey = cartoBasemapKey
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "CARTO_BASEMAP_KEY", "\"$escapedCartoBasemapKey\"")
 
         externalNativeBuild {
             cmake {
@@ -371,6 +380,9 @@ android {
                     "${layout.buildDirectory.get().asFile}/generated/assets/ml-models"
                 )
             }
+        }
+        if (includeMaps) {
+            getByName("test").kotlin.srcDir("src/mapsTest/kotlin")
         }
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
     }

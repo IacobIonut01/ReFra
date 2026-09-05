@@ -32,6 +32,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberBottomSheetState
@@ -53,7 +55,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +65,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.createBitmap
 import androidx.window.core.layout.WindowSizeClass
 import com.bumptech.glide.Glide
@@ -78,6 +83,7 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.dot.gallery.feature_node.presentation.util.connectivityState
 import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.rememberSurfaceCapture
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
@@ -88,8 +94,10 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -109,7 +117,12 @@ private const val PHOTO_MARKER_SOURCE = "photo-marker-source"
 private const val PHOTO_MARKER_LAYER = "photo-marker-layer"
 
 @Suppress("ComposeRules", "UNUSED_PARAMETER")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class, FlowPreview::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalHazeMaterialsApi::class,
+    ExperimentalCoroutinesApi::class,
+    FlowPreview::class,
+)
 @Composable
 internal fun MapLocationsContent(
     metadataState: State<MediaMetadataState>,
@@ -204,6 +217,22 @@ internal fun MapLocationsContent(
             zoom = savedZoom,
         )
     )
+    val connection by connectivityState()
+    var wasConnected by remember { mutableStateOf(connection.isConnected()) }
+    LaunchedEffect(connection) {
+        val isConnected = connection.isConnected()
+        if (isConnected && !wasConnected && mapState.loadState == GalleryMapLoadState.FAILED) {
+            mapState.retryStyle()
+        }
+        wasConnected = isConnected
+    }
+    LaunchedEffect(mapState.loadAttempt) {
+        val attempt = mapState.loadAttempt
+        if (attempt > 0L && mapState.loadState == GalleryMapLoadState.LOADING) {
+            delay(15_000L)
+            mapState.onMapLoadTimedOut(attempt)
+        }
+    }
     var visibleClusters by remember { mutableStateOf(emptyList<MapPhotoCluster>()) }
     var clusterSheet by remember { mutableStateOf<MapPhotoCluster?>(null) }
     val geoById = remember(sortedGeoMedia) { sortedGeoMedia.associateBy { it.mediaId } }
@@ -557,6 +586,9 @@ internal fun MapLocationsContent(
     val styleUri = remember(mapAppearance, isDark) {
         MapStyles.interactiveStyle(mapAppearance, isDark)
     }
+    val attributionBottomPadding = with(density) { currentSheetPaddingPx.toDp() } + 6.dp
+    val attributionColor = if (effectiveMapIsDark) ComposeColor.White else ComposeColor.Black
+    val attributionShadowColor = if (effectiveMapIsDark) ComposeColor.Black else ComposeColor.White
 
     val mapContent: @Composable (Modifier) -> Unit = { modifier ->
         Box(modifier = modifier) {
@@ -566,6 +598,8 @@ internal fun MapLocationsContent(
                 modifier = Modifier.fillMaxSize(),
                 mapState = mapState,
                 styleUri = styleUri,
+                isLogoEnabled = false,
+                isAttributionEnabled = false,
                 onMapClick = { latLng ->
                     val renderId = mapState.renderedMarkerId(latLng.latitude, latLng.longitude, PHOTO_MARKER_LAYER)
                     val cluster = visibleClusters.firstOrNull { it.renderId == renderId }
@@ -590,6 +624,56 @@ internal fun MapLocationsContent(
                     }
                 }
             )
+
+            Text(
+                text = stringResource(R.string.map_attribution),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 8.dp, bottom = attributionBottomPadding),
+                color = attributionColor.copy(alpha = 0.62f),
+                maxLines = 1,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 9.sp,
+                    shadow = Shadow(
+                        color = attributionShadowColor.copy(alpha = 0.8f),
+                        offset = Offset(0f, 1f),
+                        blurRadius = 2f,
+                    ),
+                ),
+            )
+
+            when (mapState.loadState) {
+                GalleryMapLoadState.LOADING -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(32.dp),
+                        strokeWidth = 3.dp,
+                    )
+                }
+
+                GalleryMapLoadState.FAILED -> {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.map_load_failed),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        TextButton(onClick = mapState::retryStyle) {
+                            Text(stringResource(R.string.retry))
+                        }
+                    }
+                }
+
+                GalleryMapLoadState.READY -> Unit
+            }
 
             // Back button
             @OptIn(ExperimentalHazeMaterialsApi::class)

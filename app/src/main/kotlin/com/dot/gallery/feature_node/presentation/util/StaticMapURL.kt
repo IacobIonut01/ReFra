@@ -5,7 +5,10 @@
 
 package com.dot.gallery.feature_node.presentation.util
 
+import com.dot.gallery.BuildConfig
 import com.dot.gallery.feature_node.presentation.location.MapAppearance
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.floor
@@ -13,9 +16,15 @@ import kotlin.math.ln
 import kotlin.math.sinh
 import kotlin.math.tan
 
+internal fun effectiveCartoBasemapKey(embeddedKey: String, userKey: String): String =
+    embeddedKey.takeIf(String::isNotBlank) ?: userKey.trim()
+
+internal fun shouldShowManualCartoKeySetting(mapsEnabled: Boolean, embeddedKey: String): Boolean =
+    mapsEnabled && embeddedKey.isBlank()
+
 /**
  * Generates a static map tile URL for a given lat/lng.
- * No API key required. Uses Carto CDN basemap tiles (light/dark).
+ * Adds the CARTO basemap key when available.
  */
 object StaticMapURL {
 
@@ -28,12 +37,19 @@ object StaticMapURL {
         appearance: MapAppearance = MapAppearance.SYSTEM,
         effectiveAppIsDark: Boolean = false,
         zoom: Int = 12,
+        apiKey: String = BuildConfig.CARTO_BASEMAP_KEY,
     ): String {
         val safeZoom = zoom.coerceIn(0, 20)
         val x = lonToTileX(longitude, safeZoom)
         val y = latToTileY(latitude, safeZoom)
         val base = if (appearance.resolvesDark(effectiveAppIsDark)) CARTO_DARK else CARTO_LIGHT
-        return "$base/$safeZoom/$x/$y@2x.png"
+        val keyQuery = if (apiKey.isBlank()) {
+            ""
+        } else {
+            val encodedKey = URLEncoder.encode(apiKey, StandardCharsets.UTF_8).replace("+", "%20")
+            "?key=$encodedKey"
+        }
+        return "$base/$safeZoom/$x/$y@2x.png$keyQuery"
     }
 
     internal fun lonToTileX(longitude: Double, zoom: Int): Int {

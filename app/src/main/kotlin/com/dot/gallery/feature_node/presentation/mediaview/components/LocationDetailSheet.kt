@@ -6,7 +6,7 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import android.net.Uri
-import com.dot.gallery.ui.theme.isDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -40,17 +41,18 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.dot.gallery.BuildConfig
 import com.dot.gallery.R
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.feature_node.domain.model.LocationData
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.StaticMapURL
+import com.dot.gallery.feature_node.presentation.util.effectiveCartoBasemapKey
 import com.dot.gallery.feature_node.presentation.util.launchMap
+import com.dot.gallery.ui.theme.isDarkTheme
 import kotlinx.coroutines.launch
-import kotlin.math.cos
-import kotlin.math.ln
-import kotlin.math.tan
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
@@ -62,17 +64,28 @@ fun LocationDetailSheet(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val isDark = isDarkTheme()
+    val mapAppearance by Settings.Misc.rememberMapAppearance()
+    val userCartoKey by Settings.Misc.rememberCartoBasemapKey()
+    val effectiveAppIsDark = isDarkTheme()
+    val cartoKey = remember(userCartoKey) {
+        effectiveCartoBasemapKey(BuildConfig.CARTO_BASEMAP_KEY, userCartoKey)
+    }
 
-    val mapTileUrl = remember(locationData.latitude, locationData.longitude, isDark) {
-        val zoom = 14
-        val tileX = lonToTileX(locationData.longitude, zoom)
-        val tileY = latToTileY(locationData.latitude, zoom)
-        if (isDark) {
-            "https://a.basemaps.cartocdn.com/dark_all/$zoom/$tileX/$tileY@2x.png"
-        } else {
-            "https://a.basemaps.cartocdn.com/rastertiles/voyager/$zoom/$tileX/$tileY@2x.png"
-        }
+    val mapTileUrl = remember(
+        locationData.latitude,
+        locationData.longitude,
+        mapAppearance,
+        effectiveAppIsDark,
+        cartoKey,
+    ) {
+        StaticMapURL(
+            latitude = locationData.latitude,
+            longitude = locationData.longitude,
+            appearance = mapAppearance,
+            effectiveAppIsDark = effectiveAppIsDark,
+            zoom = 14,
+            apiKey = cartoKey,
+        )
     }
 
     if (state.isVisible) {
@@ -100,7 +113,16 @@ fun LocationDetailSheet(
                         .fillMaxWidth()
                         .height(200.dp)
                         .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                 ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .align(Alignment.Center),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     GlideImage(
                         model = mapTileUrl,
                         contentDescription = stringResource(R.string.location_map_cd),
@@ -196,14 +218,4 @@ fun LocationDetailSheet(
             }
         }
     }
-}
-
-// Slippy-map tile math
-private fun lonToTileX(lon: Double, zoom: Int): Int {
-    return ((lon + 180.0) / 360.0 * (1 shl zoom)).toInt()
-}
-
-private fun latToTileY(lat: Double, zoom: Int): Int {
-    val latRad = Math.toRadians(lat)
-    return ((1.0 - ln(tan(latRad) + 1.0 / cos(latRad)) / Math.PI) / 2.0 * (1 shl zoom)).toInt()
 }

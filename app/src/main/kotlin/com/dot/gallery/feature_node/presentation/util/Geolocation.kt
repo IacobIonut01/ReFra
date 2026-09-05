@@ -43,6 +43,11 @@ val Address.formattedAddress: String get() {
     return address
 }
 
+val Address.locationGroupName: String?
+    get() = sequenceOf(locality, subAdminArea, adminArea, subLocality, formattedAddress)
+        .firstOrNull { !it.isNullOrBlank() }
+        ?.trim()
+
 val Address.locationTag: String get() =
     if (!featureName.isNullOrBlank() && !featureName.isDigitsOnly()) featureName
     else if (!subLocality.isNullOrBlank()) subLocality
