@@ -42,10 +42,16 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemGestures
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
@@ -86,6 +92,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.onVisibilityChanged
@@ -101,6 +109,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -458,6 +467,22 @@ internal fun shouldDismissMissingMediaTarget(
     hasMedia: Boolean,
     isStandalone: Boolean,
 ): Boolean = !isLoading && !targetFound && hasMedia && !isStandalone
+
+internal fun isMediaViewerSharedElementPage(
+    page: Int,
+    currentPage: Int,
+): Boolean = page == currentPage
+
+private fun Modifier.mediaViewerBackGestureGuard(width: Dp): Modifier =
+    fillMaxHeight()
+        .width(width)
+        .pointerInput(width) {
+            awaitPointerEventScope {
+                while (true) {
+                    awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                }
+            }
+        }
 
 internal fun resolveMediaViewerInitialSelection(
     mediaId: Long,
@@ -1343,7 +1368,11 @@ fun <T : Media> MediaViewScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .onSizeChanged { viewerWidth = it.width },
-                userScrollEnabled = if (isLocked || isVideoZoomed || isCutoutActive || (slideshowActive && !slideshowPaused)) false else userScrollEnabled,
+                userScrollEnabled = userScrollEnabled &&
+                        !isLocked &&
+                        !isVideoZoomed &&
+                        !isCutoutActive &&
+                        (!slideshowActive || slideshowPaused),
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(
                     state = pagerState,
@@ -1451,7 +1480,10 @@ fun <T : Media> MediaViewScreen(
                                         !fadeEnabled,
                                 modifier = Modifier
                                     .mediaSharedElement(
-                                        allowAnimation = canAnimateContent && index == currentPage,
+                                        allowAnimation = canAnimateContent && isMediaViewerSharedElementPage(
+                                            page = index,
+                                            currentPage = pagerState.currentPage,
+                                        ),
                                         media = sharedElementMedia,
                                         animatedVisibilityScope = animatedContentScope
                                     ),
@@ -1742,6 +1774,23 @@ fun <T : Media> MediaViewScreen(
                             }
                     }
                 }
+            }
+            if (currentMedia?.isImage == true && isGestureEnabled) {
+                val gesturePadding = WindowInsets.systemGestures.asPaddingValues()
+                Spacer(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .mediaViewerBackGestureGuard(
+                            gesturePadding.calculateStartPadding(LocalLayoutDirection.current)
+                        )
+                )
+                Spacer(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .mediaViewerBackGestureGuard(
+                            gesturePadding.calculateEndPadding(LocalLayoutDirection.current)
+                        )
+                )
             }
             // Sync status bar icon color with the top image luminance
             val isCurrentVideo by rememberedDerivedState(currentMedia) {

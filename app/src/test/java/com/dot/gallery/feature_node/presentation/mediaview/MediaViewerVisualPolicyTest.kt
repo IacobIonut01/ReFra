@@ -57,6 +57,12 @@ class MediaViewerVisualPolicyTest {
     }
 
     @Test
+    fun sharedElementUsesCurrentPageWhenSettledPageLagsAfterFastScroll() {
+        assertFalse(isMediaViewerSharedElementPage(page = 0, currentPage = 1))
+        assertTrue(isMediaViewerSharedElementPage(page = 1, currentPage = 1))
+    }
+
+    @Test
     fun tapNavigationUsesLogicalThirdsAndKeepsBoundariesInTheCenter() {
         assertEquals(TapNavigationZone.Start, resolveTapNavigationZone(10f, 300, isRtl = false))
         assertEquals(TapNavigationZone.Center, resolveTapNavigationZone(100f, 300, isRtl = false))
