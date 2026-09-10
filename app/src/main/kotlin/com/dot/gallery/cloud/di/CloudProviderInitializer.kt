@@ -43,6 +43,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import javax.net.ssl.SSLException
 
+internal fun isNetworkSensitiveProviderType(providerType: ProviderType): Boolean =
+    providerType == ProviderType.SMB || providerType == ProviderType.NFS
+
+internal fun shouldReconfigureProvider(
+    lastResolvedUrl: String?,
+    resolvedUrl: String,
+    connectionState: ConnectionState?,
+    force: Boolean
+): Boolean = force || lastResolvedUrl != resolvedUrl || connectionState != ConnectionState.CONNECTED
+
 internal suspend fun retryCloudAuthentication(
     maxAttempts: Int = 3,
     delayBeforeRetry: suspend (Long) -> Unit = { delay(it) },
@@ -348,6 +358,10 @@ class CloudProviderInitializer @Inject constructor(
     }
 
     suspend fun reconfigureAccount(configId: Long) {
+        reconfigureAccount(configId, force = false)
+    }
+
+    private suspend fun reconfigureAccount(configId: Long, force: Boolean) {
         accountMutex(configId).withLock {
             val entity = configDao.getById(configId) ?: return@withLock
             if (!entity.isActive) return@withLock
@@ -360,8 +374,12 @@ class CloudProviderInitializer @Inject constructor(
                     )
                 }
                 val resolved = urlResolver.resolve(config)
-                if (lastResolvedUrl[entity.id] == resolved.serverUrl &&
-                    registry.connectionStates.value[entity.id] == ConnectionState.CONNECTED
+                if (!shouldReconfigureProvider(
+                        lastResolvedUrl = lastResolvedUrl[entity.id],
+                        resolvedUrl = resolved.serverUrl,
+                        connectionState = registry.connectionStates.value[entity.id],
+                        force = force
+                    )
                 ) return@withLock
                 registry.updateConnectionState(entity.id, ConnectionState.AUTHENTICATING)
                 provider.configure(resolved)
@@ -372,8 +390,10 @@ class CloudProviderInitializer @Inject constructor(
                 configDao.updateLastConnected(entity.id, System.currentTimeMillis())
                 cloudRepository.notifyProviderConnected(entity.providerType, ConnectionState.CONNECTED)
                 printDebug("CloudProviderInitializer: Reconfigured account #${entity.id} -> ${resolved.serverUrl}")
-                // Re-pull data from the new URL so the timeline/albums reflect the switched host.
-                prefetchProviderData(provider, entity.displayName.ifBlank { entity.providerType.displayName }, entity.id)
+                // Re-pull data after URL changes; route-only reconnects avoid an eager full rescan.
+                if (!force) {
+                    prefetchProviderData(provider, entity.displayName.ifBlank { entity.providerType.displayName }, entity.id)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -381,6 +401,15 @@ class CloudProviderInitializer @Inject constructor(
                 printDebug("CloudProviderInitializer: reconfigureAccount failed for #${entity.id}: ${e.message}")
             }
         }
+    }
+
+    suspend fun reconfigureNetworkSensitiveProviders() {
+        configDao.getAll().first()
+            .filter {
+                it.isActive && isNetworkSensitiveProviderType(it.providerType) &&
+                    registry.connectionStates.value[it.id] == ConnectionState.CONNECTED
+            }
+            .forEach { reconfigureAccount(it.id, force = true) }
     }
 
     /**

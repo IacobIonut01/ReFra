@@ -285,29 +285,34 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
             }
         }
 
-        // Re-resolve auto-switching server URLs when the network changes
-        // (e.g. moving between the local Wi-Fi and mobile data).
+        // Re-resolve auto-switching URLs and renew route-sensitive connections when the network
+        // changes (e.g. moving between local Wi-Fi, mobile data, and a VPN).
         registerNetworkChangeReconfigure()
 
         StartupTracer.end(onCreateSpan)
     }
 
     /**
-     * Registers a default-network callback that re-resolves auto-switching server URLs whenever
-     * connectivity changes, so providers transparently switch between their local and external
-     * URLs when the device joins/leaves the configured local network.
+     * Registers a default-network callback that re-resolves auto-switching server URLs and renews
+     * route-sensitive connections whenever connectivity changes, so providers transparently follow
+     * the active local, mobile, or VPN route.
      */
     private fun registerNetworkChangeReconfigure() {
         val connectivityManager = getSystemService(ConnectivityManager::class.java) ?: return
+        var currentDefaultNetwork = connectivityManager.activeNetwork
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                val routeChanged = network != currentDefaultNetwork
+                currentDefaultNetwork = network
                 appScope.launch {
                     cloudProviderInitializer.retryTransientAuthenticationFailures()
+                    if (routeChanged) cloudProviderInitializer.reconfigureNetworkSensitiveProviders()
                     cloudProviderInitializer.reconfigureActiveProviders()
                 }
             }
 
             override fun onLost(network: Network) {
+                if (network == currentDefaultNetwork) currentDefaultNetwork = null
                 appScope.launch { cloudProviderInitializer.reconfigureActiveProviders() }
             }
         }

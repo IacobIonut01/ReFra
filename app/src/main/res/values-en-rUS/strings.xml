@@ -1722,9 +1722,9 @@
     <string name="cloud_add_nfs">Add NFS share</string>
     <string name="cloud_owncloud_variants">ownCloud variants</string>
     <string name="cloud_network_shares">Network shares</string>
-    <string name="cloud_network_share_lan_note">Network shares are reachable on your local network only.</string>
-    <string name="cloud_lan_only">LAN only</string>
-    <string name="cloud_lan_offline_warning">Not on Wi-Fi. Network shares (SMB/NFS) are only reachable on your local network.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Photos</string>
     <string name="cloud_cap_remote_albums">Albums</string>
     <string name="cloud_cap_sync">Sync</string>

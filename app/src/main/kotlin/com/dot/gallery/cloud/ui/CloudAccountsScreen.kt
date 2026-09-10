@@ -70,7 +70,7 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.connectivityState
-import com.dot.gallery.feature_node.presentation.util.isOnLocalNetwork
+import com.dot.gallery.feature_node.presentation.util.isLanRouteAvailable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
@@ -103,7 +103,7 @@ fun CloudAccountsScreen(
     val hasLanProviders = remember(configs) {
         configs.any { ProviderUiDescriptors.forType(it.providerType).isLanOnly }
     }
-    val onLocalNetwork = remember(networkState.value) { context.isOnLocalNetwork() }
+    val onLocalNetwork = remember(networkState.value) { context.isLanRouteAvailable() }
 
     BaseSettingsScreen(
         title = stringResource(R.string.settings_cloud_accounts),

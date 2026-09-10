@@ -110,11 +110,11 @@ class CloudUploadWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         printDebug("CloudUploadWorker: Starting upload check...")
+        val isManual = inputData.getBoolean(KEY_MANUAL, false)
         try {
             // Manual ("Upload now" / "Start backup") runs are user-initiated and must work even
             // when periodic auto-sync (syncEnabled) is off. syncEnabled only governs the background
             // scheduler, so only require it for the periodic worker, not for a manual trigger.
-            val isManual = inputData.getBoolean(KEY_MANUAL, false)
             val targetConfigId = inputData.getLong(KEY_CONFIG_ID, -1L)
             val configs = configDao.getAll().first()
             val activeConfigs = configs.filter {
@@ -413,12 +413,14 @@ class CloudUploadWorker @AssistedInject constructor(
             runDeleteLocalPass()
 
             printDebug("CloudUploadWorker: Upload check complete")
-            return if (failedItems > 0) Result.retry() else Result.success()
+            return if (failedItems == 0) Result.success()
+            else if (shouldRetryBackupFailure(runAttemptCount)) Result.retry()
+            else Result.failure()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             printDebug("CloudUploadWorker: Failed: ${e.message}")
-            return Result.retry()
+            return if (shouldRetryBackupFailure(runAttemptCount)) Result.retry() else Result.failure()
         }
     }
 
@@ -801,6 +803,11 @@ class CloudUploadWorker @AssistedInject constructor(
         }
     }
 }
+
+internal const val MAX_BACKUP_RUN_ATTEMPTS = 3
+
+internal fun shouldRetryBackupFailure(runAttemptCount: Int): Boolean =
+    runAttemptCount < MAX_BACKUP_RUN_ATTEMPTS - 1
 
 internal fun isActiveBackupWork(state: WorkInfo.State, tags: Set<String>): Boolean =
     state == WorkInfo.State.RUNNING ||

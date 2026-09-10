@@ -21,6 +21,7 @@ import com.dot.gallery.cloud.ui.backup.backupMatchEvidence
 import com.dot.gallery.cloud.ui.backup.visibleBackupProgressItems
 import com.dot.gallery.cloud.sync.runWorkerPool
 import com.dot.gallery.cloud.sync.shouldDeferChecksumCheck
+import com.dot.gallery.cloud.sync.shouldRetryBackupFailure
 import com.dot.gallery.cloud.immich.data.dto.ImmichAssetDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichBulkCheckResultItemDto
 import com.dot.gallery.cloud.immich.immichChecksum
@@ -37,6 +38,7 @@ import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
@@ -65,6 +67,13 @@ class CloudUploadWorkerPoolTest {
                 setOf(CloudUploadWorker.TAG_BACKUP, CloudUploadWorker.TAG_PERIODIC_BACKUP)
             )
         )
+    }
+
+    @Test
+    fun backupRetriesHaveAFiniteBudget() {
+        assertTrue(shouldRetryBackupFailure(runAttemptCount = 0))
+        assertTrue(shouldRetryBackupFailure(runAttemptCount = 1))
+        assertFalse(shouldRetryBackupFailure(runAttemptCount = 2))
     }
 
     @Test

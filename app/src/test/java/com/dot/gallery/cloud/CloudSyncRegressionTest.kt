@@ -11,7 +11,9 @@ import com.dot.gallery.cloud.core.auth.CloudConnectionErrorKind
 import com.dot.gallery.cloud.core.auth.CloudConnectionException
 import com.dot.gallery.cloud.data.entity.CloudServerConfigEntity
 import com.dot.gallery.cloud.data.entity.CloudUploadPrefEntity
+import com.dot.gallery.cloud.di.isNetworkSensitiveProviderType
 import com.dot.gallery.cloud.di.retryCloudAuthentication
+import com.dot.gallery.cloud.di.shouldReconfigureProvider
 import com.dot.gallery.cloud.sync.CloudSyncSchedulePlan
 import com.dot.gallery.cloud.sync.cloudSyncScheduleChanged
 import com.dot.gallery.cloud.sync.cloudSyncSchedulePlan
@@ -197,6 +199,29 @@ class CloudSyncRegressionTest {
     fun cloudIndexDoesNotStartWhileOffline() {
         assertFalse(shouldStartCloudIndex(effectiveOffline = true))
         assertTrue(shouldStartCloudIndex(effectiveOffline = false))
+    }
+
+    @Test
+    fun networkRouteChangesForceNasProvidersToReconnect() {
+        assertTrue(isNetworkSensitiveProviderType(ProviderType.SMB))
+        assertTrue(isNetworkSensitiveProviderType(ProviderType.NFS))
+        assertFalse(isNetworkSensitiveProviderType(ProviderType.IMMICH))
+        assertTrue(
+            shouldReconfigureProvider(
+                lastResolvedUrl = "smb://nas/photos",
+                resolvedUrl = "smb://nas/photos",
+                connectionState = ConnectionState.CONNECTED,
+                force = true
+            )
+        )
+        assertFalse(
+            shouldReconfigureProvider(
+                lastResolvedUrl = "https://photos.example",
+                resolvedUrl = "https://photos.example",
+                connectionState = ConnectionState.CONNECTED,
+                force = false
+            )
+        )
     }
 
     @Test

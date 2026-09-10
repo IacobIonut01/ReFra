@@ -1,5 +1,6 @@
 package com.dot.gallery
 
+import com.dot.gallery.feature_node.presentation.util.isLanRouteAvailable
 import com.dot.gallery.feature_node.presentation.util.runNetworkCallbackOperation
 import okio.Path.Companion.toPath
 import org.junit.Assert.assertEquals
@@ -28,5 +29,11 @@ class GalleryAppTest {
     @Test
     fun networkCallbackOperationReportsSuccessfulRegistration() {
         assertTrue(runNetworkCallbackOperation {})
+    }
+
+    @Test
+    fun vpnCanRouteTrafficToLanResources() {
+        assertTrue(isLanRouteAvailable(isWifi = false, isEthernet = false, isVpn = true))
+        assertFalse(isLanRouteAvailable(isWifi = false, isEthernet = false, isVpn = false))
     }
 }

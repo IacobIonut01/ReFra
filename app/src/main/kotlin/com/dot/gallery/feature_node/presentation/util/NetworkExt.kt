@@ -123,7 +123,7 @@ sealed class ConnectionState {
 
 /**
  * Whether the active network is a local-area transport (Wi-Fi or Ethernet), as opposed to
- * cellular or no network. Used to warn that LAN-only providers (SMB/NFS) are unreachable.
+ * cellular or no network. Used when switching between local and external server URLs.
  */
 fun Context.isOnLocalNetwork(): Boolean {
     val connectivityManager =
@@ -135,6 +135,25 @@ fun Context.isOnLocalNetwork(): Boolean {
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
     } catch (_: SecurityException) {
         // ACCESS_NETWORK_STATE unavailable (offline variant / restricted profile).
+        false
+    }
+}
+
+internal fun isLanRouteAvailable(isWifi: Boolean, isEthernet: Boolean, isVpn: Boolean): Boolean =
+    isWifi || isEthernet || isVpn
+
+fun Context.isLanRouteAvailable(): Boolean {
+    val connectivityManager =
+        getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+    return try {
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        isLanRouteAvailable(
+            isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
+            isEthernet = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET),
+            isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+        )
+    } catch (_: SecurityException) {
         false
     }
 }
