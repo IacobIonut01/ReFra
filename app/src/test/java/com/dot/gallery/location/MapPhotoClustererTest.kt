@@ -6,7 +6,10 @@ import com.dot.gallery.feature_node.presentation.location.AccountCloudMapMarker
 import com.dot.gallery.feature_node.presentation.location.MapGeoBounds
 import com.dot.gallery.feature_node.presentation.location.MapPhotoClusterer
 import com.dot.gallery.feature_node.presentation.location.MapPhotoPoint
+import com.dot.gallery.feature_node.domain.model.LocationMedia
+import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.locationCoordinateKey
+import com.dot.gallery.feature_node.domain.model.locationIdentityKey
 import com.dot.gallery.feature_node.domain.model.locationLabelKey
 import com.dot.gallery.feature_node.domain.model.matchesLocationCoordinates
 import com.dot.gallery.feature_node.domain.model.matchesLocationName
@@ -168,12 +171,33 @@ class MapPhotoClustererTest {
 
     @Test
     fun coordinatesThatRoundToTheSameLabelKeepDistinctIdentity() {
-        assertNotEquals(
-            locationCoordinateKey(10.00001, 20.00001),
-            locationCoordinateKey(10.00002, 20.00002),
-        )
+        val first = locationMedia(1L, "17.8490, 73.8034", 17.84901, 73.80341)
+        val second = locationMedia(2L, "17.8490, 73.8034", 17.84902, 73.80342)
+
+        assertNotEquals(first.locationIdentityKey(), second.locationIdentityKey())
     }
 
     private fun point(id: Long, latitude: Double, longitude: Double, timestamp: Long) =
         MapPhotoPoint(id, latitude, longitude, timestamp)
+
+    private fun locationMedia(id: Long, label: String, latitude: Double, longitude: Double) = LocationMedia(
+        media = Media.EncryptedMedia(
+            id = id,
+            label = label,
+            bytes = byteArrayOf(),
+            path = "",
+            relativePath = "",
+            albumID = 0L,
+            albumLabel = "",
+            timestamp = 0L,
+            fullDate = "",
+            mimeType = "image/jpeg",
+            favorite = 0,
+            trashed = 0,
+            size = 0L,
+        ),
+        location = label,
+        latitude = latitude,
+        longitude = longitude,
+    )
 }

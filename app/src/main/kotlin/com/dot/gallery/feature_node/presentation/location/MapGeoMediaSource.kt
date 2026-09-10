@@ -17,8 +17,7 @@ import com.dot.gallery.feature_node.domain.model.GeoMedia
 import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaState
-import com.dot.gallery.feature_node.domain.model.locationCoordinateKey
-import com.dot.gallery.feature_node.domain.model.locationLabelKey
+import com.dot.gallery.feature_node.domain.model.locationIdentityKey
 import com.dot.gallery.feature_node.domain.util.isCloud
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -205,26 +204,20 @@ internal fun mergeAccountQualifiedGeoMedia(
     return result.values.sortedByDescending { it.media.definedTimestamp }
 }
 
-private data class ActionableLocationCandidate(
-    val item: LocationMedia,
-    val latitude: Double?,
-    val longitude: Double?,
-)
-
 internal fun buildActionableLocations(
     localLocations: List<LocationMedia>,
     geoMedia: List<GeoMedia>,
     cachedCloudMedia: List<CloudMediaEntity>,
 ): List<LocationMedia> {
-    val locationByMediaId = LinkedHashMap<Long, ActionableLocationCandidate>()
+    val locationByMediaId = LinkedHashMap<Long, LocationMedia>()
 
-    fun addMedia(item: LocationMedia, latitude: Double?, longitude: Double?) {
+    fun addMedia(item: LocationMedia) {
         val existing = locationByMediaId[item.media.id]
         val hasName = !item.city.isNullOrBlank() || !item.country.isNullOrBlank()
         val existingHasName = existing != null &&
-                (!existing.item.city.isNullOrBlank() || !existing.item.country.isNullOrBlank())
+                (!existing.city.isNullOrBlank() || !existing.country.isNullOrBlank())
         if (existing == null || hasName || !existingHasName) {
-            locationByMediaId[item.media.id] = ActionableLocationCandidate(item, latitude, longitude)
+            locationByMediaId[item.media.id] = item
         }
     }
 
@@ -240,9 +233,7 @@ internal fun buildActionableLocations(
                 country = country,
                 latitude = entity.latitude,
                 longitude = entity.longitude,
-            ),
-            entity.latitude,
-            entity.longitude,
+            )
         )
     }
     localLocations.forEach { item ->
@@ -253,9 +244,7 @@ internal fun buildActionableLocations(
                 location = locationLabel(city, country, item.latitude, item.longitude),
                 city = city,
                 country = country,
-            ),
-            item.latitude,
-            item.longitude,
+            )
         )
     }
     geoMedia.forEach { item ->
@@ -269,24 +258,13 @@ internal fun buildActionableLocations(
                 country = country,
                 latitude = item.latitude,
                 longitude = item.longitude,
-            ),
-            item.latitude,
-            item.longitude,
+            )
         )
     }
 
     val newestByLocation = LinkedHashMap<String, LocationMedia>()
-    locationByMediaId.values.forEach { candidate ->
-        val item = candidate.item
-        val key = if (!item.city.isNullOrBlank() || !item.country.isNullOrBlank()) {
-            "name:${locationLabelKey(item.location)}"
-        } else {
-            coordinateLocationGroupKey(
-                candidate.latitude,
-                candidate.longitude,
-                item.media.id,
-            )
-        }
+    locationByMediaId.values.forEach { item ->
+        val key = item.locationIdentityKey()
         val existing = newestByLocation[key]
         if (existing == null || item.media.definedTimestamp > existing.media.definedTimestamp) {
             newestByLocation[key] = item
@@ -328,11 +306,3 @@ private fun locationLabel(
     }
     return "Unknown location"
 }
-
-private fun coordinateLocationGroupKey(
-    latitude: Double?,
-    longitude: Double?,
-    mediaId: Long,
-): String = locationCoordinateKey(latitude, longitude)
-    ?.let { "coordinates:$it" }
-    ?: "media:$mediaId"

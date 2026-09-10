@@ -57,6 +57,7 @@ import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.LocationMedia
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
+import com.dot.gallery.feature_node.domain.model.locationIdentityKey
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
@@ -218,7 +219,7 @@ private fun CountryLocationRow(
         ) {
             items(
                 items = countryLocations.locations,
-                key = { it.location }
+                key = { it.locationIdentityKey() }
             ) { locationMedia ->
                 LocationCard(
                     locationMedia = locationMedia,

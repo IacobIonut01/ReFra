@@ -25,6 +25,15 @@ internal fun locationCoordinateKey(latitude: Double?, longitude: Double?): Strin
     return "${canonicalLatitude.toBits()}/${canonicalLongitude.toBits()}"
 }
 
+internal fun LocationMedia.locationIdentityKey(): String {
+    if (!city.isNullOrBlank() || !country.isNullOrBlank()) {
+        return "name:${locationLabelKey(location)}"
+    }
+    return locationCoordinateKey(latitude, longitude)
+        ?.let { "coordinates:$it" }
+        ?: "media:${media.id}"
+}
+
 internal fun matchesLocationName(
     candidateCity: String?,
     candidateCountry: String?,
