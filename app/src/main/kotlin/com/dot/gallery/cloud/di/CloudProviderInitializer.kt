@@ -21,6 +21,7 @@ import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.network.ServerUrlResolver
 import com.dot.gallery.cloud.offline.OfflineModeManager
 import com.dot.gallery.cloud.sync.CloudIndexProgressManager
+import com.dot.gallery.cloud.sync.fetchAllCloudIndexPages
 import com.dot.gallery.cloud.sync.fetchCloudIndexPage
 import com.dot.gallery.cloud.sync.shouldStartCloudIndex
 import com.dot.gallery.core.Resource
@@ -140,23 +141,19 @@ class CloudProviderInitializer @Inject constructor(
             indexProgressManager.start(configId, label)
             try {
                 val previousSmartFeatureRevisions = cloudMediaDao.getSmartFeatureRevisions(configId)
-                var page = 0
-                var total = 0
-                while (true) {
-                    val resource = fetchCloudIndexPage(PREFETCH_PAGE_TIMEOUT_MILLIS) {
-                        provider.getRemoteAssets(page, PREFETCH_PAGE_SIZE).first()
+                val total = fetchAllCloudIndexPages(
+                    pageSize = PREFETCH_PAGE_SIZE,
+                    maxPages = MAX_PREFETCH_PAGES,
+                    fetchPage = { page, pageSize ->
+                        fetchCloudIndexPage(PREFETCH_PAGE_TIMEOUT_MILLIS) {
+                            provider.getRemoteAssets(page, pageSize).first()
+                        }
+                    },
+                    onPage = { items, indexedCount ->
+                        if (items.isNotEmpty()) cloudMediaDao.insertAll(items)
+                        indexProgressManager.update(configId, indexedCount, label)
                     }
-                    if (resource !is Resource.Success) break
-                    val items = resource.data ?: emptyList()
-                    if (items.isNotEmpty()) {
-                        cloudMediaDao.insertAll(items)
-                        total += items.size
-                        indexProgressManager.update(configId, total, label)
-                    }
-                    if (items.size < PREFETCH_PAGE_SIZE) break
-                    page++
-                    if (page >= MAX_PREFETCH_PAGES) break
-                }
+                ).getOrThrow()
                 pendingCloudFavoriteStore.applyForAccount(
                     provider.providerType,
                     configId,

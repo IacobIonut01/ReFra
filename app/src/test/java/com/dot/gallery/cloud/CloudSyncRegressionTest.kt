@@ -17,6 +17,7 @@ import com.dot.gallery.cloud.di.shouldReconfigureProvider
 import com.dot.gallery.cloud.sync.CloudSyncSchedulePlan
 import com.dot.gallery.cloud.sync.cloudSyncScheduleChanged
 import com.dot.gallery.cloud.sync.cloudSyncSchedulePlan
+import com.dot.gallery.cloud.sync.fetchAllCloudIndexPages
 import com.dot.gallery.cloud.sync.fetchCloudIndexPage
 import com.dot.gallery.cloud.sync.isCloudSyncDue
 import com.dot.gallery.cloud.sync.shouldStartCloudIndex
@@ -26,6 +27,7 @@ import com.dot.gallery.cloud.ui.backup.backupScanRequired
 import com.dot.gallery.cloud.ui.backup.backupSelectionKeys
 import com.dot.gallery.cloud.ui.backup.newlyConnectedConfigIds
 import com.dot.gallery.cloud.ui.mergeCloudServerConfig
+import com.dot.gallery.core.Resource
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
@@ -287,6 +289,50 @@ class CloudSyncRegressionTest {
         }
 
         assertTrue(timedOut)
+    }
+
+    @Test
+    fun cloudIndexFetchesEveryPageUntilTheFirstShortPage() = runTest {
+        val requestedPages = mutableListOf<Int>()
+        val reportedTotals = mutableListOf<Int>()
+
+        val result = fetchAllCloudIndexPages(
+            pageSize = 2,
+            maxPages = 10,
+            fetchPage = { page, _ ->
+                requestedPages += page
+                Resource.Success(
+                    when (page) {
+                        0 -> listOf("a", "b")
+                        1 -> listOf("c", "d")
+                        else -> listOf("e")
+                    }
+                )
+            },
+            onPage = { _, total -> reportedTotals += total }
+        )
+
+        assertEquals(Result.success(5), result)
+        assertEquals(listOf(0, 1, 2), requestedPages)
+        assertEquals(listOf(2, 4, 5), reportedTotals)
+    }
+
+    @Test
+    fun cloudIndexStopsAndFailsWhenAnyPageFails() = runTest {
+        val requestedPages = mutableListOf<Int>()
+
+        val result = fetchAllCloudIndexPages<String>(
+            pageSize = 2,
+            maxPages = 10,
+            fetchPage = { page, _ ->
+                requestedPages += page
+                if (page == 0) Resource.Success(listOf("a", "b")) else Resource.Error("server unavailable")
+            }
+        )
+
+        assertTrue(result.isFailure)
+        assertEquals("server unavailable", result.exceptionOrNull()?.message)
+        assertEquals(listOf(0, 1), requestedPages)
     }
 
     @Test

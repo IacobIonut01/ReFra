@@ -38,6 +38,7 @@ import com.dot.gallery.cloud.offline.CloudMediaCache
 import com.dot.gallery.cloud.sync.CloudOfflineDownloadWorker
 import com.dot.gallery.cloud.sync.CloudSyncScheduler
 import com.dot.gallery.cloud.sync.cloudSyncScheduleChanged
+import com.dot.gallery.cloud.sync.fetchAllCloudIndexPages
 import com.dot.gallery.core.backup.PendingCloudFavoriteStore
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -602,15 +603,16 @@ class CloudAccountsViewModel @Inject constructor(
                 isSyncing = true, message = "Fetching media..."
             ))
             try {
-                var mediaCount = 0
-                provider.getRemoteAssets(0, 500).collect { resource ->
-                    if (resource is com.dot.gallery.core.Resource.Success) {
-                        mediaCount = resource.data?.size ?: 0
+                val mediaCount = fetchAllCloudIndexPages(
+                    pageSize = 500,
+                    maxPages = 500,
+                    fetchPage = { page, pageSize -> provider.getRemoteAssets(page, pageSize).first() },
+                    onPage = { _, total ->
                         _syncProgress.value = _syncProgress.value + (configId to SyncProgress(
-                            isSyncing = true, mediaCount = mediaCount, message = "Synced $mediaCount media items..."
+                            isSyncing = true, mediaCount = total, message = "Synced $total media items..."
                         ))
                     }
-                }
+                ).getOrThrow()
                 _syncProgress.value = _syncProgress.value + (configId to SyncProgress(
                     isSyncing = true, mediaCount = mediaCount, message = "Fetching albums..."
                 ))
@@ -624,6 +626,8 @@ class CloudAccountsViewModel @Inject constructor(
                     isSyncing = false, mediaCount = mediaCount, albumCount = albumCount,
                     message = "Done: $mediaCount media, $albumCount albums"
                 ))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _syncProgress.value = _syncProgress.value + (configId to SyncProgress(
                     isSyncing = false, message = "Sync failed: ${e.message}"

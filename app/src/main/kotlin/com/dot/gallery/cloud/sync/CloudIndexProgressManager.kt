@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.dot.gallery.R
+import com.dot.gallery.core.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -154,3 +155,28 @@ internal suspend fun <T> fetchCloudIndexPage(
     timeoutMillis: Long,
     fetch: suspend () -> T
 ): T = withTimeout(timeoutMillis) { fetch() }
+
+internal suspend fun <T> fetchAllCloudIndexPages(
+    pageSize: Int,
+    maxPages: Int,
+    fetchPage: suspend (page: Int, pageSize: Int) -> Resource<List<T>>,
+    onPage: suspend (items: List<T>, total: Int) -> Unit = { _, _ -> }
+): Result<Int> {
+    require(pageSize > 0)
+    require(maxPages > 0)
+    var total = 0
+    repeat(maxPages) { page ->
+        when (val resource = fetchPage(page, pageSize)) {
+            is Resource.Error -> return Result.failure(
+                IllegalStateException(resource.message ?: "Cloud index page ${page + 1} failed")
+            )
+            is Resource.Success -> {
+                val items = resource.data.orEmpty()
+                total += items.size
+                onPage(items, total)
+                if (items.size < pageSize) return Result.success(total)
+            }
+        }
+    }
+    return Result.failure(IllegalStateException("Cloud index exceeded $maxPages pages"))
+}
