@@ -471,7 +471,7 @@
     <string name="metadata_save_copy_description">Creates a verified sanitized copy in the same folder and leaves the original unchanged.</string>
     <string name="metadata_replace_original">Replace original</string>
     <string name="metadata_replace_original_description">Creates and verifies the replacement first, then moves the original to system trash so it can still be recovered.</string>
-    <string name="metadata_save_copy_action">Save copy</string>
+    <string name="metadata_save_copy_action">Kopyasını kaydet</string>
     <string name="metadata_replace_original_action">Replace</string>
     <string name="metadata_preserved_title">Korunanlar</string>
     <string name="metadata_preserved_description">Kodlanmış pikseller, video ve ses dokunulmadan kalır. Yönlendirme, animasyon, renk ve HDR verileri, codec yapılandırması, zamanlama ve gerekli kapsayıcı yapısı korunur.</string>
@@ -696,8 +696,8 @@
     <string name="vault_set_password">Set custom password</string>
     <string name="vault_deletion_title_named">Delete \"%1$s\"?</string>
     <string name="vault_deletion_summary_named">Vault \"%1$s\" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
-    <string name="vault_manage_security">Manage security</string>
-    <string name="vault_change_security">Set custom password</string>
+    <string name="vault_manage_security">Güvenliği yönet</string>
+    <string name="vault_change_security">Özel parola ayarla</string>
     <string name="vault_change_security_summary">Use a PIN, pattern, or password instead of device security</string>
     <string name="vault_remove_custom_security">Özel parolayı kaldır</string>
     <string name="vault_remove_custom_security_summary">Cihaz güvenliğine geri dön (kişisel tanıma veya ekran kilidi)</string>
@@ -1042,10 +1042,10 @@
     <string name="tool_skin_tone">Cilt tonu</string>
     <string name="tool_blue_tone">Mavi tonu</string>
     <string name="tool_hue">Hue</string>
-    <string name="tool_black_white">B&amp;W</string>
+    <string name="tool_black_white">S&amp;B</string>
     <!-- Effect tools -->
     <string name="effect_posterize">Poster Efekti</string>
-    <string name="effect_edges">Edges</string>
+    <string name="effect_edges">Kenarlar</string>
     <string name="effect_borders">Borders</string>
     <!-- Actions tools -->
     <!-- Filter styles -->
@@ -1056,12 +1056,12 @@
     <string name="filter_style_airy">Airy</string>
     <!-- Aspect ratios -->
     <string name="aspect_freeform">Freeform</string>
-    <string name="aspect_square">Square</string>
+    <string name="aspect_square">Kare</string>
     <!-- Auto presets -->
     <string name="preset_enhance">Enhance</string>
     <string name="preset_dynamic">Dynamic</string>
     <!-- Album Groups -->
-    <string name="create_album_group">Create album group</string>
+    <string name="create_album_group">Albüm grubu oluştur</string>
     <string name="add_to_group">Gruba ekle</string>
     <string name="group_name">Grup adı</string>
     <string name="group_name_hint">Grup adı yazın</string>
@@ -1125,7 +1125,7 @@
     <!-- Visual / Image-to-Image search -->
     <string name="visual_search">Görsel arama</string>
     <string name="search_by_image">Search by image</string>
-    <string name="pick_another">Pick another</string>
+    <string name="pick_another">Başka seç</string>
     <string name="remove_image">Remove image</string>
     <string name="find_similar">Benzerlerini bul</string>
     <string name="image_search_preview">Image search preview</string>
@@ -1384,7 +1384,7 @@
     <string name="group_method_favorites">Favoriler</string>
     <string name="group_method_vault">Kasa</string>
     <string name="group_method_cloud_archive">Bulut arşivi</string>
-    <string name="group_method_location">Map &amp; location</string>
+    <string name="group_method_location">Harita &amp; konum</string>
     <string name="customize_date_formats">Customize date formats</string>
     <!-- Story Cards -->
     <string name="story_cards_settings_title">Hikaye Kartları</string>
