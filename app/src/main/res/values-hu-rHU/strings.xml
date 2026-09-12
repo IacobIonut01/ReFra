@@ -1212,7 +1212,7 @@
     <string name="cast_perm_wifi_state_desc">A hálózati információk észleléséhez szükséges</string>
     <string name="cast_perm_network_state">Hálózati állapot</string>
     <string name="cast_perm_network_state_desc">A hálózati kapcsolat ellenőrzéséhez szükséges</string>
-    <string name="cast_perm_multicast">Multicast</string>
+    <string name="cast_perm_multicast">Csoportos küldés</string>
     <string name="cast_perm_multicast_desc">A hálózaton lévő eszközök automatikus felderítéséhez szükséges</string>
     <!-- Backup &amp; Restore (#909) -->
     <string name="settings_backup">Biztonsági mentés &amp; visszaállítás</string>
