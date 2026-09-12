@@ -351,12 +351,9 @@
     <string name="delete_vault">Széf törlése</string>
     <string name="unknown_vault">Ismeretlen széf</string>
     <string name="hide">Elrejtés</string>
-    <string name="ignored_albums_text">Válassza ki, mely albumokat szeretné elrejteni a fő Idővonalról, az Albumok lapról vagy mindkettőről.
-
-Egyenként is kiválaszthat albumokat, vagy létrehozhat egy helyettesítőmintát, amely automatikusan elrejti az arra illeszkedő albumokat.</string>
+    <string name="ignored_albums_text">Válassza ki, mely albumokat szeretné elrejteni a fő Idővonalról, az Albumok lapról vagy mindkettőről.\n\nEgyenként is kiválaszthat albumokat, vagy létrehozhat egy helyettesítőmintát, amely automatikusan elrejti az arra illeszkedő albumokat.</string>
     <string name="no_ignored_albums">Nincsenek kihagyott albumok</string>
-    <string name="wildcard_summary_first">Helyettesítőminta: %1$s
-Illeszkedő albumok: %2$s</string>
+    <string name="wildcard_summary_first">Helyettesítőminta: %1$s\nIlleszkedő albumok: %2$s</string>
     <string name="matched_albums">"Illeszkedő albumok: %1$s"</string>
     <string name="go_back">Vissza</string>
     <string name="continue_string">Folytatás</string>
@@ -915,9 +912,7 @@ Illeszkedő albumok: %2$s</string>
     <string name="unlock_album">Album feloldása</string>
     <string name="unlock_album_biometric_subtitle">Hitelesítse magát az album megtekintéséhez</string>
     <string name="locked_album_security_error">Albumok zárolása vagy feloldása előtt állítson be valamilyen telefonos biztonsági védelmet (PIN-kódot, mintát, jelszót vagy biometrikus azonosítást).</string>
-    <string name="lock_album_disclaimer">Az album zárolása csak az alkalmazáson belül, hitelesítéssel rejti el az albumot. A tartalma nem lesz titkosítva, és más alkalmazások és fájlkezelők továbbra is hozzáférhetnek.
-
-A fájlok titkosításához inkább használja a Széf funkciót.</string>
+    <string name="lock_album_disclaimer">Az album zárolása csak az alkalmazáson belül, hitelesítéssel rejti el az albumot. A tartalma nem lesz titkosítva, és más alkalmazások és fájlkezelők továbbra is hozzáférhetnek.\n\nA fájlok titkosításához inkább használja a Széf funkciót.</string>
     <string name="decrypt_failed_tap_to_retry">A visszafejtés sikertelen. Koppintson az újrapróbáláshoz.</string>
     <string name="media_load_failed_tap_to_retry">Nem sikerült betölteni ezt a médiát. Koppintson az újrapróbálkozáshoz.</string>
     <string name="other">Egyéb</string>
@@ -1290,13 +1285,7 @@ A fájlok titkosításához inkább használja a Széf funkciót.</string>
     <string name="settings_security_summary">Homokozó, titkosítás, privát mappa</string>
     <string name="security_sandbox_header">Homokozó</string>
     <string name="security_metadata_isolation">Metaadat-elkülönítési mód</string>
-    <string name="security_metadata_isolation_summary">Meghatározza, hogyan legyen elkülönítve a metaadatok feldolgozása az egyes fájlok között. Minden mód külön, engedélyek nélküli folyamatban fut – a különbség az, hogy ezt a folyamatot milyen gyakran indítja újra az alkalmazás.
-
-Megosztott folyamat – Minden fájlt egyetlen, hosszú ideig futó, elkülönített folyamat dolgoz fel. Ez a leggyorsabb megoldás, minimális többletterheléssel a médiatár vizsgálatakor. Ha egy rosszindulatú fájl összeomlasztja a feldolgozót, a folyamat automatikusan újraindul. A legtöbb felhasználónak ajánlott.
-
-Hibrid – A megnyitott fájlokhoz új, elkülönített folyamat jön létre, míg a háttérben végzett indexelés megosztott folyamatot használ. A megtekintett fájlok teljesen el vannak különítve egymástól, miközben a kötegelt műveletek gyorsak maradnak. Akkor ajánlott, ha időnként nem megbízható forrásból származó fájlokat kap.
-
-Fájlonként – Minden egyes fájl saját, elkülönített folyamatot kap, amelyet a feldolgozás után azonnal leállít az alkalmazás. Ez biztosítja a legerősebb elkülönítést és kizárja a fájlok közötti átterjedést, viszont nagy médiatárak esetén jelentősen lassabb, és a vizsgálat során több akkumulátort használ. Csak akkor ajánlott, ha rendszeresen kezel nem megbízható forrásból származó fájlokat.</string>
+    <string name="security_metadata_isolation_summary">Meghatározza, hogyan legyen elkülönítve a metaadatok feldolgozása az egyes fájlok között. Minden mód külön, engedélyek nélküli folyamatban fut – a különbség az, hogy ezt a folyamatot milyen gyakran indítja újra az alkalmazás.\n\nMegosztott folyamat – Minden fájlt egyetlen, hosszú ideig futó, elkülönített folyamat dolgoz fel. Ez a leggyorsabb megoldás, minimális többletterheléssel a médiatár vizsgálatakor. Ha egy rosszindulatú fájl összeomlasztja a feldolgozót, a folyamat automatikusan újraindul. A legtöbb felhasználónak ajánlott.\n\nHibrid – A megnyitott fájlokhoz új, elkülönített folyamat jön létre, míg a háttérben végzett indexelés megosztott folyamatot használ. A megtekintett fájlok teljesen el vannak különítve egymástól, miközben a kötegelt műveletek gyorsak maradnak. Akkor ajánlott, ha időnként nem megbízható forrásból származó fájlokat kap.\n\nFájlonként – Minden egyes fájl saját, elkülönített folyamatot kap, amelyet a feldolgozás után azonnal leállít az alkalmazás. Ez biztosítja a legerősebb elkülönítést és kizárja a fájlok közötti átterjedést, viszont nagy médiatárak esetén jelentősen lassabb, és a vizsgálat során több akkumulátort használ. Csak akkor ajánlott, ha rendszeresen kezel nem megbízható forrásból származó fájlokat.</string>
     <string name="security_metadata_isolation_shared">Megosztott folyamat</string>
     <string name="security_metadata_isolation_shared_summary">Egyetlen, újrahasznált, elkülönített folyamat az összes fájlhoz (alapértelmezett)</string>
     <string name="security_metadata_isolation_hybrid">Hibrid</string>
@@ -1305,9 +1294,7 @@ Fájlonként – Minden egyes fájl saját, elkülönített folyamatot kap, amel
     <string name="security_metadata_isolation_per_file_summary">Minden fájl saját, elkülönített folyamatot kap (legerősebb elkülönítés, lassabb)</string>
     <string name="security_sandboxed_decode">Képek dekódolása homokozóban</string>
     <string name="security_sandboxed_decode_summary">HEIF-, AVIF- és JXL-képek dekódolása elkülönített folyamatban</string>
-    <string name="security_sandboxed_decode_description">Az összetett képformátumok (HEIF, AVIF, JPEG XL) dekódolása külön, engedélyek nélküli, elkülönített folyamatba kerül. Ha a dekóder hibás fájlt talál, az nem veszélyeztetheti a fő alkalmazást.
-
-Ez kis többletterhelést (~5–15%) jelent a képek első betöltésekor, de nincs hatással a gyorsítótárazott bélyegképekre.</string>
+    <string name="security_sandboxed_decode_description">Az összetett képformátumok (HEIF, AVIF, JPEG XL) dekódolása külön, engedélyek nélküli, elkülönített folyamatba kerül. Ha a dekóder hibás fájlt talál, az nem veszélyeztetheti a fő alkalmazást.\n\nEz kis többletterhelést (~5–15%) jelent a képek első betöltésekor, de nincs hatással a gyorsítótárazott bélyegképekre.</string>
     <string name="security_enforced_by_advanced_protection">Ez a beállítás kényszerítetten engedélyezett, mert ezen az eszközön be van kapcsolva az Android Speciális védelem mód. A beállítás visszaáll a választott értékre, amikor a Speciális védelem ki van kapcsolva.</string>
     <string name="security_enforced_by_advanced_protection_short">A Speciális védelem kényszeríti</string>
     <string name="security_data_protection_header">Adatvédelem</string>
@@ -1320,17 +1307,7 @@ Ez kis többletterhelést (~5–15%) jelent a képek első betöltésekor, de ni
     <string name="security_private_folder">Privát mappa</string>
     <string name="security_private_folder_summary_none">Nincs beállítva</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Jelöljön ki egy mappát az eszközén, amely csak ebből az alkalmazásból érhető el. A tartalma teljesen rejtve marad a normál idővonal, albumok és keresési eredmények elől.
-
-Működése – A mappa a Storage Access Framework (SAF) segítségével érhető el, ezért a tartalmát nem indexeli a rendszer médiakeresője, és nem jelenik meg a MediaStore-ra támaszkodó más galériaalkalmazásokban vagy fájlkezelőkben. Mappa kiválasztásakor az alkalmazás automatikusan létrehoz benne egy .nomedia fájlt, hogy az Android ne vizsgálja át a tartalmát. Így a mappában lévő fényképek és videók rejtve maradnak minden más alkalmazás elől.
-
-Hol található – A beállítás után az albumlistában megjelenik egy „Privát mappa” bejegyzés. Ha az alkalmazászárolás engedélyezve van, a megnyitáshoz hitelesítés szükséges.
-
-Mit tehet benne – Böngészheti, megtekintheti és törölheti a privát mappában lévő fényképeket és videókat. A fájlok külön médiamegjelenítőben jelennek meg, amely a fő galéria ugyanazon funkcióit kínálja (nagyítás, lapozás, metaadatok).
-
-Mappa kiválasztása – Bármely, az eszköz által engedélyezett mappát kiválaszthatja, beleértve a belső tárhelyet, az SD-kártyát és az USB-meghajtót is. Az alkalmazás újraindítás után is megőrzi a választását. A mappát bármikor módosíthatja vagy eltávolíthatja anélkül, hogy a fájlok megváltoznának.
-
-Fontos – Ne törölje a privát mappában lévő .nomedia fájlt. Ha eltávolítja, az Android újra átvizsgálja a mappát, és a tartalma más galériaalkalmazásokban is megjelenhet. Az alkalmazás a privát mappa beállításainak következő megnyitásakor automatikusan újra létrehozza a fájlt.</string>
+    <string name="security_private_folder_description">Jelöljön ki egy mappát az eszközén, amely csak ebből az alkalmazásból érhető el. A tartalma teljesen rejtve marad a normál idővonal, albumok és keresési eredmények elől.\n\nMűködése – A mappa a Storage Access Framework (SAF) segítségével érhető el, ezért a tartalmát nem indexeli a rendszer médiakeresője, és nem jelenik meg a MediaStore-ra támaszkodó más galériaalkalmazásokban vagy fájlkezelőkben. Mappa kiválasztásakor az alkalmazás automatikusan létrehoz benne egy .nomedia fájlt, hogy az Android ne vizsgálja át a tartalmát. Így a mappában lévő fényképek és videók rejtve maradnak minden más alkalmazás elől.\n\nHol található – A beállítás után az albumlistában megjelenik egy „Privát mappa” bejegyzés. Ha az alkalmazászárolás engedélyezve van, a megnyitáshoz hitelesítés szükséges.\n\nMit tehet benne – Böngészheti, megtekintheti és törölheti a privát mappában lévő fényképeket és videókat. A fájlok külön médiamegjelenítőben jelennek meg, amely a fő galéria ugyanazon funkcióit kínálja (nagyítás, lapozás, metaadatok).\n\nMappa kiválasztása – Bármely, az eszköz által engedélyezett mappát kiválaszthatja, beleértve a belső tárhelyet, az SD-kártyát és az USB-meghajtót is. Az alkalmazás újraindítás után is megőrzi a választását. A mappát bármikor módosíthatja vagy eltávolíthatja anélkül, hogy a fájlok megváltoznának.\n\nFontos – Ne törölje a privát mappában lévő .nomedia fájlt. Ha eltávolítja, az Android újra átvizsgálja a mappát, és a tartalma más galériaalkalmazásokban is megjelenhet. Az alkalmazás a privát mappa beállításainak következő megnyitásakor automatikusan újra létrehozza a fájlt.</string>
     <string name="security_private_folder_status_active">Mappa beállítva</string>
     <string name="security_private_folder_status_none">Nincs kiválasztott mappa</string>
     <string name="security_private_folder_pick">Mappa kiválasztása</string>
@@ -1859,15 +1836,15 @@ Fontos – Ne törölje a privát mappában lévő .nomedia fájlt. Ha eltávol�
     <string name="cloud_adv_clear_cache">Kép-gyorsítótár törlése</string>
     <string name="cloud_adv_clearing_cache">Törlés…</string>
     <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_photos">Photos</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_load_preview_summary">Load medium-quality preview when opening a photo</string>
-    <string name="cloud_viewer_load_original">Load original image</string>
-    <string name="cloud_viewer_load_original_summary">Automatically load the full-resolution original</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_autoplay">Auto play videos</string>
-    <string name="cloud_viewer_autoplay_summary">Start playing videos automatically when opened</string>
+    <string name="cloud_viewer">Médiamegjelenítő beállításai</string>
+    <string name="cloud_viewer_photos">Fényképek</string>
+    <string name="cloud_viewer_load_preview">Előnézeti kép betöltése</string>
+    <string name="cloud_viewer_load_preview_summary">Közepes minőségű előnézet betöltése fénykép megnyitásakor</string>
+    <string name="cloud_viewer_load_original">Eredeti kép betöltése</string>
+    <string name="cloud_viewer_load_original_summary">A teljes felbontású eredeti automatikus betöltése</string>
+    <string name="cloud_viewer_videos">Videók</string>
+    <string name="cloud_viewer_autoplay">Videók automatikus lejátszása</string>
+    <string name="cloud_viewer_autoplay_summary">A videók automatikus lejátszásának megkezdése megnyitáskor</string>
     <string name="cloud_viewer_loop">Videók ismétlése</string>
     <string name="cloud_viewer_loop_summary">A videók újraindítása, amikor a végükre érnek</string>
     <string name="cloud_viewer_force_original">Eredeti videó használata</string>
@@ -1876,59 +1853,59 @@ Fontos – Ne törölje a privát mappában lévő .nomedia fájlt. Ha eltávol�
     <string name="cloud_viewer_recommended_summary">Előnézet be · eredeti ki · automatikus lejátszás be · ismétlés nincs</string>
     <string name="cloud_accounts">Felhőalapú fiókok</string>
     <!-- Cloud Accounts Screen (redesigned) -->
-    <string name="cloud_synced_items">Connected | Synced %1$d items</string>
-    <string name="cloud_add_provider">Add %1$s</string>
+    <string name="cloud_synced_items">Csatlakoztatva | Szinkronizálva: %1$d elem</string>
+    <string name="cloud_add_provider">%1$s hozzáadása</string>
     <!-- Cloud Provider Settings Screen -->
-    <string name="cloud_provider_settings">Cloud Settings</string>
-    <string name="cloud_server_url_label">Server URL</string>
-    <string name="cloud_server_version_label">Server Version</string>
-    <string name="cloud_sync_now_summary">Fetch latest media and albums</string>
-    <string name="cloud_auto_sync">Auto-sync</string>
-    <string name="cloud_auto_sync_summary">Periodically sync media and albums</string>
-    <string name="cloud_wifi_only_summary">Sync your media only when connected to a Wi-Fi network</string>
-    <string name="cloud_connection_header">Connection</string>
-    <string name="cloud_credentials">Credentials</string>
-    <string name="cloud_credentials_summary">Change or update your server credentials.\nUpdating them will result in cache invalidation.</string>
-    <string name="cloud_delete_provider">Delete Cloud Provider</string>
-    <string name="cloud_auto_sync_interval">Sync interval</string>
-    <string name="cloud_auto_sync_interval_summary">How often to sync media automatically</string>
-    <string name="cloud_sync_interval_15min">Every 15 minutes</string>
-    <string name="cloud_sync_interval_30min">Every 30 minutes</string>
-    <string name="cloud_sync_interval_1hr">Every hour</string>
-    <string name="cloud_sync_interval_6hr">Every 6 hours</string>
-    <string name="cloud_sync_interval_12hr">Every 12 hours</string>
-    <string name="cloud_sync_interval_24hr">Every 24 hours</string>
+    <string name="cloud_provider_settings">Felhőbeállítások</string>
+    <string name="cloud_server_url_label">Kiszolgáló URL-je</string>
+    <string name="cloud_server_version_label">Kiszolgálóverzió</string>
+    <string name="cloud_sync_now_summary">Legújabb médiatartalmak és albumok lekérése</string>
+    <string name="cloud_auto_sync">Automatikus szinkronizálás</string>
+    <string name="cloud_auto_sync_summary">Médiatartalmak és albumok rendszeres szinkronizálása</string>
+    <string name="cloud_wifi_only_summary">Médiatartalmak szinkronizálása csak Wi-Fi-hálózathoz csatlakozva</string>
+    <string name="cloud_connection_header">Kapcsolat</string>
+    <string name="cloud_credentials">Hitelesítő adatok</string>
+    <string name="cloud_credentials_summary">A kiszolgáló hitelesítő adatainak módosítása vagy frissítése.\nFrissítésük érvényteleníti a gyorsítótárat.</string>
+    <string name="cloud_delete_provider">Felhőszolgáltató törlése</string>
+    <string name="cloud_auto_sync_interval">Szinkronizálási időköz</string>
+    <string name="cloud_auto_sync_interval_summary">Milyen gyakran történjen automatikusan a médiatartalmak szinkronizálása</string>
+    <string name="cloud_sync_interval_15min">15 percenként</string>
+    <string name="cloud_sync_interval_30min">30 percenként</string>
+    <string name="cloud_sync_interval_1hr">Óránként</string>
+    <string name="cloud_sync_interval_6hr">6 óránként</string>
+    <string name="cloud_sync_interval_12hr">12 óránként</string>
+    <string name="cloud_sync_interval_24hr">24 óránként</string>
     <string name="enabled">Engedélyezve</string>
     <string name="disabled">Letiltva</string>
     <!-- Upload Details -->
-    <string name="cloud_upload_details">Upload Details</string>
-    <string name="cloud_upload_details_idle">No active uploads</string>
-    <string name="cloud_upload_details_empty">Start a backup to see upload progress here</string>
+    <string name="cloud_upload_details">Feltöltés részletei</string>
+    <string name="cloud_upload_details_idle">Nincs aktív feltöltés</string>
+    <string name="cloud_upload_details_empty">Indítson biztonsági mentést a feltöltés folyamatának megtekintéséhez</string>
     <string name="cloud_upload_ready">Kész a biztonsági mentésre</string>
     <string name="cloud_upload_group_summary">%1$d tétel \u00b7 %2$s</string>
     <string name="cloud_upload_pending_total">%1$d tétel \u00b7 %2$s a biztonsági mentéshez</string>
     <string name="cloud_upload_nothing_pending">Minden biztonsági mentve</string>
-    <string name="cloud_upload_details_not_running">Upload idle</string>
-    <string name="cloud_upload_uploading_count">Uploading %1$d of %2$d</string>
-    <string name="cloud_upload_completed_count">%1$d completed</string>
-    <string name="cloud_upload_failed_count">%1$d failed</string>
-    <string name="cloud_upload_item_done">Completed</string>
-    <string name="cloud_upload_item_failed">Failed</string>
-    <string name="cloud_upload_item_uploading">Uploading…</string>
-    <string name="cloud_upload_item_pending">Waiting…</string>
+    <string name="cloud_upload_details_not_running">Nincs folyamatban feltöltés</string>
+    <string name="cloud_upload_uploading_count">Feltöltés: %1$d / %2$d</string>
+    <string name="cloud_upload_completed_count">%1$d kész</string>
+    <string name="cloud_upload_failed_count">%1$d sikertelen</string>
+    <string name="cloud_upload_item_done">Kész</string>
+    <string name="cloud_upload_item_failed">Sikertelen</string>
+    <string name="cloud_upload_item_uploading">Feltöltés…</string>
+    <string name="cloud_upload_item_pending">Várakozás…</string>
     <!-- Person birthday -->
-    <string name="cloud_person_add_birthday">Add a birthday</string>
-    <string name="cloud_person_edit_birthday">Edit birthday</string>
-    <string name="cloud_person_birthday_hint">Birthday</string>
-    <string name="cloud_person_birthday_set">Birthday: %1$s</string>
+    <string name="cloud_person_add_birthday">Születésnap hozzáadása</string>
+    <string name="cloud_person_edit_birthday">Születésnap szerkesztése</string>
+    <string name="cloud_person_birthday_hint">Születésnap</string>
+    <string name="cloud_person_birthday_set">Születésnap: %1$s</string>
     <!-- Networking editing -->
-    <string name="cloud_net_current_server">Current server address</string>
-    <string name="cloud_net_edit_wifi">Edit Wi-Fi name</string>
-    <string name="cloud_net_edit_local_url">Edit local server URL</string>
-    <string name="cloud_net_use_current">Use current connection</string>
-    <string name="cloud_net_add_external">Add external URL</string>
+    <string name="cloud_net_current_server">Jelenlegi kiszolgáló címe</string>
+    <string name="cloud_net_edit_wifi">Wi-Fi-név szerkesztése</string>
+    <string name="cloud_net_edit_local_url">Helyi kiszolgáló URL-jének szerkesztése</string>
+    <string name="cloud_net_use_current">Jelenlegi kapcsolat használata</string>
+    <string name="cloud_net_add_external">Külső URL hozzáadása</string>
     <string name="cloud_net_external_hint">https://immich.example.com</string>
-    <string name="cloud_net_remove">Remove</string>
+    <string name="cloud_net_remove">Eltávolítás</string>
     <!-- Wi-Fi SSID picker sheet -->
     <string name="cloud_net_pick_wifi">Wi-Fi hálózat kiválasztása</string>
     <string name="cloud_net_wifi_sheet_desc">Válassza ki a csatlakoztatott Wi-Fi-t vagy írjon be egy nevet. Hagyja üresen a hálózatváltás letiltásához.</string>
