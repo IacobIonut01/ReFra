@@ -1,0 +1,14 @@
+What's new in 5.1.4:
+
+• Choose whether copy, rename, edit and rotate operations update modified dates
+
+Improvements:
+
+• Added Android 16 KB native page support and safer JPEG 2000 builds
+• Added one-click Obtainium installation
+
+Bug fixes:
+
+• Fixed cloud cleanup, account removal, full-library refresh and NAS reconnection
+• Fixed maps, location names, editor markup, search sorting and Smart Features
+• Improved predictive back, external viewer reuse, the timeline scrubber and album layouts
