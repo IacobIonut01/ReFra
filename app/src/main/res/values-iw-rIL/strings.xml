@@ -81,6 +81,12 @@
     <string name="map_appearance_light">אור</string>
     <string name="map_appearance_dark">כהה</string>
     <string name="map_appearance_action">שנה את מראה המפה</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">תמונות במיקום זה</string>
     <string name="map_cluster_count">תמונות %1$d</string>
     <string name="map_marker_photo">תמונה על המפה</string>
@@ -1083,6 +1089,8 @@
     <string name="folders_combined_description">מדיה מתיקיות %1$d מוצגת יחד לפי שם ומבנה תיקיות.</string>
     <string name="merge_albums_by_name">מיזוג אלבומים לפי שם</string>
     <string name="merge_albums_by_name_summary">אלבומים עם אותו שם מוצגים כאחד. הם עדיין קיימים בתיקיות נפרדות.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">מיזוג תתי-תיקיות</string>
     <string name="unmerge_subfolders">פירוק מיזוג תתי-תיקיות</string>
     <string name="merge_parent_subfolders">מיזוג תיקיות משנה של תיקיית אב</string>
@@ -1415,9 +1423,9 @@
     <string name="cloud_add_nfs">הוסף שיתוף NFS</string>
     <string name="cloud_owncloud_variants">גרסאות ownCloud</string>
     <string name="cloud_network_shares">שיתופי רשת</string>
-    <string name="cloud_network_share_lan_note">שיתופי רשת זמינים ברשת המקומית שלך בלבד.</string>
-    <string name="cloud_lan_only">LAN בלבד</string>
-    <string name="cloud_lan_offline_warning">לא ב-Wi-Fi. שיתופי רשת (SMB/NFS) זמינים רק ברשת המקומית שלך.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">תמונות</string>
     <string name="cloud_cap_remote_albums">אלבומים</string>
     <string name="cloud_cap_sync">סנכרון</string>
@@ -1566,6 +1574,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1782,6 +1792,9 @@
     <string name="cloud_free_space_verified_count">אומתו %1$d עותקים מקומיים בכל יעד שהוגדר.</string>
     <string name="cloud_local_deletion_unavailable">המחיקה המקומית אינה זמינה באופן זמני בזמן ששדרוג בדיקות הבטיחות של הגיבוי מתבצע.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">העדפות</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
