@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Světlý</string>
     <string name="map_appearance_dark">Tmavý</string>
     <string name="map_appearance_action">Změnit vzhled mapy</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Fotografie v této lokalitě</string>
     <string name="map_cluster_count">Fotografie %1$d</string>
     <string name="map_marker_photo">Foto na mapě</string>
@@ -1085,6 +1091,8 @@
     <string name="folders_combined_description">Média ze složek %1$d se zobrazují společně podle názvu a struktury složek.</string>
     <string name="merge_albums_by_name">Sloučit alba podle názvu</string>
     <string name="merge_albums_by_name_summary">Alba se stejným názvem se zobrazují jako jedno. Stále existují v samostatných složkách.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Sloučit podsložky</string>
     <string name="unmerge_subfolders">Zrušit sloučení podsložek</string>
     <string name="merge_parent_subfolders">Sloučit podsložky nadřazené složky</string>
@@ -1417,9 +1425,9 @@
     <string name="cloud_add_nfs">Přidat sdílení NFS</string>
     <string name="cloud_owncloud_variants">vlastní cloudové varianty</string>
     <string name="cloud_network_shares">Síťové sdílení</string>
-    <string name="cloud_network_share_lan_note">Síťové sdílené položky jsou dostupné pouze ve vaší místní síti.</string>
-    <string name="cloud_lan_only">Pouze LAN</string>
-    <string name="cloud_lan_offline_warning">Ne na Wi-Fi. Síťové sdílené položky (SMB/NFS) jsou dostupné pouze ve vaší místní síti.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Fotografie</string>
     <string name="cloud_cap_remote_albums">alba</string>
     <string name="cloud_cap_sync">Synchronizovat</string>
@@ -1568,6 +1576,8 @@
     <string name="cloud_provider_not_available">Poskytovatel není k dispozici. Je povolen v sestavení?</string>
     <string name="cloud_delete_confirm_title">Odstranit server?</string>
     <string name="cloud_delete_confirm_action">Odstranit</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Nahrát do cloudu</string>
     <string name="cloud_select_album_upload">Vyberte alba k nahrání</string>
     <string name="cloud_delete_local_after_upload">Odstranit místní kopii</string>
@@ -1784,6 +1794,9 @@
     <string name="cloud_free_space_verified_count">Na všech nakonfigurovaných cílech bylo ověřeno %1$d místních kopií.</string>
     <string name="cloud_local_deletion_unavailable">Místní mazání je dočasně nedostupné, protože se aktualizují bezpečnostní kontroly záloh.</string>
     <string name="cloud_free_space_remove_count">Odstranit %1$d místních kopií</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Předvolby</string>
     <!-- Memories -->
     <string name="cloud_memories">Vzpomínky</string>
