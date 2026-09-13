@@ -81,6 +81,12 @@
     <string name="map_appearance_light">আলো</string>
     <string name="map_appearance_dark">অন্ধকার</string>
     <string name="map_appearance_action">মানচিত্রের চেহারা পরিবর্তন করুন</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">এই অবস্থানে ফটো</string>
     <string name="map_cluster_count">%1$d ছবি</string>
     <string name="map_marker_photo">মানচিত্রে ফটো</string>
@@ -1081,6 +1087,8 @@
     <string name="folders_combined_description">%1$d ফোল্ডার থেকে মিডিয়া নাম এবং ফোল্ডার গঠন দ্বারা একসাথে দেখানো হয়।</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">মূল ফোল্ডারের সাবফোল্ডার মার্জ করুন</string>
@@ -1413,9 +1421,9 @@
     <string name="cloud_add_nfs">NFS শেয়ার যোগ করুন</string>
     <string name="cloud_owncloud_variants">নিজস্ব ক্লাউড ভেরিয়েন্ট</string>
     <string name="cloud_network_shares">নেটওয়ার্ক শেয়ার</string>
-    <string name="cloud_network_share_lan_note">নেটওয়ার্ক শেয়ার শুধুমাত্র আপনার স্থানীয় নেটওয়ার্কে পৌঁছানো যায়।</string>
-    <string name="cloud_lan_only">শুধুমাত্র LAN</string>
-    <string name="cloud_lan_offline_warning">Wi-Fi-এ নয়। নেটওয়ার্ক শেয়ার (SMB/NFS) শুধুমাত্র আপনার স্থানীয় নেটওয়ার্কে পৌঁছানো যায়।</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">ফটো</string>
     <string name="cloud_cap_remote_albums">অ্যালবাম</string>
     <string name="cloud_cap_sync">সিঙ্ক</string>
@@ -1564,6 +1572,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1780,6 +1790,9 @@
     <string name="cloud_free_space_verified_count">প্রতিটি কনফিগার করা গন্তব্যে %1$dটি স্থানীয় কপি যাচাই করা হয়েছে।</string>
     <string name="cloud_local_deletion_unavailable">ব্যাকআপ নিরাপত্তা পরীক্ষা আপগ্রেড করার সময় স্থানীয়ভাবে মুছে ফেলা সাময়িকভাবে অনুপলভ্য।</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">পছন্দসমূহ</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
