@@ -81,6 +81,12 @@
     <string name="map_appearance_light">빛</string>
     <string name="map_appearance_dark">어둠</string>
     <string name="map_appearance_action">지도 모양 변경</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">이 위치의 사진</string>
     <string name="map_cluster_count">%1$d장의 사진</string>
     <string name="map_marker_photo">지도상의 사진</string>
@@ -1079,6 +1085,8 @@
     <string name="folders_combined_description">%1$d개 폴더의 미디어가 이름 및 폴더 구조별로 함께 표시됩니다.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">상위 폴더의 하위 폴더 병합</string>
@@ -1411,9 +1419,9 @@
     <string name="cloud_add_nfs">NFS 공유 추가</string>
     <string name="cloud_owncloud_variants">ownCloud 변형</string>
     <string name="cloud_network_shares">네트워크 공유</string>
-    <string name="cloud_network_share_lan_note">네트워크 공유는 로컬 네트워크에서만 연결할 수 있습니다.</string>
-    <string name="cloud_lan_only">LAN 전용</string>
-    <string name="cloud_lan_offline_warning">Wi-Fi에는 없습니다. 네트워크 공유(SMB/NFS)는 로컬 네트워크에서만 연결할 수 있습니다.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">사진</string>
     <string name="cloud_cap_remote_albums">앨범</string>
     <string name="cloud_cap_sync">동기화</string>
@@ -1562,6 +1570,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1778,6 +1788,9 @@
     <string name="cloud_free_space_verified_count">구성된 모든 대상에서 로컬 사본 %1$d개를 확인했습니다.</string>
     <string name="cloud_local_deletion_unavailable">백업 안전 검사를 업그레이드하는 동안 로컬 삭제를 일시적으로 사용할 수 없습니다.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">환경설정</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
