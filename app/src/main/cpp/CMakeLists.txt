@@ -32,6 +32,22 @@ find_library(dl-lib dl)
 add_library(metadata_brotli SHARED metadata_brotli_jni.cpp)
 target_link_libraries(metadata_brotli ${dl-lib})
 
+set(JP2_PREBUILT "${CMAKE_CURRENT_SOURCE_DIR}/jp2codec/${ANDROID_ABI}")
+add_library(openjpeg SHARED jp2_bridge_jni.cpp)
+if(EXISTS "${JP2_PREBUILT}/lib/libopenjpeg.a")
+    message(STATUS "openjpeg: using source-built static codec for ${ANDROID_ABI}")
+    target_link_libraries(openjpeg
+            "-Wl,--whole-archive"
+            "${JP2_PREBUILT}/lib/libopenjpeg.a"
+            "-Wl,--no-whole-archive"
+            ${log-lib})
+else()
+    message(WARNING "openjpeg: no source-built codec for ${ANDROID_ABI}; building stub. "
+            "Run scripts/native/build-jp2.sh all to enable JPEG 2000 decode for every ABI.")
+    target_link_libraries(openjpeg ${log-lib})
+endif()
+target_link_options(openjpeg PRIVATE "-Wl,-z,max-page-size=16384")
+
 if(EXISTS "${HEIF_PREBUILT}/lib/libheif.a" AND EXISTS "${HEIF_PREBUILT}/lib/libde265.a")
     message(STATUS "heiftiles: using prebuilt libheif for ${ANDROID_ABI}")
 

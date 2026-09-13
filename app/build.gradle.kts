@@ -64,7 +64,8 @@ val nativeStacks = listOf(
     Triple("Heif", "build-heif.sh", "heif"),
     Triple("Imgcodec", "build-imgcodec.sh", "imgcodec"),
     Triple("HeifEncode", "build-heif-encode.sh", "heifenc"),
-    Triple("Libraw", "build-libraw.sh", "rawcodec")
+    Triple("Libraw", "build-libraw.sh", "rawcodec"),
+    Triple("Jp2", "build-jp2.sh", "jp2codec")
 )
 val nativeAbiTaskSuffixes = mapOf(
     "arm64-v8a" to "Arm64V8a",
@@ -82,7 +83,8 @@ val nativeSourceOverrides = listOf(
     "X265_SOURCE_DIR",
     "AOM_SOURCE_DIR",
     "LIBRAW_SOURCE_DIR",
-    "LIBTIFF_SOURCE_DIR"
+    "LIBTIFF_SOURCE_DIR",
+    "JP2FORANDROID_SOURCE_DIR"
 )
 val nativeTasksByAbi = nativeAbiTaskSuffixes.mapValues { (abi, suffix) ->
     nativeStacks.map { (stack, scriptName, outputName) ->
@@ -174,6 +176,7 @@ android {
                 // Only the tiny JNI is compiled here; libheif/libde265 are linked as prebuilt
                 // static libs, so this stays fast.
                 cppFlags += "-std=c++17"
+                arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
             }
         }
     }
@@ -502,7 +505,6 @@ dependencies {
     // Coders
     implementation(libs.jxl.coder.coil)
     implementation(libs.avif.coder.coil)
-    implementation(libs.jp2forandroid)
     implementation(libs.androidsvg)
     implementation(libs.nga.tiff)
 

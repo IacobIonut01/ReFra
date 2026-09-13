@@ -63,6 +63,12 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      - name: Verify 16 KB alignment
+        if: matrix.arch == 'Arm64-v8a' || matrix.arch == 'X86_64' || matrix.arch == 'Universal'
+        run: |
+          for apk in app/build/outputs/apk-renamed/*/*/*.apk; do
+            scripts/verify-16kb-alignment.sh "$apk"
+          done
       - uses: actions/upload-artifact@v5
         with:
           name: offline-${{ matrix.arch }}
@@ -105,6 +111,12 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      - name: Verify 16 KB alignment
+        if: matrix.arch == 'Arm64-v8a' || matrix.arch == 'X86_64' || matrix.arch == 'Universal'
+        run: |
+          for apk in app/build/outputs/apk-renamed/*/*/*.apk; do
+            scripts/verify-16kb-alignment.sh "$apk"
+          done
       - uses: actions/upload-artifact@v5
         with:
           name: withml-${{ matrix.arch }}
@@ -146,6 +158,12 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           CARTO_BASEMAP_KEY: ${{ secrets.CARTO_BASEMAP_KEY }}
+      - name: Verify 16 KB alignment
+        if: matrix.arch == 'Arm64-v8a' || matrix.arch == 'X86_64' || matrix.arch == 'Universal'
+        run: |
+          for apk in app/build/outputs/apk-renamed/*/*/*.apk; do
+            scripts/verify-16kb-alignment.sh "$apk"
+          done
       - uses: actions/upload-artifact@v5
         with:
           name: maps-${{ matrix.arch }}
@@ -184,6 +202,8 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           CARTO_BASEMAP_KEY: ${{ secrets.CARTO_BASEMAP_KEY }}
+      - name: Verify 16 KB alignment
+        run: scripts/verify-16kb-alignment.sh app/build/outputs/bundle/universalWithMLGplay/*.aab
       - uses: r0adkll/upload-google-play@v1
         continue-on-error: true
         with:

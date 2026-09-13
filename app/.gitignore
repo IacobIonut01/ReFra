@@ -17,3 +17,5 @@
 # Prebuilt native LibRaw/libtiff/libjpeg/zlib static libs + headers (large, regenerable).
 # Produced by scripts/native/build-libraw.sh; not committed to avoid repo bloat.
 /src/main/cpp/rawcodec/
+
+/src/main/cpp/jp2codec/
