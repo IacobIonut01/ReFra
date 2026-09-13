@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Світлий</string>
     <string name="map_appearance_dark">Темний</string>
     <string name="map_appearance_action">Змінити вигляд карти</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Фотографії в цьому місці</string>
     <string name="map_cluster_count">%1$d фотографій</string>
     <string name="map_marker_photo">Фотографія на карті</string>
@@ -1085,6 +1091,8 @@
     <string name="folders_combined_description">Медіа з %1$d папок показано разом за назвою та структурою папок.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">Об\'єднати підпапки батьківської папки</string>
@@ -1417,9 +1425,9 @@
     <string name="cloud_add_nfs">Додати NFS-поширення</string>
     <string name="cloud_owncloud_variants">Варіанти ownCloud</string>
     <string name="cloud_network_shares">Мережеві поширення</string>
-    <string name="cloud_network_share_lan_note">Мережеві поширення доступні тільки у вашій локальній мережі.</string>
-    <string name="cloud_lan_only">Тільки LAN</string>
-    <string name="cloud_lan_offline_warning">Не підключено до Wi-Fi. Мережеві поширення (SMB/NFS) доступні тільки у вашій локальній мережі.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Фотографії</string>
     <string name="cloud_cap_remote_albums">Альбоми</string>
     <string name="cloud_cap_sync">Синхронізація</string>
@@ -1568,6 +1576,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1784,6 +1794,9 @@
     <string name="cloud_free_space_verified_count">Перевірено локальних копій в усіх налаштованих місцях призначення: %1$d.</string>
     <string name="cloud_local_deletion_unavailable">Локальне видалення тимчасово недоступне, поки оновлюються перевірки безпеки резервних копій.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Налаштування</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
