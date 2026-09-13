@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Llum</string>
     <string name="map_appearance_dark">Fosc</string>
     <string name="map_appearance_action">Canvia l\'aparença del mapa</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Fotos en aquesta ubicació</string>
     <string name="map_cluster_count">Fotos %1$d</string>
     <string name="map_marker_photo">Foto al mapa</string>
@@ -1081,6 +1087,8 @@
     <string name="folders_combined_description">Els mitjans de les carpetes %1$d es mostren junts per nom i estructura de carpetes.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">Combina subcarpetes de la carpeta principal</string>
@@ -1413,9 +1421,9 @@
     <string name="cloud_add_nfs">Afegeix compartició NFS</string>
     <string name="cloud_owncloud_variants">variants ownCloud</string>
     <string name="cloud_network_shares">Comparticions de xarxa</string>
-    <string name="cloud_network_share_lan_note">Les comparticions de xarxa només són accessibles a la vostra xarxa local.</string>
-    <string name="cloud_lan_only">Només LAN</string>
-    <string name="cloud_lan_offline_warning">No a Wi-Fi. Les comparticions de xarxa (SMB/NFS) només són accessibles a la vostra xarxa local.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Fotos</string>
     <string name="cloud_cap_remote_albums">Àlbums</string>
     <string name="cloud_cap_sync">Sincronització</string>
@@ -1564,6 +1572,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1780,6 +1790,9 @@
     <string name="cloud_free_space_verified_count">S’han verificat %1$d còpies locals a totes les destinacions configurades.</string>
     <string name="cloud_local_deletion_unavailable">La supressió local no està disponible temporalment mentre s’actualitzen les comprovacions de seguretat de les còpies de seguretat.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Preferències</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
