@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Φωτεινό</string>
     <string name="map_appearance_dark">Σκούρο</string>
     <string name="map_appearance_action">Αλλαγή εμφάνισης χάρτη</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Φωτογραφίες σε αυτήν την τοποθεσία</string>
     <string name="map_cluster_count">%1$d φωτογραφίες</string>
     <string name="map_marker_photo">Φωτογραφία στο χάρτη</string>
@@ -1081,6 +1087,8 @@
     <string name="folders_combined_description">Τα μέσα από %1$d φακέλους εμφανίζονται μαζί κατά όνομα και δομή φακέλων.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">Συγχώνευση υποφακέλων του κύριου φακέλου</string>
@@ -1413,9 +1421,9 @@
     <string name="cloud_add_nfs">Προσθήκη κοινόχρηστου NFS</string>
     <string name="cloud_owncloud_variants">Παραλλαγές ownCloud</string>
     <string name="cloud_network_shares">Κοινόχρηστα δίκτυα</string>
-    <string name="cloud_network_share_lan_note">Τα κοινόχρηστα δίκτυα είναι προσβάσιμα μόνο στο τοπικό σας δίκτυο.</string>
-    <string name="cloud_lan_only">Μόνο LAN</string>
-    <string name="cloud_lan_offline_warning">Όχι σε Wi-Fi. Τα κοινόχρηστα δίκτυα (SMB/NFS) είναι προσβάσιμα μόνο στο τοπικό σας δίκτυο.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Φωτογραφίες</string>
     <string name="cloud_cap_remote_albums">Άλμπουμ</string>
     <string name="cloud_cap_sync">Συγχρονισμός</string>
@@ -1564,6 +1572,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1780,6 +1790,9 @@
     <string name="cloud_free_space_verified_count">Επαληθεύτηκαν %1$d τοπικά αντίγραφα σε κάθε διαμορφωμένο προορισμό.</string>
     <string name="cloud_local_deletion_unavailable">Η τοπική διαγραφή δεν είναι προσωρινά διαθέσιμη όσο αναβαθμίζονται οι έλεγχοι ασφαλείας αντιγράφων ασφαλείας.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Προτιμήσεις</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
