@@ -81,6 +81,12 @@
     <string name="map_appearance_light">浅色</string>
     <string name="map_appearance_dark">黑暗</string>
     <string name="map_appearance_action">更改地图外观</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">该位置的照片</string>
     <string name="map_cluster_count">%1$d 张照片</string>
     <string name="map_marker_photo">地图上的照片</string>
@@ -1079,6 +1085,8 @@
     <string name="folders_combined_description">来自 %1$d 个文件夹的媒体按名称和文件夹结构一起显示。</string>
     <string name="merge_albums_by_name">按名称合并相册</string>
     <string name="merge_albums_by_name_summary">名称相同的相册将显示为一个。它们仍储存在不同的文件夹中。</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">合并子文件夹</string>
     <string name="unmerge_subfolders">取消合并子文件夹</string>
     <string name="merge_parent_subfolders">合并父文件夹的子文件夹</string>
@@ -1411,9 +1419,9 @@
     <string name="cloud_add_nfs">添加 NFS 共享</string>
     <string name="cloud_owncloud_variants">ownCloud 变体</string>
     <string name="cloud_network_shares">网络共享</string>
-    <string name="cloud_network_share_lan_note">网络共享仅可在本地网络访问。</string>
-    <string name="cloud_lan_only">仅限局域网</string>
-    <string name="cloud_lan_offline_warning">未连接 Wi-Fi。网络共享（SMB/NFS）仅可在本地网络访问。</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">照片</string>
     <string name="cloud_cap_remote_albums">相册</string>
     <string name="cloud_cap_sync">同步</string>
@@ -1562,6 +1570,8 @@
     <string name="cloud_provider_not_available">提供商不可用。您是否在构建中启用了它？</string>
     <string name="cloud_delete_confirm_title">移除服务器？</string>
     <string name="cloud_delete_confirm_action">移除</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">上传到云端</string>
     <string name="cloud_select_album_upload">选择要上传的相册</string>
     <string name="cloud_delete_local_after_upload">删除本地副本</string>
@@ -1778,6 +1788,9 @@
     <string name="cloud_free_space_verified_count">已在所有配置的目标中验证 %1$d 个本地副本。</string>
     <string name="cloud_local_deletion_unavailable">备份安全检查升级期间，本地删除功能暂时不可用。</string>
     <string name="cloud_free_space_remove_count">删除 %1$d 本地副本</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">偏好设置</string>
     <!-- Memories -->
     <string name="cloud_memories">回忆</string>
