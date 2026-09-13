@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Svijetlo</string>
     <string name="map_appearance_dark">Tamno</string>
     <string name="map_appearance_action">Promijeni izgled karte</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Fotografije na ovoj lokaciji</string>
     <string name="map_cluster_count">%1$d fotografije</string>
     <string name="map_marker_photo">Fotografija na karti</string>
@@ -1083,6 +1089,8 @@
     <string name="folders_combined_description">Mediji iz %1$d mapa prikazuju se zajedno po imenu i strukturi mape.</string>
     <string name="merge_albums_by_name">Spoji albume prema nazivu</string>
     <string name="merge_albums_by_name_summary">Albumi s istim nazivom prikazuju se kao jedan. Oni i dalje postoje u odvojenim mapama.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Spoji podmape</string>
     <string name="unmerge_subfolders">Razdvoji podmape</string>
     <string name="merge_parent_subfolders">Spoji podfoldere glavne mape</string>
@@ -1415,9 +1423,9 @@
     <string name="cloud_add_nfs">Dodaj NFS zajedničku mapu</string>
     <string name="cloud_owncloud_variants">varijante ownClouda</string>
     <string name="cloud_network_shares">Mrežni dijelovi</string>
-    <string name="cloud_network_share_lan_note">Mrežni dijelovi su dostupni samo na vašoj lokalnoj mreži.</string>
-    <string name="cloud_lan_only">Samo LAN</string>
-    <string name="cloud_lan_offline_warning">Ne na Wi-Fi. Mrežni dijelovi (SMB/NFS) dostupni su samo na vašoj lokalnoj mreži.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Fotografije</string>
     <string name="cloud_cap_remote_albums">Albumi</string>
     <string name="cloud_cap_sync">Sinkronizacija</string>
@@ -1566,6 +1574,8 @@
     <string name="cloud_provider_not_available">Pružatelj usluge nije dostupan. Je li omogućen u verziji aplikacije?</string>
     <string name="cloud_delete_confirm_title">Ukloniti poslužitelj?</string>
     <string name="cloud_delete_confirm_action">Ukloni</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Prenesi u oblak</string>
     <string name="cloud_select_album_upload">Odaberite albume za prijenos</string>
     <string name="cloud_delete_local_after_upload">Izbriši lokalnu kopiju</string>
@@ -1782,6 +1792,9 @@
     <string name="cloud_free_space_verified_count">Potvrđeno je %1$d lokalnih kopija na svakom konfiguriranom odredištu.</string>
     <string name="cloud_local_deletion_unavailable">Lokalno brisanje privremeno nije dostupno dok se nadograđuju sigurnosne provjere sigurnosnih kopija.</string>
     <string name="cloud_free_space_remove_count">Ukloni %1$d lokalnih kopija</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Postavke</string>
     <!-- Memories -->
     <string name="cloud_memories">Uspomene</string>
