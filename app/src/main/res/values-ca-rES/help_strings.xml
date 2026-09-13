@@ -199,6 +199,13 @@
     <string name="help_tip_albums_merge_by_name_p1_s1">Go to Settings &gt; Timeline &amp; Albums</string>
     <string name="help_tip_albums_merge_by_name_p1_s2">Toggle \'Merge albums with same name\'</string>
     <string name="help_tip_albums_merge_by_name_p1_s3">Albums with matching names will combine</string>
+    <string name="help_tip_timeline_modified_date_title">Update modified date</string>
+    <string name="help_tip_timeline_modified_date_subtitle">Choose how file changes affect modified-date sorting</string>
+    <string name="help_tip_timeline_modified_date_p1_title">Keep changed media near the top</string>
+    <string name="help_tip_timeline_modified_date_p1_desc">Turn on Update modified date to use the current time when copying, renaming, editing, or rotating media, including metadata edits. Changed items then appear near the top when sorting by modified date, newest first. The setting is off by default to preserve existing modified dates when available. Moving media between albums is unaffected.</string>
+    <string name="help_tip_timeline_modified_date_p1_s1">Go to Settings &gt; Timeline &amp; Albums</string>
+    <string name="help_tip_timeline_modified_date_p1_s2">Under Albums, turn Update modified date on or off</string>
+    <string name="help_tip_timeline_modified_date_p1_s3">Sort by modified date, newest first, to see changed items near the top when enabled</string>
     <string name="help_tip_timeline_date_header_title">Customize date headers</string>
     <string name="help_tip_timeline_date_header_subtitle">Control separator visibility and date formatting</string>
     <string name="help_tip_timeline_date_header_p1_title">Date separators and formats</string>
@@ -1160,7 +1167,7 @@
     <string name="help_tip_cloud_provider_settings_title">Configuració del compte</string>
     <string name="help_tip_cloud_provider_settings_subtitle">Gestionar un compte connectat</string>
     <string name="help_tip_cloud_provider_settings_p1_title">Opcions per compte</string>
-    <string name="help_tip_cloud_provider_settings_p1_desc">Editeu la xarxa, els àlbums de còpia de seguretat i el comportament de sincronització de manera independent per a cada compte connectat.</string>
+    <string name="help_tip_cloud_provider_settings_p1_desc">Edit networking, backup albums and sync behaviour independently for each connected account. When removing a server, confirm Remove and wait for cleanup to finish. The dialog shows progress, and settings closes only after success. If removal fails, tap Retry to try again.</string>
     <string name="help_tip_cloud_shared_links_title">Enllaços compartits</string>
     <string name="help_tip_cloud_shared_links_subtitle">Gestiona els enllaços que has compartit</string>
     <string name="help_tip_cloud_shared_links_p1_title">Revisa els enllaços compartits</string>
@@ -1176,7 +1183,7 @@
     <string name="help_tip_cloud_free_up_space_title">Allibera espai</string>
     <string name="help_tip_cloud_free_up_space_subtitle">Suprimeix les còpies locals amb còpies de seguretat</string>
     <string name="help_tip_cloud_free_up_space_p1_title">Recupera l\'emmagatzematge</string>
-    <string name="help_tip_cloud_free_up_space_p1_desc">Suprimeix les còpies del dispositiu dels mitjans que ja tinguin una còpia de seguretat segura al núvol.</string>
+    <string name="help_tip_cloud_free_up_space_p1_desc">Choose an age range instead of Never, decide whether to keep favorites, then scan for backed-up media. ReFra checks for matching content on every enabled backup destination for each album and remembers your cleanup options. Scanning does not delete anything. Review the verified count, tap Remove local copies, and approve any Android deletion prompt. ReFra rechecks each batch before removal; cloud copies remain untouched.</string>
     <string name="help_tip_media_type_albums_title">Navega per tipus de suport</string>
     <string name="help_tip_media_type_albums_subtitle">Àlbums automàtics per a fotos, vídeos, GIF i fitxers RAW</string>
     <string name="help_tip_media_type_albums_p1_title">Àlbums de tipus multimèdia</string>
