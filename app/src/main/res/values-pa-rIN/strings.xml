@@ -81,6 +81,12 @@
     <string name="map_appearance_light">ਹਲਕਾ</string>
     <string name="map_appearance_dark">ਹਾੜਾ</string>
     <string name="map_appearance_action">ਮੈਪ ਦੀ ਦਿੱਖ ਬਦਲੋ</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">ਇਸ ਸਥਾਨ \'ਚ ਫੋਟੋਆਂ</string>
     <string name="map_cluster_count">%1$d ਫੋਟੋਆਂ</string>
     <string name="map_marker_photo">ਮੈਪ \'ਤੇ ਫੋਟੋ</string>
@@ -1081,6 +1087,8 @@
     <string name="folders_combined_description">%1$d ਫੋਲਡਰਾਂ ਤੋਂ ਮੀਡੀਆ ਨਾਮ ਅਤੇ ਫੋਲਡਰ ਸਟ੍ਰਕਚਰ ਅਨੁਸਾਰ ਇਕੱਠਾ ਦਿਖਾਈ ਜਾ ਰਹੀ ਹੈ।</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">ਮੂਲ ਫੋਲਡਰ ਦੇ ਸਬਫੋਲਡਰਾਂ ਨੂੰ ਮਿਲਾਓ</string>
@@ -1413,9 +1421,9 @@
     <string name="cloud_add_nfs">NFS ਸਾਂਝ ਸ਼ਾਮਲ ਕਰੋ</string>
     <string name="cloud_owncloud_variants">ownCloud ਬਦਲ</string>
     <string name="cloud_network_shares">ਨੈੱਟਵਰਕ ਸਾਂਝ</string>
-    <string name="cloud_network_share_lan_note">ਨੈੱਟਵਰਕ ਸਾਂਝ ਕਿਸੇ ਵੀ ਸਥਾਨਕ ਨੈੱਟਵਰਕ \'ਤੇ ਹੀ ਪਹੁੰਚਯੋਗ ਹਨ।</string>
-    <string name="cloud_lan_only">ਸਿਰਫ LAN</string>
-    <string name="cloud_lan_offline_warning">Wi-Fi \'ਤੇ ਨਹੀਂ। ਨੈੱਟਵਰਕ ਸਾਂਝਾਂ (SMB/NFS) ਸਿਰਫ ਤੁਹਾਡੇ ਲੋਕਲ ਨੈੱਟਵਰਕ ਤੇ ਪਹੁੰਚਯੋਗ ਹਨ।</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">ਫੋਟੋਜ਼</string>
     <string name="cloud_cap_remote_albums">ਐਲਬਮ</string>
     <string name="cloud_cap_sync">ਸਿੰਕ</string>
@@ -1565,6 +1573,8 @@ de(s) \'ਤੇ ਕੀਤਾ ਗਿਆ</string>
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1781,6 +1791,9 @@ de(s) \'ਤੇ ਕੀਤਾ ਗਿਆ</string>
     <string name="cloud_free_space_verified_count">ਹਰੇਕ ਸੰਰਚਿਤ ਮੰਜ਼ਿਲ ਉੱਤੇ %1$d ਸਥਾਨਕ ਕਾਪੀਆਂ ਪ੍ਰਮਾਣਿਤ ਹੋਈਆਂ।</string>
     <string name="cloud_local_deletion_unavailable">ਬੈਕਅੱਪ ਸੁਰੱਖਿਆ ਜਾਂਚਾਂ ਅੱਪਗ੍ਰੇਡ ਹੋਣ ਦੌਰਾਨ ਸਥਾਨਕ ਮਿਟਾਉਣਾ ਅਸਥਾਈ ਤੌਰ ਤੇ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">ਪਸੰਦਾਂ</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
