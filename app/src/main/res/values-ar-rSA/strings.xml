@@ -81,6 +81,12 @@
     <string name="map_appearance_light">ضوء</string>
     <string name="map_appearance_dark">الظلام</string>
     <string name="map_appearance_action">تغيير مظهر الخريطة</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">الصور في هذا الموقع</string>
     <string name="map_cluster_count">صور %1$d</string>
     <string name="map_marker_photo">الصورة على الخريطة</string>
@@ -1089,6 +1095,8 @@
     <string name="folders_combined_description">يتم عرض الوسائط من مجلدات %1$d معًا حسب الاسم وبنية المجلد.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">دمج المجلدات الفرعية للمجلد الأصلي</string>
@@ -1421,9 +1429,9 @@
     <string name="cloud_add_nfs">أضف مشاركة NFS</string>
     <string name="cloud_owncloud_variants">المتغيرات ownCloud</string>
     <string name="cloud_network_shares">أسهم الشبكة</string>
-    <string name="cloud_network_share_lan_note">يمكن الوصول إلى مشاركات الشبكة على شبكتك المحلية فقط.</string>
-    <string name="cloud_lan_only">الشبكة المحلية فقط</string>
-    <string name="cloud_lan_offline_warning">ليس على شبكة Wi-Fi. لا يمكن الوصول إلى مشاركات الشبكة (SMB/NFS) إلا على شبكتك المحلية.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">صور</string>
     <string name="cloud_cap_remote_albums">الألبومات</string>
     <string name="cloud_cap_sync">مزامنة</string>
@@ -1572,6 +1580,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1788,6 +1798,9 @@
     <string name="cloud_free_space_verified_count">تم التحقق من %1$d نسخة محلية في كل وجهة تم إعدادها.</string>
     <string name="cloud_local_deletion_unavailable">الحذف المحلي غير متاح مؤقتًا أثناء ترقية فحوصات أمان النسخ الاحتياطي.</string>
     <string name="cloud_free_space_remove_count">أزِل %1$d نُسخة محلية</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">التفضيلات</string>
     <!-- Memories -->
     <string name="cloud_memories">الذكريات</string>
