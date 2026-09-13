@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Hell</string>
     <string name="map_appearance_dark">Dunkel</string>
     <string name="map_appearance_action">Kartenansicht ändern</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Fotos an diesem Ort</string>
     <string name="map_cluster_count">%1$d Fotos</string>
     <string name="map_marker_photo">Foto auf der Karte</string>
@@ -1081,6 +1087,8 @@
     <string name="folders_combined_description">Medien aus %1$d Ordnern werden nach Name und Ordnerstruktur zusammen angezeigt.</string>
     <string name="merge_albums_by_name">Alben nach Namen zusammenführen</string>
     <string name="merge_albums_by_name_summary">Alben mit demselben Namen werden als ein einziges Album angezeigt. Sie befinden sich jedoch weiterhin in separaten Ordnern.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Unterordner zusammenführen</string>
     <string name="unmerge_subfolders">Unterordner trennen</string>
     <string name="merge_parent_subfolders">Unterordner des übergeordneten Ordners zusammenführen</string>
@@ -1413,9 +1421,9 @@
     <string name="cloud_add_nfs">NFS-Freigabe hinzufügen</string>
     <string name="cloud_owncloud_variants">ownCloud-Varianten</string>
     <string name="cloud_network_shares">Netzwerkfreigaben</string>
-    <string name="cloud_network_share_lan_note">Netzwerkfreigaben sind nur in Ihrem lokalen Netzwerk erreichbar.</string>
-    <string name="cloud_lan_only">Nur LAN</string>
-    <string name="cloud_lan_offline_warning">Nicht im WLAN. Netzwerkfreigaben (SMB/NFS) sind nur in Ihrem lokalen Netzwerk erreichbar.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Fotos</string>
     <string name="cloud_cap_remote_albums">Alben</string>
     <string name="cloud_cap_sync">Synchronisieren</string>
@@ -1564,6 +1572,8 @@
     <string name="cloud_provider_not_available">Anbieter nicht verfügbar. Ist er in der Build-Version aktiviert?</string>
     <string name="cloud_delete_confirm_title">Server entfernen?</string>
     <string name="cloud_delete_confirm_action">Entfernen</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">In Cloud hochladen</string>
     <string name="cloud_select_album_upload">Alben zum Hochladen auswählen</string>
     <string name="cloud_delete_local_after_upload">Lokale Kopie löschen</string>
@@ -1780,6 +1790,9 @@
     <string name="cloud_free_space_verified_count">Auf allen konfigurierten Zielen wurden %1$d lokale Kopien verifiziert.</string>
     <string name="cloud_local_deletion_unavailable">Lokales Löschen ist vorübergehend nicht verfügbar, während die Sicherheitsprüfungen für Sicherungen aktualisiert werden.</string>
     <string name="cloud_free_space_remove_count">%1$d lokale Kopien entfernen</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Einstellungen</string>
     <!-- Memories -->
     <string name="cloud_memories">Momente</string>
