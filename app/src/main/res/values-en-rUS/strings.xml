@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Light</string>
     <string name="map_appearance_dark">Dark</string>
     <string name="map_appearance_action">Change map appearance</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Photos in this location</string>
     <string name="map_cluster_count">%1$d photos</string>
     <string name="map_marker_photo">Photo on map</string>
@@ -459,7 +465,7 @@
     <string name="delete_location">Delete Location</string>
     <string name="delete_metadata">Delete Metadata</string>
     <string name="remove_metadata">Remove metadata</string>
-    <string name="remove_metadata_warning">ReFra verifies a separate lossless sanitized file first. Save a copy leaves the original unchanged; Replace moves the original to system trash afterward.</string>
+    <string name="remove_metadata_warning">The original file will be replaced only after a lossless sanitized version is verified. If replacement fails, ReFra restores the original.</string>
     <string name="metadata_mode_location">Location only</string>
     <string name="metadata_mode_location_description">Removes coordinates, altitude, location names, directions, and GPS timestamps.</string>
     <string name="metadata_mode_privacy">Privacy related</string>
@@ -1081,6 +1087,8 @@
     <string name="folders_combined_description">Media from %1$d folders is shown together by name and folder structure.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">Merge subfolders of parent folder</string>
@@ -1413,9 +1421,9 @@
     <string name="cloud_add_nfs">Add NFS share</string>
     <string name="cloud_owncloud_variants">ownCloud variants</string>
     <string name="cloud_network_shares">Network shares</string>
-    <string name="cloud_network_share_lan_note">Network shares are reachable on your local network only.</string>
-    <string name="cloud_lan_only">LAN only</string>
-    <string name="cloud_lan_offline_warning">Not on Wi-Fi. Network shares (SMB/NFS) are only reachable on your local network.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Photos</string>
     <string name="cloud_cap_remote_albums">Albums</string>
     <string name="cloud_cap_sync">Sync</string>
@@ -1564,6 +1572,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1780,6 +1790,9 @@
     <string name="cloud_free_space_verified_count">Verified %1$d local copies on every configured destination.</string>
     <string name="cloud_local_deletion_unavailable">Local deletion is temporarily unavailable while backup safety checks are being upgraded.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Preferences</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
