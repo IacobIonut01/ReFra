@@ -81,6 +81,12 @@
     <string name="map_appearance_light">亮色</string>
     <string name="map_appearance_dark">深色</string>
     <string name="map_appearance_action">更改地圖外觀</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">此位置的照片</string>
     <string name="map_cluster_count">%1$d 張照片</string>
     <string name="map_marker_photo">地圖上的照片</string>
@@ -1079,6 +1085,8 @@
     <string name="folders_combined_description">來自 %1$d 個資料夾的媒體依名稱和資料夾結構一起顯示。</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Merge subfolders</string>
     <string name="unmerge_subfolders">Unmerge subfolders</string>
     <string name="merge_parent_subfolders">合併父資料夾的子資料夾</string>
@@ -1411,9 +1419,9 @@
     <string name="cloud_add_nfs">新增 NFS 共享</string>
     <string name="cloud_owncloud_variants">ownCloud 變體</string>
     <string name="cloud_network_shares">網路共享</string>
-    <string name="cloud_network_share_lan_note">網路共享僅可在您的本地網路中存取。</string>
-    <string name="cloud_lan_only">僅限區域網路</string>
-    <string name="cloud_lan_offline_warning">未連接 Wi-Fi。網路共享（SMB/NFS）僅可在您的本地網路中存取。</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">照片</string>
     <string name="cloud_cap_remote_albums">相簿</string>
     <string name="cloud_cap_sync">同步</string>
@@ -1562,6 +1570,8 @@
     <string name="cloud_provider_not_available">Provider not available. Is it enabled in build?</string>
     <string name="cloud_delete_confirm_title">Remove server?</string>
     <string name="cloud_delete_confirm_action">Remove</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Upload to cloud</string>
     <string name="cloud_select_album_upload">Select albums to upload</string>
     <string name="cloud_delete_local_after_upload">Delete local copy</string>
@@ -1778,6 +1788,9 @@
     <string name="cloud_free_space_verified_count">已在所有已設定的目的地中驗證 %1$d 個本機副本。</string>
     <string name="cloud_local_deletion_unavailable">備份安全性檢查升級期間，本機刪除功能暫時無法使用。</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">偏好設定</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>
