@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +59,7 @@ import com.dot.gallery.cloud.core.CloudStorageInfo
 import com.dot.gallery.cloud.core.ConnectionState
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.data.entity.CloudServerConfigEntity
+import com.dot.gallery.cloud.ui.CloudAccountDeletionState
 import com.dot.gallery.cloud.ui.CloudAccountsViewModel
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Position
@@ -77,9 +81,66 @@ fun CloudProviderSettingsScreen(
     val storageInfoMap by viewModel.storageInfo.collectAsStateWithLifecycle()
     val serverVersions by viewModel.serverVersions.collectAsStateWithLifecycle()
     val syncProgressMap by viewModel.syncProgress.collectAsStateWithLifecycle()
+    val deletionState by viewModel.deletionState.collectAsStateWithLifecycle()
+    val isDeleting = deletionState == CloudAccountDeletionState.Deleting(configId)
+    val deletionFailed = deletionState == CloudAccountDeletionState.Failed(configId)
     val eventHandler = LocalEventHandler.current
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable(configId) { mutableStateOf(false) }
     var showIntervalDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(deletionState, configId) {
+        if (deletionState == CloudAccountDeletionState.Deleted(configId)) {
+            showDeleteDialog = false
+            onDeleted()
+        }
+    }
+
+    if (showDeleteDialog || isDeleting) {
+        AlertDialog(
+            onDismissRequest = { if (!isDeleting) showDeleteDialog = false },
+            title = { Text(stringResource(R.string.cloud_delete_confirm_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(stringResource(R.string.cloud_delete_confirm))
+                    if (isDeleting) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(Modifier.size(24.dp))
+                            Text(stringResource(R.string.cloud_delete_in_progress))
+                        }
+                    } else if (deletionFailed) {
+                        Text(
+                            text = stringResource(R.string.cloud_delete_failed),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !isDeleting,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    onClick = { viewModel.deleteServer(configId) }
+                ) {
+                    Text(
+                        stringResource(
+                            if (deletionFailed) R.string.cloud_retry else R.string.cloud_delete_confirm_action
+                        )
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isDeleting,
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
+    }
 
     val config = configs.find { it.id == configId }
 
@@ -91,7 +152,11 @@ fun CloudProviderSettingsScreen(
     if (config == null) {
         AccountSettingsStateScreen(
             title = stringResource(R.string.cloud_provider_settings),
-            state = AccountSettingsLoadState.ERROR
+            state = if (isDeleting || deletionState == CloudAccountDeletionState.Deleted(configId)) {
+                AccountSettingsLoadState.LOADING
+            } else {
+                AccountSettingsLoadState.ERROR
+            }
         )
         return
     }
@@ -349,33 +414,6 @@ fun CloudProviderSettingsScreen(
             onSelect = { minutes ->
                 showIntervalDialog = false
                 viewModel.updateConfigById(configId) { copy(syncIntervalMinutes = minutes) }
-            }
-        )
-    }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.cloud_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.cloud_delete_confirm)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        viewModel.deleteServer(configId)
-                        onDeleted()
-                    }
-                ) {
-                    Text(
-                        stringResource(R.string.cloud_delete_confirm_action),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
             }
         )
     }

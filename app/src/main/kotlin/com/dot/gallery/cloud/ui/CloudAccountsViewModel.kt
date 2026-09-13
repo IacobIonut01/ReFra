@@ -46,6 +46,7 @@ import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.domain.util.OrderType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -57,8 +58,38 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+sealed interface CloudAccountDeletionState {
+    data object Idle : CloudAccountDeletionState
+    data class Deleting(val configId: Long) : CloudAccountDeletionState
+    data class Deleted(val configId: Long) : CloudAccountDeletionState
+    data class Failed(val configId: Long) : CloudAccountDeletionState
+}
+
+internal class CloudAccountDeletion(
+    private val scope: CoroutineScope,
+    private val removeAccount: suspend (Long) -> Unit
+) {
+    private val _state = MutableStateFlow<CloudAccountDeletionState>(CloudAccountDeletionState.Idle)
+    val state = _state.asStateFlow()
+
+    fun delete(configId: Long) {
+        if (_state.value is CloudAccountDeletionState.Deleting) return
+        _state.value = CloudAccountDeletionState.Deleting(configId)
+        scope.launch {
+            try {
+                removeAccount(configId)
+                _state.value = CloudAccountDeletionState.Deleted(configId)
+            } catch (error: CancellationException) {
+                _state.value = CloudAccountDeletionState.Idle
+                throw error
+            } catch (_: Exception) {
+                _state.value = CloudAccountDeletionState.Failed(configId)
+            }
+        }
+    }
+}
 
 data class CloudAccountUiState(
     val configs: List<CloudServerConfigEntity> = emptyList(),
@@ -473,14 +504,21 @@ class CloudAccountsViewModel @Inject constructor(
         }
     }
 
-    fun deleteServer(configId: Long) {
-        viewModelScope.launch {
-            val entity = configDao.getById(configId) ?: return@launch
+    private val accountDeletion = CloudAccountDeletion(viewModelScope, ::removeServer)
+    val deletionState: StateFlow<CloudAccountDeletionState> = accountDeletion.state
+
+    fun deleteServer(configId: Long) = accountDeletion.delete(configId)
+
+    private suspend fun removeServer(configId: Long) {
+        withContext(Dispatchers.IO) {
+            val entity = configDao.getById(configId) ?: return@withContext
             val cachedAssets = cloudMediaDao.getByServerConfig(configId).first()
-            runCatching { revokeBestEffort(entity) }
-            withContext(Dispatchers.IO) {
-                workManager.cancelUniqueWork(CloudOfflineDownloadWorker.WORK_NAME).result.get()
-            }
+            try {
+                revokeBestEffort(entity)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) { }
+            workManager.cancelUniqueWork(CloudOfflineDownloadWorker.WORK_NAME).result.get()
             offlinePinDao.deleteByConfig(configId)
             cloudMediaCache.clearForAssets(
                 cachedAssets.map {
