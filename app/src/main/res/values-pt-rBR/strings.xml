@@ -81,6 +81,12 @@
     <string name="map_appearance_light">Claro</string>
     <string name="map_appearance_dark">Escuro</string>
     <string name="map_appearance_action">Alterar aparência do mapa</string>
+    <string name="map_load_failed">Couldn’t load the map</string>
+    <string name="carto_basemap_key_title">CARTO basemap API key</string>
+    <string name="carto_basemap_key_description">Set a personal CARTO key for static map previews. Without a key, CARTO may watermark preview tiles.</string>
+    <string name="carto_basemap_key_field">API key</string>
+    <string name="carto_basemap_key_configured">Configured</string>
+    <string name="carto_basemap_key_not_configured">Not configured</string>
     <string name="map_cluster_title">Fotos neste local</string>
     <string name="map_cluster_count">%1$d fotos</string>
     <string name="map_marker_photo">Foto no mapa</string>
@@ -1081,6 +1087,8 @@
     <string name="folders_combined_description">Mídia de %1$d pastas é exibida em conjunto por nome e estrutura de pastas.</string>
     <string name="merge_albums_by_name">Mesclar álbuns por nome</string>
     <string name="merge_albums_by_name_summary">Álbuns com o mesmo nome serão exibidos como um só. Eles continuam existindo em pastas separadas.</string>
+    <string name="update_modified_date_title">Update modified date</string>
+    <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="merge_subfolders">Mesclar subpastas</string>
     <string name="unmerge_subfolders">Desmesclar subpastas</string>
     <string name="merge_parent_subfolders">Mesclar subpastas da pasta principal</string>
@@ -1413,9 +1421,9 @@
     <string name="cloud_add_nfs">Adicionar compartilhamento NFS</string>
     <string name="cloud_owncloud_variants">Variantes do ownCloud</string>
     <string name="cloud_network_shares">Compartilhamentos de rede</string>
-    <string name="cloud_network_share_lan_note">Compartilhamentos de rede são acessíveis apenas na sua rede local.</string>
-    <string name="cloud_lan_only">Somente LAN</string>
-    <string name="cloud_lan_offline_warning">Não está no Wi-Fi. Compartilhamentos de rede (SMB/NFS) são acessíveis apenas na sua rede local.</string>
+    <string name="cloud_network_share_lan_note">Network shares require a route to your NAS through the local network or a VPN.</string>
+    <string name="cloud_lan_only">Local / VPN</string>
+    <string name="cloud_lan_offline_warning">No Wi-Fi, Ethernet, or VPN connection. Network shares (SMB/NFS) may be unreachable.</string>
     <string name="cloud_cap_remote_assets">Fotos</string>
     <string name="cloud_cap_remote_albums">Álbuns</string>
     <string name="cloud_cap_sync">Sincronizar</string>
@@ -1564,6 +1572,8 @@
     <string name="cloud_provider_not_available">Provedor indisponível. Ele está habilitado na compilação?</string>
     <string name="cloud_delete_confirm_title">Remover o servidor?</string>
     <string name="cloud_delete_confirm_action">Remover</string>
+    <string name="cloud_delete_in_progress">Removing server…</string>
+    <string name="cloud_delete_failed">Could not finish removing this server. Try again.</string>
     <string name="cloud_upload_to_cloud">Enviar para a nuvem</string>
     <string name="cloud_select_album_upload">Selecione os álbuns a serem enviados</string>
     <string name="cloud_delete_local_after_upload">Excluir cópia local</string>
@@ -1780,6 +1790,9 @@
     <string name="cloud_free_space_verified_count">%1$d cópias locais verificadas em todos os destinos configurados.</string>
     <string name="cloud_local_deletion_unavailable">A exclusão local está temporariamente indisponível enquanto as verificações de segurança do backup são atualizadas.</string>
     <string name="cloud_free_space_remove_count">Remover %1$d cópias locais</string>
+    <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
+    <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
+    <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_settings_more_header">Preferências</string>
     <!-- Memories -->
     <string name="cloud_memories">Lembranças</string>
