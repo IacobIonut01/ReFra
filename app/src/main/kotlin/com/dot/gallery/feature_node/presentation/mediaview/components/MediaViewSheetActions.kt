@@ -77,7 +77,7 @@ import com.dot.gallery.feature_node.presentation.common.components.OptionItem
 import com.dot.gallery.feature_node.presentation.common.components.OptionLayoutStyle
 import com.dot.gallery.feature_node.presentation.common.components.OptionSheet
 import com.dot.gallery.feature_node.presentation.exif.CopyMediaSheet
-import com.dot.gallery.feature_node.presentation.exif.MoveMediaSheet
+import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import com.dot.gallery.feature_node.presentation.util.copyEncryptedMediaToClipboard
@@ -107,6 +107,7 @@ fun <T : Media> MediaViewSheetActions(
     vaults: State<VaultState>,
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?,
+    moveSheetState: AppBottomSheetState,
     isMotionPhoto: Boolean = false,
     onOpenFramePicker: () -> Unit = {},
 ) {
@@ -117,7 +118,6 @@ fun <T : Media> MediaViewSheetActions(
     val hideSheetState = rememberAppBottomSheetState()
     val restoreConfirmState = rememberAppBottomSheetState()
     val copySheetState = rememberAppBottomSheetState()
-    val moveSheetState = rememberAppBottomSheetState()
     val useAsSheetState = rememberAppBottomSheetState()
     var showCollectionSheet by rememberSaveable { mutableStateOf(false) }
 
@@ -528,12 +528,6 @@ fun <T : Media> MediaViewSheetActions(
             sheetState = copySheetState,
             mediaList = listOf(media),
             albumsState = albumsState,
-            onFinish = { }
-        )
-        MoveMediaSheet(
-            sheetState = moveSheetState,
-            mediaList = listOf(media),
-            albumState = albumsState,
             onFinish = { }
         )
     }

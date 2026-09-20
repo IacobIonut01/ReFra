@@ -590,7 +590,11 @@ suspend fun <T : Media> Context.updateMedia(
                 val volumePrefix = media.path.substringBeforeLast("/")
                     .removeSuffix(media.relativePath.removeSuffix("/"))
                     .trimEnd('/')
-                volumePrefix + "/" + newRelPath.trimEnd('/') + "/" + media.label
+                // RELATIVE_PATH="/" means the volume root; trimming it fully would
+                // leave a double slash in the scanned path.
+                val relDir = newRelPath.trim('/')
+                volumePrefix + if (relDir.isEmpty()) "/${media.label}"
+                    else "/$relDir/${media.label}"
             } else {
                 media.path
             }

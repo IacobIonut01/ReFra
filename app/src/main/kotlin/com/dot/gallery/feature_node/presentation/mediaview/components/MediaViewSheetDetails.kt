@@ -93,6 +93,7 @@ import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.exif.CaptureDateEditSheet
 import com.dot.gallery.feature_node.presentation.exif.MetadataEditSheet
+import com.dot.gallery.feature_node.presentation.exif.MoveMediaSheet
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoShotsSection
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoState
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewViewModel
@@ -138,6 +139,11 @@ fun <T : Media> MediaViewSheetDetails(
         printDebug("Available metadata for ${currentMedia?.id}:\n${metadata.toString()}")
     }
     val handler = LocalMediaHandler.current
+    // Hoisted above the media-gated content below: a move that removes the current
+    // item (e.g. the last photo of the viewed album) would otherwise dispose the
+    // sheet mid-operation together with its completion state. MoveMediaSheet itself
+    // freezes mediaList while visible.
+    val moveSheetState = rememberAppBottomSheetState()
     val isBlurEnabled = LocalMediaViewerVisualPolicy.current.allowBlur
     val surfaceColor = MaterialTheme.colorScheme.surface
     val surfaceColorVariant = MaterialTheme.colorScheme.surfaceContainer
@@ -765,6 +771,7 @@ fun <T : Media> MediaViewSheetDetails(
                             vaults = vaultState,
                             restoreMedia = restoreMedia,
                             currentVault = currentVault,
+                            moveSheetState = moveSheetState,
                             isMotionPhoto = motionPhotoState?.isDetected == true || metadata?.isMotionPhoto == true,
                             onOpenFramePicker = onOpenFramePicker,
                         )
@@ -828,6 +835,15 @@ fun <T : Media> MediaViewSheetDetails(
                 }
 
             }
+        }
+
+        if (albumsState.value.albums.isNotEmpty()) {
+            MoveMediaSheet(
+                sheetState = moveSheetState,
+                mediaList = listOfNotNull(currentMedia),
+                albumState = albumsState,
+                onFinish = { }
+            )
         }
     }
 }

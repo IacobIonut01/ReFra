@@ -105,6 +105,17 @@ fun <T: Media> MoveMediaSheet(
     albumState: State<AlbumState>,
     onFinish: () -> Unit,
 ) {
+    // The flows feeding mediaList re-emit once a move lands — the moved item leaves
+    // the source album's list, or re-emits with an updated path on the timeline.
+    // Every operation state below is keyed on mediaList, so that re-emit would reset
+    // localMoveCompleted/pendingCopyUris/restrictedMoveJob mid-flight and recompute
+    // moveSourceStatus against an empty list, bouncing the sheet back to a disabled
+    // picker with a bogus "source cannot be transferred" error after a successful
+    // move. Freeze the selection for the sheet's visible session instead; the
+    // passthrough while hidden preserves the per-selection reset between opens.
+    val mediaList = remember(sheetState.isVisible) {
+        if (sheetState.isVisible) mediaList.toList() else mediaList
+    }
     val handler = LocalMediaHandler.current
     val distributor = LocalMediaDistributor.current
     val eventHandler = LocalEventHandler.current
