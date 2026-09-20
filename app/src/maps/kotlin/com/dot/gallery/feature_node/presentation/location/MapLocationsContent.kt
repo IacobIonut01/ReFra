@@ -359,42 +359,67 @@ internal fun MapLocationsContent(
     )
 
     // Set initial selection when data loads — also set the camera position directly
-    // (no animation) so the map opens already centred on the selected media.
+    // (no animation) so the map opens already centred on the selected media. When the
+    // screen was opened for a specific media (e.g. "Show in app" from the viewer), that
+    // media is the seed instead of the newest item.
+    //
+    // seededMediaId records which media the camera settled on: MIN_VALUE = not seeded
+    // yet, -1 = seeded on the newest item (no deep link), otherwise the deep-linked
+    // mediaId. An entry restored with saved state (tab popUpTo saveState) re-seeds only
+    // when the deep link names a different media that is actually present — a refresh
+    // after the user scrolled elsewhere must not yank the camera back.
     var hasSetInitialPosition by rememberSaveable { mutableStateOf(false) }
+    var seededMediaId by rememberSaveable { mutableLongStateOf(Long.MIN_VALUE) }
     LaunchedEffect(sortedGeoMedia) {
-        if (sortedGeoMedia.isEmpty() || hasSetInitialPosition) return@LaunchedEffect
-        val first = sortedGeoMedia.first()
-        selectedMediaId = first.mediaId
+        if (sortedGeoMedia.isEmpty() || seededMediaId == initialMediaId) return@LaunchedEffect
+        if (hasSetInitialPosition &&
+            (initialMediaId == -1L || sortedGeoMedia.none { it.mediaId == initialMediaId })
+        ) return@LaunchedEffect
+        val target = sortedGeoMedia.firstOrNull { it.mediaId == initialMediaId }
+            ?: sortedGeoMedia.first()
+        selectedMediaId = target.mediaId
         hasSetInitialPosition = true
+        seededMediaId = if (target.mediaId == initialMediaId) initialMediaId else -1L
         mapState.moveCamera(
             GalleryCameraPosition(
-                latitude = first.latitude,
-                longitude = first.longitude,
+                latitude = target.latitude,
+                longitude = target.longitude,
                 zoom = 12.0,
                 paddingBottom = currentSheetPaddingPx.toDouble(),
             )
         )
     }
 
-    // When opened with a specific mediaId (e.g. from a city timeline),
-    // scroll the grid to that media once items are ready. This triggers
-    // the existing scroll→select→camera animation flow.
+    // When opened with a specific mediaId (e.g. from a city timeline or the viewer's
+    // "Show in app"), scroll the grid to that media once items are ready. The seeded
+    // selection is already in place — this just brings the cell into view. A restored
+    // entry re-scrolls when the deep link targets a different media.
     var hasScrolledToInitial by rememberSaveable { mutableStateOf(false) }
+    var initialScrollInFlight by remember { mutableStateOf(false) }
     LaunchedEffect(initialMediaId, gridItems) {
-        if (initialMediaId == -1L || gridItems.isEmpty() || hasScrolledToInitial) return@LaunchedEffect
+        if (initialMediaId == -1L || gridItems.isEmpty()) return@LaunchedEffect
+        if (hasScrolledToInitial && selectedMediaId == initialMediaId) return@LaunchedEffect
         val targetIndex = gridItems.indexOfFirst {
             it is MapGridItem.MediaCell && it.geoMedia.mediaId == initialMediaId
         }
         if (targetIndex >= 0) {
+            initialScrollInFlight = true
+            try {
+                gridState.scrollToItem(targetIndex)
+            } finally {
+                initialScrollInFlight = false
+            }
             hasScrolledToInitial = true
-            gridState.scrollToItem(targetIndex)
         }
     }
 
-    // Track first visible grid item → update selected media (only when user scrolls the grid)
+    // Track first visible grid item → update selected media (only when user scrolls the
+    // grid). Positions emitted while the entry-media scroll is in flight are transient —
+    // ignoring them keeps the seeded selection from flipping to the first item and back.
     LaunchedEffect(gridState, gridItems) {
         snapshotFlow { gridState.firstVisibleItemIndex }
             .collect { index ->
+                if (initialScrollInFlight) return@collect
                 val mediaItem = (index until gridItems.size)
                     .firstNotNullOfOrNull { i ->
                         (gridItems.getOrNull(i) as? MapGridItem.MediaCell)?.geoMedia
@@ -409,7 +434,7 @@ internal fun MapLocationsContent(
     val selectedLocationKey = remember(selectedGeoMedia) {
         selectedGeoMedia?.let { "${it.latitude},${it.longitude}" } ?: ""
     }
-    var skipInitialAnimation by rememberSaveable { mutableStateOf(initialMediaId == -1L) }
+    var skipInitialAnimation by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(selectedLocationKey, mapState.isStyleLoaded) {
         if (!mapState.isStyleLoaded) return@LaunchedEffect
         val item = selectedGeoMedia ?: return@LaunchedEffect

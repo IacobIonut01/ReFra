@@ -4,6 +4,7 @@ import androidx.compose.animation.core.DeferredTransitionState
 import androidx.compose.animation.core.ExperimentalDeferredTransitionApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -11,11 +12,15 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.geometry.Rect
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.navigate
+import com.dot.gallery.core.navigateUp
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.presentation.privatefolder.PrivateFolderViewModel
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -125,6 +130,68 @@ val LocalMediaViewerOverlayController = staticCompositionLocalOf<MediaViewerOver
 /** The active overlay host's dismiss bridge, provided to source cells so they can suppress their
  * shared element while it is the armed drag's match target. Null outside overlay hosts. */
 val LocalViewerDismissBridge = staticCompositionLocalOf<ViewerDismissBridge?> { null }
+
+/**
+ * Route navigation that first gets the media viewer out of the way so the destination is
+ * actually revealed. Provided by `MediaViewScreen`: when the viewer is presented as an
+ * overlay above the NavHost the destination is pushed underneath and the overlay is then
+ * dismissed; when the viewer is a standalone back-stack destination its entry is popped
+ * first so it does not linger hidden under the new screen. `null` outside the viewer —
+ * read it through [rememberMediaViewerNavigate], which falls back to plain navigation.
+ */
+val LocalMediaViewerNavigate = compositionLocalOf<((String) -> Unit)?> { null }
+
+internal enum class ViewerExitStep { Navigate, PopViewer, DismissOverlay }
+
+/**
+ * Ordered steps for navigating from inside a media viewer to another destination.
+ * Overlay mode pushes the destination underneath the NavHost before dropping the overlay
+ * so the push is revealed, never hidden; standalone mode pops the viewer's own back-stack
+ * entry first so it does not linger under the new screen.
+ */
+internal fun mediaViewerExitSteps(isOverlay: Boolean): List<ViewerExitStep> =
+    if (isOverlay) {
+        listOf(ViewerExitStep.Navigate, ViewerExitStep.DismissOverlay)
+    } else {
+        listOf(ViewerExitStep.PopViewer, ViewerExitStep.Navigate)
+    }
+
+/**
+ * The [LocalMediaViewerNavigate] implementation for a media viewer. [onDismissRequest] is
+ * the overlay host's dismiss callback — non-null when the viewer floats above the NavHost
+ * (`MediaViewerOverlayHost`), `null` when the viewer is a standalone destination.
+ */
+@Composable
+fun rememberViewerExitNavigate(onDismissRequest: (() -> Unit)?): (String) -> Unit {
+    val eventHandler = LocalEventHandler.current
+    val latestDismissRequest by rememberUpdatedState(onDismissRequest)
+    return remember(eventHandler) {
+        { route: String ->
+            val dismiss = latestDismissRequest
+            mediaViewerExitSteps(isOverlay = dismiss != null).forEach { step ->
+                when (step) {
+                    ViewerExitStep.Navigate -> eventHandler.navigate(route)
+                    ViewerExitStep.PopViewer -> eventHandler.navigateUp()
+                    ViewerExitStep.DismissOverlay -> dismiss?.invoke()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Navigation for composables hosted inside the media viewer (sheets, rows, buttons):
+ * closes the viewer when one is open so the destination is revealed, and falls back to
+ * plain navigation everywhere else.
+ */
+@Composable
+fun rememberMediaViewerNavigate(): (String) -> Unit {
+    val eventHandler = LocalEventHandler.current
+    val viewerNavigate = LocalMediaViewerNavigate.current
+    return remember(eventHandler, viewerNavigate) {
+        viewerNavigate ?: { route: String -> eventHandler.navigate(route) }
+    }
+}
 
 @Composable
 fun rememberMediaViewerOverlayController(): MediaViewerOverlayController =

@@ -66,15 +66,14 @@ import com.dot.gallery.cloud.sync.CloudAlbumTransferMode
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.albumCellsList
-import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
-import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.SecurityInfoSheet
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
+import com.dot.gallery.feature_node.presentation.mediaview.rememberMediaViewerNavigate
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -96,7 +95,7 @@ fun <T: Media> CopyMediaSheet(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val eventHandler = LocalEventHandler.current
+    val navigateFromViewer = rememberMediaViewerNavigate()
     val hasFullMediaAccess = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         Environment.isExternalStorageManager() || MediaStore.canManageMedia(context)
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -187,7 +186,7 @@ fun <T: Media> CopyMediaSheet(
             viewModel.clearLocalCopyResult()
             operationDestination = null
             onFinish()
-            if (route != null) eventHandler.navigate(route)
+            if (route != null) navigateFromViewer(route)
         }
     }
 

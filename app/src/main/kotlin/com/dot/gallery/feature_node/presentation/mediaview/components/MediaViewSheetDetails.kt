@@ -62,10 +62,8 @@ import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.cloud.ui.people.PersonAvatar
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
-import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
-import com.dot.gallery.core.navigate
 import com.dot.gallery.core.metadata.MetadataRemovalMode
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
@@ -97,6 +95,7 @@ import com.dot.gallery.feature_node.presentation.exif.MoveMediaSheet
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoShotsSection
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoState
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewViewModel
+import com.dot.gallery.feature_node.presentation.mediaview.rememberMediaViewerNavigate
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -361,7 +360,7 @@ fun <T : Media> MediaViewSheetDetails(
                 }
                 val unknownPersonText = stringResource(R.string.cloud_people_unknown)
                 val personPhotoCountFormat = stringResource(R.string.cloud_person_photo_count)
-                val allMetadataEventHandler = LocalEventHandler.current
+                val navigateFromViewer = rememberMediaViewerNavigate()
                 val mediaInfoList = rememberMediaInfo(
                     media = currentMedia,
                     exifMetadata = metadata,
@@ -473,7 +472,7 @@ fun <T : Media> MediaViewSheetDetails(
                                 locationData = locationData,
                                 mediaUri = currentMedia.getUri(),
                                 onShowInApp = {
-                                    allMetadataEventHandler.navigate(Screen.LocationsScreen())
+                                    navigateFromViewer(Screen.LocationsScreen.withMediaId(currentMedia.id))
                                 }
                             )
                             AnimatedVisibility(visible = currentMedia.canMakeActions) {
@@ -708,7 +707,7 @@ fun <T : Media> MediaViewSheetDetails(
                                             style = iconBackgroundHazeStyle
                                         ),
                                     onClick = {
-                                        allMetadataEventHandler.navigate(
+                                        navigateFromViewer(
                                             Screen.MetadataViewScreen.uriAndType(
                                                 mediaUri = currentMedia.getUri().toString(),
                                                 isVideo = currentMedia.isVideo
@@ -718,7 +717,6 @@ fun <T : Media> MediaViewSheetDetails(
                                 )
                             }
                             if (category != null) {
-                                val eventHandler = LocalEventHandler.current
                                 MediaInfoRow(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -754,7 +752,7 @@ fun <T : Media> MediaViewSheetDetails(
                                         }
                                     },
                                     onClick = {
-                                        eventHandler.navigate(
+                                        navigateFromViewer(
                                             Screen.CategoryViewScreen.category(
                                                 category!!
                                             )

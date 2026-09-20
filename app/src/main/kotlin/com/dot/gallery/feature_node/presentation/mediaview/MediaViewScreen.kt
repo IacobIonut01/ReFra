@@ -701,12 +701,14 @@ fun <T : Media> MediaViewScreen(
     resetMetadataSanitization: () -> Unit = {},
     motionPhotoStateFactory: @Composable (Media?) -> MotionPhotoState = { remember { MotionPhotoState() } },
 ) = CompositionLocalProvider(
-    LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(allowBlur = allowBlur)
+    LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(allowBlur = allowBlur),
+    LocalMediaViewerNavigate provides rememberViewerExitNavigate(onDismissRequest)
 ) {
     ProvideInsets {
         val eventHandler = LocalEventHandler.current
         val distributor = LocalMediaDistributor.current
         val dismissViewer = { onDismissRequest?.invoke() ?: eventHandler.navigateUp() }
+        val navigateFromViewer = rememberMediaViewerNavigate()
         val context = LocalContext.current
         val rotateFailedText = stringResource(R.string.rotate_failed)
         val metadataSanitizationUiState by metadataSanitizationState.collectAsStateWithLifecycle()
@@ -2743,21 +2745,12 @@ fun <T : Media> MediaViewScreen(
                                 onOpenFramePicker = openFramePicker,
                                 cloudBackups = currentCloudBackups,
                                 onOpenPersonTimeline = { person ->
-                                    val route = Screen.PersonDetailScreen.personId(
-                                        configId = person.serverConfigId,
-                                        id = person.id
+                                    navigateFromViewer(
+                                        Screen.PersonDetailScreen.personId(
+                                            configId = person.serverConfigId,
+                                            id = person.id
+                                        )
                                     )
-                                    if (overlayMode) {
-                                        // The viewer sits above the NavHost — push the person
-                                        // screen underneath, then dismiss the overlay to reveal it.
-                                        eventHandler.navigate(route)
-                                        dismissViewer()
-                                    } else {
-                                        // Standalone destination — pop the viewer first so the
-                                        // back stack doesn't keep a hidden viewer entry.
-                                        dismissViewer()
-                                        eventHandler.navigate(route)
-                                    }
                                 },
                                 metadataSanitizationState = metadataSanitizationUiState,
                                 probeMetadataSanitization = probeMetadataSanitization,

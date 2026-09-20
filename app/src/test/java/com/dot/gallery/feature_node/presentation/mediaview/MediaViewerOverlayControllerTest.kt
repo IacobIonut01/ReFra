@@ -67,4 +67,28 @@ class MediaViewerOverlayControllerTest {
         assertFalse(shouldCommitViewerDismiss(119f, height = 1_000))
         assertTrue(shouldCommitViewerDismiss(120f, height = 1_000))
     }
+
+    @Test
+    fun overlayExitNavigatePushesUnderneathThenDismisses() {
+        assertEquals(
+            listOf(ViewerExitStep.Navigate, ViewerExitStep.DismissOverlay),
+            mediaViewerExitSteps(isOverlay = true)
+        )
+    }
+
+    @Test
+    fun standaloneExitNavigatePopsViewerBeforePushing() {
+        assertEquals(
+            listOf(ViewerExitStep.PopViewer, ViewerExitStep.Navigate),
+            mediaViewerExitSteps(isOverlay = false)
+        )
+    }
+
+    @Test
+    fun locationsScreenDeepLinkCarriesMediaId() {
+        assertEquals(
+            "locations_screen?mediaId=42",
+            Screen.LocationsScreen.withMediaId(42L)
+        )
+    }
 }

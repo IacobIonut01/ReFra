@@ -63,11 +63,9 @@ import com.dot.gallery.R
 import com.dot.gallery.cloud.sync.CloudAlbumTransferMode
 import com.dot.gallery.core.Constants
 import com.dot.gallery.core.Constants.albumCellsList
-import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
-import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.SecurityInfoSheet
 import com.dot.gallery.feature_node.domain.model.Album
@@ -80,6 +78,7 @@ import com.dot.gallery.feature_node.domain.util.mediaStoreVolumeName
 import com.dot.gallery.feature_node.domain.util.resolveMediaStoreVolume
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumComponent
 import com.dot.gallery.feature_node.presentation.albums.components.AlbumGroupComponent
+import com.dot.gallery.feature_node.presentation.mediaview.rememberMediaViewerNavigate
 import com.dot.gallery.feature_node.presentation.util.AppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.launchWriteRequest
@@ -118,7 +117,7 @@ fun <T: Media> MoveMediaSheet(
     }
     val handler = LocalMediaHandler.current
     val distributor = LocalMediaDistributor.current
-    val eventHandler = LocalEventHandler.current
+    val navigateFromViewer = rememberMediaViewerNavigate()
     val context = LocalContext.current
     val transferViewModel = hiltViewModel<CopyMediaViewModel>(key = "MoveMediaSheet")
     val cloudTransferState by transferViewModel.cloudCopyState.collectAsState()
@@ -463,7 +462,7 @@ fun <T: Media> MoveMediaSheet(
             cloudMoveSourceRetained = false
             operationDestination = null
             onFinish()
-            if (route != null) eventHandler.navigate(route)
+            if (route != null) navigateFromViewer(route)
         }
     }
 
