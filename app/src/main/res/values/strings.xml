@@ -668,6 +668,8 @@
     <string name="scan_for_new_categories">Scan for new categories</string>
     <string name="ai_models_not_available">AI models are not downloaded. Download them from Settings → Smart Features.</string>
     <string name="scanning_media">Scanning media…</string>
+    <string name="categories_stop_scan">Stop scan</string>
+    <string name="categories_stop_scan_summary">Stop the current scan while preserving completed results</string>
     <string name="date_header_title">Date Header</string>
     <string name="media_view">Media View</string>
     <string name="exif_date">Exif Date</string>

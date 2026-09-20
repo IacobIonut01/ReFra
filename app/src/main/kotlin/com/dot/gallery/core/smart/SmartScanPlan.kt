@@ -8,6 +8,7 @@ package com.dot.gallery.core.smart
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
 import com.dot.gallery.feature_node.data.data_source.SmartScanPhase
 import com.dot.gallery.feature_node.data.data_source.SmartScanPhaseEntity
+import com.dot.gallery.feature_node.data.data_source.SmartScanRunEntity
 import com.dot.gallery.feature_node.data.data_source.SmartScanStatus
 
 data class SmartScanProgress(
@@ -119,6 +120,9 @@ object SmartScanPlan {
     fun requiresForeground(mediaCount: Int): Boolean = mediaCount > FOREGROUND_MEDIA_THRESHOLD
 
     fun shouldShowRun(userVisible: Boolean, totalMedia: Int): Boolean = userVisible || totalMedia > 0
+
+    fun runRequestsFeature(run: SmartScanRunEntity?, feature: SmartScanFeature): Boolean =
+        run != null && run.requestedFeatures and feature.bit != 0
 
     fun shouldRequeueForRevision(
         status: SmartScanStatus,

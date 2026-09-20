@@ -43,6 +43,7 @@ import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.model.ScannedMedia
 import com.dot.gallery.feature_node.domain.model.shouldIgnore
 import com.dot.gallery.feature_node.data.data_source.ScannedMediaDao
+import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.feature_node.data.data_source.SmartScanDao
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
 import com.dot.gallery.cloud.core.CloudAlbum
@@ -1367,7 +1368,9 @@ class MediaDistributorImpl @Inject constructor(
         repository.getMetadata(),
         smartScanDao.observeActiveRun()
     ) { metadata, run ->
-        val isMetadataRun = run?.requestedFeatures?.and(SmartScanFeature.METADATA.bit) != 0
+        val isMetadataRun = run != null &&
+            SmartScanPlan.runRequestsFeature(run, SmartScanFeature.METADATA) &&
+            SmartScanPlan.shouldShowRun(run.userVisible, run.totalMedia)
         val progress = if (run == null || run.totalMedia <= 0) 0
         else (run.processedMedia * 100 / run.totalMedia).coerceIn(0, 100)
         MediaMetadataState(

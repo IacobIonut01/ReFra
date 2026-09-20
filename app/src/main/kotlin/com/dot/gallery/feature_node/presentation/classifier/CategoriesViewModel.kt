@@ -10,6 +10,7 @@ import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.ml.ModelStatus
+import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.core.smart.SmartScanScheduler
 import com.dot.gallery.core.workers.VaultOperationWorker
 import com.dot.gallery.core.workers.enqueueVaultOperation
@@ -19,6 +20,8 @@ import com.dot.gallery.core.workers.stopClassification
 import com.dot.gallery.feature_node.data.data_source.CategoryWithMediaCount
 import com.dot.gallery.feature_node.data.data_source.SmartScanDao
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
+import com.dot.gallery.feature_node.data.data_source.SmartScanPhaseEntity
+import com.dot.gallery.feature_node.data.data_source.SmartScanRunEntity
 import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
@@ -29,10 +32,14 @@ import com.dot.gallery.feature_node.presentation.location.MapGeoMediaSource
 import com.dot.gallery.feature_node.presentation.util.update
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -42,6 +49,7 @@ import javax.inject.Inject
  * ViewModel for the Categories feature.
  * Manages both the legacy classification system and the new embedding-based category system.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(
     private val repository: MediaRepository,
@@ -49,7 +57,7 @@ class CategoriesViewModel @Inject constructor(
     private val workManager: WorkManager,
     private val modelManager: ModelManager,
     private val smartScanScheduler: SmartScanScheduler,
-    smartScanDao: SmartScanDao,
+    private val smartScanDao: SmartScanDao,
     mapGeoMediaSource: MapGeoMediaSource,
 ) : ViewModel() {
 
@@ -104,20 +112,43 @@ class CategoriesViewModel @Inject constructor(
     private val activeSmartScan = smartScanDao.observeActiveRun()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val isCategoryWorkerRunning: StateFlow<Boolean> = activeSmartScan
-        .map { it?.requestedFeatures?.and(SmartScanFeature.CATEGORIES.bit) != 0 }
+    /**
+     * The active scan run when it visibly includes category classification; null when
+     * idle or when only a hidden background-scheduled run is queued.
+     */
+    val categoryScan: StateFlow<SmartScanRunEntity?> = activeSmartScan
+        .map { run ->
+            run?.takeIf {
+                SmartScanPlan.runRequestsFeature(it, SmartScanFeature.CATEGORIES) &&
+                    SmartScanPlan.shouldShowRun(it.userVisible, it.totalMedia)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val isCategoryWorkerRunning: StateFlow<Boolean> = categoryScan
+        .map { it != null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val categoryWorkerProgress: StateFlow<Float> = activeSmartScan
-        .map { run ->
-            if (run == null || run.totalMedia <= 0) 0f
-            else (run.processedMedia.toFloat() / run.totalMedia.toFloat()) * 100f
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+    private val categoryPhases = SmartScanPlan.phasesFor(SmartScanFeature.CATEGORIES.bit).toSet()
 
-    val categoryWorkerStatus: StateFlow<String> = activeSmartScan
-        .map { it?.currentPhase?.storedValue.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    private val categoryScanPhases: StateFlow<List<SmartScanPhaseEntity>> = categoryScan
+        .flatMapLatest { run ->
+            if (run == null) flowOf(emptyList())
+            else smartScanDao.observePhases(run.runId).map { phases ->
+                phases.filter { it.phase in categoryPhases }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val categoryWorkerProgress: StateFlow<Float> =
+        combine(categoryScan, categoryScanPhases) { run, phases ->
+            when {
+                run == null -> 0f
+                phases.isNotEmpty() -> SmartScanPlan.overallProgress(phases) * 100f
+                run.totalMedia > 0 -> run.processedMedia.toFloat() / run.totalMedia * 100f
+                else -> 0f
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
     // ============ Legacy Classification System (kept for backward compatibility) ============
     

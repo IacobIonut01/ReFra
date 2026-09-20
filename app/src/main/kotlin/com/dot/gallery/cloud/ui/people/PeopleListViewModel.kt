@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
+import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.core.smart.SmartScanScheduler
 import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderRegistry
@@ -97,7 +98,10 @@ class PeopleListViewModel @Inject constructor(
 
     val scanState: StateFlow<PeopleScanUiState> = activeRun
         .flatMapLatest { run ->
-            if (run == null || run.requestedFeatures and SmartScanFeature.PERSONS.bit == 0) {
+            if (run == null ||
+                !SmartScanPlan.runRequestsFeature(run, SmartScanFeature.PERSONS) ||
+                !SmartScanPlan.shouldShowRun(run.userVisible, run.totalMedia)
+            ) {
                 flowOf(PeopleScanUiState())
             } else {
                 smartScanDao.observePhases(run.runId).map { phases ->

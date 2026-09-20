@@ -22,7 +22,7 @@ internal fun deriveSearchIndexerState(
     run: SmartScanRunEntity?,
     phases: List<SmartScanPhaseEntity>
 ): SearchIndexerState {
-    if (run == null || run.requestedFeatures and SmartScanFeature.EMBEDDINGS.bit == 0) {
+    if (run == null || !SmartScanPlan.runRequestsFeature(run, SmartScanFeature.EMBEDDINGS)) {
         return SearchIndexerState()
     }
     val searchPhase = phases.firstOrNull { it.phase == SmartScanPhase.SEARCH_INDEX }

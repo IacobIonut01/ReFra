@@ -14,7 +14,9 @@ import com.dot.gallery.feature_node.data.data_source.MediaFeatureStatus
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
 import com.dot.gallery.feature_node.data.data_source.SmartScanPhase
 import com.dot.gallery.feature_node.data.data_source.SmartScanPhaseEntity
+import com.dot.gallery.feature_node.data.data_source.SmartScanRunEntity
 import com.dot.gallery.feature_node.data.data_source.SmartScanStatus
+import com.dot.gallery.feature_node.data.data_source.SmartScanTrigger
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
 import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.domain.util.FloatVectorCodec
@@ -78,6 +80,30 @@ class SmartScanPlanTest {
             false,
             smartScanConstraintsFor(SmartScanPlan.phasesFor(SmartScanFeature.ALL_MASK), userVisible = true)
                 .requiresCharging()
+        )
+    }
+
+    @Test
+    fun nullRunRequestsNoFeature() {
+        assertEquals(false, SmartScanPlan.runRequestsFeature(null, SmartScanFeature.CATEGORIES))
+        assertEquals(false, SmartScanPlan.runRequestsFeature(null, SmartScanFeature.METADATA))
+    }
+
+    @Test
+    fun runRequestsFeatureMatchesOnlyRequestedBits() {
+        val run = SmartScanRunEntity(
+            runId = "run",
+            trigger = SmartScanTrigger.AUTOMATIC,
+            requestedFeatures = SmartScanFeature.CATEGORIES.bit or SmartScanFeature.EMBEDDINGS.bit,
+            requestedAt = 1L
+        )
+
+        assertEquals(true, SmartScanPlan.runRequestsFeature(run, SmartScanFeature.CATEGORIES))
+        assertEquals(true, SmartScanPlan.runRequestsFeature(run, SmartScanFeature.EMBEDDINGS))
+        assertEquals(false, SmartScanPlan.runRequestsFeature(run, SmartScanFeature.PERSONS))
+        assertEquals(
+            false,
+            SmartScanPlan.runRequestsFeature(run.copy(requestedFeatures = 0), SmartScanFeature.CATEGORIES)
         )
     }
 

@@ -31,20 +31,22 @@ import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.Settings.Misc.rememberNoClassification
 import com.dot.gallery.core.ml.ModelStatus
+import com.dot.gallery.feature_node.data.data_source.SmartScanStatus
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.settings.components.SwitchPreferenceDetailScreen
+import com.dot.gallery.feature_node.presentation.settings.subsettings.label
 
 @Composable
 fun CategoriesSettingsScreen() {
     val viewModel = hiltViewModel<CategoriesViewModel>()
 
-    val isCategoryWorkerRunning by viewModel.isCategoryWorkerRunning.collectAsStateWithLifecycle()
+    val categoryScan by viewModel.categoryScan.collectAsStateWithLifecycle()
     val categoryWorkerProgress by viewModel.categoryWorkerProgress.collectAsStateWithLifecycle()
-    val categoryWorkerStatus by viewModel.categoryWorkerStatus.collectAsStateWithLifecycle()
     val categoriesWithCount by viewModel.categoriesWithCount.collectAsStateWithLifecycle()
     val modelStatus by viewModel.modelStatus.collectAsStateWithLifecycle()
     val isModelReady = modelStatus == ModelStatus.READY
 
+    val isCategoryWorkerRunning = categoryScan != null
     var noClassification by rememberNoClassification()
 
     val description = stringResource(R.string.disclaimer_classification)
@@ -68,7 +70,7 @@ fun CategoriesSettingsScreen() {
                             stringResource(R.string.ai_models_not_available)
                         else null,
                         icon = Icons.Outlined.Scanner,
-                        screenPosition = if (categoriesWithCount.isNotEmpty() && !isCategoryWorkerRunning)
+                        screenPosition = if (categoriesWithCount.isNotEmpty() || isCategoryWorkerRunning)
                             Position.Top else Position.Alone
                     ),
                     modifier = Modifier
@@ -104,15 +106,31 @@ fun CategoriesSettingsScreen() {
                                 color = MaterialTheme.colorScheme.tertiary,
                             )
                         }
-                        if (categoryWorkerStatus.isNotEmpty()) {
+                        categoryScan?.let { run ->
                             Text(
-                                text = categoryWorkerStatus,
+                                text = when (run.status) {
+                                    SmartScanStatus.RUNNING ->
+                                        run.currentPhase?.label() ?: run.status.label()
+                                    else -> run.status.label()
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
                             )
                         }
                     }
+                }
+
+                // Stop action while a scan is visible
+                if (isCategoryWorkerRunning) {
+                    SettingsItem(
+                        item = SettingsEntity.Preference(
+                            title = stringResource(R.string.categories_stop_scan),
+                            summary = stringResource(R.string.categories_stop_scan_summary),
+                            onClick = viewModel::stopCategoryClassification,
+                            screenPosition = Position.Bottom
+                        )
+                    )
                 }
 
                 // Reset categories
