@@ -99,6 +99,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -531,6 +532,46 @@ internal fun isMediaViewerContentReady(
     initialPage: Int,
 ): Boolean = selectionApplied ||
         (!isLoading && targetFound && currentPage == initialPage)
+
+/**
+ * Whether the low-res surrogate thumbnail behind the media should draw. Its jobs are the
+ * load placeholder and the transition/dismiss underlay; once the viewer is settled it must
+ * stay hidden — parked under the media it leaks into view whenever the image leaves its
+ * rest bounds (pinch zoom-out rubber-banding, rotation) (#1226).
+ */
+internal fun isViewerSurrogateVisible(
+    contentReady: Boolean,
+    transitionRunning: Boolean,
+    dismissActive: Boolean,
+    dismissedVisualHidden: Boolean,
+): Boolean = !dismissedVisualHidden &&
+        (!contentReady || transitionRunning || dismissActive)
+
+/**
+ * True when a pointer down at [downUptime] lands inside the double-tap window after a tap
+ * released at [lastTapUpUptime]. That second press belongs to the image's one-finger zoom
+ * (double-tap-hold and drag), so the viewer's swipe-to-dismiss must not arm on it.
+ */
+internal fun isSecondTapPress(
+    downUptime: Long,
+    lastTapUpUptime: Long,
+    doubleTapMinMillis: Long,
+    doubleTapTimeoutMillis: Long,
+): Boolean {
+    if (lastTapUpUptime < 0) return false
+    val delta = downUptime - lastTapUpUptime
+    return delta >= doubleTapMinMillis && delta <= doubleTapTimeoutMillis
+}
+
+/** True when a released gesture was a clean tap: released quickly and within touch slop. */
+internal fun isCleanTap(
+    upUptime: Long,
+    downUptime: Long,
+    dragDistance: Float,
+    longPressTimeoutMillis: Long,
+    touchSlop: Float,
+): Boolean =
+    upUptime - downUptime < longPressTimeoutMillis && dragDistance <= touchSlop
 
 @Composable
 fun <T> rememberedDerivedState(
@@ -1546,15 +1587,29 @@ fun <T : Media> MediaViewScreen(
                     // from the next delta — halved tracking speed and a fast up/down oscillation.
                     .pointerInput(dismissGestureEnabled) {
                         if (dismissGestureEnabled) {
+                            // Uptime of the last clean tap. A down arriving inside the
+                            // double-tap window is the second press of the image's
+                            // one-finger zoom (double-tap-hold and drag) and must reach
+                            // ZoomImage instead of arming swipe-to-dismiss — this detector
+                            // reads the Initial pass, so a downward drag would otherwise be
+                            // consumed before zoomable ever sees it (#1226).
+                            var lastTapUpUptime = Long.MIN_VALUE
                             awaitEachGesture {
                                 val down = awaitFirstDown(
                                     requireUnconsumed = false,
                                     pass = PointerEventPass.Initial,
                                 )
+                                val doubleTapHold = isSecondTapPress(
+                                    downUptime = down.uptimeMillis,
+                                    lastTapUpUptime = lastTapUpUptime,
+                                    doubleTapMinMillis = viewConfiguration.doubleTapMinTimeMillis,
+                                    doubleTapTimeoutMillis = viewConfiguration.doubleTapTimeoutMillis,
+                                )
                                 var lastPosition = down.position
                                 var totalDrag = Offset.Zero
                                 var draggingToDismiss = false
                                 var cancelled = false
+                                var upChange: PointerInputChange? = null
                                 try {
                                     do {
                                         val event = awaitPointerEvent(PointerEventPass.Initial)
@@ -1567,9 +1622,11 @@ fun <T : Media> MediaViewScreen(
                                             cancelled = true
                                             break
                                         }
+                                        if (!change.pressed) upChange = change
                                         val delta = change.position - lastPosition
                                         totalDrag += delta
-                                        if (!draggingToDismiss &&
+                                        if (!doubleTapHold &&
+                                            !draggingToDismiss &&
                                             totalDrag.y > viewConfiguration.touchSlop &&
                                             abs(totalDrag.y) > abs(totalDrag.x)
                                         ) {
@@ -1592,6 +1649,24 @@ fun <T : Media> MediaViewScreen(
                                         }
                                         lastPosition = change.position
                                     } while (change.pressed)
+                                    // Remember a clean tap so the next gesture inside the
+                                    // double-tap window is left to the image's one-finger
+                                    // zoom; anything else resets the window.
+                                    val up = upChange
+                                    lastTapUpUptime = if (!cancelled && !draggingToDismiss &&
+                                        up != null && isCleanTap(
+                                            upUptime = up.uptimeMillis,
+                                            downUptime = down.uptimeMillis,
+                                            dragDistance = totalDrag.getDistance(),
+                                            longPressTimeoutMillis =
+                                                viewConfiguration.longPressTimeoutMillis,
+                                            touchSlop = viewConfiguration.touchSlop,
+                                        )
+                                    ) {
+                                        up.uptimeMillis
+                                    } else {
+                                        Long.MIN_VALUE
+                                    }
                                     if (draggingToDismiss) {
                                         if (cancelled) {
                                             viewerDismissState.cancel(scope)
@@ -1745,10 +1820,19 @@ fun <T : Media> MediaViewScreen(
                                     // flight owns the media's visual and the root layer
                                     // draws it.
                                     .graphicsLayer {
-                                        alpha = if (viewerDismissState.isDismissedVisualHidden(
-                                                MediaSharedElementKey.MediaKey(sharedElementMedia.id)
+                                        alpha = if (isViewerSurrogateVisible(
+                                                contentReady = viewerContentReady,
+                                                transitionRunning =
+                                                    animatedContentScope.transition.isRunning,
+                                                dismissActive = viewerDismissState.isActive,
+                                                dismissedVisualHidden =
+                                                    viewerDismissState.isDismissedVisualHidden(
+                                                        MediaSharedElementKey.MediaKey(
+                                                            sharedElementMedia.id
+                                                        )
+                                                    ),
                                             )
-                                        ) 0f else 1f
+                                        ) 1f else 0f
                                     },
                             )
                         }

@@ -320,4 +320,124 @@ class MediaViewerVisualPolicyTest {
             )
         )
     }
+
+    @Test
+    fun surrogateStaysHiddenOnceTheViewerIsSettled() {
+        assertFalse(
+            isViewerSurrogateVisible(
+                contentReady = true,
+                transitionRunning = false,
+                dismissActive = false,
+                dismissedVisualHidden = false,
+            )
+        )
+    }
+
+    @Test
+    fun surrogateStaysVisibleWhileMediaLoadsOrDuringTransitionAndDismiss() {
+        assertTrue(
+            isViewerSurrogateVisible(
+                contentReady = false,
+                transitionRunning = false,
+                dismissActive = false,
+                dismissedVisualHidden = false,
+            )
+        )
+        assertTrue(
+            isViewerSurrogateVisible(
+                contentReady = true,
+                transitionRunning = true,
+                dismissActive = false,
+                dismissedVisualHidden = false,
+            )
+        )
+        assertTrue(
+            isViewerSurrogateVisible(
+                contentReady = true,
+                transitionRunning = false,
+                dismissActive = true,
+                dismissedVisualHidden = false,
+            )
+        )
+    }
+
+    @Test
+    fun surrogateStaysHiddenWhenAReturnFlightOwnsTheVisual() {
+        assertFalse(
+            isViewerSurrogateVisible(
+                contentReady = false,
+                transitionRunning = true,
+                dismissActive = true,
+                dismissedVisualHidden = true,
+            )
+        )
+    }
+
+    @Test
+    fun secondPressInsideTheDoubleTapWindowIsDetected() {
+        assertTrue(
+            isSecondTapPress(
+                downUptime = 1200,
+                lastTapUpUptime = 1000,
+                doubleTapMinMillis = 40,
+                doubleTapTimeoutMillis = 300,
+            )
+        )
+        assertFalse(
+            isSecondTapPress(
+                downUptime = 1020,
+                lastTapUpUptime = 1000,
+                doubleTapMinMillis = 40,
+                doubleTapTimeoutMillis = 300,
+            )
+        )
+        assertFalse(
+            isSecondTapPress(
+                downUptime = 1400,
+                lastTapUpUptime = 1000,
+                doubleTapMinMillis = 40,
+                doubleTapTimeoutMillis = 300,
+            )
+        )
+        // First gesture ever — the unset sentinel must not produce a hit.
+        assertFalse(
+            isSecondTapPress(
+                downUptime = 5000,
+                lastTapUpUptime = Long.MIN_VALUE,
+                doubleTapMinMillis = 40,
+                doubleTapTimeoutMillis = 300,
+            )
+        )
+    }
+
+    @Test
+    fun onlyAQuickStationaryReleaseCountsAsACleanTap() {
+        assertTrue(
+            isCleanTap(
+                upUptime = 1100,
+                downUptime = 1000,
+                dragDistance = 3f,
+                longPressTimeoutMillis = 500,
+                touchSlop = 18f,
+            )
+        )
+        assertFalse(
+            isCleanTap(
+                upUptime = 1600,
+                downUptime = 1000,
+                dragDistance = 3f,
+                longPressTimeoutMillis = 500,
+                touchSlop = 18f,
+            )
+        )
+        assertFalse(
+            isCleanTap(
+                upUptime = 1100,
+                downUptime = 1000,
+                dragDistance = 40f,
+                longPressTimeoutMillis = 500,
+                touchSlop = 18f,
+            )
+        )
+    }
 }
