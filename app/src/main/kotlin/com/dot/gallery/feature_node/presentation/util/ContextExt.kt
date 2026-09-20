@@ -400,7 +400,9 @@ fun Context.getEditImageCapableApps(): List<ResolveInfo> {
         setType("image/*")
     }
     val resolveInfoList = packageManager.queryIntentActivities(intent, 0)
-    return resolveInfoList.filterNot { it.activityInfo.packageName == BuildConfig.APPLICATION_ID }
+    return resolveInfoList
+        .filterNot { it.activityInfo.packageName == BuildConfig.APPLICATION_ID }
+        .distinctBy { it.activityInfo.packageName }
 }
 
 fun Context.launchEditImageIntent(packageName: String, uri: Uri) {

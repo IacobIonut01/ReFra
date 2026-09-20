@@ -264,10 +264,7 @@ fun <T> SwitchPreferenceDetailScreen(
 
             // Extra options
             if (options.isNotEmpty()) {
-                items(
-                    items = options,
-                    key = { it.label }
-                ) { option ->
+                items(items = options) { option ->
                     val optionIndex = options.indexOf(option)
                     val optionPosition = when {
                         options.size == 1 -> Position.Alone
@@ -427,10 +424,7 @@ fun <T> ChooserPreferenceDetailScreen(
 
             // Standard radio options
             if (options.isNotEmpty()) {
-                items(
-                    items = options,
-                    key = { it.label }
-                ) { option ->
+                items(items = options) { option ->
                     val optionIndex = options.indexOf(option)
                     val optionPosition = when {
                         options.size == 1 -> Position.Alone
