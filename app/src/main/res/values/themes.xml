@@ -5,9 +5,14 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
+    <!-- windowSplashScreenBehavior=icon_preferred keeps the icon on every cold
+         start: without it, launches not initiated by a system surface (the app's
+         own restart after an icon change, notifications, deep links) get a
+         solid-color splash with no icon at all on API 33+. -->
     <style name="Theme.Gallery.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splashColorBackground</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenBehavior">icon_preferred</item>
         <item name="postSplashScreenTheme">@style/Theme.Gallery</item>
     </style>
 
@@ -18,6 +23,7 @@
     <style name="Theme.Gallery.Splash.Gallery" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splashColorBackground</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_gallery_foreground</item>
+        <item name="android:windowSplashScreenBehavior">icon_preferred</item>
         <item name="postSplashScreenTheme">@style/Theme.Gallery</item>
     </style>
 
