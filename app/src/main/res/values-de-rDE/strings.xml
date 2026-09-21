@@ -662,7 +662,7 @@
     <string name="media_grid">Medienraster</string>
     <string name="classic_date">Klassisches Datum</string>
     <string name="extended_date">Erweitertes Datum</string>
-    <string name="date_format_following_system">Folgende Systemformatierung</string>
+    <string name="date_format_following_system">Folgt Systemformat</string>
     <string name="date_format_info_action">Format-Hilfe</string>
     <string name="date_format_info_title">Format-Strings</string>
     <string name="date_format_info_summary">Lass ein Feld leer, um das Datums- und Zeitformat deines Geräts zu übernehmen. Zum Anpassen kombiniere die unten stehenden Musterbuchstaben (basierend auf Unicode-Datumsformaten).</string>
