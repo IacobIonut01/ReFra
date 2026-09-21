@@ -39,7 +39,6 @@ import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.canMakeActions
 import com.dot.gallery.feature_node.domain.util.isCloud
 import com.dot.gallery.feature_node.domain.util.isEncrypted
-import com.dot.gallery.feature_node.domain.util.isRaw
 import com.dot.gallery.feature_node.domain.util.isTrashed
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
@@ -251,16 +250,6 @@ fun <T : Media> MediaViewQuickBottomBar(
             // Download (cloud only)
             if (capabilities.download) {
                 DownloadButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme
-                )
-            }
-            // Develop RAW (native LibRaw): only for RAW media when the native lib is available.
-            if (currentMedia.isRaw && capabilities.edit &&
-                com.dot.gallery.core.decoder.NativeRawDecoder.isAvailable
-            ) {
-                com.dot.gallery.feature_node.presentation.mediaview.components.rawdevelop.RawDevelopButton(
                     media = currentMedia,
                     enabled = enabled,
                     followTheme = followTheme

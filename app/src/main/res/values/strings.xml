@@ -285,7 +285,6 @@
     <string name="reencode_quality_lossy">Lossy quality</string>
     <string name="reencode_quality_jxl_effort">JXL effort</string>
     <!-- RAW develop -->
-    <string name="raw_develop">Develop RAW</string>
     <string name="raw_develop_title">Develop RAW</string>
     <string name="raw_develop_wb">White balance</string>
     <string name="raw_wb_camera">Camera</string>
