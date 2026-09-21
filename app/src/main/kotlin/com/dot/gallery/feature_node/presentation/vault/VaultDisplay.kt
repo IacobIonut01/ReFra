@@ -407,7 +407,8 @@ fun VaultDisplay(
                             SelectVaultSheet(
                                 state = sheetState,
                                 vaultState = vaultState.value,
-                                excludeVault = currentVaultValue
+                                excludeVault = currentVaultValue,
+                                requireGateAuth = false
                             ) { vault ->
                                 onAuthenticateVault(vault)
                             }

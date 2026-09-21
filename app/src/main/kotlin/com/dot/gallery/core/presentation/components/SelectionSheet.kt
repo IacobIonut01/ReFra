@@ -851,6 +851,9 @@ fun <T : Media> BoxScope.SelectionSheet(
         state = vaultSheetState,
         vaultState = vaults.value,
         excludeVault = if (isInVault) vaultViewModel.currentVault.value else null,
+        // Inside a vault the gate was already passed to enter this session; the
+        // sheet then only serves copy/move between vaults.
+        requireGateAuth = !isInVault,
         onVaultSelected = { targetVault ->
             scope.launch {
                 when (vaultSheetAction) {
