@@ -180,7 +180,7 @@ interface DetectedFaceDao {
     @Query("DELETE FROM face_links WHERE id IN (:ids)")
     suspend fun deleteLinksByIds(ids: List<Long>)
 
-    @Query("UPDATE face_links SET personId = :targetId WHERE personId = :sourceId AND kind = :kind")
+    @Query("UPDATE OR REPLACE face_links SET personId = :targetId WHERE personId = :sourceId AND kind = :kind")
     suspend fun reassignLinks(sourceId: String, targetId: String, kind: FaceLinkKind)
 
     @Query("DELETE FROM face_links WHERE personId = :personId")
