@@ -121,6 +121,15 @@ fun systemDateTimePattern(context: Context, field: SystemDateFormatField): Strin
     }
 }
 
+/**
+ * Resolves a stored date-format preference for non-composable consumers
+ * (ViewModels, MediaDistributorImpl flows). A blank stored value means
+ * "follow the system" (see #953) and must never reach grouping/formatting
+ * code, where it formats every date as "" and collapses all groups into one.
+ */
+fun resolvedDateFormat(context: Context, raw: String, field: SystemDateFormatField): String =
+    if (raw.isBlank()) systemDateTimePattern(context, field) else raw
+
 fun Long.getDate(
     format: CharSequence,
 ): String {

@@ -6,6 +6,7 @@
 package com.dot.gallery.feature_node.presentation.classifier
 
 import ai.onnxruntime.OrtSession
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.core.Constants
@@ -17,8 +18,11 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.search.SearchHelper
 import com.dot.gallery.feature_node.presentation.search.util.dot
+import com.dot.gallery.feature_node.presentation.util.SystemDateFormatField
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
+import com.dot.gallery.feature_node.presentation.util.resolvedDateFormat
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,24 +39,28 @@ import javax.inject.Inject
 @HiltViewModel
 class AddCategoryViewModel @Inject constructor(
     private val repository: MediaRepository,
-    private val searchHelper: SearchHelper
+    private val searchHelper: SearchHelper,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     // Date format settings
     private val defaultDateFormat = repository.getSetting(
         Settings.Misc.DEFAULT_DATE_FORMAT,
-        Constants.DEFAULT_DATE_FORMAT
-    ).stateIn(viewModelScope, SharingStarted.Eagerly, Constants.DEFAULT_DATE_FORMAT)
+        ""
+    ).map { resolvedDateFormat(context, it, SystemDateFormatField.DEFAULT) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.DEFAULT_DATE_FORMAT)
 
     private val extendedDateFormat = repository.getSetting(
         Settings.Misc.EXTENDED_DATE_FORMAT,
-        Constants.EXTENDED_DATE_FORMAT
-    ).stateIn(viewModelScope, SharingStarted.Eagerly, Constants.EXTENDED_DATE_FORMAT)
+        ""
+    ).map { resolvedDateFormat(context, it, SystemDateFormatField.EXTENDED) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.EXTENDED_DATE_FORMAT)
 
     private val weeklyDateFormat = repository.getSetting(
         Settings.Misc.WEEKLY_DATE_FORMAT,
-        Constants.WEEKLY_DATE_FORMAT
-    ).stateIn(viewModelScope, SharingStarted.Eagerly, Constants.WEEKLY_DATE_FORMAT)
+        ""
+    ).map { resolvedDateFormat(context, it, SystemDateFormatField.WEEKLY) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.WEEKLY_DATE_FORMAT)
 
     private val _categoryName = MutableStateFlow("")
     val categoryName: StateFlow<String> = _categoryName.asStateFlow()

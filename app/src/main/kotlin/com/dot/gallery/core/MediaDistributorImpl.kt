@@ -69,9 +69,11 @@ import com.dot.gallery.feature_node.domain.util.isCloud
 import com.dot.gallery.feature_node.domain.util.mapLocked
 import com.dot.gallery.feature_node.domain.util.mapPinned
 import com.dot.gallery.feature_node.domain.util.removeBlacklisted
+import com.dot.gallery.feature_node.presentation.util.SystemDateFormatField
 import com.dot.gallery.feature_node.presentation.util.applyOptimisticMutations
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.dot.gallery.feature_node.presentation.util.mediaFlow
+import com.dot.gallery.feature_node.presentation.util.resolvedDateFormat
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.provider.MediaStore
@@ -345,9 +347,12 @@ class MediaDistributorImpl @Inject constructor(
     override val hasPermission: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val dateFormatsFlow: StateFlow<Triple<String, String, String>> = combine(
-        repository.getSetting(DEFAULT_DATE_FORMAT, Constants.DEFAULT_DATE_FORMAT),
-        repository.getSetting(EXTENDED_DATE_FORMAT, Constants.EXTENDED_DATE_FORMAT),
-        repository.getSetting(WEEKLY_DATE_FORMAT, Constants.WEEKLY_DATE_FORMAT)
+        repository.getSetting(DEFAULT_DATE_FORMAT, "")
+            .map { resolvedDateFormat(context, it, SystemDateFormatField.DEFAULT) },
+        repository.getSetting(EXTENDED_DATE_FORMAT, "")
+            .map { resolvedDateFormat(context, it, SystemDateFormatField.EXTENDED) },
+        repository.getSetting(WEEKLY_DATE_FORMAT, "")
+            .map { resolvedDateFormat(context, it, SystemDateFormatField.WEEKLY) }
     ) { defaultDateFormat, extendedDateFormat, weeklyDateFormat ->
         Triple(defaultDateFormat, extendedDateFormat, weeklyDateFormat)
     }.distinctUntilChanged()

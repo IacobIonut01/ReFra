@@ -26,8 +26,10 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.presentation.util.SystemDateFormatField
 import com.dot.gallery.feature_node.presentation.util.mapMedia
 import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.resolvedDateFormat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -59,15 +61,18 @@ open class VaultViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val defaultDateFormat =
-        repository.getSetting(Settings.Misc.DEFAULT_DATE_FORMAT, Constants.DEFAULT_DATE_FORMAT)
+        repository.getSetting(Settings.Misc.DEFAULT_DATE_FORMAT, "")
+            .map { resolvedDateFormat(appContext, it, SystemDateFormatField.DEFAULT) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.DEFAULT_DATE_FORMAT)
 
     private val extendedDateFormat =
-        repository.getSetting(Settings.Misc.EXTENDED_DATE_FORMAT, Constants.EXTENDED_DATE_FORMAT)
+        repository.getSetting(Settings.Misc.EXTENDED_DATE_FORMAT, "")
+            .map { resolvedDateFormat(appContext, it, SystemDateFormatField.EXTENDED) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.EXTENDED_DATE_FORMAT)
 
     private val weeklyDateFormat =
-        repository.getSetting(Settings.Misc.WEEKLY_DATE_FORMAT, Constants.WEEKLY_DATE_FORMAT)
+        repository.getSetting(Settings.Misc.WEEKLY_DATE_FORMAT, "")
+            .map { resolvedDateFormat(appContext, it, SystemDateFormatField.WEEKLY) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, Constants.WEEKLY_DATE_FORMAT)
 
     val currentVault = MutableStateFlow<Vault?>(null)
