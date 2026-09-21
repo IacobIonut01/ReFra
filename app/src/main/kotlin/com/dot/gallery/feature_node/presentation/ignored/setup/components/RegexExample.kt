@@ -50,8 +50,8 @@ fun RegexExample(
 private fun RegexExamplePreview() {
     PreviewHost {
         RegexExample(
-            description = "Matches albums starting with 'Screenshot'",
-            pattern = "^Screenshot.*"
+            description = "Match anything with \"Screenshots\" in its path:",
+            pattern = ".*Screenshots.*"
         )
     }
 }
@@ -61,8 +61,8 @@ private fun RegexExamplePreview() {
 private fun RegexExampleContainsPreview() {
     PreviewHost {
         RegexExample(
-            description = "Matches albums containing 'backup'",
-            pattern = ".*backup.*"
+            description = "Match everything inside the WhatsApp folder:",
+            pattern = ".*/WhatsApp/.*"
         )
     }
 }
@@ -72,8 +72,8 @@ private fun RegexExampleContainsPreview() {
 private fun RegexExampleComplexPreview() {
     PreviewHost {
         RegexExample(
-            description = "Matches albums with numbers",
-            pattern = ".*\\d+.*"
+            description = "Match everything under DCIM on internal storage:",
+            pattern = "/storage/emulated/0/DCIM/.*"
         )
     }
 }

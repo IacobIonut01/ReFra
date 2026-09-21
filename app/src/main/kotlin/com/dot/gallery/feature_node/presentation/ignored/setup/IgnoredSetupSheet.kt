@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,6 +74,7 @@ import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
+import com.dot.gallery.feature_node.domain.model.matchesAlbum
 import com.dot.gallery.feature_node.presentation.ignored.setup.components.ConfirmationCard
 import com.dot.gallery.feature_node.presentation.ignored.setup.components.RegexExample
 import com.dot.gallery.feature_node.presentation.ignored.setup.components.SectionHeader
@@ -610,6 +612,16 @@ private fun RegexInputContent(
     var error by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    val matchedAlbumsCount = remember(localRegex, uiState.albums) {
+        try {
+            localRegex.takeIf { it.isNotEmpty() }?.toRegex()
+                ?.let { pattern -> uiState.albums.count { pattern.matchesAlbum(it) } }
+                ?: 0
+        } catch (e: Exception) {
+            0
+        }
+    }
+
     val invalidRegex = stringResource(R.string.setup_type_regex_error)
     val alreadyUsedRegex = stringResource(R.string.setup_type_regex_error_second)
 
@@ -703,19 +715,41 @@ private fun RegexInputContent(
                     value = localRegex,
                     onValueChange = { localRegex = it },
                     label = { Text(stringResource(R.string.setup_type_regex_label)) },
-                    placeholder = { Text(stringResource(R.string.setup_type_regex_label)) },
-                    supportingText = if (error && localRegex.isNotEmpty()) {
-                        {
-                            Text(
-                                text = errorMessage,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
+                    placeholder = { Text(stringResource(R.string.setup_type_regex_first_subtitle)) },
+                    supportingText = when {
+                        error && localRegex.isNotEmpty() -> {
+                            {
+                                Text(
+                                    text = errorMessage,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
-                    } else null,
+                        localRegex.isNotEmpty() -> {
+                            {
+                                Text(
+                                    text = stringResource(
+                                        R.string.setup_album_regex_matched,
+                                        matchedAlbumsCount
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (matchedAlbumsCount > 0) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    }
+                                )
+                            }
+                        }
+                        else -> null
+                    },
                     isError = error && localRegex.isNotEmpty(),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Monospace
+                    )
                 )
             }
 
@@ -1063,7 +1097,7 @@ private fun RegexInputWithPatternPreview() {
         IgnoredSetupSheetContent(
             uiState = IgnoredSetupUiState(
                 currentStep = SetupStep.ALBUM_SELECTION,
-                type = IgnoredType.REGEX("^Screenshot.*"),
+                type = IgnoredType.REGEX(".*Screenshots.*"),
                 albums = mockAlbums,
                 canProceed = true
             ),
@@ -1141,7 +1175,7 @@ private fun ConfirmationStepRegexPreview() {
             uiState = IgnoredSetupUiState(
                 currentStep = SetupStep.CONFIRMATION,
                 location = IgnoredAlbum.ALBUMS_AND_TIMELINE,
-                type = IgnoredType.REGEX("^Screenshot.*"),
+                type = IgnoredType.REGEX(".*Screenshots.*"),
                 matchedAlbums = matchedAlbums
             ),
             onAction = {}
