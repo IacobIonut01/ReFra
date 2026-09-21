@@ -1,6 +1,7 @@
 package com.dot.gallery.feature_node.presentation.vault.utils
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -54,6 +55,7 @@ object VaultPasswordManager {
 
     private val GATE_MODE_KEY = stringPreferencesKey("vault_gate_mode")
     private val PRIVATE_FOLDER_MODE_KEY = stringPreferencesKey("private_folder_gate_mode")
+    private val VAULT_LOCK_ALL_KEY = booleanPreferencesKey("vault_lock_all")
 
     suspend fun getGateMode(context: Context): GateMode {
         val raw = context.activeDataStore.data.first()[GATE_MODE_KEY]
@@ -71,6 +73,17 @@ object VaultPasswordManager {
 
     suspend fun setPrivateFolderMode(context: Context, mode: GateMode) {
         context.activeDataStore.edit { it[PRIVATE_FOLDER_MODE_KEY] = mode.name }
+    }
+
+    /**
+     * Whether the configured gate lock should also cover vault entry. Per-vault
+     * credentials are kept in storage while enabled and apply again when disabled.
+     */
+    suspend fun getVaultLockAll(context: Context): Boolean =
+        context.activeDataStore.data.first()[VAULT_LOCK_ALL_KEY] ?: false
+
+    suspend fun setVaultLockAll(context: Context, enabled: Boolean) {
+        context.activeDataStore.edit { it[VAULT_LOCK_ALL_KEY] = enabled }
     }
 
     private const val SALT_LENGTH = 16

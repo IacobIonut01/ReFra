@@ -88,4 +88,48 @@ class VaultGatePolicyTest {
             )
         )
     }
+
+    @Test
+    fun lockAllDisabledKeepsVaultAuth() {
+        assertEquals(
+            false,
+            VaultGatePolicy.shouldSkipVaultAuth(
+                mode = GateMode.CUSTOM,
+                lockAllVaults = false
+            )
+        )
+    }
+
+    @Test
+    fun lockAllWithoutGateKeepsVaultAuth() {
+        assertEquals(
+            false,
+            VaultGatePolicy.shouldSkipVaultAuth(
+                mode = GateMode.NONE,
+                lockAllVaults = true
+            )
+        )
+    }
+
+    @Test
+    fun lockAllWithDeviceGateSkipsVaultAuth() {
+        assertEquals(
+            true,
+            VaultGatePolicy.shouldSkipVaultAuth(
+                mode = GateMode.DEVICE,
+                lockAllVaults = true
+            )
+        )
+    }
+
+    @Test
+    fun lockAllWithCustomGateSkipsVaultAuth() {
+        assertEquals(
+            true,
+            VaultGatePolicy.shouldSkipVaultAuth(
+                mode = GateMode.CUSTOM,
+                lockAllVaults = true
+            )
+        )
+    }
 }

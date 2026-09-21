@@ -786,6 +786,8 @@
     <string name="vault_gate_none">None</string>
     <string name="vault_gate_device">Device security</string>
     <string name="vault_gate_custom">Custom password</string>
+    <string name="vault_gate_lock_all">One lock for all vaults</string>
+    <string name="vault_gate_lock_all_summary">After unlocking once, every vault opens without its own password. Applies when a lock method is set.</string>
     <string name="next">Next</string>
     <string name="back">Back</string>
     <string name="taken_on">Taken on</string>

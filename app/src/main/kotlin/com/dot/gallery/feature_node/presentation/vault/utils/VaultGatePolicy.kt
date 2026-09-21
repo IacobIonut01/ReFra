@@ -37,4 +37,13 @@ object VaultGatePolicy {
             null -> VaultGateAction.Deny
         }
     }
+
+    /**
+     * Whether a satisfied gate is allowed to cover vault entry too, so one lock
+     * protects every vault. Only a real gate (device or custom) can act as the
+     * single lock — with no gate configured, each vault keeps its own challenge
+     * rather than silently opening unprotected.
+     */
+    fun shouldSkipVaultAuth(mode: GateMode, lockAllVaults: Boolean): Boolean =
+        lockAllVaults && mode != GateMode.NONE
 }

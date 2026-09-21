@@ -70,6 +70,7 @@ import com.dot.gallery.feature_node.presentation.vault.components.VaultPasswordU
 import com.dot.gallery.feature_node.presentation.vault.utils.GateMode
 import com.dot.gallery.feature_node.presentation.vault.utils.VaultAuthType
 import com.dot.gallery.feature_node.presentation.vault.utils.VaultCredentialStatus
+import com.dot.gallery.feature_node.presentation.vault.utils.VaultGatePolicy
 import com.dot.gallery.feature_node.presentation.vault.utils.VaultPasswordManager
 import com.dot.gallery.feature_node.presentation.vault.utils.VerifyResult
 import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
@@ -217,6 +218,17 @@ fun VaultScreen(
             val attemptEpoch = authEpoch
             scope.launch {
                 pendingAuthVault = vault
+                if (VaultGatePolicy.shouldSkipVaultAuth(
+                        mode = VaultPasswordManager.getGateMode(context),
+                        lockAllVaults = VaultPasswordManager.getVaultLockAll(context)
+                    )
+                ) {
+                    // One lock covers every vault — the satisfied gate is enough.
+                    if (attemptEpoch != authEpoch || !isGateAuthenticated) return@launch
+                    pendingAuthVault = null
+                    onVaultAuthSuccess(vault)
+                    return@launch
+                }
                 val status = VaultPasswordManager.getCredentialStatus(context, vault.uuid)
                 if (attemptEpoch != authEpoch || !isGateAuthenticated) return@launch
                 when (status) {
