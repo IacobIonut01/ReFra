@@ -9,20 +9,35 @@ import org.junit.Test
 class ModelManagementActionPolicyTest {
 
     @Test
-    fun readyModelsCanOnlyBeDeletedWhenDownloadsAreAvailable() {
-        val online = resolveModelManagementAction(ModelStatus.READY, hasInternetPermission = true)
-        val offline = resolveModelManagementAction(ModelStatus.READY, hasInternetPermission = false)
+    fun readyModelsCanOnlyBeDeletedWhenInstallIsPossible() {
+        // canInstall = INTERNET permission (network download) OR bundled withML assets.
+        val installable = resolveModelManagementAction(ModelStatus.READY, canInstall = true)
+        val notInstallable = resolveModelManagementAction(ModelStatus.READY, canInstall = false)
 
-        assertEquals(ModelManagementAction.DELETE, online)
-        assertTrue(online.enabled)
-        assertEquals(ModelManagementAction.INSTALLED_OFFLINE, offline)
-        assertFalse(offline.enabled)
+        assertEquals(ModelManagementAction.DELETE, installable)
+        assertTrue(installable.enabled)
+        assertEquals(ModelManagementAction.INSTALLED_OFFLINE, notInstallable)
+        assertFalse(notInstallable.enabled)
+    }
+
+    @Test
+    fun bundledBuildsCanDeleteAndReinstallWithoutInternet() {
+        // WithML ships the models inside the APK, so (re)install never needs the network:
+        // READY -> DELETE and NOT_INSTALLED -> DOWNLOAD (a local asset copy) even offline.
+        assertEquals(
+            ModelManagementAction.DELETE,
+            resolveModelManagementAction(ModelStatus.READY, canInstall = true)
+        )
+        assertEquals(
+            ModelManagementAction.DOWNLOAD,
+            resolveModelManagementAction(ModelStatus.NOT_INSTALLED, canInstall = true)
+        )
     }
 
     @Test
     fun bundledModelCopyIsNeverInteractive() {
-        listOf(true, false).forEach { hasInternetPermission ->
-            val action = resolveModelManagementAction(ModelStatus.COPYING, hasInternetPermission)
+        listOf(true, false).forEach { canInstall ->
+            val action = resolveModelManagementAction(ModelStatus.COPYING, canInstall)
 
             assertEquals(ModelManagementAction.COPYING, action)
             assertFalse(action.enabled)
@@ -30,26 +45,26 @@ class ModelManagementActionPolicyTest {
     }
 
     @Test
-    fun activeDownloadCanOnlyBeCancelledWhenDownloadsAreAvailable() {
-        val online = resolveModelManagementAction(ModelStatus.DOWNLOADING, hasInternetPermission = true)
-        val offline = resolveModelManagementAction(ModelStatus.DOWNLOADING, hasInternetPermission = false)
+    fun activeDownloadCanOnlyBeCancelledWhenInstallIsPossible() {
+        val installable = resolveModelManagementAction(ModelStatus.DOWNLOADING, canInstall = true)
+        val notInstallable = resolveModelManagementAction(ModelStatus.DOWNLOADING, canInstall = false)
 
-        assertEquals(ModelManagementAction.CANCEL_DOWNLOAD, online)
-        assertTrue(online.enabled)
-        assertEquals(ModelManagementAction.UNAVAILABLE_OFFLINE, offline)
-        assertFalse(offline.enabled)
+        assertEquals(ModelManagementAction.CANCEL_DOWNLOAD, installable)
+        assertTrue(installable.enabled)
+        assertEquals(ModelManagementAction.UNAVAILABLE_OFFLINE, notInstallable)
+        assertFalse(notInstallable.enabled)
     }
 
     @Test
-    fun missingModelsCanOnlyBeDownloadedWhenDownloadsAreAvailable() {
+    fun missingModelsCanOnlyBeInstalledWhenInstallIsPossible() {
         listOf(ModelStatus.NOT_INSTALLED, ModelStatus.ERROR).forEach { status ->
-            val online = resolveModelManagementAction(status, hasInternetPermission = true)
-            val offline = resolveModelManagementAction(status, hasInternetPermission = false)
+            val installable = resolveModelManagementAction(status, canInstall = true)
+            val notInstallable = resolveModelManagementAction(status, canInstall = false)
 
-            assertEquals(ModelManagementAction.DOWNLOAD, online)
-            assertTrue(online.enabled)
-            assertEquals(ModelManagementAction.UNAVAILABLE_OFFLINE, offline)
-            assertFalse(offline.enabled)
+            assertEquals(ModelManagementAction.DOWNLOAD, installable)
+            assertTrue(installable.enabled)
+            assertEquals(ModelManagementAction.UNAVAILABLE_OFFLINE, notInstallable)
+            assertFalse(notInstallable.enabled)
         }
     }
 }

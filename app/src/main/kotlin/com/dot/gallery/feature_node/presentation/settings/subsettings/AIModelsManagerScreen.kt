@@ -73,6 +73,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.BuildConfig
 import com.dot.gallery.R
 import com.dot.gallery.core.ml.ModelFileInfo
 import com.dot.gallery.core.ml.ModelGroup
@@ -251,9 +252,10 @@ private fun ModelGroupSection(
     val info by viewModel.downloadInfo(group).collectAsStateWithLifecycle()
     val error by viewModel.errorMessage(group).collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    // Offline flavor strips android.permission.INTERNET at build time; use that as the signal.
-    val hasInternetPermission = viewModel.hasInternetPermission
-    val action = resolveModelManagementAction(status, hasInternetPermission)
+    val isBundled = BuildConfig.ML_MODELS_BUNDLED
+    // Offline flavor strips android.permission.INTERNET at build time; bundled builds can still
+    // (re)install from the shipped assets, so the action resolver keys on canInstallModels.
+    val action = resolveModelManagementAction(status, viewModel.canInstallModels)
 
     val actionTitle: String
     val actionSummary: String
@@ -282,8 +284,14 @@ private fun ModelGroupSection(
             actionClick = { viewModel.cancelDownload(group) }
         }
         ModelManagementAction.DOWNLOAD -> {
-            actionTitle = stringResource(R.string.ai_models_download)
-            actionSummary = error ?: downloadSummary
+            actionTitle = stringResource(
+                if (isBundled) R.string.ai_models_install else R.string.ai_models_download
+            )
+            actionSummary = error ?: if (isBundled) {
+                stringResource(R.string.ai_models_install_summary)
+            } else {
+                downloadSummary
+            }
             actionClick = { viewModel.downloadModels(group) }
         }
         ModelManagementAction.COPYING -> {
@@ -420,7 +428,14 @@ private fun ModelGroupSection(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text(stringResource(R.string.ai_models_delete)) },
-            text = { Text(stringResource(R.string.ai_models_delete_confirm)) },
+            text = {
+                Text(
+                    stringResource(
+                        if (isBundled) R.string.ai_models_delete_confirm_bundled
+                        else R.string.ai_models_delete_confirm
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {

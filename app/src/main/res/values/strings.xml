@@ -566,8 +566,11 @@
     <string name="ai_models_offline_unavailable_summary">This offline build cannot download missing models.</string>
     <string name="ai_models_ready_summary">AI-powered search and classification are available</string>
     <string name="ai_models_error">AI Model Error</string>
+    <string name="ai_models_install">Install AI Models</string>
+    <string name="ai_models_install_summary">Restore the models bundled with the app — no download needed</string>
     <string name="ai_models_delete">Delete AI Models</string>
     <string name="ai_models_delete_confirm">Are you sure you want to delete the AI models? You will need to download them again to use AI features.</string>
+    <string name="ai_models_delete_confirm_bundled">Are you sure you want to delete the AI models? They are bundled with the app and can be restored at any time.</string>
     <string name="ai_models_size">Model size: %s</string>
     <string name="ai_models_unavailable">Unavailable — Requires AI Models Feature</string>
     <string name="ai_models_description">AI models enable intelligent image search, automatic media classification, and interactive subject cutout extraction. The app uses CLIP (Contrastive Language-Image Pretraining) and MobileSAM (Segment Anything) models in ONNX format to understand the content of your photos and segment subjects.</string>

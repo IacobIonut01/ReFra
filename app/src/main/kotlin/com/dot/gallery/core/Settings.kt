@@ -41,6 +41,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.Constants.albumCellsList
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.Constants.mosaicColumnsList
@@ -398,6 +399,28 @@ object Settings {
 
         suspend fun setProviderSmartSearch(context: Context, enabled: Boolean) {
             context.activeDataStore.edit { it[PROVIDER_SMART_SEARCH] = enabled }
+        }
+
+        private val REMOVED_MODEL_GROUPS = stringSetPreferencesKey("smart_features_removed_model_groups")
+
+        /**
+         * Model groups the user explicitly deleted. Persisted so a bundled (withML) build does
+         * not silently re-install them on the next app launch (issue #1229).
+         */
+        fun removedModelGroups(context: Context): Flow<Set<ModelGroup>> =
+            context.activeDataStore.data.map { prefs ->
+                prefs[REMOVED_MODEL_GROUPS].orEmpty()
+                    .mapNotNullTo(LinkedHashSet()) { name ->
+                        runCatching { ModelGroup.valueOf(name) }.getOrNull()
+                    }
+            }
+
+        suspend fun setModelGroupRemoved(context: Context, group: ModelGroup, removed: Boolean) {
+            context.activeDataStore.edit { prefs ->
+                val current = prefs[REMOVED_MODEL_GROUPS] ?: emptySet()
+                prefs[REMOVED_MODEL_GROUPS] =
+                    if (removed) current + group.name else current - group.name
+            }
         }
     }
 

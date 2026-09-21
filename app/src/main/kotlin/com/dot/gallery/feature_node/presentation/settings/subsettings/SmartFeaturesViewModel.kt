@@ -9,6 +9,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.dot.gallery.BuildConfig
 import com.dot.gallery.cloud.core.ProviderCapability
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.ProviderType
@@ -48,22 +49,27 @@ internal enum class ModelManagementAction(val enabled: Boolean) {
     UNAVAILABLE_OFFLINE(false),
 }
 
+/**
+ * [canInstall] answers "could the user (re)install models at all" — network downloads with
+ * INTERNET permission, or a local asset copy on bundled (withML) builds. Delete is only
+ * offered when re-install is possible.
+ */
 internal fun resolveModelManagementAction(
     status: ModelStatus,
-    hasInternetPermission: Boolean,
+    canInstall: Boolean,
 ): ModelManagementAction = when (status) {
     ModelStatus.COPYING -> ModelManagementAction.COPYING
-    ModelStatus.READY -> if (hasInternetPermission) {
+    ModelStatus.READY -> if (canInstall) {
         ModelManagementAction.DELETE
     } else {
         ModelManagementAction.INSTALLED_OFFLINE
     }
-    ModelStatus.DOWNLOADING -> if (hasInternetPermission) {
+    ModelStatus.DOWNLOADING -> if (canInstall) {
         ModelManagementAction.CANCEL_DOWNLOAD
     } else {
         ModelManagementAction.UNAVAILABLE_OFFLINE
     }
-    ModelStatus.ERROR, ModelStatus.NOT_INSTALLED -> if (hasInternetPermission) {
+    ModelStatus.ERROR, ModelStatus.NOT_INSTALLED -> if (canInstall) {
         ModelManagementAction.DOWNLOAD
     } else {
         ModelManagementAction.UNAVAILABLE_OFFLINE
@@ -94,6 +100,9 @@ class SmartFeaturesViewModel @Inject constructor(
 
     val hasInternetPermission: Boolean get() = modelManager.hasInternetPermission
     val areAiFeaturesAvailable: Boolean get() = modelManager.areAiFeaturesAvailable
+
+    /** Whether models can be (re)installed — via network download or bundled APK assets. */
+    val canInstallModels: Boolean get() = modelManager.canInstallModels
 
     val includeIgnoredAlbums: StateFlow<Boolean> = Settings.SmartFeatures.includeIgnoredAlbums(context).stateIn(
         scope = viewModelScope,
@@ -160,7 +169,19 @@ class SmartFeaturesViewModel @Inject constructor(
 
     fun downloadModels(group: ModelGroup) {
         if (modelManagementAction(group) != ModelManagementAction.DOWNLOAD) return
-        workManager.downloadModels(group)
+        viewModelScope.launch {
+            if (BuildConfig.ML_MODELS_BUNDLED) {
+                // Bundled models are restored from the APK assets — instant and offline-capable.
+                modelManager.installBundledModels(group)
+                if (modelManager.isReady(group) || !modelManager.hasInternetPermission) return@launch
+                // Bundled copy was incomplete — fall through and fetch the rest over the network.
+            } else {
+                // Explicit install intent: clear the persisted user-removal flag up front so the
+                // group stays installed even if the download ultimately fails.
+                modelManager.setRemoved(group, false)
+            }
+            workManager.downloadModels(group)
+        }
     }
 
     fun cancelDownload(group: ModelGroup) {
@@ -173,13 +194,16 @@ class SmartFeaturesViewModel @Inject constructor(
 
     fun deleteModels(group: ModelGroup) {
         if (modelManagementAction(group) != ModelManagementAction.DELETE) return
+        // Cancel any queued/in-flight download so it cannot resurrect the group
+        // after deletion (issue #1229).
+        workManager.cancelModelDownload(group)
         viewModelScope.launch {
             modelManager.deleteModels(group)
         }
     }
 
     private fun modelManagementAction(group: ModelGroup): ModelManagementAction =
-        resolveModelManagementAction(modelManager.status(group).value, modelManager.hasInternetPermission)
+        resolveModelManagementAction(modelManager.status(group).value, modelManager.canInstallModels)
 
     fun setIncludeIgnoredAlbums(include: Boolean) {
         viewModelScope.launch {

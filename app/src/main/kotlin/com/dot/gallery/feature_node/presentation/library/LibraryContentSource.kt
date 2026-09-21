@@ -832,8 +832,20 @@ class LibraryContentSource internal constructor(
                     accountIds.forEach { accountId ->
                         val provider =
                             inputs.providerByConfigId(accountId) as? PeopleCapableProvider
-                                ?: return@forEach
-                        if (!provider.isAvailable) return@forEach
+                        if (provider == null || !provider.isAvailable) {
+                            // The local provider goes unavailable when its face model is
+                            // deleted — drop its stale partition so the People section hides
+                            // immediately instead of after a restart (issue #1229).
+                            if (accountId == LOCAL_PEOPLE_CONFIG_ID &&
+                                (accountId in peoplePartitions.value ||
+                                    accountId in peopleCounts.value)
+                            ) {
+                                peoplePartitions.update { it - accountId }
+                                peopleCounts.update { it - accountId }
+                                publishPeople(gen)
+                            }
+                            return@forEach
+                        }
                         if (accountId != LOCAL_PEOPLE_CONFIG_ID &&
                             states[accountId] != ConnectionState.CONNECTED &&
                             states[accountId] != ConnectionState.SYNCING

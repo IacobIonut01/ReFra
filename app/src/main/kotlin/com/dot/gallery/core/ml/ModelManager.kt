@@ -9,6 +9,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
@@ -17,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -176,6 +178,14 @@ class ModelManager @Inject constructor(
         BuildConfig.ML_MODELS_BUNDLED || hasInternetPermission
     }
 
+    /**
+     * Whether models can be (re)installed at all: either downloadable over the network
+     * (INTERNET permission) or shipped inside the APK as bundled assets (withML builds).
+     * Bundled installs are local copies, so no connectivity is needed for them.
+     */
+    val canInstallModels: Boolean
+        get() = hasInternetPermission || BuildConfig.ML_MODELS_BUNDLED
+
     val modelsDir: File get() = File(context.filesDir, MODELS_DIR)
 
     fun getDestinationFile(name: String): File =
@@ -186,19 +196,40 @@ class ModelManager @Inject constructor(
 
     /**
      * Initialize models on app start.
-     * For withML builds: copies bundled assets to filesDir if not already present.
+     * For withML builds: copies bundled assets to filesDir if not already present, unless the
+     * user explicitly deleted the group (its removal is persisted — issue #1229).
      * For noML builds: checks if models have been previously downloaded.
      */
     suspend fun initializeModels() = mutex.withLock {
         withContext(Dispatchers.IO) {
-            if (BuildConfig.ML_MODELS_BUNDLED) {
-                ModelGroup.entries.forEach { group -> flows(group).status.value = ModelStatus.COPYING }
+            val removedGroups = runCatching {
+                Settings.SmartFeatures.removedModelGroups(context).first()
+            }.getOrElse {
+                printWarning("ModelManager: failed to read removed model groups: ${it.message}")
+                emptySet()
             }
-            ModelGroup.entries.forEach { group -> initializeGroup(group) }
+            if (BuildConfig.ML_MODELS_BUNDLED) {
+                ModelGroup.entries.forEach { group ->
+                    if (group !in removedGroups && !checkModelsPresent(group)) {
+                        flows(group).status.value = ModelStatus.COPYING
+                    }
+                }
+            }
+            ModelGroup.entries.forEach { group -> initializeGroup(group, removedGroups) }
         }
     }
 
-    private fun initializeGroup(group: ModelGroup) {
+    private fun initializeGroup(group: ModelGroup, removedGroups: Set<ModelGroup>) {
+        if (group in removedGroups) {
+            // The user deleted this group — finish any interrupted delete and stay uninstalled
+            // instead of silently restoring the bundled copies (issue #1229).
+            File(modelsDir, group.subDir).deleteRecursively()
+            fileInfoCache.remove(group)
+            modelValidationCache.remove(group)
+            flows(group).status.value = ModelStatus.NOT_INSTALLED
+            printInfo("ModelManager: ${group.name} models were removed by the user, staying uninstalled")
+            return
+        }
         if (checkModelsPresent(group)) {
             flows(group).status.value = ModelStatus.READY
             printInfo("ModelManager: ${group.name} models already present in filesDir")
@@ -297,18 +328,25 @@ class ModelManager @Inject constructor(
     }
 
     /**
-     * Delete all downloaded/copied model files.
+     * Delete all downloaded/copied model files and persist the removal so the group is not
+     * silently restored on the next launch (issue #1229). Re-install stays possible via
+     * [installBundledModels] (withML) or a network download (INTERNET builds), so deletion
+     * is only offered when [canInstallModels] is true.
      */
     suspend fun deleteModels(group: ModelGroup) {
-        if (!hasInternetPermission) return
+        if (!canInstallModels) return
         mutex.withLock {
             withContext(Dispatchers.IO) {
+                // Persist the removal intent first: if the delete below is interrupted, the
+                // next launch sees the flag and finishes the cleanup instead of restoring.
+                Settings.SmartFeatures.setModelGroupRemoved(context, group, true)
                 val dir = File(modelsDir, group.subDir)
                 if (dir.exists()) {
                     dir.deleteRecursively()
                     printInfo("ModelManager: ${group.name} models deleted")
                 }
                 fileInfoCache.remove(group)
+                modelValidationCache.remove(group)
                 flows(group).apply {
                     status.value = ModelStatus.NOT_INSTALLED
                     progress.value = 0f
@@ -320,9 +358,41 @@ class ModelManager @Inject constructor(
     }
 
     /**
+     * Re-install a group from the bundled APK assets (withML builds only). Clears the
+     * persisted user-removal flag so future launches keep the group installed.
+     * No network access is needed.
+     */
+    suspend fun installBundledModels(group: ModelGroup) {
+        if (!BuildConfig.ML_MODELS_BUNDLED) return
+        mutex.withLock {
+            withContext(Dispatchers.IO) {
+                Settings.SmartFeatures.setModelGroupRemoved(context, group, false)
+                copyBundledModels(group)
+                if (checkModelsPresent(group)) {
+                    flows(group).status.value = ModelStatus.READY
+                    flows(group).error.value = null
+                } else if (flows(group).status.value != ModelStatus.ERROR) {
+                    flows(group).status.value = ModelStatus.NOT_INSTALLED
+                }
+            }
+        }
+    }
+
+    /**
+     * Update the persisted user-removal flag for [group]. An explicit install request
+     * clears it so the group stays installed across launches; [deleteModels] sets it.
+     */
+    suspend fun setRemoved(group: ModelGroup, removed: Boolean) {
+        Settings.SmartFeatures.setModelGroupRemoved(context, group, removed)
+    }
+
+    /**
      * Called by ModelDownloadWorker to update download progress for [group].
      */
     fun updateDownloadProgress(group: ModelGroup, progress: Float) {
+        // A queued or superseded download must not demote a group that is already
+        // installed (e.g. restored from bundled assets while the work was pending).
+        if (isReady(group)) return
         flows(group).progress.value = progress
         flows(group).status.value = ModelStatus.DOWNLOADING
     }
@@ -351,6 +421,16 @@ class ModelManager @Inject constructor(
      * Called by ModelDownloadWorker on failure for [group].
      */
     fun onDownloadFailed(group: ModelGroup, error: String) {
+        // When the files are already complete (e.g. restored from bundled assets while a
+        // download was queued), the failure belongs to the stale download attempt, not to
+        // the installed models — keep the group READY instead of surfacing a bogus
+        // Download/Install state.
+        if (checkModelsPresent(group)) {
+            flows(group).status.value = ModelStatus.READY
+            flows(group).error.value = null
+            printInfo("ModelManager: ${group.name} download failed but models are already installed")
+            return
+        }
         flows(group).status.value = ModelStatus.ERROR
         flows(group).error.value = error
         flows(group).progress.value = 0f

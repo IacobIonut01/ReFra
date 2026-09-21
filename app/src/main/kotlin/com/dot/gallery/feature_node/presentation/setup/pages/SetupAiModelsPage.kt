@@ -145,7 +145,7 @@ fun SetupAiModelsPage(
                             trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
                     }
-                    !hasInternet -> {
+                    !hasInternet && !isBundled -> {
                         Text(
                             text = stringResource(R.string.setup_ai_no_internet),
                             style = MaterialTheme.typography.bodyMedium,
@@ -248,7 +248,9 @@ private fun ModelStatusView(
     downloadIcon: ImageVector,
     onDownload: () -> Unit
 ) {
-    val ready = status == ModelStatus.READY || isBundled
+    // Bundled builds treat an in-flight COPYING as ready, but a user-deleted group
+    // (NOT_INSTALLED) must show the install row again (issue #1229).
+    val ready = status == ModelStatus.READY || (isBundled && status == ModelStatus.COPYING)
     val downloading = status == ModelStatus.DOWNLOADING || status == ModelStatus.COPYING
     when {
         ready -> {
@@ -281,7 +283,7 @@ private fun ModelStatusView(
                 trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
             )
         }
-        !hasInternet -> {
+        !hasInternet && !isBundled -> {
             Text(
                 text = stringResource(R.string.setup_ai_no_internet),
                 style = MaterialTheme.typography.bodyMedium,
@@ -307,7 +309,7 @@ private fun CutoutExtraCard(
     hasInternet: Boolean,
     onDownload: () -> Unit
 ) {
-    val ready = status == ModelStatus.READY || isBundled
+    val ready = status == ModelStatus.READY || (isBundled && status == ModelStatus.COPYING)
     val downloading = status == ModelStatus.DOWNLOADING || status == ModelStatus.COPYING
     SetupSectionCard(title = stringResource(R.string.setup_ai_extra_title)) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -347,7 +349,7 @@ private fun CutoutExtraCard(
                         trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     )
                 }
-                !hasInternet -> {
+                !hasInternet && !isBundled -> {
                     Text(
                         text = stringResource(R.string.setup_ai_no_internet),
                         style = MaterialTheme.typography.bodyMedium,
