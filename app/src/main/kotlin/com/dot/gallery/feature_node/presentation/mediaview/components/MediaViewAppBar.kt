@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MotionPhotosOn
@@ -98,6 +99,13 @@ fun MediaViewAppBar(
     onLock: () -> Unit,
     isImageDark: Boolean = false,
     autoContrast: Boolean = false,
+    // Optional second action rendered inside the back button's pill (visual search).
+    visualSearchButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
+    // While non-null the visual-search prepare is in flight — shows a labeled progress chip
+    // under the bar whose X (or tap) cancels the job.
+    visualSearchProgress: Int? = null,
+    visualSearchStageLabel: String? = null,
+    onCancelVisualSearch: () -> Unit = {},
     castButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
     castBanner: @Composable (() -> Unit)? = null
 ) {
@@ -165,7 +173,7 @@ fun MediaViewAppBar(
                 )
 
                 CompositionLocalProvider(LocalContentColor provides contentColor) {
-                IconButton(
+                Row(
                     modifier = modifier
                         .align(Alignment.CenterStart)
                         .padding(horizontal = 8.dp)
@@ -177,14 +185,26 @@ fun MediaViewAppBar(
                                 containerColor = surfaceContainer
                             )
                         ),
-                    onClick = onGoBack
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = stringResource(R.string.back_cd),
-                        tint = contentColor,
-                        modifier = Modifier.height(48.dp)
-                    )
+                    IconButton(onClick = onGoBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.back_cd),
+                            tint = contentColor,
+                            modifier = Modifier.height(48.dp)
+                        )
+                    }
+                    if (visualSearchButton != null) {
+                        // Hairline divider so the widened pill still reads as two targets.
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(24.dp)
+                                .background(contentColor.copy(alpha = 0.2f))
+                        )
+                        visualSearchButton(followTheme)
+                    }
                 }
 
                 this@Column.AnimatedVisibility(
@@ -343,6 +363,45 @@ fun MediaViewAppBar(
                             else stringResource(R.string.rotate),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+                }
+            }
+            AnimatedVisibility(
+                visible = visualSearchStageLabel != null && !isLocked,
+                enter = enterAnimation,
+                exit = exitAnimation,
+                modifier = Modifier.graphicsLayer { alpha = topExtrasAlpha() }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(0.7f),
+                            shape = CircleShape
+                        )
+                        .clip(CircleShape)
+                        .clickable(onClick = onCancelVisualSearch)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .animateContentSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+                    Text(
+                        text = if (visualSearchProgress != null)
+                            "${visualSearchStageLabel.orEmpty()} $visualSearchProgress%"
+                        else visualSearchStageLabel.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.action_cancel),
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }

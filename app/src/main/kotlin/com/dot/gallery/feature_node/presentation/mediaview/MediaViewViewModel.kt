@@ -23,12 +23,17 @@ import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.local.LocalPeopleProvider
 import com.dot.gallery.core.workers.RotateMediaWorker
 import com.dot.gallery.core.workers.rotateImage
+import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
+import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MotionPhotoHelper
 import com.dot.gallery.feature_node.domain.util.MotionPhotoInfo
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.domain.util.isCloud
+import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isVideo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -67,7 +72,8 @@ class MediaViewViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val workManager: WorkManager,
     private val repository: MediaRepository,
-    private val localPeopleProvider: LocalPeopleProvider
+    private val localPeopleProvider: LocalPeopleProvider,
+    private val visualSearchLauncher: VisualSearchLauncher,
 ) : ViewModel() {
 
     private val _uiEvents = MutableSharedFlow<MediaViewEvent>(extraBufferCapacity = 1)
@@ -76,6 +82,13 @@ class MediaViewViewModel @Inject constructor(
     // Non-null while a rotation write is in flight; drives the busy state of the top-bar Rotate chip.
     private val _rotationState = MutableStateFlow<RotationUiState?>(null)
     val rotationState: StateFlow<RotationUiState?> = _rotationState.asStateFlow()
+
+    // Non-Idle while a shareable image is being produced for the visual-search provider
+    // (cloud download, vault decrypt, video frame extract, exotic-format transcode).
+    private val _visualSearchState = MutableStateFlow<VisualSearchUiState>(VisualSearchUiState.Idle)
+    val visualSearchState: StateFlow<VisualSearchUiState> = _visualSearchState.asStateFlow()
+
+    private var visualSearchJob: Job? = null
 
     private var rotateWorkId: UUID? = null
     // Id of the media being rotated (so the viewer can hold the visual rotation for that page only).
@@ -451,9 +464,85 @@ class MediaViewViewModel @Inject constructor(
         }
     }
 
+    sealed interface VisualSearchUiState {
+        data object Idle : VisualSearchUiState
+        data class Preparing(
+            val mediaId: Long,
+            val stage: VisualSearchStage,
+            val progress: Int?,
+        ) : VisualSearchUiState
+    }
+
+    fun launchVisualSearch(
+        media: Media,
+        metadata: MediaMetadata?,
+        currentVault: Vault?,
+        target: VisualSearchTarget,
+        positionMs: Long?,
+        convertTo: ImageReencoder.ImageWriteFormat?,
+    ) {
+        if (visualSearchJob?.isActive == true) return
+        _visualSearchState.value = VisualSearchUiState.Preparing(
+            mediaId = media.id,
+            stage = initialVisualSearchStage(media, currentVault, convertTo),
+            progress = null,
+        )
+        visualSearchJob = viewModelScope.launch {
+            try {
+                val prepared = visualSearchLauncher.prepare(
+                    media = media,
+                    metadata = metadata,
+                    currentVault = currentVault,
+                    positionMs = positionMs,
+                    convertTo = convertTo,
+                ) { stage, progress ->
+                    _visualSearchState.value =
+                        VisualSearchUiState.Preparing(media.id, stage, progress)
+                }
+                _visualSearchState.value = VisualSearchUiState.Idle
+                _uiEvents.emit(
+                    MediaViewEvent.LaunchVisualSearch(
+                        uri = prepared.uri,
+                        mimeType = prepared.mimeType,
+                        target = target,
+                    )
+                )
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                _visualSearchState.value = VisualSearchUiState.Idle
+                throw cancelled
+            } catch (error: Exception) {
+                _visualSearchState.value = VisualSearchUiState.Idle
+                _uiEvents.emit(MediaViewEvent.VisualSearchFailed(error.message))
+            }
+        }
+    }
+
+    fun cancelVisualSearch() {
+        visualSearchJob?.cancel()
+        visualSearchJob = null
+        _visualSearchState.value = VisualSearchUiState.Idle
+    }
+
+    private fun initialVisualSearchStage(
+        media: Media,
+        currentVault: Vault?,
+        convertTo: ImageReencoder.ImageWriteFormat?,
+    ): VisualSearchStage = when {
+        media.isVideo -> when {
+            media.isEncrypted || currentVault != null -> VisualSearchStage.DECRYPTING
+            media.isCloud -> VisualSearchStage.DOWNLOADING
+            else -> VisualSearchStage.PREPARING
+        }
+        media.isEncrypted -> VisualSearchStage.DECRYPTING
+        media.isCloud -> VisualSearchStage.DOWNLOADING
+        convertTo != null -> VisualSearchStage.CONVERTING
+        else -> VisualSearchStage.PREPARING
+    }
+
     override fun onCleared() {
         releaseMotionPlayer()
         _motionPhotoExtraction.value.videoFile?.delete()
+        visualSearchJob?.cancel()
         super.onCleared()
     }
 
@@ -462,5 +551,11 @@ class MediaViewViewModel @Inject constructor(
         data class NavigateToRotatedCopy(val uri: String) : MediaViewEvent
         data class OverwriteApplied(val mediaId: Long) : MediaViewEvent
         data class RotationFailed(val message: String?) : MediaViewEvent
+        data class LaunchVisualSearch(
+            val uri: Uri,
+            val mimeType: String,
+            val target: VisualSearchTarget,
+        ) : MediaViewEvent
+        data class VisualSearchFailed(val message: String?) : MediaViewEvent
     }
 }

@@ -26,6 +26,9 @@ import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.PendingRemovalScope
 import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
+import com.dot.gallery.feature_node.presentation.mediaview.VisualSearchTarget
+import com.dot.gallery.feature_node.presentation.mediaview.icon
+import com.dot.gallery.feature_node.presentation.mediaview.tintIcon
 import com.dot.gallery.feature_node.presentation.mediaview.viewerActionCapabilities
 import com.dot.gallery.core.Settings.Misc.rememberShowFavoriteButton
 import com.dot.gallery.core.util.SdkCompat
@@ -50,6 +53,7 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.actionbutt
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.RestoreButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.ShareButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.TrashButton
+import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.VisualSearchButton
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialog
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
@@ -68,6 +72,10 @@ fun <T : Media> MediaViewQuickBottomBar(
     currentVault: Vault?,
     isImageDark: Boolean = false,
     autoContrast: Boolean = false,
+    // Visual-search slot: non-null target when the feature is enabled, resolved, and placed here.
+    visualSearchTarget: VisualSearchTarget? = null,
+    visualSearchTitle: String = "",
+    onVisualSearch: (T) -> Unit = {},
     onTrashConfirmed: () -> Unit = {}
 ) {
     val handler = LocalMediaHandler.current
@@ -194,6 +202,17 @@ fun <T : Media> MediaViewQuickBottomBar(
                     enabled = enabled,
                     followTheme = followTheme,
                     currentVault = currentVault
+                )
+            }
+            if (capabilities.visualSearch && visualSearchTarget != null) {
+                VisualSearchButton(
+                    media = currentMedia,
+                    enabled = enabled,
+                    followTheme = followTheme,
+                    icon = visualSearchTarget.icon,
+                    tintIcon = visualSearchTarget.tintIcon,
+                    title = visualSearchTitle,
+                    onItemClick = onVisualSearch,
                 )
             }
             if (capabilities.copyToClipboard) {

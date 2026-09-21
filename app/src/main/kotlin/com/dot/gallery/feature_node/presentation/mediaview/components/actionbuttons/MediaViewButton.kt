@@ -37,6 +37,8 @@ fun <T : Media> MediaViewButton(
     enabled: Boolean = true,
     followTheme: Boolean = false,
     iconModifier: Modifier = Modifier,
+    // Brand glyphs (e.g. Google Lens) carry their own colors; false keeps them untinted.
+    tintIcon: Boolean = true,
     onItemLongClick: ((T) -> Unit)? = null,
     onItemClick: (T) -> Unit
 ) {
@@ -87,7 +89,7 @@ fun <T : Media> MediaViewButton(
         ) {
             Image(
                 imageVector = imageVector,
-                colorFilter = ColorFilter.tint(tintColor),
+                colorFilter = if (tintIcon) ColorFilter.tint(tintColor) else null,
                 contentDescription = title,
                 modifier = Modifier.size(24.dp).then(iconModifier)
             )

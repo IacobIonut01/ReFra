@@ -13,6 +13,7 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isCloud
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 
 /** Inputs that describe the source and provider guarantees for one viewer item. */
@@ -20,6 +21,7 @@ data class MediaActionPolicyInput(
     val isCloud: Boolean = false,
     val isEncrypted: Boolean = false,
     val isImage: Boolean = false,
+    val isVideo: Boolean = false,
     val isReadUriOnly: Boolean = false,
     val sourceAllowsMutation: Boolean = false,
     val sourceAllowsDelete: Boolean = sourceAllowsMutation,
@@ -39,6 +41,7 @@ data class MediaActionPolicyInput(
  */
 data class MediaActionCapabilities(
     val share: Boolean,
+    val visualSearch: Boolean,
     val copyToClipboard: Boolean,
     val favorite: Boolean,
     val edit: Boolean,
@@ -67,6 +70,9 @@ object MediaActionCapabilityPolicy {
 
         return MediaActionCapabilities(
             share = exportAllowed,
+            // Sending to a visual-search provider is the same data-leaving-device action as
+            // share, plus it needs a still image — the source itself or the current video frame.
+            visualSearch = exportAllowed && (input.isImage || input.isVideo),
             copyToClipboard = exportAllowed,
             favorite = !cloudLocked && when {
                 input.isCloud -> input.providerSupportsFavorite
@@ -117,6 +123,7 @@ fun Media.viewerActionCapabilities(
         isCloud = isCloud,
         isEncrypted = isEncrypted,
         isImage = isImage,
+        isVideo = isVideo,
         isReadUriOnly = readUriOnly,
         sourceAllowsMutation = canMakeActions,
         sourceAllowsDelete = sourceAllowsDelete,

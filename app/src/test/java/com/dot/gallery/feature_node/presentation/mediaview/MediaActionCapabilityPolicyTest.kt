@@ -144,6 +144,32 @@ class MediaActionCapabilityPolicyTest {
     }
 
     @Test
+    fun visualSearchFollowsShareExportRulesAndNeedsAStillSource() {
+        val image = MediaActionCapabilityPolicy.resolve(
+            MediaActionPolicyInput(isImage = true)
+        )
+        val video = MediaActionCapabilityPolicy.resolve(
+            MediaActionPolicyInput(isVideo = true)
+        )
+        val neither = MediaActionCapabilityPolicy.resolve(
+            MediaActionPolicyInput()
+        )
+        val readOnlyCloudImage = MediaActionCapabilityPolicy.resolve(
+            MediaActionPolicyInput(isCloud = true, isImage = true, cloudReadOnly = true)
+        )
+        val vaultImage = MediaActionCapabilityPolicy.resolve(
+            MediaActionPolicyInput(isEncrypted = true, isImage = true)
+        )
+
+        assertTrue(image.visualSearch)
+        assertTrue(video.visualSearch)
+        assertFalse(neither.visualSearch)
+        assertFalse(readOnlyCloudImage.visualSearch)
+        // Vault gating happens at the screen (visual_search_allow_vault), not in the policy.
+        assertTrue(vaultImage.visualSearch)
+    }
+
+    @Test
     fun vaultMediaOnlyExposesVaultMutationsWhenHandlerExists() {
         val unavailable = MediaActionCapabilityPolicy.resolve(
             MediaActionPolicyInput(isEncrypted = true)

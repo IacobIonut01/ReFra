@@ -24,10 +24,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,10 +49,14 @@ import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,6 +76,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -101,17 +109,31 @@ import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberTapSidesToNavigate
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.Settings.Misc.rememberVideoSurfaceRebind
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchAllowVault
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertFormat
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertMode
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchEnabled
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchPosition
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchProvider
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.presentation.mediaview.TapNavigationPreview
+import com.dot.gallery.feature_node.presentation.mediaview.VisualSearchTarget
+import com.dot.gallery.feature_node.presentation.mediaview.discoverVisualSearchTargets
+import com.dot.gallery.feature_node.presentation.mediaview.icon
+import com.dot.gallery.feature_node.presentation.mediaview.resolveVisualSearchTarget
+import com.dot.gallery.ui.core.Icons as GalleryIcons
+import com.dot.gallery.ui.core.icons.VisualSearch
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.settings.components.BaseSettingsScreen
 import com.dot.gallery.feature_node.presentation.settings.components.ChooserPreferenceDetailScreen
 import com.dot.gallery.feature_node.presentation.settings.components.PreferenceOption
+import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.settings.components.SwitchPreferenceDetailScreen
 import com.dot.gallery.feature_node.presentation.settings.components.rememberPreference
 import com.dot.gallery.feature_node.presentation.settings.components.rememberSwitchPreference
@@ -132,6 +154,7 @@ private const val DETAIL_AUTO_PLAY = "auto_play"
 private const val DETAIL_SURFACE_REBIND = "surface_rebind"
 private const val DETAIL_DISABLE_SMOOTHING = "disable_smoothing"
 private const val DETAIL_LONG_PRESS_CUTOUT = "long_press_cutout"
+private const val DETAIL_VISUAL_SEARCH = "visual_search"
 
 @Composable
 fun SettingsMediaViewerScreen() {
@@ -153,6 +176,13 @@ fun SettingsMediaViewerScreen() {
     var reencodeMode by rememberReencodeQualityMode()
     var reencodeLossyQuality by rememberReencodeLossyQuality()
     var reencodeJxlEffort by rememberReencodeJxlEffort()
+    var visualSearchEnabled by rememberVisualSearchEnabled()
+    var visualSearchProvider by rememberVisualSearchProvider()
+    var visualSearchPosition by rememberVisualSearchPosition()
+    var visualSearchAllowVault by rememberVisualSearchAllowVault()
+    var visualSearchConvertMode by rememberVisualSearchConvertMode()
+    var visualSearchConvertFormat by rememberVisualSearchConvertFormat()
+    val visualSearchTargets = remember(context) { context.discoverVisualSearchTargets() }
     val onTapNavigationChange: (Boolean) -> Unit = { enabled ->
         tapSidesToNavigate = enabled
         scope.launch { Settings.Misc.markTapSidesToNavigatePromptShown(context) }
@@ -273,6 +303,40 @@ fun SettingsMediaViewerScreen() {
                 description = stringResource(R.string.video_surface_rebind_description),
             )
         }
+        DETAIL_VISUAL_SEARCH -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(R.string.visual_search_title),
+                isChecked = visualSearchEnabled,
+                onCheckedChange = { visualSearchEnabled = it },
+                description = stringResource(R.string.visual_search_description),
+                preview = { checked ->
+                    VisualSearchPreview(
+                        enabled = checked,
+                        icon = resolveVisualSearchTarget(
+                            visualSearchTargets,
+                            visualSearchProvider
+                        )?.icon ?: GalleryIcons.VisualSearch,
+                        position = visualSearchPosition,
+                    )
+                },
+                customContent = {
+                    VisualSearchSettingsContent(
+                        targets = visualSearchTargets,
+                        provider = visualSearchProvider,
+                        onProviderChange = { visualSearchProvider = it },
+                        position = visualSearchPosition,
+                        onPositionChange = { visualSearchPosition = it },
+                        allowVault = visualSearchAllowVault,
+                        onAllowVaultChange = { visualSearchAllowVault = it },
+                        convertMode = visualSearchConvertMode,
+                        onConvertModeChange = { visualSearchConvertMode = it },
+                        convertFormat = visualSearchConvertFormat,
+                        onConvertFormatChange = { visualSearchConvertFormat = it },
+                    )
+                },
+            )
+        }
         else -> {
             MediaViewerListScreen(
                 fullBrightnessView = fullBrightnessView,
@@ -301,6 +365,16 @@ fun SettingsMediaViewerScreen() {
                 onReencodeLossyChange = { reencodeLossyQuality = it },
                 reencodeJxlEffort = reencodeJxlEffort,
                 onReencodeJxlEffortChange = { reencodeJxlEffort = it },
+                visualSearchEnabled = visualSearchEnabled,
+                onVisualSearchChange = { visualSearchEnabled = it },
+                visualSearchSummary = when {
+                    visualSearchTargets.isEmpty() ->
+                        stringResource(R.string.visual_search_none_installed)
+                    !visualSearchEnabled -> stringResource(R.string.visual_search_summary)
+                    else -> resolveVisualSearchTarget(visualSearchTargets, visualSearchProvider)
+                        ?.let { stringResource(R.string.visual_search_with, it.displayName) }
+                        ?: stringResource(R.string.visual_search_summary)
+                },
                 onDetailClick = { detailKey = it },
                 listState = listState,
             )
@@ -336,6 +410,9 @@ private fun MediaViewerListScreen(
     onReencodeLossyChange: (Int) -> Unit,
     reencodeJxlEffort: Int,
     onReencodeJxlEffortChange: (Int) -> Unit,
+    visualSearchEnabled: Boolean,
+    onVisualSearchChange: (Boolean) -> Unit,
+    visualSearchSummary: String,
     onDetailClick: (String) -> Unit,
     listState: LazyListState,
 ) {
@@ -424,6 +501,16 @@ private fun MediaViewerListScreen(
             isChecked = longPressCutout,
             onCheck = onLongPressCutoutChange,
             onClick = { onDetailClick(DETAIL_LONG_PRESS_CUTOUT) },
+            screenPosition = Position.Middle
+        )
+
+        val visualSearchPref = rememberSwitchPreference(
+            visualSearchEnabled,
+            title = stringResource(R.string.visual_search_title),
+            summary = visualSearchSummary,
+            isChecked = visualSearchEnabled,
+            onCheck = onVisualSearchChange,
+            onClick = { onDetailClick(DETAIL_VISUAL_SEARCH) },
             screenPosition = Position.Middle
         )
 
@@ -519,7 +606,7 @@ private fun MediaViewerListScreen(
         return remember(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
             showFavoriteButtonPref, defaultEditorPref, disableSmoothingPref, longPressCutoutPref,
-            slideshowPref,
+            visualSearchPref, slideshowPref,
             saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
             videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref
         ) {
@@ -534,6 +621,7 @@ private fun MediaViewerListScreen(
                 add(defaultEditorPref)
                 add(disableSmoothingPref)
                 add(longPressCutoutPref)
+                add(visualSearchPref)
                 add(slideshowPref)
 
                 add(saveQualityHeader)
@@ -1001,4 +1089,469 @@ private fun lerpArgb(start: Int, end: Int, fraction: Float): Int {
     val g = ((start ushr 8 and 0xFF) + (((end ushr 8 and 0xFF) - (start ushr 8 and 0xFF)) * f)).toInt()
     val b = ((start and 0xFF) + (((end and 0xFF) - (start and 0xFF)) * f)).toInt()
     return (a shl 24) or (r shl 16) or (g shl 8) or b
+}
+
+/**
+ * Mock of the viewer chrome showing where the visual-search button lands: the top-left stadium
+ * next to Back when [position] is top, or inside the bottom quick-actions pill when bottom.
+ */
+@Composable
+private fun VisualSearchPreview(enabled: Boolean, icon: ImageVector, position: String) {
+    val iconTint = MaterialTheme.colorScheme.onSurface
+    val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(128.dp)
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        Image(
+            painter = painterResource(R.drawable.image_sample_2),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(8.dp),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color.Black.copy(alpha = 0.1f))
+        )
+        if (enabled && position == Settings.Misc.VISUAL_SEARCH_POSITION_TOP) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 12.dp, start = 12.dp)
+                    .clip(RoundedCornerShape(100))
+                    .background(surfaceContainer.copy(alpha = 0.85f))
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.ArrowBack,
+                        null,
+                        Modifier.size(18.dp),
+                        tint = iconTint
+                    )
+                }
+                Box(
+                    Modifier
+                        .width(1.dp)
+                        .height(18.dp)
+                        .background(iconTint.copy(alpha = 0.2f))
+                )
+                Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                    Icon(icon, null, Modifier.size(18.dp), tint = iconTint)
+                }
+            }
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 12.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(100))
+                    .background(surfaceContainer.copy(alpha = 0.85f))
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.Share, null, Modifier.size(18.dp), tint = iconTint)
+                }
+                if (enabled && position == Settings.Misc.VISUAL_SEARCH_POSITION_BOTTOM) {
+                    Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
+                        Icon(icon, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.ContentCopy, null, Modifier.size(18.dp), tint = iconTint)
+                }
+                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp), tint = iconTint)
+                }
+                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.DeleteOutline, null, Modifier.size(18.dp), tint = iconTint)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The extra sections on the visual-search detail screen: button position, the provider picker
+ * (a single preference opening a bottom sheet with every installed app accepting image shares),
+ * the vault toggle, and the exotic-format convert policy.
+ */
+@Composable
+private fun VisualSearchSettingsContent(
+    targets: List<VisualSearchTarget>,
+    provider: String,
+    onProviderChange: (String) -> Unit,
+    position: String,
+    onPositionChange: (String) -> Unit,
+    allowVault: Boolean,
+    onAllowVaultChange: (Boolean) -> Unit,
+    convertMode: String,
+    onConvertModeChange: (String) -> Unit,
+    convertFormat: String,
+    onConvertFormatChange: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    var showProviderSheet by rememberSaveable { mutableStateOf(false) }
+    val resolvedProvider = resolveVisualSearchTarget(targets, provider)
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SettingsItem(
+            item = SettingsEntity.Header(
+                title = stringResource(R.string.visual_search_position_header)
+            )
+        )
+        VisualSearchSectionExplanation(R.string.visual_search_position_summary)
+        listOf(
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_POSITION_TOP,
+                R.string.visual_search_position_top,
+                R.string.visual_search_position_top_summary,
+            ),
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_POSITION_BOTTOM,
+                R.string.visual_search_position_bottom,
+                R.string.visual_search_position_bottom_summary,
+            ),
+        ).forEachIndexed { index, (value, labelRes, summaryRes) ->
+            SettingsItem(
+                item = SettingsEntity.Preference(
+                    title = stringResource(labelRes),
+                    summary = stringResource(summaryRes),
+                    onClick = { onPositionChange(value) },
+                    screenPosition = if (index == 0) Position.Top else Position.Bottom,
+                ),
+                customTrailingContent = {
+                    RadioButton(
+                        selected = position == value,
+                        onClick = { onPositionChange(value) },
+                    )
+                },
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        SettingsItem(
+            item = SettingsEntity.Header(
+                title = stringResource(R.string.visual_search_provider_header)
+            )
+        )
+        VisualSearchSectionExplanation(R.string.visual_search_provider_summary)
+        if (targets.isEmpty()) {
+            Text(
+                text = stringResource(R.string.visual_search_none_installed),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 24.dp),
+            )
+        } else {
+            val providerIcon = remember(resolvedProvider?.packageName) {
+                resolvedProvider?.let {
+                    runCatching { context.packageManager.getApplicationIcon(it.packageName) }
+                        .getOrNull()
+                }
+            }
+            val iconSlot: (@Composable (ImageVector?, String?, Int?) -> Unit)? =
+                if (providerIcon != null) {
+                    { _, _, _ ->
+                        Image(
+                            painter = rememberDrawablePainter(providerIcon),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                } else null
+            SettingsItem(
+                item = SettingsEntity.Preference(
+                    title = stringResource(R.string.visual_search_provider_title),
+                    summary = resolvedProvider?.displayName
+                        ?: stringResource(R.string.visual_search_provider_auto),
+                    onClick = { showProviderSheet = true },
+                    screenPosition = Position.Alone,
+                ),
+                customIcon = iconSlot,
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        SettingsItem(
+            item = SettingsEntity.SwitchPreference(
+                title = stringResource(R.string.visual_search_vault_title),
+                summary = stringResource(R.string.visual_search_vault_summary),
+                isChecked = allowVault,
+                onCheck = onAllowVaultChange,
+                screenPosition = Position.Alone,
+            )
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        SettingsItem(
+            item = SettingsEntity.Header(
+                title = stringResource(R.string.visual_search_convert_header)
+            )
+        )
+        VisualSearchSectionExplanation(R.string.visual_search_convert_summary)
+        listOf(
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_CONVERT_ASK,
+                R.string.visual_search_convert_ask,
+                R.string.visual_search_convert_ask_summary,
+            ),
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_CONVERT_ALWAYS,
+                R.string.visual_search_convert_always,
+                R.string.visual_search_convert_always_summary,
+            ),
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_CONVERT_NEVER,
+                R.string.visual_search_convert_never,
+                R.string.visual_search_convert_never_summary,
+            ),
+        ).forEachIndexed { index, (value, labelRes, summaryRes) ->
+            SettingsItem(
+                item = SettingsEntity.Preference(
+                    title = stringResource(labelRes),
+                    summary = stringResource(summaryRes),
+                    onClick = { onConvertModeChange(value) },
+                    screenPosition = when (index) {
+                        0 -> Position.Top
+                        2 -> Position.Bottom
+                        else -> Position.Middle
+                    },
+                ),
+                customTrailingContent = {
+                    RadioButton(
+                        selected = convertMode == value,
+                        onClick = { onConvertModeChange(value) },
+                    )
+                },
+            )
+        }
+
+        SettingsItem(
+            item = SettingsEntity.Header(
+                title = stringResource(R.string.visual_search_convert_format_header)
+            )
+        )
+        VisualSearchSectionExplanation(R.string.visual_search_convert_format_summary)
+        val formats = listOf(
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_FORMAT_JPEG,
+                "JPEG",
+                R.string.visual_search_format_jpeg_summary,
+            ),
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_FORMAT_PNG,
+                "PNG",
+                R.string.visual_search_format_png_summary,
+            ),
+            Triple(
+                Settings.Misc.VISUAL_SEARCH_FORMAT_WEBP,
+                "WebP",
+                R.string.visual_search_format_webp_summary,
+            ),
+        )
+        val formatEnabled = convertMode != Settings.Misc.VISUAL_SEARCH_CONVERT_NEVER
+        formats.forEachIndexed { index, (value, label, summaryRes) ->
+            SettingsItem(
+                item = SettingsEntity.Preference(
+                    title = label,
+                    summary = stringResource(summaryRes),
+                    enabled = formatEnabled,
+                    onClick = { onConvertFormatChange(value) },
+                    screenPosition = when (index) {
+                        0 -> Position.Top
+                        formats.lastIndex -> Position.Bottom
+                        else -> Position.Middle
+                    },
+                ),
+                customTrailingContent = {
+                    RadioButton(
+                        selected = convertFormat == value,
+                        onClick = { onConvertFormatChange(value) },
+                        enabled = formatEnabled,
+                    )
+                },
+            )
+        }
+    }
+
+    if (showProviderSheet) {
+        VisualSearchProviderSheet(
+            targets = targets,
+            provider = provider,
+            onSelect = {
+                onProviderChange(it)
+                showProviderSheet = false
+            },
+            onDismiss = { showProviderSheet = false },
+        )
+    }
+}
+
+@Composable
+private fun VisualSearchSectionExplanation(textRes: Int) {
+    Text(
+        text = stringResource(textRes),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 8.dp),
+    )
+}
+
+/**
+ * Bottom sheet listing every installed visual-search provider with its launcher icon, plus the
+ * Automatic option that prefers well-known providers. Mirrors the option rows used by other
+ * picker sheets in settings.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VisualSearchProviderSheet(
+    targets: List<VisualSearchTarget>,
+    provider: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(),
+        dragHandle = { DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.visual_search_provider_title),
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = stringResource(R.string.visual_search_provider_summary),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 16.dp),
+            )
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item(key = "auto") {
+                    ProviderSheetRow(
+                        title = stringResource(R.string.visual_search_provider_auto),
+                        summary = stringResource(R.string.visual_search_provider_auto_summary),
+                        selected = provider == Settings.Misc.VISUAL_SEARCH_PROVIDER_AUTO,
+                        onClick = { onSelect(Settings.Misc.VISUAL_SEARCH_PROVIDER_AUTO) },
+                    ) {
+                        Icon(
+                            imageVector = GalleryIcons.VisualSearch,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                items(
+                    items = targets,
+                    key = { it.packageName },
+                ) { target ->
+                    val appIcon = remember(target.packageName) {
+                        runCatching {
+                            context.packageManager.getApplicationIcon(target.packageName)
+                        }.getOrNull()
+                    }
+                    ProviderSheetRow(
+                        title = target.displayName,
+                        summary = null,
+                        selected = provider == target.packageName,
+                        onClick = { onSelect(target.packageName) },
+                    ) {
+                        if (appIcon != null) {
+                            Image(
+                                painter = rememberDrawablePainter(appIcon),
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                            )
+                        } else {
+                            Icon(
+                                imageVector = GalleryIcons.VisualSearch,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProviderSheetRow(
+    title: String,
+    summary: String?,
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: @Composable () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (selected) MaterialTheme.colorScheme.secondaryContainer
+                else MaterialTheme.colorScheme.surfaceContainerHigh
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Box(modifier = Modifier.size(28.dp), contentAlignment = Alignment.Center) {
+            icon()
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (summary != null) {
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        RadioButton(selected = selected, onClick = onClick)
+    }
 }

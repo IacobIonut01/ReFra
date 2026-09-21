@@ -69,6 +69,8 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -146,6 +148,12 @@ import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberExtendedDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchAllowVault
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertFormat
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertMode
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchEnabled
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchPosition
+import com.dot.gallery.core.Settings.Misc.rememberVisualSearchProvider
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.metadata.MetadataRemovalMode
 import com.dot.gallery.core.metadata.MetadataSaveMode
@@ -159,6 +167,7 @@ import com.dot.gallery.core.setFollowTheme
 import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.SlideshowTransition
@@ -166,7 +175,9 @@ import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isCloud
+import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isImage
+import com.dot.gallery.feature_node.domain.util.isTrashed
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.cast.FCastViewModel
@@ -183,6 +194,8 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewA
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewQuickBottomBar
 import com.dot.gallery.feature_node.presentation.mediaview.components.MediaViewSheetDetails
 import com.dot.gallery.feature_node.presentation.mediaview.components.SlideshowControls
+import com.dot.gallery.feature_node.presentation.mediaview.components.VisualSearchConvertSheet
+import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.VisualSearchButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.CutoutController
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.CutoutControlsBar
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
@@ -651,6 +664,9 @@ fun <T : Media> MediaViewScreenRoute(
         rotateImage = viewModel::rotateImage,
         uiEvents = viewModel.uiEvents,
         rotationState = viewModel.rotationState,
+        visualSearchState = viewModel.visualSearchState,
+        launchVisualSearch = viewModel::launchVisualSearch,
+        cancelVisualSearch = viewModel::cancelVisualSearch,
         metadataSanitizationState = viewModel.metadataSanitizationState,
         probeMetadataSanitization = viewModel::probeMetadataSanitization,
         sanitizeMetadata = viewModel::sanitizeMetadata,
@@ -693,6 +709,11 @@ fun <T : Media> MediaViewScreen(
     rotateImage: (Media, Int, Boolean) -> Unit = { _, _, _ -> },
     uiEvents: SharedFlow<MediaViewEvent> = MutableSharedFlow(),
     rotationState: StateFlow<MediaViewViewModel.RotationUiState?> = MutableStateFlow(null),
+    visualSearchState: StateFlow<MediaViewViewModel.VisualSearchUiState> =
+        MutableStateFlow(MediaViewViewModel.VisualSearchUiState.Idle),
+    launchVisualSearch: (Media, MediaMetadata?, Vault?, VisualSearchTarget, Long?, ImageReencoder.ImageWriteFormat?) -> Unit =
+        { _, _, _, _, _, _ -> },
+    cancelVisualSearch: () -> Unit = {},
     metadataSanitizationState: StateFlow<MediaViewViewModel.MetadataSanitizationUiState> = MutableStateFlow(
         MediaViewViewModel.MetadataSanitizationUiState.Idle
     ),
@@ -711,6 +732,7 @@ fun <T : Media> MediaViewScreen(
         val navigateFromViewer = rememberMediaViewerNavigate()
         val context = LocalContext.current
         val rotateFailedText = stringResource(R.string.rotate_failed)
+        val visualSearchFailedText = stringResource(R.string.visual_search_failed)
         val metadataSanitizationUiState by metadataSanitizationState.collectAsStateWithLifecycle()
         val scope = rememberCoroutineScope()
         val windowInsetsController = rememberWindowInsetsController()
@@ -1058,6 +1080,118 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
             }
+        // ── Visual search (#1155) ──
+        // Provider-aware button: enabled by default, hidden when no app accepting
+        // ACTION_SEND image/* is installed or when the media can't produce an image.
+        var visualSearchEnabled by rememberVisualSearchEnabled()
+        var visualSearchProviderPref by rememberVisualSearchProvider()
+        val visualSearchPosition by rememberVisualSearchPosition()
+        var visualSearchAllowVault by rememberVisualSearchAllowVault()
+        var visualSearchConvertMode by rememberVisualSearchConvertMode()
+        var visualSearchConvertFormat by rememberVisualSearchConvertFormat()
+        val visualSearchTargets = remember(context) { context.discoverVisualSearchTargets() }
+        val visualSearchTarget = remember(visualSearchTargets, visualSearchProviderPref) {
+            resolveVisualSearchTarget(visualSearchTargets, visualSearchProviderPref)
+        }
+        val visualSearchAvailable by rememberedDerivedState(
+            visualSearchEnabled,
+            visualSearchTarget,
+            currentCapabilities,
+            currentMedia,
+            visualSearchAllowVault,
+        ) {
+            visualSearchEnabled && visualSearchTarget != null &&
+                    currentCapabilities?.visualSearch == true &&
+                    currentMedia?.isTrashed == false &&
+                    (visualSearchAllowVault || currentMedia?.isEncrypted != true)
+        }
+        val visualSearchTitle = visualSearchTarget?.let {
+            stringResource(R.string.visual_search_with, it.displayName)
+        } ?: stringResource(R.string.visual_search_generic_cd)
+        // Set while the ask-mode convert sheet is up for an exotic-format image.
+        var visualSearchConvertRequest by remember { mutableStateOf<Media?>(null) }
+        val onVisualSearch: (Media) -> Unit = { media ->
+            visualSearchTarget?.let { target ->
+                motionPhotoState.stopPlayback()
+                videoFramePickerController.player?.pause()
+                val positionMs =
+                    if (media.isVideo) videoFramePickerController.position?.longValue else null
+                val metadata = metadataState.value.metadataMap[media.id]
+                when {
+                    media.needsVisualSearchConvert &&
+                            visualSearchConvertMode == Settings.Misc.VISUAL_SEARCH_CONVERT_ASK ->
+                        visualSearchConvertRequest = media
+
+                    media.needsVisualSearchConvert &&
+                            visualSearchConvertMode == Settings.Misc.VISUAL_SEARCH_CONVERT_ALWAYS ->
+                        launchVisualSearch(
+                            media, metadata, currentVault, target, positionMs,
+                            visualSearchConvertFormat.toVisualSearchWriteFormat(),
+                        )
+
+                    else ->
+                        launchVisualSearch(media, metadata, currentVault, target, positionMs, null)
+                }
+            }
+        }
+        val visualSearchUiState by visualSearchState.collectAsStateWithLifecycle()
+        val visualSearchPreparing =
+            visualSearchUiState as? MediaViewViewModel.VisualSearchUiState.Preparing
+        val visualSearchStageLabel = when (visualSearchPreparing?.stage) {
+            VisualSearchStage.DOWNLOADING ->
+                stringResource(R.string.visual_search_stage_downloading)
+            VisualSearchStage.DECRYPTING ->
+                stringResource(R.string.visual_search_stage_decrypting)
+            VisualSearchStage.PREPARING ->
+                stringResource(R.string.visual_search_stage_preparing)
+            VisualSearchStage.EXTRACTING ->
+                stringResource(R.string.visual_search_stage_extracting)
+            VisualSearchStage.CONVERTING ->
+                stringResource(R.string.visual_search_stage_converting)
+            null -> null
+        }
+        visualSearchConvertRequest?.let { convertMedia ->
+            VisualSearchConvertSheet(
+                mediaLabel = convertMedia.label,
+                providerLabel = visualSearchTarget?.displayName.orEmpty(),
+                convertFormat = visualSearchConvertFormat,
+                onFormatChange = { visualSearchConvertFormat = it },
+                onConvert = { rememberChoice ->
+                    if (rememberChoice) {
+                        visualSearchConvertMode = Settings.Misc.VISUAL_SEARCH_CONVERT_ALWAYS
+                    }
+                    visualSearchConvertRequest = null
+                    visualSearchTarget?.let { target ->
+                        launchVisualSearch(
+                            convertMedia,
+                            metadataState.value.metadataMap[convertMedia.id],
+                            currentVault,
+                            target,
+                            null,
+                            visualSearchConvertFormat.toVisualSearchWriteFormat(),
+                        )
+                    }
+                },
+                onSendOriginal = { rememberChoice ->
+                    if (rememberChoice) {
+                        visualSearchConvertMode = Settings.Misc.VISUAL_SEARCH_CONVERT_NEVER
+                    }
+                    visualSearchConvertRequest = null
+                    visualSearchTarget?.let { target ->
+                        launchVisualSearch(
+                            convertMedia,
+                            metadataState.value.metadataMap[convertMedia.id],
+                            currentVault,
+                            target,
+                            null,
+                            null,
+                        )
+                    }
+                },
+                onDismiss = { visualSearchConvertRequest = null },
+            )
+        }
+
         // Key rotation helpers by the *settled* pager media id, not currentMedia?.id.
         // During a cancelled swipe the pager's currentPage briefly flips to the neighbour
         // page and back; keying off it would reset this rememberSaveable state and make the
@@ -1486,7 +1620,7 @@ fun <T : Media> MediaViewScreen(
             }
         }
 
-        LaunchedEffect(uiEvents, rotateFailedText) {
+        LaunchedEffect(uiEvents, rotateFailedText, visualSearchFailedText) {
             uiEvents.collect { event ->
                 when (event) {
                     MediaViewEvent.ScrollToFirstPage -> pagerState.animateScrollToPage(0)
@@ -1517,6 +1651,27 @@ fun <T : Media> MediaViewScreen(
                         Toast.makeText(
                             context,
                             event.message ?: rotateFailedText,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    is MediaViewEvent.LaunchVisualSearch -> {
+                        // Fired with the Activity context so the provider opens on the same task.
+                        runCatching {
+                            context.launchVisualSearch(event.target, event.uri, event.mimeType)
+                        }.onFailure {
+                            Toast.makeText(
+                                context,
+                                visualSearchFailedText,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+
+                    is MediaViewEvent.VisualSearchFailed -> {
+                        Toast.makeText(
+                            context,
+                            event.message ?: visualSearchFailedText,
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -2409,6 +2564,27 @@ fun <T : Media> MediaViewScreen(
                         onLock = {
                             isLocked = !isLocked
                         },
+                        visualSearchButton = visualSearchTarget?.takeIf {
+                            visualSearchAvailable &&
+                                    visualSearchPosition == Settings.Misc.VISUAL_SEARCH_POSITION_TOP
+                        }?.let { target ->
+                            { followTheme: Boolean ->
+                                currentMedia?.let { media ->
+                                    VisualSearchButton(
+                                        media = media,
+                                        enabled = true,
+                                        followTheme = followTheme,
+                                        icon = target.icon,
+                                        tintIcon = target.tintIcon,
+                                        title = visualSearchTitle,
+                                        onItemClick = onVisualSearch,
+                                    )
+                                }
+                            }
+                        },
+                        visualSearchProgress = visualSearchPreparing?.progress,
+                        visualSearchStageLabel = visualSearchStageLabel,
+                        onCancelVisualSearch = cancelVisualSearch,
                         castButton = if (fcastVm.isCastAvailable()) {
                             { followTheme ->
                                 CastButton(
@@ -2702,6 +2878,12 @@ fun <T : Media> MediaViewScreen(
                                             currentVault = currentVault,
                                             isImageDark = isBottomDark,
                                             autoContrast = autoContrast,
+                                            visualSearchTarget = if (
+                                                visualSearchAvailable &&
+                                                visualSearchPosition == Settings.Misc.VISUAL_SEARCH_POSITION_BOTTOM
+                                            ) visualSearchTarget else null,
+                                            visualSearchTitle = visualSearchTitle,
+                                            onVisualSearch = onVisualSearch,
                                             onTrashConfirmed = {
                                                 val removedMedia = currentMedia
                                                 val trashedId = removedMedia?.id

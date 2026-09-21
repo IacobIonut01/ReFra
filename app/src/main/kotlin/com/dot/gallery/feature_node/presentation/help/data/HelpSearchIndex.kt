@@ -172,6 +172,7 @@ object HelpSearchIndex {
             Toggle(R.string.auto_hide_on_video_play, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
             Toggle(R.string.auto_play_video, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
             Toggle(R.string.video_surface_rebind, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
+            Toggle(R.string.visual_search_title, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
             // Security
             Toggle(R.string.security_metadata_isolation, Screen.SettingsSecurityScreen(), HelpCategory.SETTINGS_SECURITY),
             Toggle(R.string.security_sandboxed_decode, Screen.SettingsSecurityScreen(), HelpCategory.SETTINGS_SECURITY),

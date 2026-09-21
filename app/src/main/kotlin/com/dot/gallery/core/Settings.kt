@@ -1086,6 +1086,52 @@ object Settings {
         fun rememberShowFavoriteButton() =
             rememberPreference(key = SHOW_FAVORITE_BUTTON, defaultValue = true)
 
+        private val VISUAL_SEARCH_ENABLED = booleanPreferencesKey("visual_search_enabled")
+
+        @Composable
+        fun rememberVisualSearchEnabled() =
+            rememberPreference(key = VISUAL_SEARCH_ENABLED, defaultValue = true)
+
+        const val VISUAL_SEARCH_PROVIDER_AUTO = ""
+        private val VISUAL_SEARCH_PROVIDER = stringPreferencesKey("visual_search_provider")
+
+        @Composable
+        fun rememberVisualSearchProvider() =
+            rememberPreference(key = VISUAL_SEARCH_PROVIDER, defaultValue = VISUAL_SEARCH_PROVIDER_AUTO)
+
+        const val VISUAL_SEARCH_POSITION_TOP = "top"
+        const val VISUAL_SEARCH_POSITION_BOTTOM = "bottom"
+        private val VISUAL_SEARCH_POSITION = stringPreferencesKey("visual_search_position")
+
+        @Composable
+        fun rememberVisualSearchPosition() =
+            rememberPreference(key = VISUAL_SEARCH_POSITION, defaultValue = VISUAL_SEARCH_POSITION_TOP)
+
+        private val VISUAL_SEARCH_ALLOW_VAULT = booleanPreferencesKey("visual_search_allow_vault")
+
+        @Composable
+        fun rememberVisualSearchAllowVault() =
+            rememberPreference(key = VISUAL_SEARCH_ALLOW_VAULT, defaultValue = true)
+
+        const val VISUAL_SEARCH_CONVERT_ASK = "ask"
+        const val VISUAL_SEARCH_CONVERT_ALWAYS = "always"
+        const val VISUAL_SEARCH_CONVERT_NEVER = "never"
+        private val VISUAL_SEARCH_CONVERT = stringPreferencesKey("visual_search_convert")
+
+        @Composable
+        fun rememberVisualSearchConvertMode() =
+            rememberPreference(key = VISUAL_SEARCH_CONVERT, defaultValue = VISUAL_SEARCH_CONVERT_ASK)
+
+        const val VISUAL_SEARCH_FORMAT_JPEG = "jpeg"
+        const val VISUAL_SEARCH_FORMAT_PNG = "png"
+        const val VISUAL_SEARCH_FORMAT_WEBP = "webp"
+        private val VISUAL_SEARCH_CONVERT_FORMAT =
+            stringPreferencesKey("visual_search_convert_format")
+
+        @Composable
+        fun rememberVisualSearchConvertFormat() =
+            rememberPreference(key = VISUAL_SEARCH_CONVERT_FORMAT, defaultValue = VISUAL_SEARCH_FORMAT_JPEG)
+
         private val SHOW_SEARCHBAR_FAVORITE_BUTTON = booleanPreferencesKey("show_searchbar_favorite_button")
 
         @Composable
