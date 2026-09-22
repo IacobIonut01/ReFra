@@ -143,36 +143,70 @@ interface CategoryDao {
         """
         SELECT COUNT(DISTINCT mc.mediaId)
         FROM media_category mc
-        WHERE EXISTS (SELECT 1 FROM media WHERE media.id = mc.mediaId)
-           OR EXISTS (
-               SELECT 1 FROM cloud_media
-               WHERE cloud_media.globalMediaId = mc.mediaId
-                 AND cloud_media.trashed = 0 AND cloud_media.archived = 0
-           )
+        WHERE NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = mc.mediaId)
+          AND (
+               EXISTS (SELECT 1 FROM media WHERE media.id = mc.mediaId)
+            OR EXISTS (
+                SELECT 1 FROM cloud_media
+                WHERE cloud_media.globalMediaId = mc.mediaId
+                  AND cloud_media.trashed = 0 AND cloud_media.archived = 0
+            )
+          )
         """
     )
     fun getDistinctClassifiedMediaCount(): Flow<Int>
 
-    // Get all media IDs in a category, ordered by similarity score
+    // Get all media IDs in a category, ordered by similarity score.
+    // Vaulted (encrypted_media) ids are excluded: memberships are kept so un-vaulting
+    // restores categorisation, but they must never surface in category listings (#1106).
     @Query("""
-        SELECT mediaId FROM media_category 
-        WHERE categoryId = :categoryId 
+        SELECT mediaId FROM media_category mc
+        WHERE categoryId = :categoryId
+          AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = mc.mediaId)
         ORDER BY similarityScore DESC
     """)
     fun getMediaIdsInCategory(categoryId: Long): Flow<List<Long>>
 
     @Query("""
-        SELECT mediaId FROM media_category 
-        WHERE categoryId = :categoryId 
+        SELECT mediaId FROM media_category mc
+        WHERE categoryId = :categoryId
+          AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = mc.mediaId)
         ORDER BY similarityScore DESC
     """)
     suspend fun getMediaIdsInCategoryAsync(categoryId: Long): List<Long>
 
-    // Get media count for a category
-    @Query("SELECT COUNT(*) FROM media_category WHERE categoryId = :categoryId")
+    // Get media count for a category.
+    // Counts only members that are displayable: mirrored in `media` or live in
+    // `cloud_media`, and never vaulted — same validity contract as
+    // getCategoriesWithMediaCount so cards and detail screens agree (#1106).
+    @Query("""
+        SELECT COUNT(*) FROM media_category mc
+        WHERE mc.categoryId = :categoryId
+          AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = mc.mediaId)
+          AND (
+               EXISTS (SELECT 1 FROM media WHERE media.id = mc.mediaId)
+            OR EXISTS (
+                SELECT 1 FROM cloud_media
+                WHERE cloud_media.globalMediaId = mc.mediaId
+                  AND cloud_media.trashed = 0 AND cloud_media.archived = 0
+            )
+          )
+    """)
     fun getMediaCountInCategory(categoryId: Long): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM media_category WHERE categoryId = :categoryId")
+    @Query("""
+        SELECT COUNT(*) FROM media_category mc
+        WHERE mc.categoryId = :categoryId
+          AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = mc.mediaId)
+          AND (
+               EXISTS (SELECT 1 FROM media WHERE media.id = mc.mediaId)
+            OR EXISTS (
+                SELECT 1 FROM cloud_media
+                WHERE cloud_media.globalMediaId = mc.mediaId
+                  AND cloud_media.trashed = 0 AND cloud_media.archived = 0
+            )
+          )
+    """)
     suspend fun getMediaCountInCategoryAsync(categoryId: Long): Int
 
     // Get all categories for a media item
@@ -225,12 +259,17 @@ interface CategoryDao {
     // Only counts memberships whose media still exists in the internal `media` mirror, and
     // picks the highest-scored *existing* media as the cover, so a deleted cover falls back to
     // the next valid member and stale counts never show phantom items (#1076).
+    // valid_media excludes vaulted ids (encrypted_media) — memberships survive vaulting for
+    // restore, but must not count or surface while vaulted (#1106). UNION (not UNION ALL)
+    // dedups ids present in both `media` and `cloud_media` so a synced item counts once.
     @Query("""
         WITH valid_media AS (
             SELECT id FROM media
-            UNION ALL
+            WHERE NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = media.id)
+            UNION
             SELECT globalMediaId AS id FROM cloud_media
             WHERE trashed = 0 AND archived = 0
+              AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = cloud_media.globalMediaId)
         )
         SELECT c.*, COUNT(mc.mediaId) as mediaCount,
                (SELECT mc2.mediaId FROM media_category mc2
@@ -268,13 +307,15 @@ interface CategoryDao {
 
     // Get the top N categories by media count for carousel display.
     // Same existence validation as getCategoriesWithMediaCount so carousels never surface a
-    // stale count or a deleted cover (#1076).
+    // stale count or a deleted cover (#1076); vaulted ids excluded and ids deduped (#1106).
     @Query("""
         WITH valid_media AS (
             SELECT id FROM media
-            UNION ALL
+            WHERE NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = media.id)
+            UNION
             SELECT globalMediaId AS id FROM cloud_media
             WHERE trashed = 0 AND archived = 0
+              AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = cloud_media.globalMediaId)
         )
         SELECT c.*, COUNT(mc.mediaId) as mediaCount,
                (SELECT mc2.mediaId FROM media_category mc2

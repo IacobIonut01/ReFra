@@ -13,8 +13,10 @@ import com.dot.gallery.feature_node.data.data_source.CategoryDao
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.MediaDao
 import com.dot.gallery.feature_node.domain.model.Category
+import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Media.UriMedia
 import com.dot.gallery.feature_node.domain.model.MediaCategory
+import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -39,6 +41,8 @@ class CategoryIntegrityDaoTest {
     private lateinit var db: InternalDatabase
     private lateinit var categoryDao: CategoryDao
     private lateinit var mediaDao: MediaDao
+
+    private val vaultUuid: UUID = UUID.randomUUID()
 
     @Before
     fun setUp() {
@@ -71,6 +75,28 @@ class CategoryIntegrityDaoTest {
 
     private fun mirror(vararg ids: Long) = runBlocking {
         mediaDao.updateMedia(ids.map { media(it) })
+    }
+
+    private fun vault(vararg ids: Long) = runBlocking {
+        ids.forEach { id ->
+            db.getVaultDao().addMediaToVault(
+                Media.EncryptedMedia2(
+                    id = id,
+                    label = "vault_$id",
+                    uuid = vaultUuid,
+                    path = "/vault/$id.enc",
+                    relativePath = "vault/",
+                    albumID = -1L,
+                    albumLabel = "vault",
+                    timestamp = id,
+                    fullDate = "2026-01-01",
+                    mimeType = "image/jpeg",
+                    favorite = 0,
+                    trashed = 0,
+                    size = 1_000L
+                )
+            )
+        }
     }
 
     private fun membership(mediaId: Long, categoryId: Long, score: Float, isManual: Boolean = false) =
@@ -190,5 +216,75 @@ class CategoryIntegrityDaoTest {
         assertEquals(0, categoryDao.getMirroredMediaCount())
         mirror(1, 2, 3)
         assertEquals(3, categoryDao.getMirroredMediaCount())
+    }
+
+    /**
+     * #1106: memberships survive vaulting (so un-vaulting restores categorisation), but a
+     * vaulted item must never count toward or surface in a category — even when its `media`
+     * mirror row is still present (e.g. mid-sync) or a `cloud_media` row remains.
+     */
+    @Test
+    fun vaultedMembers_areNotCountedOrListed() = runBlocking {
+        val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = ""))
+        categoryDao.insertMediaCategories(
+            listOf(
+                membership(10, categoryId, 0.9f),
+                membership(20, categoryId, 0.8f), // vaulted, mirror row still present
+                membership(30, categoryId, 0.7f)
+            )
+        )
+        mirror(10, 20, 30)
+        vault(20)
+
+        val result = categoryDao.getCategoriesWithMediaCount().first()
+        assertEquals("vaulted member must not count", 2, result[0].mediaCount)
+        assertEquals("vaulted member must not be the cover", 10L, result[0].thumbnailMediaId)
+
+        val ids = categoryDao.getMediaIdsInCategoryAsync(categoryId)
+        assertEquals("vaulted member must not be listed", listOf(10L, 30L), ids.sorted())
+        assertEquals(2, categoryDao.getMediaCountInCategoryAsync(categoryId))
+    }
+
+    @Test
+    fun unvaultedMember_countsAndListsAgain() = runBlocking {
+        val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = ""))
+        categoryDao.insertMediaCategories(
+            listOf(
+                membership(10, categoryId, 0.9f),
+                membership(20, categoryId, 0.8f)
+            )
+        )
+        mirror(10, 20)
+        vault(20)
+        assertEquals(1, categoryDao.getCategoriesWithMediaCount().first()[0].mediaCount)
+
+        db.getVaultDao().deleteMediaFromVault(vaultUuid, 20)
+        val restored = categoryDao.getCategoriesWithMediaCount().first()
+        assertEquals("membership must restore on un-vault", 2, restored[0].mediaCount)
+    }
+
+    @Test
+    fun mediaMirroredInBothTables_countsOnce() = runBlocking {
+        val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = ""))
+        // A synced item can live in `media` (local copy) and `cloud_media` under the same
+        // globalMediaId — UNION must dedup it or the count doubles (#1106).
+        val sharedId = com.dot.gallery.cloud.core.cloudMediaId(
+            com.dot.gallery.cloud.core.ProviderType.IMMICH, 7L, "remote_shared"
+        )
+        categoryDao.insertMediaCategories(listOf(membership(sharedId, categoryId, 0.9f)))
+        mirror(sharedId)
+        db.getCloudMediaDao().insert(
+            com.dot.gallery.cloud.data.entity.CloudMediaEntity(
+                remoteId = "remote_shared",
+                providerType = com.dot.gallery.cloud.core.ProviderType.IMMICH,
+                serverConfigId = 7L,
+                label = "cloud_shared.jpg",
+                mimeType = "image/jpeg",
+                timestamp = sharedId
+            )
+        )
+
+        val result = categoryDao.getCategoriesWithMediaCount().first()
+        assertEquals(1, result[0].mediaCount)
     }
 }
