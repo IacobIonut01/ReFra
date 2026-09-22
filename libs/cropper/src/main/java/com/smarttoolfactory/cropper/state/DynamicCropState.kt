@@ -177,19 +177,7 @@ class DynamicCropState internal constructor(
             // the container - made animateTransformationToOverlayBounds() zoom the image in to
             // cover the oversized box. Clamping the overlay to the image first means no zoom-in is
             // ever required, so the crop box behaves like a plain selection rectangle (#956).
-            val imageBounds = Rect(
-                left = maxOf(rectBounds.left, drawAreaRect.left),
-                top = maxOf(rectBounds.top, drawAreaRect.top),
-                right = minOf(rectBounds.right, drawAreaRect.right),
-                bottom = minOf(rectBounds.bottom, drawAreaRect.bottom)
-            )
-            val clampedOverlay = calculateOverlayRectInBounds(imageBounds, overlayRect)
-            if (clampedOverlay != overlayRect) {
-
-                // Animate overlay to new bounds inside the visible image
-                rectTemp = clampedOverlay
-                animateOverlayRectTo(rectTemp)
-            }
+            clampOverlayToImageBounds()
 
             // Pan the image so it keeps covering the (now in-bounds) overlay. Because the overlay
             // already fits within the image draw area, this no longer zooms in.
@@ -361,6 +349,29 @@ class DynamicCropState internal constructor(
         resetTracking()
     }
 
+    /**
+     * Constrain the crop box to the *visible image* (intersection of the container and
+     * the image draw area). A box left bigger than the image — common when the image is
+     * letterboxed and the draw area is smaller than the container — makes
+     * [animateTransformationToOverlayBounds] zoom the image in to cover it. Clamping the
+     * overlay first means no zoom-in is ever required (#956).
+     */
+    private suspend fun clampOverlayToImageBounds() {
+        val imageBounds = Rect(
+            left = maxOf(rectBounds.left, drawAreaRect.left),
+            top = maxOf(rectBounds.top, drawAreaRect.top),
+            right = minOf(rectBounds.right, drawAreaRect.right),
+            bottom = minOf(rectBounds.bottom, drawAreaRect.bottom)
+        )
+        val clampedOverlay = calculateOverlayRectInBounds(imageBounds, overlayRect)
+        if (clampedOverlay != overlayRect) {
+
+            // Animate overlay to new bounds inside the visible image
+            rectTemp = clampedOverlay
+            animateOverlayRectTo(rectTemp)
+        }
+    }
+
     override suspend fun onGestureStart() = Unit
 
     override suspend fun onGestureEnd(onBoundsCalculated: () -> Unit) {
@@ -380,6 +391,17 @@ class DynamicCropState internal constructor(
                     }
                 } else {
                     onBoundsCalculated()
+                }
+
+                // When the gesture involved the box (handle drag or two-finger box
+                // pinch) it may have grown past the letterboxed image edge —
+                // resizeOverlayBy/updateOverlayRect only clamp to the container.
+                // Clamp it to the visible image first, same as onUp, so the
+                // transform below only pans instead of zooming in. Pure image
+                // gestures (touchRegion == None && !gestureInvoked) keep the
+                // zoom-to-cover behaviour (#956).
+                if (gestureInvoked || touchRegion != TouchRegion.None) {
+                    clampOverlayToImageBounds()
                 }
 
                 animateTransformationToOverlayBounds(overlayRect, animate = true)
