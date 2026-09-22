@@ -84,6 +84,7 @@ import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.Settings.Misc.rememberAutoOpenSearchKeyboard
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
 import com.dot.gallery.core.Settings.Misc.rememberTimelineLayoutType
@@ -153,10 +154,12 @@ fun SearchScreen(
     }
 
     val searchFieldFocus = remember { FocusRequester() }
+    val autoOpenKeyboard by rememberAutoOpenSearchKeyboard()
     // Requesting focus while the shared-bounds morph is still running is dropped by
     // the IME — wait for the transition to settle, then open the keyboard on its own.
     // The request can still race the post-transition layout pass, so retry briefly.
-    LaunchedEffect(Unit) {
+    LaunchedEffect(autoOpenKeyboard) {
+        if (!autoOpenKeyboard) return@LaunchedEffect
         snapshotFlow { isTransitionActive }.first { active -> !active }
         repeat(3) { attempt ->
             val focused = runCatching { searchFieldFocus.requestFocus() }.isSuccess

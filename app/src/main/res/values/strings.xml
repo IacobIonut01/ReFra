@@ -489,6 +489,8 @@
     <string name="auto_hide_searchbar_summary">Automatically hide the search bar or the top bar of the screen while scrolling</string>
     <string name="auto_hide_navigationbar">Hide navigation bar on scroll</string>
     <string name="auto_hide_navigationbar_summary">Automatically hide the navigation bar while scrolling</string>
+    <string name="auto_open_search_keyboard">Open keyboard on search</string>
+    <string name="auto_open_search_keyboard_summary">Show the keyboard automatically when opening search</string>
     <string name="navigation">Navigation</string>
     <string name="vault_setup_title">Setup your vault</string>
     <string name="vault_setup_subtitle"><![CDATA[Encrypt your most private photos & videos]]></string>
@@ -862,6 +864,7 @@
     <string name="old_navbar_description">Switches to the classic Material navigation bar with text labels. On larger screens, this shows a navigation rail on the side instead.</string>
     <string name="auto_hide_searchbar_description">The search bar or top bar slides out of view when you scroll down, giving more space for content. It reappears when you scroll back up.</string>
     <string name="auto_hide_navigationbar_description">The bottom navigation bar slides out of view when you scroll down, giving more space for content. It reappears when you scroll back up.</string>
+    <string name="auto_open_search_keyboard_description">The keyboard opens automatically when you enter search so you can type right away. Turn this off to keep the keyboard hidden until you tap the search field.</string>
     <string name="show_selection_titles_description">Shows the title text beneath each item in the bottom selection bar (Timeline, Albums, Library). Disable for a more compact icon-only navigation.</string>
     <string name="secure_mode_description">Prevents the app content from appearing in screenshots, the recent apps overview, and screen recordings. Useful for privacy when your gallery contains sensitive content.</string>
     <string name="allow_vibrations_description">Allows the app to send haptic feedback during certain actions and gestures, such as long-pressing to select or pinch-to-zoom transitions.</string>

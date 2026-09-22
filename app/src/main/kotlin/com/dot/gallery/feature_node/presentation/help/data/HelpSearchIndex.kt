@@ -160,6 +160,7 @@ object HelpSearchIndex {
             Toggle(R.string.set_default_screen, Screen.SettingsNavigationScreen(), HelpCategory.SETTINGS_NAVIGATION),
             Toggle(R.string.old_navbar, Screen.SettingsNavigationScreen(), HelpCategory.SETTINGS_NAVIGATION),
             Toggle(R.string.auto_hide_searchbar, Screen.SettingsNavigationScreen(), HelpCategory.SETTINGS_NAVIGATION),
+            Toggle(R.string.auto_open_search_keyboard, Screen.SettingsNavigationScreen(), HelpCategory.SETTINGS_NAVIGATION),
             Toggle(R.string.auto_hide_navigationbar, Screen.SettingsNavigationScreen(), HelpCategory.SETTINGS_NAVIGATION),
             Toggle(R.string.show_selection_titles, Screen.SettingsNavigationScreen(), HelpCategory.SETTINGS_NAVIGATION),
             // Media viewer

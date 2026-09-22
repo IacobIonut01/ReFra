@@ -187,6 +187,7 @@ internal object PortableBackupSettings {
         "old_navbar",
         "allow_vibrations",
         "auto_hide_searchbar",
+        "auto_open_search_keyboard",
         "auto_hide_navigationbar",
         "full_brightness_view",
         "tap_sides_to_navigate",

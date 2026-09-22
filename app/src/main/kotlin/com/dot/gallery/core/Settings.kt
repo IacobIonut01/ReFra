@@ -863,6 +863,12 @@ object Settings {
         fun rememberAutoHideSearchBar() =
             rememberPreference(key = AUTO_HIDE_SEARCHBAR, defaultValue = true)
 
+        private val AUTO_OPEN_SEARCH_KEYBOARD = booleanPreferencesKey("auto_open_search_keyboard")
+
+        @Composable
+        fun rememberAutoOpenSearchKeyboard() =
+            rememberPreference(key = AUTO_OPEN_SEARCH_KEYBOARD, defaultValue = true)
+
         private val AUTO_HIDE_NAVIGATIONBAR = booleanPreferencesKey("auto_hide_navigationbar")
 
         @Composable

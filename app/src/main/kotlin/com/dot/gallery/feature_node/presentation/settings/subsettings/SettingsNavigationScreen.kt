@@ -50,6 +50,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideNavBar
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
+import com.dot.gallery.core.Settings.Misc.rememberAutoOpenSearchKeyboard
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
 import com.dot.gallery.core.Settings.Misc.rememberOldNavbar
@@ -72,6 +73,7 @@ import com.dot.gallery.ui.core.Icons as AppIcons
 private const val DETAIL_LAUNCH_SCREEN = "launch_screen"
 private const val DETAIL_OLD_NAVBAR = "old_navbar"
 private const val DETAIL_HIDE_SEARCH = "hide_search"
+private const val DETAIL_OPEN_KEYBOARD = "open_keyboard"
 private const val DETAIL_HIDE_NAV = "hide_nav"
 private const val DETAIL_SELECTION_TITLES = "selection_titles"
 
@@ -84,6 +86,7 @@ fun SettingsNavigationScreen() {
     var forcedLastScreen by rememberForcedLastScreen()
     var showOldNavbar by rememberOldNavbar()
     var autoHideSearch by rememberAutoHideSearchBar()
+    var autoOpenKeyboard by rememberAutoOpenSearchKeyboard()
     var autoHideNavBar by rememberAutoHideNavBar()
     var showSelectionTitles by rememberShowSelectionTitles()
     val config by rememberSelectionSheetConfig()
@@ -146,6 +149,15 @@ fun SettingsNavigationScreen() {
                 description = stringResource(R.string.auto_hide_searchbar_description),
             )
         }
+        DETAIL_OPEN_KEYBOARD -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(R.string.auto_open_search_keyboard),
+                isChecked = autoOpenKeyboard,
+                onCheckedChange = { autoOpenKeyboard = it },
+                description = stringResource(R.string.auto_open_search_keyboard_description),
+            )
+        }
         DETAIL_HIDE_NAV -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -179,6 +191,8 @@ fun SettingsNavigationScreen() {
                 onOldNavbarChange = { showOldNavbar = it },
                 autoHideSearch = autoHideSearch,
                 onAutoHideSearchChange = { autoHideSearch = it },
+                autoOpenKeyboard = autoOpenKeyboard,
+                onAutoOpenKeyboardChange = { autoOpenKeyboard = it },
                 autoHideNavBar = autoHideNavBar,
                 onAutoHideNavChange = { autoHideNavBar = it },
                 showSelectionTitles = showSelectionTitles,
@@ -387,6 +401,8 @@ private fun NavigationListScreen(
     onOldNavbarChange: (Boolean) -> Unit,
     autoHideSearch: Boolean,
     onAutoHideSearchChange: (Boolean) -> Unit,
+    autoOpenKeyboard: Boolean,
+    onAutoOpenKeyboardChange: (Boolean) -> Unit,
     autoHideNavBar: Boolean,
     onAutoHideNavChange: (Boolean) -> Unit,
     showSelectionTitles: Boolean,
@@ -456,6 +472,16 @@ private fun NavigationListScreen(
             screenPosition = Position.Middle
         )
 
+        val autoOpenKeyboardPref = rememberSwitchPreference(
+            autoOpenKeyboard,
+            title = stringResource(R.string.auto_open_search_keyboard),
+            summary = stringResource(R.string.auto_open_search_keyboard_summary),
+            isChecked = autoOpenKeyboard,
+            onCheck = onAutoOpenKeyboardChange,
+            onClick = { onDetailClick(DETAIL_OPEN_KEYBOARD) },
+            screenPosition = Position.Middle
+        )
+
         val autoHideNavBarPref = rememberSwitchPreference(
             autoHideNavBar,
             title = stringResource(R.string.auto_hide_navigationbar),
@@ -493,7 +519,7 @@ private fun NavigationListScreen(
 
         return remember(
             launchHeader, forcedLastScreenPref, barsHeader, showOldNavbarPref, autoHideSearchPref,
-            autoHideNavBarPref, interfaceHeader, showSelectionTitlesPref, selectionActionsPref
+            autoOpenKeyboardPref, autoHideNavBarPref, interfaceHeader, showSelectionTitlesPref, selectionActionsPref
         ) {
             mutableStateListOf(
                 launchHeader,
@@ -501,6 +527,7 @@ private fun NavigationListScreen(
                 barsHeader,
                 showOldNavbarPref,
                 autoHideSearchPref,
+                autoOpenKeyboardPref,
                 autoHideNavBarPref,
                 interfaceHeader,
                 showSelectionTitlesPref,
