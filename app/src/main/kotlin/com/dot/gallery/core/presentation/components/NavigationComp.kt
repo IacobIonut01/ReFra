@@ -1562,7 +1562,15 @@ fun NavigationComp(
                 )
             }
 
-            composable(Screen.FreeUpSpaceScreen()) {
+            composable(
+                route = Screen.FreeUpSpaceScreen.configId(),
+                arguments = listOf(
+                    navArgument(name = "configId") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    }
+                )
+            ) {
                 FreeUpSpaceScreen()
             }
 

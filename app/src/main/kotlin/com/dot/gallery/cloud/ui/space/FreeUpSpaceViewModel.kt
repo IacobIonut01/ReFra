@@ -7,18 +7,21 @@ package com.dot.gallery.cloud.ui.space
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.R
-import com.dot.gallery.cloud.sync.AUTO_ENABLED_KEY
-import com.dot.gallery.cloud.sync.AUTO_INTERVAL_DAYS_KEY
-import com.dot.gallery.cloud.sync.CUTOFF_DAYS_KEY
+import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
+import com.dot.gallery.cloud.sync.FREE_UP_SPACE_DEFAULT_CUTOFF_DAYS
 import com.dot.gallery.cloud.sync.FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
 import com.dot.gallery.cloud.sync.FREE_UP_SPACE_NEVER_CUTOFF
 import com.dot.gallery.cloud.sync.FreeUpSpaceAutoScheduler
 import com.dot.gallery.cloud.sync.FreeUpSpaceEngine
-import com.dot.gallery.cloud.sync.KEEP_FAVORITES_KEY
+import com.dot.gallery.cloud.sync.autoEnabledKey
+import com.dot.gallery.cloud.sync.autoIntervalDaysKey
+import com.dot.gallery.cloud.sync.cutoffDaysKey
 import com.dot.gallery.cloud.sync.freeUpSpaceDeletionBatch
+import com.dot.gallery.cloud.sync.keepFavoritesKey
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.feature_node.domain.model.Media
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,9 +50,9 @@ data class FreeUpSpaceUiState(
     val pendingDeletionItems: List<Media.UriMedia> = emptyList(),
     val deletedCount: Int = 0,
     val keepFavorites: Boolean = true,
-    // -1 = "Never": automatic/age-based removal is disabled. This is the default so
-    // nothing is ever removed unless the user explicitly picks a time range.
-    val cutoffDays: Int = FreeUpSpaceViewModel.NEVER_CUTOFF,
+    // 90 days by default: conservative enough that automatic/age-based removal
+    // can never surprise a user who hasn't picked a time range yet.
+    val cutoffDays: Int = FREE_UP_SPACE_DEFAULT_CUTOFF_DAYS,
     val autoEnabled: Boolean = false,
     val autoIntervalDays: Int = FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS,
     val message: String = "",
@@ -59,23 +62,41 @@ data class FreeUpSpaceUiState(
 @HiltViewModel
 class FreeUpSpaceViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    savedStateHandle: SavedStateHandle,
     private val engine: FreeUpSpaceEngine,
-    private val autoScheduler: FreeUpSpaceAutoScheduler
+    private val autoScheduler: FreeUpSpaceAutoScheduler,
+    private val configDao: CloudServerConfigDao
 ) : ViewModel() {
+
+    // The screen is reachable from a provider's settings (explicit configId) and
+    // from the help-tip deep link (-1). Fall back to the first sync-enabled
+    // account so the deep link still lands on a real provider's settings.
+    private val configId: Long = savedStateHandle.get<Long>("configId") ?: -1L
+    private var resolvedConfigId: Long = configId
 
     private val _uiState = MutableStateFlow(FreeUpSpaceUiState())
     val uiState: StateFlow<FreeUpSpaceUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
+            if (resolvedConfigId == -1L) {
+                resolvedConfigId = runCatching {
+                    val configs = configDao.getAll().first()
+                    configs.firstOrNull { it.syncEnabled }?.id
+                        ?: configs.firstOrNull()?.id
+                        ?: -1L
+                }.getOrDefault(-1L)
+            }
+            val id = resolvedConfigId
             val preferences = runCatching { context.activeDataStore.data.first() }.getOrNull()
             _uiState.update {
                 it.copy(
                     preferencesLoaded = true,
-                    keepFavorites = preferences?.get(KEEP_FAVORITES_KEY) ?: true,
-                    cutoffDays = preferences?.get(CUTOFF_DAYS_KEY) ?: NEVER_CUTOFF,
-                    autoEnabled = preferences?.get(AUTO_ENABLED_KEY) ?: false,
-                    autoIntervalDays = preferences?.get(AUTO_INTERVAL_DAYS_KEY)
+                    keepFavorites = preferences?.get(keepFavoritesKey(id)) ?: true,
+                    cutoffDays = preferences?.get(cutoffDaysKey(id))
+                        ?: FREE_UP_SPACE_DEFAULT_CUTOFF_DAYS,
+                    autoEnabled = preferences?.get(autoEnabledKey(id)) ?: false,
+                    autoIntervalDays = preferences?.get(autoIntervalDaysKey(id))
                         ?: FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
                 )
             }
@@ -88,6 +109,9 @@ class FreeUpSpaceViewModel @Inject constructor(
     }
 
     fun setKeepFavorites(keep: Boolean) {
+        // resolvedConfigId is only settled once preferencesLoaded flips — writes
+        // before that would land on the -1 fallback key and be lost.
+        if (!_uiState.value.preferencesLoaded) return
         _uiState.update {
             it.copy(
                 keepFavorites = keep,
@@ -100,11 +124,12 @@ class FreeUpSpaceViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            context.activeDataStore.edit { it[KEEP_FAVORITES_KEY] = keep }
+            context.activeDataStore.edit { it[keepFavoritesKey(resolvedConfigId)] = keep }
         }
     }
 
     fun setCutoffDays(days: Int) {
+        if (!_uiState.value.preferencesLoaded) return
         _uiState.update {
             it.copy(
                 cutoffDays = days,
@@ -117,24 +142,26 @@ class FreeUpSpaceViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            context.activeDataStore.edit { it[CUTOFF_DAYS_KEY] = days }
+            context.activeDataStore.edit { it[cutoffDaysKey(resolvedConfigId)] = days }
         }
     }
 
     fun setAutoEnabled(enabled: Boolean) {
+        if (!_uiState.value.preferencesLoaded) return
         _uiState.update { it.copy(autoEnabled = enabled) }
         viewModelScope.launch {
-            context.activeDataStore.edit { it[AUTO_ENABLED_KEY] = enabled }
-            autoScheduler.sync(enabled, _uiState.value.autoIntervalDays)
+            context.activeDataStore.edit { it[autoEnabledKey(resolvedConfigId)] = enabled }
+            autoScheduler.sync(resolvedConfigId, enabled, _uiState.value.autoIntervalDays)
         }
     }
 
     fun setAutoIntervalDays(days: Int) {
+        if (!_uiState.value.preferencesLoaded) return
         _uiState.update { it.copy(autoIntervalDays = days) }
         viewModelScope.launch {
-            context.activeDataStore.edit { it[AUTO_INTERVAL_DAYS_KEY] = days }
+            context.activeDataStore.edit { it[autoIntervalDaysKey(resolvedConfigId)] = days }
             val state = _uiState.value
-            if (state.autoEnabled) autoScheduler.sync(true, days)
+            if (state.autoEnabled) autoScheduler.sync(resolvedConfigId, true, days)
         }
     }
 

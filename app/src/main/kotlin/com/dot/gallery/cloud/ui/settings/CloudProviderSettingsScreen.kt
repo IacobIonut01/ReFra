@@ -365,7 +365,7 @@ fun CloudProviderSettingsScreen(
             SettingsEntity.Preference(
                 title = freeSpaceTitle,
                 summary = freeSpaceSummary,
-                onClick = { eventHandler.navigate(Screen.FreeUpSpaceScreen()) },
+                onClick = { eventHandler.navigate(Screen.FreeUpSpaceScreen.configId(configId)) },
                 screenPosition = Position.Alone
             )
         )

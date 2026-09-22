@@ -15,6 +15,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.edit
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -23,7 +24,9 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.dot.gallery.R
+import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import dagger.assisted.Assisted
@@ -52,11 +55,13 @@ class FreeUpSpaceWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        val configId = inputData.getLong(EXTRA_CONFIG_ID, -1L)
+        if (configId == -1L) return Result.success()
         val prefs = runCatching { appContext.activeDataStore.data.first() }.getOrNull()
             ?: return Result.retry()
-        val cutoffDays = prefs[CUTOFF_DAYS_KEY] ?: FREE_UP_SPACE_NEVER_CUTOFF
+        val cutoffDays = prefs[cutoffDaysKey(configId)] ?: FREE_UP_SPACE_DEFAULT_CUTOFF_DAYS
         if (cutoffDays == FREE_UP_SPACE_NEVER_CUTOFF) return Result.success()
-        val keepFavorites = prefs[KEEP_FAVORITES_KEY] ?: true
+        val keepFavorites = prefs[keepFavoritesKey(configId)] ?: true
 
         val scan = try {
             engine.scan(cutoffDays, keepFavorites)
@@ -70,7 +75,7 @@ class FreeUpSpaceWorker @AssistedInject constructor(
         if (!repository.canDeleteMediaSilently) {
             // A background run cannot show the MediaStore consent dialog — hand
             // the verified set to the interactive screen instead.
-            postReviewNotification(scan.verified.size)
+            postReviewNotification(configId, scan.verified.size)
             return Result.success()
         }
 
@@ -91,7 +96,7 @@ class FreeUpSpaceWorker @AssistedInject constructor(
         stillDeletable.chunked(FREE_UP_SPACE_DELETE_BATCH_SIZE).forEach { batch ->
             if (repository.deleteMediaDirectly(batch)) deleted += batch.size
         }
-        if (deleted > 0) postRemovedNotification(deleted)
+        if (deleted > 0) postRemovedNotification(configId, deleted)
         return Result.success()
     }
 
@@ -118,7 +123,7 @@ class FreeUpSpaceWorker @AssistedInject constructor(
         )
     }
 
-    private fun postReviewNotification(count: Int) {
+    private fun postReviewNotification(configId: Long, count: Int) {
         if (!canPostNotifications()) return
         val builder = NotificationCompat.Builder(appContext, ensureChannel())
             .setSmallIcon(R.drawable.ic_cloud_upload)
@@ -128,20 +133,21 @@ class FreeUpSpaceWorker @AssistedInject constructor(
         launchPendingIntent()?.let(builder::setContentIntent)
         runCatching {
             NotificationManagerCompat.from(appContext)
-                .notify(NOTIFICATION_ID_REVIEW, builder.build())
+                .notify(NOTIFICATION_ID_REVIEW + configId.toInt(), builder.build())
         }
     }
 
-    private fun postRemovedNotification(count: Int) {
+    private fun postRemovedNotification(configId: Long, count: Int) {
         if (!canPostNotifications()) return
         val builder = NotificationCompat.Builder(appContext, ensureChannel())
             .setSmallIcon(R.drawable.ic_cloud_upload)
             .setContentTitle(appContext.getString(R.string.cloud_free_space))
             .setContentText(appContext.getString(R.string.cloud_free_space_auto_removed, count))
             .setAutoCancel(true)
+        launchPendingIntent()?.let(builder::setContentIntent)
         runCatching {
             NotificationManagerCompat.from(appContext)
-                .notify(NOTIFICATION_ID_STATUS, builder.build())
+                .notify(NOTIFICATION_ID_STATUS + configId.toInt(), builder.build())
         }
     }
 
@@ -152,7 +158,9 @@ class FreeUpSpaceWorker @AssistedInject constructor(
                 ) == PackageManager.PERMISSION_GRANTED
 
     companion object {
-        const val WORK_NAME = "free_up_space_periodic"
+        const val EXTRA_CONFIG_ID = "configId"
+        const val LEGACY_WORK_NAME = "free_up_space_periodic"
+        fun workName(configId: Long) = "free_up_space_periodic_$configId"
         private const val CHANNEL_STATUS = "free_up_space_status"
         private const val NOTIFICATION_ID_STATUS = 4301
         private const val NOTIFICATION_ID_REVIEW = 4302
@@ -161,31 +169,87 @@ class FreeUpSpaceWorker @AssistedInject constructor(
 }
 
 /**
- * Owns the periodic [FreeUpSpaceWorker] schedule. The run needs network for the
- * remote verification pass and is kept off metered networks/charge like other
- * bulk cloud operations.
+ * Owns the periodic [FreeUpSpaceWorker] schedule — one unique work item per
+ * cloud account, keyed by config id, so each provider's automatic cleanup runs
+ * on its own interval and follows its own settings. The run needs network for
+ * the remote verification pass and is kept off metered networks/charge like
+ * other bulk cloud operations.
  */
 @Singleton
 class FreeUpSpaceAutoScheduler @Inject constructor(
     private val workManager: WorkManager,
-    @param:ApplicationContext private val appContext: Context
+    @param:ApplicationContext private val appContext: Context,
+    private val configDao: CloudServerConfigDao
 ) {
-    suspend fun sync() {
+    /** Reconcile every account's schedule — called at app startup so toggles,
+     * interval changes and removed accounts all settle into the right state. */
+    suspend fun syncAll() {
+        val prefs = runCatching { appContext.activeDataStore.data.first() }.getOrNull()
+            ?: return
+        val configs = runCatching { configDao.getAll().first() }.getOrNull() ?: return
+        val liveIds = configs.map { it.id }.toSet()
+        val scheduledIds = prefs[SCHEDULED_CONFIG_IDS_KEY]
+            .orEmpty().mapNotNull { it.toLongOrNull() }.toSet()
+        // Pre-per-provider builds scheduled a single global worker under this
+        // name — clear it so upgrades can't leave a stray job behind.
+        workManager.cancelUniqueWork(FreeUpSpaceWorker.LEGACY_WORK_NAME)
+        for (config in configs) {
+            val enabled = config.syncEnabled &&
+                    (prefs[autoEnabledKey(config.id)] ?: false)
+            enqueueOrCancel(
+                config.id, enabled,
+                prefs[autoIntervalDaysKey(config.id)] ?: FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
+            )
+        }
+        // Accounts that were removed (or had their id change) leave unique work
+        // behind — cancel anything scheduled for a config that no longer exists.
+        val nowScheduled = liveIds.filter { id ->
+            configs.firstOrNull { it.id == id }?.syncEnabled == true &&
+                    (prefs[autoEnabledKey(id)] ?: false)
+        }.toSet()
+        (scheduledIds - nowScheduled).forEach { stale ->
+            workManager.cancelUniqueWork(FreeUpSpaceWorker.workName(stale))
+        }
+        if (scheduledIds != nowScheduled) {
+            appContext.activeDataStore.edit {
+                it[SCHEDULED_CONFIG_IDS_KEY] = nowScheduled.map(Long::toString).toSet()
+            }
+        }
+    }
+
+    /** Read this account's stored auto prefs and apply them — used by the
+     * settings screen after each toggle/interval change. */
+    suspend fun sync(configId: Long) {
         val prefs = runCatching { appContext.activeDataStore.data.first() }.getOrNull()
             ?: return
         sync(
-            enabled = prefs[AUTO_ENABLED_KEY] ?: false,
-            intervalDays = prefs[AUTO_INTERVAL_DAYS_KEY] ?: FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
+            configId = configId,
+            enabled = prefs[autoEnabledKey(configId)] ?: false,
+            intervalDays = prefs[autoIntervalDaysKey(configId)]
+                ?: FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
         )
     }
 
-    fun sync(enabled: Boolean, intervalDays: Int) {
+    suspend fun sync(configId: Long, enabled: Boolean, intervalDays: Int) {
+        enqueueOrCancel(configId, enabled, intervalDays)
+        appContext.activeDataStore.edit {
+            val current = it[SCHEDULED_CONFIG_IDS_KEY].orEmpty()
+                .mapNotNull(String::toLongOrNull).toMutableSet()
+            if (enabled) current.add(configId) else current.remove(configId)
+            it[SCHEDULED_CONFIG_IDS_KEY] = current.map(Long::toString).toSet()
+        }
+    }
+
+    private fun enqueueOrCancel(configId: Long, enabled: Boolean, intervalDays: Int) {
+        val name = FreeUpSpaceWorker.workName(configId)
         if (!enabled) {
-            workManager.cancelUniqueWork(FreeUpSpaceWorker.WORK_NAME)
+            workManager.cancelUniqueWork(name)
             return
         }
         val request = PeriodicWorkRequestBuilder<FreeUpSpaceWorker>(
             intervalDays.toLong().coerceAtLeast(1), TimeUnit.DAYS
+        ).setInputData(
+            workDataOf(FreeUpSpaceWorker.EXTRA_CONFIG_ID to configId)
         ).setConstraints(
             Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)
@@ -193,7 +257,7 @@ class FreeUpSpaceAutoScheduler @Inject constructor(
                 .build()
         ).build()
         workManager.enqueueUniquePeriodicWork(
-            FreeUpSpaceWorker.WORK_NAME,
+            name,
             ExistingPeriodicWorkPolicy.UPDATE,
             request
         )

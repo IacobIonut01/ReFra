@@ -8,6 +8,7 @@ package com.dot.gallery.cloud.sync
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.UploadTargetResolver
 import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
@@ -33,12 +34,29 @@ internal const val FREE_UP_SPACE_DELETE_BATCH_SIZE = 2_000
 /** Sentinel cutoff meaning "never remove based on age". */
 internal const val FREE_UP_SPACE_NEVER_CUTOFF = -1
 
+/** Default age cutoff for a provider that never picked one — 90 days. */
+internal const val FREE_UP_SPACE_DEFAULT_CUTOFF_DAYS = 90
+
 internal const val FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS = 1
 
-internal val KEEP_FAVORITES_KEY = booleanPreferencesKey("cloud_free_space_keep_favorites")
-internal val CUTOFF_DAYS_KEY = intPreferencesKey("cloud_free_space_cutoff_days")
-internal val AUTO_ENABLED_KEY = booleanPreferencesKey("cloud_free_space_auto_enabled")
-internal val AUTO_INTERVAL_DAYS_KEY = intPreferencesKey("cloud_free_space_auto_interval_days")
+// Free Up Space is configured per cloud account — the screen lives inside each
+// provider's settings page — so every pref key carries the server config id.
+internal fun keepFavoritesKey(configId: Long) =
+    booleanPreferencesKey("cloud_free_space_keep_favorites_$configId")
+
+internal fun cutoffDaysKey(configId: Long) =
+    intPreferencesKey("cloud_free_space_cutoff_days_$configId")
+
+internal fun autoEnabledKey(configId: Long) =
+    booleanPreferencesKey("cloud_free_space_auto_enabled_$configId")
+
+internal fun autoIntervalDaysKey(configId: Long) =
+    intPreferencesKey("cloud_free_space_auto_interval_days_$configId")
+
+/** Config ids that currently hold a scheduled periodic worker — used to cancel
+ * work left behind by accounts that were removed or reconfigured. */
+internal val SCHEDULED_CONFIG_IDS_KEY =
+    stringSetPreferencesKey("cloud_free_space_scheduled_config_ids")
 
 internal fun <T> freeUpSpaceDeletionBatch(items: List<T>): List<T> =
     items.take(FREE_UP_SPACE_DELETE_BATCH_SIZE)

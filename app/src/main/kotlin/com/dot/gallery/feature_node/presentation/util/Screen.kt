@@ -289,7 +289,10 @@ sealed class Screen(val route: String) {
     data object CloudArchiveScreen : Screen("cloud_archive_screen")
 
     // Phase 8 – Free Up Space
-    data object FreeUpSpaceScreen : Screen("free_up_space_screen")
+    data object FreeUpSpaceScreen : Screen("free_up_space_screen") {
+        fun configId() = "$route?configId={configId}"
+        fun configId(id: Long) = "$route?configId=$id"
+    }
 
     // Phase 9 – Shared Links
     data object SharedLinksScreen : Screen("shared_links_screen")

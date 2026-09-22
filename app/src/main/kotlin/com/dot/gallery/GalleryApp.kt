@@ -272,7 +272,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
                 .onFailure { if (it is CancellationException) throw it }
             runCatching { cloudSyncScheduler.reconcile() }
                 .onFailure { if (it is CancellationException) throw it }
-            runCatching { freeUpSpaceAutoScheduler.sync() }
+            runCatching { freeUpSpaceAutoScheduler.syncAll() }
                 .onFailure { if (it is CancellationException) throw it }
         }
         appScope.launch {
