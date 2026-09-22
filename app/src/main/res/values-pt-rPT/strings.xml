@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Manual</string>
     <string name="reencode_quality_lossy">Qualidade com perdas</string>
     <string name="reencode_quality_jxl_effort">Esforço JXL</string>
-    <string name="raw_develop">Desenvolver RAW</string>
     <string name="raw_develop_title">Desenvolver RAW</string>
     <string name="raw_develop_wb">Equilíbrio de brancos</string>
     <string name="raw_wb_camera">Câmara</string>

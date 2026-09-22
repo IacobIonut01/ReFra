@@ -1477,7 +1477,6 @@
     <string name="reencode_quality_mode_manual">vadovas</string>
     <string name="reencode_quality_lossy">Prasta kokybė</string>
     <string name="reencode_quality_jxl_effort">JXL pastangos</string>
-    <string name="raw_develop">Sukurkite RAW</string>
     <string name="raw_develop_title">Sukurkite RAW</string>
     <string name="raw_develop_wb">Baltos spalvos balansas</string>
     <string name="raw_wb_camera">Fotoaparatas</string>

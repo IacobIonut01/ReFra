@@ -1478,7 +1478,6 @@
     <string name="reencode_quality_mode_manual">Lámhleabhar</string>
     <string name="reencode_quality_lossy">Caighdeán le cailliúint</string>
     <string name="reencode_quality_jxl_effort">Iarracht JXL</string>
-    <string name="raw_develop">Forbair RAW</string>
     <string name="raw_develop_title">Forbair RAW</string>
     <string name="raw_develop_wb">Cothromaíocht bhán</string>
     <string name="raw_wb_camera">Ceamara</string>

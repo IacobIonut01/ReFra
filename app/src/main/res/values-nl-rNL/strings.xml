@@ -1473,7 +1473,6 @@
     <string name="reencode_quality_mode_manual">Handmatig</string>
     <string name="reencode_quality_lossy">Verliezende kwaliteit</string>
     <string name="reencode_quality_jxl_effort">JXL-inspanning</string>
-    <string name="raw_develop">Ontwikkel RAW</string>
     <string name="raw_develop_title">Ontwikkel RAW</string>
     <string name="raw_develop_wb">Witbalans</string>
     <string name="raw_wb_camera">Camera</string>

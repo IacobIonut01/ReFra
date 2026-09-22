@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">ম্যানুয়াল</string>
     <string name="reencode_quality_lossy">ক্ষতিকারক গুণমান</string>
     <string name="reencode_quality_jxl_effort">JXL প্রচেষ্টা</string>
-    <string name="raw_develop">RAW বিকাশ করুন</string>
     <string name="raw_develop_title">RAW বিকাশ করুন</string>
     <string name="raw_develop_wb">সাদা ভারসাম্য</string>
     <string name="raw_wb_camera">ক্যামেরা</string>

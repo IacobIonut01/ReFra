@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Manuel</string>
     <string name="reencode_quality_lossy">Tabende kvalitet</string>
     <string name="reencode_quality_jxl_effort">JXL indsats</string>
-    <string name="raw_develop">Udvikl RAW</string>
     <string name="raw_develop_title">Udvikl RAW</string>
     <string name="raw_develop_wb">Hvidbalance</string>
     <string name="raw_wb_camera">Kamera</string>

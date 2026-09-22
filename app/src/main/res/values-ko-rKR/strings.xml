@@ -1471,7 +1471,6 @@
     <string name="reencode_quality_mode_manual">매뉴얼</string>
     <string name="reencode_quality_lossy">손실이 많은 품질</string>
     <string name="reencode_quality_jxl_effort">JXL 노력</string>
-    <string name="raw_develop">RAW 현상</string>
     <string name="raw_develop_title">RAW 현상</string>
     <string name="raw_develop_wb">화이트 밸런스</string>
     <string name="raw_wb_camera">카메라</string>

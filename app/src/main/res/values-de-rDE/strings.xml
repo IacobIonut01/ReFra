@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Manuell</string>
     <string name="reencode_quality_lossy">Verlustbehaftete Qualität</string>
     <string name="reencode_quality_jxl_effort">JXL Aufwand</string>
-    <string name="raw_develop">RAW entwickeln</string>
     <string name="raw_develop_title">RAW entwickeln</string>
     <string name="raw_develop_wb">Weißabgleich</string>
     <string name="raw_wb_camera">Kamera</string>

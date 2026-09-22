@@ -1473,7 +1473,6 @@
     <string name="reencode_quality_mode_manual">Manuell</string>
     <string name="reencode_quality_lossy">Tapskvalitet</string>
     <string name="reencode_quality_jxl_effort">JXL innsats</string>
-    <string name="raw_develop">Utvikle RAW</string>
     <string name="raw_develop_title">Utvikle RAW</string>
     <string name="raw_develop_wb">Kvitbalanse</string>
     <string name="raw_wb_camera">Kamera</string>

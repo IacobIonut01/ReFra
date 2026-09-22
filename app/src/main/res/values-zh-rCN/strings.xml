@@ -1470,7 +1470,6 @@
     <string name="reencode_quality_mode_manual">手动</string>
     <string name="reencode_quality_lossy">有损质量</string>
     <string name="reencode_quality_jxl_effort">JXL 努力</string>
-    <string name="raw_develop">开发 RAW</string>
     <string name="raw_develop_title">开发 RAW</string>
     <string name="raw_develop_wb">白平衡</string>
     <string name="raw_wb_camera">相机</string>

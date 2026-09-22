@@ -1471,7 +1471,6 @@
     <string name="reencode_quality_mode_manual">マニュアル</string>
     <string name="reencode_quality_lossy">非可逆品質</string>
     <string name="reencode_quality_jxl_effort">JXLの取り組み</string>
-    <string name="raw_develop">RAW現像</string>
     <string name="raw_develop_title">RAW現像</string>
     <string name="raw_develop_wb">ホワイトバランス</string>
     <string name="raw_wb_camera">カメラ</string>

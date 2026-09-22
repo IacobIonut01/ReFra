@@ -1474,7 +1474,6 @@
     <string name="reencode_quality_mode_manual">Ручно</string>
     <string name="reencode_quality_lossy">Квалитет са губицима</string>
     <string name="reencode_quality_jxl_effort">JXL напор</string>
-    <string name="raw_develop">Обради RAW</string>
     <string name="raw_develop_title">Обради RAW</string>
     <string name="raw_develop_wb">Баланc белог</string>
     <string name="raw_wb_camera">Камера</string>

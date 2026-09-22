@@ -1470,7 +1470,6 @@
     <string name="reencode_quality_mode_manual">Manual</string>
     <string name="reencode_quality_lossy">Kualitas lossy</string>
     <string name="reencode_quality_jxl_effort">Upaya JXL</string>
-    <string name="raw_develop">Kembangkan RAW</string>
     <string name="raw_develop_title">Kembangkan RAW</string>
     <string name="raw_develop_wb">Keseimbangan putih</string>
     <string name="raw_wb_camera">Kamera</string>

@@ -1474,7 +1474,6 @@
     <string name="reencode_quality_mode_manual">Manual</string>
     <string name="reencode_quality_lossy">Calitate cu pierderi</string>
     <string name="reencode_quality_jxl_effort">Efort JXL</string>
-    <string name="raw_develop">Dezvoltă RAW</string>
     <string name="raw_develop_title">Dezvoltă RAW</string>
     <string name="raw_develop_wb">Balans de alb</string>
     <string name="raw_wb_camera">Cameră</string>

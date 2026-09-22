@@ -1474,7 +1474,6 @@
     <string name="reencode_quality_mode_manual">Ručno</string>
     <string name="reencode_quality_lossy">Kvaliteta s gubitkom</string>
     <string name="reencode_quality_jxl_effort">JXL napor</string>
-    <string name="raw_develop">Razvij RAW</string>
     <string name="raw_develop_title">Razvij RAW</string>
     <string name="raw_develop_wb">Balans bijele</string>
     <string name="raw_wb_camera">Kamera</string>

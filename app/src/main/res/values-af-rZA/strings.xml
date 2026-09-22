@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Handleiding</string>
     <string name="reencode_quality_lossy">Verlies kwaliteit</string>
     <string name="reencode_quality_jxl_effort">JXL poging</string>
-    <string name="raw_develop">Ontwikkel RAW</string>
     <string name="raw_develop_title">Ontwikkel RAW</string>
     <string name="raw_develop_wb">Witbalans</string>
     <string name="raw_wb_camera">Kamera</string>

@@ -1476,7 +1476,6 @@
     <string name="reencode_quality_mode_manual">Вручну</string>
     <string name="reencode_quality_lossy">Якість з втратами</string>
     <string name="reencode_quality_jxl_effort">Зусилля JXL</string>
-    <string name="raw_develop">Розробка RAW</string>
     <string name="raw_develop_title">Розробка RAW</string>
     <string name="raw_develop_wb">Баланс білого</string>
     <string name="raw_wb_camera">Камера</string>

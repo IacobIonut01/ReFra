@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Χειροκίνητο</string>
     <string name="reencode_quality_lossy">Ποιότητα απωλειών</string>
     <string name="reencode_quality_jxl_effort">Προσπάθεια JXL</string>
-    <string name="raw_develop">Ανάπτυξη RAW</string>
     <string name="raw_develop_title">Ανάπτυξη RAW</string>
     <string name="raw_develop_wb">Ισορροπία λευκού</string>
     <string name="raw_wb_camera">Κάμερα</string>

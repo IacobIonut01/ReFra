@@ -1473,7 +1473,6 @@
     <string name="reencode_quality_mode_manual">म्यानुअल</string>
     <string name="reencode_quality_lossy">हानि गुणस्तर</string>
     <string name="reencode_quality_jxl_effort">JXL प्रयास</string>
-    <string name="raw_develop">RAW को विकास गर्नुहोस्</string>
     <string name="raw_develop_title">RAW को विकास गर्नुहोस्</string>
     <string name="raw_develop_wb">सेतो सन्तुलन</string>
     <string name="raw_wb_camera">क्यामेरा</string>

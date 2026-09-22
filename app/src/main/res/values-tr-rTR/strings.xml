@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Manuel</string>
     <string name="reencode_quality_lossy">Kayıplı kalite</string>
     <string name="reencode_quality_jxl_effort">JXL çabası</string>
-    <string name="raw_develop">RAW Geliştir</string>
     <string name="raw_develop_title">RAW Geliştir</string>
     <string name="raw_develop_wb">Beyaz dengesi</string>
     <string name="raw_wb_camera">Kamera</string>

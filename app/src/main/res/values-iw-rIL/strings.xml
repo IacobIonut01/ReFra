@@ -1477,7 +1477,6 @@
     <string name="reencode_quality_mode_manual">ידני</string>
     <string name="reencode_quality_lossy">איכות אבודה</string>
     <string name="reencode_quality_jxl_effort">מאמץ JXL</string>
-    <string name="raw_develop">לפתח RAW</string>
     <string name="raw_develop_title">לפתח RAW</string>
     <string name="raw_develop_wb">איזון לבן</string>
     <string name="raw_wb_camera">מצלמה</string>

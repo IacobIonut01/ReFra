@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Manuális</string>
     <string name="reencode_quality_lossy">Veszteséges minőség</string>
     <string name="reencode_quality_jxl_effort">JXL erőfeszítés</string>
-    <string name="raw_develop">RAW feldolgozás</string>
     <string name="raw_develop_title">RAW feldolgozás</string>
     <string name="raw_develop_wb">Fehéregyensúly</string>
     <string name="raw_wb_camera">Kamera</string>

@@ -1476,7 +1476,6 @@
     <string name="reencode_quality_mode_manual">Ręcznie</string>
     <string name="reencode_quality_lossy">Jakość stratna</string>
     <string name="reencode_quality_jxl_effort">Wysiłek JXL</string>
-    <string name="raw_develop">Wywołaj RAW</string>
     <string name="raw_develop_title">Wywołaj RAW</string>
     <string name="raw_develop_wb">Balans bieli</string>
     <string name="raw_wb_camera">Aparat</string>

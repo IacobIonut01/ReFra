@@ -1470,7 +1470,6 @@
     <string name="reencode_quality_mode_manual">Thủ công</string>
     <string name="reencode_quality_lossy">Chất lượng mất dữ liệu</string>
     <string name="reencode_quality_jxl_effort">Nỗ lực JXL</string>
-    <string name="raw_develop">Phát triển RAW</string>
     <string name="raw_develop_title">Phát triển RAW</string>
     <string name="raw_develop_wb">Cân bằng trắng</string>
     <string name="raw_wb_camera">Máy ảnh</string>

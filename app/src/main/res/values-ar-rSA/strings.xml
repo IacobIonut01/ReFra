@@ -1480,7 +1480,6 @@
     <string name="reencode_quality_mode_manual">دليل</string>
     <string name="reencode_quality_lossy">جودة خاسرة</string>
     <string name="reencode_quality_jxl_effort">جهد JXL</string>
-    <string name="raw_develop">تطوير الخام</string>
     <string name="raw_develop_title">تطوير الخام</string>
     <string name="raw_develop_wb">توازن اللون الأبيض</string>
     <string name="raw_wb_camera">الكاميرا</string>

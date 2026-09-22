@@ -1473,7 +1473,6 @@
     <string name="reencode_quality_mode_manual">Manuale</string>
     <string name="reencode_quality_lossy">Qualità in perdita</string>
     <string name="reencode_quality_jxl_effort">Sforzo JXL</string>
-    <string name="raw_develop">Sviluppa RAW</string>
     <string name="raw_develop_title">Sviluppa RAW</string>
     <string name="raw_develop_wb">Bilanciamento del bianco</string>
     <string name="raw_wb_camera">Fotocamera</string>

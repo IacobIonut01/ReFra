@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">ਮੈਨੂਅਲ</string>
     <string name="reencode_quality_lossy">ਲਾਸੀ ਗੁਣਵੱਤਾ</string>
     <string name="reencode_quality_jxl_effort">JXL ਯਤਨ</string>
-    <string name="raw_develop">RAW ਵਿਕਸਿਤ ਕਰੋ</string>
     <string name="raw_develop_title">RAW ਵਿਕਸਿਤ ਕਰੋ</string>
     <string name="raw_develop_wb">ਸਫੈਦ ਸਤਹ ਸੰਤੁਲਨ</string>
     <string name="raw_wb_camera">ਕੈਮਰਾ</string>

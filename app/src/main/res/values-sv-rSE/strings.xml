@@ -1472,7 +1472,6 @@
     <string name="reencode_quality_mode_manual">Manuellt</string>
     <string name="reencode_quality_lossy">Förlustfri kvalitet</string>
     <string name="reencode_quality_jxl_effort">JXL-insats</string>
-    <string name="raw_develop">Utveckla RAW</string>
     <string name="raw_develop_title">Utveckla RAW</string>
     <string name="raw_develop_wb">Vitbalans</string>
     <string name="raw_wb_camera">Kamera</string>
