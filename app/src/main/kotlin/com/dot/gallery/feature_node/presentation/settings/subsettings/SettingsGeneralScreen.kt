@@ -7,9 +7,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -165,6 +167,7 @@ fun SettingsGeneralScreen() {
                     PreferenceOption(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_REFRA, appLogoAlias == Settings.Misc.ALIAS_REFRA),
                     PreferenceOption(Settings.Misc.ALIAS_GALLERY, Settings.Misc.ALIAS_GALLERY, appLogoAlias == Settings.Misc.ALIAS_GALLERY),
                     PreferenceOption(Settings.Misc.ALIAS_MONO, Settings.Misc.ALIAS_MONO, appLogoAlias == Settings.Misc.ALIAS_MONO),
+                    PreferenceOption(Settings.Misc.ALIAS_GALLERY_MONO, Settings.Misc.ALIAS_GALLERY_MONO, appLogoAlias == Settings.Misc.ALIAS_GALLERY_MONO),
                 ),
                 onOptionSelected = {
                     appLogoAlias = it
@@ -414,6 +417,7 @@ private fun AppNamePreview(currentAlias: String, logoAlias: String) {
     val iconRes = when (logoAlias) {
         Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
         Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
+        Settings.Misc.ALIAS_GALLERY_MONO -> R.mipmap.ic_launcher_gallery_mono_round
         else -> R.mipmap.ic_launcher_round
     }
     Row(
@@ -471,10 +475,16 @@ private fun AppLogoPreview(currentAlias: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
             .padding(24.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        listOf(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_GALLERY, Settings.Misc.ALIAS_MONO).forEach { alias ->
+        listOf(
+            Settings.Misc.ALIAS_REFRA,
+            Settings.Misc.ALIAS_GALLERY,
+            Settings.Misc.ALIAS_MONO,
+            Settings.Misc.ALIAS_GALLERY_MONO
+        ).forEach { alias ->
             val selected = currentAlias == alias
             val borderColor = if (selected) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.outlineVariant
@@ -483,6 +493,7 @@ private fun AppLogoPreview(currentAlias: String) {
             val iconRes = when (alias) {
                 Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
                 Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
+                Settings.Misc.ALIAS_GALLERY_MONO -> R.mipmap.ic_launcher_gallery_mono_round
                 else -> R.mipmap.ic_launcher_round
             }
 

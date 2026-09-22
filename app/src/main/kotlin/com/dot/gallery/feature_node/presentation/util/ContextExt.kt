@@ -494,10 +494,13 @@ fun Context.restartApplication() {
 fun launcherAliasFor(nameAlias: String, logoAlias: String): String {
     val galleryLogo = logoAlias == "Gallery"
     val monoLogo = logoAlias == "Monochrome"
+    val galleryMonoLogo = logoAlias == "Gallery Mono"
     return when {
+        nameAlias == "Gallery" && galleryMonoLogo -> "Launcher_Gallery_GalleryMono"
         nameAlias == "Gallery" && monoLogo -> "Launcher_Gallery_Mono"
         nameAlias == "Gallery" && galleryLogo -> "Launcher_Gallery_GalleryLogo"
         nameAlias == "Gallery" -> "Launcher_Gallery"
+        galleryMonoLogo -> "Launcher_ReFra_GalleryMono"
         monoLogo -> "Launcher_ReFra_Mono"
         galleryLogo -> "Launcher_ReFra_GalleryLogo"
         else -> "Launcher_ReFra"
@@ -531,7 +534,9 @@ fun Context.changeAppAlias(nameAlias: String, logoAlias: String = "ReFra") {
         "Launcher_ReFra_GalleryLogo",
         "Launcher_Gallery_GalleryLogo",
         "Launcher_ReFra_Mono",
-        "Launcher_Gallery_Mono"
+        "Launcher_Gallery_Mono",
+        "Launcher_ReFra_GalleryMono",
+        "Launcher_Gallery_GalleryMono"
     )
     val targetAlias = launcherAliasFor(nameAlias, logoAlias)
     for (alias in aliases) {
@@ -584,7 +589,9 @@ fun Context.currentLauncherAlias(): String {
         "Launcher_ReFra_GalleryLogo",
         "Launcher_Gallery_GalleryLogo",
         "Launcher_ReFra_Mono",
-        "Launcher_Gallery_Mono"
+        "Launcher_Gallery_Mono",
+        "Launcher_ReFra_GalleryMono",
+        "Launcher_Gallery_GalleryMono"
     )
     for (alias in aliases) {
         val component = ComponentName(packageName, "$namespace.$alias")

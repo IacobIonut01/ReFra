@@ -10,12 +10,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -103,12 +106,19 @@ fun SetupLooksFeelPage(
             // App logo
             SetupSectionCard(title = stringResource(R.string.setup_section_app_logo)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    listOf(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_GALLERY, Settings.Misc.ALIAS_MONO).forEach { alias ->
+                    listOf(
+                        Settings.Misc.ALIAS_REFRA,
+                        Settings.Misc.ALIAS_GALLERY,
+                        Settings.Misc.ALIAS_MONO,
+                        Settings.Misc.ALIAS_GALLERY_MONO
+                    ).forEach { alias ->
                         LogoChoice(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.width(96.dp),
                             label = alias,
                             iconRes = launcherIconFor(alias),
                             selected = appLogoAlias == alias,
@@ -148,6 +158,7 @@ private fun launcherIconFor(logoAlias: String): Int =
     when (logoAlias) {
         Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
         Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
+        Settings.Misc.ALIAS_GALLERY_MONO -> R.mipmap.ic_launcher_gallery_mono_round
         else -> R.mipmap.ic_launcher_round
     }
 
