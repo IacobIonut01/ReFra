@@ -63,6 +63,7 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isBigHeaderKey
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerOverlayController
+import com.dot.gallery.feature_node.presentation.mediaview.LocalViewerDismissBridge
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.photoGridDragHandler
@@ -90,6 +91,30 @@ internal fun mediaContentState(
     isLoading -> MediaContentState.LOADING
     isEmpty -> MediaContentState.EMPTY
     else -> MediaContentState.CONTENT
+}
+
+/**
+ * Scrolls the least distance needed to bring [index] into the viewport: an item above
+ * it lands at the top edge, an item below lands at the bottom edge. Used to keep the
+ * media-viewer return-flight target composed without jumping the grid to the top of
+ * the screen behind the open viewer (issue #960).
+ */
+internal suspend fun LazyGridState.scrollMinimallyToItem(index: Int) {
+    val info = layoutInfo
+    val visible = info.visibleItemsInfo
+    if (visible.isEmpty()) return
+    val first = visible.first().index
+    val last = visible.last().index
+    when {
+        index in first..last -> Unit
+        index < first -> scrollToItem(index)
+        else -> {
+            // A reference row height is only an estimate (mosaic tiles vary); if the
+            // item is taller it still composes, which is all the return flight needs.
+            val rowHeight = visible.minOf { it.size.height }
+            scrollToItem(index, scrollOffset = -(info.viewportSize.height - rowHeight))
+        }
+    }
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -261,14 +286,18 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
             canAnimate = !isScrolling
         }
         val mediaViewerOverlay = LocalMediaViewerOverlayController.current
+        val dismissBridge = LocalViewerDismissBridge.current
         val returnMediaId = mediaViewerOverlay?.currentMediaId ?: -1L
         LaunchedEffect(
             mediaViewerOverlay?.visible,
+            dismissBridge != null,
             returnMediaId,
             mappedData,
             mediaState.value.mediaGroups,
         ) {
-            if (mediaViewerOverlay?.visible == true && returnMediaId != -1L) {
+            // Prepositioning exists only so a committed dismiss flight finds its target
+            // cell composed — skip it entirely where no overlay host can run the flight.
+            if (mediaViewerOverlay?.visible == true && dismissBridge != null && returnMediaId != -1L) {
                 val localIndex = mappedData.indexOfFirst { item ->
                     item is MediaItem.MediaViewItem<T> && (
                         item.media.id == returnMediaId ||
@@ -281,7 +310,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
                         it.index == targetIndex
                     }
                 ) {
-                    gridState.scrollToItem(targetIndex)
+                    gridState.scrollMinimallyToItem(targetIndex)
                 }
             }
         }
@@ -502,14 +531,18 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
         canAnimate = !isScrolling
     }
     val mediaViewerOverlay = LocalMediaViewerOverlayController.current
+    val dismissBridge = LocalViewerDismissBridge.current
     val returnMediaId = mediaViewerOverlay?.currentMediaId ?: -1L
     LaunchedEffect(
         mediaViewerOverlay?.visible,
+        dismissBridge != null,
         returnMediaId,
         items,
         mediaState.value.mediaGroups,
     ) {
-        if (mediaViewerOverlay?.visible == true && returnMediaId != -1L) {
+        // Prepositioning exists only so a committed dismiss flight finds its target
+        // cell composed — skip it entirely where no overlay host can run the flight.
+        if (mediaViewerOverlay?.visible == true && dismissBridge != null && returnMediaId != -1L) {
             val localIndex = items.indexOfFirst { media ->
                 media.id == returnMediaId ||
                     mediaState.value.mediaGroups[media.id]
@@ -520,7 +553,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
                     it.index == targetIndex
                 }
             ) {
-                gridState.scrollToItem(targetIndex)
+                gridState.scrollMinimallyToItem(targetIndex)
             }
         }
     }

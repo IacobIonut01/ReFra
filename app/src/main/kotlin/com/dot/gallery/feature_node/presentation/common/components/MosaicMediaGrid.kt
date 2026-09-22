@@ -80,6 +80,7 @@ import com.dot.gallery.feature_node.domain.model.isBigHeaderKey
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.model.mosaicPatternsForColumns
 import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerOverlayController
+import com.dot.gallery.feature_node.presentation.mediaview.LocalViewerDismissBridge
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.mosaicGridDragHandler
@@ -351,15 +352,19 @@ fun <T : Media> MosaicMediaGrid(
         }
     }
     val mediaViewerOverlay = LocalMediaViewerOverlayController.current
+    val dismissBridge = LocalViewerDismissBridge.current
     val returnMediaId = mediaViewerOverlay?.currentMediaId ?: -1L
     LaunchedEffect(
         mediaViewerOverlay?.visible,
+        dismissBridge != null,
         returnMediaId,
         displayItems,
         gridKeyToMediaIds,
         mediaState.value.mediaGroups,
     ) {
-        if (mediaViewerOverlay?.visible == true && returnMediaId != -1L) {
+        // Prepositioning exists only so a committed dismiss flight finds its target
+        // cell composed — skip it entirely where no overlay host can run the flight.
+        if (mediaViewerOverlay?.visible == true && dismissBridge != null && returnMediaId != -1L) {
             val localIndex = displayItems.indexOfFirst { item ->
                 val mediaIds = gridKeyToMediaIds[item.key].orEmpty()
                 mediaIds.any { id ->
@@ -372,7 +377,7 @@ fun <T : Media> MosaicMediaGrid(
                     it.index == targetIndex
                 }
             ) {
-                gridState.scrollToItem(targetIndex)
+                gridState.scrollMinimallyToItem(targetIndex)
             }
         }
     }
