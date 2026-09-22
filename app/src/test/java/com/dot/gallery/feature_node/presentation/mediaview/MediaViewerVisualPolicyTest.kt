@@ -41,6 +41,7 @@ class MediaViewerVisualPolicyTest {
         assertTrue(
             shouldDismissMissingMediaTarget(
                 isLoading = false,
+                isPartial = false,
                 targetFound = false,
                 hasMedia = true,
                 isStandalone = false,
@@ -49,6 +50,22 @@ class MediaViewerVisualPolicyTest {
         assertFalse(
             shouldDismissMissingMediaTarget(
                 isLoading = true,
+                isPartial = false,
+                targetFound = false,
+                hasMedia = true,
+                isStandalone = false,
+            )
+        )
+    }
+
+    @Test
+    fun partialViewerDataDoesNotTriggerMissingTargetDismiss() {
+        // A partial state still has batches in flight — the tapped item may simply
+        // not be loaded yet, so it must not dismiss the viewer (#1069 hardening).
+        assertFalse(
+            shouldDismissMissingMediaTarget(
+                isLoading = false,
+                isPartial = true,
                 targetFound = false,
                 hasMedia = true,
                 isStandalone = false,

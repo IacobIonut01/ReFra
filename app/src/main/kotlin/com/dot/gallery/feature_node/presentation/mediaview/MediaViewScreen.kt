@@ -492,10 +492,11 @@ internal data class MediaViewerInitialSelection(
 
 internal fun shouldDismissMissingMediaTarget(
     isLoading: Boolean,
+    isPartial: Boolean,
     targetFound: Boolean,
     hasMedia: Boolean,
     isStandalone: Boolean,
-): Boolean = !isLoading && !targetFound && hasMedia && !isStandalone
+): Boolean = !isLoading && !isPartial && !targetFound && hasMedia && !isStandalone
 
 internal fun shouldExitEmptySlideshow(
     isActive: Boolean,
@@ -933,11 +934,13 @@ fun <T : Media> MediaViewScreen(
         }
         LaunchedEffect(
             mediaState.value.isLoading,
+            mediaState.value.isPartial,
             entrySelection.found,
             pagerItems.isNotEmpty()
         ) {
             if (shouldDismissMissingMediaTarget(
                     isLoading = mediaState.value.isLoading,
+                    isPartial = mediaState.value.isPartial,
                     targetFound = entrySelection.found,
                     hasMedia = pagerItems.isNotEmpty(),
                     isStandalone = isStandalone,

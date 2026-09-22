@@ -122,7 +122,7 @@ class CategoryViewModel @Inject constructor(
                         defaultDateFormat = defaultDateFormat,
                         extendedDateFormat = extendedDateFormat,
                         weeklyDateFormat = weeklyDateFormat
-                    )
+                    ).copy(isPartial = allMedia.isPartial)
                 }
             }
         }

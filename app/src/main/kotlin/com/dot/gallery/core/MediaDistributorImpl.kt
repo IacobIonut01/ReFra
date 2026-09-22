@@ -992,7 +992,7 @@ class MediaDistributorImpl @Inject constructor(
                     extendedDateFormat = dateFormatsFlow.value.second,
                     weeklyDateFormat = dateFormatsFlow.value.third,
                     dateSource = timelineState.dateSource
-                )
+                ).copy(isPartial = timelineState.isPartial)
             }
     }
 
