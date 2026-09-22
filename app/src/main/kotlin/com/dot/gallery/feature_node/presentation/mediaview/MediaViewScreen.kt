@@ -86,6 +86,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -1203,6 +1204,10 @@ fun <T : Media> MediaViewScreen(
         }
         val newRotationValue = rememberSaveable(settledRotationKey) { mutableIntStateOf(0) }
         val showRotationHelper = rememberSaveable(settledRotationKey) { mutableStateOf(false) }
+        // The media the pending rotation was created on. During a cancelled swipe the
+        // neighbour page is transiently composed and can emit rotation events, so the
+        // apply path must resolve this id rather than trusting currentPage (#962).
+        val rotationMediaId = rememberSaveable(settledRotationKey) { mutableLongStateOf(-1L) }
 
         // Drives the top-bar Rotate chip busy state and the seamless hold-until-reload behavior.
         val rotation by rotationState.collectAsStateWithLifecycle()
@@ -1641,9 +1646,12 @@ fun <T : Media> MediaViewScreen(
                         // The rotation is now persisted into the file; drop the pending-confirm chip.
                         // The page holds its visual rotation and drops it once the baked-in image
                         // reloads (handled in ZoomablePagerImage), so we stay on the same item.
-                        if (currentMedia?.id == event.mediaId) {
+                        if (rotationMediaId.longValue == event.mediaId ||
+                            currentMedia?.id == event.mediaId
+                        ) {
                             showRotationHelper.value = false
                             newRotationValue.intValue = 0
+                            rotationMediaId.longValue = -1L
                         }
                     }
 
@@ -2118,6 +2126,9 @@ fun <T : Media> MediaViewScreen(
                                             media?.isImage == true && normalizedRotation != 0
                                         newRotationValue.intValue =
                                             (if (showRotationHelper.value) normalizedRotation else 0)
+                                        if (showRotationHelper.value) {
+                                            rotationMediaId.longValue = media?.id ?: -1L
+                                        }
                                     },
                                     onItemClick = { if (viewerInteractive) onMediaClick() },
                                     onImageTap = { offset ->
@@ -2534,7 +2545,11 @@ fun <T : Media> MediaViewScreen(
                         rotationInProgress = rotationInProgress,
                         rotationStageLabel = rotationStageLabel,
                         rotateImage = {
-                            val media = currentMedia!!
+                            // Apply to the media the pending rotation was created on,
+                            // not whatever currentPage points at mid-swipe (#962).
+                            val media = pagerItems.firstOrNull { it.id == rotationMediaId.longValue }
+                                ?: pagerItems.firstOrNull { it.id == settledRotationKey }
+                                ?: currentMedia!!
                             if (ImageReencoder.isReencodable(media.mimeType, media.label)) {
                                 rotateImage(media, newRotationValue.intValue, false)
                             } else {
