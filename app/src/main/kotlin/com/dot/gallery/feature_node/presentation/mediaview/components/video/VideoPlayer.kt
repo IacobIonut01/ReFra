@@ -55,9 +55,8 @@ import androidx.compose.ui.layout.onVisibilityChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -165,20 +164,6 @@ fun <T : Media> VideoPlayer(
         }
     }
 
-    // Keep the screen awake while this video is playing. Use the per-view
-    // keepScreenOn flag instead of a window-level FLAG_KEEP_SCREEN_ON: the pager
-    // pre-composes neighbouring pages, so a paused neighbour clearing the shared
-    // window flag would cancel the currently-playing page's request and let the
-    // screen time out mid-playback (#1005). keepScreenOn is scoped per-view and
-    // the framework keeps the screen on while any view requests it, so the
-    // players no longer fight over a single global flag.
-    val view = LocalView.current
-    LaunchedEffect(isPlayingState.value) {
-        view.keepScreenOn = isPlayingState.value
-    }
-    DisposableEffect(view) {
-        onDispose { view.keepScreenOn = false }
-    }
     val presentationState = rememberPresentationState(
         player = currentPlayer,
         keepContentOnReset = true
@@ -245,6 +230,18 @@ fun <T : Media> VideoPlayer(
     // a fresh surface bound to the new player.
     var surfaceViewRef by remember(media.id) { mutableStateOf<View?>(null) }
     var videoSize by remember(media.id) { mutableStateOf(IntSize.Zero) }
+
+    // Keep the screen awake while this video is playing. The keepScreenOn flag
+    // must go on this page's own video view, not LocalView: LocalView is the
+    // shared compose root for every pager page, so a pre-composed or disposing
+    // neighbour writing keepScreenOn=false to it races with and can clobber
+    // the playing page's request — the screen then times out mid-playback
+    // (#1005, #1067). The framework ORs keepScreenOn across the view tree, so
+    // scoping it to this page's surface view makes it truly per-page; it also
+    // clears itself when the page's view detaches, no onDispose needed.
+    LaunchedEffect(isPlayingState.value, surfaceViewRef) {
+        surfaceViewRef?.keepScreenOn = isPlayingState.value
+    }
     // Workaround for #967: on some devices (notably Samsung) the video SurfaceView
     // blacks out when the system bars are toggled while playing — the player keeps
     // decoding but its output surface stops presenting. When enabled we re-bind the
