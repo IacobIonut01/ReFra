@@ -1,6 +1,10 @@
 package com.dot.gallery
 
 import android.content.Intent
+import android.net.Uri
+import android.os.SystemClock
+import android.provider.MediaStore
+import android.view.MotionEvent
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
@@ -127,6 +131,102 @@ class PinchZoomReproTest {
         chip.click()
         device.waitForIdle()
         Thread.sleep(2_000)
+        assertEquals(targetContext.packageName, device.currentPackageName)
+    }
+
+    /**
+     * #1048: crash on a held predictive-back gesture while the editor's
+     * overflow menu is open. The popup owns its own back dispatch, so the
+     * gesture is driven as real injected motion events: edge down, drag
+     * inward, hold to keep the back preview armed, then release.
+     */
+    @Test
+    fun editorBackWithMenuOpen_doesNotCrash() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.context
+        val targetContext = instrumentation.targetContext
+        val device = UiDevice.getInstance(instrumentation)
+        val automation = instrumentation.uiAutomation
+
+        // Any image on the device works; the editor only needs a media URI.
+        val mediaUri = targetContext.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.Images.Media._ID),
+            null, null,
+            "${MediaStore.Images.Media.DATE_ADDED} DESC"
+        )?.use { c ->
+            if (c.moveToFirst()) Uri.withAppendedPath(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, c.getLong(0).toString()
+            ) else null
+        }
+        assertTrue("no image found in MediaStore", mediaUri != null)
+
+        device.pressHome()
+        val intent = Intent(Intent.ACTION_EDIT, mediaUri).apply {
+            setClassName(
+                targetContext.packageName,
+                "com.dot.gallery.feature_node.presentation.edit.EditActivity"
+            )
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        context.startActivity(intent)
+        device.waitForIdle()
+        Thread.sleep(3_000)
+
+        // Rotate once so isChanged flips and the overflow button appears.
+        val rotate = device.findObject(UiSelector().description("Rotate 90 degrees"))
+        assertTrue("rotate button not found", rotate.waitForExists(8_000))
+        rotate.click()
+        device.waitForIdle()
+        Thread.sleep(1_000)
+
+        val more = device.findObject(UiSelector().description("More options"))
+        assertTrue("overflow menu button not found", more.waitForExists(5_000))
+        more.click()
+        device.waitForIdle()
+        Thread.sleep(1_000)
+
+        // Held predictive back: edge down -> drag in -> wiggle while holding
+        // the preview armed -> release-commit. Repeated for the commit and
+        // cancel directions so a popup mid-gesture transition can't hide.
+        val h = device.displayHeight
+        fun heldBack(commit: Boolean) {
+            val downTime = SystemClock.uptimeMillis()
+            fun inject(action: Int, x: Float, y: Float, t: Long = SystemClock.uptimeMillis()) {
+                val ev = MotionEvent.obtain(downTime, t, action, x, y, 0)
+                automation.injectInputEvent(ev, true)
+                ev.recycle()
+            }
+            inject(MotionEvent.ACTION_DOWN, 2f, h / 2f, downTime)
+            inject(MotionEvent.ACTION_MOVE, 300f, h / 2f, downTime + 80)
+            // hold + wiggle like a user peeking at the previous screen
+            Thread.sleep(700)
+            inject(MotionEvent.ACTION_MOVE, 250f, h / 2f)
+            Thread.sleep(300)
+            inject(MotionEvent.ACTION_MOVE, 350f, h / 2f)
+            Thread.sleep(500)
+            val endX = if (commit) 600f else 2f
+            inject(MotionEvent.ACTION_MOVE, endX, h / 2f)
+            inject(MotionEvent.ACTION_UP, endX, h / 2f)
+            device.waitForIdle()
+        }
+
+        // Menu is open: hold-cancel (preview then return) must not crash.
+        heldBack(commit = false)
+        Thread.sleep(500)
+        assertEquals(targetContext.packageName, device.currentPackageName)
+
+        // Reopen the menu if the gesture dismissed it, then hold-commit.
+        if (!more.waitForExists(1_000)) more.click()
+        device.waitForIdle()
+        heldBack(commit = true)
+        Thread.sleep(500)
+        assertEquals(targetContext.packageName, device.currentPackageName)
+
+        // Whatever survived above (menu dismissed, dirty prompt, or still in
+        // the editor) — a final held back exercises the next back owner.
+        heldBack(commit = true)
+        Thread.sleep(500)
         assertEquals(targetContext.packageName, device.currentPackageName)
     }
 }
