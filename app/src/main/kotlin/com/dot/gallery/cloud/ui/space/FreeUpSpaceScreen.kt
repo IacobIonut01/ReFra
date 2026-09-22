@@ -82,6 +82,15 @@ fun FreeUpSpaceScreen() {
     )
     val scanningTitle = stringResource(R.string.cloud_free_space_scanning)
     val scanTitle = stringResource(R.string.cloud_free_space_scan)
+    val autoTitle = stringResource(R.string.cloud_free_space_auto)
+    val autoSummary = stringResource(R.string.cloud_free_space_auto_summary)
+    val frequencyHeader = stringResource(R.string.cloud_free_space_auto_frequency)
+    val intervalOptions = listOf(1, 3, 7)
+    val intervalLabels = mapOf(
+        1 to stringResource(R.string.cloud_free_space_every_day),
+        3 to stringResource(R.string.cloud_free_space_every_3d),
+        7 to stringResource(R.string.cloud_free_space_every_week),
+    )
     val optionsEnabled = state.preferencesLoaded && !state.isScanning && !state.isDeleting
     val resourceStrings = listOf(
         keepFavoritesTitle,
@@ -89,11 +98,16 @@ fun FreeUpSpaceScreen() {
         cutoffHeader,
         scanningTitle,
         scanTitle,
-    ) + cutoffLabels.values
+        autoTitle,
+        autoSummary,
+        frequencyHeader,
+    ) + cutoffLabels.values + intervalLabels.values
 
     val settingsList = remember(
         state.keepFavorites,
         state.cutoffDays,
+        state.autoEnabled,
+        state.autoIntervalDays,
         state.preferencesLoaded,
         state.isScanning,
         state.isDeleting,
@@ -131,6 +145,36 @@ fun FreeUpSpaceScreen() {
                         screenPosition = pos
                     )
                 )
+            }
+
+            // Automatic removal
+            add(SettingsEntity.Header(title = frequencyHeader))
+            add(
+                SettingsEntity.SwitchPreference(
+                    title = autoTitle,
+                    summary = autoSummary,
+                    enabled = optionsEnabled,
+                    isChecked = state.autoEnabled,
+                    onCheck = { viewModel.setAutoEnabled(it) },
+                    screenPosition = if (state.autoEnabled) Position.Top else Position.Alone
+                )
+            )
+            if (state.autoEnabled) {
+                intervalOptions.forEachIndexed { index, days ->
+                    add(
+                        SettingsEntity.Preference(
+                            title = intervalLabels.getValue(days),
+                            rightText = if (state.autoIntervalDays == days) "✓" else null,
+                            enabled = optionsEnabled,
+                            onClick = { viewModel.setAutoIntervalDays(days) },
+                            screenPosition = if (index == intervalOptions.lastIndex) {
+                                Position.Bottom
+                            } else {
+                                Position.Middle
+                            }
+                        )
+                    )
+                }
             }
 
             // Scan action

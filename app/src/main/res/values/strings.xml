@@ -2052,6 +2052,14 @@
     <string name="cloud_free_space_removing_count">Removing %1$d local copies…</string>
     <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
     <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
+    <string name="cloud_free_space_auto">Run automatically</string>
+    <string name="cloud_free_space_auto_summary">Periodically verifies backed-up items and removes their local copies in the background. Without All Files Access you\'ll get a notification to review instead.</string>
+    <string name="cloud_free_space_auto_frequency">Frequency</string>
+    <string name="cloud_free_space_every_day">Every day</string>
+    <string name="cloud_free_space_every_3d">Every 3 days</string>
+    <string name="cloud_free_space_every_week">Every week</string>
+    <string name="cloud_free_space_auto_removed">Free Up Space removed %1$d backed-up local copies.</string>
+    <string name="cloud_free_space_auto_review">%1$d backed-up local copies are ready to remove. Tap to review.</string>
     <string name="cloud_settings_more_header">Preferences</string>
     <!-- Memories -->
     <string name="cloud_memories">Memories</string>

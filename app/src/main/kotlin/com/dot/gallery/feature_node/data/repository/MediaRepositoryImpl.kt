@@ -642,6 +642,22 @@ class MediaRepositoryImpl(
         return MediaMutationResult.REQUEST_LAUNCHED
     }
 
+    override val canDeleteMediaSilently: Boolean
+        get() = !SdkCompat.supportsMediaStoreRequests || SdkCompat.hasFullFileAccess ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                        MediaStore.canManageMedia(context))
+
+    override suspend fun <T : Media> deleteMediaDirectly(mediaList: List<T>): Boolean {
+        if (!canDeleteMediaSilently) return false
+        if (!SdkCompat.hasFullFileAccess && mediaList.hasFilesCollectionItems()) {
+            printWarning("Cannot delete Files collection items without all-files access")
+            return false
+        }
+        return mutateMediaDirectly(mediaList, "delete") {
+            contentResolver.delete(it.getUri(), includeTrashedQueryArgs()) > 0
+        }
+    }
+
     override suspend fun <T : Media> deleteMedia(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>

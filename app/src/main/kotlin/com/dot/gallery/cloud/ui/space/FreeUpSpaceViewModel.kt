@@ -6,26 +6,23 @@
 package com.dot.gallery.cloud.ui.space
 
 import android.content.Context
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.R
-import com.dot.gallery.cloud.core.ProviderRegistry
-import com.dot.gallery.cloud.core.UploadTargetResolver
-import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
-import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
-import com.dot.gallery.cloud.data.dao.CloudUploadPrefDao
-import com.dot.gallery.core.Resource
+import com.dot.gallery.cloud.sync.AUTO_ENABLED_KEY
+import com.dot.gallery.cloud.sync.AUTO_INTERVAL_DAYS_KEY
+import com.dot.gallery.cloud.sync.CUTOFF_DAYS_KEY
+import com.dot.gallery.cloud.sync.FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
+import com.dot.gallery.cloud.sync.FREE_UP_SPACE_NEVER_CUTOFF
+import com.dot.gallery.cloud.sync.FreeUpSpaceAutoScheduler
+import com.dot.gallery.cloud.sync.FreeUpSpaceEngine
+import com.dot.gallery.cloud.sync.KEEP_FAVORITES_KEY
+import com.dot.gallery.cloud.sync.freeUpSpaceDeletionBatch
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.feature_node.domain.model.Media
-import com.dot.gallery.feature_node.domain.repository.MediaRepository
-import com.dot.gallery.feature_node.domain.util.getUri
-import com.dot.gallery.feature_node.domain.util.isFavorite
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,20 +31,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
-import java.security.MessageDigest
 import javax.inject.Inject
-
-internal const val FREE_UP_SPACE_DELETE_BATCH_SIZE = 2_000
-
-internal fun <T> freeUpSpaceDeletionBatch(items: List<T>): List<T> =
-    items.take(FREE_UP_SPACE_DELETE_BATCH_SIZE)
-
-internal fun verifiedLocalRevisionMatches(
-    mediaId: Long,
-    currentHash: String?,
-    verifiedHashes: Map<Long, String>
-): Boolean = currentHash != null && verifiedHashes[mediaId] == currentHash
 
 data class FreeUpSpaceUiState(
     val isScanning: Boolean = false,
@@ -66,6 +50,8 @@ data class FreeUpSpaceUiState(
     // -1 = "Never": automatic/age-based removal is disabled. This is the default so
     // nothing is ever removed unless the user explicitly picks a time range.
     val cutoffDays: Int = FreeUpSpaceViewModel.NEVER_CUTOFF,
+    val autoEnabled: Boolean = false,
+    val autoIntervalDays: Int = FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS,
     val message: String = "",
     val error: String? = null
 )
@@ -73,10 +59,8 @@ data class FreeUpSpaceUiState(
 @HiltViewModel
 class FreeUpSpaceViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val repository: MediaRepository,
-    private val registry: ProviderRegistry,
-    private val uploadPrefDao: CloudUploadPrefDao,
-    private val configDao: CloudServerConfigDao
+    private val engine: FreeUpSpaceEngine,
+    private val autoScheduler: FreeUpSpaceAutoScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FreeUpSpaceUiState())
@@ -89,7 +73,10 @@ class FreeUpSpaceViewModel @Inject constructor(
                 it.copy(
                     preferencesLoaded = true,
                     keepFavorites = preferences?.get(KEEP_FAVORITES_KEY) ?: true,
-                    cutoffDays = preferences?.get(CUTOFF_DAYS_KEY) ?: NEVER_CUTOFF
+                    cutoffDays = preferences?.get(CUTOFF_DAYS_KEY) ?: NEVER_CUTOFF,
+                    autoEnabled = preferences?.get(AUTO_ENABLED_KEY) ?: false,
+                    autoIntervalDays = preferences?.get(AUTO_INTERVAL_DAYS_KEY)
+                        ?: FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
                 )
             }
         }
@@ -97,10 +84,7 @@ class FreeUpSpaceViewModel @Inject constructor(
 
     companion object {
         /** Sentinel cutoff meaning "never remove based on age". */
-        const val NEVER_CUTOFF = -1
-        private const val MEDIA_QUERY_TIMEOUT_MS = 10_000L
-        private val KEEP_FAVORITES_KEY = booleanPreferencesKey("cloud_free_space_keep_favorites")
-        private val CUTOFF_DAYS_KEY = intPreferencesKey("cloud_free_space_cutoff_days")
+        const val NEVER_CUTOFF = FREE_UP_SPACE_NEVER_CUTOFF
     }
 
     fun setKeepFavorites(keep: Boolean) {
@@ -134,6 +118,23 @@ class FreeUpSpaceViewModel @Inject constructor(
         }
         viewModelScope.launch {
             context.activeDataStore.edit { it[CUTOFF_DAYS_KEY] = days }
+        }
+    }
+
+    fun setAutoEnabled(enabled: Boolean) {
+        _uiState.update { it.copy(autoEnabled = enabled) }
+        viewModelScope.launch {
+            context.activeDataStore.edit { it[AUTO_ENABLED_KEY] = enabled }
+            autoScheduler.sync(enabled, _uiState.value.autoIntervalDays)
+        }
+    }
+
+    fun setAutoIntervalDays(days: Int) {
+        _uiState.update { it.copy(autoIntervalDays = days) }
+        viewModelScope.launch {
+            context.activeDataStore.edit { it[AUTO_INTERVAL_DAYS_KEY] = days }
+            val state = _uiState.value
+            if (state.autoEnabled) autoScheduler.sync(true, days)
         }
     }
 
@@ -174,61 +175,26 @@ class FreeUpSpaceViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    val allMedia = loadCompleteMedia()
-                        ?: throw IllegalStateException(context.getString(R.string.error_title))
-                    val cutoffMs = System.currentTimeMillis() -
-                            (options.cutoffDays.toLong() * 86_400_000L)
-                    val candidates = allMedia
-                        .filter { it.uri.scheme != "cloud" && it.definedTimestamp * 1000L < cutoffMs }
-                        .let { items ->
-                            if (options.keepFavorites) items.filterNot { it.isFavorite }
-                            else items
-                        }
-                    val preferencesByAlbum = uploadPrefDao.getEnabledList().groupBy { it.albumId }
-                    val configsById = configDao.getAll().first().associateBy { it.id }
-                    val hashCache = mutableMapOf<Long, String?>()
-                    val verifiedHashes = mutableMapOf<Long, String>()
-                    val verified = candidates.filterIndexed { index, media ->
-                        val checksum = hashCache.getOrPut(media.id) { computeSha1(media) }
-                        val destinations = preferencesByAlbum[media.albumID].orEmpty()
-                        val presentEverywhere = checksum != null && destinations.isNotEmpty() &&
-                                destinations.all { preference ->
-                                    val provider = registry.getByConfigId(preference.serverConfigId)
-                                            as? SyncCapableProvider ?: return@all false
-                                    verifyRemoteContent(
-                                        provider,
-                                        media,
-                                        UploadTargetResolver.resolve(
-                                            configsById[preference.serverConfigId],
-                                            preference,
-                                            media
-                                        ),
-                                        checksum
-                                    )
-                                }
-                        if (presentEverywhere) verifiedHashes[media.id] = checksum
-                        _uiState.update { it.copy(scannedCount = index + 1) }
-                        presentEverywhere
+            try {
+                val result = engine.scan(options.cutoffDays, options.keepFavorites) { scanned ->
+                    _uiState.update { it.copy(scannedCount = scanned) }
+                } ?: throw IllegalStateException(context.getString(R.string.error_title))
+                _uiState.value = _uiState.value.copy(
+                    isScanning = false,
+                    totalLocal = result.totalLocal,
+                    backedUpItems = result.verified,
+                    verifiedHashes = result.verifiedHashes,
+                    message = if (result.verified.isEmpty()) {
+                        context.getString(R.string.cloud_free_space_none_verified)
+                    } else {
+                        context.getString(R.string.cloud_free_space_verified_count, result.verified.size)
                     }
-                    _uiState.value = _uiState.value.copy(
-                        isScanning = false,
-                        totalLocal = candidates.size,
-                        backedUpItems = verified,
-                        verifiedHashes = verifiedHashes,
-                        message = if (verified.isEmpty()) {
-                            context.getString(R.string.cloud_free_space_none_verified)
-                        } else {
-                            context.getString(R.string.cloud_free_space_verified_count, verified.size)
-                        }
-                    )
-                } catch (e: Exception) {
-                    _uiState.value = _uiState.value.copy(
-                        isScanning = false,
-                        error = e.message ?: context.getString(R.string.error_title)
-                    )
-                }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isScanning = false,
+                    error = e.message ?: context.getString(R.string.error_title)
+                )
             }
         }
     }
@@ -259,42 +225,12 @@ class FreeUpSpaceViewModel @Inject constructor(
         if (candidates.isEmpty()) return
         _uiState.update { it.copy(isPreparingDeletionBatch = true) }
         viewModelScope.launch {
-            val verified = withContext(Dispatchers.IO) {
-                val currentById = loadCompleteMedia()?.associateBy { media -> media.id }
-                    ?: return@withContext null
-                val preferencesByAlbum = uploadPrefDao.getEnabledList().groupBy { it.albumId }
-                val configsById = configDao.getAll().first().associateBy { it.id }
-                val cutoffMs = System.currentTimeMillis() -
-                        (state.cutoffDays.toLong() * 86_400_000L)
-                candidates.mapNotNull { candidate ->
-                    val media = currentById[candidate.id] ?: return@mapNotNull null
-                    if (media.uri.scheme == "cloud" || media.definedTimestamp * 1000L >= cutoffMs) {
-                        return@mapNotNull null
-                    }
-                    if (state.keepFavorites && media.isFavorite) return@mapNotNull null
-                    val checksum = state.verifiedHashes[media.id] ?: return@mapNotNull null
-                    if (!verifiedLocalRevisionMatches(media.id, computeSha1(media), state.verifiedHashes)) {
-                        return@mapNotNull null
-                    }
-                    val destinations = preferencesByAlbum[media.albumID].orEmpty()
-                    media.takeIf {
-                        destinations.isNotEmpty() && destinations.all { preference ->
-                            val provider = registry.getByConfigId(preference.serverConfigId)
-                                    as? SyncCapableProvider ?: return@all false
-                            verifyRemoteContent(
-                                provider,
-                                media,
-                                UploadTargetResolver.resolve(
-                                    configsById[preference.serverConfigId],
-                                    preference,
-                                    media
-                                ),
-                                checksum
-                            )
-                        }
-                    }
-                }
-            }
+            val verified = engine.reverifyForDeletion(
+                candidates,
+                state.cutoffDays,
+                state.keepFavorites,
+                state.verifiedHashes
+            )
             if (verified == null) {
                 _uiState.update {
                     it.copy(
@@ -389,7 +325,7 @@ class FreeUpSpaceViewModel @Inject constructor(
         }
         viewModelScope.launch {
             val localIds = withContext(Dispatchers.IO) {
-                loadCompleteMedia()?.mapTo(mutableSetOf()) { media -> media.id }
+                engine.loadCompleteMedia()?.mapTo(mutableSetOf()) { media -> media.id }
             }
             _uiState.update {
                 if (localIds == null) {
@@ -422,43 +358,5 @@ class FreeUpSpaceViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private suspend fun loadCompleteMedia(): List<Media.UriMedia>? = try {
-        withTimeoutOrNull(MEDIA_QUERY_TIMEOUT_MS) {
-            (repository.getCompleteMedia().first() as? Resource.Success)?.data
-        }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (_: Exception) {
-        null
-    }
-
-    private suspend fun verifyRemoteContent(
-        provider: SyncCapableProvider,
-        media: Media,
-        targetPath: String?,
-        checksum: String
-    ): Boolean = try {
-        provider.verifyRemoteContent(media, targetPath, checksum).getOrDefault(false)
-    } catch (e: CancellationException) {
-        throw e
-    } catch (_: Exception) {
-        false
-    }
-
-    private fun computeSha1(media: Media): String? {
-        return try {
-            context.contentResolver.openInputStream(media.getUri())?.use { input ->
-                val digest = MessageDigest.getInstance("SHA-1")
-                val buffer = ByteArray(8192)
-                while (true) {
-                    val read = input.read(buffer)
-                    if (read == -1) break
-                    digest.update(buffer, 0, read)
-                }
-                digest.digest().joinToString("") { "%02x".format(it) }
-            }
-        } catch (_: Exception) { null }
     }
 }

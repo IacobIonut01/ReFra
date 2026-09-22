@@ -29,8 +29,8 @@ import com.dot.gallery.cloud.immich.immichChecksum
 import com.dot.gallery.cloud.immich.verifiedImmichAssetHashes
 import com.dot.gallery.cloud.netfs.contentSha1
 import com.dot.gallery.cloud.ui.deleteLocalEnabledForSelection
-import com.dot.gallery.cloud.ui.space.freeUpSpaceDeletionBatch
-import com.dot.gallery.cloud.ui.space.verifiedLocalRevisionMatches
+import com.dot.gallery.cloud.sync.freeUpSpaceDeletionBatch
+import com.dot.gallery.cloud.sync.verifiedLocalRevisionMatches
 import com.dot.gallery.cloud.webdav.canCacheWebDavChecksum
 import com.dot.gallery.cloud.webdav.data.api.WebDavClient
 import kotlinx.coroutines.delay

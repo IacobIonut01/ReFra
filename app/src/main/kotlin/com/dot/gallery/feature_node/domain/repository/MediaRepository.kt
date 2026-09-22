@@ -149,6 +149,20 @@ interface MediaRepository {
         mediaList: List<T>
     ): MediaMutationResult
 
+    /**
+     * Whether local media can be deleted without showing a system consent
+     * request — true with All Files Access, the media-management role, or on
+     * pre-scoped-storage releases where direct deletes are allowed.
+     */
+    val canDeleteMediaSilently: Boolean
+
+    /**
+     * Deletes local media through MediaStore without launching a consent
+     * request. Only permitted when [canDeleteMediaSilently] — returns false
+     * immediately otherwise. Returns false when any item could not be removed.
+     */
+    suspend fun <T: Media> deleteMediaDirectly(mediaList: List<T>): Boolean
+
     suspend fun <T: Media> renameMedia(
         media: T,
         newName: String

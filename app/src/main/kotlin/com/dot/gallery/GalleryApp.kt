@@ -21,6 +21,7 @@ import com.dot.gallery.cloud.offline.CloudCacheInterceptor
 import com.dot.gallery.cloud.offline.CloudMediaCache
 import com.dot.gallery.cloud.offline.OfflineModeManager
 import com.dot.gallery.cloud.sync.CloudSyncScheduler
+import com.dot.gallery.cloud.sync.FreeUpSpaceAutoScheduler
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.metadata.MetadataSanitizer
@@ -177,6 +178,9 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
     lateinit var cloudSyncScheduler: CloudSyncScheduler
 
     @Inject
+    lateinit var freeUpSpaceAutoScheduler: FreeUpSpaceAutoScheduler
+
+    @Inject
     lateinit var localPeopleProvider: com.dot.gallery.cloud.local.LocalPeopleProvider
 
     @Inject
@@ -267,6 +271,8 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
             runCatching { cloudProviderInitializer.initializeAsync() }
                 .onFailure { if (it is CancellationException) throw it }
             runCatching { cloudSyncScheduler.reconcile() }
+                .onFailure { if (it is CancellationException) throw it }
+            runCatching { freeUpSpaceAutoScheduler.sync() }
                 .onFailure { if (it is CancellationException) throw it }
         }
         appScope.launch {
