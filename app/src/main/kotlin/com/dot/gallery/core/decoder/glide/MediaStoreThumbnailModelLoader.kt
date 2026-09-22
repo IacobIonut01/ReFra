@@ -158,8 +158,14 @@ class MediaStoreThumbnailModelLoader(
     }
 
     companion object {
-        /** Upper bound (px) for either dimension. Larger requests use the full pipeline. */
-        private const val MAX_DIMENSION = 1080
+        /**
+         * Upper bound (px) for either dimension. Larger requests use the full pipeline.
+         * Platform thumbnails are typically generated at ~512 px, so requests above
+         * this size would receive an upscaled thumbnail instead of a real decode —
+         * the #1119 wide-tile pixelation. Keep the fast path for the MOTION tier
+         * (256 px) and small cells only.
+         */
+        private const val MAX_DIMENSION = 512
     }
 }
 

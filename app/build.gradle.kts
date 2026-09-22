@@ -613,6 +613,7 @@ dependencies {
     androidTestImplementation(libs.mockwebserver)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.uiautomator)
     debugImplementation(libs.compose.ui.tooling)
     debugRuntimeOnly(libs.compose.ui.test.manifest)
 }
