@@ -46,6 +46,7 @@ data class MediaActionCapabilities(
     val favorite: Boolean,
     val edit: Boolean,
     val rotate: Boolean,
+    val rename: Boolean,
     val trash: Boolean,
     val hideInVault: Boolean,
     val restoreFromVault: Boolean,
@@ -80,6 +81,7 @@ object MediaActionCapabilityPolicy {
             },
             edit = mutableLocalSource,
             rotate = mutableLocalSource && input.isImage,
+            rename = mutableLocalSource,
             trash = !cloudLocked && when {
                 input.isCloud -> input.providerSupportsTrash || input.sourceAllowsDelete
                 input.isEncrypted -> input.vaultDeleteAvailable

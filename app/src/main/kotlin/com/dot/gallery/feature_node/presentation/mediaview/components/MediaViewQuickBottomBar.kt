@@ -49,6 +49,7 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.actionbutt
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.MediaViewButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.OpenAsButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.PrivateFolderDeleteButton
+import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.RenameButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.RestoreButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.ShareButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.TrashButton
@@ -250,6 +251,14 @@ fun <T : Media> MediaViewQuickBottomBar(
             // Download (cloud only)
             if (capabilities.download) {
                 DownloadButton(
+                    media = currentMedia,
+                    enabled = enabled,
+                    followTheme = followTheme
+                )
+            }
+            // Rename
+            if (capabilities.rename) {
+                RenameButton(
                     media = currentMedia,
                     enabled = enabled,
                     followTheme = followTheme

@@ -27,6 +27,7 @@ class MediaActionCapabilityPolicyTest {
         assertTrue(result.favorite)
         assertTrue(result.edit)
         assertTrue(result.rotate)
+        assertTrue(result.rename)
         assertTrue(result.trash)
         assertTrue(result.hideInVault)
         assertTrue(result.copyOrMove)
@@ -51,6 +52,7 @@ class MediaActionCapabilityPolicyTest {
         assertFalse(result.favorite)
         assertFalse(result.edit)
         assertFalse(result.rotate)
+        assertFalse(result.rename)
         assertFalse(result.trash)
         assertFalse(result.cutout)
         assertTrue(result.download)
@@ -84,6 +86,7 @@ class MediaActionCapabilityPolicyTest {
         assertTrue(withProviderCapabilities.copyOrMove)
         assertFalse(withProviderCapabilities.edit)
         assertFalse(withProviderCapabilities.rotate)
+        assertFalse(withProviderCapabilities.rename)
     }
 
     @Test

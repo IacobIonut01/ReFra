@@ -1,7 +1,7 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -27,7 +27,7 @@ fun <T : Media> EditButton(
     val defaultEditor by Settings.Misc.rememberDefaultImageEditor()
     MediaViewButton(
         currentMedia = media,
-        imageVector = Icons.Outlined.Edit,
+        imageVector = Icons.Outlined.Tune,
         followTheme = followTheme,
         title = stringResource(R.string.edit),
         enabled = enabled
