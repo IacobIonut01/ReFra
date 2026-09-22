@@ -821,7 +821,9 @@ class LibraryContentSource internal constructor(
                 inputs.connectionStates,
                 inputs.faceDetectStatus,
                 inputs.peopleInvalidation.onStart { emit(Unit) },
-            ) { configs, states, _, _ -> configs to states }.collectLatest { (configs, states) ->
+            ) { configs, states, faceDetect, _ ->
+                Triple(configs, states, faceDetect)
+            }.collectLatest { (configs, states, faceDetect) ->
                 val accountIds = configs.map { it.id } + LOCAL_PEOPLE_CONFIG_ID
                 if (gen == generation) {
                     peoplePartitions.update { it.filterKeys(accountIds::contains) }
@@ -835,8 +837,12 @@ class LibraryContentSource internal constructor(
                         if (provider == null || !provider.isAvailable) {
                             // The local provider goes unavailable when its face model is
                             // deleted — drop its stale partition so the People section hides
-                            // immediately instead of after a restart (issue #1229).
+                            // immediately instead of after a restart (issue #1229). A model
+                            // that is merely unavailable (still copying/downloading or in an
+                            // error state) keeps the cached partition so the section does not
+                            // flicker until it reports READY again.
                             if (accountId == LOCAL_PEOPLE_CONFIG_ID &&
+                                faceDetect == ModelStatus.NOT_INSTALLED &&
                                 (accountId in peoplePartitions.value ||
                                     accountId in peopleCounts.value)
                             ) {
