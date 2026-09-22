@@ -288,10 +288,11 @@ fun MarkupPainter(
                                     canvasLayoutSize.width.toFloat(),
                                     canvasLayoutSize.height.toFloat()
                                 )
+                                val rotated = ann.copy(rotation = ann.rotation + rotation)
                                 updated[latestSelectedTextIndex] = clampAnnotationCenter(
-                                    ann.copy(
-                                        rotation = ann.rotation + rotation,
-                                        fontSize = (ann.fontSize * zoom).coerceIn(0.02f, 0.2f)
+                                    rotated.copy(
+                                        fontSize = (ann.fontSize * zoom)
+                                            .coerceIn(0.02f, maxFittingFontSize(rotated, sz))
                                     ),
                                     sz
                                 )
@@ -400,8 +401,13 @@ fun MarkupPainter(
                             Math.toDegrees((currentAngle - rotateStartAngle).toDouble()).toFloat()
                         val updated = latestTextAnnotations.toMutableList()
                         val ann = updated[latestSelectedTextIndex]
-                        updated[latestSelectedTextIndex] = ann.copy(
-                            rotation = rotateStartRotation + deltaDeg
+                        val sz = Size(
+                            canvasLayoutSize.width.toFloat(),
+                            canvasLayoutSize.height.toFloat()
+                        )
+                        updated[latestSelectedTextIndex] = clampAnnotationCenter(
+                            ann.copy(rotation = rotateStartRotation + deltaDeg),
+                            sz
                         )
                         latestOnTextAnnotationsChange(updated)
                         pointerInputChange.consume()
@@ -417,7 +423,8 @@ fun MarkupPainter(
                         )
                         updated[latestSelectedTextIndex] = clampAnnotationCenter(
                             ann.copy(
-                                fontSize = (ann.fontSize + dy).coerceIn(0.02f, 0.2f)
+                                fontSize = (ann.fontSize + dy)
+                                    .coerceIn(0.02f, maxFittingFontSize(ann, sz))
                             ),
                             sz
                         )
@@ -434,7 +441,7 @@ fun MarkupPainter(
                             canvasLayoutSize.width.toFloat(),
                             canvasLayoutSize.height.toFloat()
                         )
-                        val bounds = measureTextBounds(ann, sz)
+                        val bounds = rotatedBoundsAabb(ann, sz)
                         val normW = if (sz.width > 0f) bounds.width / sz.width else 0f
                         val normH = if (sz.height > 0f) bounds.height / sz.height else 0f
                         // position.x is the box left; box top (normalized) = position.y - fontSize
@@ -904,6 +911,43 @@ private fun measureTextBounds(annotation: TextAnnotation, canvasSize: Size): Rec
 }
 
 /**
+ * Axis-aligned bounding box of a text annotation *after* applying its rotation.
+ * A rotated box's AABB is larger than the unrotated bounds, so all canvas
+ * containment checks must run on this, not on [measureTextBounds].
+ */
+private fun rotatedBoundsAabb(annotation: TextAnnotation, canvasSize: Size): Rect {
+    val bounds = measureTextBounds(annotation, canvasSize)
+    if (annotation.rotation == 0f) return bounds
+    val center = bounds.center
+    val corners = listOf(
+        Offset(bounds.left, bounds.top),
+        Offset(bounds.right, bounds.top),
+        Offset(bounds.right, bounds.bottom),
+        Offset(bounds.left, bounds.bottom)
+    ).map { inverseRotatePoint(it, center, -annotation.rotation) }
+    return Rect(
+        left = corners.minOf { it.x },
+        top = corners.minOf { it.y },
+        right = corners.maxOf { it.x },
+        bottom = corners.maxOf { it.y }
+    )
+}
+
+/**
+ * Largest fontSize at which the annotation's rotated AABB still fits the canvas.
+ * Bounds width and height both scale linearly with fontSize, so the cap is the
+ * current fontSize scaled by the smaller fitting ratio. Always inside the
+ * usable font range; when the box is already oversized this shrinks it back.
+ */
+private fun maxFittingFontSize(annotation: TextAnnotation, canvasSize: Size): Float {
+    if (canvasSize.width <= 0f || canvasSize.height <= 0f) return annotation.fontSize
+    val aabb = rotatedBoundsAabb(annotation, canvasSize)
+    val scaleW = if (aabb.width > 0f) canvasSize.width / aabb.width else Float.MAX_VALUE
+    val scaleH = if (aabb.height > 0f) canvasSize.height / aabb.height else Float.MAX_VALUE
+    return (annotation.fontSize * minOf(scaleW, scaleH)).coerceIn(0.02f, 0.2f)
+}
+
+/**
  * Keep a text annotation fully within the canvas by clamping its bounding-box edges.
  *
  * When the box fits, it is kept entirely on-screen (left/top edges in [0, canvas - box]),
@@ -914,7 +958,7 @@ private fun measureTextBounds(annotation: TextAnnotation, canvasSize: Size): Rec
  */
 private fun clampAnnotationCenter(annotation: TextAnnotation, canvasSize: Size): TextAnnotation {
     if (canvasSize.width <= 0f || canvasSize.height <= 0f) return annotation
-    val bounds = measureTextBounds(annotation, canvasSize)
+    val bounds = rotatedBoundsAabb(annotation, canvasSize)
     val newLeft = if (bounds.width <= canvasSize.width) {
         bounds.left.coerceIn(0f, canvasSize.width - bounds.width)
     } else {
