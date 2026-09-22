@@ -914,6 +914,12 @@ object Settings {
         fun rememberNoClassification() =
             rememberPreference(key = NO_CLASSIFICATION, defaultValue = false)
 
+        val CATEGORIES_EXCLUDE_VIDEOS = booleanPreferencesKey("categories_exclude_videos")
+
+        @Composable
+        fun rememberCategoriesExcludeVideos() =
+            rememberPreference(key = CATEGORIES_EXCLUDE_VIDEOS, defaultValue = false)
+
         /**
          * Date/time format preferences store an empty string when the user has
          * not customized them. In that case the effective pattern is derived from

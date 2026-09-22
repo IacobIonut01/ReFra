@@ -14,14 +14,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Scanner
+import androidx.compose.material.icons.outlined.VideocamOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -29,12 +37,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.Settings.Misc.rememberCategoriesExcludeVideos
 import com.dot.gallery.core.Settings.Misc.rememberNoClassification
 import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.feature_node.data.data_source.SmartScanStatus
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.settings.components.SwitchPreferenceDetailScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.label
+import kotlinx.coroutines.launch
 
 @Composable
 fun CategoriesSettingsScreen() {
@@ -48,6 +58,9 @@ fun CategoriesSettingsScreen() {
 
     val isCategoryWorkerRunning = categoryScan != null
     var noClassification by rememberNoClassification()
+    var excludeVideos by rememberCategoriesExcludeVideos()
+    var videoPurgeCount by remember { mutableStateOf<Int?>(null) }
+    val scope = rememberCoroutineScope()
 
     val description = stringResource(R.string.disclaimer_classification)
 
@@ -84,6 +97,26 @@ fun CategoriesSettingsScreen() {
                                 if (!isCategoryWorkerRunning) viewModel.startCategoryClassification()
                             }
                         )
+                )
+
+                // Exclude videos from categorisation (#948)
+                SettingsItem(
+                    item = SettingsEntity.SwitchPreference(
+                        title = stringResource(R.string.categories_exclude_videos),
+                        summary = stringResource(R.string.categories_exclude_videos_summary),
+                        icon = Icons.Outlined.VideocamOff,
+                        isChecked = excludeVideos,
+                        onCheck = { checked ->
+                            if (!checked) {
+                                excludeVideos = false
+                            } else scope.launch {
+                                val count = viewModel.getVideoCategoryMembershipCount()
+                                if (count > 0) videoPurgeCount = count else excludeVideos = true
+                            }
+                        },
+                        screenPosition = if (categoriesWithCount.isNotEmpty() || isCategoryWorkerRunning)
+                            Position.Middle else Position.Alone
+                    )
                 )
 
                 // Progress indicator when scanning
@@ -149,4 +182,33 @@ fun CategoriesSettingsScreen() {
             }
         }
     )
+
+    videoPurgeCount?.let { count ->
+        AlertDialog(
+            onDismissRequest = { videoPurgeCount = null },
+            title = { Text(stringResource(R.string.categories_exclude_videos_purge_title)) },
+            text = {
+                Text(pluralStringResource(R.plurals.categories_exclude_videos_purge_message, count, count))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        videoPurgeCount = null
+                        excludeVideos = true
+                        viewModel.purgeVideoCategoryMemberships()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(stringResource(R.string.editor_remove))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { videoPurgeCount = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
 }

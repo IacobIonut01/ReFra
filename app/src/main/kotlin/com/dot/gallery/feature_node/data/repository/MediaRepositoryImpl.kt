@@ -1609,6 +1609,12 @@ class MediaRepositoryImpl(
     override suspend fun resetCategoryData() =
         categoryDao.resetAllCategoryData()
 
+    override suspend fun getVideoCategoryMembershipCount() =
+        categoryDao.getVideoCategoryMembershipCount()
+
+    override suspend fun deleteVideoCategoryMemberships() =
+        categoryDao.deleteVideoCategoryMemberships()
+
     override fun getMetadata(media: Media): Flow<MediaMetadata> {
         return database.getMetadataDao().getFullMetadata(media.id).map { it.toMediaMetadata() }
     }

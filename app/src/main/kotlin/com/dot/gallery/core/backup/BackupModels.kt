@@ -192,6 +192,7 @@ internal object PortableBackupSettings {
         "tap_sides_to_navigate",
         "auto_hide_on_video_play",
         "no_classification",
+        "categories_exclude_videos",
         "video_autoplay",
         "video_surface_rebind",
         "shared_elements",

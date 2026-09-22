@@ -299,6 +299,22 @@ class CategoriesViewModel @Inject constructor(
     }
 
     /**
+     * Count of category memberships held by videos — used to confirm the purge when
+     * the exclude-videos setting is enabled (#948).
+     */
+    suspend fun getVideoCategoryMembershipCount(): Int =
+        repository.getVideoCategoryMembershipCount()
+
+    /**
+     * Removes every video membership from all categories after user confirmation (#948).
+     */
+    fun purgeVideoCategoryMemberships() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteVideoCategoryMemberships()
+        }
+    }
+
+    /**
      * Reset all category data and reinitialize with defaults
      */
     fun resetCategories() {

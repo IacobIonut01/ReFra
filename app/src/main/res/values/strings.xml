@@ -629,6 +629,13 @@
     <string name="category_helper_text">Add a name, search terms and adjust the accuracy to create your category</string>
     <string name="reset_categories">Reset categories</string>
     <string name="reset_categories_summary">Delete all categories and reinitialize with defaults</string>
+    <string name="categories_exclude_videos">Exclude videos</string>
+    <string name="categories_exclude_videos_summary">Only photos are matched to categories</string>
+    <string name="categories_exclude_videos_purge_title">Remove videos from categories?</string>
+    <plurals name="categories_exclude_videos_purge_message">
+        <item quantity="one">%1$d existing video entry will be removed from categories.</item>
+        <item quantity="other">%1$d existing video entries will be removed from categories.</item>
+    </plurals>
     <string name="create">Create</string>
     <string name="save">Save</string>
     <string name="browse_categories">Browse categories</string>

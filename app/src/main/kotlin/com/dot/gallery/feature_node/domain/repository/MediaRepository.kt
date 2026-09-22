@@ -320,6 +320,10 @@ interface MediaRepository {
     suspend fun initializeDefaultCategories()
     suspend fun resetCategoryData()
 
+    // Video memberships excluded from categorisation (#948)
+    suspend fun getVideoCategoryMembershipCount(): Int
+    suspend fun deleteVideoCategoryMemberships(): Int
+
     fun getMetadata(): Flow<List<MediaMetadata>>
 
     fun getMetadata(media: Media): Flow<MediaMetadata>

@@ -139,6 +139,40 @@ interface CategoryDao {
     @Query("SELECT COUNT(*) FROM media")
     suspend fun getMirroredMediaCount(): Int
 
+    /**
+     * Ids of every media item with a video mimeType, across the local `media`
+     * mirror and `cloud_media`. Used to exclude videos from classification (#948).
+     */
+    @Query("""
+        SELECT id FROM media WHERE mimeType LIKE 'video/%'
+        UNION
+        SELECT globalMediaId AS id FROM cloud_media WHERE mimeType LIKE 'video/%'
+    """)
+    suspend fun getVideoMediaIds(): List<Long>
+
+    /**
+     * Count of `media_category` memberships whose media resolves to a video —
+     * drives the purge confirmation when the exclude-videos toggle is enabled (#948).
+     * Correlated subqueries instead of a bound `IN (...)` list, safe for large libraries.
+     */
+    @Query("""
+        SELECT COUNT(*) FROM media_category mc
+        WHERE EXISTS (SELECT 1 FROM media WHERE media.id = mc.mediaId AND media.mimeType LIKE 'video/%')
+           OR EXISTS (SELECT 1 FROM cloud_media WHERE cloud_media.globalMediaId = mc.mediaId AND cloud_media.mimeType LIKE 'video/%')
+    """)
+    suspend fun getVideoCategoryMembershipCount(): Int
+
+    /**
+     * Removes every `media_category` membership (automatic and manual) whose media is
+     * a video — the confirmed purge behind the exclude-videos toggle (#948).
+     */
+    @Query("""
+        DELETE FROM media_category
+        WHERE EXISTS (SELECT 1 FROM media WHERE media.id = media_category.mediaId AND media.mimeType LIKE 'video/%')
+           OR EXISTS (SELECT 1 FROM cloud_media WHERE cloud_media.globalMediaId = media_category.mediaId AND cloud_media.mimeType LIKE 'video/%')
+    """)
+    suspend fun deleteVideoCategoryMemberships(): Int
+
     @Query(
         """
         SELECT COUNT(DISTINCT mc.mediaId)

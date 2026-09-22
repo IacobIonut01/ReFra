@@ -145,6 +145,20 @@ class CategoryWorker @AssistedInject constructor(
             }
         }
 
+        // Exclude videos from categorisation when the user opted in (#948). Embeddings
+        // carry no mimeType, so video ids are resolved through the media mirrors.
+        val excludeVideos = Settings.Misc.getSetting(
+            appContext, Settings.Misc.CATEGORIES_EXCLUDE_VIDEOS, false
+        ).firstOrNull() ?: false
+        if (excludeVideos) {
+            val videoIds = categoryDao.getVideoMediaIds().toHashSet()
+            if (videoIds.isNotEmpty()) {
+                val before = imageEmbeddings.size
+                imageEmbeddings = imageEmbeddings.filter { it.id !in videoIds }
+                printInfo("CategoryWorker: excluded ${before - imageEmbeddings.size} video embeddings")
+            }
+        }
+
         printInfo("CategoryWorker: Processing ${categories.size} categories and ${imageEmbeddings.size} images")
 
         // Set up text session for generating category embeddings

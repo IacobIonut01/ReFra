@@ -57,7 +57,7 @@ class CategoryIntegrityDaoTest {
     @After
     fun tearDown() = db.close()
 
-    private fun media(id: Long) = UriMedia(
+    private fun media(id: Long, mimeType: String = "image/jpeg") = UriMedia(
         id = id,
         label = "media_$id",
         uri = Uri.parse("content://media/external/file/$id"),
@@ -67,7 +67,7 @@ class CategoryIntegrityDaoTest {
         albumLabel = "DCIM",
         timestamp = id,
         fullDate = "2026-01-01",
-        mimeType = "image/jpeg",
+        mimeType = mimeType,
         favorite = 0,
         trashed = 0,
         size = 1_000L
@@ -75,6 +75,10 @@ class CategoryIntegrityDaoTest {
 
     private fun mirror(vararg ids: Long) = runBlocking {
         mediaDao.updateMedia(ids.map { media(it) })
+    }
+
+    private fun mirrorMedia(vararg items: UriMedia) = runBlocking {
+        mediaDao.updateMedia(items.toList())
     }
 
     private fun vault(vararg ids: Long) = runBlocking {
@@ -286,5 +290,83 @@ class CategoryIntegrityDaoTest {
 
         val result = categoryDao.getCategoriesWithMediaCount().first()
         assertEquals(1, result[0].mediaCount)
+    }
+
+    // ============ #948: video exclusion ============
+
+    @Test
+    fun videoMediaIds_coverLocalAndCloudVideosOnly() = runBlocking {
+        val cloudVideoId = com.dot.gallery.cloud.core.cloudMediaId(
+            com.dot.gallery.cloud.core.ProviderType.IMMICH, 7L, "remote_video"
+        )
+        val cloudImageId = com.dot.gallery.cloud.core.cloudMediaId(
+            com.dot.gallery.cloud.core.ProviderType.IMMICH, 7L, "remote_image"
+        )
+        mirrorMedia(
+            media(10),
+            media(20, mimeType = "video/mp4"),
+            media(30, mimeType = "image/heic")
+        )
+        val cloudDao = db.getCloudMediaDao()
+        cloudDao.insert(
+            com.dot.gallery.cloud.data.entity.CloudMediaEntity(
+                remoteId = "remote_video",
+                providerType = com.dot.gallery.cloud.core.ProviderType.IMMICH,
+                serverConfigId = 7L,
+                label = "cloud_video.mp4",
+                mimeType = "video/mp4",
+                timestamp = cloudVideoId
+            )
+        )
+        cloudDao.insert(
+            com.dot.gallery.cloud.data.entity.CloudMediaEntity(
+                remoteId = "remote_image",
+                providerType = com.dot.gallery.cloud.core.ProviderType.IMMICH,
+                serverConfigId = 7L,
+                label = "cloud_image.jpg",
+                mimeType = "image/jpeg",
+                timestamp = cloudImageId
+            )
+        )
+
+        assertEquals(
+            setOf(20L, cloudVideoId),
+            categoryDao.getVideoMediaIds().toSet()
+        )
+    }
+
+    @Test
+    fun videoMembershipCount_countsOnlyVideoRows() = runBlocking {
+        val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = ""))
+        categoryDao.insertMediaCategories(
+            listOf(
+                membership(10, categoryId, 0.9f),
+                membership(20, categoryId, 0.8f),
+                membership(30, categoryId, 0.7f)
+            )
+        )
+        mirrorMedia(media(10), media(20, mimeType = "video/mp4"), media(30))
+
+        assertEquals(1, categoryDao.getVideoCategoryMembershipCount())
+    }
+
+    @Test
+    fun deleteVideoMemberships_removesOnlyVideoRows() = runBlocking {
+        val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = ""))
+        categoryDao.insertMediaCategories(
+            listOf(
+                membership(10, categoryId, 0.9f),
+                membership(20, categoryId, 0.8f),
+                membership(30, categoryId, 0.7f, isManual = true)
+            )
+        )
+        mirrorMedia(media(10), media(20, mimeType = "video/mp4"), media(30, mimeType = "video/mp4"))
+
+        val removed = categoryDao.deleteVideoCategoryMemberships()
+        assertEquals("both automatic and manual video rows purge", 2, removed)
+        assertEquals(0, categoryDao.getVideoCategoryMembershipCount())
+
+        val remaining = categoryDao.getMediaIdsInCategoryAsync(categoryId)
+        assertEquals(listOf(10L), remaining)
     }
 }
