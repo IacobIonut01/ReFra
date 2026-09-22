@@ -98,6 +98,7 @@ import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
 import com.dot.gallery.core.Settings.Misc.rememberDefaultImageEditor
+import com.dot.gallery.core.Settings.Misc.rememberDarkMediaViewer
 import com.dot.gallery.core.Settings.Misc.rememberDisableSmoothing
 import com.dot.gallery.core.Settings.Misc.rememberLongPressCutout
 import com.dot.gallery.core.Settings.Misc.rememberReencodeJxlEffort
@@ -153,6 +154,7 @@ private const val DETAIL_AUTO_HIDE_VIDEO = "auto_hide_video"
 private const val DETAIL_AUTO_PLAY = "auto_play"
 private const val DETAIL_SURFACE_REBIND = "surface_rebind"
 private const val DETAIL_DISABLE_SMOOTHING = "disable_smoothing"
+private const val DETAIL_DARK_BACKGROUND = "dark_background"
 private const val DETAIL_LONG_PRESS_CUTOUT = "long_press_cutout"
 private const val DETAIL_VISUAL_SEARCH = "visual_search"
 
@@ -172,6 +174,7 @@ fun SettingsMediaViewerScreen() {
     var autoPlayVideo by rememberVideoAutoplay()
     var videoSurfaceRebind by rememberVideoSurfaceRebind()
     var disableSmoothing by rememberDisableSmoothing()
+    var darkMediaViewer by rememberDarkMediaViewer()
     var longPressCutout by rememberLongPressCutout()
     var reencodeMode by rememberReencodeQualityMode()
     var reencodeLossyQuality by rememberReencodeLossyQuality()
@@ -267,6 +270,15 @@ fun SettingsMediaViewerScreen() {
                 preview = { checked -> SmoothingPreview(disableSmoothing = checked) },
             )
         }
+        DETAIL_DARK_BACKGROUND -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(R.string.dark_media_viewer_title),
+                isChecked = darkMediaViewer,
+                onCheckedChange = { darkMediaViewer = it },
+                description = stringResource(R.string.dark_media_viewer_description),
+            )
+        }
         DETAIL_LONG_PRESS_CUTOUT -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -351,6 +363,8 @@ fun SettingsMediaViewerScreen() {
                 editApps = editApps,
                 disableSmoothing = disableSmoothing,
                 onDisableSmoothingChange = { disableSmoothing = it },
+                darkMediaViewer = darkMediaViewer,
+                onDarkMediaViewerChange = { darkMediaViewer = it },
                 longPressCutout = longPressCutout,
                 onLongPressCutoutChange = { longPressCutout = it },
                 autoHideOnVideoPlay = autoHideOnVideoPlay,
@@ -396,6 +410,8 @@ private fun MediaViewerListScreen(
     editApps: List<android.content.pm.ResolveInfo>,
     disableSmoothing: Boolean,
     onDisableSmoothingChange: (Boolean) -> Unit,
+    darkMediaViewer: Boolean,
+    onDarkMediaViewerChange: (Boolean) -> Unit,
     longPressCutout: Boolean,
     onLongPressCutoutChange: (Boolean) -> Unit,
     autoHideOnVideoPlay: Boolean,
@@ -491,6 +507,16 @@ private fun MediaViewerListScreen(
             isChecked = disableSmoothing,
             onCheck = onDisableSmoothingChange,
             onClick = { onDetailClick(DETAIL_DISABLE_SMOOTHING) },
+            screenPosition = Position.Middle
+        )
+
+        val darkMediaViewerPref = rememberSwitchPreference(
+            darkMediaViewer,
+            title = stringResource(R.string.dark_media_viewer_title),
+            summary = stringResource(R.string.dark_media_viewer_summary),
+            isChecked = darkMediaViewer,
+            onCheck = onDarkMediaViewerChange,
+            onClick = { onDetailClick(DETAIL_DARK_BACKGROUND) },
             screenPosition = Position.Middle
         )
 
@@ -605,7 +631,8 @@ private fun MediaViewerListScreen(
 
         return remember(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
-            showFavoriteButtonPref, defaultEditorPref, disableSmoothingPref, longPressCutoutPref,
+            showFavoriteButtonPref, defaultEditorPref, disableSmoothingPref, darkMediaViewerPref,
+            longPressCutoutPref,
             visualSearchPref, slideshowPref,
             saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
             videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref
@@ -620,6 +647,7 @@ private fun MediaViewerListScreen(
                 }
                 add(defaultEditorPref)
                 add(disableSmoothingPref)
+                add(darkMediaViewerPref)
                 add(longPressCutoutPref)
                 add(visualSearchPref)
                 add(slideshowPref)

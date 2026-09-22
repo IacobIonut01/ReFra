@@ -109,14 +109,16 @@ fun MediaViewAppBar(
     castButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
     castBanner: @Composable (() -> Unit)? = null
 ) {
-    val allowBlur = LocalMediaViewerVisualPolicy.current.allowBlur
+    val visualPolicy = LocalMediaViewerVisualPolicy.current
     val isDarkTheme = isDarkTheme()
     val isVideo by rememberedDerivedState(currentMedia) {
         currentMedia?.isVideo ?: false
     }
-    val followTheme = remember(allowBlur, isVideo, isDarkTheme, autoContrast, isImageDark) {
+    val followTheme = remember(visualPolicy, isVideo, isDarkTheme, autoContrast, isImageDark) {
         if (autoContrast) !isImageDark
-        else !allowBlur && !isVideo
+        // Chrome follows the theme only while the viewer background does — a forced-dark
+        // background on a light theme must keep the scrim/icon tint dark.
+        else !visualPolicy.usesDarkBackground(isDarkTheme) && !isVideo
     }
     AnimatedVisibility(
         visible = showUI,
@@ -157,7 +159,7 @@ fun MediaViewAppBar(
                     },
                     label = "AppBarSurfaceContainer"
                 )
-                val backgroundModifier = if (!allowBlur) {
+                val backgroundModifier = if (!visualPolicy.allowBlur) {
                     Modifier.background(
                         color = surfaceContainer,
                         shape = CircleShape

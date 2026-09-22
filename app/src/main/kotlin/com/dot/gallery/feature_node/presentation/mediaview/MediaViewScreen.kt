@@ -145,6 +145,7 @@ import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAutoContrast
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideOnVideoPlay
+import com.dot.gallery.core.Settings.Misc.rememberDarkMediaViewer
 import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberExtendedDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
@@ -724,7 +725,10 @@ fun <T : Media> MediaViewScreen(
     resetMetadataSanitization: () -> Unit = {},
     motionPhotoStateFactory: @Composable (Media?) -> MotionPhotoState = { remember { MotionPhotoState() } },
 ) = CompositionLocalProvider(
-    LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(allowBlur = allowBlur),
+    LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(
+        allowBlur = allowBlur,
+        forceDarkBackground = rememberDarkMediaViewer().value
+    ),
     LocalMediaViewerNavigate provides rememberViewerExitNavigate(onDismissRequest)
 ) {
     ProvideInsets {

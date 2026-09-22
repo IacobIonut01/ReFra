@@ -748,6 +748,14 @@ object Settings {
         @Composable
         fun rememberAllowBlur() = rememberPreference(key = ALLOW_BLUR, defaultValue = SdkCompat.supportsBlur)
 
+        private val DARK_MEDIA_VIEWER = booleanPreferencesKey("dark_media_viewer")
+
+        // Default true: a black viewer background is the standard gallery UX and works
+        // in both themes; the toggle exists for the light-theme users who prefer white.
+        @Composable
+        fun rememberDarkMediaViewer() =
+            rememberPreference(key = DARK_MEDIA_VIEWER, defaultValue = true)
+
         private val AUTO_CONTRAST = booleanPreferencesKey("auto_contrast")
 
         @Composable

@@ -80,14 +80,14 @@ fun <T : Media> MediaViewQuickBottomBar(
     val handler = LocalMediaHandler.current
     val cloudSelectionViewModel = hiltViewModel<CloudSelectionViewModel>()
     val cloudSettingsByConfigId by CloudRuntimeSettings.settingsByConfigId.collectAsStateWithLifecycle()
-    val allowBlur = LocalMediaViewerVisualPolicy.current.allowBlur
+    val visualPolicy = LocalMediaViewerVisualPolicy.current
     val isVideo by rememberedDerivedState(currentMedia) {
         currentMedia?.isVideo ?: false
     }
     val isDarkTheme = com.dot.gallery.ui.theme.isDarkTheme()
-    val followTheme = remember(allowBlur, isVideo, isDarkTheme, autoContrast, isImageDark) {
+    val followTheme = remember(visualPolicy, isVideo, isDarkTheme, autoContrast, isImageDark) {
         if (autoContrast) !isImageDark
-        else !allowBlur && !isVideo
+        else !visualPolicy.usesDarkBackground(isDarkTheme) && !isVideo
     }
     val contentColor by animateColorAsState(
         targetValue = when {

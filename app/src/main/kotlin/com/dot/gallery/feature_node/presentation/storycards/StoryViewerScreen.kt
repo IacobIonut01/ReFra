@@ -85,6 +85,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberDarkMediaViewer
 import com.dot.gallery.core.Settings.Misc.rememberSharedElements
 import com.dot.gallery.core.Settings.Misc.rememberStoryViewerAutoAdvance
 import com.dot.gallery.core.Settings.Misc.rememberStoryViewerDuration
@@ -150,8 +151,12 @@ fun StoryViewerScreen(
     dismissBridge: ViewerDismissBridge? = null,
 ) {
     val allowBlur by rememberAllowBlur()
+    val darkMediaViewer by rememberDarkMediaViewer()
     CompositionLocalProvider(
-        LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(allowBlur = allowBlur)
+        LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(
+            allowBlur = allowBlur,
+            forceDarkBackground = darkMediaViewer
+        )
     ) {
         StoryViewerContent(
             cards = cards,

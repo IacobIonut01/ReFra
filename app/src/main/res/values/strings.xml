@@ -519,6 +519,9 @@
     <string name="disable_smoothing_description">When enabled, images are drawn with nearest-neighbor scaling so zooming into pixel art keeps clean, sharp pixels rather than blurring them. Leave it off for smooth scaling of photos.</string>
     <string name="auto_hide_on_video_play">Hide UI on Video Play</string>
     <string name="auto_hide_on_video_play_summary">Hides the UI after 2 seconds when playing videos</string>
+    <string name="dark_media_viewer_title">Dark viewer background</string>
+    <string name="dark_media_viewer_summary">Keep the media viewer background black in Light Theme</string>
+    <string name="dark_media_viewer_description">When enabled, photos and videos are always shown on a black background — like most gallery apps — even when the app theme is light. Turn it off to let the viewer follow the light theme.</string>
     <string name="delete_location">Delete Location</string>
     <string name="delete_metadata">Delete Metadata</string>
     <string name="remove_metadata">Remove metadata</string>
