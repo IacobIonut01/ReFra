@@ -46,6 +46,8 @@ class SmbBackend : FileSystemBackend {
     ) : NetFsConnection() {
         override val rootDisplay: String =
             listOf(host, shareName, basePath).filter { it.isNotEmpty() }.joinToString("/")
+
+        override fun isAlive(): Boolean = connection.isConnected
     }
 
     override fun connect(config: CloudServerConfig): NetFsConnection {

@@ -18,6 +18,10 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
+import java.io.EOFException
+import java.io.IOException
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -158,6 +162,46 @@ class NetworkFileSystemSupportTest {
             releaseFirst.countDown()
             executor.shutdownNow()
         }
+    }
+
+    @Test
+    fun connectionFailureMatchesSocketAndTransportTypes() {
+        assertTrue(isNetFsConnectionFailure(SocketException("Connection reset")))
+        assertTrue(isNetFsConnectionFailure(SocketTimeoutException("Read timed out")))
+        assertTrue(isNetFsConnectionFailure(EOFException()))
+        assertTrue(
+            isNetFsConnectionFailure(
+                IOException("wrapper", SocketException("Broken pipe"))
+            )
+        )
+    }
+
+    @Test
+    fun connectionFailureMatchesSmbAndTransportMessages() {
+        assertTrue(
+            isNetFsConnectionFailure(
+                IllegalStateException("The connection has already been closed")
+            )
+        )
+        assertTrue(isNetFsConnectionFailure(IOException("No route to host")))
+        assertTrue(
+            isNetFsConnectionFailure(
+                IOException("outer", IOException("Network is unreachable"))
+            )
+        )
+    }
+
+    @Test
+    fun connectionFailureMatchesTransportExceptionClassName() {
+        class TransportException : Exception("wrapped transport")
+        assertTrue(isNetFsConnectionFailure(TransportException()))
+    }
+
+    @Test
+    fun connectionFailureRejectsNonTransportErrors() {
+        assertFalse(isNetFsConnectionFailure(IOException("Permission denied")))
+        assertFalse(isNetFsConnectionFailure(IllegalArgumentException("Not configured")))
+        assertFalse(isNetFsConnectionFailure(IOException("No such file or directory")))
     }
 
     private fun entry(path: String, modified: Long) = NetFsEntry(

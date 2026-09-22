@@ -7,8 +7,11 @@ package com.dot.gallery.cloud.netfs
 
 import com.dot.gallery.cloud.core.CloudServerConfig
 import com.dot.gallery.cloud.core.ProviderType
+import java.io.EOFException
 import java.io.InputStream
 import java.io.InterruptedIOException
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.security.MessageDigest
 
 /** A single directory/file entry returned by a backend listing. */
@@ -75,6 +78,14 @@ data class NetFsStorage(
 abstract class NetFsConnection {
     /** Human-readable root description, e.g. `host/share/Photos`. */
     abstract val rootDisplay: String
+
+    /**
+     * Cheap liveness check for the underlying session. A connection that was closed by
+     * the peer (or torn down locally) reports false so the provider can rebuild it
+     * instead of serving a zombie handle. Backends that cannot probe cheaply keep the
+     * default `true` and rely on op-time failure + reconnect instead.
+     */
+    open fun isAlive(): Boolean = true
 }
 
 /**
@@ -95,6 +106,32 @@ internal fun contentSha1(input: InputStream): String {
         digest.update(buffer, 0, read)
     }
     return digest.digest().joinToString("") { "%02x".format(it) }
+}
+
+/**
+ * True when the failure means the session itself is unusable — closed by the peer,
+ * broken by a transport switch, or otherwise dead — so dropping + re-dialing is the
+ * right recovery (as opposed to permission/path errors a retry can't fix). Walks the
+ * cause chain since protocol clients wrap the underlying socket error.
+ */
+fun isNetFsConnectionFailure(error: Throwable): Boolean {
+    var current: Throwable? = error
+    while (current != null) {
+        if (current is SocketException ||
+            current is SocketTimeoutException ||
+            current is EOFException ||
+            "TransportException" in current.javaClass.simpleName
+        ) return true
+        val message = current.message.orEmpty().lowercase()
+        if ("already been closed" in message || "connection is closed" in message ||
+            "connection closed" in message || "broken pipe" in message ||
+            "connection reset" in message || "no route to host" in message ||
+            "network is unreachable" in message || "connection refused" in message ||
+            "connection timed out" in message
+        ) return true
+        current = current.cause
+    }
+    return false
 }
 
 interface FileSystemBackend {

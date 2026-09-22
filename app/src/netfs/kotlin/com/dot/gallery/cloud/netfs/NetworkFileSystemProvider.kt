@@ -6,6 +6,9 @@
 package com.dot.gallery.cloud.netfs
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.text.format.Formatter
 import androidx.core.net.toUri
@@ -135,11 +138,13 @@ open class NetworkFileSystemProvider(
         mediaIndex = null
         currentConfig = config
         _connectionState.value = ConnectionState.DISCONNECTED
+        startTransportWatcher()
         printDebug("${backend.displayName}Provider: Configured with ${config.serverUrl}")
     }
 
     @Synchronized
     override fun disconnect() {
+        stopTransportWatcher()
         connection?.let { runCatching { backend.close(it) } }
         connection = null
         connectionGeneration++
@@ -150,11 +155,87 @@ open class NetworkFileSystemProvider(
 
     @Synchronized
     private fun requireConnection(): NetFsConnection {
-        connection?.let { return it }
+        connection?.let { existing ->
+            if (existing.isAlive()) return existing
+            // The peer closed (or locally torn down) sessions are never useful again —
+            // drop them so we re-dial instead of failing every subsequent op.
+            runCatching { backend.close(existing) }
+            connection = null
+            connectionGeneration++
+        }
         val config = currentConfig ?: throw IllegalStateException("Not configured")
         return CloudTrace.time("${backend.providerType} connect") {
             backend.connect(config)
         }.also { connection = it }
+    }
+
+    /**
+     * Drops the live session without touching [mediaIndex]: a transport change doesn't
+     * alter remote content, and the cached listing lets albums/thumbnails recover
+     * instantly once the next op re-dials. Any in-flight index build notices via the
+     * generation bump and discards its result.
+     */
+    @Synchronized
+    private fun dropConnection() {
+        val conn = connection ?: return
+        CloudTrace.d("${backend.providerType} dropping session (transport change or dead link)")
+        runCatching { backend.close(conn) }
+        connection = null
+        connectionGeneration++
+    }
+
+    // === Transport-change watcher ===
+    //
+    // A cached session binds to the network it was dialed on. When the device's default
+    // network changes transport (Wi-Fi → 5G, VPN added/dropped), the old TCP session is
+    // either dead or — worse — half-open: it still reports connected but every read
+    // stalls into a timeout. Dropping on the observed transport transition makes the
+    // next op re-dial on the new route instead of surfacing "albums unavailable" or
+    // pixelated surrogates until the app is killed.
+
+    private val connectivityManager by lazy {
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+    }
+
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var lastTransports: Set<Int>? = null
+
+    @Synchronized
+    private fun startTransportWatcher() {
+        if (networkCallback != null) return
+        val cm = connectivityManager ?: return
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onCapabilitiesChanged(
+                network: Network,
+                caps: NetworkCapabilities
+            ) {
+                val transports = TRANSPORT_KINDS.filter(caps::hasTransport).toSet()
+                val previous = lastTransports
+                lastTransports = transports
+                if (previous != null && previous != transports) {
+                    CloudTrace.d(
+                        "${backend.providerType} default network transports $previous -> $transports"
+                    )
+                    dropConnection()
+                }
+            }
+
+            override fun onLost(network: Network) {
+                // The default network went away; any session bound to it is dead.
+                lastTransports = null
+                dropConnection()
+            }
+        }
+        runCatching { cm.registerDefaultNetworkCallback(callback) }
+            .onSuccess { networkCallback = callback }
+    }
+
+    @Synchronized
+    private fun stopTransportWatcher() {
+        val callback = networkCallback ?: return
+        networkCallback = null
+        lastTransports = null
+        runCatching { connectivityManager?.unregisterNetworkCallback(callback) }
     }
 
     @Synchronized
@@ -295,7 +376,7 @@ open class NetworkFileSystemProvider(
 
     override suspend fun createAlbum(name: String): Result<CloudAlbum> = withContext(Dispatchers.IO) {
         try {
-            backend.mkdir(requireConnection(), name)
+            withReconnectOnFailure { backend.mkdir(requireConnection(), name) }
             invalidateMediaIndex()
             Result.success(
                 CloudAlbum(
@@ -336,7 +417,7 @@ open class NetworkFileSystemProvider(
     override suspend fun deleteAsset(remoteId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val configId = currentConfig?.id ?: error("Not configured")
-            backend.delete(requireConnection(), remoteId)
+            withReconnectOnFailure { backend.delete(requireConnection(), remoteId) }
             invalidateMediaIndex()
             cloudMediaDao.delete(remoteId, backend.providerType, configId)
             Result.success(Unit)
@@ -367,7 +448,7 @@ open class NetworkFileSystemProvider(
 
     override suspend fun getStorageInfo(): Result<CloudStorageInfo> = withContext(Dispatchers.IO) {
         try {
-            val storage = backend.storage(requireConnection())
+            val storage = withReconnectOnFailure { backend.storage(requireConnection()) }
                 ?: return@withContext Result.failure(UnsupportedOperationException("No storage info"))
             val pct = if (storage.totalBytes > 0)
                 storage.usedBytes.toDouble() / storage.totalBytes.toDouble() * 100.0 else 0.0
@@ -399,9 +480,10 @@ open class NetworkFileSystemProvider(
 
     // === NetFsLoopbackSource (called from the loopback server thread) ===
 
-    override fun loopbackSize(path: String): Long = backend.fileSize(requireConnection(), path)
+    override fun loopbackSize(path: String): Long =
+        withReconnectOnFailure { backend.fileSize(requireConnection(), path) }
 
-    override fun loopbackOpen(path: String, offset: Long): InputStream {
+    override fun loopbackOpen(path: String, offset: Long): InputStream = withReconnectOnFailure {
         val fileSize = runCatching { backend.fileSize(requireConnection(), path) }.getOrDefault(-1L)
         val cacheFile = if (fileSize > 0) originalCacheFile(path, fileSize) else null
 
@@ -412,7 +494,7 @@ open class NetworkFileSystemProvider(
             CloudTrace.d("NetFs original cache HIT '$path' offset=$offset (${CloudTrace.bytes(fileSize)})")
             val fis = FileInputStream(cacheFile)
             if (offset > 0) fis.channel.position(offset)
-            return BufferedInputStream(fis, LOOPBACK_READ_BUFFER_BYTES)
+            return@withReconnectOnFailure BufferedInputStream(fis, LOOPBACK_READ_BUFFER_BYTES)
         }
 
         // Buffer with a large window so consumers reading in small chunks (NanoHTTPD streams the
@@ -422,7 +504,7 @@ open class NetworkFileSystemProvider(
 
         // Tee a full read (offset 0, bounded size) into the cache. This also warms the cache during
         // thumbnail generation (which reads the whole file), so a later zoom is an instant local read.
-        return if (offset == 0L && cacheFile != null && fileSize in 1..ORIGINAL_CACHE_MAX_FILE_BYTES) {
+        if (offset == 0L && cacheFile != null && fileSize in 1..ORIGINAL_CACHE_MAX_FILE_BYTES) {
             // Unique temp per stream so concurrent tees of the same file (e.g. thumbnail gen + zoom)
             // don't clobber one another; the first to complete wins the rename, the rest discard.
             val tmp = File(originalCacheDir, "${cacheFile.name}.${System.nanoTime()}.tmp")
@@ -434,7 +516,9 @@ open class NetworkFileSystemProvider(
 
     override fun loopbackThumbnail(path: String, size: ThumbnailSize): ByteArray? {
         val mime = mimeOf(path)
-        val fileSize = runCatching { backend.fileSize(requireConnection(), path) }.getOrDefault(0L)
+        val fileSize = runCatching {
+            withReconnectOnFailure { backend.fileSize(requireConnection(), path) }
+        }.getOrDefault(0L)
         val cacheFile = thumbnailCacheFile(path, size, fileSize)
 
         // Fast path: a previously generated thumbnail. Network filesystems have no server-side
@@ -680,7 +764,7 @@ open class NetworkFileSystemProvider(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (isClosedConnectionFailure(e)) operationConnection?.let { resetConnection(it) }
+                if (isNetFsConnectionFailure(e)) operationConnection?.let { resetConnection(it) }
                 RemoteAlbumCopyResult(
                     state = RemoteAlbumCopyState.FAILED,
                     message = copyFailureMessage(e),
@@ -708,7 +792,7 @@ open class NetworkFileSystemProvider(
             input.use { backend.write(conn, remotePath, it, size) }
         } catch (e: Exception) {
             var verified = remoteContentMatches(conn, remotePath, localMedia, size, checksum)
-            if (!verified && !reconnectAttempted && isClosedConnectionFailure(e)) {
+            if (!verified && !reconnectAttempted && isNetFsConnectionFailure(e)) {
                 resetConnection(conn)
                 conn = requireConnection()
                 verified = remoteContentMatches(conn, remotePath, localMedia, size, checksum)
@@ -782,12 +866,6 @@ open class NetworkFileSystemProvider(
     private fun remoteHash(conn: NetFsConnection, remotePath: String): String =
         backend.openRead(conn, remotePath, 0L).use(::contentSha1)
 
-    private fun isClosedConnectionFailure(error: Throwable): Boolean {
-        val message = error.message.orEmpty().lowercase()
-        return "already been closed" in message || "connection is closed" in message ||
-            "connection closed" in message
-    }
-
     private fun copyFailureMessage(error: Throwable): String {
         val message = error.message.orEmpty().lowercase()
         return if (listOf("permission", "access denied", "nfsstatus:13", "read-only")
@@ -813,11 +891,12 @@ open class NetworkFileSystemProvider(
 
     override suspend fun downloadAsset(remoteId: String): Result<Uri> = withContext(Dispatchers.IO) {
         try {
-            val conn = requireConnection()
             val ext = remoteId.substringAfterLast('.', "")
             val cacheFile = File(context.cacheDir, "netfs_${remoteId.hashCode()}.$ext")
-            backend.openRead(conn, remoteId, 0L).use { input ->
-                cacheFile.outputStream().use { input.copyTo(it) }
+            withReconnectOnFailure {
+                backend.openRead(requireConnection(), remoteId, 0L).use { input ->
+                    cacheFile.outputStream().use { input.copyTo(it) }
+                }
             }
             Result.success(cacheFile.toUri())
         } catch (e: Exception) {
@@ -855,15 +934,18 @@ open class NetworkFileSystemProvider(
         contentHash: String
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val conn = requireConnection()
             val configId = currentConfig?.id ?: throw IllegalStateException("Not configured")
             val remotePath = deterministicRemoteId(localMedia, targetPath)
-            val remoteSize = runInterruptible { backend.fileSize(conn, remotePath) }
+            val remoteSize = runInterruptible {
+                withReconnectOnFailure { backend.fileSize(requireConnection(), remotePath) }
+            }
             if (localMedia.size > 0L && remoteSize != localMedia.size) {
                 return@withContext Result.success(false)
             }
             val remoteHash = runInterruptible {
-                backend.openRead(conn, remotePath, 0L).use(::contentSha1)
+                withReconnectOnFailure {
+                    backend.openRead(requireConnection(), remotePath, 0L).use(::contentSha1)
+                }
             }
             if (cloudMediaDao.updateContentHash(remotePath, backend.providerType, configId, remoteHash) == 0) {
                 cloudMediaDao.insert(
@@ -899,10 +981,10 @@ open class NetworkFileSystemProvider(
     override suspend fun remoteExists(localMedia: Media, targetPath: String?): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                val conn = requireConnection()
                 val remotePath = deterministicRemoteId(localMedia, targetPath)
-                val remoteSize = runCatching { backend.fileSize(conn, remotePath) }.getOrNull()
-                    ?: return@withContext false
+                val remoteSize = runCatching {
+                    withReconnectOnFailure { backend.fileSize(requireConnection(), remotePath) }
+                }.getOrNull() ?: return@withContext false
                 if (remoteSize <= 0L) return@withContext false
                 val localSize = runCatching {
                     context.contentResolver.openAssetFileDescriptor(localMedia.getUri(), "r")?.use { it.length }
@@ -926,7 +1008,7 @@ open class NetworkFileSystemProvider(
             mediaIndex ?: run {
                 val generation = connectionGeneration
                 val index = CloudTrace.time("${backend.providerType} scan media index") {
-                    NetFsMediaIndex(scanMedia(conn))
+                    NetFsMediaIndex(scanMedia())
                 }
                 check(generation == connectionGeneration && connection === conn) {
                     "Network filesystem connection changed during indexing"
@@ -937,14 +1019,14 @@ open class NetworkFileSystemProvider(
         }
     }
 
-    private fun scanMedia(conn: NetFsConnection): List<NetFsEntry> {
+    private fun scanMedia(): List<NetFsEntry> {
         val media = ArrayList<NetFsEntry>()
         val pending = java.util.ArrayDeque<String>().apply { add("") }
         val visited = HashSet<String>()
         while (pending.isNotEmpty()) {
             val path = pending.removeFirst()
             if (!visited.add(path)) continue
-            listDirWithRetry(conn, path).forEach { entry ->
+            listDirWithRetry(path).forEach { entry ->
                 if (entry.isDirectory) {
                     pending.addLast(entry.relativePath)
                 } else if (entry.name.substringAfterLast('.', "").lowercase() in mediaExtensions) {
@@ -955,28 +1037,54 @@ open class NetworkFileSystemProvider(
         return media.sortedBy { it.relativePath }
     }
 
-    private fun listDirWithRetry(conn: NetFsConnection, path: String): List<NetFsEntry> {
+    private fun listDirWithRetry(path: String): List<NetFsEntry> {
         var failure: Exception? = null
+        var reconnectAttempted = false
         repeat(SCAN_LIST_RETRIES) { attempt ->
             try {
-                return backend.listDir(conn, path)
+                // Resolved per attempt: after a drop the next call re-dials on a fresh session.
+                return backend.listDir(requireConnection(), path)
             } catch (e: Exception) {
                 failure = e
                 CloudTrace.w(
                     "${backend.providerType} scan failed at '$path' " +
                         "(attempt ${attempt + 1}/$SCAN_LIST_RETRIES): ${e.message}"
                 )
-                if (attempt + 1 < SCAN_LIST_RETRIES) {
-                    try {
-                        Thread.sleep(SCAN_RETRY_DELAY_MILLIS * (attempt + 1))
-                    } catch (interrupted: InterruptedException) {
-                        Thread.currentThread().interrupt()
-                        throw interrupted
+                when {
+                    !reconnectAttempted && isNetFsConnectionFailure(e) -> {
+                        // A dead session can't heal by re-reading — drop it so the next
+                        // attempt re-dials instead of burning retries on the same socket.
+                        reconnectAttempted = true
+                        dropConnection()
+                    }
+                    attempt + 1 < SCAN_LIST_RETRIES -> {
+                        try {
+                            Thread.sleep(SCAN_RETRY_DELAY_MILLIS * (attempt + 1))
+                        } catch (interrupted: InterruptedException) {
+                            Thread.currentThread().interrupt()
+                            throw interrupted
+                        }
                     }
                 }
             }
         }
         throw failure ?: IllegalStateException("Unable to list '$path'")
+    }
+
+    /**
+     * Runs [block] on the live session; on a connection-flavored failure, drops the
+     * session and retries once — the next [requireConnection] inside [block] re-dials
+     * on a fresh session. The second failure propagates to the caller.
+     */
+    private fun <T> withReconnectOnFailure(block: () -> T): T = try {
+        block()
+    } catch (e: Exception) {
+        if (!isNetFsConnectionFailure(e)) throw e
+        CloudTrace.w(
+            "${backend.providerType} op failed on a dead session (${e.message}); reconnecting"
+        )
+        dropConnection()
+        block()
     }
 
     private fun mimeOf(path: String): String = when (path.substringAfterLast('.', "").lowercase()) {
@@ -999,6 +1107,15 @@ open class NetworkFileSystemProvider(
     private companion object {
         const val SCAN_LIST_RETRIES = 3
         const val SCAN_RETRY_DELAY_MILLIS = 250L
+
+        val TRANSPORT_KINDS = listOf(
+            NetworkCapabilities.TRANSPORT_WIFI,
+            NetworkCapabilities.TRANSPORT_CELLULAR,
+            NetworkCapabilities.TRANSPORT_ETHERNET,
+            NetworkCapabilities.TRANSPORT_BLUETOOTH,
+            NetworkCapabilities.TRANSPORT_VPN,
+            NetworkCapabilities.TRANSPORT_USB
+        )
 
         // ~1 MB: large enough that smbj fills it with a single SMB2 READ (its typical negotiated max),
         // collapsing the per-file round-trips that were timing out the image pipeline.
