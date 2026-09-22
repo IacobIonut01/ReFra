@@ -355,6 +355,16 @@ object Settings {
                 keyString = SHORTCUTS_LAYOUT,
                 defaultValue = emptyList<LibraryShortcutPref>()
             )
+
+        private val SHOW_LOCATION_CATEGORIES =
+            booleanPreferencesKey("library_show_location_categories")
+
+        /**
+         * Whether the Library screen shows the Locations carousel section (#1181).
+         */
+        @Composable
+        fun rememberShowLocationCategories() =
+            rememberPreference(key = SHOW_LOCATION_CATEGORIES, defaultValue = true)
     }
 
     object SmartFeatures {

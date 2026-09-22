@@ -194,6 +194,7 @@ fun SettingsTimelineAlbumsScreen() {
     var groupMethodFavorites by rememberFavoritesGroupMethod()
     var groupMethodVault by rememberVaultGroupMethod()
     var groupMethodCloudArchive by rememberCloudArchiveGroupMethod()
+    var showLocationCategories by Settings.Library.rememberShowLocationCategories()
 
     when (detailKey) {
         DETAIL_TIMELINE_LAYOUT -> {
@@ -477,6 +478,8 @@ fun SettingsTimelineAlbumsScreen() {
                 updateModifiedDate = updateModifiedDate,
                 onUpdateModifiedDateChange = { updateModifiedDate = it },
                 favIconPosition = favIconPosition,
+                showLocationCategories = showLocationCategories,
+                onShowLocationCategoriesChange = { showLocationCategories = it },
                 onDetailClick = { detailKey = it },
                 onDateFormatClick = { eventHandler.navigate(Screen.DateFormatScreen()) },
                 onStoryCardsClick = { eventHandler.navigate(Screen.StoryCardsSettingsScreen()) },
@@ -512,6 +515,8 @@ private fun TimelineAlbumsListScreen(
     updateModifiedDate: Boolean,
     onUpdateModifiedDateChange: (Boolean) -> Unit,
     favIconPosition: String,
+    showLocationCategories: Boolean = true,
+    onShowLocationCategoriesChange: (Boolean) -> Unit = {},
     onDetailClick: (String) -> Unit,
     onDateFormatClick: () -> Unit,
     onStoryCardsClick: () -> Unit = {},
@@ -722,13 +727,27 @@ private fun TimelineAlbumsListScreen(
             screenPosition = if (hasFavorites) Position.Middle else Position.Bottom
         )
 
+        val libraryHeaderTitle = stringResource(R.string.library)
+        val libraryHeader = remember(libraryHeaderTitle) {
+            SettingsEntity.Header(title = libraryHeaderTitle)
+        }
+
+        val locationCategoriesPref = rememberSwitchPreference(
+            showLocationCategories,
+            title = stringResource(R.string.location_categories_title),
+            summary = stringResource(R.string.location_categories_summary),
+            isChecked = showLocationCategories,
+            onCheck = onShowLocationCategoriesChange,
+            screenPosition = Position.Alone
+        )
+
         return remember(
             timelineHeader, timelineLayoutPref, timelineOrderPref, groupSimilarMediaPref,
             allowGifAnimationPref, dateHeaderPref, recheckCaptureDatesPref, showFilterButtonPref,
             showSearchBarFavButtonPref, storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
             pinnedAlbumsAsGridPref, showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
-            dateHeadersPref, groupMethodPref
+            dateHeadersPref, groupMethodPref, libraryHeader, locationCategoriesPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
@@ -757,6 +776,9 @@ private fun TimelineAlbumsListScreen(
                 if (SdkCompat.supportsFavorites) {
                     add(favIconPositionPref)
                 }
+
+                add(libraryHeader)
+                add(locationCategoriesPref)
             }
         }
     }

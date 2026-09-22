@@ -54,6 +54,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -108,6 +109,7 @@ import com.dot.gallery.core.animateOrJumpToTop
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.core.Settings.Misc.rememberNoClassification
 import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.ml.ModelStatus
@@ -115,6 +117,7 @@ import com.dot.gallery.core.navigate
 import com.dot.gallery.core.startup.StartupContentEffect
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.presentation.common.components.FloatingTopBarScrim
 import com.dot.gallery.feature_node.presentation.common.components.GridPinchZoomLayout
 import com.dot.gallery.feature_node.presentation.common.components.rememberGridPinchZoomState
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
@@ -194,6 +197,7 @@ internal fun LibraryScreenContent(
     var lastCellIndex by rememberAlbumGridSize()
 
     val locations = snapshot.locations.orEmpty()
+    val showLocationCategories by Settings.Library.rememberShowLocationCategories()
     val indicatorState = snapshot.indicators
 
     // New category system
@@ -237,7 +241,7 @@ internal fun LibraryScreenContent(
     val gridState = rememberLazyGridState(
         initialFirstVisibleItemIndex = restoredLibraryIndex(
             libraryGridSectionKeys(
-                hasLocations = locations.isNotEmpty(),
+                hasLocations = showLocationCategories && locations.isNotEmpty(),
                 hasPeople = cloudState.hasPeople && cloudState.people.isNotEmpty(),
                 hasCategories = aiAvailable && !noClassification && topCategories.isNotEmpty(),
                 hasNoCategories = aiAvailable && !noClassification &&
@@ -356,7 +360,7 @@ internal fun LibraryScreenContent(
     }
 
     // Locations
-    val noLocationsFound = locations.isEmpty()
+    val noLocationsFound = locations.isEmpty() || !showLocationCategories
     val totalLocationsCount = snapshot.locationCount
 
     // In-place shortcut editing (Quick-Settings style)
@@ -420,6 +424,14 @@ internal fun LibraryScreenContent(
             )
         }
     ) { it ->
+        val hideSearchBarSetting by rememberAutoHideSearchBar()
+        val topBarScrimZone by animateDpAsState(
+            targetValue = if (!isScrolling.value || !hideSearchBarSetting) {
+                SearchBarDefaults.InputFieldHeight + paddingValues.calculateTopPadding() + 8.dp
+            } else paddingValues.calculateTopPadding(),
+            label = "topBarScrimZone"
+        )
+        Box(modifier = Modifier.fillMaxSize()) {
         GridPinchZoomLayout(
             state = pinchState,
             modifier = Modifier.hazeSource(LocalHazeState.current),
@@ -875,6 +887,8 @@ internal fun LibraryScreenContent(
                     }
                 }
             }
+        }
+        FloatingTopBarScrim(barZoneHeight = topBarScrimZone)
         }
     }
 

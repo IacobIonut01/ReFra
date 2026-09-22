@@ -1260,6 +1260,8 @@
     <string name="media_type_raw">Raw</string>
     <string name="media_type_albums_setting_title">Show media type albums</string>
     <string name="media_type_albums_setting_summary">Add quick albums for Videos, Photos, GIFs and Raw files at the top of the Albums tab</string>
+    <string name="location_categories_title">Location categories</string>
+    <string name="location_categories_summary">Show the locations row on the Library tab</string>
 
     <!-- Album Sections -->
     <string name="album_sections_title">Organize albums by sections</string>
