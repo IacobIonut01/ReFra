@@ -27,5 +27,14 @@
         <item name="postSplashScreenTheme">@style/Theme.Gallery</item>
     </style>
 
+    <!-- Same splash treatment but with the monochrome launcher glyph. Applied
+         while a monochrome launcher alias is active. -->
+    <style name="Theme.Gallery.Splash.Mono" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splashColorBackground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_monochrome</item>
+        <item name="android:windowSplashScreenBehavior">icon_preferred</item>
+        <item name="postSplashScreenTheme">@style/Theme.Gallery</item>
+    </style>
+
 </resources>
 

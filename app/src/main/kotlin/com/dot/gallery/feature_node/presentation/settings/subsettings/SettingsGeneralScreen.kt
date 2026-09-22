@@ -140,7 +140,7 @@ fun SettingsGeneralScreen() {
             ChooserPreferenceDetailScreen(
                 title = stringResource(R.string.change_app_name),
                 description = stringResource(R.string.app_name_description),
-                preview = { AppNamePreview(appNameAlias) },
+                preview = { AppNamePreview(appNameAlias, appLogoAlias) },
                 options = listOf(
                     PreferenceOption(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_REFRA, appNameAlias == Settings.Misc.ALIAS_REFRA),
                     PreferenceOption(Settings.Misc.ALIAS_GALLERY, Settings.Misc.ALIAS_GALLERY, appNameAlias == Settings.Misc.ALIAS_GALLERY),
@@ -164,6 +164,7 @@ fun SettingsGeneralScreen() {
                 options = listOf(
                     PreferenceOption(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_REFRA, appLogoAlias == Settings.Misc.ALIAS_REFRA),
                     PreferenceOption(Settings.Misc.ALIAS_GALLERY, Settings.Misc.ALIAS_GALLERY, appLogoAlias == Settings.Misc.ALIAS_GALLERY),
+                    PreferenceOption(Settings.Misc.ALIAS_MONO, Settings.Misc.ALIAS_MONO, appLogoAlias == Settings.Misc.ALIAS_MONO),
                 ),
                 onOptionSelected = {
                     appLogoAlias = it
@@ -408,8 +409,13 @@ private fun SecureModePreview(isChecked: Boolean) {
 }
 
 @Composable
-private fun AppNamePreview(currentAlias: String) {
+private fun AppNamePreview(currentAlias: String, logoAlias: String) {
     val context = LocalContext.current
+    val iconRes = when (logoAlias) {
+        Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
+        Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
+        else -> R.mipmap.ic_launcher_round
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -434,7 +440,7 @@ private fun AppNamePreview(currentAlias: String) {
             ) {
                 Image(
                     painter = rememberDrawablePainter(
-                        drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
+                        drawable = AppCompatResources.getDrawable(context, iconRes)
                     ),
                     contentDescription = alias,
                     modifier = Modifier
@@ -468,16 +474,16 @@ private fun AppLogoPreview(currentAlias: String) {
             .padding(24.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        listOf(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_GALLERY).forEach { alias ->
+        listOf(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_GALLERY, Settings.Misc.ALIAS_MONO).forEach { alias ->
             val selected = currentAlias == alias
             val borderColor = if (selected) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.outlineVariant
             val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
             else Color.Transparent
-            val iconRes = if (alias == Settings.Misc.ALIAS_GALLERY) {
-                R.mipmap.ic_launcher_gallery_round
-            } else {
-                R.mipmap.ic_launcher_round
+            val iconRes = when (alias) {
+                Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
+                Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
+                else -> R.mipmap.ic_launcher_round
             }
 
             Column(

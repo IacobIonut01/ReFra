@@ -1054,6 +1054,7 @@ object Settings {
 
         const val ALIAS_REFRA = "ReFra"
         const val ALIAS_GALLERY = "Gallery"
+        const val ALIAS_MONO = "Monochrome"
         private val APP_NAME_ALIAS = stringPreferencesKey("app_name_alias")
 
         @Composable

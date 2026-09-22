@@ -493,9 +493,12 @@ fun Context.restartApplication() {
  */
 fun launcherAliasFor(nameAlias: String, logoAlias: String): String {
     val galleryLogo = logoAlias == "Gallery"
+    val monoLogo = logoAlias == "Monochrome"
     return when {
+        nameAlias == "Gallery" && monoLogo -> "Launcher_Gallery_Mono"
         nameAlias == "Gallery" && galleryLogo -> "Launcher_Gallery_GalleryLogo"
         nameAlias == "Gallery" -> "Launcher_Gallery"
+        monoLogo -> "Launcher_ReFra_Mono"
         galleryLogo -> "Launcher_ReFra_GalleryLogo"
         else -> "Launcher_ReFra"
     }
@@ -509,6 +512,13 @@ fun launcherAliasHasGalleryLogo(alias: String): Boolean =
     alias.endsWith("GalleryLogo")
 
 /**
+ * Whether a launcher [activity-alias] short name points at one of the
+ * monochrome-logo variants.
+ */
+fun launcherAliasHasMonoLogo(alias: String): Boolean =
+    alias.endsWith("Mono")
+
+/**
  * Enable the launcher alias matching the given app-name + app-logo combination and disable
  * all others. [logoAlias] defaults to the ReFra logo for backward compatibility with callers
  * that only toggle the app name.
@@ -519,7 +529,9 @@ fun Context.changeAppAlias(nameAlias: String, logoAlias: String = "ReFra") {
         "Launcher_ReFra",
         "Launcher_Gallery",
         "Launcher_ReFra_GalleryLogo",
-        "Launcher_Gallery_GalleryLogo"
+        "Launcher_Gallery_GalleryLogo",
+        "Launcher_ReFra_Mono",
+        "Launcher_Gallery_Mono"
     )
     val targetAlias = launcherAliasFor(nameAlias, logoAlias)
     for (alias in aliases) {
@@ -535,26 +547,28 @@ fun Context.changeAppAlias(nameAlias: String, logoAlias: String = "ReFra") {
             PackageManager.DONT_KILL_APP
         )
     }
-    applyLauncherSplashTheme(launcherAliasHasGalleryLogo(targetAlias))
+    applyLauncherSplashTheme(targetAlias)
 }
 
 /**
  * Match the splash screen to the launcher logo. On API 31+ the theme override is
  * persisted per package and used for subsequent launches; [Resources.ID_NULL]
  * restores the manifest theme. Below API 31 the compat splash resolves its icon
- * from the activity theme, so the Gallery splash theme is applied instead — this
+ * from the activity theme, so the alternate splash theme is applied instead — this
  * only has an effect when called before the activity's first draw (MainActivity
  * does so before installSplashScreen).
  */
-fun Context.applyLauncherSplashTheme(galleryLogo: Boolean) {
+fun Context.applyLauncherSplashTheme(alias: String) {
     val activity = this as? Activity ?: return
+    val splashTheme = when {
+        launcherAliasHasMonoLogo(alias) -> R.style.Theme_Gallery_Splash_Mono
+        launcherAliasHasGalleryLogo(alias) -> R.style.Theme_Gallery_Splash_Gallery
+        else -> null
+    }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        activity.splashScreen.setSplashScreenTheme(
-            if (galleryLogo) R.style.Theme_Gallery_Splash_Gallery
-            else Resources.ID_NULL
-        )
-    } else if (galleryLogo) {
-        activity.setTheme(R.style.Theme_Gallery_Splash_Gallery)
+        activity.splashScreen.setSplashScreenTheme(splashTheme ?: Resources.ID_NULL)
+    } else if (splashTheme != null) {
+        activity.setTheme(splashTheme)
     }
 }
 
@@ -568,7 +582,9 @@ fun Context.currentLauncherAlias(): String {
         "Launcher_ReFra",
         "Launcher_Gallery",
         "Launcher_ReFra_GalleryLogo",
-        "Launcher_Gallery_GalleryLogo"
+        "Launcher_Gallery_GalleryLogo",
+        "Launcher_ReFra_Mono",
+        "Launcher_Gallery_Mono"
     )
     for (alias in aliases) {
         val component = ComponentName(packageName, "$namespace.$alias")

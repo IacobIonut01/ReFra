@@ -106,7 +106,7 @@ fun SetupLooksFeelPage(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    listOf(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_GALLERY).forEach { alias ->
+                    listOf(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_GALLERY, Settings.Misc.ALIAS_MONO).forEach { alias ->
                         LogoChoice(
                             modifier = Modifier.weight(1f),
                             label = alias,
@@ -145,8 +145,11 @@ fun SetupLooksFeelPage(
 }
 
 private fun launcherIconFor(logoAlias: String): Int =
-    if (logoAlias == Settings.Misc.ALIAS_GALLERY) R.mipmap.ic_launcher_gallery_round
-    else R.mipmap.ic_launcher_round
+    when (logoAlias) {
+        Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
+        Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
+        else -> R.mipmap.ic_launcher_round
+    }
 
 @Composable
 private fun LogoChoice(

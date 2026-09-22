@@ -176,6 +176,44 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- App name "ReFra" with the monochrome launcher logo -->
+        <activity-alias
+            android:name=".Launcher_ReFra_Mono"
+            android:label="@string/app_name"
+            android:icon="@mipmap/ic_launcher_mono"
+            android:roundIcon="@mipmap/ic_launcher_mono_round"
+            android:targetActivity=".feature_node.presentation.main.MainActivity"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.APP_GALLERY"/>
+                <category android:name="android.intent.category.INFO"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- App name "Gallery" with the monochrome launcher logo -->
+        <activity-alias
+            android:name=".Launcher_Gallery_Mono"
+            android:label="@string/app_name_gallery"
+            android:icon="@mipmap/ic_launcher_mono"
+            android:roundIcon="@mipmap/ic_launcher_mono_round"
+            android:targetActivity=".feature_node.presentation.main.MainActivity"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.APP_GALLERY"/>
+                <category android:name="android.intent.category.INFO"/>
+            </intent-filter>
+        </activity-alias>
+
         <activity
             android:name=".feature_node.presentation.standalone.StandaloneActivity"
             android:exported="true"
