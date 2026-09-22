@@ -12,6 +12,7 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -25,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -58,6 +60,7 @@ import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
 import com.dot.gallery.core.Settings.Misc.rememberTimelineLayoutType
@@ -76,6 +79,7 @@ import com.dot.gallery.feature_node.presentation.common.components.TimelineScrol
 import com.dot.gallery.feature_node.presentation.common.components.rememberMosaicMonthSegments
 import com.dot.gallery.feature_node.presentation.common.components.rememberMosaicPinchZoomState
 import com.dot.gallery.feature_node.presentation.common.components.TwoLinedDateToolbarTitle
+import com.dot.gallery.feature_node.presentation.common.components.FloatingTopBarScrim
 import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -261,6 +265,15 @@ fun <T: Media> MediaScreen(
                     top = it.calculateTopPadding(),
                     bottom = paddingValues.calculateBottomPadding() + 128.dp
                 )
+                val hideSearchBarSetting by rememberAutoHideSearchBar()
+                val topBarScrimZone by animateDpAsState(
+                    targetValue = if (showSearchBar && (!isScrolling.value || !hideSearchBarSetting)) {
+                        SearchBarDefaults.InputFieldHeight + paddingValues.calculateTopPadding() + 8.dp
+                    } else if (showSearchBar && isScrolling.value) {
+                        paddingValues.calculateTopPadding()
+                    } else 0.dp,
+                    label = "topBarScrimZone"
+                )
                 MosaicPinchZoomLayout(
                     state = mosaicPinchState,
                     indicatorTopPadding = mosaicPaddingValues.calculateTopPadding() + 16.dp,
@@ -309,6 +322,7 @@ fun <T: Media> MediaScreen(
                     )
                 }
                 }
+                FloatingTopBarScrim(barZoneHeight = topBarScrimZone)
             } else {
                 GridPinchZoomLayout(
                     state = pinchState,

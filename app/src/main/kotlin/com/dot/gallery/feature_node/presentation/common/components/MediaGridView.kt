@@ -12,6 +12,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -131,25 +132,25 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
             }
     }
 
+    val hideSearchBarSetting by rememberAutoHideSearchBar()
+    val searchBarPadding by animateDpAsState(
+        targetValue = remember(
+            isScrolling.value,
+            showSearchBar,
+            searchBarPaddingTop,
+            hideSearchBarSetting
+        ) {
+            if (showSearchBar && (!isScrolling.value || !hideSearchBarSetting)) {
+                SearchBarDefaults.InputFieldHeight + searchBarPaddingTop + 8.dp
+            } else if (showSearchBar && isScrolling.value) searchBarPaddingTop else 0.dp
+        },
+        label = "searchBarPadding"
+    )
+
     if (enableStickyHeaders) {
         val stickyHeaderItem by rememberStickyHeaderItem(
             gridState = gridState,
             mediaState = mediaState
-        )
-
-        val hideSearchBarSetting by rememberAutoHideSearchBar()
-        val searchBarPadding by animateDpAsState(
-            targetValue = remember(
-                isScrolling.value,
-                showSearchBar,
-                searchBarPaddingTop,
-                hideSearchBarSetting
-            ) {
-                if (showSearchBar && (!isScrolling.value || !hideSearchBarSetting)) {
-                    SearchBarDefaults.InputFieldHeight + searchBarPaddingTop + 8.dp
-                } else if (showSearchBar && isScrolling.value) searchBarPaddingTop else 0.dp
-            },
-            label = "searchBarPadding"
         )
 
         val density = LocalDensity.current
@@ -228,28 +229,32 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 allowSharedElements = allowSharedElements,
                 onRetry = onRetry,
             )
+            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
         }
     } else {
-        MediaGrid(
-            modifier = modifier,
-            gridState = gridState,
-            mediaState = mediaState,
-            metadataState = metadataState,
-            mappedData = mappedData,
-            paddingValues = paddingValues,
-            allowSelection = allowSelection,
-            canScroll = canScroll,
-            allowHeaders = allowHeaders,
-            bigHeaders = groupMethod != Settings.Misc.GROUP_NORMAL,
-            aboveGridContent = aboveGridContent,
-            isScrolling = isScrolling,
-            emptyContent = emptyContent,
-            onMediaClick = onMediaClick,
-            sharedTransitionScope = sharedTransitionScope,
-            animatedContentScope = animatedContentScope,
-            allowSharedElements = allowSharedElements,
-            onRetry = onRetry,
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            MediaGrid(
+                modifier = modifier,
+                gridState = gridState,
+                mediaState = mediaState,
+                metadataState = metadataState,
+                mappedData = mappedData,
+                paddingValues = paddingValues,
+                allowSelection = allowSelection,
+                canScroll = canScroll,
+                allowHeaders = allowHeaders,
+                bigHeaders = groupMethod != Settings.Misc.GROUP_NORMAL,
+                aboveGridContent = aboveGridContent,
+                isScrolling = isScrolling,
+                emptyContent = emptyContent,
+                onMediaClick = onMediaClick,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope,
+                allowSharedElements = allowSharedElements,
+                onRetry = onRetry,
+            )
+            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
+        }
     }
 
 }

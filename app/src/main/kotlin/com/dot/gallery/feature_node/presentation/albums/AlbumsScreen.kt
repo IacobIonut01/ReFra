@@ -11,7 +11,9 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -33,6 +35,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
+import com.dot.gallery.feature_node.presentation.common.components.FloatingTopBarScrim
 import com.dot.gallery.feature_node.presentation.common.components.GridPinchZoomLayout
 import com.dot.gallery.feature_node.presentation.common.components.rememberGridPinchZoomState
 import com.dot.gallery.R
@@ -70,6 +74,7 @@ import com.dot.gallery.core.Settings.Album.rememberLastSort
 import com.dot.gallery.core.Settings.Album.rememberLastViewType
 import com.dot.gallery.core.Settings.Album.rememberPinnedAlbumsAsGrid
 import com.dot.gallery.core.Settings.Album.rememberShowMediaTypeAlbums
+import com.dot.gallery.core.Settings.Misc.rememberAutoHideSearchBar
 import com.dot.gallery.core.presentation.components.EmptyAlbum
 import com.dot.gallery.core.presentation.components.Error
 import com.dot.gallery.core.presentation.components.FilterButton
@@ -275,6 +280,14 @@ fun AlbumsScreen(
             MediaContentState.LOADING -> LoadingAlbum()
             MediaContentState.EMPTY -> EmptyAlbum()
             MediaContentState.CONTENT -> CompositionLocalProvider(LocalThumbnailMotion provides thumbnailMotion) {
+        val hideSearchBarSetting by rememberAutoHideSearchBar()
+        val topBarScrimZone by animateDpAsState(
+            targetValue = if (!isScrolling.value || !hideSearchBarSetting) {
+                SearchBarDefaults.InputFieldHeight + paddingValues.calculateTopPadding() + 8.dp
+            } else paddingValues.calculateTopPadding(),
+            label = "topBarScrimZone"
+        )
+        Box(modifier = Modifier.fillMaxSize()) {
         when (viewType) {
             Settings.Album.ViewType.GRID -> {
                 with(sharedTransitionScope) {
@@ -978,8 +991,10 @@ fun AlbumsScreen(
                 }
             }
         }
+        FloatingTopBarScrim(barZoneHeight = topBarScrimZone)
         }
     }
+}
 }
 }
 

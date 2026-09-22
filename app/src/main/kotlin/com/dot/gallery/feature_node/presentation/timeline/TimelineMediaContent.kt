@@ -54,6 +54,7 @@ import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.isHeaderKey
 import com.dot.gallery.feature_node.domain.model.isIgnoredKey
+import com.dot.gallery.feature_node.presentation.common.components.FloatingTopBarScrim
 import com.dot.gallery.feature_node.presentation.common.components.GridPinchZoomLayout
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.common.components.MosaicMediaGrid
@@ -268,6 +269,9 @@ fun TimelineMediaContent(
                     onRetry = onRetry,
                 )
             }
+        }
+        if (showSearchBar) {
+            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
         }
     }
 }
