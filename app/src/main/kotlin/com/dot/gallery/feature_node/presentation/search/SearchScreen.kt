@@ -60,9 +60,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalResources
@@ -115,6 +118,8 @@ import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 
@@ -145,6 +150,19 @@ fun SearchScreen(
 
     BackHandler(enabled = shouldClearOnBack) {
         viewModel.clearQuery()
+    }
+
+    val searchFieldFocus = remember { FocusRequester() }
+    // Requesting focus while the shared-bounds morph is still running is dropped by
+    // the IME — wait for the transition to settle, then open the keyboard on its own.
+    // The request can still race the post-transition layout pass, so retry briefly.
+    LaunchedEffect(Unit) {
+        snapshotFlow { isTransitionActive }.first { active -> !active }
+        repeat(3) { attempt ->
+            val focused = runCatching { searchFieldFocus.requestFocus() }.isSuccess
+            if (focused) return@LaunchedEffect
+            if (attempt < 2) delay(150)
+        }
     }
 
     // Image-to-image search UI state
@@ -248,6 +266,7 @@ fun SearchScreen(
                         val outlineColor = Color.Transparent
                         OutlinedTextField(
                             modifier = Modifier
+                                .focusRequester(searchFieldFocus)
                                 .fillMaxWidth(),
                             value = query,
                             onValueChange = { newQuery ->
