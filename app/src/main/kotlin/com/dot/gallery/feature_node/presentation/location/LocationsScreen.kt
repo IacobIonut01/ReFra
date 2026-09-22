@@ -5,11 +5,14 @@
 
 package com.dot.gallery.feature_node.presentation.location
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,12 +27,15 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -65,6 +71,9 @@ import com.dot.gallery.feature_node.presentation.library.components.LibrarySmall
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeEffect
 
@@ -77,6 +86,7 @@ internal sealed interface MapGridItem {
 internal fun mapMediaViewerRoute(mediaId: Long): String =
     Screen.MediaViewScreen.idAndAlbum(mediaId, -1L)
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun LocationsScreen(
     metadataState: State<MediaMetadataState>,
@@ -84,7 +94,57 @@ fun LocationsScreen(
     geoMedia: List<GeoMedia> = emptyList(),
     initialMediaId: Long = -1L,
 ) {
-    MapLocationsContent(metadataState = metadataState, locations = locations, geoMedia = geoMedia, initialMediaId = initialMediaId)
+    Box(modifier = Modifier.fillMaxSize()) {
+        MapLocationsContent(metadataState = metadataState, locations = locations, geoMedia = geoMedia, initialMediaId = initialMediaId)
+
+        // Without ACCESS_MEDIA_LOCATION the metadata pipeline only sees redacted
+        // EXIF, so nothing can resolve to a location — surface that instead of
+        // silently showing an empty screen.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val locationPermission = rememberPermissionState(
+                Manifest.permission.ACCESS_MEDIA_LOCATION
+            )
+            if (!locationPermission.status.isGranted) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 16.dp, vertical = 24.dp)
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.access_media_location_summary),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    TextButton(
+                        onClick = { locationPermission.launchPermissionRequest() },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(end = 8.dp, bottom = 4.dp)
+                    ) {
+                        Text(text = stringResource(R.string.grant_access))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Suppress("DerivedStateOfCandidate")

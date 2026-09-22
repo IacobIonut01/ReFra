@@ -280,11 +280,15 @@ internal fun buildActionableLocations(
     localLocations.forEach { item ->
         val city = item.city?.trim()?.takeIf(String::isNotBlank)
         val country = item.country?.trim()?.takeIf(String::isNotBlank)
+        val label = locationLabel(
+            city, country, item.latitude, item.longitude, unknownLocationLabel
+        )
+        // Media with no name and no usable coordinates is not a location — without
+        // ACCESS_MEDIA_LOCATION the whole library would bucket under "Unknown".
+        if (label == unknownLocationLabel) return@forEach
         addMedia(
             item.copy(
-                location = locationLabel(
-                    city, country, item.latitude, item.longitude, unknownLocationLabel
-                ),
+                location = label,
                 city = city,
                 country = country,
             )
@@ -293,12 +297,14 @@ internal fun buildActionableLocations(
     geoMedia.forEach { item ->
         val city = item.locationCity?.trim()?.takeIf(String::isNotBlank)
         val country = item.locationCountry?.trim()?.takeIf(String::isNotBlank)
+        val label = locationLabel(
+            city, country, item.latitude, item.longitude, unknownLocationLabel
+        )
+        if (label == unknownLocationLabel) return@forEach
         addMedia(
             LocationMedia(
                 media = item.media,
-                location = locationLabel(
-                    city, country, item.latitude, item.longitude, unknownLocationLabel
-                ),
+                location = label,
                 city = city,
                 country = country,
                 latitude = item.latitude,

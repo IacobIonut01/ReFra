@@ -214,6 +214,7 @@
     <string name="read_media_videos_summary">Allows the app to show your videos</string>
     <string name="access_media_location">Access Media Location</string>
     <string name="access_media_location_summary"><![CDATA[Allows the app to read location data of your images & videos]]></string>
+    <string name="grant_access">Grant access</string>
     <string name="internet">Internet</string>
     <string name="internet_summary"><![CDATA[Required to display Location Previews of your images & videos]]></string>
     <string name="fancy_blur">Fancy Blur</string>
