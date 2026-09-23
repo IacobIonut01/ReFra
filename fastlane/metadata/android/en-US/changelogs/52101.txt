@@ -1,0 +1,34 @@
+What's new in 5.2.1:
+
+• Free Up Space runs automatically on a schedule, per cloud account
+• Visual search (e.g. Google Lens) from the media viewer, incl. video frames
+• Rename files right in the viewer
+• Monochrome launcher icons: ReFra Mono and Gallery Mono
+• Exclude videos from categories
+• One lock for all vaults
+• Optional dark viewer background under light theme
+• Hideable Library locations section
+• Keyboard auto-opens on search (configurable)
+
+Improvements:
+
+• Persistent top scrim behind the floating search bar
+• Ignored-albums matching shown as path patterns with live match count
+
+Bug fixes:
+
+• SMB/NFS sessions recover on network changes and dead links
+• Vault picker no longer reveals vault names while locked
+• Media viewer: no dismissal during load, correct exit navigation,
+  smoother return flights and restored double-tap-drag zoom
+• Rotate chip applies to the right file after swiping
+• Sharp thumbnails for wide tiles and large cells
+• Screen stays awake during video playback
+• Locations drop the bogus "Unknown Location" group
+• Markup text stays in canvas; crop clamps to image bounds
+• Vaulted media excluded from category counts; scan status synced
+• Daily grouping restored with system date format
+• Person merge crash, deleted AI models reinstalling fixed
+• No bogus error after a successful album move
+• Splash icon on every launch; pull-refresh below the search bar
+• Duplicate viewer actions removed; editor picker crash fixed

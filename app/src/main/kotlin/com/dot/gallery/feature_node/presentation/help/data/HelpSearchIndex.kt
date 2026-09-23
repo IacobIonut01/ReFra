@@ -174,11 +174,13 @@ object HelpSearchIndex {
             Toggle(R.string.auto_play_video, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
             Toggle(R.string.video_surface_rebind, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
             Toggle(R.string.visual_search_title, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
+            Toggle(R.string.dark_media_viewer_title, Screen.SettingsMediaViewerScreen(), HelpCategory.VIEWER_SETTINGS),
             // Security
             Toggle(R.string.security_metadata_isolation, Screen.SettingsSecurityScreen(), HelpCategory.SETTINGS_SECURITY),
             Toggle(R.string.security_sandboxed_decode, Screen.SettingsSecurityScreen(), HelpCategory.SETTINGS_SECURITY),
             Toggle(R.string.security_encryption_status, Screen.SettingsSecurityScreen(), HelpCategory.SETTINGS_SECURITY),
             Toggle(R.string.security_private_folder, Screen.SettingsSecurityScreen(), HelpCategory.SETTINGS_SECURITY),
+            Toggle(R.string.vault_gate_lock_all, Screen.VaultScreen(), HelpCategory.VAULT),
             // Timeline & albums
             Toggle(R.string.timeline_layout_type, Screen.SettingsTimelineAlbumsScreen(), HelpCategory.TIMELINE_ALBUMS),
             Toggle(R.string.group_similar_media_title, Screen.SettingsTimelineAlbumsScreen(), HelpCategory.TIMELINE_ALBUMS),
@@ -192,6 +194,7 @@ object HelpSearchIndex {
             Toggle(R.string.pinned_albums_as_grid_title, Screen.SettingsTimelineAlbumsScreen(), HelpCategory.TIMELINE_ALBUMS),
             Toggle(R.string.media_type_albums_setting_title, Screen.SettingsTimelineAlbumsScreen(), HelpCategory.TIMELINE_ALBUMS),
             Toggle(R.string.date_headers_title, Screen.SettingsTimelineAlbumsScreen(), HelpCategory.TIMELINE_ALBUMS),
+            Toggle(R.string.location_categories_title, Screen.SettingsTimelineAlbumsScreen(), HelpCategory.TIMELINE_ALBUMS),
             Toggle(R.string.group_method_title, Screen.SettingsTimelineAlbumsScreen(), HelpCategory.TIMELINE_ALBUMS),
             Toggle(R.string.date_header, Screen.DateFormatScreen(), HelpCategory.TIMELINE_ALBUMS),
             // Slideshow
@@ -208,8 +211,11 @@ object HelpSearchIndex {
             Toggle(R.string.ai_models_manager, Screen.SettingsSmartFeaturesScreen(), HelpCategory.SETTINGS_SMART),
             Toggle(R.string.categories, Screen.SettingsSmartFeaturesScreen(), HelpCategory.SETTINGS_SMART),
             Toggle(R.string.smart_scan_manager_title, Screen.SettingsSmartFeaturesScreen(), HelpCategory.SETTINGS_SMART),
+            Toggle(R.string.categories_exclude_videos, Screen.CategoriesSettingsScreen(), HelpCategory.SETTINGS_SMART),
             Toggle(R.string.refresh_metadata, Screen.SettingsSmartFeaturesScreen(), HelpCategory.SETTINGS_SMART),
             Toggle(R.string.edit_backups, Screen.SettingsSmartFeaturesScreen(), HelpCategory.SETTINGS_SMART),
+            // Cloud
+            Toggle(R.string.cloud_free_space_auto, Screen.FreeUpSpaceScreen(), HelpCategory.CLOUD_SYNC),
             // Backup
             Toggle(R.string.backup_export, Screen.SettingsBackupScreen(), HelpCategory.SETTINGS_GENERAL),
             Toggle(R.string.backup_import, Screen.SettingsBackupScreen(), HelpCategory.SETTINGS_GENERAL),
