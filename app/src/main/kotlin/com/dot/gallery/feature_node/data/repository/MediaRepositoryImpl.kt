@@ -9,6 +9,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
@@ -19,6 +20,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -141,11 +144,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
@@ -1655,8 +1661,77 @@ class MediaRepositoryImpl(
     override fun hasAlbumThumbnail(albumId: Long): Flow<Boolean> =
         database.getAlbumThumbnailDao().hasAlbumThumbnail(albumId)
 
-    override fun getAlbumThumbnails(): Flow<List<AlbumThumbnail>> =
-        database.getAlbumThumbnailDao().getAlbumThumbnailsFlow()
+    /**
+     * Re-emits whenever MediaStore reports a change, so stored album covers are re-validated
+     * after deletions — the Room flow alone can't see media removed outside this table.
+     */
+    private val albumThumbnailInvalidation: Flow<Unit> = callbackFlow {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                trySend(Unit)
+            }
+        }
+        contentResolver.registerContentObserver(
+            Uri.parse("content://${MediaStore.AUTHORITY}"), true, observer
+        )
+        trySend(Unit)
+        awaitClose { contentResolver.unregisterContentObserver(observer) }
+    }.conflate()
+
+    override fun getAlbumThumbnails(): Flow<List<AlbumThumbnail>> = combine(
+        database.getAlbumThumbnailDao().getAlbumThumbnailsFlow(),
+        albumThumbnailInvalidation,
+    ) { thumbnails, _ ->
+        if (!context.hasMediaAccess()) return@combine thumbnails
+        val liveThumbnails = mutableListOf<AlbumThumbnail>()
+        val goneAlbumIds = mutableListOf<Long>()
+        for (thumbnail in thumbnails) {
+            when (albumThumbnailStatus(thumbnail.thumbnailUri)) {
+                AlbumThumbnailStatus.GONE -> goneAlbumIds += thumbnail.albumId
+                AlbumThumbnailStatus.TRASHED -> Unit
+                AlbumThumbnailStatus.ALIVE -> liveThumbnails += thumbnail
+            }
+        }
+        // Covers whose media is permanently gone are pruned so the album falls back to
+        // its newest item; trashed covers keep their row so a restore brings them back.
+        goneAlbumIds.forEach { database.getAlbumThumbnailDao().deleteAlbumThumbnail(it) }
+        liveThumbnails
+    }.flowOn(Dispatchers.IO)
+
+    private enum class AlbumThumbnailStatus { ALIVE, TRASHED, GONE }
+
+    /**
+     * Whether a stored album cover still resolves. Anything that cannot be disproven —
+     * non-MediaStore URIs, unmounted volumes, resolver failures — is reported
+     * [AlbumThumbnailStatus.ALIVE] so a transient state never strips a user's chosen cover.
+     */
+    private fun albumThumbnailStatus(uri: Uri): AlbumThumbnailStatus {
+        if (uri.scheme != ContentResolver.SCHEME_CONTENT || uri.authority != MediaStore.AUTHORITY) {
+            return AlbumThumbnailStatus.ALIVE
+        }
+        val volumeName = uri.pathSegments.firstOrNull() ?: return AlbumThumbnailStatus.ALIVE
+        val volumeMounted = volumeName == MediaStore.VOLUME_EXTERNAL ||
+                volumeName == MediaStore.VOLUME_INTERNAL ||
+                MediaStore.getExternalVolumeNames(context).contains(volumeName)
+        if (!volumeMounted) return AlbumThumbnailStatus.ALIVE
+        val projection = if (SdkCompat.supportsTrash) {
+            arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.IS_TRASHED)
+        } else {
+            arrayOf(MediaStore.MediaColumns._ID)
+        }
+        val queryArgs = if (SdkCompat.supportsTrash) includeTrashedQueryArgs() else null
+        return runCatching {
+            contentResolver.query(uri, projection, queryArgs, null)?.use { cursor ->
+                if (!cursor.moveToFirst()) return@use AlbumThumbnailStatus.GONE
+                val trashedIndex = cursor.getColumnIndex(MediaStore.MediaColumns.IS_TRASHED)
+                if (trashedIndex >= 0 && cursor.getInt(trashedIndex) == 1) {
+                    AlbumThumbnailStatus.TRASHED
+                } else {
+                    AlbumThumbnailStatus.ALIVE
+                }
+            } ?: AlbumThumbnailStatus.ALIVE
+        }.getOrDefault(AlbumThumbnailStatus.ALIVE)
+    }
 
     override suspend fun collectMetadataFor(media: Media, bulk: Boolean) {
         if (media.isCloud) {
