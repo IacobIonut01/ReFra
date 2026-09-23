@@ -194,6 +194,22 @@
     <string name="long_press_to_remove">Long press to remove</string>
     <string name="dialog_from_trash">Restoring from Trash</string>
     <string name="restoring_items">Restoring %1$s items..</string>
+    <string name="delete_scope_from_device">Delete from device</string>
+    <string name="delete_scope_from_cloud">Delete from cloud</string>
+    <string name="delete_scope_from_both">Delete from both</string>
+    <string name="delete_scope_set_default">Set as my default choice</string>
+    <string name="delete_scope_ask">Ask every time</string>
+    <string name="delete_scope_hint_device">Cloud copies will be kept</string>
+    <string name="delete_scope_hint_cloud">Only the cloud copies will be removed</string>
+    <string name="delete_scope_hint_both">Cloud copies will be removed too</string>
+    <plurals name="delete_scope_backed_up_info">
+        <item quantity="one">%1$d item is on your device and in the cloud</item>
+        <item quantity="other">%1$d items are on your device and in the cloud</item>
+    </plurals>
+    <string name="settings_delete_scope_title">Deleting backed-up items</string>
+    <string name="settings_delete_scope_summary">Where to delete items that exist on your device and in the cloud</string>
+    <string name="cloud_sync_on_app_open">Sync when app opens</string>
+    <string name="cloud_sync_on_app_open_summary">Check for new device photos and remote changes every time the app is opened</string>
     <string name="trash_incompatible_title">Some items cannot be trashed!</string>
     <string name="trash_incompatible_summary">Such items will be deleted permanently instead.</string>
     <string name="error_toast">An error occurred!</string>

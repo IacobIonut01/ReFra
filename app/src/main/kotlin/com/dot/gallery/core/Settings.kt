@@ -529,6 +529,30 @@ object Settings {
         fun rememberTrashConfirmationEnabled() =
             rememberPreference(key = ENABLE_TRASH_CONFIRMATION, defaultValue = true)
 
+        const val DELETE_SCOPE_ASK = "ask"
+        const val DELETE_SCOPE_DEVICE = "device"
+        const val DELETE_SCOPE_CLOUD = "cloud"
+        const val DELETE_SCOPE_BOTH = "both"
+        private val CLOUD_DELETE_SCOPE = stringPreferencesKey("cloud_delete_scope")
+
+        /**
+         * Where media that exists on the device AND in a cloud account is deleted.
+         * [DELETE_SCOPE_ASK] keeps the per-delete picker ("delete from device /
+         * cloud / both"); any other value is applied silently as the saved default.
+         */
+        @Composable
+        fun rememberCloudDeleteScope() =
+            rememberPreference(key = CLOUD_DELETE_SCOPE, defaultValue = DELETE_SCOPE_ASK)
+
+        private val SYNC_ON_APP_OPEN = booleanPreferencesKey("cloud_sync_on_app_open")
+
+        @Composable
+        fun rememberSyncOnAppOpen() =
+            rememberPreference(key = SYNC_ON_APP_OPEN, defaultValue = true)
+
+        fun getSyncOnAppOpen(context: Context) =
+            context.activeDataStore.data.map { it[SYNC_ON_APP_OPEN] ?: true }
+
         private val LAST_SCREEN = stringPreferencesKey("last_screen")
 
         @Composable

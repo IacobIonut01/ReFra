@@ -73,6 +73,7 @@ import kotlinx.coroutines.launch
 
 private const val DETAIL_TRASH = "trash"
 private const val DETAIL_TRASH_CONFIRM = "trash_confirm"
+private const val DETAIL_DELETE_SCOPE = "delete_scope"
 private const val DETAIL_SECURE = "secure"
 private const val DETAIL_VIBRATIONS = "vibrations"
 private const val DETAIL_APP_NAME = "app_name"
@@ -88,6 +89,7 @@ fun SettingsGeneralScreen() {
 
     var trashCanEnabled by Settings.Misc.rememberTrashEnabled()
     var trashConfirmationEnabled by rememberTrashConfirmationEnabled()
+    var deleteScope by Settings.Misc.rememberCloudDeleteScope()
     var secureMode by Settings.Misc.rememberSecureMode()
     var allowVibrations by Settings.Misc.rememberAllowVibrations()
     var appNameAlias by rememberAppNameAlias()
@@ -116,6 +118,36 @@ fun SettingsGeneralScreen() {
                     stringResource(R.string.trash_confirmation_requires_trash_description)
                 },
                 enabled = trashCanEnabled,
+            )
+        }
+        DETAIL_DELETE_SCOPE -> {
+            BackHandler { detailKey = null }
+            ChooserPreferenceDetailScreen(
+                title = stringResource(R.string.settings_delete_scope_title),
+                description = stringResource(R.string.settings_delete_scope_summary),
+                options = listOf(
+                    PreferenceOption(
+                        Settings.Misc.DELETE_SCOPE_ASK,
+                        stringResource(R.string.delete_scope_ask),
+                        deleteScope == Settings.Misc.DELETE_SCOPE_ASK
+                    ),
+                    PreferenceOption(
+                        Settings.Misc.DELETE_SCOPE_DEVICE,
+                        stringResource(R.string.delete_scope_from_device),
+                        deleteScope == Settings.Misc.DELETE_SCOPE_DEVICE
+                    ),
+                    PreferenceOption(
+                        Settings.Misc.DELETE_SCOPE_CLOUD,
+                        stringResource(R.string.delete_scope_from_cloud),
+                        deleteScope == Settings.Misc.DELETE_SCOPE_CLOUD
+                    ),
+                    PreferenceOption(
+                        Settings.Misc.DELETE_SCOPE_BOTH,
+                        stringResource(R.string.delete_scope_from_both),
+                        deleteScope == Settings.Misc.DELETE_SCOPE_BOTH
+                    ),
+                ),
+                onOptionSelected = { deleteScope = it },
             )
         }
         DETAIL_SECURE -> {
@@ -198,6 +230,7 @@ fun SettingsGeneralScreen() {
                 onTrashChange = { trashCanEnabled = it },
                 trashConfirmationEnabled = trashConfirmationEnabled,
                 onTrashConfirmChange = { trashConfirmationEnabled = it },
+                deleteScope = deleteScope,
                 secureMode = secureMode,
                 onSecureChange = { secureMode = it },
                 allowVibrations = allowVibrations,
@@ -218,6 +251,7 @@ private fun GeneralListScreen(
     onTrashChange: (Boolean) -> Unit,
     trashConfirmationEnabled: Boolean,
     onTrashConfirmChange: (Boolean) -> Unit,
+    deleteScope: String,
     secureMode: Boolean,
     onSecureChange: (Boolean) -> Unit,
     allowVibrations: Boolean,
@@ -296,6 +330,20 @@ private fun GeneralListScreen(
             screenPosition = Position.Middle
         )
 
+        val deleteScopeSummary = when (deleteScope) {
+            Settings.Misc.DELETE_SCOPE_DEVICE -> stringResource(R.string.delete_scope_from_device)
+            Settings.Misc.DELETE_SCOPE_CLOUD -> stringResource(R.string.delete_scope_from_cloud)
+            Settings.Misc.DELETE_SCOPE_BOTH -> stringResource(R.string.delete_scope_from_both)
+            else -> stringResource(R.string.delete_scope_ask)
+        }
+        val deleteScopePref = rememberPreference(
+            deleteScope,
+            title = stringResource(R.string.settings_delete_scope_title),
+            summary = deleteScopeSummary,
+            onClick = { onDetailClick(DETAIL_DELETE_SCOPE) },
+            screenPosition = Position.Middle
+        )
+
         val appNamePref = rememberPreference(
             appNameAlias,
             title = stringResource(R.string.change_app_name),
@@ -331,8 +379,8 @@ private fun GeneralListScreen(
 
         return remember(
             openTrashPref, trashCanEnabledPref, trashConfirmationEnabledPref,
-            secureModePref, allowVibrationsPref, appNamePref, appLogoPref,
-            vaultEncryptPref
+            secureModePref, allowVibrationsPref, deleteScopePref, appNamePref,
+            appLogoPref, vaultEncryptPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 if (SdkCompat.supportsTrash) {
@@ -344,6 +392,7 @@ private fun GeneralListScreen(
                 add(otherSectionPref)
                 add(secureModePref)
                 add(allowVibrationsPref)
+                add(deleteScopePref)
                 add(appNamePref)
                 add(appLogoPref)
                 add(vaultSectionPref)

@@ -57,6 +57,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,6 +81,7 @@ import com.dot.gallery.cloud.sync.CloudUploadWorker
 import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.cloud.ui.sync.SyncStatusViewModel
 import com.dot.gallery.core.Position
+import com.dot.gallery.core.Settings
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
@@ -264,6 +266,22 @@ fun CloudBackupDashboardScreen(
                         onBackupAll = { backupViewModel.triggerBackup() },
                         onSyncNow = { syncViewModel.triggerSync() },
                         modifier = cardModifier.padding(bottom = 24.dp)
+                    )
+                }
+
+                // "Sync when app is opened" (#1241): foreground launches enqueue a
+                // one-time sync/upload/download pass for enabled accounts.
+                item(key = "sync_on_app_open") {
+                    var syncOnAppOpen by Settings.Misc.rememberSyncOnAppOpen()
+                    SettingsItem(
+                        item = SettingsEntity.SwitchPreference(
+                            icon = Icons.Outlined.Sync,
+                            title = stringResource(R.string.cloud_sync_on_app_open),
+                            summary = stringResource(R.string.cloud_sync_on_app_open_summary),
+                            isChecked = syncOnAppOpen,
+                            onCheck = { syncOnAppOpen = it },
+                            screenPosition = Position.Alone
+                        )
                     )
                 }
             }

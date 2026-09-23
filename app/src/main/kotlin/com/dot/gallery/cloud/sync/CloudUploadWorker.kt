@@ -718,6 +718,7 @@ class CloudUploadWorker @AssistedInject constructor(
     companion object {
         private const val WORK_NAME = "cloud_upload"
         const val WORK_NAME_ONCE = "cloud_upload_now"
+        private const val WORK_NAME_APP_OPEN = "cloud_upload_app_open"
 
         const val KEY_CURRENT_FILE = "current_file"
         const val KEY_CURRENT_ACCOUNT = "current_account"
@@ -806,6 +807,27 @@ class CloudUploadWorker @AssistedInject constructor(
                 uniqueName,
                 ExistingWorkPolicy.REPLACE,
                 builder.build()
+            )
+        }
+
+        /**
+         * One upload pass on app open (#1241). Not a manual run: [KEY_MANUAL] is
+         * left unset so the pass honours per-account sync toggles, the charging
+         * requirement, and the cellular-upload policy exactly like the periodic
+         * worker — it just scans enabled albums for new/changed media right away.
+         */
+        fun triggerOnAppOpen(workManager: WorkManager) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val request = OneTimeWorkRequestBuilder<CloudUploadWorker>()
+                .setConstraints(constraints)
+                .addTag(TAG_BACKUP)
+                .build()
+            workManager.enqueueUniqueWork(
+                WORK_NAME_APP_OPEN,
+                ExistingWorkPolicy.KEEP,
+                request
             )
         }
 

@@ -5,19 +5,51 @@
 
 package com.dot.gallery.cloud.sync
 
+import android.content.Context
 import androidx.work.WorkManager
 import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.data.entity.CloudServerConfigEntity
+import com.dot.gallery.core.Settings
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** Minimum gap between app-open sync triggers; foreground oscillations don't rescan. */
+private const val APP_OPEN_SYNC_THROTTLE_MS = 60_000L
+
 @Singleton
 class CloudSyncScheduler @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val workManager: WorkManager,
     private val configDao: CloudServerConfigDao
 ) {
+
+    private val lastAppOpenTriggerAt = AtomicLong(0L)
+
+    /**
+     * "Sync when the app is opened" (#1241): enqueues one-time sync, upload, and
+     * download passes whenever the app comes to the foreground, so local photo
+     * changes and remote changes are picked up immediately instead of waiting for
+     * the periodic interval. The one-time workers keep their periodic semantics —
+     * only active, sync/download-enabled accounts run, and per-account network and
+     * charging policies still apply.
+     */
+    suspend fun syncOnAppOpen() {
+        val now = System.currentTimeMillis()
+        val previous = lastAppOpenTriggerAt.get()
+        if (now - previous < APP_OPEN_SYNC_THROTTLE_MS) return
+        if (!Settings.Misc.getSyncOnAppOpen(context).first()) return
+        val configs = configDao.getAll().first()
+        if (configs.none { it.isActive && (it.syncEnabled || it.downloadRemoteEnabled) }) return
+        if (!lastAppOpenTriggerAt.compareAndSet(previous, now)) return
+        printDebug("CloudSyncScheduler: app opened — enqueueing one-time sync/upload/download")
+        CloudSyncWorker.syncNow(workManager, ignoreInterval = true)
+        CloudUploadWorker.triggerOnAppOpen(workManager)
+        CloudDownloadWorker.triggerOnAppOpen(workManager)
+    }
 
     suspend fun reconcile() {
         val plan = cloudSyncSchedulePlan(configDao.getAll().first())

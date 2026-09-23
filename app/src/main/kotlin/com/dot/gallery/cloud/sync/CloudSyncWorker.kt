@@ -12,10 +12,13 @@ import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
@@ -49,6 +52,9 @@ class CloudSyncWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         printDebug("CloudSyncWorker: Starting sync...")
         try {
+            // One-shot runs (e.g. app-open sync) may skip the interval gate while
+            // still honouring per-account network/availability policies.
+            val ignoreInterval = inputData.getBoolean(KEY_IGNORE_INTERVAL, false)
             var mediaChanged = false
             var retryNeeded = false
             val isMetered = runCatching {
@@ -67,7 +73,7 @@ class CloudSyncWorker @AssistedInject constructor(
                 val syncProvider = provider as? SyncCapableProvider ?: continue
                 val previousState = syncStateDao.get(config.providerType, config.id)
                 val syncStartedAt = System.currentTimeMillis()
-                if (!isCloudSyncDue(
+                if (!ignoreInterval && !isCloudSyncDue(
                         lastSyncTimestamp = previousState?.lastSyncTimestamp ?: 0L,
                         intervalMinutes = config.syncIntervalMinutes,
                         now = syncStartedAt
@@ -129,6 +135,28 @@ class CloudSyncWorker @AssistedInject constructor(
 
     companion object {
         private const val WORK_NAME = "cloud_sync"
+        private const val WORK_NAME_ONCE = "cloud_sync_once"
+        private const val KEY_IGNORE_INTERVAL = "ignore_sync_interval"
+
+        /**
+         * Runs one remote-delta sync pass immediately (subject to network). Used by
+         * the app-open sync trigger; [ignoreInterval] skips the per-account
+         * [isCloudSyncDue] gate while keeping metered-network/availability checks.
+         */
+        fun syncNow(workManager: WorkManager, ignoreInterval: Boolean = false) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val request = OneTimeWorkRequestBuilder<CloudSyncWorker>()
+                .setConstraints(constraints)
+                .setInputData(workDataOf(KEY_IGNORE_INTERVAL to ignoreInterval))
+                .build()
+            workManager.enqueueUniqueWork(
+                WORK_NAME_ONCE,
+                ExistingWorkPolicy.KEEP,
+                request
+            )
+        }
 
         fun schedule(
             workManager: WorkManager,

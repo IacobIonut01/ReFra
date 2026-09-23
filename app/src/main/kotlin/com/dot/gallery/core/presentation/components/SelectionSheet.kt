@@ -979,6 +979,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         appBottomSheetState = trashSheetState,
         data = selectedMedia,
         action = effectiveTrashAction,
+        cloudBackups = timelineMediaState.value.cloudBackups,
     ) {
         // A trashed item leaves the regular views but is arriving in the trash view; a
         // permanent delete leaves every view.

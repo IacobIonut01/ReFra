@@ -189,6 +189,7 @@ class CloudDownloadWorker @AssistedInject constructor(
     companion object {
         private const val WORK_NAME = "cloud_download"
         private const val WORK_NAME_ONCE = "cloud_download_now"
+        private const val WORK_NAME_APP_OPEN = "cloud_download_app_open"
 
         const val KEY_MANUAL = "manual"
         const val KEY_CONFIG_ID = "config_id"
@@ -231,6 +232,24 @@ class CloudDownloadWorker @AssistedInject constructor(
                 .build()
             val uniqueName = if (configId > 0L) "${WORK_NAME_ONCE}_$configId" else WORK_NAME_ONCE
             workManager.enqueueUniqueWork(uniqueName, ExistingWorkPolicy.REPLACE, request)
+        }
+
+        /**
+         * One download pass on app open (#1241). Non-manual: the per-account
+         * `downloadRemoteEnabled`/`syncEnabled` gating and the metered-network
+         * check apply exactly like the periodic worker.
+         */
+        fun triggerOnAppOpen(workManager: WorkManager) {
+            val request = OneTimeWorkRequestBuilder<CloudDownloadWorker>()
+                .setConstraints(
+                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                )
+                .build()
+            workManager.enqueueUniqueWork(
+                WORK_NAME_APP_OPEN,
+                ExistingWorkPolicy.KEEP,
+                request
+            )
         }
 
         fun cancel(workManager: WorkManager) {

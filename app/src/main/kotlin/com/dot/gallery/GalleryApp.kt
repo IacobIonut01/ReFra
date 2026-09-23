@@ -10,6 +10,9 @@ import android.app.Application
 import android.net.ConnectivityManager
 import android.net.Network
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import com.dot.gallery.cloud.core.ProviderRegistry
@@ -304,6 +307,20 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
         // Re-resolve auto-switching URLs and renew route-sensitive connections when the network
         // changes (e.g. moving between local Wi-Fi, mobile data, and a VPN).
         registerNetworkChangeReconfigure()
+
+        // "Sync when app is opened" (#1241): on every foreground transition enqueue
+        // a one-time sync/upload/download pass for sync-enabled accounts so local
+        // photo changes and remote changes land immediately. Throttled + gated by
+        // the setting inside the scheduler.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                appScope.launch {
+                    startupGate.awaitFirstContent()
+                    runCatching { cloudSyncScheduler.syncOnAppOpen() }
+                        .onFailure { if (it is CancellationException) throw it }
+                }
+            }
+        })
 
         StartupTracer.end(onCreateSpan)
     }

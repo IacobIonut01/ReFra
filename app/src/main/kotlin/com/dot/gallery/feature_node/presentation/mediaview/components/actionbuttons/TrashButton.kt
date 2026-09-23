@@ -5,10 +5,12 @@ import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaHandler
@@ -16,6 +18,7 @@ import com.dot.gallery.core.PendingRemovalScope
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaMutationResult
 import com.dot.gallery.feature_node.domain.util.isCloud
@@ -64,12 +67,22 @@ fun <T : Media> TrashButton(
     } else {
         PendingRemovalScope.EVERYWHERE
     }
+    // Cloud copies backing up the viewed item, for the device/cloud/both picker.
+    val timelineState by distributor.timelineMediaFlow.collectAsStateWithLifecycle(
+        initialValue = MediaState<Media.UriMedia>()
+    )
+    // Ids resolved by the delete-scope picker (can include cloud backup copies),
+    // stashed while a MediaStore request is in flight.
+    var pendingRemovalIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
     val markPendingRemoval = {
-        distributor.markPendingRemoval(setOf(media.id), pendingScope)
-        onTrashConfirmed()
+        val ids = pendingRemovalIds.ifEmpty { setOf(media.id) }
+        distributor.markPendingRemoval(ids, pendingScope)
+        pendingRemovalIds = emptySet()
+        if (media.id in ids) onTrashConfirmed()
     }
     val result = rememberActivityResult(
         onResultCanceled = {
+            pendingRemovalIds = emptySet()
             scope.launch {
                 state.hide()
                 shouldMoveToTrash = true
@@ -104,27 +117,35 @@ fun <T : Media> TrashButton(
             TrashDialogAction.DELETE
         } else {
             effectiveAction
-        }
-    ) {
+        },
+        cloudBackups = timelineState.cloudBackups
+    ) { items ->
         if (deleteMedia != null && currentVault != null) {
-            it.forEach { media ->
+            if (items.isNotEmpty()) {
                 deleteMedia(currentVault, media) {}
             }
             distributor.markPendingRemoval(
-                it.map { m -> m.id }.toSet(),
+                items.map { m -> m.id }.toSet(),
                 PendingRemovalScope.EVERYWHERE
             )
             onTrashConfirmed()
         } else {
             val mutationResult = if (effectiveAction == TrashDialogAction.TRASH) {
-                handler.trashMedia(result, it, true)
+                handler.trashMedia(result, items, true)
             } else {
-                handler.deleteMedia(result, it)
+                handler.deleteMedia(result, items)
             }
             when (mutationResult) {
-                MediaMutationResult.COMPLETED -> markPendingRemoval()
+                MediaMutationResult.COMPLETED -> {
+                    val removedIds = items.mapTo(HashSet()) { m -> m.id }
+                    distributor.markPendingRemoval(removedIds, pendingScope)
+                    // Only leave the viewer when the viewed item itself was
+                    // removed — a cloud-only scope keeps the local copy.
+                    if (media.id in removedIds) onTrashConfirmed()
+                }
                 MediaMutationResult.FAILED -> deletionError.show()
-                MediaMutationResult.REQUEST_LAUNCHED -> Unit
+                MediaMutationResult.REQUEST_LAUNCHED ->
+                    pendingRemovalIds = items.mapTo(HashSet()) { m -> m.id }
             }
         }
     }
