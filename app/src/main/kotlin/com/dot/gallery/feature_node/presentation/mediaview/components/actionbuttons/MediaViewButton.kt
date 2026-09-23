@@ -2,6 +2,8 @@ package com.dot.gallery.feature_node.presentation.mediaview.components.actionbut
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -27,6 +29,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -42,14 +45,22 @@ fun <T : Media> MediaViewButton(
     onItemLongClick: ((T) -> Unit)? = null,
     onItemClick: (T) -> Unit
 ) {
-    val alpha by animateFloatAsState(if (enabled) 1f else 0.5f)
+    // "Animate media items" off — enabled/theme colour shifts resolve instantly.
+    val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
+    val colorSpec = if (animationsEnabled) spring<Color>() else snap()
+    val alpha by animateFloatAsState(
+        targetValue = if (enabled) 1f else 0.5f,
+        animationSpec = if (animationsEnabled) spring() else snap()
+    )
     val baseColor by animateColorAsState(
         targetValue = if (followTheme) LocalContentColor.current else Color.White,
+        animationSpec = colorSpec,
         label = "MediaViewButtonBaseColor"
     )
 
     val tintColor by animateColorAsState(
         baseColor.copy(alpha = alpha),
+        animationSpec = colorSpec,
         label = "MediaViewButtonTintColor"
     )
     val tooltipState = rememberTooltipState()

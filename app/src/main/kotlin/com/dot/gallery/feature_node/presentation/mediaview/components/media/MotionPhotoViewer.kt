@@ -5,6 +5,7 @@ import android.view.TextureView
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -66,6 +67,7 @@ import androidx.media3.ui.compose.state.rememberPresentationState
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.MotionPhotoInfo
+import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewViewModel
 import com.github.panpf.zoomimage.compose.zoom.Transform
 import kotlin.math.roundToInt
@@ -218,7 +220,12 @@ fun BoxScope.MotionPhotoSurface(state: MotionPhotoState) {
         targetValue = if (
             state.isPlaying && state.videoReady && !presentationState.coverSurface
         ) 1f else 0f,
-        animationSpec = tween(250),
+        // "Animate media items" off — the video surface appears over the still instantly.
+        animationSpec = if (LocalMediaViewerVisualPolicy.current.animationsEnabled) {
+            tween(250)
+        } else {
+            snap()
+        },
         label = "motionVideoAlpha"
     )
     var textureViewRef by remember(player) { mutableStateOf<TextureView?>(null) }

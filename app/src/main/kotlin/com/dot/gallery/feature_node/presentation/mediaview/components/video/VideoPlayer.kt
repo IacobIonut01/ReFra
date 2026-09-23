@@ -9,6 +9,7 @@ import androidx.media3.ui.SubtitleView
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -82,6 +83,13 @@ import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.rememberSurfaceCapture
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
+
+private suspend fun Animatable<Float, AnimationVector1D>.animateOrSnap(
+    target: Float,
+    animated: Boolean,
+) {
+    if (animated) animateTo(target, tween(300)) else snapTo(target)
+}
 
 internal fun shouldPlayVideoOnce(slideshowActive: Boolean, storyActive: Boolean): Boolean =
     slideshowActive || storyActive
@@ -252,6 +260,10 @@ fun <T : Media> VideoPlayer(
     val rebindEnabledState = rememberUpdatedState(rebindOnInsetChange)
     val playerForRebind = rememberUpdatedState(currentPlayer)
     val allowBlur = LocalMediaViewerVisualPolicy.current.allowBlur
+    // "Animate media items" off — double-tap zoom/reset snaps instead of tweening. Read via
+    // rememberUpdatedState so the long-lived pointerInput handler sees the current value.
+    val animationsEnabledState =
+        rememberUpdatedState(LocalMediaViewerVisualPolicy.current.animationsEnabled)
     val hazeState = LocalHazeState.current
     val videoCapture by rememberSurfaceCapture(
         view = surfaceViewRef,
@@ -295,9 +307,15 @@ fun <T : Media> VideoPlayer(
                         if (scaleAnim.value > 1.01f) {
                             // Reset zoom
                             isZoomed = false
-                            scope.launch { scaleAnim.animateTo(1f, tween(300)) }
-                            scope.launch { offsetXAnim.animateTo(0f, tween(300)) }
-                            scope.launch { offsetYAnim.animateTo(0f, tween(300)) }
+                            scope.launch {
+                                scaleAnim.animateOrSnap(1f, animationsEnabledState.value)
+                            }
+                            scope.launch {
+                                offsetXAnim.animateOrSnap(0f, animationsEnabledState.value)
+                            }
+                            scope.launch {
+                                offsetYAnim.animateOrSnap(0f, animationsEnabledState.value)
+                            }
                         } else {
                             // Zoom to 2.5x anchored on the tap position
                             val targetScale = 2.5f
@@ -305,12 +323,20 @@ fun <T : Media> VideoPlayer(
                             val focal = (center - tapOffset) * (targetScale - 1f)
                             val max = maxOffsetFor(targetScale)
                             isZoomed = true
-                            scope.launch { scaleAnim.animateTo(targetScale, tween(300)) }
                             scope.launch {
-                                offsetXAnim.animateTo(focal.x.coerceIn(-max.x, max.x), tween(300))
+                                scaleAnim.animateOrSnap(targetScale, animationsEnabledState.value)
                             }
                             scope.launch {
-                                offsetYAnim.animateTo(focal.y.coerceIn(-max.y, max.y), tween(300))
+                                offsetXAnim.animateOrSnap(
+                                    focal.x.coerceIn(-max.x, max.x),
+                                    animationsEnabledState.value
+                                )
+                            }
+                            scope.launch {
+                                offsetYAnim.animateOrSnap(
+                                    focal.y.coerceIn(-max.y, max.y),
+                                    animationsEnabledState.value
+                                )
                             }
                         }
                     }

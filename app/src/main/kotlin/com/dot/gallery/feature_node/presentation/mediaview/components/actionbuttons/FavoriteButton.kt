@@ -19,6 +19,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 import com.dot.gallery.feature_node.domain.util.isFavorite
 import com.dot.gallery.feature_node.domain.util.readUriOnly
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
@@ -39,6 +40,8 @@ fun <T : Media> FavoriteButton(
     val favoriteOverrides by distributor.favoriteOverrides.collectAsStateWithLifecycle()
     val isFavorite = favoriteOverrides[media.id] ?: media.isFavorite
     val pulse = remember { Animatable(1f) }
+    // "Animate media items" off — the heart flips with no pulse.
+    val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
     val result = rememberActivityResult(
         onResultCanceled = { distributor.clearFavoriteOverride(media.id) }
     )
@@ -58,12 +61,14 @@ fun <T : Media> FavoriteButton(
             scope.launch {
                 val target = !isFavorite
                 distributor.setFavoriteOverride(it.id, target)
-                launch {
-                    pulse.animateTo(1.35f, tween(110))
-                    pulse.animateTo(
-                        1f,
-                        spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-                    )
+                if (animationsEnabled) {
+                    launch {
+                        pulse.animateTo(1.35f, tween(110))
+                        pulse.animateTo(
+                            1f,
+                            spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                        )
+                    }
                 }
                 handler.toggleFavorite(result = result, arrayListOf(it), target)
             }

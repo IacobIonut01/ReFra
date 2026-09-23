@@ -60,6 +60,14 @@ internal fun shouldCommitViewerDismiss(offsetY: Float, height: Int): Boolean =
 internal class ViewerDismissState(
     private val bridge: ViewerDismissBridge? = null,
 ) {
+    /**
+     * Mirrors the "Animate media items" preference. When false, committed drags dismiss
+     * instantly (no return flight), cancelled drags snap back, enter flights are skipped, and
+     * predictive back resolves as a plain dismiss — the container's exit is instant too, so
+     * nothing needs a flight to cover it.
+     */
+    var animationsEnabled: Boolean = true
+
     private var sizePx by mutableStateOf(IntSize.Zero)
     private var dragOffsetY by mutableFloatStateOf(0f)
     private var gestureActive by mutableStateOf(false)
@@ -159,7 +167,7 @@ internal class ViewerDismissState(
      */
     suspend fun runEnterFlight(key: Any, media: Media, cellBounds: Rect) {
         val b = bridge ?: return
-        if (gestureActive || committed || backActive) return
+        if (!animationsEnabled || gestureActive || committed || backActive) return
         // The screen's effect can resume before the first layout pass — wait for the box size.
         val size = withTimeoutOrNull(800) {
             snapshotFlow { sizePx }.first { it.width > 0 && it.height > 0 }
@@ -174,13 +182,18 @@ internal class ViewerDismissState(
                 animationSpec = tween(FLIGHT_DURATION_MS, easing = FastOutSlowInEasing),
             ) {
                 b.flight?.let { f ->
-                    f.bounds = Rect(
-                        left = lerp(cellBounds.left, full.left, value),
-                        top = lerp(cellBounds.top, full.top, value),
-                        right = lerp(cellBounds.right, full.right, value),
-                        bottom = lerp(cellBounds.bottom, full.bottom, value),
-                    )
-                    f.progress = value
+                    // The flight slot may have been taken over (e.g. a predictive-back
+                    // return flight armed mid-enter) — this coroutine only ever writes
+                    // its own enter flight.
+                    if (f.isEnter) {
+                        f.bounds = Rect(
+                            left = lerp(cellBounds.left, full.left, value),
+                            top = lerp(cellBounds.top, full.top, value),
+                            right = lerp(cellBounds.right, full.right, value),
+                            bottom = lerp(cellBounds.bottom, full.bottom, value),
+                        )
+                        f.progress = value
+                    }
                 }
             }
         } finally {
@@ -229,11 +242,11 @@ internal class ViewerDismissState(
             val b = bridge
             val media = armedMedia
             val target = armedKey?.let { b?.cellBounds?.get(it) }
-            if (b == null || media == null || target == null || target.isEmpty) {
-                // Route viewer or an unmapped cell: no manual flight — just dismiss and let
-                // the container (and any route-level shared element) exit. The suppression
-                // stays armed until the overlay is fully inactive (the host clears it) so the
-                // cell can't re-match mid-exit and hang the transition.
+            if (!animationsEnabled || b == null || media == null || target == null || target.isEmpty) {
+                // Route viewer, an unmapped cell, or animations disabled: no manual flight —
+                // just dismiss and let the container (and any route-level shared element)
+                // exit. The suppression stays armed until the overlay is fully inactive (the
+                // host clears it) so the cell can't re-match mid-exit and hang the transition.
                 onDismiss()
                 armedKey = null
                 armedMedia = null
@@ -293,10 +306,14 @@ internal class ViewerDismissState(
             dragAnimation.snapTo(startOffset)
             gestureActive = false
             dragOffsetY = 0f
-            dragAnimation.animateTo(
-                targetValue = 0f,
-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-            )
+            if (animationsEnabled) {
+                dragAnimation.animateTo(
+                    targetValue = 0f,
+                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                )
+            } else {
+                dragAnimation.snapTo(0f)
+            }
             bridge?.suppressedElementKey = null
             armedKey = null
             armedMedia = null
@@ -317,7 +334,7 @@ internal class ViewerDismissState(
     ) {
         val b = bridge
         val target = elementKey?.let { b?.cellBounds?.get(it) }?.takeUnless { it.isEmpty }
-        if (b == null || elementKey == null || media == null || target == null ||
+        if (!animationsEnabled || b == null || elementKey == null || media == null || target == null ||
             gestureActive || committed || backActive
         ) {
             // No mapped cell to morph to (or a gesture already owns the state): still fade the

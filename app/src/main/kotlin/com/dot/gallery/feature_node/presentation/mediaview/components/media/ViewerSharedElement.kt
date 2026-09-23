@@ -5,6 +5,7 @@
 
 package com.dot.gallery.feature_node.presentation.mediaview.components.media
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.presentation.mediaview.ViewerDismissBridge
 import com.dot.gallery.feature_node.presentation.mediaview.ViewerDismissFlight
+import com.dot.gallery.feature_node.presentation.mediaview.ViewerExitVisual
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
 import com.github.panpf.sketch.resize.Precision
@@ -88,6 +90,31 @@ internal fun ViewerDismissFlightLayer(bridge: ViewerDismissBridge) {
                 modifier = Modifier.fillMaxSize(),
                 contentScale = flightScale,
             )
+        }
+    }
+}
+
+/**
+ * Non-interactive stand-in for the media viewer while its overlay exits: the scrim the
+ * viewer stamped on [ViewerDismissBridge.exitVisual] (with its drag-faded alpha) plus the
+ * media thumbnail when no return flight owns it. The interactive viewer is swapped for this
+ * at the start of the exit so the fade keeps its visuals without any pointer-input nodes —
+ * a fast re-tap falls through to the grid underneath instead of being swallowed by the
+ * still-fading viewer. Host it inside the overlay's exit transition in place of the viewer.
+ */
+@Composable
+internal fun ViewerDismissExitVisual(bridge: ViewerDismissBridge) {
+    val visual: ViewerExitVisual = bridge.exitVisual ?: return
+    Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(visual.scrim))
+        if (bridge.flight == null) {
+            visual.media?.let { media ->
+                ViewerSharedElementThumbnail(
+                    media = media,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+            }
         }
     }
 }

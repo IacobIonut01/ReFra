@@ -1,6 +1,8 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.RestoreFromTrash
@@ -96,6 +98,8 @@ fun <T : Media> MediaViewQuickBottomBar(
             followTheme -> MaterialTheme.colorScheme.onSurface
             else -> Color.White
         },
+        // "Animate media items" off — chrome colour shifts snap.
+        animationSpec = if (visualPolicy.animationsEnabled) spring() else snap(),
         label = "BottomBarContentColor"
     )
     val eventHandler = LocalEventHandler.current

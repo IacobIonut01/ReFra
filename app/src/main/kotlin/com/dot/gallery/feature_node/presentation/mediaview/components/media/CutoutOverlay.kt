@@ -6,7 +6,15 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components.media
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -56,6 +64,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
+import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 
 /**
  * Which prompt-point tool is currently armed while refining a subject cutout.
@@ -204,13 +213,17 @@ internal fun CutoutControlsBar(
     modifier: Modifier = Modifier
 ) {
     val state = controller.state
+    // "Animate media items" off — the bar resizes and reveals its action tier instantly.
+    val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
     Surface(
         shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.96f),
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 3.dp,
         shadowElevation = 8.dp,
-        modifier = modifier.animateContentSize()
+        modifier = modifier.animateContentSize(
+            animationSpec = if (animationsEnabled) spring() else snap()
+        )
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
@@ -283,7 +296,19 @@ internal fun CutoutControlsBar(
             }
 
             // Tier 2 — export actions, available once a mask exists.
-            AnimatedVisibility(visible = state.hasResult) {
+            AnimatedVisibility(
+                visible = state.hasResult,
+                enter = if (animationsEnabled) {
+                    fadeIn() + expandVertically()
+                } else {
+                    EnterTransition.None
+                },
+                exit = if (animationsEnabled) {
+                    fadeOut() + shrinkVertically()
+                } else {
+                    ExitTransition.None
+                },
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant,

@@ -6,8 +6,12 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -120,10 +124,15 @@ fun MediaViewAppBar(
         // background on a light theme must keep the scrim/icon tint dark.
         else !visualPolicy.usesDarkBackground(isDarkTheme) && !isVideo
     }
+    // "Animate media items" off — the bar and its pills appear instantly and colour shifts snap.
+    val animationsEnabled = visualPolicy.animationsEnabled
+    val innerEnter = if (animationsEnabled) enterAnimation else EnterTransition.None
+    val innerExit = if (animationsEnabled) exitAnimation else ExitTransition.None
+    val colorSpec = if (animationsEnabled) spring<Color>() else snap()
     AnimatedVisibility(
         visible = showUI,
-        enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
-        exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION)
+        enter = if (animationsEnabled) enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION) else EnterTransition.None,
+        exit = if (animationsEnabled) exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION) else ExitTransition.None
     ) {
         val gradientColor by animateColorAsState(
             when {
@@ -131,6 +140,7 @@ fun MediaViewAppBar(
                 followTheme -> if (isDarkTheme) BlackScrim else WhiterBlackScrim
                 else -> BlackScrim
             },
+            animationSpec = colorSpec,
         )
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -157,6 +167,7 @@ fun MediaViewAppBar(
                         followTheme -> MaterialTheme.colorScheme.surfaceContainer.copy(0.5f)
                         else -> Color.Black.copy(0.3f)
                     },
+                    animationSpec = colorSpec,
                     label = "AppBarSurfaceContainer"
                 )
                 val backgroundModifier = if (!visualPolicy.allowBlur) {
@@ -171,6 +182,7 @@ fun MediaViewAppBar(
                         followTheme -> MaterialTheme.colorScheme.onSurface
                         else -> Color.White
                     },
+                    animationSpec = colorSpec,
                     label = "AppBarContentColor"
                 )
 
@@ -212,8 +224,8 @@ fun MediaViewAppBar(
                 this@Column.AnimatedVisibility(
                     modifier = Modifier.align(Alignment.Center),
                     visible = showDate,
-                    enter = enterAnimation,
-                    exit = exitAnimation
+                    enter = innerEnter,
+                    exit = innerExit
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -234,8 +246,8 @@ fun MediaViewAppBar(
                         )
                         this@Column.AnimatedVisibility(
                             visible = showLoadingIndicator,
-                            enter = enterAnimation,
-                            exit = exitAnimation
+                            enter = innerEnter,
+                            exit = innerExit
                         ) {
                             LinearProgressIndicator(
                                 modifier = Modifier
@@ -266,8 +278,8 @@ fun MediaViewAppBar(
 
                     this@Column.AnimatedVisibility(
                         visible = showInfo,
-                        enter = enterAnimation,
-                        exit = exitAnimation
+                        enter = innerEnter,
+                        exit = innerExit
                     ) {
                         IconButton(onClick = onShowInfo) {
                             Icon(
@@ -286,8 +298,8 @@ fun MediaViewAppBar(
 
             AnimatedVisibility(
                 visible = isLocked,
-                enter = enterAnimation,
-                exit = exitAnimation,
+                enter = innerEnter,
+                exit = innerExit,
                 modifier = Modifier.graphicsLayer { alpha = topExtrasAlpha() }
             ) {
                 Icon(
@@ -298,8 +310,8 @@ fun MediaViewAppBar(
             }
             AnimatedVisibility(
                 visible = isMotionPhoto && !isLocked,
-                enter = enterAnimation,
-                exit = exitAnimation,
+                enter = innerEnter,
+                exit = innerExit,
                 modifier = Modifier.graphicsLayer { alpha = topExtrasAlpha() }
             ) {
                 Row(
@@ -330,8 +342,8 @@ fun MediaViewAppBar(
             }
             AnimatedVisibility(
                 visible = showRotationHelper.value && !isLocked,
-                enter = enterAnimation,
-                exit = exitAnimation,
+                enter = innerEnter,
+                exit = innerExit,
                 modifier = Modifier.graphicsLayer { alpha = topExtrasAlpha() }
             ) {
                 Row(
@@ -343,7 +355,9 @@ fun MediaViewAppBar(
                         .clip(CircleShape)
                         .clickable(enabled = !rotationInProgress, onClick = rotateImage)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .animateContentSize(),
+                        .animateContentSize(
+                            animationSpec = if (animationsEnabled) spring() else snap()
+                        ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -370,8 +384,8 @@ fun MediaViewAppBar(
             }
             AnimatedVisibility(
                 visible = visualSearchStageLabel != null && !isLocked,
-                enter = enterAnimation,
-                exit = exitAnimation,
+                enter = innerEnter,
+                exit = innerExit,
                 modifier = Modifier.graphicsLayer { alpha = topExtrasAlpha() }
             ) {
                 Row(
@@ -383,7 +397,9 @@ fun MediaViewAppBar(
                         .clip(CircleShape)
                         .clickable(onClick = onCancelVisualSearch)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .animateContentSize(),
+                        .animateContentSize(
+                            animationSpec = if (animationsEnabled) spring() else snap()
+                        ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {

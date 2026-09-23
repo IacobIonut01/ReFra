@@ -9,6 +9,8 @@ import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.DeferredAnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 
 import androidx.compose.animation.SharedTransitionLayout
@@ -84,8 +86,10 @@ import com.dot.gallery.core.ScrollToTopController
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberAutoHideNavBar
 import com.dot.gallery.core.Settings.Misc.rememberOldNavbar
+import com.dot.gallery.core.Settings.Misc.rememberSharedElements
 import com.dot.gallery.feature_node.presentation.mediaview.LocalViewerDismissBridge
 import com.dot.gallery.feature_node.presentation.mediaview.ViewerDismissBridge
+import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerDismissExitVisual
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerDismissFlightLayer
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
@@ -192,6 +196,7 @@ fun AppBarContainer(
         overlayVisibilityState.animateTo(overlayVisible)
     }
     val overlayTransition = rememberTransition(overlayVisibilityState)
+    val viewerAnimationsEnabled by rememberSharedElements()
     val overlayActive =
         overlayVisibilityState.currentState || overlayVisibilityState.targetState
     val overlayIsolationModifier = if (overlayActive) {
@@ -278,11 +283,19 @@ fun AppBarContainer(
             visible = { it },
             modifier = Modifier.fillMaxSize().testTag(AppBarOverlayContentTag),
             // Long enough for the sharedBounds return flight to finish before the overlay layer
-            // is torn down.
-            enter = fadeIn(tween(320)),
-            exit = fadeOut(tween(320)),
+            // is torn down. With media animations disabled there is no flight to cover — the
+            // viewer appears/disappears instantly.
+            enter = if (viewerAnimationsEnabled) fadeIn(tween(320)) else EnterTransition.None,
+            exit = if (viewerAnimationsEnabled) fadeOut(tween(320)) else ExitTransition.None,
         ) {
-            overlayContent(this@SharedTransitionLayout, this, overlayDismissBridge)
+            if (overlayVisible) {
+                overlayContent(this@SharedTransitionLayout, this, overlayDismissBridge)
+            } else {
+                // Exiting: swap the interactive viewer for its non-interactive stand-in so
+                // a fast re-tap falls through to the grid — the still-fading viewer's
+                // gesture surfaces would otherwise swallow touches for the whole fade.
+                ViewerDismissExitVisual(overlayDismissBridge)
+            }
         }
         // Committed swipe-dismiss flight: a root-level layer morphs the media thumbnail from the
         // gesture's release bounds to the live source-cell bounds while the overlay exits. It

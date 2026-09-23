@@ -20,6 +20,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -29,6 +30,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -59,6 +61,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -131,6 +134,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.composables.core.BottomSheet
+import com.composables.core.BottomSheetState
+import com.composables.core.SheetDetent
 import com.composables.core.SheetDetent.Companion.FullyExpanded
 import com.composables.core.rememberBottomSheetState
 import com.composeunstyled.LocalTextStyle
@@ -589,6 +594,23 @@ internal fun isCleanTap(
 ): Boolean =
     upUptime - downUptime < longPressTimeoutMillis && dragDistance <= touchSlop
 
+/**
+ * Programmatic page change honoring "Animate media items": animates when enabled, jumps
+ * instantly when disabled so scripted navigation (slideshow advance, rotate-to-copy, viewer
+ * events) never lingers on a scroll animation.
+ */
+internal suspend fun PagerState.scrollToPageOrAnimate(page: Int, animate: Boolean) {
+    if (animate) animateScrollToPage(page) else scrollToPage(page)
+}
+
+/**
+ * Bottom-sheet detent change honoring "Animate media items": animates when enabled, jumps
+ * instantly when disabled so the info sheet opens/collapses without a slide.
+ */
+internal suspend fun BottomSheetState.animateToOrJump(detent: SheetDetent, animate: Boolean) {
+    if (animate) animateTo(detent) else jumpTo(detent)
+}
+
 @Composable
 fun <T> rememberedDerivedState(
     key: Any? = Unit,
@@ -727,7 +749,10 @@ fun <T : Media> MediaViewScreen(
 ) = CompositionLocalProvider(
     LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(
         allowBlur = allowBlur,
-        forceDarkBackground = rememberDarkMediaViewer().value
+        forceDarkBackground = rememberDarkMediaViewer().value,
+        // "Animate media items" off — nested viewer components (chrome, media fades,
+        // blur, zoom/rotation tweens) resolve instantly instead of animating.
+        animationsEnabled = Settings.Misc.rememberSharedElements().value
     ),
     LocalMediaViewerNavigate provides rememberViewerExitNavigate(onDismissRequest)
 ) {
@@ -1031,6 +1056,17 @@ fun <T : Media> MediaViewScreen(
         // morphs cell→fullscreen instead, with both entries suppressed so no framework morph draws
         // on top; suppression holds until the container's enter transition settles.
         val sharedElementsEnabled by Settings.Misc.rememberSharedElements()
+        // With animations off the dismiss gesture still tracks the finger but commits,
+        // cancels and predictive back all resolve instantly — no flights or springs.
+        viewerDismissState.animationsEnabled = sharedElementsEnabled
+        // With media animations disabled every chrome layer appears/disappears instantly
+        // and programmatic page scrolls jump instead of animating.
+        val chromeEnter =
+            if (sharedElementsEnabled) enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION) else EnterTransition.None
+        val chromeExit =
+            if (sharedElementsEnabled) exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION) else ExitTransition.None
+        val contentEnter = if (sharedElementsEnabled) enterAnimation else EnterTransition.None
+        val contentExit = if (sharedElementsEnabled) exitAnimation else ExitTransition.None
         LaunchedEffect(viewerSessionKey) {
             val b = dismissBridge
             if (!overlayMode || !sharedElementsEnabled || b == null) return@LaunchedEffect
@@ -1635,7 +1671,8 @@ fun <T : Media> MediaViewScreen(
         LaunchedEffect(uiEvents, rotateFailedText, visualSearchFailedText) {
             uiEvents.collect { event ->
                 when (event) {
-                    MediaViewEvent.ScrollToFirstPage -> pagerState.animateScrollToPage(0)
+                    MediaViewEvent.ScrollToFirstPage ->
+                        pagerState.scrollToPageOrAnimate(0, sharedElementsEnabled)
 
                     is MediaViewEvent.NavigateToRotatedCopy -> {
                         // Wait (briefly) for the new copy to be indexed into the pager, then jump to it.
@@ -1646,7 +1683,7 @@ fun <T : Media> MediaViewScreen(
                                 }
                             }.first { it >= 0 }
                         }
-                        pagerState.animateScrollToPage(targetIndex ?: 0)
+                        pagerState.scrollToPageOrAnimate(targetIndex ?: 0, sharedElementsEnabled)
                     }
 
                     is MediaViewEvent.OverwriteApplied -> {
@@ -1724,7 +1761,7 @@ fun <T : Media> MediaViewScreen(
             // `currentPage` key and would cancel animateScrollToPage mid-flight.
             when (val advance = resolveSlideshowAdvance(pagerItems.size, currentPage, cfg.loop)) {
                 is SlideshowAdvance.Page -> scope.launch {
-                    pagerState.animateScrollToPage(advance.index)
+                    pagerState.scrollToPageOrAnimate(advance.index, sharedElementsEnabled)
                 }
 
                 SlideshowAdvance.Exit -> exitSlideshow()
@@ -1737,6 +1774,20 @@ fun <T : Media> MediaViewScreen(
             val visualPolicy = LocalMediaViewerVisualPolicy.current
             val backgroundColor =
                 if (visualPolicy.usesDarkBackground(isDarkTheme)) Color.Black else Color.White
+            // Stamp the non-interactive stand-in the overlay host draws while exiting: the
+            // viewer leaves composition with the exit so its gesture surfaces can't eat a
+            // fast re-tap on the grid underneath. Media owned by a return flight is left out
+            // — the root flight layer draws it.
+            SideEffect {
+                dismissBridge?.exitVisual = ViewerExitVisual(
+                    scrim = backgroundColor.copy(alpha = dismissAlpha),
+                    media = currentMedia?.takeUnless {
+                        viewerDismissState.isDismissedVisualHidden(
+                            MediaSharedElementKey.MediaKey(it.id)
+                        )
+                    },
+                )
+            }
             val dismissGestureEnabled = overlayMode &&
                     !isLocked &&
                     !isImageZoomed &&
@@ -1928,9 +1979,9 @@ fun <T : Media> MediaViewScreen(
 
                     // ── Slideshow transitions ──
                     val transition = slideshowConfig?.transition
-                    val fadeEnabled = slideshowActive &&
+                    val fadeEnabled = sharedElementsEnabled && slideshowActive &&
                             (transition == SlideshowTransition.FADE || transition == SlideshowTransition.KEN_BURNS)
-                    val kenBurnsEnabled = slideshowActive && media?.isVideo != true &&
+                    val kenBurnsEnabled = sharedElementsEnabled && slideshowActive && media?.isVideo != true &&
                             slideshowConfig != null &&
                             (transition == SlideshowTransition.KEN_BURNS || slideshowConfig.kenBurns)
                     val kenBurnsScale = remember(media?.id) { Animatable(1f) }
@@ -2071,8 +2122,8 @@ fun <T : Media> MediaViewScreen(
                                 // committed dismiss hands the visual to the thumbnail element layer.
                                 visible = media != null && viewerContentReady &&
                                         (viewerDismissState.usesOverlayTransform || !viewerDismissState.isCommitted),
-                                enter = enterAnimation,
-                                exit = if (viewerDismissState.isCommitted) ExitTransition.None else exitAnimation
+                                enter = contentEnter,
+                                exit = if (viewerDismissState.isCommitted) ExitTransition.None else contentExit
                             ) {
                                 var offset by remember {
                                     mutableStateOf(IntOffset(0, 0))
@@ -2384,12 +2435,8 @@ fun <T : Media> MediaViewScreen(
 
                                         AnimatedVisibility(
                                             visible = viewerInteractive && showViewerChrome,
-                                            enter = enterAnimation(
-                                                DEFAULT_TOP_BAR_ANIMATION_DURATION
-                                            ),
-                                            exit = exitAnimation(
-                                                DEFAULT_TOP_BAR_ANIMATION_DURATION
-                                            ),
+                                            enter = chromeEnter,
+                                            exit = chromeExit,
                                             modifier = Modifier.fillMaxSize()
                                         ) {
                                             VideoPlayerController(
@@ -2567,9 +2614,9 @@ fun <T : Media> MediaViewScreen(
                             scope.launch {
                                 if (showUI) {
                                     if (sheetState.currentDetent == imageOnlyDetent) {
-                                        sheetState.animateTo(FullyExpanded)
+                                        sheetState.animateToOrJump(FullyExpanded, sharedElementsEnabled)
                                     } else {
-                                        sheetState.animateTo(imageOnlyDetent)
+                                        sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
                                     }
                                 }
                             }
@@ -2577,7 +2624,7 @@ fun <T : Media> MediaViewScreen(
                         onGoBack = {
                             scope.launch {
                                 if (sheetState.currentDetent == FullyExpanded) {
-                                    sheetState.animateTo(imageOnlyDetent)
+                                    sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
                                 } else {
                                     requestViewerDismiss()
                                 }
@@ -2683,8 +2730,8 @@ fun <T : Media> MediaViewScreen(
                 // Floating filmstrip overlay (positioned like video seekbar)
                 AnimatedVisibility(
                     visible = viewerInteractive && showViewerChrome && motionPhotoState.isDetected && motionPhotoState.compositeFilmstrip != null,
-                    enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
-                    exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                    enter = chromeEnter,
+                    exit = chromeExit,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 16.dp)
@@ -2703,8 +2750,8 @@ fun <T : Media> MediaViewScreen(
                     motionPhotoState.isDetected && motionPhotoState.compositeFilmstrip != null
                 AnimatedVisibility(
                     visible = viewerInteractive && showViewerChrome && !showMotionFilmstrip && currentGroupMembers.size > 1,
-                    enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
-                    exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                    enter = chromeEnter,
+                    exit = chromeExit,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .graphicsLayer {
@@ -2729,7 +2776,11 @@ fun <T : Media> MediaViewScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // Floating action bar for group multi-select
-                        AnimatedVisibility(visible = groupMultiSelectMode) {
+                        AnimatedVisibility(
+                            visible = groupMultiSelectMode,
+                            enter = contentEnter,
+                            exit = contentExit
+                        ) {
                             GroupMemberSelectionBar(
                                 selectedCount = groupMultiSelectedIds.size,
                                 totalCount = currentGroupMembers.size,
@@ -2798,17 +2849,21 @@ fun <T : Media> MediaViewScreen(
                 // leave it invisible-but-still-interactive instead of dismissed (#964).
                 LaunchedEffect(showUI) {
                     if (!showUI && sheetState.progress(imageOnlyDetent, expandedDetent) > 0f) {
-                        sheetState.animateTo(imageOnlyDetent)
+                        sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
                     }
                 }
                 BackHandler(sheetState.currentDetent == FullyExpanded) {
                     scope.launch {
-                        sheetState.animateTo(imageOnlyDetent)
+                        sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
                     }
                 }
                 val bottomSheetAlpha by animateFloatAsState(
                     targetValue = if (showViewerChrome) 1f else 0f,
-                    animationSpec = tween(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                    animationSpec = if (sharedElementsEnabled) {
+                        tween(DEFAULT_TOP_BAR_ANIMATION_DURATION)
+                    } else {
+                        snap()
+                    },
                     label = "MediaViewActionsAlpha"
                 )
                 if (!isCutoutActive) {
@@ -2831,8 +2886,8 @@ fun <T : Media> MediaViewScreen(
                         ) {
                             AnimatedVisibility(
                                 visible = currentMedia != null,
-                                enter = enterAnimation,
-                                exit = exitAnimation
+                                enter = contentEnter,
+                                exit = contentExit
                             ) {
                                 val bottomBarFollowTheme = if (autoContrast) {
                                     !isBottomDark
@@ -2849,6 +2904,7 @@ fun <T : Media> MediaViewScreen(
 
                                         else -> Color.Black.copy(0.5f)
                                     },
+                                    animationSpec = if (sharedElementsEnabled) spring() else snap(),
                                     label = "BottomBarSurfaceContainer"
                                 )
                                 val backgroundModifier = if (!allowBlur) {
@@ -2922,7 +2978,10 @@ fun <T : Media> MediaViewScreen(
                                                         windowInsetsController.toggleSystemBars(show = true)
                                                         dismissViewer()
                                                     } else {
-                                                        exitingMedia = removedMedia
+                                                        // The fly-away reveal is skipped entirely
+                                                        // when media animations are disabled.
+                                                        exitingMedia =
+                                                            removedMedia.takeIf { sharedElementsEnabled }
                                                     }
                                                 }
                                             }
@@ -2969,8 +3028,8 @@ fun <T : Media> MediaViewScreen(
                 // subject-cutout session is active on the current page.
                 AnimatedVisibility(
                     visible = viewerInteractive && navigationChromeVisible && isCutoutActive && cutoutController != null,
-                    enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
-                    exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                    enter = chromeEnter,
+                    exit = chromeExit,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = bottomPadding + extraPaddingWithNavButtons + 16.dp)
@@ -2986,8 +3045,8 @@ fun <T : Media> MediaViewScreen(
                 // keeping the normal viewer chrome hidden.
                 AnimatedVisibility(
                     visible = viewerInteractive && navigationChromeVisible && slideshowActive && slideshowControlsVisible,
-                    enter = enterAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
-                    exit = exitAnimation(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                    enter = chromeEnter,
+                    exit = chromeExit,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = bottomPadding + extraPaddingWithNavButtons + 16.dp)
@@ -3002,7 +3061,7 @@ fun <T : Media> MediaViewScreen(
                                 if (size > 0) {
                                     val prev =
                                         if (currentPage - 1 < 0) size - 1 else currentPage - 1
-                                    pagerState.animateScrollToPage(prev)
+                                    pagerState.scrollToPageOrAnimate(prev, sharedElementsEnabled)
                                 }
                             }
                         },
@@ -3011,7 +3070,7 @@ fun <T : Media> MediaViewScreen(
                                 val size = pagerItems.size
                                 if (size > 0) {
                                     val next = if (currentPage + 1 >= size) 0 else currentPage + 1
-                                    pagerState.animateScrollToPage(next)
+                                    pagerState.scrollToPageOrAnimate(next, sharedElementsEnabled)
                                 }
                             }
                         },

@@ -7,6 +7,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.DeferredAnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 
 import androidx.compose.animation.SharedTransitionLayout
@@ -57,6 +59,7 @@ import com.dot.gallery.core.DefaultEventHandler
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberForceTheme
 import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
+import com.dot.gallery.core.Settings.Misc.rememberSharedElements
 import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.util.OnLifecycleEvent
 import com.dot.gallery.feature_node.domain.model.UIEvent
@@ -64,6 +67,7 @@ import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreenRoute
 import com.dot.gallery.feature_node.presentation.mediaview.LocalViewerDismissBridge
 import com.dot.gallery.feature_node.presentation.mediaview.ViewerDismissBridge
+import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerDismissExitVisual
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerDismissFlightLayer
 import com.dot.gallery.feature_node.presentation.util.SecureWindow
 import com.dot.gallery.feature_node.presentation.vault.components.VaultPasswordUnlockDialog
@@ -146,6 +150,7 @@ fun VaultScreen(
             vaultViewerVisibility.animateTo(vaultViewerMediaId != null)
         }
         val vaultViewerTransition = rememberTransition(vaultViewerVisibility)
+        val viewerAnimationsEnabled by rememberSharedElements()
         val vaultViewerActive = vaultViewerVisibility.currentState || vaultViewerVisibility.targetState
         // Safety net: if the overlay disappears while a drag still holds the defer armed, release
         // the source cell's shared-element suppression.
@@ -643,10 +648,17 @@ fun VaultScreen(
                 visible = { it },
                 modifier = Modifier.fillMaxSize(),
                 // Long enough for the sharedBounds return flight to finish before the overlay
-                // layer is torn down.
-                enter = fadeIn(tween(320)),
-                exit = fadeOut(tween(320)),
+                // layer is torn down. With media animations disabled there is no flight to
+                // cover — the viewer appears/disappears instantly.
+                enter = if (viewerAnimationsEnabled) fadeIn(tween(320)) else EnterTransition.None,
+                exit = if (viewerAnimationsEnabled) fadeOut(tween(320)) else ExitTransition.None,
             ) {
+                if (vaultViewerMediaId == null) {
+                    // Exiting: swap the interactive viewer for its non-interactive stand-in
+                    // so a fast re-tap falls through to the vault grid — the still-fading
+                    // viewer's gesture surfaces would otherwise swallow the touch.
+                    ViewerDismissExitVisual(vaultViewerDismissBridge)
+                } else {
                 val mediaId = retainedVaultViewerMediaId
                 val currentVaultValue by viewModel.currentVault.collectAsStateWithLifecycle()
                 if (mediaId != null && currentVaultValue != null) {
@@ -671,6 +683,7 @@ fun VaultScreen(
                         viewerSessionKey = vaultViewerOpenCount,
                         dismissBridge = vaultViewerDismissBridge,
                     )
+                }
                 }
             }
             // Committed swipe-dismiss flight morphs the media thumbnail from the release bounds

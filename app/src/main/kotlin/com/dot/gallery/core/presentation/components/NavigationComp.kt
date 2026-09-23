@@ -5,6 +5,9 @@
 
 package com.dot.gallery.core.presentation.components
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
@@ -44,6 +47,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -67,6 +71,7 @@ import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberForcedLastScreen
+import com.dot.gallery.core.Settings.Misc.rememberSharedElements
 import com.dot.gallery.core.Settings.Misc.rememberLastScreen
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberTimelineGroupByMonth
@@ -258,6 +263,17 @@ fun NavigationComp(
 
     LaunchedEffect(groupTimelineByYear) {
         navViewModel.updateGroupByYear(groupTimelineByYear)
+    }
+
+    // Media/story viewer destinations skip the nav fade when "Animate media items" is off —
+    // the route opens and closes instantly. The delegated read keeps the lambdas live, so the
+    // graph doesn't need rebuilding when the preference flips.
+    val viewerAnimationsEnabled by rememberSharedElements()
+    val viewerEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+        if (viewerAnimationsEnabled) navigateInAnimation else EnterTransition.None
+    }
+    val viewerExitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+        if (viewerAnimationsEnabled) navigateUpAnimation else ExitTransition.None
     }
 
     NavHost(
@@ -736,6 +752,10 @@ fun NavigationComp(
             }
             composable(
                 route = Screen.MediaViewScreen.idAndAlbum(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
@@ -797,6 +817,10 @@ fun NavigationComp(
             }
             composable(
                 route = Screen.MediaViewScreen.idAndTarget(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
@@ -841,6 +865,10 @@ fun NavigationComp(
             }
             composable(
                 route = Screen.MediaViewScreen.idAndQuery(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
@@ -1093,6 +1121,10 @@ fun NavigationComp(
 
             composable(
                 route = Screen.MediaViewScreen.idAndCategory(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
@@ -1134,6 +1166,10 @@ fun NavigationComp(
 
             composable(
                 route = Screen.MediaViewScreen.idAndCategoryId(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
@@ -1209,6 +1245,10 @@ fun NavigationComp(
 
             composable(
                 route = Screen.MediaViewScreen.idAndCollection(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
@@ -1521,6 +1561,10 @@ fun NavigationComp(
 
             composable(
                 route = Screen.MediaViewScreen.idAndPerson(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "mediaId") {
                         type = NavType.LongType
@@ -1753,7 +1797,13 @@ fun NavigationComp(
                 )
             }
 
-            composable(Screen.MediaViewScreen.idAndLocation()) { backStackEntry ->
+            composable(
+                route = Screen.MediaViewScreen.idAndLocation(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition
+            ) { backStackEntry ->
                 val mediaId: Long = remember(backStackEntry) {
                     backStackEntry.arguments?.getString("mediaId")?.toLongOrNull() ?: -1
                 }
@@ -1800,6 +1850,10 @@ fun NavigationComp(
 
             composable(
                 route = Screen.StoryViewerScreen.cardId(),
+                enterTransition = viewerEnterTransition,
+                exitTransition = viewerExitTransition,
+                popEnterTransition = viewerEnterTransition,
+                popExitTransition = viewerExitTransition,
                 arguments = listOf(
                     navArgument(name = "cardId") {
                         type = NavType.LongType

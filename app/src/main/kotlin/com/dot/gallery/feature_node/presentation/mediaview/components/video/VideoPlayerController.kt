@@ -7,8 +7,12 @@ package com.dot.gallery.feature_node.presentation.mediaview.components.video
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -91,6 +95,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.domain.model.PlaybackSpeed
+import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import com.dot.gallery.feature_node.presentation.util.formatMinSec
@@ -200,6 +205,9 @@ fun VideoPlayerController(
             var showMoreOptions by rememberSaveable { mutableStateOf(false) }
             val hazeState = LocalHazeState.current
             val isDarkTheme = isDarkTheme()
+            // "Animate media items" off — popup appears instantly, colour shifts snap.
+            val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
+            val colorSpec = if (animationsEnabled) spring<Color>() else snap()
             val followTheme = remember(autoContrast, isBottomDark) {
                 if (autoContrast) !isBottomDark else false
             }
@@ -212,6 +220,7 @@ fun VideoPlayerController(
                     )
                     else -> Color.Black.copy(0.5f)
                 },
+                animationSpec = colorSpec,
                 label = "VideoOptionsSurfaceContainer"
             )
             val contentColor by animateColorAsState(
@@ -220,6 +229,7 @@ fun VideoPlayerController(
                     followTheme -> MaterialTheme.colorScheme.onSurface
                     else -> Color.White
                 },
+                animationSpec = colorSpec,
                 label = "VideoOptionsContentColor"
             )
 
@@ -227,17 +237,21 @@ fun VideoPlayerController(
                 AnimatedContent(
                     targetState = showMoreOptions,
                     transitionSpec = {
-                        (fadeIn(tween(200)) + scaleIn(
-                            tween(250),
-                            initialScale = 0.8f,
-                            transformOrigin = TransformOrigin(1f, 1f)
-                        )).togetherWith(
-                            fadeOut(tween(150)) + scaleOut(
-                                tween(200),
-                                targetScale = 0.8f,
+                        if (animationsEnabled) {
+                            (fadeIn(tween(200)) + scaleIn(
+                                tween(250),
+                                initialScale = 0.8f,
                                 transformOrigin = TransformOrigin(1f, 1f)
-                            )
-                        ).using(SizeTransform(clip = false))
+                            )).togetherWith(
+                                fadeOut(tween(150)) + scaleOut(
+                                    tween(200),
+                                    targetScale = 0.8f,
+                                    transformOrigin = TransformOrigin(1f, 1f)
+                                )
+                            ).using(SizeTransform(clip = false))
+                        } else {
+                            EnterTransition.None togetherWith ExitTransition.None
+                        }
                     },
                     contentAlignment = Alignment.BottomEnd,
                     label = "MoreOptionsTransition"

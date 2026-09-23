@@ -6,6 +6,8 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +57,7 @@ import com.dot.gallery.core.presentation.components.CheckBox
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isCloud
+import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 import com.github.panpf.sketch.AsyncImage
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -78,6 +81,8 @@ fun <T : Media> GroupMemberStrip(
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
+    // "Animate media items" off — selection borders appear instantly.
+    val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
     val listState = rememberLazyListState()
     val selectedIndex = remember(members, selectedId) {
         members.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)
@@ -142,6 +147,7 @@ fun <T : Media> GroupMemberStrip(
             }
             val borderWidth by animateDpAsState(
                 targetValue = if (showBorder) SELECTED_BORDER_WIDTH else 0.dp,
+                animationSpec = if (animationsEnabled) spring() else snap(),
                 label = "thumbnailBorder"
             )
             Box(

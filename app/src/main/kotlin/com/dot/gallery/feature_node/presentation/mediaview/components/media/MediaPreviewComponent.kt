@@ -6,6 +6,8 @@
 package com.dot.gallery.feature_node.presentation.mediaview.components.media
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
@@ -24,6 +26,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.isVideo
+import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoControllerState
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayer
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -78,11 +81,17 @@ fun <T : Media> MediaPreviewComponent(
     backdropGestureAlpha: Float = 1f,
     videoController: @Composable (ExoPlayer, MutableState<Boolean>, MutableLongState, Long, Int, Float, VideoControllerState) -> Unit,
 ) {
+    // "Animate media items" off — media surfaces appear/disappear instantly.
+    val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
+    val enter = if (animationsEnabled) fadeIn() else EnterTransition.None
+    val exit = if (animationsEnabled) fadeOut() else ExitTransition.None
     AnimatedVisibility(
         modifier = Modifier
             .fillMaxSize()
             .hazeSource(state = LocalHazeState.current),
         visible = media != null,
+        enter = enter,
+        exit = exit,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Non-translating blurred background: a sibling of the offset content box, so it
@@ -105,8 +114,8 @@ fun <T : Media> MediaPreviewComponent(
                 AnimatedVisibility(
                     modifier = Modifier.fillMaxSize(),
                     visible = media.isVideo,
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                    enter = enter,
+                    exit = exit
                 ) {
                     VideoPlayer(
                         modifier = Modifier,
@@ -129,8 +138,8 @@ fun <T : Media> MediaPreviewComponent(
                 AnimatedVisibility(
                     modifier = Modifier.fillMaxSize(),
                     visible = !media.isVideo && !isPanorama && !isPhotosphere,
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                    enter = enter,
+                    exit = exit
                 ) {
                     ZoomablePagerImage(
                         media = media,
@@ -163,8 +172,8 @@ fun <T : Media> MediaPreviewComponent(
                 AnimatedVisibility(
                     modifier = Modifier.fillMaxSize(),
                     visible = !media.isVideo && !isMotionPhoto && (isPanorama || isPhotosphere),
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                    enter = enter,
+                    exit = exit
                 ) {
                     PanoramaImageViewer(
                         media = media,

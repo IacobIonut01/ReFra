@@ -9,12 +9,16 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -229,6 +233,7 @@ fun <T : Media> BlurredMediaBackground(
 ) {
     ProvideBatteryStatus {
         val allowBlur = LocalMediaViewerVisualPolicy.current.allowBlur
+        val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
         val isPowerSavingMode = LocalBatteryStatus.current.isPowerSavingMode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && allowBlur && !isPowerSavingMode) {
             val isEncrypted = remember(media) {
@@ -239,7 +244,12 @@ fun <T : Media> BlurredMediaBackground(
                 backgroundVisible = true
             }
             val blurAlpha by animateFloatAsState(
-                animationSpec = tween(DEFAULT_TOP_BAR_ANIMATION_DURATION),
+                // "Animate media items" off — the backdrop fades in/out instantly.
+                animationSpec = if (animationsEnabled) {
+                    tween(DEFAULT_TOP_BAR_ANIMATION_DURATION)
+                } else {
+                    snap()
+                },
                 targetValue = if (uiEnabled && backgroundVisible) 0.7f else 0f,
                 label = "blurAlpha"
             )
@@ -295,8 +305,10 @@ fun <T : Media> ZoomablePagerImage(
     // until the freshly-encoded (baked-in) bytes are loaded (see the seamless-swap effect below).
     var isRotating by rememberSaveable(media.id) { mutableStateOf(false) }
     var currentRotation by rememberSaveable(media.id) { mutableIntStateOf(0) }
+    val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
     val rotationAnimation by animateFloatAsState(
         targetValue = if (isRotating) 90f else 0f,
+        animationSpec = if (animationsEnabled) spring() else snap(),
         label = "rotationAnimation"
     )
     val zoomState = rememberSketchZoomState()
@@ -448,7 +460,7 @@ fun <T : Media> ZoomablePagerImage(
     val fullPainter = rememberAsyncImagePainter(
         request = ComposableImageRequest(mediaUri) {
             if (isEncrypted || isAnimated || isAnimatedRaster) {
-                crossfade(durationMillis = 200)
+                crossfade(durationMillis = if (animationsEnabled) 200 else 0)
             }
             // Animated raster (GIF/animated WebP/APNG) can't be subsampled, so decode the base frame
             // at native resolution (capped) instead of the default layout/screen size — otherwise a
@@ -695,7 +707,9 @@ fun <T : Media> ZoomablePagerImage(
                 feedbackManager.vibrate()
                 currentRotation += 90
                 onImageRotated(currentRotation)
-                delay(350)
+                // The delay covers the 90° rotate tween; with animations off there is
+                // nothing to wait for.
+                if (animationsEnabled) delay(350)
                 zoomState.zoomable.rotate(currentRotation)
                 isRotating = false
             }
@@ -713,7 +727,7 @@ fun <T : Media> ZoomablePagerImage(
     // actually needed (a cutout is active). An unconditional rememberInfiniteTransition would run a
     // continuous per-frame animation and recomposition on every composed pager page — including
     // neighbours that briefly compose during a fling — adding avoidable swipe jank.
-    val needsGlow = cutoutState.isActive
+    val needsGlow = cutoutState.isActive && animationsEnabled
     val glowRadius = if (needsGlow) {
         val infiniteTransition = rememberInfiniteTransition(label = "glowTransition")
         val animatedGlow by infiniteTransition.animateFloat(
@@ -980,8 +994,8 @@ fun <T : Media> ZoomablePagerImage(
             // Long-press does cutout → offer Rotate as a pill.
             AnimatedVisibility(
                 visible = chromeVisible && !rotationDisabled,
-                enter = fadeIn(),
-                exit = fadeOut(),
+                enter = if (animationsEnabled) fadeIn() else EnterTransition.None,
+                exit = if (animationsEnabled) fadeOut() else ExitTransition.None,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()

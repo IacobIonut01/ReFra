@@ -55,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
@@ -99,12 +100,14 @@ import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisua
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewerVisualPolicy
 import com.dot.gallery.feature_node.presentation.mediaview.ViewerDismissBridge
 import com.dot.gallery.feature_node.presentation.mediaview.ViewerDismissState
+import com.dot.gallery.feature_node.presentation.mediaview.ViewerExitVisual
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.FavoriteButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.actionbuttons.ShareButton
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.BlurredMediaBackground
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MediaPreviewComponent
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerSharedElementThumbnail
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.mediaview.scrollToPageOrAnimate
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.MediaSharedElementKey
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
@@ -152,10 +155,12 @@ fun StoryViewerScreen(
 ) {
     val allowBlur by rememberAllowBlur()
     val darkMediaViewer by rememberDarkMediaViewer()
+    val sharedElementsEnabled by rememberSharedElements()
     CompositionLocalProvider(
         LocalMediaViewerVisualPolicy provides MediaViewerVisualPolicy(
             allowBlur = allowBlur,
-            forceDarkBackground = darkMediaViewer
+            forceDarkBackground = darkMediaViewer,
+            animationsEnabled = sharedElementsEnabled
         )
     ) {
         StoryViewerContent(
@@ -200,6 +205,15 @@ private fun StoryViewerContent(
     }
     val scope = rememberCoroutineScope()
     val dismissState = remember(initialCardId, sessionKey) { ViewerDismissState(dismissBridge) }
+
+    // Scrim-only stamp for the non-interactive stand-in the overlay host draws while
+    // exiting — the loaded state below overwrites it with the current card's media.
+    SideEffect {
+        dismissBridge?.exitVisual = ViewerExitVisual(
+            scrim = Color.Black.copy(alpha = dismissState.chromeAlpha),
+            media = null,
+        )
+    }
 
     // null = still loading, show spinner
     if (cards == null) {
@@ -297,6 +311,9 @@ private fun StoryViewerContent(
     // morphs card→fullscreen instead, with both entries suppressed so no framework morph draws
     // on top; suppression holds until the container's enter transition settles.
     val sharedElementsEnabled by rememberSharedElements()
+    // With animations off the dismiss gesture still tracks the finger but commits, cancels
+    // and predictive back all resolve instantly — no flights or springs.
+    dismissState.animationsEnabled = sharedElementsEnabled
     LaunchedEffect(sessionKey) {
         if (!sharedElementsEnabled || dismissBridge == null || animatedVisibilityScope == null) return@LaunchedEffect
         val card = withTimeoutOrNull(800.milliseconds) {
@@ -314,6 +331,21 @@ private fun StoryViewerContent(
         ) {
             dismissBridge.suppressedElementKey = null
         }
+    }
+
+    // Loaded stamp for the overlay's exit stand-in — media owned by a return flight is
+    // left out (the root flight layer draws it).
+    SideEffect {
+        dismissBridge?.exitVisual = ViewerExitVisual(
+            scrim = Color.Black.copy(alpha = dismissState.chromeAlpha),
+            media = cards.getOrNull(pagerState.currentPage)?.let { card ->
+                card.mediaList.firstOrNull()?.takeUnless {
+                    dismissState.isDismissedVisualHidden(
+                        MediaSharedElementKey.StoryCardKey(card.id)
+                    )
+                }
+            },
+        )
     }
 
     Box(
@@ -353,7 +385,7 @@ private fun StoryViewerContent(
                     scope.launch {
                         val page = pagerState.targetPage
                         if (page < cards.lastIndex) {
-                            pagerState.animateScrollToPage(page + 1)
+                            pagerState.scrollToPageOrAnimate(page + 1, sharedElementsEnabled)
                         } else {
                             onDismiss()
                         }
