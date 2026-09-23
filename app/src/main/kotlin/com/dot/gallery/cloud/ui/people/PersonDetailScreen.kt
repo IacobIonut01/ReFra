@@ -336,9 +336,8 @@ fun PersonDetailScreen(
                             modifier = Modifier
                                 .clip(MaterialTheme.shapes.medium)
                                 .clickable {
-                                    viewModel.mergeInto(candidate.id)
+                                    viewModel.mergeInto(candidate.id) { eventHandler.navigateUp() }
                                     showMergeDialog = false
-                                    eventHandler.navigateUp()
                                 }
                                 .padding(4.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,

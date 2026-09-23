@@ -11,6 +11,7 @@ import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.core.smart.SmartScanScheduler
+import com.dot.gallery.cloud.core.LOCAL_PEOPLE_CONFIG_ID
 import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.ProviderType
@@ -89,9 +90,10 @@ class PeopleListViewModel @Inject constructor(
                 it.providerType == ProviderType.LOCAL_PEOPLE && it.isAvailable
             }
 
+    // Registered unconditionally under the local config id — merges and corrections are
+    // pure database writes that must keep working while the face model is unavailable.
     private fun localProvider(): LocalPeopleProvider? =
-        registry.getPeopleProviders()
-            .firstOrNull { it.providerType == ProviderType.LOCAL_PEOPLE } as? LocalPeopleProvider
+        registry.getByConfigId(LOCAL_PEOPLE_CONFIG_ID) as? LocalPeopleProvider
 
     private val activeRun = smartScanDao.observeActiveRun()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

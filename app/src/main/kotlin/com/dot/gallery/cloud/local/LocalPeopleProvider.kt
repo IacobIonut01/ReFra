@@ -27,10 +27,12 @@ import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -197,45 +199,49 @@ class LocalPeopleProvider @Inject constructor(
     suspend fun mergePeople(sourceId: String, targetId: String) {
         if (sourceId == targetId) return
         val now = System.currentTimeMillis()
-        val source = database.withTransaction {
-            val source = personDao.getById(sourceId) ?: return@withTransaction null
-            val sourceFaces = faceDao.getByPersonOnce(sourceId)
-            val targetFaces = faceDao.getByPersonOnce(targetId)
+        // NonCancellable: a merge is a user correction that must not be silently rolled
+        // back when the calling screen's viewModelScope dies mid-write.
+        val source = withContext(NonCancellable) {
+            database.withTransaction {
+                val source = personDao.getById(sourceId) ?: return@withTransaction null
+                val sourceFaces = faceDao.getByPersonOnce(sourceId)
+                val targetFaces = faceDao.getByPersonOnce(targetId)
 
-            // Retract pairwise EXCLUDE assertions — merging says they are the same person.
-            val staleIds = faceDao.getLinks()
-                .filter { it.kind == FaceLinkKind.EXCLUDE }
-                .filter { link ->
-                    (link.personId == sourceId && link.matchesAny(targetFaces)) ||
-                        (link.personId == targetId && link.matchesAny(sourceFaces))
+                // Retract pairwise EXCLUDE assertions — merging says they are the same person.
+                val staleIds = faceDao.getLinks()
+                    .filter { it.kind == FaceLinkKind.EXCLUDE }
+                    .filter { link ->
+                        (link.personId == sourceId && link.matchesAny(targetFaces)) ||
+                            (link.personId == targetId && link.matchesAny(sourceFaces))
+                    }
+                    .map { it.id }
+                if (staleIds.isNotEmpty()) faceDao.deleteLinksByIds(staleIds)
+
+                // The source's remaining assertions now describe the merged person.
+                faceDao.reassignLinks(sourceId, targetId, FaceLinkKind.INCLUDE)
+                faceDao.reassignLinks(sourceId, targetId, FaceLinkKind.EXCLUDE)
+
+                // The merge itself is a durable include assertion for every moved face.
+                if (sourceFaces.isNotEmpty()) {
+                    faceDao.upsertLinks(sourceFaces.map {
+                        FaceLinkEntity(
+                            mediaId = it.mediaId,
+                            left = it.left,
+                            top = it.top,
+                            right = it.right,
+                            bottom = it.bottom,
+                            personId = targetId,
+                            kind = FaceLinkKind.INCLUDE,
+                            createdAt = now
+                        )
+                    })
                 }
-                .map { it.id }
-            if (staleIds.isNotEmpty()) faceDao.deleteLinksByIds(staleIds)
 
-            // The source's remaining assertions now describe the merged person.
-            faceDao.reassignLinks(sourceId, targetId, FaceLinkKind.INCLUDE)
-            faceDao.reassignLinks(sourceId, targetId, FaceLinkKind.EXCLUDE)
-
-            // The merge itself is a durable include assertion for every moved face.
-            if (sourceFaces.isNotEmpty()) {
-                faceDao.upsertLinks(sourceFaces.map {
-                    FaceLinkEntity(
-                        mediaId = it.mediaId,
-                        left = it.left,
-                        top = it.top,
-                        right = it.right,
-                        bottom = it.bottom,
-                        personId = targetId,
-                        kind = FaceLinkKind.INCLUDE,
-                        createdAt = now
-                    )
-                })
+                faceDao.reassignPerson(sourceId, targetId)
+                personDao.deleteById(sourceId)
+                personDao.updateFaceCount(targetId, faceDao.countForPerson(targetId), now)
+                source
             }
-
-            faceDao.reassignPerson(sourceId, targetId)
-            personDao.deleteById(sourceId)
-            personDao.updateFaceCount(targetId, faceDao.countForPerson(targetId), now)
-            source
         } ?: return
         // Cover files are deleted outside the transaction — the person's
         // face_links rows are already gone via the FK cascade.

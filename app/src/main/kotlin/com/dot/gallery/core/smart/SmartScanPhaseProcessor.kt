@@ -419,6 +419,7 @@ private const val MEDIA_DELETE_BATCH_SIZE = 500
 private const val PREPARATION_BATCH_SIZE = 500
 private const val SEARCH_EMBEDDING_DIMENSION = 512
 private const val FACE_EMBEDDING_DIMENSION = 512
+private const val FACE_OWNER_MATCH_IOU = 0.5f
 
 internal fun smartSourceFingerprint(revisions: Iterable<String>): String {
     var hash = -3750763034362895579L
@@ -836,6 +837,20 @@ internal fun isCurrentFaceDetection(
     state.sourceRevision == sourceRevision && state.resultRevision == resultRevision &&
     (headers.isEmpty() || headers.all { it.timestamp == timestamp && it.resultRevision == resultRevision })
 
+internal fun faceBoxIoU(
+    l1: Float, t1: Float, r1: Float, b1: Float,
+    l2: Float, t2: Float, r2: Float, b2: Float
+): Float {
+    val ix = maxOf(l1, l2)
+    val iy = maxOf(t1, t2)
+    val ax = minOf(r1, r2)
+    val ay = minOf(b1, b2)
+    val inter = (ax - ix).coerceAtLeast(0f) * (ay - iy).coerceAtLeast(0f)
+    if (inter <= 0f) return 0f
+    val union = (r1 - l1) * (b1 - t1) + (r2 - l2) * (b2 - t2) - inter
+    return if (union <= 0f) 0f else inter / union
+}
+
 /**
  * Detects and embeds faces per media, storing rows in `detected_faces` with
  * `personId = null`. Grouping is NOT done here — [FaceClusterPhaseProcessor]
@@ -985,8 +1000,29 @@ class FaceIndexPhaseProcessor @Inject constructor(
                         }
                         val completedAt = System.currentTimeMillis()
                         database.withTransaction {
+                            // Re-detection regenerates face rows, so carry each previous
+                            // face's personId onto its best box match — without it the batch
+                            // clusterer loses every named person on any re-scan.
+                            val previous = faceDao.getByMedia(item.id)
+                            val reparented = if (previous.any { it.personId != null }) {
+                                detected.map { entity ->
+                                    val ownerId = previous
+                                        .asSequence()
+                                        .filter { it.personId != null }
+                                        .map { prev ->
+                                            prev to faceBoxIoU(
+                                                entity.left, entity.top, entity.right, entity.bottom,
+                                                prev.left, prev.top, prev.right, prev.bottom
+                                            )
+                                        }
+                                        .filter { it.second >= FACE_OWNER_MATCH_IOU }
+                                        .maxByOrNull { it.second }
+                                        ?.first?.personId
+                                    if (ownerId == null) entity else entity.copy(personId = ownerId)
+                                }
+                            } else detected
                             faceDao.deleteByMedia(item.id)
-                            faceDao.insertAll(detected)
+                            faceDao.insertAll(reparented)
                             check(
                                 scanDao.finishFeature(
                                     item.id,

@@ -115,10 +115,18 @@ class PersonDetailViewModel @Inject constructor(
         }
     }
 
-    fun mergeInto(targetPersonId: String) {
+    /**
+     * Merge this person into [targetPersonId], then invoke [onMerged]. The caller
+     * navigates away in the callback — launching the write on [viewModelScope] and
+     * popping the screen immediately would cancel the transaction before it commits.
+     */
+    fun mergeInto(targetPersonId: String, onMerged: () -> Unit) {
         val sourceId = _uiState.value.person?.id ?: return
         if (sourceId == targetPersonId) return
-        viewModelScope.launch { localProvider()?.mergePeople(sourceId, targetPersonId) }
+        viewModelScope.launch {
+            localProvider()?.mergePeople(sourceId, targetPersonId)
+            onMerged()
+        }
     }
 
     /** Merge a look-alike person INTO the current one — the current identity is kept. */
