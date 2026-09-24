@@ -1279,7 +1279,7 @@
     <string name="visual_search_failed">Vizuální vyhledávání nemohlo tento obrázek zpracovat</string>
     <string name="search_failed">Vyhledávání se nepodařilo dokončit</string>
     <!-- Collections -->
-    <string name="create_collection">Vytvořit kolekci</string>
+    <string name="create_collection">Vytvořit sbírku</string>
     <string name="new_collection">Nová sbírka</string>
     <string name="collection_name">Název sbírky</string>
     <string name="collection_name_hint">Zadejte název sbírky</string>
