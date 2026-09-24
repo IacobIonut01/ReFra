@@ -110,7 +110,7 @@ compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", ver
 compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "composealpha" }
 
 # Compose-shimmer
-compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version = "1.4.0"}
+compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version = "1.5.0"}
 
 # Compose Tests
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "composealpha" }
