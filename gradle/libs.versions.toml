@@ -58,7 +58,7 @@ workRuntimeKtx = "2.12.0-rc01"
 zoomimage = "1.6.0"
 lifecycleProcess = "2.11.0"
 glide-compose = "1.0.0-beta10"
-glide-ksp = "5.0.7"
+glide-ksp = "5.0.9"
 desugarJdkLibs = "2.1.5"
 
 [libraries]
