@@ -37,6 +37,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.UnfoldMore
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -61,6 +62,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -234,6 +236,44 @@ fun EditableLibraryShortcutsGrid(
         }
 
         val visibleTiles = tiles.filter { it.visible }
+        val hiddenTiles = tiles.filter { !it.visible }
+
+        // With every shortcut hidden there is no tile left to long-press, so
+        // edit mode would be unreachable and the tiles could never be brought
+        // back. Show an obvious entry point into customization instead (#1260).
+        if (!editMode && visibleTiles.isEmpty() && hiddenTiles.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(tileHeight)
+                    .testTag("library-shortcuts-customize")
+                    .dashedBorder(
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(16.dp),
+                        gapLength = 8.dp
+                    )
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(onClick = onEnterEditMode),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(
+                    8.dp,
+                    Alignment.CenterHorizontally
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = stringResource(R.string.library_customize),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val spacingPx = with(density) { TILE_SPACING.toPx() }
             val tileHeightPx = with(density) { tileHeight.toPx() }
@@ -445,7 +485,6 @@ fun EditableLibraryShortcutsGrid(
         }
 
         // Hidden tiles tray (edit mode only)
-        val hiddenTiles = tiles.filter { !it.visible }
         AnimatedVisibility(visible = editMode && hiddenTiles.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
