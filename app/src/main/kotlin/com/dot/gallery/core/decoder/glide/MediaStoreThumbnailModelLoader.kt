@@ -82,14 +82,21 @@ class MediaStoreThumbnailModelLoader(
         val key = uri.toString()
         bypassCache.get(key)?.let { return it }
         val shouldBypass = runCatching {
-            if (contentResolver.getType(uri) != "image/jpeg") return@runCatching false
-            contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
-                val exif = ExifInterface(descriptor.fileDescriptor)
-                shouldBypassPlatformThumbnail(
-                    hasEmbeddedThumbnail = exif.hasThumbnail(),
-                    lensModel = exif.getAttribute(ExifInterface.TAG_LENS_MODEL),
-                )
-            } ?: false
+            val mime = contentResolver.getType(uri)
+            if (mime == "image/jpeg") {
+                contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
+                    val exif = ExifInterface(descriptor.fileDescriptor)
+                    shouldBypassPlatformThumbnail(
+                        hasEmbeddedThumbnail = exif.hasThumbnail(),
+                        lensModel = exif.getAttribute(ExifInterface.TAG_LENS_MODEL),
+                    )
+                } ?: false
+            } else {
+                // The platform thumbnailer corrupts >10-bit AVIF exactly like ImageDecoder.
+                // A confident >10-bit probe on a bounded head chunk bypasses to the app's own
+                // HEIF decoders; anything less keeps the fast platform path.
+                HeifUriProbe.needsSoftwareDecode(contentResolver, uri, mime)
+            }
         }.getOrDefault(false)
         bypassCache.put(key, shouldBypass)
         return shouldBypass

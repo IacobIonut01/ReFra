@@ -24,36 +24,8 @@ class HeifPfdBitmapDecoder(
 
     private val coder = HeifCoder()
 
-    override fun handles(source: ParcelFileDescriptor, options: Options): Boolean {
-        // Duplicate FD so we can read without advancing the original position.
-        val dup: ParcelFileDescriptor = try {
-            ParcelFileDescriptor.dup(source.fileDescriptor)
-        } catch (e: IOException) {
-            Log.d(TAG, "handles() dup fail: ${e.message}")
-            return false
-        }
-        val header = ByteArray(128)
-        val readBytes = try {
-            FileInputStream(dup.fileDescriptor).use { it.read(header) }
-        } catch (e: Exception) {
-            Log.d(TAG, "handles() read fail: ${e.message}")
-            dup.close()
-            return false
-        }
-        dup.close()
-        if (readBytes < 12) {
-            Log.d(TAG, "handles() too small read=$readBytes")
-            return false
-        }
-        val brand = HeifSniffer.findBrand(header, readBytes)
-        val ok = brand != null
-        if (!ok) {
-            Log.d(TAG, "handles()=false brand=null sample=${HeifSniffer.hexSample(header, readBytes)}")
-        } else {
-            Log.d(TAG, "handles()=true brand=$brand")
-        }
-        return ok
-    }
+    override fun handles(source: ParcelFileDescriptor, options: Options): Boolean =
+        source.sniffsDeepHeif()
 
     override fun decode(
         source: ParcelFileDescriptor,

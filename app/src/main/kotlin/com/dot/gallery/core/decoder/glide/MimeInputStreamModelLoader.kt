@@ -62,18 +62,24 @@ class MimeInputStreamModelLoader(
                 // standard JPEG/PNG/WebP/GIF/BMP (e.g. RawTherapee exports). Trusting that MIME sends
                 // the file to the embedded-preview/EXIF-thumbnail extractor, so it renders as a tiny
                 // blurry square. Only when the reported MIME is already suspicious do we peek the
-                // header (≤32 B) and, if the bytes are a natively-decodable image, correct the MIME
+                // header and, if the bytes are a natively-decodable image, correct the MIME
                 // so the RAW/TIFF decoders decline and Glide uses its default decode path. Normal
                 // images skip this entirely (zero cost on the fling hot path).
+                // #1244: providers can also report HEIF/AVIF under a missing/generic MIME
+                // (null, application/octet-stream) — without the header peek the dedicated HEIF
+                // decoders decline and the file falls through to platform decode paths, which
+                // silently corrupt >10-bit streams. An ftyp-brand sniff re-routes them.
                 var effectiveMime = mime
-                if (RawMime.isCameraRaw(mime) || TiffMime.isTiff(mime)) {
+                if (RawMime.isCameraRaw(mime) || TiffMime.isTiff(mime) || isGenericMime(mime)) {
                     val buffered = if (s.markSupported()) s else BufferedInputStream(s)
                     rawStream = buffered
                     buffered.mark(HEADER_PEEK_BYTES)
                     val head = ByteArray(HEADER_PEEK_BYTES)
                     val n = buffered.read(head)
                     buffered.reset()
-                    val sniffed = if (n > 0) ImageFormatSniffer.standardMimeFor(head, n) else null
+                    val sniffed = if (n > 0) {
+                        ImageFormatSniffer.standardMimeFor(head, n) ?: heifMimeFor(head, n)
+                    } else null
                     if (sniffed != null) {
                         if (correctionLogged.add("$mime->$sniffed")) {
                             com.dot.gallery.feature_node.presentation.util.printDebug(
@@ -96,9 +102,37 @@ class MimeInputStreamModelLoader(
         override fun getDataSource(): com.bumptech.glide.load.DataSource = com.bumptech.glide.load.DataSource.LOCAL
 
         private companion object {
-            const val HEADER_PEEK_BYTES = 32
+            // Sized for the format sniff: 32 B covers the magic-byte checks and the canonical
+            // ftyp-at-offset-4 layout; 256 B matches HeifSniffer's deeper brand window for
+            // non-standard containers.
+            const val HEADER_PEEK_BYTES = 256
             val loggedMimes = java.util.Collections.newSetFromMap(java.util.concurrent.ConcurrentHashMap<String, Boolean>())
             val correctionLogged = java.util.Collections.newSetFromMap(java.util.concurrent.ConcurrentHashMap<String, Boolean>())
+
+            /**
+             * MIME values that carry no usable format information. Providers (MediaStore, SAF,
+             * OEM gallery backends) regularly report AVIF/HEIC this way — e.g. files scanned as
+             * `MEDIA_TYPE_NONE` or served through a `file/` collection URI.
+             */
+            private val GENERIC_MIMES = setOf(
+                "application/octet-stream",
+                "application/binary",
+                "application/x-binary",
+                "application/unknown",
+                "*/*",
+                "image/*",
+            )
+
+            fun isGenericMime(mime: String?): Boolean =
+                mime.isNullOrBlank() || mime.lowercase() in GENERIC_MIMES
+
+            /** HEIF-family brand → the MIME our HEIF decoders expect, or null for non-HEIF bytes. */
+            fun heifMimeFor(header: ByteArray, length: Int): String? =
+                when (HeifSniffer.findBrand(header, length)?.lowercase()) {
+                    null -> null
+                    "avif", "avis" -> "image/avif"
+                    else -> "image/heif"
+                }
         }
     }
 

@@ -6,6 +6,7 @@ import android.graphics.drawable.AnimatedImageDrawable
 import android.os.Build
 import android.util.Size as AndroidSize
 import androidx.annotation.RequiresApi
+import com.dot.gallery.core.decoder.format.HeifBitstreamProbe
 import com.github.panpf.sketch.asImage
 import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.decode.ImageInfo
@@ -230,6 +231,9 @@ fun decodeAnimatedAvif(
     mimeType: String,
     getSize: (ByteArray) -> AndroidSize?
 ): ImageData? {
+    // >10-bit (12-bit) sequences would be corrupted by the platform codec just like stills.
+    // Returning null lets the caller fall back to a correct static software decode.
+    if (HeifBitstreamProbe.needsSoftwareDecode(bytes)) return null
     val source = ImageDecoder.createSource(ByteBuffer.wrap(bytes))
     val drawable = try {
         ImageDecoder.decodeDrawable(source) { decoder, _, _ ->

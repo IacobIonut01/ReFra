@@ -18,6 +18,7 @@ import android.os.Build
 import android.util.Size as AndroidSize
 import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
+import com.dot.gallery.core.decoder.format.HeifBitstreamProbe
 import com.dot.gallery.core.decoder.format.HeifDecodeEngine
 import com.github.panpf.zoomimage.subsampling.BitmapTileImage
 import com.github.panpf.zoomimage.subsampling.ImageInfo
@@ -210,6 +211,15 @@ class HeifRegionDecoder(
             HeifDecodeEngine.getSize(bytes)?.let {
                 origWidth = it.width
                 origHeight = it.height
+            }
+
+            // >10-bit (12-bit) sources: the platform region decoder silently corrupts them and the
+            // bundled libheif tiler has no AV1 decoder, so the only correct path is the capped
+            // software decode — select it directly instead of arriving via per-tile failures.
+            if (HeifBitstreamProbe.needsSoftwareDecode(bytes)) {
+                probed = true
+                HeifDebug.d("mode=SOFTWARE (>10-bit declared) ${origWidth}x${origHeight}")
+                return
             }
 
             if (NativeHeifTiler.isAvailable) {
@@ -428,6 +438,9 @@ class HeifRegionDecoder(
          */
         private fun loadSourceGainmap(): Gainmap? {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return null
+            // >10-bit sources decode through the software base painter, which carries no gain map
+            // — and probing with the platform decoder would return corrupt pixels anyway.
+            if (HeifBitstreamProbe.needsSoftwareDecode(bytes)) return null
             return runCatching {
                 val maxEdge = GAINMAP_DECODE_MAX_EDGE
                 val source = ImageDecoder.createSource(ByteBuffer.wrap(bytes))

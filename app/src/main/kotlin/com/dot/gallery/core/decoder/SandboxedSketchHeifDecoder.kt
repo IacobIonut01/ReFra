@@ -17,7 +17,6 @@ import com.github.panpf.sketch.decode.internal.createScaledTransformed
 import com.github.panpf.sketch.fetch.FetchResult
 import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.request.RequestContext
-import com.github.panpf.sketch.request.get
 import com.github.panpf.sketch.source.DataSource
 import com.github.panpf.sketch.util.Size
 import com.github.panpf.sketch.util.calculateScaleMultiplierWithOneSide
@@ -51,12 +50,8 @@ class SandboxedSketchHeifDecoder(
         override fun create(requestContext: RequestContext, fetchResult: FetchResult): Decoder? {
             val context = requestContext.sketch.context
             if (!SandboxedDecoderHolder.isEnabled(context)) return null
-            val mimeType = requestContext.request.extras?.get("realMimeType") as String? ?: return null
-            return if (SketchHeifDecoder.Factory.HEIF_MIMETYPES.any { mimeType.contains(it) }) {
-                SandboxedSketchHeifDecoder(requestContext, fetchResult.dataSource, fetchResult.mimeType!!)
-            } else {
-                null
-            }
+            val mimeType = SketchHeifDecoder.Factory.resolveMimeType(requestContext, fetchResult) ?: return null
+            return SandboxedSketchHeifDecoder(requestContext, fetchResult.dataSource, mimeType)
         }
 
         override fun equals(other: Any?): Boolean {

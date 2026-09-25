@@ -10,6 +10,7 @@ import android.graphics.Bitmap
 import android.graphics.ColorSpace
 import android.os.CancellationSignal
 import android.util.Size
+import com.dot.gallery.core.decoder.glide.HeifUriProbe
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.isCloud
 import com.github.panpf.sketch.asBitmapOrNull
@@ -34,7 +35,12 @@ class SmartThumbnailLoader @Inject constructor(
     suspend fun load(media: Media.UriMedia, size: Int): Bitmap? = decodeMutex.withLock {
         withContext(Dispatchers.IO) {
             val cloud = media.isCloud
-            val source = if (!cloud) {
+            // The platform thumbnailer corrupts >10-bit HEIF/AVIF instead of failing, so those
+            // files go through the Sketch decode path (HeifDecodeEngine → software) instead.
+            val viaPlatformThumbnailer = !cloud && !runCatching {
+                HeifUriProbe.needsSoftwareDecode(context.contentResolver, media.uri)
+            }.getOrDefault(false)
+            val source = if (viaPlatformThumbnailer) {
                 suspendCancellableCoroutine { continuation ->
                     val cancellationSignal = CancellationSignal()
                     continuation.invokeOnCancellation { cancellationSignal.cancel() }
@@ -61,11 +67,11 @@ class SmartThumbnailLoader @Inject constructor(
                 }.getOrNull()
             } ?: return@withContext null
             if (source.width !in 1..MAX_DIMENSION || source.height !in 1..MAX_DIMENSION) {
-                if (!cloud) source.recycle()
+                if (viaPlatformThumbnailer) source.recycle()
                 return@withContext null
             }
             val owned = source.copy(Bitmap.Config.ARGB_8888, false)
-            if (!cloud) source.recycle()
+            if (viaPlatformThumbnailer) source.recycle()
             owned
         }
     }

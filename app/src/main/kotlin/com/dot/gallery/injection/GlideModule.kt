@@ -22,9 +22,19 @@ import com.dot.gallery.core.decoder.glide.EncryptedStreamingFileLoader
 import com.dot.gallery.core.decoder.glide.EncryptedStreamingUriLoader
 import com.dot.gallery.core.decoder.glide.EncryptedUriModelLoader
 import com.dot.gallery.core.decoder.glide.EncryptedVideoFrameDecoder
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.os.ParcelFileDescriptor
+import com.dot.gallery.core.decoder.glide.HeifBitmapDecoder
+import com.dot.gallery.core.decoder.glide.HeifBitmapDrawableDecoder
+import com.dot.gallery.core.decoder.glide.HeifDrawableDecoder
 import com.dot.gallery.core.decoder.glide.HeifEncryptedDecoder
 import com.dot.gallery.core.decoder.glide.HeifEncryptedSourceDecoder
+import com.dot.gallery.core.decoder.glide.HeifInputStreamModelLoader
 import com.dot.gallery.core.decoder.glide.HeifMimeInputStreamDecoder
+import com.dot.gallery.core.decoder.glide.HeifPfdBitmapDecoder
+import com.dot.gallery.core.decoder.glide.HeifPfdBitmapDrawableDecoder
+import com.dot.gallery.core.decoder.glide.HeifPfdDrawableDecoder
 import com.dot.gallery.core.decoder.glide.JxlBitmapDecoder
 import com.dot.gallery.core.decoder.glide.SandboxedHeifBitmapDecoder
 import com.dot.gallery.core.decoder.glide.SandboxedHeifMimeDecoder
@@ -80,6 +90,17 @@ class GlideModule: AppGlideModule() {
             Uri::class.java,
             InputStream::class.java,
             CloudGlideModelLoader.Factory()
+        )
+
+        // #1244: raw stream for >10-bit HEIF/AVIF media URIs, prepended ahead of Glide's
+        // built-in thumbnail/stream fetchers (MediaStoreThumbFetcher re-encodes a corrupt
+        // platform thumbnail; UriLoader feeds raw bytes to platform StreamBitmapDecoder).
+        // Deep-bit-depth streams continue to HeifBitmapDecoder below; everything else fails
+        // fast and falls through to the built-in loaders unchanged.
+        registry.prepend(
+            Uri::class.java,
+            InputStream::class.java,
+            HeifInputStreamModelLoader.Factory(context)
         )
 
         // Phase 4 (#1076): local MediaStore motion-tier fast path. Handles plain
@@ -172,6 +193,41 @@ class GlideModule: AppGlideModule() {
             InputStream::class.java,
             Bitmap::class.java,
             JxlBitmapDecoder(pool)
+        )
+        // #1244: software decode for >10-bit HEIF/AVIF (depth-gated inside handles(), so
+        // <=10-bit streams still reach the platform decoders below). decode(Drawable) requests
+        // never consult Bitmap decoders — the Drawable/BitmapDrawable and ParcelFileDescriptor
+        // resource paths get their own twins so a platform ImageDecoder can't claim the bytes
+        // first on any of them.
+        registry.prepend(
+            InputStream::class.java,
+            Bitmap::class.java,
+            HeifBitmapDecoder(pool)
+        )
+        registry.prepend(
+            InputStream::class.java,
+            Drawable::class.java,
+            HeifDrawableDecoder(context)
+        )
+        registry.prepend(
+            InputStream::class.java,
+            BitmapDrawable::class.java,
+            HeifBitmapDrawableDecoder(context, pool)
+        )
+        registry.prepend(
+            ParcelFileDescriptor::class.java,
+            Bitmap::class.java,
+            HeifPfdBitmapDecoder(pool)
+        )
+        registry.prepend(
+            ParcelFileDescriptor::class.java,
+            Drawable::class.java,
+            HeifPfdDrawableDecoder(context)
+        )
+        registry.prepend(
+            ParcelFileDescriptor::class.java,
+            BitmapDrawable::class.java,
+            HeifPfdBitmapDrawableDecoder(context, pool)
         )
         // Sandboxed decoders: when enabled, intercept before the standard decoders above
         registry.prepend(

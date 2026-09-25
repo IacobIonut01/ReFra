@@ -10,6 +10,7 @@ import com.github.panpf.sketch.request.RequestContext
 import com.github.panpf.sketch.request.get
 import com.github.panpf.sketch.source.DataSource
 import com.dot.gallery.core.decoder.format.HeifDecodeEngine
+import com.dot.gallery.core.decoder.glide.HeifUriProbe
 import okio.buffer
 
 fun ComponentRegistry.Builder.supportHeifDecoder(): ComponentRegistry.Builder = apply {
@@ -31,12 +32,8 @@ class SketchHeifDecoder(
         override val sortWeight: Int = 0
 
         override fun create(requestContext: RequestContext, fetchResult: FetchResult): Decoder? {
-            val mimeType = requestContext.request.extras?.get("realMimeType") as String? ?: return null
-            return if (HEIF_MIMETYPES.any { mimeType.contains(it) }) {
-                SketchHeifDecoder(requestContext, fetchResult.dataSource, fetchResult.mimeType ?: mimeType)
-            } else {
-                null
-            }
+            val mimeType = resolveMimeType(requestContext, fetchResult) ?: return null
+            return SketchHeifDecoder(requestContext, fetchResult.dataSource, mimeType)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -59,6 +56,36 @@ class SketchHeifDecoder(
                 "image/avif",
                 "image/avis"
             )
+
+            /**
+             * Resolve a HEIF-family MIME for this fetch, or null when none can be established.
+             * Order: caller-supplied `realMimeType` extra, the provider-reported MIME when it
+             * names a concrete format, then a strict `ftyp` brand sniff of the header bytes
+             * for missing/generic MIMEs. A specific non-HEIF MIME resolves to null, keeping
+             * those requests on Sketch's default decoder.
+             */
+            fun resolveMimeType(requestContext: RequestContext, fetchResult: FetchResult): String? {
+                val mimeType = requestContext.request.extras?.get("realMimeType") as? String
+                    ?: fetchResult.mimeType?.takeIf { HeifUriProbe.isUsableMime(it) }
+                    ?: sniffHeifMimeType(fetchResult.headerBytes)
+                    ?: return null
+                return mimeType.takeIf { mime -> HEIF_MIMETYPES.any { mime.lowercase().contains(it) } }
+            }
+
+            /**
+             * Canonical ISO-BMFF sniff: 'ftyp' at offset 4 with a HEIF-family primary brand.
+             * Deliberately skips [HeifSniffer]'s heuristic substring pass, which can
+             * false-positive on non-HEIF payloads containing a brand string.
+             */
+            internal fun sniffHeifMimeType(header: ByteArray): String? {
+                if (header.size < 12 || String(header, 4, 4, Charsets.ISO_8859_1) != "ftyp") return null
+                return when (String(header, 8, 4, Charsets.ISO_8859_1).lowercase()) {
+                    "avif", "avis" -> "image/avif"
+                    "heic", "heix", "heif", "hevc", "hevx",
+                    "heim", "heis", "hevm", "hevs", "mif1", "msf1" -> "image/heif"
+                    else -> null
+                }
+            }
         }
     }
 
