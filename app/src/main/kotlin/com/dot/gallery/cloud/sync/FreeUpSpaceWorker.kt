@@ -99,7 +99,14 @@ class FreeUpSpaceWorker @AssistedInject constructor(
         stillDeletable.chunked(FREE_UP_SPACE_DELETE_BATCH_SIZE).forEach { batch ->
             if (repository.deleteMediaDirectly(batch)) deleted += batch.size
         }
-        if (deleted > 0) postRemovedNotification(configId, deleted)
+        if (deleted > 0) {
+            postRemovedNotification(configId, deleted)
+        } else {
+            // The silent-delete grant reported OK but every batch failed (e.g.
+            // the platform denied the write anyway) — fall back to interactive
+            // review so the space is not silently retained.
+            postReviewNotification(configId, stillDeletable.size)
+        }
         return Result.success()
     }
 

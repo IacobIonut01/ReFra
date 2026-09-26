@@ -576,14 +576,16 @@ class MediaRepositoryImpl(
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.IS_FAVORITE, if (favorite) 1 else 0)
         }
-        if (SdkCompat.hasFullFileAccess) {
+        if (mediaList.hasFilesCollectionItems()) {
+            // createFavoriteRequest rejects Files-collection URIs — direct write
+            // is the only path, and only possible with all-files access.
+            if (!SdkCompat.hasFullFileAccess) {
+                printWarning("Cannot favorite Files collection items without all-files access")
+                return
+            }
             mutateMediaDirectly(mediaList, "favorite") {
                 contentResolver.update(it.getUri(), values, includeTrashedQueryArgs()) > 0
             }
-            return
-        }
-        if (mediaList.hasFilesCollectionItems()) {
-            printWarning("Cannot favorite Files collection items without all-files access")
             return
         }
         val intentSender = try {
@@ -616,7 +618,13 @@ class MediaRepositoryImpl(
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.IS_TRASHED, if (trash) 1 else 0)
         }
-        if (SdkCompat.hasFullFileAccess) {
+        if (mediaList.hasFilesCollectionItems()) {
+            // createTrashRequest rejects Files-collection URIs — direct write is
+            // the only path, and only possible with all-files access.
+            if (!SdkCompat.hasFullFileAccess) {
+                printWarning("Cannot trash Files collection items without all-files access")
+                return MediaMutationResult.FAILED
+            }
             val allSucceeded = mutateMediaDirectly(
                 mediaList,
                 if (trash) "trash" else "restore"
@@ -625,10 +633,9 @@ class MediaRepositoryImpl(
             }
             return if (allSucceeded) MediaMutationResult.COMPLETED else MediaMutationResult.FAILED
         }
-        if (mediaList.hasFilesCollectionItems()) {
-            printWarning("Cannot trash Files collection items without all-files access")
-            return MediaMutationResult.FAILED
-        }
+        // Supported media always goes through the MediaStore request, which
+        // performs the mutation itself — direct writes can be denied even when
+        // all-files access is granted (#1263).
         val intentSender = try {
             MediaStore.createTrashRequest(
                 contentResolver,
@@ -676,16 +683,20 @@ class MediaRepositoryImpl(
             }
             return if (allSucceeded) MediaMutationResult.COMPLETED else MediaMutationResult.FAILED
         }
-        if (SdkCompat.hasFullFileAccess) {
+        if (mediaList.hasFilesCollectionItems()) {
+            // createDeleteRequest rejects Files-collection URIs — direct delete
+            // is the only path, and only possible with all-files access.
+            if (!SdkCompat.hasFullFileAccess) {
+                printWarning("Cannot delete Files collection items without all-files access")
+                return MediaMutationResult.FAILED
+            }
             val allSucceeded = mutateMediaDirectly(mediaList, "delete") {
                 contentResolver.delete(it.getUri(), includeTrashedQueryArgs()) > 0
             }
             return if (allSucceeded) MediaMutationResult.COMPLETED else MediaMutationResult.FAILED
         }
-        if (mediaList.hasFilesCollectionItems()) {
-            printWarning("Cannot delete Files collection items without all-files access")
-            return MediaMutationResult.FAILED
-        }
+        // Supported media always goes through the MediaStore request — same
+        // rationale as trashMedia (#1263).
         return try {
             val intentSender = MediaStore.createDeleteRequest(
                 contentResolver,
