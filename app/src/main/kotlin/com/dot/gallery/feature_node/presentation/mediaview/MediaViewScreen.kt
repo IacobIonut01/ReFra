@@ -226,6 +226,7 @@ import com.dot.gallery.feature_node.presentation.util.ViewScreenConstants.ImageO
 import com.dot.gallery.feature_node.presentation.util.getMediaAppBarDate
 import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberGestureNavigationEnabled
@@ -1662,7 +1663,8 @@ fun <T : Media> MediaViewScreen(
                             pixelCopyHandler
                         )
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    printError("ui.mediaview", "window pixel copy for scrim sampling failed", e)
                     dest.recycle()
                 }
             }

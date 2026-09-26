@@ -181,7 +181,7 @@ object CutoutHelper {
 
                 encodeLoaded()
             } catch (e: Exception) {
-                e.printStackTrace()
+                printError("ml.cutout", "failed to initialize cutout session", e)
                 printError("CutoutSession: Error during initialization: ${e.message}")
                 close()
                 false
@@ -208,7 +208,7 @@ object CutoutHelper {
                 heightOrig = orig.height
                 encodeLoaded()
             } catch (e: Exception) {
-                e.printStackTrace()
+                printError("ml.cutout", "failed to initialize cutout session", e)
                 printError("CutoutSession: Error during initialization: ${e.message}")
                 close()
                 false
@@ -417,7 +417,7 @@ object CutoutHelper {
                         }
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    printError("ml.cutout", "failed to run SAM decoder inference", e)
                     printError("CutoutSession: Error during SAM decoder inference: ${e.message}")
                     null
                 }
@@ -647,7 +647,7 @@ object CutoutHelper {
                         }
                         tempFile = null
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        printError("ml.cutout", "failed to close cutout session", e)
                     }
                 }
             }
@@ -662,7 +662,7 @@ object CutoutHelper {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError("ml.cutout", "failed to clean legacy cutout cache files", e)
         }
     }
 
@@ -689,7 +689,7 @@ object CutoutHelper {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError("ml.cutout", "failed to copy cutout to clipboard", e)
             withContext<Unit>(Dispatchers.Main) {
                 Toast.makeText(context, context.getString(R.string.cutout_copy_failed), Toast.LENGTH_SHORT).show()
             }
@@ -718,7 +718,7 @@ object CutoutHelper {
                 context.startActivity(intent)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError("ml.cutout", "failed to share cutout", e)
             withContext<Unit>(Dispatchers.Main) {
                 Toast.makeText(context, context.getString(R.string.cutout_share_failed), Toast.LENGTH_SHORT).show()
             }
@@ -745,7 +745,7 @@ object CutoutHelper {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError("ml.cutout", "failed to save cutout", e)
             withContext<Unit>(Dispatchers.Main) {
                 Toast.makeText(context, context.getString(R.string.cutout_save_failed), Toast.LENGTH_SHORT).show()
             }

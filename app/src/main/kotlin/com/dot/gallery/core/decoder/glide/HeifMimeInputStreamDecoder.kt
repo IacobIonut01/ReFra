@@ -2,13 +2,13 @@ package com.dot.gallery.core.decoder.glide
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapResource
 import com.dot.gallery.core.sandbox.SandboxedDecoderHolder
+import com.dot.gallery.feature_node.presentation.util.printError
 
 /**
  * HEIF/AVIF decoder operating on MimeInputStream so we can rely on MIME instead of header scan.
@@ -35,7 +35,7 @@ class HeifMimeInputStreamDecoder(
             val bytes = source.inputStream.readBytes()
             core.decodeBytes(bytes, width, height, source.mimeType).resource
         } catch (e: Throwable) {
-            Log.e("HeifMimeDecoder", "stream read failed mime=${source.mimeType}: ${e.message}", e)
+            printError("decode.heif", "stream read failed mime=${source.mimeType}: ${e.message}", e)
             null
         }
     }

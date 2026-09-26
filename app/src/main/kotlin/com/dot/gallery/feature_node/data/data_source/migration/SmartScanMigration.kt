@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.cloudMediaId
 import com.dot.gallery.feature_node.domain.util.FloatVectorCodec
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.serialization.json.Json
 
 /**
@@ -356,7 +357,11 @@ private fun backfillFaceClusters(db: SupportSQLiteDatabase) {
     ).use { cursor ->
         while (cursor.moveToNext()) {
             val currentId = cursor.getString(0)
-            val values = runCatching { FloatVectorCodec.decode(cursor.getBlob(1)) }.getOrNull()
+            val values = runCatching { FloatVectorCodec.decode(cursor.getBlob(1)) }
+                .onFailure { e ->
+                    printError("ml.migration", "face embedding decode failed; skipping row", e)
+                }
+                .getOrNull()
                 ?.takeIf { it.size == 512 && it.all(Float::isFinite) } ?: continue
             if (personId != currentId) {
                 persist()

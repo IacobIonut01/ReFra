@@ -14,6 +14,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.sandbox.IsolatedMetadataService
 import com.dot.gallery.core.startup.StartupMediaCache
@@ -64,7 +65,7 @@ class CaptureTimeIndexWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result = try {
+    override suspend fun doWork(): Result = withLogScope("worker.capture-time-index") { try {
         val force = inputData.getBoolean(KEY_FORCE, false)
         val media = MediaFlow(
             contentResolver = appContext.contentResolver,
@@ -79,7 +80,7 @@ class CaptureTimeIndexWorker @AssistedInject constructor(
         val total = pending.size.coerceAtLeast(1)
 
         pending.chunked(CAPTURE_TIME_INDEX_BATCH).forEachIndexed { batchIndex, batch ->
-            if (!currentCoroutineContext().isActive || isStopped) return Result.failure()
+            if (!currentCoroutineContext().isActive || isStopped) return@withLogScope Result.failure()
             val updatedAt = System.currentTimeMillis()
             val entries = batch.map { item -> resolve(item).toEntity(item, updatedAt) }
             dao.upsertAll(entries)
@@ -107,7 +108,7 @@ class CaptureTimeIndexWorker @AssistedInject constructor(
         if (error is CancellationException) throw error
         printWarning("CaptureTimeIndexWorker failed: ${error.message}")
         if (runAttemptCount < 2) Result.retry() else Result.failure()
-    }
+    } }
 
     private suspend fun resolve(media: Media.UriMedia): ResolvedCaptureTime {
         val bundle = when {

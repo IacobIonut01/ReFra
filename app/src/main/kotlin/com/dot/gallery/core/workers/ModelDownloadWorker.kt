@@ -25,6 +25,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.R
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.ml.DownloadInfo
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
@@ -51,7 +52,7 @@ class ModelDownloadWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withLogScope("worker.model-download") { withContext(Dispatchers.IO) {
         // Which feature's models this worker instance is responsible for.
         val group = inputData.getString(KEY_GROUP)
             ?.let { runCatching { ModelGroup.valueOf(it) }.getOrNull() }
@@ -192,7 +193,7 @@ class ModelDownloadWorker @AssistedInject constructor(
             printWarning("ModelDownloadWorker: $error")
             return@withContext Result.failure(workDataOf(KEY_ERROR to error))
         }
-    }
+    } }
 
     private fun downloadFile(
         group: ModelGroup,

@@ -27,6 +27,7 @@ import com.drew.metadata.mp4.media.Mp4VideoDirectory
 import com.drew.metadata.xmp.XmpDirectory
 import com.drew.metadata.xmp.XmpReader
 import com.dot.gallery.feature_node.domain.model.parseCaptureTimestamp
+import com.dot.gallery.feature_node.presentation.util.printError
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
@@ -81,8 +82,9 @@ class IsolatedMetadataService : Service() {
 
             try {
                 replyTo.send(reply)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 // Client is gone
+                printError("service.sandbox", "metadata reply send failed; client is gone", e)
             }
         }
     }
@@ -360,8 +362,13 @@ class IsolatedMetadataService : Service() {
                                 ?.let { d -> cnt.toFloat() / (d / 1000f) }
                         }
                 frameRate?.let { result.putFloat(KEY_FRAME_RATE, it) }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 // Non-fatal: fall through to metadata-extractor.
+                printError(
+                    "service.sandbox",
+                    "video metadata retriever failed; falling back to metadata-extractor",
+                    e
+                )
             } finally {
                 retriever.release()
             }
@@ -516,9 +523,14 @@ class IsolatedMetadataService : Service() {
                 result.putStringArrayList("${dirKey}_descs", tagDescs)
                 dirIndex++
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // setDataSource throws on some containers/codecs (e.g. HEVC .MOV).
             // Non-fatal: metadata-extractor below still reads the QuickTime tags.
+            printError(
+                "service.sandbox",
+                "raw video metadata retriever failed; falling back to metadata-extractor",
+                e
+            )
         } finally {
             retriever.release()
         }

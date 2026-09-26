@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -71,7 +72,8 @@ class AndroidMetadataSanitizer @Inject constructor(
                 emptySet(),
                 limitation = "Permission to read this media is unavailable."
             )
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            printError("media-ops.metadata", "sanitizer probe failed", e)
             SanitizationCapability(
                 MediaContainerFormat.UNKNOWN,
                 emptySet(),

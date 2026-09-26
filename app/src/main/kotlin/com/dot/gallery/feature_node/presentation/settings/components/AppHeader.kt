@@ -34,14 +34,17 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,7 +72,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsAppHeader(
-    onDismiss: (() -> Unit)? = null
+    onDismiss: (() -> Unit)? = null,
+    developerModeEnabled: Boolean = false,
+    onDeveloperUnlocked: () -> Unit = {},
 ) {
 
     val appName = stringResource(id = R.string.app_name)
@@ -221,15 +226,34 @@ fun SettingsAppHeader(
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(
-                    text = appVersion,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp,
-                    modifier = Modifier.graphicsLayer {
-                        translationX = 6.0f
+                Column {
+                    var unlockProgress by remember { mutableFloatStateOf(0f) }
+                    Text(
+                        text = appVersion,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .graphicsLayer {
+                                translationX = 6.0f
+                            }
+                            .holdToUnlock(
+                                enabled = developerModeEnabled,
+                                onUnlocked = onDeveloperUnlocked,
+                                onProgress = { unlockProgress = it },
+                            )
+                    )
+                    if (unlockProgress > 0f) {
+                        LinearProgressIndicator(
+                            progress = { unlockProgress },
+                            modifier = Modifier
+                                .graphicsLayer { translationX = 6.0f }
+                                .padding(top = 2.dp)
+                                .width(96.dp)
+                                .height(3.dp),
+                        )
                     }
-                )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -296,7 +320,9 @@ fun SettingsAppHeader(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsAppHeaderCompact(
-    onRestore: () -> Unit
+    onRestore: () -> Unit,
+    developerModeEnabled: Boolean = false,
+    onDeveloperUnlocked: () -> Unit = {},
 ) {
     val donateImage = painterResource(id = R.drawable.ic_donate)
     val donateTitle = stringResource(R.string.donate)
@@ -441,20 +467,37 @@ fun SettingsAppHeaderCompact(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = appVersion,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .combinedClickable(
-                        onClick = {},
-                        onLongClick = {
-                            scope.launch { restoreSheetState.show() }
-                        }
+            var unlockProgress by remember { mutableFloatStateOf(0f) }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = appVersion,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .combinedClickable(
+                            onClick = {
+                                scope.launch { restoreSheetState.show() }
+                            },
+                            onLongClick = {}
+                        )
+                        .holdToUnlock(
+                            enabled = developerModeEnabled,
+                            onUnlocked = onDeveloperUnlocked,
+                            onProgress = { unlockProgress = it },
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+                if (unlockProgress > 0f) {
+                    LinearProgressIndicator(
+                        progress = { unlockProgress },
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .width(96.dp)
+                            .height(3.dp),
                     )
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
+                }
+            }
         }
     }
 }

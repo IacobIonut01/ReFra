@@ -13,6 +13,7 @@ import android.util.Size
 import com.dot.gallery.core.decoder.glide.HeifUriProbe
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.isCloud
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.github.panpf.sketch.asBitmapOrNull
 import com.github.panpf.sketch.decode.BitmapColorSpace
 import com.github.panpf.sketch.request.ImageRequest
@@ -50,6 +51,8 @@ class SmartThumbnailLoader @Inject constructor(
                             Size(size, size),
                             cancellationSignal
                         )
+                    }.onFailure {
+                        printError("ml.smart", "smart thumbnail decode failed", it)
                     }.getOrNull()
                     if (continuation.isActive) {
                         continuation.resume(bitmap) { _, cancelledBitmap, _ -> cancelledBitmap?.recycle() }
@@ -64,6 +67,8 @@ class SmartThumbnailLoader @Inject constructor(
                         size(size, size)
                     }
                     context.sketch.execute(request).image?.asBitmapOrNull()
+                }.onFailure {
+                    printError("ml.smart", "smart thumbnail decode failed", it)
                 }.getOrNull()
             } ?: return@withContext null
             if (source.width !in 1..MAX_DIMENSION || source.height !in 1..MAX_DIMENSION) {

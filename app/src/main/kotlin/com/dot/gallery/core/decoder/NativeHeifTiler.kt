@@ -5,7 +5,7 @@
 
 package com.dot.gallery.core.decoder
 
-import android.util.Log
+import com.dot.gallery.feature_node.presentation.util.printWarn
 
 /**
  * Kotlin binding for the `heiftiles` JNI library, which exposes libheif's memory-bounded tiled
@@ -20,13 +20,13 @@ import android.util.Log
  */
 object NativeHeifTiler {
 
-    private const val TAG = "NativeHeifTiler"
+    private const val TAG = "decode.heif"
 
     val isAvailable: Boolean = runCatching {
         System.loadLibrary("heiftiles")
         nativeSelfTest()
     }.getOrElse {
-        Log.w(TAG, "heiftiles native library unavailable: ${it.message}")
+        printWarn(TAG, "heiftiles native library unavailable: ${it.message}")
         false
     }.also { HeifDebug.d("NativeHeifTiler.isAvailable=$it") }
 

@@ -13,6 +13,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
@@ -24,6 +25,7 @@ import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.util.isMetadataUpToDate
 import com.dot.gallery.feature_node.presentation.util.mediaStoreVersion
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -54,17 +56,17 @@ class MetadataCollectionWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result = runCatching {
+    override suspend fun doWork(): Result = withLogScope("worker.metadata-collection") { runCatching {
         if (!BuildConfig.ENABLE_INDEXING) {
             collectCloudMediaMetadata()
-            return Result.success()
+            return@withLogScope Result.success()
         }
         val forceReload = inputData.getBoolean("forceReload", false)
         reverseGeocodePendingMetadata()
         if (database.isMetadataUpToDate(appContext) && !forceReload) {
             printDebug("Metadata is up to date")
             collectCloudMediaMetadata()
-            return Result.success()
+            return@withLogScope Result.success()
         }
         printDebug("Updating metadata...")
         setProgress(workDataOf("progress" to 0))
@@ -84,15 +86,24 @@ class MetadataCollectionWorker @AssistedInject constructor(
             val localIds = it.fastMap { m -> m.id }
             val cloudIds = try {
                 database.getCloudMediaDao().getAllAsync().map { c -> c.globalMediaId }
-            } catch (_: Exception) { emptyList() }
-            database.getMetadataDao().deleteForgottenMetadata(localIds + cloudIds)
+            } catch (e: Exception) {
+                printError(
+                    "worker.metadata",
+                    "failed to load cloud media ids; skipping forgotten-metadata cleanup",
+                    e
+                )
+                null
+            }
+            if (cloudIds != null) {
+                database.getMetadataDao().deleteForgottenMetadata(localIds + cloudIds)
+            }
         }
         differentMedia?.let { diffMedia ->
             if (diffMedia.isEmpty()) {
                 printDebug("No new media to update metadata for.")
                 collectCloudMediaMetadata()
                 setProgress(workDataOf("progress" to 100))
-                return Result.success()
+                return@withLogScope Result.success()
             }
             val isolationMode = Settings.Security.getMetadataIsolationMode(appContext)
                 .firstOrNull() ?: Settings.Security.METADATA_ISOLATION_SHARED
@@ -123,12 +134,12 @@ class MetadataCollectionWorker @AssistedInject constructor(
         collectCloudMediaMetadata()
 
         setProgress(workDataOf("progress" to 100))
-        return Result.success()
+        return@withLogScope Result.success()
     }.getOrElse { exception ->
         if (exception is CancellationException) throw exception
         printDebug("MetadataCollectionWorker failed with exception: ${exception.message}")
-        return Result.failure()
-    }
+        return@withLogScope Result.failure()
+    } }
 
     @Suppress("DEPRECATION")
     private suspend fun reverseGeocodePendingMetadata() {

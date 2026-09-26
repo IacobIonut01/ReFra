@@ -73,6 +73,8 @@ import com.dot.gallery.feature_node.presentation.util.SystemDateFormatField
 import com.dot.gallery.feature_node.presentation.util.applyOptimisticMutations
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.dot.gallery.feature_node.presentation.util.mediaFlow
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import com.dot.gallery.feature_node.presentation.util.resolvedDateFormat
 
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -596,7 +598,9 @@ class MediaDistributorImpl @Inject constructor(
         // cloud flow then republishes the unified timeline/album caches instantly.
         try {
             cloudRepository.syncAllRemoteChanges()
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            printError("cloud.sync", "remote delta sync failed", e)
+        }
         try {
             cloudRepository.getAllRemoteAlbums().collect { resource ->
                 when (resource) {
@@ -604,7 +608,9 @@ class MediaDistributorImpl @Inject constructor(
                     is Resource.Error -> _cloudAlbumsFlow.value = resource.data ?: emptyList()
                 }
             }
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            printWarn("cloud.sync", "remote album collect failed: $e")
+        }
         // Collect all asset IDs that belong to at least one cloud album, and — for
         // providers that don't populate album metadata from a cheap directory listing
         // (e.g. SMB/NFS/WebDAV report thumbnailAssetId == null and assetCount == 0) —
@@ -653,11 +659,15 @@ class MediaDistributorImpl @Inject constructor(
             }
             _cloudAlbumMembers.value = membersByAlbum
             if (didEnrich) _cloudAlbumsFlow.value = enriched
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            printWarn("cloud.sync", "remote album enrichment failed: $e")
+        }
         // Fetch trashed items into cache so the trash screen has cloud data
         try {
             cloudRepository.getRemoteTrashed().first()
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            printWarn("cloud.sync", "remote trash fetch failed: $e")
+        }
     }
 
     private fun isCloudAlbumId(albumId: Long): Boolean {

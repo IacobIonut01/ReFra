@@ -15,6 +15,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.cloud.util.CloudMediaDownloader
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.core.util.ext.selectedModifiedTimestamp
 import com.dot.gallery.core.util.ext.copyToCancellable
@@ -25,6 +26,7 @@ import com.dot.gallery.core.util.ext.restoreMediaTimestamp
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.resolveMediaStoreVolume
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -84,7 +86,7 @@ class MediaCopyWorker @AssistedInject constructor(
         private const val MAX_CONCURRENT_COPIES = 4
     }
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withLogScope("worker.media-copy") { withContext(Dispatchers.IO) {
         val uris = params.inputData.getStringArray("uris") ?: return@withContext Result.failure()
         val paths = params.inputData.getStringArray("paths") ?: return@withContext Result.failure()
         val mimeTypes = params.inputData.getStringArray("mimeTypes")
@@ -158,7 +160,7 @@ class MediaCopyWorker @AssistedInject constructor(
             results.any { it == null } -> Result.failure()
             else -> Result.failure()
         }
-    }
+    } }
 
     private suspend fun copyOne(
         src: Uri,
@@ -231,6 +233,16 @@ class MediaCopyWorker @AssistedInject constructor(
                 committed = true
                 insertedUri
             } catch (e: IOException) {
+                printError(
+                    tag = "MediaCopyWorker",
+                    message = "Media copy failed",
+                    throwable = e,
+                    ctx = mapOf(
+                        "src_scheme" to (src.scheme ?: "unknown"),
+                        "dest_dir" to destPath.substringBeforeLast('/', ""),
+                        "mime" to (mimeTypeHint ?: "auto"),
+                    ),
+                )
                 null
             } finally {
                 if (!committed) {

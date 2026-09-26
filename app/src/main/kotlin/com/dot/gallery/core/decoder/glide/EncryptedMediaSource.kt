@@ -9,6 +9,7 @@ import com.dot.gallery.core.decryption.MediaMetadataCacheEntry
 import com.dot.gallery.core.memory.AdaptiveDecryptConfigEntryPoint
 import com.dot.gallery.core.metrics.MetricsCollectorEntryPoint
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.EntryPointAccessors
 import java.io.File
 import java.io.FileOutputStream
@@ -41,7 +42,8 @@ data class EncryptedMediaSource(
                 DecryptManagerEntryPoint::class.java
             )
             ep.decryptManager().decrypt(file)
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            printError("vault.decrypt", "primary decrypt failed; falling back to keychain", e)
             val keychainHolder = KeychainHolder(contextRef)
             val d = keychainHolder.decryptVaultMedia(file)
             val r = DecryptResult(d.readBytes(), d.mimeType)
@@ -60,7 +62,8 @@ data class EncryptedMediaSource(
                     DecryptManagerEntryPoint::class.java
                 )
                 ep.decryptManager().decrypt(file)
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
+                printError("vault.decrypt", "primary decrypt failed; falling back to keychain", e)
                 val keychainHolder = KeychainHolder(contextRef)
                 val d = keychainHolder.decryptVaultMedia(file)
                 val r = DecryptResult(d.readBytes(), d.mimeType)
@@ -126,8 +129,16 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
                         duration = extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
                         width = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull()
                         height = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull()
-                    } catch (_: Throwable) { }
-                    finally { try { release() } catch (_: Throwable) {} }
+                    } catch (e: Throwable) {
+                        printError("vault.decrypt", "encrypted metadata extract failed", e)
+                    }
+                    finally {
+                        try {
+                            release()
+                        } catch (e: Throwable) {
+                            printError("vault.decrypt", "encrypted metadata retriever release failed", e)
+                        }
+                    }
                 }
             } else {
                 // Image: parse dimensions via BitmapFactory decode bounds to avoid full decode

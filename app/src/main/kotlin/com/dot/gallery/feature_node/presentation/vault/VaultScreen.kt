@@ -70,6 +70,8 @@ import com.dot.gallery.feature_node.presentation.mediaview.ViewerDismissBridge
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerDismissExitVisual
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerDismissFlightLayer
 import com.dot.gallery.feature_node.presentation.util.SecureWindow
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.vault.components.VaultPasswordUnlockDialog
 import com.dot.gallery.feature_node.presentation.vault.utils.GateMode
 import com.dot.gallery.feature_node.presentation.vault.utils.VaultAuthType
@@ -80,6 +82,8 @@ import com.dot.gallery.feature_node.presentation.vault.utils.VerifyResult
 import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+
+private const val TAG = "vault.ui"
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalDeferredTransitionApi::class)
 @Composable
@@ -195,8 +199,8 @@ fun VaultScreen(
             viewModel.currentVault.value = vault
             viewModel.setVault(
                 vault = vault,
-                onFailed = { println("Vault set failed: $it") },
-                onSuccess = { println("Vault switched to ${vault.name}") }
+                onFailed = { printError(TAG, "Vault set failed: $it") },
+                onSuccess = { printInfo(TAG, "Vault switched to ${vault.name}") }
             )
             val currentRoute = navController.currentBackStackEntry?.destination?.route
             if (currentRoute?.contains("VaultDisplay") != true) {

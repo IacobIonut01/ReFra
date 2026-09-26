@@ -29,6 +29,7 @@ import com.dot.gallery.R
 import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -67,7 +68,8 @@ class FreeUpSpaceWorker @AssistedInject constructor(
             engine.scan(cutoffDays, keepFavorites)
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            printError("worker.free-space", "scheduled free-space scan failed", e)
             null
         } ?: return if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.success()
         if (scan.verified.isEmpty()) return Result.success()
@@ -88,7 +90,8 @@ class FreeUpSpaceWorker @AssistedInject constructor(
             )
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            printError("worker.free-space", "deletion re-check failed", e)
             null
         } ?: return if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.success()
 

@@ -341,6 +341,7 @@ class StartupMediaCache internal constructor(
             try {
                 json.decodeFromString(StartupCacheStamp.serializer(), it)
             } catch (e: Exception) {
+                printWarning("StartupMediaCache: $label stamp decode failed (${e.javaClass.simpleName})")
                 null
             }
         } ?: return null

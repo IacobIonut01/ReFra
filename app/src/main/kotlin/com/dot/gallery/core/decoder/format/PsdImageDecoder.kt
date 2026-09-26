@@ -7,10 +7,10 @@ package com.dot.gallery.core.decoder.format
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import android.util.Size
 import androidx.core.graphics.scale
 import androidx.core.graphics.createBitmap
+import com.dot.gallery.feature_node.presentation.util.printWarn
 
 /**
  * Minimal Adobe Photoshop (PSD/PSB) decoder. Android has no native PSD support.
@@ -26,7 +26,7 @@ import androidx.core.graphics.createBitmap
  */
 object PsdImageDecoder {
 
-    private const val TAG = "PsdImageDecoder"
+    private const val TAG = "decode.psd"
 
     private data class Header(
         val width: Int,
@@ -58,7 +58,7 @@ object PsdImageDecoder {
         }
 
         val merged = runCatching { decodeMerged(bytes, header) }
-            .onFailure { Log.w(TAG, "merged image decode failed: ${it.message}") }
+            .onFailure { printWarn(TAG, "merged image decode failed: ${it.message}") }
             .getOrNull()
         if (merged != null) return fit(merged, targetW, targetH)
 

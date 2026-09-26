@@ -25,12 +25,14 @@ import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
 import com.dot.gallery.cloud.util.CloudMediaDownloader
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.decoder.format.ImageReencoder
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.decoder.format.SourceQualityProbe
 import com.dot.gallery.core.util.ext.overrideImageStreaming
 import com.dot.gallery.core.util.ext.restoreMediaTimestamp
 import com.dot.gallery.core.util.ext.selectedModifiedTimestamp
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.github.panpf.sketch.util.rotate
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import dagger.assisted.Assisted
@@ -102,7 +104,7 @@ class RotateMediaWorker @AssistedInject constructor(
 
     private val cr: ContentResolver = appContext.contentResolver
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withLogScope("worker.rotate") { withContext(Dispatchers.IO) {
         val uriStr = inputData.getString(KEY_MEDIA_URI)
             ?: return@withContext failure("Missing media Uri")
         val sourceUri = uriStr.toUri()
@@ -223,12 +225,21 @@ class RotateMediaWorker @AssistedInject constructor(
             update(Status.COMPLETED, "Done")
             success("Rotation applied")
         } catch (oom: OutOfMemoryError) {
-            oom.printStackTrace()
+            printError(
+                tag = "RotateMediaWorker",
+                message = "OOM while rotating",
+                throwable = oom,
+            )
             failure("OOM while rotating")
         } catch (e: Exception) {
+            printError(
+                tag = "RotateMediaWorker",
+                message = "Rotation failed",
+                throwable = e,
+            )
             failure("Error: ${e.message}")
         }
-    }
+    } }
 
     private suspend fun saveRotatedInPlace(
         sourceUri: Uri,
@@ -311,7 +322,7 @@ class RotateMediaWorker @AssistedInject constructor(
             }
             targetUri
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError("worker.rotate", "failed to save rotated copy", e)
             targetUri?.let { runCatching { cr.delete(it, null, null) } }
             null
         }

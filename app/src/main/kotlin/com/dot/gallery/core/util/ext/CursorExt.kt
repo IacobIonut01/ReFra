@@ -10,6 +10,7 @@ import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.metrics.StartupTracer
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -37,7 +38,7 @@ fun <T> Cursor?.mapEachRow(
             } while (cursor.moveToNext())
         }
     } catch (e: Exception) {
-        e.printStackTrace()
+        printError("db.cursor", "failed to map cursor rows", e)
         emptyList()
     }
 

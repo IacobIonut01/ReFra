@@ -6,12 +6,12 @@
 package com.dot.gallery.core.decoder.format
 
 import android.graphics.Bitmap
-import android.util.Log
 import com.awxkee.jxlcoder.JxlChannelsConfiguration
 import com.awxkee.jxlcoder.JxlCoder
 import com.awxkee.jxlcoder.JxlCompressionOption
 import com.awxkee.jxlcoder.JxlDecodingSpeed
 import com.awxkee.jxlcoder.JxlEffort
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import com.radzivon.bartoshyk.avif.coder.HeifQualityArg
 import com.radzivon.bartoshyk.avif.coder.PreciseMode
@@ -32,7 +32,7 @@ import java.io.OutputStream
  */
 object ImageReencoder {
 
-    private const val TAG = "ImageReencoder"
+    private const val TAG = "decode.reencode"
 
     private val heifCoder by lazy { HeifCoder() }
 
@@ -262,7 +262,7 @@ object ImageReencoder {
         else try {
             copy(Bitmap.Config.ARGB_8888, false) ?: this
         } catch (e: Throwable) {
-            Log.e(TAG, "ARGB_8888 copy failed: ${e.message}")
+            printError(TAG, "ARGB_8888 copy failed: ${e.message}")
             this
         }
 

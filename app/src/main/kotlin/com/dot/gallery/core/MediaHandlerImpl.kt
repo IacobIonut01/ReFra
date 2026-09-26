@@ -19,6 +19,7 @@ import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
 import com.dot.gallery.cloud.sync.CloudMediaStoreWriter
 import com.dot.gallery.core.decoder.format.ImageReencoder
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.metadata.MetadataRemovalMode
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
@@ -34,6 +35,8 @@ import com.dot.gallery.feature_node.domain.repository.CaptureDateEditCapability
 import com.dot.gallery.feature_node.domain.repository.CaptureDateEditResult
 import com.dot.gallery.feature_node.domain.repository.MediaMutationResult
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -68,7 +71,7 @@ class MediaHandlerImpl @Inject constructor(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>,
         favorite: Boolean
-    ) {
+    ) = withLogScope("media-ops") {
         val (cloudMedia, localMedia) = mediaList.partition { it.isCloud }
         if (localMedia.isNotEmpty()) {
             repository.toggleFavorite(result, localMedia, favorite)
@@ -79,7 +82,14 @@ class MediaHandlerImpl @Inject constructor(
                     val (providerName, remoteId, configId) = extractCloudInfo(media) ?: return@forEach
                     val providerType = try { ProviderType.valueOf(providerName) } catch (_: Exception) { return@forEach }
                     val provider = getCloudProvider(providerName, configId) ?: return@forEach
-                    provider.toggleFavorite(remoteId, favorite)
+                    provider.toggleFavorite(remoteId, favorite).onFailure { e ->
+                        printError(
+                            tag = "MediaHandler",
+                            message = "Cloud favorite failed",
+                            throwable = e,
+                            ctx = mapOf("provider" to providerName),
+                        )
+                    }
                     cloudMediaDao.updateFavorite(remoteId, providerType, configId, favorite)
                 }
             }
@@ -104,7 +114,7 @@ class MediaHandlerImpl @Inject constructor(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>,
         trash: Boolean
-    ): MediaMutationResult {
+    ): MediaMutationResult = withLogScope("media-ops") {
         val (cloudMedia, localMedia) = mediaList.partition { it.isCloud }
 
         if (cloudMedia.isNotEmpty()) {
@@ -112,16 +122,24 @@ class MediaHandlerImpl @Inject constructor(
                 cloudMedia.forEach { media ->
                     val (providerName, remoteId, configId) = extractCloudInfo(media) ?: return@forEach
                     val provider = getCloudProvider(providerName, configId) ?: return@forEach
-                    if (trash) {
+                    val outcome = if (trash) {
                         provider.trashAsset(remoteId)
                     } else {
                         provider.restoreAsset(remoteId)
+                    }
+                    outcome.onFailure { e ->
+                        printError(
+                            tag = "MediaHandler",
+                            message = "Cloud ${if (trash) "trash" else "restore"} failed",
+                            throwable = e,
+                            ctx = mapOf("provider" to providerName),
+                        )
                     }
                 }
             }
         }
 
-        return if (localMedia.isNotEmpty()) {
+        if (localMedia.isNotEmpty()) {
             repository.trashMedia(result, localMedia, trash)
         } else {
             MediaMutationResult.COMPLETED
@@ -153,7 +171,7 @@ class MediaHandlerImpl @Inject constructor(
     override suspend fun <T : Media> deleteMedia(
         result: ActivityResultLauncher<IntentSenderRequest>,
         mediaList: List<T>
-    ): MediaMutationResult {
+    ): MediaMutationResult = withLogScope("media-ops") {
         val (cloudMedia, localMedia) = mediaList.partition { it.isCloud }
         val cloudDeleted = withContext(Dispatchers.IO) {
             cloudMedia.map { media ->
@@ -162,7 +180,14 @@ class MediaHandlerImpl @Inject constructor(
                 val providerType = runCatching { ProviderType.valueOf(providerName) }.getOrNull()
                     ?: return@map false
                 val provider = getCloudProvider(providerName, configId) ?: return@map false
-                provider.deleteAsset(remoteId).isSuccess.also { deleted ->
+                provider.deleteAsset(remoteId).onFailure { e ->
+                    printError(
+                        tag = "MediaHandler",
+                        message = "Cloud delete failed",
+                        throwable = e,
+                        ctx = mapOf("provider" to providerName),
+                    )
+                }.isSuccess.also { deleted ->
                     if (deleted) cloudMediaDao.delete(remoteId, providerType, configId)
                 }
             }.all { it }
@@ -172,7 +197,7 @@ class MediaHandlerImpl @Inject constructor(
         } else {
             MediaMutationResult.COMPLETED
         }
-        return if (cloudDeleted) localResult else MediaMutationResult.FAILED
+        if (cloudDeleted) localResult else MediaMutationResult.FAILED
     }
 
     override suspend fun <T : Media> renameMedia(
@@ -183,13 +208,15 @@ class MediaHandlerImpl @Inject constructor(
     override suspend fun <T : Media> moveMedia(
         media: T,
         newPath: String
-    ): Boolean = repository.moveMedia(media, newPath)
+    ): Boolean = withLogScope("media-ops") { repository.moveMedia(media, newPath) }
 
     override suspend fun <T : Media> copyMediaForMove(
         mediaList: List<T>,
         newPath: String,
         onProgress: suspend (Float) -> Unit
-    ): List<Uri> = repository.copyMediaForMove(mediaList, newPath, onProgress)
+    ): List<Uri> = withLogScope("media-ops") {
+        repository.copyMediaForMove(mediaList, newPath, onProgress)
+    }
 
     override suspend fun discardMediaCopies(uris: List<Uri>) =
         repository.discardMediaCopies(uris)
@@ -262,7 +289,8 @@ class MediaHandlerImpl @Inject constructor(
     override suspend fun collectMetadataFor(media: Media) = repository.collectMetadataFor(media)
 
     override suspend fun <T : Media> downloadCloudMedia(mediaList: List<T>): Result<Int> =
-        withContext(Dispatchers.IO) {
+        withLogScope("media-ops") {
+            withContext(Dispatchers.IO) {
             val cloudMedia = mediaList.filter { it.isCloud }
             if (cloudMedia.isEmpty()) return@withContext Result.success(0)
 
@@ -279,6 +307,16 @@ class MediaHandlerImpl @Inject constructor(
                 val syncProvider = provider as? SyncCapableProvider ?: continue
 
                 val downloadResult = syncProvider.downloadAsset(remoteId)
+                downloadResult.onFailure { e ->
+                    printWarn(
+                        tag = "MediaHandler",
+                        message = "Cloud download failed",
+                        ctx = mapOf(
+                            "provider" to providerName,
+                            "reason" to (e.message ?: e.javaClass.simpleName),
+                        ),
+                    )
+                }
                 val cacheUri = downloadResult.getOrNull() ?: continue
 
                 // Save from cache to MediaStore via the shared writer used by the
@@ -297,6 +335,7 @@ class MediaHandlerImpl @Inject constructor(
                 }
             }
             Result.success(successCount)
+            }
         }
 
 }

@@ -39,6 +39,7 @@ import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.domain.util.OrderType
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -392,12 +393,22 @@ class CloudBackupViewModel @Inject constructor(
                                     val verified = if (provider.requiresUploadChecksum) {
                                         val present = try {
                                             provider.bulkUploadCheck(hashed.map { it.second })
-                                                .onFailure { verificationFailed = true }
+                                                .onFailure {
+                                                    verificationFailed = true
+                                                    printWarn(
+                                                        "cloud.backup",
+                                                        "remote verification failed: $it"
+                                                    )
+                                                }
                                                 .getOrDefault(emptyMap())
                                         } catch (e: CancellationException) {
                                             throw e
-                                        } catch (_: Exception) {
+                                        } catch (e: Exception) {
                                             verificationFailed = true
+                                            printWarn(
+                                                "cloud.backup",
+                                                "remote verification failed: $e"
+                                            )
                                             emptyMap()
                                         }
                                         verifiedItemsByIndex(hashed, present)
@@ -408,12 +419,22 @@ class CloudBackupViewModel @Inject constructor(
                                             val matches = targets.all { targetPath ->
                                                 val targetMatches = try {
                                                     provider.verifyRemoteContent(media, targetPath, hash)
-                                                        .onFailure { verificationFailed = true }
+                                                        .onFailure {
+                                                            verificationFailed = true
+                                                            printWarn(
+                                                                "cloud.backup",
+                                                                "remote verification failed: $it"
+                                                            )
+                                                        }
                                                         .getOrDefault(false)
                                                 } catch (e: CancellationException) {
                                                     throw e
-                                                } catch (_: Exception) {
+                                                } catch (e: Exception) {
                                                     verificationFailed = true
+                                                    printWarn(
+                                                        "cloud.backup",
+                                                        "remote verification failed: $e"
+                                                    )
                                                     false
                                                 }
                                                 if (targetMatches) {

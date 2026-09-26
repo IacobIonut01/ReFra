@@ -22,6 +22,7 @@ import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.domain.model.locationCoordinateGroupKey
 import com.dot.gallery.feature_node.domain.model.locationIdentityKey
 import com.dot.gallery.feature_node.domain.model.matchesLocationCoordinates
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -103,7 +104,10 @@ class MapGeoMediaSource @Inject constructor(
                         .map { AccountCloudMapMarker(account.configId, it) }
                         .toList()
                 }
-                .catch { emit(emptyList()) }
+                .catch {
+                    printError("db.mediastore", "map media query failed", it)
+                    emit(emptyList())
+                }
         }
         combine(flows) { accountResults -> accountResults.flatMap { it } }
     }

@@ -35,6 +35,7 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isCloud
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.domain.util.isVideo
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -136,7 +137,8 @@ class MediaViewViewModel @Inject constructor(
                 repository.probeMetadataSanitization(media)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                printError("media-ops.metadata", "sanitizer probe failed", e)
                 SanitizationCapability(
                     MediaContainerFormat.UNKNOWN,
                     emptySet(),

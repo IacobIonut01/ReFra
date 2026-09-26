@@ -8,6 +8,7 @@ import android.os.Build.VERSION_CODES
 import androidx.core.net.toFile
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.github.panpf.sketch.decode.DecodeConfig
 import com.github.panpf.sketch.decode.ImageInfo
 import com.github.panpf.sketch.decode.ImageInvalidException
@@ -142,7 +143,7 @@ fun DataSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: K
             boundOptions
         )
     } catch (e: Exception) {
-        e.printStackTrace()
+        printError("decode.encrypted", "failed to decode encrypted image bounds", e)
         throw ImageInvalidException("decode return null at readEncryptedImageInfoWithIgnoreExifOrientation")
     }
 

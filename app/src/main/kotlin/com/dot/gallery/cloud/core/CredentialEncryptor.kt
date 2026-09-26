@@ -8,6 +8,7 @@ package com.dot.gallery.cloud.core
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import com.dot.gallery.feature_node.presentation.util.printError
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -73,7 +74,8 @@ class CredentialEncryptor @Inject constructor() {
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_LENGTH, iv))
             String(cipher.doFinal(ciphertext), Charsets.UTF_8)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            printError("cloud.auth", "credential decrypt failed", e)
             null
         }
     }

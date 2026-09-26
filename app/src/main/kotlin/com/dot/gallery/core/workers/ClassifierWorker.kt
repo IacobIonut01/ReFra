@@ -10,6 +10,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -27,14 +28,14 @@ class ClassifierWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = withLogScope("worker.classifier") {
         printWarning("ClassifierWorker: Delegating to new CategoryWorker system")
-        
+
         // Start the new category classification worker
         WorkManager.getInstance(appContext).startCategoryClassification()
-        
+
         setProgress(workDataOf("progress" to 100))
-        return Result.success()
+        Result.success()
     }
 }
 

@@ -20,6 +20,7 @@ import com.dot.gallery.feature_node.presentation.search.SearchHelper
 import com.dot.gallery.feature_node.presentation.search.util.dot
 import com.dot.gallery.feature_node.presentation.util.SystemDateFormatField
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.resolvedDateFormat
 import com.dot.gallery.core.smart.SmartScanScheduler
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
@@ -209,7 +210,7 @@ class EditCategoryViewModel @Inject constructor(
                 _previewMediaState.value = mediaState
             }
         } catch (e: Exception) {
-            // Handle error silently
+            printError("ui.category", "media preview load failed", e)
         }
     }
     

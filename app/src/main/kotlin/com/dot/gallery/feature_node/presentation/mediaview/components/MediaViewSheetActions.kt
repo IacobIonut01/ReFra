@@ -86,6 +86,7 @@ import com.dot.gallery.feature_node.presentation.util.launchEditImageIntent
 import com.dot.gallery.feature_node.presentation.util.launchEditIntent
 import com.dot.gallery.feature_node.presentation.util.launchOpenWithIntent
 import com.dot.gallery.feature_node.presentation.util.launchUseAsIntent
+import com.dot.gallery.feature_node.presentation.util.logEvent
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.shareEncryptedMedia
@@ -165,6 +166,15 @@ fun <T : Media> MediaViewSheetActions(
     val keychainHolder = remember(currentVault) {
         if (currentVault != null) lazy { KeychainHolder(context) } else null
     }
+    val mediaCtx = remember(media) {
+        mapOf(
+            "count" to "1",
+            "bytes" to media.size.toString(),
+            "type" to media.mimeType.substringBefore('/'),
+            "cloud" to media.isCloud.toString(),
+        )
+    }
+    fun logViewAction(name: String) = logEvent("viewer.$name", mediaCtx, scope = "media-ops")
 
     // "Use as album cover" is offered for local, non-encrypted media that live in a real album.
     val canSetAlbumCover = remember(media, capabilities) {
@@ -182,6 +192,7 @@ fun <T : Media> MediaViewSheetActions(
                 icon = Icons.Outlined.Wallpaper,
                 text = useAsAlbumCoverText,
                 onClick = {
+                    logViewAction("album_cover")
                     scope.launch {
                         handler.updateAlbumThumbnail(media.albumID, media.getUri())
                         Toast.makeText(context, albumCoverUpdatedText, Toast.LENGTH_SHORT).show()
@@ -193,6 +204,7 @@ fun <T : Media> MediaViewSheetActions(
                 icon = Icons.AutoMirrored.Outlined.OpenInNew,
                 text = moreOptionsText,
                 onClick = {
+                    logViewAction("open_externally")
                     scope.launch {
                         useAsSheetState.hide()
                         if (media.isVideo) context.launchOpenWithIntent(media)
@@ -240,6 +252,7 @@ fun <T : Media> MediaViewSheetActions(
                     icon = Icons.Outlined.Share,
                     text = shareText,
                     onClick = {
+                        logViewAction("share")
                         scope.launch {
                             if (media.isEncrypted && currentVault != null && keychainHolder != null) {
                                 context.shareEncryptedMedia(media, currentVault, keychainHolder.value)
@@ -255,6 +268,7 @@ fun <T : Media> MediaViewSheetActions(
                     icon = Icons.Outlined.ContentCopy,
                     text = copyToClipboardText,
                     onClick = {
+                        logViewAction("copy_to_clipboard")
                         scope.launch {
                             if (media.isEncrypted && currentVault != null && keychainHolder != null) {
                                 context.copyEncryptedMediaToClipboard(media, keychainHolder.value)
@@ -271,6 +285,7 @@ fun <T : Media> MediaViewSheetActions(
                     icon = Icons.Outlined.Lock,
                     text = hideText,
                     onClick = {
+                        logViewAction("vault_hide")
                         if (noVaults) {
                             Toast.makeText(context, createFirstText, Toast.LENGTH_SHORT).show()
                         } else {
@@ -284,7 +299,10 @@ fun <T : Media> MediaViewSheetActions(
                 add(ActionGridItem(
                     icon = Icons.Outlined.Restore,
                     text = restoreText,
-                    onClick = { scope.launch { restoreConfirmState.show() } }
+                    onClick = {
+                        logViewAction("vault_restore")
+                        scope.launch { restoreConfirmState.show() }
+                    }
                 ))
             }
             // Open As / Use As — when the item is a local, non-encrypted media in a real album,
@@ -295,6 +313,7 @@ fun <T : Media> MediaViewSheetActions(
                     icon = Icons.AutoMirrored.Outlined.OpenInNew,
                     text = if (media.isVideo) openWithText else useAsText,
                     onClick = {
+                        logViewAction("open_externally")
                         if (canSetAlbumCover) {
                             scope.launch { useAsSheetState.show() }
                         } else {
@@ -310,7 +329,10 @@ fun <T : Media> MediaViewSheetActions(
                 add(ActionGridItem(
                     icon = Icons.Outlined.Image,
                     text = extractFramesText,
-                    onClick = onOpenFramePicker,
+                    onClick = {
+                        logViewAction("extract_frames")
+                        onOpenFramePicker()
+                    },
                 ))
             }
             // Save Motion Photo embedded video as a standalone file
@@ -319,6 +341,7 @@ fun <T : Media> MediaViewSheetActions(
                     icon = Icons.Outlined.MovieCreation,
                     text = exportVideoText,
                     onClick = {
+                        logViewAction("export_motion_video")
                         scope.launch {
                             Toast.makeText(context, exportingText, Toast.LENGTH_SHORT).show()
                             val saved = MotionPhotoHelper.saveVideoToGallery(
@@ -340,12 +363,18 @@ fun <T : Media> MediaViewSheetActions(
                 add(ActionGridItem(
                     icon = Icons.Outlined.CopyAll,
                     text = copyText,
-                    onClick = { scope.launch { copySheetState.show() } }
+                    onClick = {
+                        logViewAction("copy")
+                        scope.launch { copySheetState.show() }
+                    }
                 ))
                 add(ActionGridItem(
                     icon = Icons.AutoMirrored.Outlined.DriveFileMove,
                     text = moveText,
-                    onClick = { scope.launch { moveSheetState.show() } }
+                    onClick = {
+                        logViewAction("move")
+                        scope.launch { moveSheetState.show() }
+                    }
                 ))
             }
             // Edit
@@ -354,6 +383,7 @@ fun <T : Media> MediaViewSheetActions(
                     icon = Icons.Outlined.Edit,
                     text = editText,
                     onClick = {
+                        logViewAction("edit")
                         if (media.isImage && defaultEditor != Settings.Misc.EDITOR_BUILTIN) {
                             try {
                                 context.launchEditImageIntent(defaultEditor, media.getUri())
@@ -371,7 +401,10 @@ fun <T : Media> MediaViewSheetActions(
                 add(ActionGridItem(
                     icon = Icons.Outlined.Collections,
                     text = addToCollectionText,
-                    onClick = { showCollectionSheet = true }
+                    onClick = {
+                        logViewAction("collection_add")
+                        showCollectionSheet = true
+                    }
                 ))
             }
             // Download (cloud only)
@@ -380,6 +413,7 @@ fun <T : Media> MediaViewSheetActions(
                     icon = Icons.Outlined.Download,
                     text = downloadText,
                     onClick = {
+                        logViewAction("download")
                         scope.launch {
                             Toast.makeText(context, downloadingText, Toast.LENGTH_SHORT).show()
                             val result = handler.downloadCloudMedia(listOf(media))

@@ -11,11 +11,12 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.core.decoder.RawOrientation
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import mil.nga.tiff.TiffReader
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -35,7 +36,7 @@ import kotlin.math.max
  */
 object TiffImageDecoder {
 
-    private const val TAG = "TiffImageDecoder"
+    private const val TAG = "decode.tiff"
 
     /**
      * Above this size a TIFF is never loaded fully onto the Java heap: the file IS the (often
@@ -96,7 +97,7 @@ object TiffImageDecoder {
             }
         }
     } catch (e: Throwable) {
-        Log.w(TAG, "decode(uri) failed: ${e.message}")
+        printWarn(TAG, "decode(uri) failed: ${e.message}")
         null
     }
 
@@ -105,7 +106,7 @@ object TiffImageDecoder {
     fun decode(file: File, reqW: Int, reqH: Int): Bitmap? = try {
         decodeChannel(FileInputStream(file), reqW, reqH) { ExifInterface(file) }
     } catch (e: Throwable) {
-        Log.w(TAG, "decode(file) failed: ${e.message}")
+        printWarn(TAG, "decode(file) failed: ${e.message}")
         null
     }
 
@@ -124,7 +125,7 @@ object TiffImageDecoder {
         val buffer = try {
             channel.map(FileChannel.MapMode.READ_ONLY, 0, size)
         } catch (e: Throwable) {
-            Log.w(TAG, "mmap failed: ${e.message}")
+            printWarn(TAG, "mmap failed: ${e.message}")
             null
         }
         if (buffer != null) {
@@ -137,7 +138,7 @@ object TiffImageDecoder {
             try {
                 decodeMapped(buffer, reqW, reqH)?.let { return it }
             } catch (e: Throwable) {
-                Log.w(TAG, "mapped ImageDecoder failed: ${e.message}")
+                printWarn(TAG, "mapped ImageDecoder failed: ${e.message}")
             }
         }
         // 3. Small files only: pure-Java mil.nga fallback for exotic variants (predictor, CMYK,
@@ -175,7 +176,7 @@ object TiffImageDecoder {
     @RequiresApi(Build.VERSION_CODES.P)
     fun decode(bytes: ByteArray, reqW: Int, reqH: Int): Bitmap? {
         if (bytes.size > MAX_BYTES) {
-            Log.w(TAG, "data too large=${bytes.size}; trying embedded JPEG / EXIF thumbnail")
+            printWarn(TAG, "data too large=${bytes.size}; trying embedded JPEG / EXIF thumbnail")
             return embeddedJpeg(bytes, reqW, reqH) ?: exifThumbnail(bytes)
         }
         if (isBigTiff(bytes)) {
@@ -189,7 +190,7 @@ object TiffImageDecoder {
                 if (reqW > 0 && reqH > 0) decoder.setTargetSize(reqW, reqH)
             }
         } catch (e: Throwable) {
-            Log.w(TAG, "ImageDecoder failed: ${e.message}; trying software decode")
+            printWarn(TAG, "ImageDecoder failed: ${e.message}; trying software decode")
             softwareDecode(bytes, reqW, reqH)
                 ?: embeddedJpeg(bytes, reqW, reqH)
                 ?: exifThumbnail(bytes)
@@ -209,7 +210,7 @@ object TiffImageDecoder {
             val srcH = directory.imageHeight.toInt()
             if (srcW <= 0 || srcH <= 0) return null
             if (srcW.toLong() * srcH.toLong() > MAX_PIXELS) {
-                Log.w(TAG, "software decode skipped: ${srcW}x$srcH exceeds pixel cap")
+                printWarn(TAG, "software decode skipped: ${srcW}x$srcH exceeds pixel cap")
                 return null
             }
             val rasters = directory.readRasters()
@@ -230,7 +231,7 @@ object TiffImageDecoder {
             }
             Bitmap.createBitmap(pixels, outW, outH, Bitmap.Config.ARGB_8888)
         } catch (e: Throwable) {
-            Log.w(TAG, "software raster decode failed: ${e.message}; will try embedded JPEG")
+            printWarn(TAG, "software raster decode failed: ${e.message}; will try embedded JPEG")
             null
         }
     }
@@ -277,7 +278,7 @@ object TiffImageDecoder {
             }
             null
         } catch (e: Throwable) {
-            Log.w(TAG, "embedded JPEG extraction failed: ${e.message}")
+            printWarn(TAG, "embedded JPEG extraction failed: ${e.message}")
             null
         }
     }
@@ -482,7 +483,7 @@ object TiffImageDecoder {
             val exif = ExifInterface(ByteArrayInputStream(bytes))
             if (exif.hasThumbnail()) exif.thumbnailBitmap else null
         } catch (e: Throwable) {
-            Log.e(TAG, "EXIF thumbnail extraction failed: ${e.message}")
+            printError(TAG, "EXIF thumbnail extraction failed: ${e.message}")
             null
         }
     }

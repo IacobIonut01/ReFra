@@ -12,6 +12,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.room.withTransaction
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.domain.model.MediaVersion
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -71,12 +72,12 @@ class DatabaseUpdaterWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result = runCatching {
+    override suspend fun doWork(): Result = withLogScope("worker.db-updater") { runCatching {
         delay(5000)
-        if (!currentCoroutineContext().isActive || isStopped) return Result.success()
+        if (!currentCoroutineContext().isActive || isStopped) return@withLogScope Result.success()
         if (database.isMediaUpToDate(appContext)) {
             printDebug("Database is up to date")
-            return Result.success()
+            return@withLogScope Result.success()
         }
         withContext(Dispatchers.IO) {
             val mediaVersion = appContext.mediaStoreVersion
@@ -98,6 +99,6 @@ class DatabaseUpdaterWorker @AssistedInject constructor(
     }.getOrElse { exception ->
         printDebug("Error updating database: ${exception.message}")
         Result.failure()
-    }
+    } }
 }
 

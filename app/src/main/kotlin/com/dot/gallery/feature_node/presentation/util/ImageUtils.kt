@@ -62,6 +62,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
 
+private const val TAG = "media-ops.share"
+
 @Composable
 fun rememberBitmapPainter(bitmap: Bitmap): State<Painter> {
     return remember(bitmap) { derivedStateOf { BitmapPainter(image = bitmap.asImageBitmap()) } }
@@ -316,7 +318,7 @@ suspend fun <T : Media> Context.copyEncryptedMediaToClipboard(
             }
         }
     } catch (e: Exception) {
-        e.printStackTrace()
+        printError(TAG, "Failed to copy encrypted media to clipboard", e)
         withContext(Dispatchers.Main) {
             Toast.makeText(
                 this@copyEncryptedMediaToClipboard,
@@ -392,7 +394,7 @@ suspend fun <T : Media> Context.shareEncryptedMedia(
         }
         
     } catch (e: Exception) {
-        e.printStackTrace()
+        printError(TAG, "Failed to share encrypted media ${media.label}", e)
         // Fallback to regular sharing if decryption fails
         withContext(Dispatchers.Main) {
             shareMedia(media)
@@ -424,7 +426,7 @@ suspend fun <T : Media> Context.shareMediaWithVaultSupport(
                     shareStreams.add(tempUri)
                 } catch (e: Exception) {
                     // If decryption fails, skip this media or use original URI
-                    e.printStackTrace()
+                    printError(TAG, "Failed to decrypt ${media.label} for sharing", e)
                     shareStreams.add(media.getUri())
                 }
             } else {
@@ -455,7 +457,7 @@ suspend fun <T : Media> Context.shareMediaWithVaultSupport(
             }
         }
     } catch (e: Exception) {
-        e.printStackTrace()
+        printError(TAG, "Failed to share media", e)
         // Fallback to regular sharing
         withContext(Dispatchers.Main) {
             shareMedia(mediaList)

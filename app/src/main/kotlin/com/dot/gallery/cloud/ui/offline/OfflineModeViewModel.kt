@@ -21,6 +21,7 @@ import com.dot.gallery.cloud.offline.CacheAssetRef
 import com.dot.gallery.cloud.offline.CloudMediaCache
 import com.dot.gallery.cloud.offline.OfflineModeManager
 import com.dot.gallery.cloud.sync.CloudOfflineDownloadWorker
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -310,7 +311,9 @@ class OfflineModeViewModel @Inject constructor(
                 return@launch
             }
 
-            val albums = runCatching { provider.getRemoteAlbums().first() }.getOrNull()?.data ?: emptyList()
+            val albums = runCatching { provider.getRemoteAlbums().first() }
+                .onFailure { printWarn("cloud.offline", "remote album fetch failed: $it") }
+                .getOrNull()?.data ?: emptyList()
             if (albums.isEmpty()) {
                 _accountSheet.updateIf(configId) { it.copy(loading = false) }
                 return@launch
@@ -318,6 +321,7 @@ class OfflineModeViewModel @Inject constructor(
             val entries = mutableListOf<AlbumCacheEntry>()
             for (album in albums) {
                 val media = runCatching { provider.getRemoteAlbumMedia(album.remoteId).first() }
+                    .onFailure { printWarn("cloud.offline", "remote album media fetch failed: $it") }
                     .getOrNull()?.data ?: emptyList()
                 val refs = media.map { it.toRef() }
                 val bytes = withContext(Dispatchers.IO) { cache.sizeForAssets(refs) }

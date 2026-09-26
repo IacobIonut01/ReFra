@@ -6,7 +6,6 @@
 package com.dot.gallery.cloud.image
 
 import android.net.Uri
-import android.util.Log
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Options
@@ -25,6 +24,7 @@ import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.resolveRemote
 import com.dot.gallery.cloud.offline.CloudMediaCache
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -264,8 +264,8 @@ internal class CloudOkHttpFetcher(
                             if (!isImage) {
                                 val snippet = String(bytes.copyOf(minOf(bytes.size, 180)))
                                     .replace('\n', ' ').replace('\r', ' ').trim()
-                                Log.w(
-                                    "CloudFetcher",
+                                printWarn(
+                                    "cloud.fetch",
                                     "Non-image preview response: url=$url contentType=$contentType " +
                                         "bytes=${bytes.size} snippet=\"$snippet\""
                                 )

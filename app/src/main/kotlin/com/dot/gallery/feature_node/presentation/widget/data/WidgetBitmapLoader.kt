@@ -11,6 +11,7 @@ import android.net.Uri
 import android.util.Size
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -88,7 +89,9 @@ object WidgetBitmapLoader {
                 uri, Size(maxWidth, maxHeight), null
             )
             return@withContext bitmap
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            printError("app.widget", "widget bitmap load failed", e)
+        }
 
         null
     }

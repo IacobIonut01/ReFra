@@ -13,6 +13,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printWarning
@@ -39,7 +40,7 @@ class DatabaseEncryptionWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result = runCatching {
+    override suspend fun doWork(): Result = withLogScope("worker.db-encryption") { runCatching {
         val encrypt = inputData.getBoolean(KEY_ENCRYPT, true)
 
         val sp = appContext.getSharedPreferences(SECURITY_FLAGS_PREFS, Context.MODE_PRIVATE)
@@ -59,7 +60,7 @@ class DatabaseEncryptionWorker @AssistedInject constructor(
     }.getOrElse { e ->
         printWarning("DatabaseEncryptionWorker: failed: ${e.message}")
         Result.failure()
-    }
+    } }
 
     companion object {
         const val UNIQUE_WORK_NAME = "DatabaseEncryption"

@@ -24,6 +24,7 @@ import com.dot.gallery.feature_node.data.data_source.SmartScanPhase
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.FloatVectorCodec
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.UUID
@@ -68,7 +69,13 @@ class FaceClusterPhaseProcessor @Inject constructor(
         val allFaces = faceDao.getAll()
         val embedded = allFaces.mapNotNull { face ->
             val embedding = face.embedding
-                ?.let { runCatching { FloatVectorCodec.decode(it) }.getOrNull() }
+                ?.let {
+                    runCatching { FloatVectorCodec.decode(it) }
+                        .onFailure { e ->
+                            printError("ml.faces", "face embedding decode failed; skipping item", e)
+                        }
+                        .getOrNull()
+                }
                 ?.takeIf { it.size == FACE_EMBEDDING_DIMENSION && it.all(Float::isFinite) }
             if (embedding == null || face.left >= face.right || face.top >= face.bottom) null
             else face to embedding

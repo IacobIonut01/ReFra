@@ -46,6 +46,8 @@ import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.MediaOrder
 import com.dot.gallery.feature_node.domain.util.OrderType
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -86,7 +88,8 @@ internal class CloudAccountDeletion(
             } catch (error: CancellationException) {
                 _state.value = CloudAccountDeletionState.Idle
                 throw error
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                printError("cloud.accounts", "account deletion failed", e)
                 _state.value = CloudAccountDeletionState.Failed(configId)
             }
         }
@@ -521,7 +524,9 @@ class CloudAccountsViewModel @Inject constructor(
                 revokeBestEffort(entity)
             } catch (error: CancellationException) {
                 throw error
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                printWarn("cloud.accounts", "credential revoke failed during account removal: $e")
+            }
             workManager.cancelUniqueWork(CloudOfflineDownloadWorker.WORK_NAME).result.get()
             offlinePinDao.deleteByConfig(configId)
             cloudMediaCache.clearForAssets(
@@ -600,10 +605,24 @@ class CloudAccountsViewModel @Inject constructor(
             configDao.getAll().first().forEach { config ->
                 val provider = registry.getByConfigId(config.id) as? RemoteMediaProvider ?: return@forEach
                 try {
-                    provider.getStorageInfo().onSuccess { info ->
-                        _storageInfo.value = _storageInfo.value + (config.id to info)
-                    }
-                } catch (_: Exception) { }
+                    provider.getStorageInfo()
+                        .onFailure {
+                            printWarn(
+                                "cloud.accounts",
+                                "storage info fetch failed: $it",
+                                ctx = mapOf("configId" to config.id.toString())
+                            )
+                        }
+                        .onSuccess { info ->
+                            _storageInfo.value = _storageInfo.value + (config.id to info)
+                        }
+                } catch (e: Exception) {
+                    printWarn(
+                        "cloud.accounts",
+                        "storage info fetch failed: $e",
+                        ctx = mapOf("configId" to config.id.toString())
+                    )
+                }
             }
         }
     }
@@ -621,10 +640,24 @@ class CloudAccountsViewModel @Inject constructor(
             configDao.getAll().first().forEach { config ->
                 val provider = registry.getByConfigId(config.id) as? RemoteMediaProvider ?: return@forEach
                 try {
-                    provider.getServerVersion().onSuccess { version ->
-                        _serverVersions.value = _serverVersions.value + (config.id to version)
-                    }
-                } catch (_: Exception) { }
+                    provider.getServerVersion()
+                        .onFailure {
+                            printWarn(
+                                "cloud.accounts",
+                                "server version fetch failed: $it",
+                                ctx = mapOf("configId" to config.id.toString())
+                            )
+                        }
+                        .onSuccess { version ->
+                            _serverVersions.value = _serverVersions.value + (config.id to version)
+                        }
+                } catch (e: Exception) {
+                    printWarn(
+                        "cloud.accounts",
+                        "server version fetch failed: $e",
+                        ctx = mapOf("configId" to config.id.toString())
+                    )
+                }
             }
         }
     }

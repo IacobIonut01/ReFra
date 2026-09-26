@@ -28,6 +28,7 @@ import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.data.entity.CloudBackupRevisionEntity
 import com.dot.gallery.cloud.data.entity.backupFingerprint
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -109,10 +110,23 @@ class CloudDownloadWorker @AssistedInject constructor(
                         entity.remoteId, entity.providerType, config.id, SyncState.DOWNLOADING
                     )
                     val cacheUri = try {
-                        syncProvider.downloadAsset(entity.remoteId).getOrNull()
+                        syncProvider.downloadAsset(entity.remoteId)
+                            .onFailure {
+                                printWarn(
+                                    "worker.cloud-download",
+                                    "asset download failed: $it",
+                                    ctx = mapOf("asset" to entity.remoteId)
+                                )
+                            }
+                            .getOrNull()
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
+                        printWarn(
+                            "worker.cloud-download",
+                            "asset download failed: $e",
+                            ctx = mapOf("asset" to entity.remoteId)
+                        )
                         null
                     }
                     if (cacheUri == null) {

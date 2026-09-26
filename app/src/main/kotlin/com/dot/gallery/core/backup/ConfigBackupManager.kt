@@ -365,7 +365,8 @@ class ConfigBackupManager @Inject constructor(
             context.contentResolver.openInputStream(source)?.use { input ->
                 BackupCrypto.isEncrypted(BackupCrypto.readHeader(input))
             } ?: false
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            printError("app.backup", "backup encryption probe failed", e)
             false
         }
     }

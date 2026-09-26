@@ -40,6 +40,7 @@ import com.dot.gallery.cloud.util.CloudMediaDownloader
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isCloud
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -483,7 +484,8 @@ class CloudAlbumCopyWorker @AssistedInject constructor(
         }
     } catch (e: CancellationException) {
         throw e
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        printWarn("worker.album-copy", "checksum digest failed: $e")
         null
     }
 

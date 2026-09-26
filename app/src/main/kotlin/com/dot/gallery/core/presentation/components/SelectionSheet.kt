@@ -122,6 +122,7 @@ import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogA
 import com.dot.gallery.feature_node.presentation.trashed.components.resolveTrashDialogAction
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.launchEditIntent
+import com.dot.gallery.feature_node.presentation.util.logEvent
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.feature_node.presentation.util.rememberMediaInfo
@@ -350,6 +351,17 @@ fun <T : Media> BoxScope.SelectionSheet(
             providerSupportsTrash = cloudSupportsTrash,
         )
     )
+    val selectionActionCtx = remember(selectedSnapshot) {
+        mapOf(
+            "count" to selectedSnapshot.size.toString(),
+            "bytes" to selectedSnapshot.sumOf { it.size }.toString(),
+            "types" to selectedSnapshot.mapTo(LinkedHashSet()) {
+                it.mimeType.substringBefore('/')
+            }.joinToString(","),
+        )
+    }
+    fun logSelectionAction(name: String) =
+        logEvent("selection.$name", selectionActionCtx, scope = "media-ops")
 
     AnimatedVisibility(
         modifier = modifier,
@@ -439,7 +451,10 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         SelectionAction.INFO -> {
                                             AnimatedVisibility(visible = selectedMedia.size == 1) {
                                                 SelectionAddon(
-                                                    onClick = { showInfoSheet = true },
+                                                    onClick = {
+                                                        logSelectionAction("info")
+                                                        showInfoSheet = true
+                                                    },
                                                     imageVector = Icons.Outlined.Info,
                                                     contentDescription = stringResource(R.string.media_details),
                                                     text = stringResource(R.string.media_details)
@@ -480,7 +495,10 @@ fun <T : Media> BoxScope.SelectionSheet(
                                 SelectionAction.INFO -> {
                                     AnimatedVisibility(visible = selectedMedia.size == 1) {
                                         SelectionAddon(
-                                            onClick = { showInfoSheet = true },
+                                            onClick = {
+                                                logSelectionAction("info")
+                                                showInfoSheet = true
+                                            },
                                             imageVector = Icons.Outlined.Info,
                                             contentDescription = stringResource(R.string.media_details),
                                             text = stringResource(R.string.media_details)
@@ -508,6 +526,9 @@ fun <T : Media> BoxScope.SelectionSheet(
                                 ),
                                 surfaceColor = surfaceColor,
                                 onClick = {
+                                    logSelectionAction(
+                                        if (inCollection) "collection_remove" else "collection_add"
+                                    )
                                     if (inCollection) {
                                         scope.launch {
                                             selectedMedia.forEach { media ->
@@ -558,6 +579,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                             imageVector = SelectionAction.COPY.icon,
                             title = stringResource(SelectionAction.COPY.labelRes)
                         ) {
+                            logSelectionAction("copy")
                             scope.launch { copySheetState.show() }
                         }
                         if (!cloudSelectionReadOnly) {
@@ -565,6 +587,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                 imageVector = SelectionAction.MOVE.icon,
                                 title = stringResource(SelectionAction.MOVE.labelRes)
                             ) {
+                                logSelectionAction("move")
                                 scope.launch { moveSheetState.show() }
                             }
                         }
@@ -576,6 +599,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                             imageVector = SelectionAction.SHARE.icon,
                             title = stringResource(SelectionAction.SHARE.labelRes)
                         ) {
+                            logSelectionAction("share")
                             scope.launch {
                                 context.shareMediaWithVaultSupport(selectedMedia)
                             }
@@ -587,6 +611,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                             imageVector = SelectionAction.FAVORITE.icon,
                             title = stringResource(SelectionAction.FAVORITE.labelRes)
                         ) {
+                            logSelectionAction("favorite")
                             scope.launch {
                                 val targets = selectedMedia.toList()
                                 targets.forEach {
@@ -605,6 +630,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                             imageVector = SelectionAction.DOWNLOAD.icon,
                             title = stringResource(SelectionAction.DOWNLOAD.labelRes)
                         ) {
+                            logSelectionAction("download")
                             scope.launch {
                                 Toast.makeText(context, downloadingText, Toast.LENGTH_SHORT).show()
                                 val dl = cloudSelectionViewModel.download(selectedMedia)
@@ -624,6 +650,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                             imageVector = SelectionAction.TRASH.icon,
                             title = stringResource(R.string.trash)
                         ) {
+                            logSelectionAction("trash")
                             scope.launch { cloudTrashConfirmState.show() }
                         }
                     }
@@ -633,6 +660,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                             imageVector = Icons.Outlined.DeleteForever,
                             title = stringResource(R.string.cloud_delete)
                         ) {
+                            logSelectionAction("delete_permanent")
                             scope.launch { cloudDeleteConfirmState.show() }
                         }
                     }
@@ -645,6 +673,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                     imageVector = action.icon,
                                     title = stringResource(action.labelRes)
                                 ) {
+                                    logSelectionAction("share")
                                     scope.launch {
                                         context.shareMediaWithVaultSupport(selectedMedia, currentVault = currentVault)
                                     }
@@ -655,6 +684,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                     imageVector = action.icon,
                                     title = stringResource(action.labelRes)
                                 ) {
+                                    logSelectionAction("favorite")
                                     scope.launch {
                                         val targets = selectedMedia.toList()
                                         // Instant feedback: pin the toggled state over the
@@ -677,6 +707,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                     imageVector = action.icon,
                                     title = stringResource(action.labelRes)
                                 ) {
+                                    logSelectionAction("copy")
                                     if (isInVault) {
                                         vaultSheetAction = "copy"
                                         scope.launch { vaultSheetState.show() }
@@ -693,6 +724,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         else action.labelRes
                                     )
                                 ) {
+                                    logSelectionAction("move")
                                     if (isInPrivateFolder) {
                                         scope.launch { privateFolderMoveOutConfirmState.show() }
                                     } else if (isInVault) {
@@ -711,6 +743,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         imageVector = action.icon,
                                         title = stringResource(R.string.action_delete_permanently)
                                     ) {
+                                        logSelectionAction("delete_permanent")
                                         scope.launch { privateFolderDeleteConfirmState.show() }
                                     }
                                 } else if (isInVault) {
@@ -718,6 +751,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         imageVector = action.icon,
                                         title = stringResource(R.string.action_delete_permanently)
                                     ) {
+                                        logSelectionAction("delete_permanent")
                                         scope.launch { vaultDeleteConfirmState.show() }
                                     }
                                 } else {
@@ -730,12 +764,14 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         imageVector = action.icon,
                                         title = stringResource(id = trashEnabledRes),
                                         onItemLongClick = {
+                                            logSelectionAction("delete_permanent")
                                             scope.launch {
                                                 shouldMoveToTrash = false
                                                 trashSheetState.show()
                                             }
                                         },
                                         onItemClick = {
+                                            logSelectionAction("trash")
                                             scope.launch {
                                                 shouldMoveToTrash = true
                                                 trashSheetState.show()
@@ -751,6 +787,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         if (isInVault) R.string.restore else action.labelRes
                                     )
                                 ) {
+                                    logSelectionAction(if (isInVault) "vault_restore" else "vault_hide")
                                     if (isInVault) {
                                         scope.launch { vaultRestoreConfirmState.show() }
                                     } else {
@@ -765,6 +802,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         imageVector = action.icon,
                                         title = stringResource(action.labelRes)
                                     ) {
+                                        logSelectionAction("move_to_private_folder")
                                         scope.launch { privateFolderMoveConfirmState.show() }
                                     }
                                 }
@@ -775,6 +813,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                     title = stringResource(action.labelRes)
                                 ) {
                                     selectedMedia.firstOrNull()?.let { media ->
+                                        logSelectionAction("edit")
                                         scope.launch { context.launchEditIntent(media) }
                                     }
                                 }
@@ -784,6 +823,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                     imageVector = action.icon,
                                     title = stringResource(action.labelRes)
                                 ) {
+                                    logSelectionAction("rotate")
                                     val (encodable, nonEncodable) = selectedMedia.partition {
                                         ImageReencoder.isReencodable(it.mimeType, it.label)
                                     }
@@ -805,6 +845,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         imageVector = action.icon,
                                         title = stringResource(action.labelRes)
                                     ) {
+                                        logSelectionAction("download")
                                         scope.launch {
                                             Toast.makeText(context, downloadingText, Toast.LENGTH_SHORT).show()
                                             val result = handler.downloadCloudMedia(cloudItems)
@@ -831,6 +872,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                         imageVector = action.icon,
                                         title = stringResource(action.labelRes)
                                     ) {
+                                        logSelectionAction("album_cover")
                                         scope.launch {
                                             handler.updateAlbumThumbnail(single.albumID, single.getUri())
                                             Toast.makeText(context, coverSetText, Toast.LENGTH_SHORT).show()

@@ -332,6 +332,7 @@ class MainActivity : AppCompatActivity() {
                                                 storyCardsViewModel = storyCardsViewModel,
                                                 initialStartDestination = initialStartDestination
                                             )
+                                            CrashReportPrompt()
                                         }
                                     }
                                 )

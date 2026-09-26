@@ -19,6 +19,7 @@ import com.dot.gallery.core.ml.CutoutHelper.PromptPoint
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+
+private const val TAG = "ui.suggestion"
 
 /**
  * Owns the *background subject detection* that runs while an image is on screen and, if a plausible
@@ -106,7 +109,7 @@ class SubjectSuggestionState {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                e.printStackTrace()
+                printError(TAG, "Subject detection failed", e)
             } finally {
                 if (!handedOff) session?.close()
                 isDetecting = false

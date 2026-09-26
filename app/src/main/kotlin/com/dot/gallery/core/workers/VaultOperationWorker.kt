@@ -18,6 +18,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.R
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.util.ProgressThrottler
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
@@ -44,7 +45,7 @@ class VaultOperationWorker @AssistedInject constructor(
     private val repository: MediaRepository,
 ) : CoroutineWorker(appContext, params) {
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withLogScope("worker.vault-op") { withContext(Dispatchers.IO) {
         val op = inputData.getString(KEY_OPERATION) ?: return@withContext Result.failure()
         val mediaJson = inputData.getString(KEY_MEDIA_URIS) ?: return@withContext Result.failure()
         val inputUris = Json.decodeFromString<List<String>>(mediaJson).map { it.toUri() }
@@ -136,7 +137,7 @@ class VaultOperationWorker @AssistedInject constructor(
             )
         }
         result
-    }
+    } }
 
     /**
      * Update progress as a bounded percentage (0f..100f). `completed` is the count of items

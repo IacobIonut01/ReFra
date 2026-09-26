@@ -8,6 +8,7 @@ package com.dot.gallery.cloud.offline
 import android.content.Context
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.security.MessageDigest
@@ -49,14 +50,23 @@ class CloudMediaCache @Inject constructor(
 
     /** The stored MIME type for [key], if recorded — lets cache hits report the original type. */
     fun contentTypeFor(key: String): String? {
-        pinnedTypeFile(key).takeIf { it.isFile }?.let { return runCatching { it.readText() }.getOrNull()?.ifBlank { null } }
-        return autoTypeFile(key).takeIf { it.isFile }?.let { runCatching { it.readText() }.getOrNull()?.ifBlank { null } }
+        pinnedTypeFile(key).takeIf { it.isFile }?.let {
+            return runCatching { it.readText() }
+                .onFailure { e -> printWarn("cloud.offline", "pinned content-type read failed: $e") }
+                .getOrNull()?.ifBlank { null }
+        }
+        return autoTypeFile(key).takeIf { it.isFile }?.let {
+            runCatching { it.readText() }
+                .onFailure { e -> printWarn("cloud.offline", "auto content-type read failed: $e") }
+                .getOrNull()?.ifBlank { null }
+        }
     }
 
     /** Record the MIME type for an auto-tier entry (sidecar to the .bin). */
     fun writeAutoType(key: String, contentType: String?) {
         if (contentType.isNullOrBlank()) return
         runCatching { autoTypeFile(key).writeText(contentType) }
+            .onFailure { printWarn("cloud.offline", "auto content-type write failed: $it") }
     }
 
     /** Returns a readable cache file for [key] (pinned tier first), or null on a miss. */
@@ -107,9 +117,15 @@ class CloudMediaCache @Inject constructor(
                 }
             }
         }
-        if (!contentType.isNullOrBlank()) runCatching { pinnedTypeFile(key).writeText(contentType) }
+        if (!contentType.isNullOrBlank()) {
+            runCatching { pinnedTypeFile(key).writeText(contentType) }
+                .onFailure { printWarn("cloud.offline", "pinned content-type write failed: $it") }
+        }
         target.isFile && target.length() > 0L
-    }.getOrElse { false }
+    }.getOrElse {
+        printWarn("cloud.offline", "pinned cache write failed: $it")
+        false
+    }
 
     fun autoSizeBytes(): Long = autoDir.listFiles()?.filter { it.isFile }?.sumOf { it.length() } ?: 0L
     fun pinnedSizeBytes(): Long = pinnedDir.listFiles()?.filter { it.isFile }?.sumOf { it.length() } ?: 0L

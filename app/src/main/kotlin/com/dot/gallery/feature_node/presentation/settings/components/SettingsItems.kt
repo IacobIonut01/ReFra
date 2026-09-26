@@ -74,6 +74,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -90,10 +91,13 @@ import com.dot.gallery.core.Position
 import com.dot.gallery.core.PreferenceType
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
+import com.dot.gallery.feature_node.presentation.settings.subsettings.LOG_ROW_TIME_FORMAT
+import com.dot.gallery.feature_node.presentation.settings.subsettings.logLevelColor
 import com.dot.gallery.feature_node.presentation.util.PreviewHost
 import com.dot.gallery.feature_node.presentation.util.maybeApply
 import com.dot.gallery.ui.core.icons.RegularExpression
 import com.github.panpf.sketch.AsyncImage
+import java.util.Date
 import kotlin.math.roundToLong
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 
@@ -163,6 +167,15 @@ fun SettingsItem(
     )
     val deleteItemDescription = stringResource(R.string.delete_item_cd, item.title)
 
+    val isLog = item.type == PreferenceType.Log
+    val logEntry = (item as? SettingsEntity.LogPreference)?.entry
+    val logColor = logEntry?.let { logLevelColor(it.logLevel) }
+        ?: MaterialTheme.colorScheme.onSurfaceVariant
+    val logCtxLine = logEntry?.ctx
+        ?.takeIf { it.isNotEmpty() }
+        ?.entries
+        ?.joinToString("  ") { "${it.key}=${it.value}" }
+
     @Composable
     fun summaryContent() {
         val summaryText = item.summaryAnnotated ?: item.summary?.let { AnnotatedString(it) }
@@ -228,10 +241,20 @@ fun SettingsItem(
     }
 
     val icon: @Composable () -> Unit = {
-        require(item.icon != null || item.iconUri != null || item.iconRes != null) { "Icon at this stage cannot be null" }
-        customIcon?.let {
-            customIcon(item.icon, item.iconUri, item.iconRes)
-        } ?: iconComponent()
+        if (isLog) {
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(logColor)
+            )
+        } else {
+            require(item.icon != null || item.iconUri != null || item.iconRes != null) { "Icon at this stage cannot be null" }
+            customIcon?.let {
+                customIcon(item.icon, item.iconUri, item.iconRes)
+            } ?: iconComponent()
+        }
     }
     val summary: @Composable () -> Unit = {
         require(!item.summary.isNullOrEmpty() || item.summaryAnnotated != null) { "Summary at this stage cannot be null or empty" }
@@ -336,9 +359,31 @@ fun SettingsItem(
             )
         }
     }
+    val logSummary: @Composable () -> Unit = {
+        Column {
+            Text(
+                text = item.summary.orEmpty(),
+                style = MaterialTheme.typography.labelMedium,
+                color = logColor
+            )
+            logCtxLine?.let {
+                Text(
+                    modifier = Modifier.padding(top = 2.dp),
+                    text = it,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
     val supportingContent: (@Composable () -> Unit)? = when (item.type) {
         PreferenceType.Default, PreferenceType.Switch, PreferenceType.Seek ->
             if (!item.summary.isNullOrEmpty() || item.summaryAnnotated != null) summary else null
+
+        PreferenceType.Log -> logSummary
 
         else -> null
     }
@@ -383,6 +428,15 @@ fun SettingsItem(
         isSplitSwitch -> splitSwitchTrailing
         item.type == PreferenceType.Switch -> switch
         item.type == PreferenceType.Seek -> seekTrailing
+        item.type == PreferenceType.Log -> {
+            {
+                Text(
+                    text = LOG_ROW_TIME_FORMAT.format(Date(logEntry?.ts ?: 0L)),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = logColor
+                )
+            }
+        }
         else -> {
             if (item.rightText.isNullOrEmpty() && item.rightTextAnnotated == null) null
             else rightTextTrailing
@@ -509,7 +563,7 @@ fun SettingsItem(
                         modifier = Modifier.padding(8.dp).padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (item.icon != null || item.iconUri != null || item.iconRes != null) {
+                        if (item.icon != null || item.iconUri != null || item.iconRes != null || isLog) {
                             Box(
                                 modifier = Modifier.padding(end = 12.dp)
                             ) {
@@ -546,7 +600,7 @@ fun SettingsItem(
                                 modifier = Modifier
                                     .weight(1f)
                                     .then(
-                                        if (item.icon != null || item.iconUri != null) Modifier.padding(
+                                        if (item.icon != null || item.iconUri != null || isLog) Modifier.padding(
                                             end = 16.dp
                                         ) else Modifier
                                     ),
@@ -556,8 +610,10 @@ fun SettingsItem(
                                     text = item.titleAnnotated ?: AnnotatedString(item.title),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    fontWeight = if (isLog) FontWeight.Medium else FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = if (isLog) 2 else Int.MAX_VALUE,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 supportingContent?.invoke()
                             }

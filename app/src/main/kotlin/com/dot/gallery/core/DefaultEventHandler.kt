@@ -3,6 +3,7 @@ package com.dot.gallery.core
 import androidx.compose.runtime.compositionLocalOf
 import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.util.EventHandler
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +42,7 @@ class DefaultEventHandler(
                     } catch (cancellation: CancellationException) {
                         throw cancellation
                     } catch (error: Exception) {
-                        error.printStackTrace()
+                        printError("app.events", "database update failed", error)
                     }
                 }
             }

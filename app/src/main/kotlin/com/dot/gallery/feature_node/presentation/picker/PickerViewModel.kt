@@ -37,6 +37,7 @@ import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.mapMedia
 import com.dot.gallery.feature_node.presentation.util.mapMediaToItem
 import com.dot.gallery.feature_node.presentation.util.mediaFlowWithType
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.resolvedDateFormat
 import com.dot.gallery.feature_node.presentation.util.resolveShareableUri
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -320,7 +321,7 @@ open class PickerViewModel @Inject constructor(
                 }
                 result.add(uri)
             } catch (e: Exception) {
-                e.printStackTrace()
+                printError(TAG, "Failed to materialize shareable URI for ${item.label}", e)
             }
             onProgress(index + 1, total)
         }
@@ -337,6 +338,8 @@ open class PickerViewModel @Inject constructor(
         matchesMedia(media) && (hiddenInTimeline && albumId == -1L || hiddenInAlbums && albumId != -1L)
 
     companion object {
+        private const val TAG = "ui.picker"
+
         /** How long a materialized share temp file is kept before the next picker launch sweeps it. */
         private const val SHARE_TEMP_TTL_MS = 5 * 60 * 1000L
     }

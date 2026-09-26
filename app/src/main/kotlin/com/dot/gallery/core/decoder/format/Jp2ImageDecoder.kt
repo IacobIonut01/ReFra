@@ -6,9 +6,10 @@
 package com.dot.gallery.core.decoder.format
 
 import android.graphics.Bitmap
-import android.util.Log
 import android.util.Size
 import androidx.core.graphics.scale
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 
 /**
  * JPEG 2000 (.jp2 / .j2k) decoder backed by the source-built OpenJPEG codec. Android has no native
@@ -17,7 +18,7 @@ import androidx.core.graphics.scale
  */
 object Jp2ImageDecoder {
 
-    private const val TAG = "Jp2ImageDecoder"
+    private const val TAG = "decode.jp2"
 
     init {
         System.loadLibrary("openjpeg")
@@ -27,7 +28,7 @@ object Jp2ImageDecoder {
         val header = readJp2HeaderByteArray(bytes) ?: return null
         if (header.size < HEADER_SIZE) return null
         Size(header[WIDTH_INDEX], header[HEIGHT_INDEX])
-    }.onFailure { Log.w(TAG, "readHeader failed: ${it.message}") }.getOrNull()
+    }.onFailure { printWarn(TAG, "readHeader failed: ${it.message}") }.getOrNull()
 
     /**
      * Decodes the JPEG 2000 image to a bitmap no larger than [reqW] x [reqH] (when > 0).
@@ -49,7 +50,7 @@ object Jp2ImageDecoder {
             val bmp = decodeBitmap(bytes, skip) ?: return null
             if (reqW > 0 && reqH > 0) fit(bmp, reqW, reqH) else bmp
         } catch (e: Throwable) {
-            Log.e(TAG, "decode failed: ${e.message}", e)
+            printError(TAG, "decode failed: ${e.message}", e)
             null
         }
     }

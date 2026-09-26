@@ -8,6 +8,8 @@ package com.dot.gallery.core.metrics
 import android.os.SystemClock
 import android.util.Log
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.logging.AppLog
+import com.dot.gallery.core.logging.LogLevel
 
 /**
  * Lightweight startup telemetry. All spans are logged with tag [TAG]
@@ -55,14 +57,18 @@ object StartupTracer {
         if (!ENABLED) return NOOP_SPAN
         val span = Span(label = label, startMs = SystemClock.elapsedRealtime())
         synchronized(spans) { spans.add(span) }
-        Log.d(TAG, "▶ $label [thread=${Thread.currentThread().name}]")
+        // Rule exception (AGENTS.md §2): raw Log kept for the tag-filtered logcat stream; AppLog persists alongside.
+        runCatching { Log.d(TAG, "▶ $label [thread=${Thread.currentThread().name}]") }
+        AppLog.log(LogLevel.DEBUG, "app.startup", "▶ $label [thread=${Thread.currentThread().name}]")
         return span
     }
 
     fun end(span: Span) {
         if (!ENABLED) return
         span.endMs = SystemClock.elapsedRealtime()
-        Log.d(TAG, "◀ ${span.label} → ${span.durationMs}ms [thread=${span.threadName}]")
+        // Rule exception (AGENTS.md §2): raw Log kept for the tag-filtered logcat stream; AppLog persists alongside.
+        runCatching { Log.d(TAG, "◀ ${span.label} → ${span.durationMs}ms [thread=${span.threadName}]") }
+        AppLog.log(LogLevel.DEBUG, "app.startup", "◀ ${span.label} → ${span.durationMs}ms [thread=${span.threadName}]")
     }
 
     inline fun <T> trace(label: String, block: () -> T): T {
@@ -79,15 +85,21 @@ object StartupTracer {
         if (!ENABLED) return
         val totalMs = SystemClock.elapsedRealtime() - appStartMs
         synchronized(spans) {
-            Log.i(TAG, "═══════════════════════════════════════════════")
-            Log.i(TAG, " STARTUP TELEMETRY (${totalMs}ms since process start)")
-            Log.i(TAG, "═══════════════════════════════════════════════")
+            // Rule exception (AGENTS.md §2): raw Log kept for the tag-filtered logcat stream; AppLog persists alongside.
+            runCatching { Log.i(TAG, "═══════════════════════════════════════════════") }
+            AppLog.log(LogLevel.INFO, "app.startup", "═══════════════════════════════════════════════")
+            runCatching { Log.i(TAG, " STARTUP TELEMETRY (${totalMs}ms since process start)") }
+            AppLog.log(LogLevel.INFO, "app.startup", " STARTUP TELEMETRY (${totalMs}ms since process start)")
+            runCatching { Log.i(TAG, "═══════════════════════════════════════════════") }
+            AppLog.log(LogLevel.INFO, "app.startup", "═══════════════════════════════════════════════")
             spans.sortedBy { it.startMs }.forEach { s ->
                 val offset = s.startMs - appStartMs
                 val dur = if (s.durationMs >= 0) "${s.durationMs}ms" else "RUNNING"
-                Log.i(TAG, "  +${offset}ms  ${s.label}  $dur  [${s.threadName}]")
+                runCatching { Log.i(TAG, "  +${offset}ms  ${s.label}  $dur  [${s.threadName}]") }
+                AppLog.log(LogLevel.INFO, "app.startup", "  +${offset}ms  ${s.label}  $dur  [${s.threadName}]")
             }
-            Log.i(TAG, "═══════════════════════════════════════════════")
+            runCatching { Log.i(TAG, "═══════════════════════════════════════════════") }
+            AppLog.log(LogLevel.INFO, "app.startup", "═══════════════════════════════════════════════")
         }
     }
 }

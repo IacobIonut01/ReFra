@@ -8,8 +8,8 @@ package com.dot.gallery.core.decoder.format
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import com.dot.gallery.feature_node.presentation.util.printDebug
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
  */
 object HardwareHeifDecoder {
 
-    private const val TAG = "HardwareHeifDecoder"
+    private const val TAG = "decode.heif"
 
     @RequiresApi(Build.VERSION_CODES.P)
     fun decode(bytes: ByteArray, reqW: Int, reqH: Int): Bitmap? = decode(bytes, reqW, reqH, false)
@@ -43,7 +43,7 @@ object HardwareHeifDecoder {
         // and returns the corrupted result as a success, so the caller's software fallback never
         // runs. Refuse up front and let the bundled HeifCoder (libavif/dav1d) handle it.
         if (HeifBitstreamProbe.needsSoftwareDecode(bytes)) {
-            Log.d(TAG, "refusing platform decode: >10-bit HEIF/AVIF")
+            printDebug(TAG, "refusing platform decode: >10-bit HEIF/AVIF")
             return null
         }
         return try {

@@ -219,7 +219,7 @@ class CropActivity : ComponentActivity() {
                     val inlineBitmap = if (returnData && outputUri == null) result else null
                     true to inlineBitmap
                 }.getOrElse {
-                    it.printStackTrace()
+                    printError(TAG, "Failed to process crop", it)
                     false to null
                 }
             }
@@ -278,6 +278,7 @@ class CropActivity : ComponentActivity() {
         }
 
     companion object {
+        private const val TAG = "editor.crop"
         private const val MAX_SOURCE_DIMENSION = 4096
 
         private const val EXTRA_ASPECT_X = "aspectX"

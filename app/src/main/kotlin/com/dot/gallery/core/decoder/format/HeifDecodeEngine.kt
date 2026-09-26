@@ -7,8 +7,9 @@ package com.dot.gallery.core.decoder.format
 
 import android.graphics.Bitmap
 import android.os.Build
-import android.util.Log
 import android.util.Size
+import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import com.radzivon.bartoshyk.avif.coder.PreferredColorConfig
 import com.radzivon.bartoshyk.avif.coder.ScaleMode
@@ -34,7 +35,7 @@ import kotlin.math.roundToInt
  */
 object HeifDecodeEngine {
 
-    private const val TAG = "HeifDecodeEngine"
+    private const val TAG = "decode.heif"
 
     private val coder = HeifCoder()
 
@@ -64,7 +65,7 @@ object HeifDecodeEngine {
         val size = getSize(bytes)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             HardwareHeifDecoder.decode(bytes, reqW, reqH, allowHdr)?.let {
-                Log.d(
+                printDebug(
                     TAG,
                     "base decode HARDWARE req=${reqW}x${reqH} orig=${size?.width}x${size?.height}" +
                         " -> ${it.width}x${it.height} allowHdr=$allowHdr"
@@ -73,7 +74,7 @@ object HeifDecodeEngine {
             }
         }
         return decodeSoftware(bytes, reqW, reqH)?.also {
-            Log.d(
+            printDebug(
                 TAG,
                 "base decode SOFTWARE req=${reqW}x${reqH} orig=${size?.width}x${size?.height}" +
                     " -> ${it.width}x${it.height}"
@@ -102,7 +103,7 @@ object HeifDecodeEngine {
             )
         }
     } catch (e: Throwable) {
-        Log.e(TAG, "software HEIF decode failed: ${e.message}")
+        printError(TAG, "software HEIF decode failed: ${e.message}")
         null
     }
 

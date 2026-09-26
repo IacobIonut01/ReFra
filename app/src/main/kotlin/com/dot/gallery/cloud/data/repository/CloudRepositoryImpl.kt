@@ -44,6 +44,7 @@ import com.dot.gallery.cloud.network.ServerUrlResolver
 import com.dot.gallery.core.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -419,7 +420,17 @@ class CloudRepositoryImpl @Inject constructor(
                 val delta = syncProvider.getSyncDelta(
                     previousState?.lastSyncTimestamp ?: 0L,
                     reconcileIndex = true
-                ).getOrElse { continue }
+                ).getOrElse {
+                    printWarn(
+                        "cloud.sync",
+                        "account refresh failed: $it",
+                        ctx = mapOf(
+                            "configId" to config.id.toString(),
+                            "provider" to config.providerType.name
+                        )
+                    )
+                    continue
+                }
                 applyCloudSyncDelta(context, cloudMediaDao, config, delta)
                 changed += delta.changedCount
                 syncStateDao.upsert(
@@ -434,8 +445,16 @@ class CloudRepositoryImpl @Inject constructor(
                 )
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 // One account's failure must not starve the others on a manual refresh.
+                printWarn(
+                    "cloud.sync",
+                    "account refresh failed: $e",
+                    ctx = mapOf(
+                        "configId" to config.id.toString(),
+                        "provider" to config.providerType.name
+                    )
+                )
             }
         }
         changed

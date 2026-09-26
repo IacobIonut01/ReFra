@@ -13,6 +13,7 @@ import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultInfo
 import com.dot.gallery.feature_node.domain.util.fromKotlinByteArray
 import com.dot.gallery.feature_node.domain.util.toKotlinByteArray
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -65,7 +66,7 @@ class KeychainHolder @Inject constructor(
                 onSuccess()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError(TAG, "Failed to write vault info for ${vault.uuid}", e)
             onFailed(e.message.toString())
         }
     }
@@ -111,7 +112,7 @@ class KeychainHolder @Inject constructor(
             }
             onSuccess()
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError(TAG, "Failed to write vault info for ${vault.uuid}", e)
             onFailed(e.message.toString())
         }
     }
@@ -124,7 +125,7 @@ class KeychainHolder @Inject constructor(
             }
             onSuccess()
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError(TAG, "Failed to delete vault ${vault.uuid}", e)
             onFailed(e.message.toString())
         }
     }
@@ -334,7 +335,7 @@ class KeychainHolder @Inject constructor(
             vaultInfoFile(vault).writeText(meta.toKotlinByteArray().decodeToString())
             true
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError(TAG, "Failed to import portable vault ${vault.uuid}", e)
             false
         }
     }
@@ -357,14 +358,14 @@ class KeychainHolder @Inject constructor(
                     f.writeBytes(portableBytes)
                 } catch (e: Throwable) {
                     // leave file as-is if failure; could log
-                    e.printStackTrace()
+                    printError(TAG, "Failed to migrate file ${f.name} to portable format", e)
                 }
                 index++
                 onProgress(index, files.size)
             }
             true
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError(TAG, "Failed to migrate vault ${vault.uuid} to portable format", e)
             false
         }
     }
@@ -498,6 +499,7 @@ class KeychainHolder @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "vault.keychain"
         const val VAULT_INFO_FILE_NAME = "info.vault"
         const val DATA_KEY_FILE_NAME = "vault.key.enc"
 

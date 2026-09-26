@@ -26,6 +26,10 @@ import com.dot.gallery.cloud.offline.OfflineModeManager
 import com.dot.gallery.cloud.sync.CloudSyncScheduler
 import com.dot.gallery.cloud.sync.FreeUpSpaceAutoScheduler
 import com.dot.gallery.core.MediaDistributor
+import com.dot.gallery.core.Settings
+import com.dot.gallery.core.logging.AppLog
+import com.dot.gallery.core.logging.CrashCapture
+import com.dot.gallery.core.logging.LogLevel
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.metadata.MetadataSanitizer
 import com.dot.gallery.core.sandbox.IsolatedImageDecoder
@@ -75,6 +79,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import com.dot.gallery.core.metrics.StartupTracer
 import okhttp3.Cache
@@ -205,6 +210,26 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
 
         StartupTracer.trace("App.super.onCreate (Hilt DI)") {
             super.onCreate()
+        }
+        StartupTracer.trace("AppLog.init") {
+            AppLog.init(this@GalleryApp)
+            CrashCapture.install()
+        }
+        appScope.launch {
+            Settings.Misc.getDeveloperModeFlow(this@GalleryApp).collectLatest {
+                AppLog.setEnabled(it)
+            }
+        }
+        appScope.launch {
+            Settings.Misc.getDevLogMinLevelFlow(this@GalleryApp).collectLatest { name ->
+                AppLog.minLevel =
+                    runCatching { LogLevel.valueOf(name) }.getOrDefault(LogLevel.DEBUG)
+            }
+        }
+        appScope.launch {
+            Settings.Misc.getDevLogBreadcrumbsFlow(this@GalleryApp).collectLatest {
+                AppLog.breadcrumbsEnabled = it
+            }
         }
         appScope.launch {
             startupGate.awaitFirstContent()

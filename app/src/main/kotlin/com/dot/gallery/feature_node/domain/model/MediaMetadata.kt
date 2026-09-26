@@ -30,6 +30,7 @@ import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.formattedAddress
 import com.dot.gallery.feature_node.presentation.util.locationGroupName
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,6 +39,8 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.Locale
 import kotlin.math.roundToInt
+
+private const val TAG = "db.media"
 
 @Entity(tableName = "media_metadata_core")
 data class MediaMetadataCore(
@@ -289,7 +292,7 @@ suspend fun Context.retrieveExtraMediaMetadata(
             }
         }.getOrElse {
             if (it is CancellationException) throw it
-            it.printStackTrace()
+            printError(TAG, "Failed to retrieve extra metadata for ${media.id}", it)
             null
         }
     }
@@ -499,7 +502,7 @@ private suspend fun buildFallbackImageMetadata(
             if (imgW == 0) imgW = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0)
             if (imgH == 0) imgH = exif.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0)
         }
-    }.onFailure { it.printStackTrace() }
+    }.onFailure { printError(TAG, "Failed to read fallback EXIF metadata for $uri", it) }
 
     // Nothing usable could be read — behave as before and show no properties sheet.
     val hasAnything = imgW > 0 || imgH > 0 || description != null || dateTimeOriginal != null ||

@@ -16,6 +16,7 @@ import android.os.Message
 import android.os.Messenger
 import android.os.SharedMemory
 import com.awxkee.jxlcoder.JxlCoder
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import java.nio.ByteBuffer
 
@@ -65,8 +66,9 @@ class IsolatedDecoderService : Service() {
 
             try {
                 replyTo.send(reply)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 // Client is gone
+                printError("service.sandbox", "decoder reply send failed; client is gone", e)
             } finally {
                 // The fd backing the output SharedMemory is duplicated into the Binder
                 // transaction during send(); the original handle in this process still

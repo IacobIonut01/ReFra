@@ -10,6 +10,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.CancellationSignal
+import android.os.OperationCanceledException
 import android.provider.MediaStore
 import android.util.LruCache
 import android.util.Size
@@ -23,6 +24,7 @@ import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
+import com.dot.gallery.feature_node.presentation.util.printError
 import java.io.IOException
 
 /**
@@ -135,6 +137,9 @@ class MediaStoreThumbnailModelLoader(
                 // Includes OperationCanceledException on cancel and IOException when the provider
                 // cannot generate a thumbnail (unsupported format). Both fall through to the next
                 // registered Glide loader.
+                if (e !is OperationCanceledException) {
+                    printError("decode.thumb", "mediastore thumbnail load failed", e)
+                }
                 callback.onLoadFailed(e)
             }
         }

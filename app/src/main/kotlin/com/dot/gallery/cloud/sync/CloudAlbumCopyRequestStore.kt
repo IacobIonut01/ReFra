@@ -9,6 +9,7 @@ import android.content.Context
 import com.dot.gallery.cloud.core.CloudAlbumIdentity
 import com.dot.gallery.cloud.core.capabilities.RemoteNameConflictPolicy
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -114,7 +115,11 @@ class CloudAlbumCopyRequestStore @Inject constructor(
     suspend fun read(id: String): CloudAlbumCopyRequest? = withContext(Dispatchers.IO) {
         mutex.withLock {
             requestFile(id).takeIf(File::isFile)?.let {
-                runCatching { json.decodeFromString<CloudAlbumCopyRequest>(it.readText()) }.getOrNull()
+                runCatching { json.decodeFromString<CloudAlbumCopyRequest>(it.readText()) }
+                    .onFailure { e ->
+                        printWarn("cloud.album-copy", "stored copy request could not be decoded: $e")
+                    }
+                    .getOrNull()
             }
         }
     }
@@ -125,7 +130,11 @@ class CloudAlbumCopyRequestStore @Inject constructor(
     ): CloudAlbumCopyRequest? = withContext(Dispatchers.IO) {
         mutex.withLock {
             val current = requestFile(id).takeIf(File::isFile)?.let {
-                runCatching { json.decodeFromString<CloudAlbumCopyRequest>(it.readText()) }.getOrNull()
+                runCatching { json.decodeFromString<CloudAlbumCopyRequest>(it.readText()) }
+                    .onFailure { e ->
+                        printWarn("cloud.album-copy", "stored copy request could not be decoded: $e")
+                    }
+                    .getOrNull()
             } ?: return@withLock null
             transform(current).also(::writeLocked)
         }

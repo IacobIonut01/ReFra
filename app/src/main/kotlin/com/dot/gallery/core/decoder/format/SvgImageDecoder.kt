@@ -7,10 +7,10 @@ package com.dot.gallery.core.decoder.format
 
 import android.graphics.Canvas
 import android.graphics.Bitmap
-import android.util.Log
 import android.util.Size
 import androidx.core.graphics.createBitmap
 import com.caverock.androidsvg.SVG
+import com.dot.gallery.feature_node.presentation.util.printError
 import java.io.ByteArrayInputStream
 
 /**
@@ -20,7 +20,7 @@ import java.io.ByteArrayInputStream
  */
 object SvgImageDecoder {
 
-    private const val TAG = "SvgImageDecoder"
+    private const val TAG = "decode.svg"
     private const val DEFAULT_SIZE = 512
 
     /**
@@ -36,7 +36,7 @@ object SvgImageDecoder {
             val (w, h) = computeTarget(svg, reqW, reqH)
             Size(w, h)
         } catch (e: Throwable) {
-            Log.e(TAG, "renderSize failed: ${e.message}")
+            printError(TAG, "renderSize failed: ${e.message}")
             null
         }
     }
@@ -55,7 +55,7 @@ object SvgImageDecoder {
             svg.renderToCanvas(canvas)
             bitmap
         } catch (e: Throwable) {
-            Log.e(TAG, "decode failed: ${e.message}", e)
+            printError(TAG, "decode failed: ${e.message}", e)
             null
         }
     }

@@ -11,6 +11,7 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.os.Build
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.libs.panoramaviewer.PanoramaImageLoader
 import com.dot.gallery.libs.panoramaviewer.PanoramaLog
 import java.io.File
@@ -68,6 +69,7 @@ class EncryptedPanoramaImageLoader(
             data
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.initialize() decryption failed", e)
+            printError("decode.panorama", "vault panorama decryption failed", e)
             return false
         }
         decryptedBytes = bytes
@@ -81,6 +83,7 @@ class EncryptedPanoramaImageLoader(
 
         if (imageWidth <= 0 || imageHeight <= 0) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.initialize() invalid dimensions")
+            printError("decode.panorama", "vault panorama invalid dimensions ${imageWidth}x${imageHeight}")
             return false
         }
 
@@ -94,6 +97,7 @@ class EncryptedPanoramaImageLoader(
             }
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.initialize() BitmapRegionDecoder failed", e)
+            printError("decode.panorama", "vault panorama region decoder failed", e)
             return false
         }
 
@@ -117,6 +121,7 @@ class EncryptedPanoramaImageLoader(
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
             } catch (e: Exception) {
                 PanoramaLog.e("EncryptedPanoramaImageLoader.loadBase() fallback failed", e)
+                printError("decode.panorama", "vault panorama base fallback decode failed", e)
                 null
             }
         }
@@ -133,6 +138,7 @@ class EncryptedPanoramaImageLoader(
             d.decodeRegion(Rect(0, 0, imageWidth, imageHeight), opts)
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.loadBase() decodeRegion failed", e)
+            printError("decode.panorama", "vault panorama base decodeRegion failed", e)
             null
         }
     }
@@ -168,6 +174,7 @@ class EncryptedPanoramaImageLoader(
             d.decodeRegion(Rect(clampedLeft, clampedTop, clampedRight, clampedBottom), opts)
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.loadRegion() failed", e)
+            printError("decode.panorama", "vault panorama loadRegion failed", e)
             null
         }
     }

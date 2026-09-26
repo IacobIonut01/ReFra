@@ -14,6 +14,7 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.feature_node.data.data_source.GeocodedMetadataLocation
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.MetadataDao
@@ -63,10 +64,10 @@ class MetadataLocationRepairWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
     @Suppress("DEPRECATION")
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = withLogScope("worker.metadata-repair") {
         val activeGeocoder = geocoder ?: run {
             printWarning("Location name repair unavailable: no geocoder")
-            return Result.success()
+            return@withLogScope Result.success()
         }
         val needsRetry = try {
             repairPendingMetadataLocations(database.getMetadataDao()) { latitude, longitude ->
@@ -81,7 +82,7 @@ class MetadataLocationRepairWorker @AssistedInject constructor(
             true
         }
         if (needsRetry) printWarning("Location name repair incomplete (attempt ${runAttemptCount + 1})")
-        return metadataLocationRepairResult(needsRetry, runAttemptCount)
+        metadataLocationRepairResult(needsRetry, runAttemptCount)
     }
 }
 

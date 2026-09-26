@@ -56,6 +56,7 @@ import com.dot.gallery.core.encryption.EncryptionBackendState
 import com.dot.gallery.core.encryption.EncryptionStateMonitor
 import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.presentation.components.FilterKind
+import com.dot.gallery.core.logging.LogEntry
 import com.dot.gallery.core.security.AdvancedProtectionMonitor
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.rememberPreference
@@ -70,6 +71,7 @@ import com.dot.gallery.feature_node.presentation.location.MapAppearance
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -94,9 +96,10 @@ val Context.activeDataStore: DataStore<Preferences>
             EncryptedDataStoreProvider.getOrCreate(this).also {
                 EncryptionStateMonitor.reportSettings(EncryptionBackendState.ENCRYPTED)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // Device doesn't support hardware-backed keystore or encryption failed.
             // Keep the app usable, but expose the fallback accurately in Security settings.
+            printError("app.settings", "encryption capability probe failed", e)
             StartupTracer.trace("activeDataStore.fallbackPlaintext") { }
             EncryptionStateMonitor.reportSettings(EncryptionBackendState.PLAINTEXT_FALLBACK)
             dataStore
@@ -1342,6 +1345,33 @@ object Settings {
         fun rememberHeaderBannerDismissed() =
             rememberPreference(key = HEADER_BANNER_DISMISSED, defaultValue = false)
 
+        private val DEVELOPER_MODE = booleanPreferencesKey("developer_mode")
+
+        @Composable
+        fun rememberDeveloperMode() =
+            rememberPreference(key = DEVELOPER_MODE, defaultValue = false)
+
+        fun getDeveloperModeFlow(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[DEVELOPER_MODE] ?: false }
+
+        private val DEV_LOG_MIN_LEVEL = stringPreferencesKey("dev_log_min_level")
+
+        @Composable
+        fun rememberDevLogMinLevel() =
+            rememberPreference(key = DEV_LOG_MIN_LEVEL, defaultValue = "DEBUG")
+
+        fun getDevLogMinLevelFlow(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[DEV_LOG_MIN_LEVEL] ?: "DEBUG" }
+
+        private val DEV_LOG_BREADCRUMBS = booleanPreferencesKey("dev_log_breadcrumbs")
+
+        @Composable
+        fun rememberDevLogBreadcrumbs() =
+            rememberPreference(key = DEV_LOG_BREADCRUMBS, defaultValue = true)
+
+        fun getDevLogBreadcrumbsFlow(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[DEV_LOG_BREADCRUMBS] ?: true }
+
         private val STORY_CARDS_CONFIG = stringPreferencesKey("story_cards_config")
 
         @Composable
@@ -1453,6 +1483,7 @@ sealed class PreferenceType {
     data object Header : PreferenceType()
     data object Default : PreferenceType()
     data object Album : PreferenceType()
+    data object Log : PreferenceType()
 }
 
 sealed class SettingsEntity(
@@ -1658,5 +1689,26 @@ sealed class SettingsEntity(
         screenPosition = screenPosition,
         onClick = onClick,
         type = PreferenceType.Album
+    )
+
+    /**
+     * A settings row rendering a single [LogEntry] — level-coloured dot, tag and
+     * timestamp tinted by the level, ctx folded into the summary line.
+     */
+    @Stable
+    data class LogPreference(
+        val entry: LogEntry,
+        override val screenPosition: Position = Position.Alone,
+        override val enabled: Boolean = true,
+        override val onClick: (() -> Unit)? = null,
+        override val onLongClick: (() -> Unit)? = null,
+    ) : SettingsEntity(
+        title = entry.message,
+        summary = entry.tag,
+        enabled = enabled,
+        screenPosition = screenPosition,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        type = PreferenceType.Log
     )
 }

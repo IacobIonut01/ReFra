@@ -12,6 +12,7 @@ import com.dot.gallery.cloud.core.ThumbnailSize
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
 import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.feature_node.domain.model.ImageEmbedding
@@ -45,14 +46,14 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
 
     private val visionHelper by lazy { SearchVisionHelper(modelManager) }
 
-    override suspend fun doWork(): Result = runCatching {
+    override suspend fun doWork(): Result = withLogScope("worker.search-indexer") { runCatching {
         setProgress(workDataOf("progress" to -1f))
-        if (!BuildConfig.ENABLE_INDEXING) return Result.success()
+        if (!BuildConfig.ENABLE_INDEXING) return@withLogScope Result.success()
         if (!modelManager.isReady(ModelGroup.SEARCH)) {
             printInfo("ML models not installed, skipping indexing")
-            return Result.success()
+            return@withLogScope Result.success()
         }
-        if (!currentCoroutineContext().isActive) return Result.success()
+        if (!currentCoroutineContext().isActive) return@withLogScope Result.success()
         printInfo("Starting indexing media items")
         val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
         val records = repository.getImageEmbeddings().firstOrNull()
@@ -73,7 +74,7 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
 
         if (totalItems == 0) {
             printInfo("No media items to index (local: 0, cloud: 0)")
-            return Result.success()
+            return@withLogScope Result.success()
         }
         printInfo("Found $totalItems media items to index (local: $totalLocal, cloud: $totalCloud)")
         setProgress(workDataOf("progress" to 0f))
@@ -157,10 +158,10 @@ class SearchIndexerUpdaterWorker @AssistedInject constructor(
         } else {
             printWarning("Indexing cancelled before completion")
         }
-        return Result.success()
+        return@withLogScope Result.success()
     }.getOrElse { exception ->
         printWarning("SearchIndexerUpdaterWorker failed with exception: ${exception.message}")
-        return Result.failure()
-    }
+        return@withLogScope Result.failure()
+    } }
 
 }

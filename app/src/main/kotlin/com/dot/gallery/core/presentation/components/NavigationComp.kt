@@ -137,6 +137,9 @@ import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsBa
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsBackupImportScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SettingsSmartFeaturesScreen
 import com.dot.gallery.feature_node.presentation.settings.subsettings.SmartScanPreferenceDetailScreen
+import com.dot.gallery.feature_node.presentation.settings.subsettings.DeveloperScreen
+import com.dot.gallery.feature_node.presentation.settings.subsettings.SessionLogsScreen
+import com.dot.gallery.core.logging.AppLog
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.ui.CloudAccountsScreen
 import com.dot.gallery.cloud.ui.CloudAddServerScreen
@@ -229,6 +232,19 @@ fun NavigationComp(
             }
             systemBarFollowThemeState.value =
                 !((route.contains(Screen.MediaViewScreen.route) && allowBlur) || route.contains(Screen.VaultScreen()))
+        }
+    }
+
+    // Feed the developer-mode screen attribution + navigation breadcrumbs.
+    // destination.route is the declared pattern (no resolved args), so nothing
+    // user-identifying is logged.
+    var lastLoggedRoute by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(navBackStackEntry) {
+        val route = navBackStackEntry?.destination?.route?.substringBefore('?')
+        if (route != null && route != lastLoggedRoute) {
+            lastLoggedRoute = route
+            AppLog.setScreen(route)
+            AppLog.breadcrumb("navigate", mapOf("to" to route))
         }
     }
     val eventHandler = LocalEventHandler.current
@@ -1339,6 +1355,12 @@ fun NavigationComp(
                 SettingsBackupImportScreen(
                     navigateUp = { navController.navigateUp() }
                 )
+            }
+            composable(Screen.DeveloperScreen()) {
+                DeveloperScreen()
+            }
+            composable(Screen.SessionLogsScreen()) {
+                SessionLogsScreen()
             }
             composable(Screen.SettingsSelectionActionsScreen()) {
                 SettingsSelectionActionsScreen()

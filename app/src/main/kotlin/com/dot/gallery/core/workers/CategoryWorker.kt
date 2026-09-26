@@ -21,6 +21,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.util.ProgressThrottler
@@ -29,6 +30,7 @@ import com.dot.gallery.feature_node.domain.model.Category
 import com.dot.gallery.feature_node.domain.model.MediaCategory
 import com.dot.gallery.feature_node.presentation.search.helpers.SearchVisionHelper
 import com.dot.gallery.feature_node.presentation.search.util.dot
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import dagger.assisted.Assisted
@@ -57,7 +59,7 @@ class CategoryWorker @AssistedInject constructor(
 
     private val visionHelper by lazy { SearchVisionHelper(modelManager) }
 
-    override suspend fun doWork(): Result = runCatching {
+    override suspend fun doWork(): Result = withLogScope("worker.category") { runCatching {
         printInfo("CategoryWorker starting classification")
         
         // Check if classification is disabled
@@ -65,12 +67,12 @@ class CategoryWorker @AssistedInject constructor(
             .firstOrNull() ?: false
         if (noClassification) {
             printInfo("CategoryWorker: Classification is disabled")
-            return Result.success()
+            return@withLogScope Result.success()
         }
 
         if (!modelManager.isReady(ModelGroup.SEARCH)) {
             printInfo("CategoryWorker: ML models not installed, skipping")
-            return Result.success()
+            return@withLogScope Result.success()
         }
 
         setProgress(workDataOf(KEY_PROGRESS to 0f, KEY_STATUS to "Initializing..."))
@@ -90,7 +92,7 @@ class CategoryWorker @AssistedInject constructor(
 
         if (categories.isEmpty()) {
             printInfo("CategoryWorker: Still no categories, aborting")
-            return Result.success()
+            return@withLogScope Result.success()
         }
 
         // Get all image embeddings
@@ -123,7 +125,7 @@ class CategoryWorker @AssistedInject constructor(
                     } else {
                         printWarning("CategoryWorker: Search indexer finished but no embeddings found")
                         setProgress(workDataOf(KEY_PROGRESS to 100f, KEY_STATUS to "No images to classify"))
-                        return Result.success()
+                        return@withLogScope Result.success()
                     }
                 }
                 
@@ -141,7 +143,7 @@ class CategoryWorker @AssistedInject constructor(
             if (imageEmbeddings.isEmpty()) {
                 printWarning("CategoryWorker: Timed out waiting for search indexer")
                 setProgress(workDataOf(KEY_PROGRESS to 100f, KEY_STATUS to "Indexer timed out"))
-                return Result.success()
+                return@withLogScope Result.success()
             }
         }
 
@@ -249,12 +251,12 @@ class CategoryWorker @AssistedInject constructor(
         setProgress(workDataOf(KEY_PROGRESS to 100f, KEY_STATUS to "Complete"))
         printInfo("CategoryWorker: Classification complete")
         
-        return Result.success()
+        return@withLogScope Result.success()
     }.getOrElse { exception ->
         printWarning("CategoryWorker failed: ${exception.message}")
-        exception.printStackTrace()
-        return Result.failure()
-    }
+        printError("worker.category", "category classification failed", exception)
+        return@withLogScope Result.failure()
+    } }
 
     /**
      * Starts the search indexer to create image embeddings

@@ -15,6 +15,7 @@ import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -77,8 +78,9 @@ class CloudMediaViewModel @Inject constructor(
                         )
                     }
                     albumsLoaded = true
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     // Network error — albums remain empty
+                    printWarn("cloud.ui", "album load failed: $e")
                 }
             }
         }
@@ -197,6 +199,8 @@ class CloudMediaViewModel @Inject constructor(
     }
 
     suspend fun search(query: String): List<CloudMediaEntity> {
-        return repository.search(query).getOrDefault(emptyList())
+        return repository.search(query)
+            .onFailure { printWarn("cloud.ui", "search failed: $it") }
+            .getOrDefault(emptyList())
     }
 }

@@ -21,6 +21,7 @@ import com.dot.gallery.core.Constants
 import com.dot.gallery.feature_node.domain.util.UriSerializer
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.getDate
+import com.dot.gallery.feature_node.presentation.util.printError
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.io.File
@@ -248,6 +249,8 @@ sealed class Media : Parcelable {
     }
 
     companion object {
+        private const val TAG = "db.media"
+
         fun createFromUri(context: Context?, uri: Uri): UriMedia? {
             if (uri.path == null) return null
             val isContent = uri.scheme == ContentResolver.SCHEME_CONTENT
@@ -310,7 +313,7 @@ sealed class Media : Parcelable {
                         }
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    printError(TAG, "Failed to query media metadata for $uri", e)
                 }
             } else {
                 uri.path?.let { File(it) }?.let {
@@ -342,7 +345,7 @@ sealed class Media : Parcelable {
                         }
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    printError(TAG, "Failed to extract media metadata for $uri", e)
                 }
             }
             var formattedDate = ""

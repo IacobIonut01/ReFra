@@ -5,8 +5,10 @@
 
 package com.dot.gallery.feature_node.presentation.settings
 
+import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Fullscreen
@@ -24,6 +26,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.dot.gallery.R
 import com.dot.gallery.core.LocalEventHandler
@@ -44,7 +47,7 @@ import com.dot.gallery.feature_node.presentation.util.Screen
 @Composable
 fun SettingsScreen() {
     @Composable
-    fun rememberDashboardSettings(): SnapshotStateList<SettingsEntity> {
+    fun rememberDashboardSettings(developerMode: Boolean): SnapshotStateList<SettingsEntity> {
         val eventHandler = LocalEventHandler.current
         val appearancePref = rememberPreference(
             icon = Icons.Outlined.Palette,
@@ -135,11 +138,21 @@ fun SettingsScreen() {
             onClick = {
                 eventHandler.navigate(Screen.HelpScreen())
             },
-            screenPosition = Position.Bottom
+            screenPosition = if (developerMode) Position.Middle else Position.Bottom
         )
+        val developerPref = if (developerMode) rememberPreference(
+            icon = Icons.Outlined.BugReport,
+            title = stringResource(R.string.dev_menu_title),
+            summary = stringResource(R.string.dev_menu_summary),
+            onClick = {
+                eventHandler.navigate(Screen.DeveloperScreen())
+            },
+            screenPosition = Position.Bottom
+        ) else null
         return remember(
             appearancePref, timelineAlbumsPref, mediaViewerPref,
-            navigationPref, generalPref, securityPref, backupPref, cloudPref, smartPref, helpPref
+            navigationPref, generalPref, securityPref, backupPref, cloudPref, smartPref, helpPref,
+            developerPref
         ) {
             mutableStateListOf<SettingsEntity>(
                 appearancePref, timelineAlbumsPref, mediaViewerPref,
@@ -147,6 +160,7 @@ fun SettingsScreen() {
             ).apply {
                 if (cloudPref != null) add(cloudPref)
                 addAll(listOf(smartPref, helpPref))
+                if (developerPref != null) add(developerPref)
             }
         }
     }
@@ -190,16 +204,35 @@ fun SettingsScreen() {
         )
     }
     var bannerDismissed by Settings.Misc.rememberHeaderBannerDismissed()
+    var developerMode by Settings.Misc.rememberDeveloperMode()
+    val context = LocalContext.current
+    val unlockedMessage = stringResource(R.string.dev_unlocked)
+    val onDeveloperUnlocked = {
+        developerMode = true
+        Toast.makeText(context, unlockedMessage, Toast.LENGTH_LONG).show()
+    }
 
     BaseSettingsScreen(
         title = stringResource(R.string.settings_title),
         topContent = if (!bannerDismissed) {
-            { SettingsAppHeader(onDismiss = { bannerDismissed = true }) }
+            {
+                SettingsAppHeader(
+                    onDismiss = { bannerDismissed = true },
+                    developerModeEnabled = developerMode,
+                    onDeveloperUnlocked = onDeveloperUnlocked,
+                )
+            }
         } else null,
         bottomContent = if (bannerDismissed) {
-            { SettingsAppHeaderCompact(onRestore = { bannerDismissed = false }) }
+            {
+                SettingsAppHeaderCompact(
+                    onRestore = { bannerDismissed = false },
+                    developerModeEnabled = developerMode,
+                    onDeveloperUnlocked = onDeveloperUnlocked,
+                )
+            }
         } else null,
-        settingsList = rememberDashboardSettings(),
+        settingsList = rememberDashboardSettings(developerMode),
         settingsBuilder = { setting, index, modifier ->
             SettingsItem(
                 item = setting,

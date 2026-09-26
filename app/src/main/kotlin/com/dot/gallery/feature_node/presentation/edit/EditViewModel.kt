@@ -90,6 +90,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+private const val TAG = "editor.faces"
+
 internal fun updatedEditorRecipe(
     adjustments: List<Adjustment>,
     adjustment: Adjustment,
@@ -148,7 +150,7 @@ class EditViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                e.printStackTrace()
+                printError(TAG, "Face detection failed", e)
             } finally {
                 helper.close()
                 _isDetectingFaces.value = false

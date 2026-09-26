@@ -18,6 +18,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.R
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.core.smart.SmartScanPhaseContext
 import com.dot.gallery.core.smart.SmartScanPhaseResult
 import com.dot.gallery.core.smart.SmartScanPlan
@@ -27,6 +28,7 @@ import com.dot.gallery.feature_node.data.data_source.SmartScanDao
 import com.dot.gallery.feature_node.data.data_source.SmartScanPhase
 import com.dot.gallery.feature_node.data.data_source.SmartScanPhaseEntity
 import com.dot.gallery.feature_node.data.data_source.SmartScanStatus
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -62,30 +64,36 @@ class SmartScanWorker @AssistedInject constructor(
     @Volatile private var userVisible = false
     @Volatile private var isForeground = false
 
-    override suspend fun doWork(): Result {
-        if (runId.isBlank()) return Result.failure(workDataOf(KEY_ERROR_CODE to "missing_run_id"))
+    override suspend fun doWork(): Result = withLogScope("worker.smart-scan") {
+        if (runId.isBlank()) return@withLogScope Result.failure(workDataOf(KEY_ERROR_CODE to "missing_run_id"))
         val initial = dao.getRun(runId)
-            ?: return Result.failure(workDataOf(KEY_ERROR_CODE to "run_not_found"))
+            ?: return@withLogScope Result.failure(workDataOf(KEY_ERROR_CODE to "run_not_found"))
         userVisible = initial.userVisible
         val now = System.currentTimeMillis()
         dao.recoverExpiredFeatureLeases(now)
         dao.recoverExpiredPhaseLeases(now)
         dao.recoverExpiredRunLeases(now)
         if (dao.claimRunLease(runId, owner, now, now + LEASE_MILLIS) != 1) {
-            return resultFor(initial.status)
+            return@withLogScope resultFor(initial.status)
         }
         if (userVisible) {
             setForeground(foregroundInfo(0, null, 0, 0, null))
             isForeground = true
         }
 
-        return try {
+        try {
             dispatch()
         } catch (cancelled: CancellationException) {
             withContext(NonCancellable) { persistInterruption() }
             throw cancelled
         } catch (error: Throwable) {
             val code = error.javaClass.simpleName.ifBlank { "dispatcher_failed" }
+            printError(
+                tag = "SmartScanWorker",
+                message = "Smart scan dispatch failed",
+                throwable = error,
+                ctx = mapOf("run" to runId.take(8)),
+            )
             withContext(NonCancellable) {
                 activePhases.forEach { phase ->
                     dao.finishPhaseOwned(runId, phase, owner, SmartScanStatus.FAILED, System.currentTimeMillis(), code)

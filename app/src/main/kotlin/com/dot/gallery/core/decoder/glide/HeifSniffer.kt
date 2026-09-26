@@ -1,7 +1,7 @@
 package com.dot.gallery.core.decoder.glide
 
 /** Utility to locate HEIF/AVIF primary brand inside an ISO BMFF header. */
-import android.util.Log
+import com.dot.gallery.feature_node.presentation.util.printDebug
 
 object HeifSniffer {
     private val acceptedBrands = setOf(
@@ -33,7 +33,7 @@ object HeifSniffer {
         val window = buffer.copyOfRange(0, minOf(length, 256)).toString(Charsets.ISO_8859_1)
         val hit = acceptedBrands.firstOrNull { window.contains(it, ignoreCase = true) }
         if (hit != null) {
-            Log.d(TAG, "Heuristic brand match '$hit' without ftyp alignment")
+            printDebug(TAG, "Heuristic brand match '$hit' without ftyp alignment")
             return hit
         }
         return null
@@ -46,5 +46,5 @@ object HeifSniffer {
         String(b, off, len)
     } catch (e: Exception) { null }
 
-    private const val TAG = "HeifSniffer"
+    private const val TAG = "decode.heif"
 }

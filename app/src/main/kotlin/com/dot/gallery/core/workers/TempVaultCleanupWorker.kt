@@ -7,6 +7,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.feature_node.presentation.frameextract.FrameSourceCleanup
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import dagger.hilt.android.EntryPointAccessors
@@ -26,7 +27,7 @@ class TempVaultCleanupWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters
 ) : CoroutineWorker(appContext, params) {
 
-    override suspend fun doWork(): Result = runCatching {
+    override suspend fun doWork(): Result = withLogScope("worker.temp-vault-cleanup") { runCatching {
         val maxAgeHours = inputData.getLong(KEY_MAX_AGE_HOURS, DEFAULT_MAX_AGE_HOURS)
         val cutoff = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(maxAgeHours)
         val cacheDir = appContext.cacheDir ?: return@runCatching Result.success()
@@ -68,7 +69,7 @@ class TempVaultCleanupWorker @AssistedInject constructor(
     }.getOrElse { e ->
         printDebug("TempVaultCleanupWorker failed: ${e.message}")
         Result.failure()
-    }
+    } }
 
     companion object {
         private const val TEMP_PREFIX = "vault_stream_"

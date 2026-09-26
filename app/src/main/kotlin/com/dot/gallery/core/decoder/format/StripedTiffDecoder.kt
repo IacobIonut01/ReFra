@@ -6,7 +6,7 @@
 package com.dot.gallery.core.decoder.format
 
 import android.graphics.Bitmap
-import android.util.Log
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.zip.Inflater
@@ -33,7 +33,7 @@ import kotlin.math.max
  */
 internal object StripedTiffDecoder {
 
-    private const val TAG = "StripedTiffDecoder"
+    private const val TAG = "decode.tiff"
     private const val MAX_STRIPS = 500_000
 
     // Compression tag values.
@@ -66,7 +66,7 @@ internal object StripedTiffDecoder {
     fun decode(buffer: ByteBuffer, reqW: Int, reqH: Int): Bitmap? = try {
         decodeInternal(buffer, reqW, reqH)
     } catch (e: Throwable) {
-        Log.w(TAG, "striped decode failed: ${e.message}")
+        printWarn(TAG, "striped decode failed: ${e.message}")
         null
     }
 

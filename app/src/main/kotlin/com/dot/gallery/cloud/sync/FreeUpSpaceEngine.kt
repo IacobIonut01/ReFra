@@ -19,6 +19,8 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isFavorite
+import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -229,7 +231,8 @@ class FreeUpSpaceEngine @Inject constructor(
         }
     } catch (e: CancellationException) {
         throw e
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        printError("cloud.free-space", "media fetch failed; aborting scan", e)
         null
     }
 
@@ -239,10 +242,13 @@ class FreeUpSpaceEngine @Inject constructor(
         targetPath: String?,
         checksum: String
     ): Boolean = try {
-        provider.verifyRemoteContent(media, targetPath, checksum).getOrDefault(false)
+        provider.verifyRemoteContent(media, targetPath, checksum)
+            .onFailure { printWarn("cloud.free-space", "remote content verification failed: $it") }
+            .getOrDefault(false)
     } catch (e: CancellationException) {
         throw e
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        printWarn("cloud.free-space", "remote content verification failed: $e")
         false
     }
 

@@ -62,6 +62,7 @@ import com.dot.gallery.feature_node.presentation.help.data.HelpRepository
 import com.dot.gallery.feature_node.presentation.help.data.HelpSearchIndex
 import com.dot.gallery.feature_node.presentation.help.data.HelpSearchItem
 import com.dot.gallery.feature_node.presentation.help.data.HelpSearchKind
+import com.dot.gallery.core.presentation.components.AppSearchField
 import com.dot.gallery.feature_node.presentation.help.data.SettingsSearchRegistry
 import com.dot.gallery.feature_node.presentation.help.data.displayTitle
 import com.dot.gallery.feature_node.presentation.help.data.icon
@@ -191,32 +192,12 @@ private fun HelpSearchField(
     onClear: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier.fillMaxWidth(),
-        shape = CircleShape,
-        singleLine = true,
-        placeholder = { Text(stringResource(R.string.help_search_hint)) },
-        leadingIcon = {
-            Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
-        },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = onClear) {
-                    Icon(
-                        imageVector = Icons.Rounded.Close,
-                        contentDescription = stringResource(R.string.help_search_clear)
-                    )
-                }
-            }
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = Color.Transparent,
-            focusedBorderColor = Color.Transparent,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-        )
+    AppSearchField(
+        query = query,
+        onQueryChange = onQueryChange,
+        hint = stringResource(R.string.help_search_hint),
+        onClear = onClear,
+        modifier = modifier
     )
 }
 

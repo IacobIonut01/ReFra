@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import androidx.core.net.toFile
 import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.github.panpf.sketch.decode.ImageInvalidException
 import com.github.panpf.sketch.decode.internal.ExifOrientationHelper
 import com.github.panpf.sketch.util.Size
@@ -49,7 +50,7 @@ fun ImageSource.readEncryptedImageInfoWithIgnoreExifOrientation(keychainHolder: 
                 boundOptions.apply { this.outMimeType = mimeType }
             )
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError("decode.encrypted", "failed to decode encrypted image bounds", e)
             throw ImageInvalidException("decode return null at readEncryptedImageInfoWithIgnoreExifOrientation")
         }
         val imageSize = IntSizeCompat(width = boundOptions.outWidth, height = boundOptions.outHeight)

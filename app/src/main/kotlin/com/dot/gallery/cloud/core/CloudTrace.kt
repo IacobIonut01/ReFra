@@ -7,6 +7,8 @@ package com.dot.gallery.cloud.core
 
 import android.util.Log
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.logging.AppLog
+import com.dot.gallery.core.logging.LogLevel
 
 /**
  * Lightweight tracing for the cloud media pipeline (all providers: SMB/NFS, WebDAV, Immich, …).
@@ -29,12 +31,22 @@ object CloudTrace {
      */
     val enabled: Boolean get() = buildEnabled || CloudRuntimeSettings.verboseLoggingEnabled
 
+    private val appLogTag: String = if ('.' in TAG) TAG else "cloud.trace"
+
     fun d(message: String) {
-        if (enabled) Log.d(TAG, message)
+        if (enabled) {
+            // Rule exception (AGENTS.md §2): raw Log kept for the `adb logcat -s CloudTrace` stream; AppLog persists alongside.
+            runCatching { Log.d(TAG, message) }
+            AppLog.log(LogLevel.DEBUG, appLogTag, message)
+        }
     }
 
     fun w(message: String, t: Throwable? = null) {
-        if (enabled) Log.w(TAG, message, t)
+        if (enabled) {
+            // Rule exception (AGENTS.md §2): raw Log kept for the `adb logcat -s CloudTrace` stream; AppLog persists alongside.
+            runCatching { Log.w(TAG, message, t) }
+            AppLog.log(LogLevel.WARN, appLogTag, message, t)
+        }
     }
 
     /** Human-readable byte size, e.g. "14.0 MB". */

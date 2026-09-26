@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.core.EditBackupManager
+import com.dot.gallery.core.logging.withLogScope
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.assisted.Assisted
@@ -36,7 +37,7 @@ class EditBackupWorker @AssistedInject constructor(
     private val editBackupManager: EditBackupManager
 ) : CoroutineWorker(appContext, params) {
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withLogScope("worker.edit-backup") { withContext(Dispatchers.IO) {
         val op = inputData.getString(KEY_OPERATION)
             ?: return@withContext failure("Missing operation")
 
@@ -86,7 +87,7 @@ class EditBackupWorker @AssistedInject constructor(
             printError("EditBackupWorker failed ($op): ${e.message}")
             failure("Error: ${e.message}")
         }
-    }
+    } }
 
     private fun success(msg: String, extra: Data? = null): Result =
         Result.success(

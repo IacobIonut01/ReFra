@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Size as AndroidSize
 import androidx.annotation.RequiresApi
 import com.dot.gallery.core.decoder.format.HeifBitstreamProbe
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.github.panpf.sketch.asImage
 import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.decode.ImageInfo
@@ -239,7 +240,8 @@ fun decodeAnimatedAvif(
         ImageDecoder.decodeDrawable(source) { decoder, _, _ ->
             decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
         }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        printError("decode", "platform decodeDrawable failed", e)
         return null
     }
 

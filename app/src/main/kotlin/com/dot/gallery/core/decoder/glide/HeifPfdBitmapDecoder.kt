@@ -2,12 +2,12 @@ package com.dot.gallery.core.decoder.glide
 
 import android.graphics.Bitmap
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapResource
+import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import com.radzivon.bartoshyk.avif.coder.PreferredColorConfig
 import java.io.FileInputStream
@@ -39,9 +39,9 @@ class HeifPfdBitmapDecoder(
             val tw = if (width > 0) width else size.width
             val th = if (height > 0) height else size.height
             val bmp = coder.decodeSampled(bytes, tw, th, PreferredColorConfig.RGBA_8888)
-            Log.d(TAG, "decode() size=${size.width}x${size.height} -> ${bmp.width}x${bmp.height}")
+            printDebug(TAG, "decode() size=${size.width}x${size.height} -> ${bmp.width}x${bmp.height}")
             return BitmapResource.obtain(bmp, bitmapPool)
         }
     }
-    companion object { private const val TAG = "HeifPfdBitmapDecoder" }
+    companion object { private const val TAG = "decode.heif" }
 }

@@ -99,6 +99,8 @@ sealed class Screen(val route: String) {
     data object SettingsNavigationScreen : Screen("settings_navigation_screen")
     data object SettingsSecurityScreen : Screen("settings_security_screen")
     data object SettingsBackupScreen : Screen("settings_backup_screen")
+    data object DeveloperScreen : Screen("developer_screen")
+    data object SessionLogsScreen : Screen("session_logs_screen")
     data object SettingsBackupExportScreen : Screen("settings_backup_export_screen")
     data object SettingsBackupImportScreen : Screen("settings_backup_import_screen")
     data object SettingsSelectionActionsScreen : Screen("settings_selection_actions_screen")

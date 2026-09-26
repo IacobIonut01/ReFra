@@ -48,6 +48,7 @@ import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -539,8 +540,21 @@ class CloudUploadWorker @AssistedInject constructor(
 
                     val remoteAlbumId = remoteAlbums
                         .firstOrNull { it.name.equals(albumLabel, ignoreCase = true) }?.remoteId
-                        ?: runCatching { provider.createAlbum(albumLabel).getOrNull()?.remoteId }
-                            .getOrNull()
+                        ?: runCatching {
+                            provider.createAlbum(albumLabel)
+                                .onFailure {
+                                    printWarn(
+                                        "worker.cloud-upload",
+                                        "createAlbum failed for '$albumLabel': $it"
+                                    )
+                                }
+                                .getOrNull()?.remoteId
+                        }.onFailure {
+                            printWarn(
+                                "worker.cloud-upload",
+                                "createAlbum failed for '$albumLabel': $it"
+                            )
+                        }.getOrNull()
                     if (remoteAlbumId.isNullOrBlank()) {
                         printDebug("CloudUploadWorker: album-sync could not resolve album '$albumLabel' for account #${config.id}")
                         continue
@@ -711,6 +725,7 @@ class CloudUploadWorker @AssistedInject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            printWarn("worker.cloud-upload", "sha1 digest failed: $e")
             null
         }
     }

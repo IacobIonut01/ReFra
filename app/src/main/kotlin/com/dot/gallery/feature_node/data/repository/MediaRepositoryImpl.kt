@@ -1148,7 +1148,7 @@ class MediaRepositoryImpl(
                             null
                         }
                     } catch (e: Throwable) {
-                        e.printStackTrace()
+                        printError(TAG, "Failed to load encrypted media ${media.id}", e)
                         null
                     }
                 }.sortedByDescending { it.timestamp }
@@ -1180,8 +1180,7 @@ class MediaRepositoryImpl(
                     database.getVaultDao().addMediaToVault(media.toEncryptedMedia2(vault.uuid))
                     true
                 } catch (e: Exception) {
-                    e.printStackTrace()
-                    printError("Failed to add file: ${media.label}")
+                    printError(TAG, "Failed to add file: ${media.label}", e)
                     output.delete()
                     false
                 }
@@ -1258,8 +1257,7 @@ class MediaRepositoryImpl(
                     }
                     restored && deleted
                 } catch (e: Exception) {
-                    e.printStackTrace()
-                    printError("Failed to restore file: ${media.label}")
+                    printError(TAG, "Failed to restore file: ${media.label}", e)
                     false
                 }
             }
@@ -1309,8 +1307,7 @@ class MediaRepositoryImpl(
                 printInfo("Transferred ${media.label} from ${sourceVault.name} to ${targetVault.name} (copy=$copy)")
                 true
             } catch (e: Exception) {
-                e.printStackTrace()
-                printError("Failed to transfer file: ${media.label}: ${e.message}")
+                printError(TAG, "Failed to transfer file: ${media.label}: ${e.message}", e)
                 false
             }
         }
@@ -1327,8 +1324,7 @@ class MediaRepositoryImpl(
                     }
                     deleted
                 } catch (e: Exception) {
-                    e.printStackTrace()
-                    printError("Failed to delete file: ${media.label}")
+                    printError(TAG, "Failed to delete file: ${media.label}", e)
                     false
                 }
             }
@@ -1351,8 +1347,7 @@ class MediaRepositoryImpl(
                             .deleteMediaFromVault(vault.uuid, file.nameWithoutExtension.toLong())
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
-                    printError("Failed to delete file: ${file.name}")
+                    printError(TAG, "Failed to delete file: ${file.name}", e)
                     failedFiles.add(file)
                 }
             }
@@ -1429,8 +1424,7 @@ class MediaRepositoryImpl(
                         try {
                             vaultInfo.decrypt<Vault>()
                         } catch (e: Exception) {
-                            e.printStackTrace()
-                            printError("Failed to decrypt file: ${vaultInfo.name}.")
+                            printError(TAG, "Failed to decrypt file: ${vaultInfo.name}.", e)
                             null
                         }
                     }
@@ -1467,8 +1461,7 @@ class MediaRepositoryImpl(
                             file.encryptKotlin(encryptedMedia2)
                             encryptedMedia.add(encryptedMedia2)
                         } catch (e: Throwable) {
-                            e.printStackTrace()
-                            printError("Failed to decrypt file: ${file.name}.")
+                            printError(TAG, "Failed to decrypt file: ${file.name}.", e)
                         }
                     }
                 }
@@ -2013,6 +2006,7 @@ class MediaRepositoryImpl(
         database.getAlbumSectionDao().getSectionIdForAlbum(albumId)
 
     companion object {
+        private const val TAG = "vault.media"
         private const val SQLITE_BIND_CHUNK_SIZE = 900
         private const val STARTUP_MEDIA_LIMIT = 250
         private const val CATEGORY_THUMBNAIL_MAX_IDS = 100

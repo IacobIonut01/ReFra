@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.logging.LogEntry
 
 fun LazyGridScope.settings(
     preferenceItemBuilder: @Composable (item: SettingsEntity, modifier: Modifier) -> Unit = { item, modifier ->
@@ -80,6 +81,10 @@ fun LazyGridScope.settings(
                 )
 
                 is SettingsEntity.AlbumPreference -> item.copy(
+                    screenPosition = position
+                )
+
+                is SettingsEntity.LogPreference -> item.copy(
                     screenPosition = position
                 )
 
@@ -154,6 +159,10 @@ fun LazyListScope.settings(
                 )
 
                 is SettingsEntity.AlbumPreference -> item.copy(
+                    screenPosition = position
+                )
+
+                is SettingsEntity.LogPreference -> item.copy(
                     screenPosition = position
                 )
 
@@ -521,6 +530,20 @@ class SettingsOptionsScope {
             isWildcard = isWildcard,
             enabled = enabled,
             onClick = onClick
+        )
+    }
+
+    fun LogPreference(
+        entry: LogEntry,
+        enabled: Boolean = true,
+        onClick: (() -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null
+    ) {
+        items += SettingsEntity.LogPreference(
+            entry = entry,
+            enabled = enabled,
+            onClick = onClick,
+            onLongClick = onLongClick
         )
     }
 

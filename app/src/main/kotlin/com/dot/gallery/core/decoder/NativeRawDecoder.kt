@@ -6,8 +6,8 @@
 package com.dot.gallery.core.decoder
 
 import android.graphics.Bitmap
-import android.util.Log
 import android.util.Size
+import com.dot.gallery.feature_node.presentation.util.printWarn
 
 /**
  * Kotlin binding for the `rawcodec` JNI library — LibRaw true RAW decode (demosaic) plus a libtiff
@@ -23,14 +23,14 @@ import android.util.Size
  */
 object NativeRawDecoder {
 
-    private const val TAG = "NativeRawDecoder"
+    private const val TAG = "decode.raw"
 
     val isAvailable: Boolean by lazy {
         runCatching {
             System.loadLibrary("rawcodec")
             nativeSelfTest()
         }.getOrElse {
-            Log.w(TAG, "rawcodec native library unavailable: ${it.message}")
+            printWarn(TAG, "rawcodec native library unavailable: ${it.message}")
             false
         }
     }
@@ -69,7 +69,7 @@ object NativeRawDecoder {
         val packed = runCatching {
             nativeDemosaic(data, params.toIntParams(userFlip), params.toFloatParams(), params.effectiveUserMul)
         }.getOrElse {
-            Log.w(TAG, "demosaic failed: ${it.message}")
+            printWarn(TAG, "demosaic failed: ${it.message}")
             null
         } ?: return null
         return packedToBitmap(packed)
@@ -100,7 +100,7 @@ object NativeRawDecoder {
                 compression.nativeValue,
             )
         }.getOrElse {
-            Log.w(TAG, "exportTiff failed: ${it.message}")
+            printWarn(TAG, "exportTiff failed: ${it.message}")
             false
         }
     }
@@ -121,7 +121,7 @@ object NativeRawDecoder {
         val packed = runCatching {
             nativeApplyTone(argb, w, h, params.toFloatParams())
         }.getOrElse {
-            Log.w(TAG, "applyTone failed: ${it.message}")
+            printWarn(TAG, "applyTone failed: ${it.message}")
             null
         } ?: return null
         return packedToBitmap(packed)

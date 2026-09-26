@@ -33,7 +33,10 @@ import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.parseTimestampFromFilename
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.printWarning
+
+private const val TAG = "db.mediastore"
 
 /**
  * Media uri flow
@@ -216,7 +219,7 @@ class MediaUriFlow(
         val id = try {
             ContentUris.parseId(firstUri)
         } catch (e: NumberFormatException) {
-            e.printStackTrace()
+            printError(TAG, "Failed to parse content URI id: $firstUri", e)
             return null
         }
         val projection = arrayOf(MediaStore.Files.FileColumns.BUCKET_ID)

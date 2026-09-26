@@ -15,9 +15,7 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.text.TextUtils
-import android.util.Log
 import com.dot.gallery.R
-import com.dot.gallery.core.Constants
 import java.io.File
 import java.io.FileOutputStream
 import java.math.RoundingMode
@@ -152,7 +150,7 @@ class FileUtils(var context: Context) {
                 return getDriveFilePath(uri)
             }
             if (uri.path != null && uri.path!!.contains("Android")) {
-                Log.d(Constants.TAG, "Uri: $uri")
+                printDebug(TAG, "Uri: $uri")
                 return uri.toString()
             }
             return copyFileToInternalStorage(uri, FALLBACK_COPY_FOLDER)
@@ -191,7 +189,7 @@ class FileUtils(var context: Context) {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, e.message!!)
+            printError(TAG, e.message!!, e)
         }
         return file.path
     }
@@ -244,7 +242,7 @@ class FileUtils(var context: Context) {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, e.message!!)
+            printError(TAG, e.message!!, e)
         }
         return output.path
     }
@@ -297,7 +295,7 @@ class FileUtils(var context: Context) {
 
     companion object {
         var FALLBACK_COPY_FOLDER = "upload_part"
-        private const val TAG = "FileUtils"
+        private const val TAG = "media-ops.files"
         private var contentUri: Uri? = null
         private fun fileExists(filePath: String): Boolean {
             val file = File(filePath)

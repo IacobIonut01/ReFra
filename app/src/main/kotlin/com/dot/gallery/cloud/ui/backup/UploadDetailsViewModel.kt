@@ -28,6 +28,7 @@ import com.dot.gallery.cloud.ui.verifiedItemsByIndex
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -182,10 +183,15 @@ class UploadDetailsViewModel @Inject constructor(
                             }
                             // Unreadable items remain pending rather than sending an invalid empty hash.
                             val present = if (hashed.isEmpty()) emptyMap() else try {
-                                provider.bulkUploadCheck(hashed.map { it.second }).getOrDefault(emptyMap())
+                                provider.bulkUploadCheck(hashed.map { it.second })
+                                    .onFailure {
+                                        printWarn("cloud.backup", "remote verification failed: $it")
+                                    }
+                                    .getOrDefault(emptyMap())
                             } catch (e: CancellationException) {
                                 throw e
-                            } catch (_: Exception) {
+                            } catch (e: Exception) {
+                                printWarn("cloud.backup", "remote verification failed: $e")
                                 emptyMap()
                             }
                             verifiedItemsByIndex(hashed, present).forEach { (item, hash) ->
@@ -203,10 +209,15 @@ class UploadDetailsViewModel @Inject constructor(
                             unchecked.forEach { item ->
                                 val hash = hashOf(item) ?: return@forEach
                                 val verified = try {
-                                    provider.verifyRemoteContent(item, targetPath(item), hash).getOrDefault(false)
+                                    provider.verifyRemoteContent(item, targetPath(item), hash)
+                                        .onFailure {
+                                            printWarn("cloud.backup", "remote verification failed: $it")
+                                        }
+                                        .getOrDefault(false)
                                 } catch (e: CancellationException) {
                                     throw e
-                                } catch (_: Exception) {
+                                } catch (e: Exception) {
+                                    printWarn("cloud.backup", "remote verification failed: $e")
                                     false
                                 }
                                 if (verified) {

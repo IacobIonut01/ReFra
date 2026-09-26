@@ -44,8 +44,7 @@ fun NavigationBackButton(
             runCatching {
                 (activity as ComponentActivity).onBackPressedDispatcher.onBackPressed()
             }.getOrElse { e ->
-                printError("Failed to navigate back via onBackPressedDispatcher. Using event handler as fallback")
-                e.printStackTrace()
+                printError("ui.nav", "failed to navigate back via onBackPressedDispatcher; using event handler fallback", e)
                 forcedAction?.invoke() ?: eventHandler.navigateUpAction()
             }
         }

@@ -8,12 +8,14 @@ package com.dot.gallery.core.image.thumbnail
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.os.Trace
-import android.util.Log
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printInfo
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import java.util.concurrent.atomic.AtomicIntegerArray
 import java.util.concurrent.atomic.AtomicLong
 
@@ -34,7 +36,7 @@ object ThumbnailTelemetry {
     /** Staging/debug only; release is a hard no-op so there is zero runtime cost shipped. */
     val enabled: Boolean = BuildConfig.BUILD_TYPE != "release"
 
-    private const val TAG = "ThumbTelemetry"
+    private const val TAG = "decode.thumb"
 
     // Slow-request diagnostic thresholds mirror the issue's acceptance gates.
     private const val SLOW_CHEAP_MS = 750L
@@ -108,15 +110,15 @@ object ThumbnailTelemetry {
         when {
             elapsedMs >= SLOW_HARD_MS -> {
                 slow5s.incrementAndGet()
-                Log.w(TAG, "SLOW>5s ${elapsedMs}ms tier=$tier surface=$surface src=$dataSource")
+                printWarn(TAG, "SLOW>5s ${elapsedMs}ms tier=$tier surface=$surface src=$dataSource")
             }
             elapsedMs >= SLOW_REFINED_MS -> {
                 slow2s.incrementAndGet()
-                Log.w(TAG, "SLOW>2s ${elapsedMs}ms tier=$tier surface=$surface src=$dataSource")
+                printWarn(TAG, "SLOW>2s ${elapsedMs}ms tier=$tier surface=$surface src=$dataSource")
             }
             elapsedMs >= SLOW_CHEAP_MS -> {
                 slow750.incrementAndGet()
-                Log.d(TAG, "slow>750ms ${elapsedMs}ms tier=$tier surface=$surface src=$dataSource")
+                printDebug(TAG, "slow>750ms ${elapsedMs}ms tier=$tier surface=$surface src=$dataSource")
             }
         }
     }
@@ -165,6 +167,6 @@ object ThumbnailTelemetry {
     /** Emit [dump] to logcat under [TAG]; call after a scroll/soak window. */
     fun logDump() {
         if (!enabled) return
-        Log.i(TAG, dump())
+        printInfo(TAG, dump())
     }
 }

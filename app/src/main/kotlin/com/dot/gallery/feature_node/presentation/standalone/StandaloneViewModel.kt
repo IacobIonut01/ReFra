@@ -28,6 +28,7 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import androidx.work.WorkManager
 import com.dot.gallery.core.workers.VaultOperationWorker
 import com.dot.gallery.core.workers.enqueueVaultOperation
+import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -71,6 +72,7 @@ class StandaloneViewModel @AssistedInject constructor(
     }
 
     companion object {
+        private const val TAG = "ui.standalone"
         private const val PENDING_POLL_INTERVAL_MS = 250L
         private const val PENDING_WAIT_TIMEOUT_MS = 30_000L
     }
@@ -169,7 +171,7 @@ class StandaloneViewModel @AssistedInject constructor(
                     } else false
                 } ?: false
         } catch (e: Exception) {
-            e.printStackTrace()
+            printError(TAG, "Failed to query IS_PENDING for $uri", e)
             false
         }
     }

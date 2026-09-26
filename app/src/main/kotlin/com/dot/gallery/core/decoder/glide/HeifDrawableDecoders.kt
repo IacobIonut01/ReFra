@@ -12,6 +12,7 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapDrawableResource
 import com.bumptech.glide.load.resource.drawable.DrawableResource
 import com.bumptech.glide.util.Util
+import com.dot.gallery.feature_node.presentation.util.printError
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import com.radzivon.bartoshyk.avif.coder.PreferredColorConfig
 import java.io.FileInputStream
@@ -35,7 +36,8 @@ private fun HeifCoder.decodeDeepHeif(source: ByteArray, width: Int, height: Int)
 
 private fun ParcelFileDescriptor.readAllBytes(): ByteArray? = try {
     FileInputStream(fileDescriptor).use { it.readBytes() }
-} catch (_: Exception) {
+} catch (e: Exception) {
+    printError("decode.heif", "heif drawable read failed", e)
     null
 }
 
