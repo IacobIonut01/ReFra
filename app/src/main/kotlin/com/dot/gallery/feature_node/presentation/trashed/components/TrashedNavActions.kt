@@ -102,7 +102,7 @@ fun <T: Media> TrashedNavActions(
                     }
                 ) {
                     Text(
-                        text = stringResource(R.string.action_delete_permanently),
+                        text = stringResource(R.string.action_delete),
                         color = MaterialTheme.colorScheme.primary
                     )
                 }

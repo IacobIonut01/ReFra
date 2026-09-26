@@ -741,7 +741,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                 } else if (isInPrivateFolder) {
                                     SelectionBarColumn(
                                         imageVector = action.icon,
-                                        title = stringResource(R.string.action_delete_permanently)
+                                        title = stringResource(R.string.action_delete)
                                     ) {
                                         logSelectionAction("delete_permanent")
                                         scope.launch { privateFolderDeleteConfirmState.show() }
@@ -749,7 +749,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                 } else if (isInVault) {
                                     SelectionBarColumn(
                                         imageVector = action.icon,
-                                        title = stringResource(R.string.action_delete_permanently)
+                                        title = stringResource(R.string.action_delete)
                                     ) {
                                         logSelectionAction("delete_permanent")
                                         scope.launch { vaultDeleteConfirmState.show() }
@@ -758,7 +758,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                                     val trashEnabledRes = if (trashEnabled && SdkCompat.supportsTrash) {
                                         R.string.trash
                                     } else {
-                                        R.string.action_delete_permanently
+                                        R.string.action_delete
                                     }
                                     SelectionBarColumn(
                                         imageVector = action.icon,

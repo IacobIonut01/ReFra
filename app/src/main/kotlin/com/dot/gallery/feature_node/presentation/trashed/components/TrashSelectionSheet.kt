@@ -191,7 +191,7 @@ fun <T : Media> BoxScope.TrashSelectionSheet(
                 )
                 SelectionBarItem(
                     imageVector = Icons.Outlined.DeleteOutline,
-                    title = stringResource(R.string.action_delete_permanently),
+                    title = stringResource(R.string.action_delete),
                     tabletMode = tabletMode,
                     onItemClick = {
                         scope.launch { deleteSheetState.show() }
