@@ -76,8 +76,8 @@ import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedStat
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -145,9 +145,9 @@ fun CollectionViewScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 LargeTopAppBar(
-                    modifier = Modifier.hazeEffect(
+                    modifier = Modifier.hazeEffectScaled(
                         state = LocalHazeState.current,
-                        style = LocalHazeStyle.current
+                        style = LocalHazeBlurStyle.current
                     ),
                     title = {
                         TwoLinedDateToolbarTitle(

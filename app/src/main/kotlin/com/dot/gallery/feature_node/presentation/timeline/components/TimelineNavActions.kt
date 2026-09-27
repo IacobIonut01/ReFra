@@ -37,10 +37,9 @@ import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 
-@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TimelineNavActions() {
     val eventHandler = LocalEventHandler.current
@@ -71,7 +70,8 @@ fun TimelineNavActions() {
                     state = LocalHazeState.current,
                     style = HazeMaterials.regular(
                         containerColor = errorContainer
-                    )
+                    ),
+                    glassContainerColor = errorContainer
                 ),
             onClick = { eventHandler.navigate(Screen.FavoriteScreen()) }
         ) {
@@ -107,7 +107,8 @@ fun TimelineNavActions() {
                 state = LocalHazeState.current,
                 style = HazeMaterials.regular(
                     containerColor = tertiaryContainer
-                )
+                ),
+                glassContainerColor = tertiaryContainer
             ),
         interactionSource = settingsInteractionSource,
         onClick = { eventHandler.navigate(Screen.SettingsScreen()) }

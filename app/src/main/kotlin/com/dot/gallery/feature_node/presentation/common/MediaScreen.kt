@@ -84,8 +84,8 @@ import com.dot.gallery.feature_node.presentation.search.MainSearchBar
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.selectedMedia
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -168,9 +168,9 @@ fun <T: Media> MediaScreen(
                     exit = exitAnimation
                 ) {
                     LargeTopAppBar(
-                        modifier = Modifier.hazeEffect(
+                        modifier = Modifier.hazeEffectScaled(
                             state = LocalHazeState.current,
-                            style = LocalHazeStyle.current
+                            style = LocalHazeBlurStyle.current
                         ),
                         title = {
                             TwoLinedDateToolbarTitle(

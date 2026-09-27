@@ -785,6 +785,11 @@ object Settings {
         @Composable
         fun rememberAllowBlur() = rememberPreference(key = ALLOW_BLUR, defaultValue = SdkCompat.supportsBlur)
 
+        private val ALLOW_GLASS = booleanPreferencesKey("allow_glass")
+
+        @Composable
+        fun rememberAllowGlass() = rememberPreference(key = ALLOW_GLASS, defaultValue = false)
+
         private val DARK_MEDIA_VIEWER = booleanPreferencesKey("dark_media_viewer")
 
         // Default true: a black viewer background is the standard gallery UX and works

@@ -108,10 +108,9 @@ import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.BlurredMediaBackground
 import com.github.panpf.zoomimage.GlideZoomAsyncImage
 import com.github.panpf.zoomimage.rememberGlideZoomState
-import dev.chrisbanes.haze.hazeEffect
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import androidx.compose.animation.core.tween
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -131,7 +130,7 @@ import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetStat
 import com.dot.gallery.ui.theme.BlackScrim
 import kotlinx.coroutines.flow.collectLatest
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditBackupsViewerScreen(
     paddingValues: PaddingValues = PaddingValues(0.dp)
@@ -624,7 +623,7 @@ fun EditBackupsViewerScreen(
                     modifier = Modifier
                         .fillMaxHeight()
                         .clip(pillShape)
-                        .hazeEffect(state = hazeState, style = hazeStyle)
+                        .hazeEffectScaled(state = hazeState, style = hazeStyle)
                         .background(BlackScrim)
                         .padding(horizontal = 4.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -707,7 +706,7 @@ fun EditBackupsViewerScreen(
                             .weight(1f)
                             .fillMaxHeight()
                             .clip(pillShape)
-                            .hazeEffect(state = hazeState, style = hazeStyle)
+                            .hazeEffectScaled(state = hazeState, style = hazeStyle)
                             .background(BlackScrim)
                             .padding(4.dp),
                         verticalAlignment = Alignment.CenterVertically

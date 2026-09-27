@@ -83,8 +83,8 @@ import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.presentation.common.components.MediaGridView
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -247,9 +247,9 @@ fun EditCategoryScreen(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
                         LargeTopAppBar(
-                            modifier = Modifier.hazeEffect(
+                            modifier = Modifier.hazeEffectScaled(
                                 state = LocalHazeState.current,
-                                style = LocalHazeStyle.current
+                                style = LocalHazeBlurStyle.current
                             ),
                             title = {
                                 CategoryNameInput(

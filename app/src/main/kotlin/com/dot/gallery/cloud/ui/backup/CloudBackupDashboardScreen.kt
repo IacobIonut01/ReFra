@@ -86,8 +86,8 @@ import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.presentation.settings.components.SettingsItem
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import kotlin.math.roundToInt
 
 /**
@@ -170,9 +170,9 @@ fun CloudBackupDashboardScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                modifier = Modifier.hazeEffect(
+                modifier = Modifier.hazeEffectScaled(
                     state = LocalHazeState.current,
-                    style = LocalHazeStyle.current
+                    style = LocalHazeBlurStyle.current
                 ),
                 title = { Text(stringResource(R.string.cloud_backup_dashboard_title)) },
                 navigationIcon = { NavigationBackButton() },

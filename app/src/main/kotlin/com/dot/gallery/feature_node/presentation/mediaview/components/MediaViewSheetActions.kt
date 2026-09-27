@@ -95,8 +95,7 @@ import com.dot.gallery.feature_node.presentation.vault.VaultViewModel
 import com.dot.gallery.feature_node.presentation.vault.components.AddToVaultSheet
 import com.dot.gallery.feature_node.presentation.vault.components.ConfirmationSheet
 import com.dot.gallery.feature_node.presentation.vault.components.SelectVaultSheet
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -591,7 +590,6 @@ private data class ActionGridItem(
     val onClick: () -> Unit
 )
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 private fun ActionGridCell(
     modifier: Modifier = Modifier,

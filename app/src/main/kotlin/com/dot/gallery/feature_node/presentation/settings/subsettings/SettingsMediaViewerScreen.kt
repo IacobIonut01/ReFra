@@ -37,9 +37,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
@@ -706,7 +705,6 @@ private fun FullBrightnessPreview(isChecked: Boolean) {
 }
 
 @Composable
-@OptIn(ExperimentalHazeMaterialsApi::class)
 private fun DateHeaderPreview(isChecked: Boolean) {
     val dateHeaderFormat by rememberDateHeaderFormat()
     val currentMillis = remember { System.currentTimeMillis() / 1000 }
@@ -781,7 +779,7 @@ private fun DateHeaderPreview(isChecked: Boolean) {
                     .padding(horizontal = 8.dp)
                     .clip(CircleShape)
                     .then(backgroundModifier)
-                    .hazeEffect(
+                    .hazeEffectScaled(
                         state = LocalHazeState.current,
                         style = HazeMaterials.ultraThin(
                             containerColor = surfaceContainer
@@ -811,7 +809,7 @@ private fun DateHeaderPreview(isChecked: Boolean) {
                     .padding(horizontal = 8.dp)
                     .clip(CircleShape)
                     .then(backgroundModifier)
-                    .hazeEffect(
+                    .hazeEffectScaled(
                         state = LocalHazeState.current,
                         style = HazeMaterials.ultraThin(
                             containerColor = surfaceContainer

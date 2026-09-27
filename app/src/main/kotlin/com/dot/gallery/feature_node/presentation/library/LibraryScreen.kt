@@ -136,10 +136,9 @@ import com.dot.gallery.ui.core.icons.Encrypted
 import com.dot.gallery.ui.theme.BlackScrim
 import com.dot.gallery.ui.theme.WhiterBlackScrim
 import com.dot.gallery.ui.theme.isDarkTheme
-import dev.chrisbanes.haze.hazeEffect
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -178,8 +177,7 @@ fun LibraryScreen(
 }
 
 @OptIn(
-    ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class,
-    ExperimentalGlideComposeApi::class
+    ExperimentalSharedTransitionApi::class, ExperimentalGlideComposeApi::class
 )
 @Composable
 internal fun LibraryScreenContent(
@@ -405,11 +403,12 @@ internal fun LibraryScreenContent(
                             .size(56.dp)
                             .clip(RoundedCornerShape(cornerRadius))
                             .then(settingsBackgroundModifier)
-                            .hazeEffect(
+                            .hazeEffectScaled(
                                 state = LocalHazeState.current,
                                 style = HazeMaterials.regular(
                                     containerColor = tertiaryContainer
-                                )
+                                ),
+                                glassContainerColor = tertiaryContainer
                             ),
                         interactionSource = settingsInteractionSource,
                         onClick = { eventHandler.navigate(Screen.SettingsScreen()) }

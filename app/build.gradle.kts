@@ -572,7 +572,10 @@ dependencies {
 
     // Haze
     implementation(libs.haze)
-    implementation(libs.haze.materials)
+    implementation(libs.haze.blur)
+    implementation(libs.haze.blur.materials)
+    implementation(libs.haze.glass)
+    implementation(libs.haze.glass.material3)
 
     // MapLibre Native SDK
     if (includeMaps) {

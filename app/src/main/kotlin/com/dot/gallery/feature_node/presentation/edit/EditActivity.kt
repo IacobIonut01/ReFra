@@ -32,6 +32,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.feature_node.presentation.edit.adjustments.Crop
 import com.dot.gallery.core.decoder.RawDevelopParams
+import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberAllowGlass
+import com.dot.gallery.feature_node.presentation.util.LocalHazeGlassEnabled
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.util.printError
@@ -40,9 +43,8 @@ import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.writeRequest
 import com.dot.gallery.ui.theme.GalleryTheme
 import dagger.hilt.android.AndroidEntryPoint
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,7 +52,6 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class EditActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalHazeMaterialsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -58,12 +59,15 @@ class EditActivity : ComponentActivity() {
             GalleryTheme(
                 darkTheme = true
             ) {
+                val allowBlur by rememberAllowBlur()
+                val allowGlass by rememberAllowGlass()
                 val hazeState = rememberHazeState()
                 CompositionLocalProvider(
                     LocalHazeState provides hazeState,
-                    LocalHazeStyle provides HazeMaterials.thin(
+                    LocalHazeBlurStyle provides HazeMaterials.thin(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    )
+                    ),
+                    LocalHazeGlassEnabled provides (allowBlur && allowGlass)
                 ) {
                     LaunchedEffect(Unit) {
                         enableEdgeToEdge(

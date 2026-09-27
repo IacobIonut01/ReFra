@@ -69,10 +69,8 @@ import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import com.dot.gallery.ui.theme.BlackScrim
 import com.dot.gallery.ui.theme.WhiterBlackScrim
 import com.dot.gallery.ui.theme.isDarkTheme
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun MediaViewAppBar(
     modifier: Modifier = Modifier,

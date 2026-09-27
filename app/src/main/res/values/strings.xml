@@ -236,6 +236,9 @@
     <string name="fancy_blur">Fancy Blur</string>
     <string name="fancy_blur_summary">Blur background in Media View</string>
     <string name="fancy_blur_requires_android_12">Requires Android 12 or higher</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_summary">Refracting glass style for bars and sheets</string>
+    <string name="liquid_glass_requires_blur">Requires Fancy Blur to be enabled</string>
     <string name="auto_contrast">Auto Contrast (Beta)</string>
     <string name="auto_contrast_summary">Adjust button contrast based on image brightness</string>
     <string name="auto_contrast_description">Continuously samples the screen to detect image brightness and adjusts media viewer UI colors accordingly. Over dark regions, buttons and icons appear white with a dark backdrop. Over bright regions, they switch to black with a light backdrop. Works in both light and dark themes. Status bar icons also adapt to match the image brightness behind them. Updates in real-time as you zoom, pan, and swipe between media.</string>
@@ -876,6 +879,7 @@
     <string name="auto_play_video_description">Videos start playing automatically when you swipe to them in the media viewer. Disable this to require a manual tap to play.</string>
     <string name="video_surface_rebind_description">On some devices the video can turn black when you hide or show the playback controls, even though the audio keeps playing. This re-binds the video surface on each change to keep it visible. Enabled by default on devices where the issue is known to occur.</string>
     <string name="fancy_blur_description">Applies a blur effect to the background behind photos in the media viewer. Requires Android 12 or higher.</string>
+    <string name="liquid_glass_description">Replaces the plain blur on frosted bars and sheets with a Liquid Glass-style refraction effect. Requires Fancy Blur to be enabled.</string>
     <string name="shared_elements_description">Enables smooth shared element transitions between the grid thumbnails and the full-screen media viewer. This creates a visual connection as items zoom in and out.</string>
     <string name="old_navbar_description">Switches to the classic Material navigation bar with text labels. On larger screens, this shows a navigation rail on the side instead.</string>
     <string name="auto_hide_searchbar_description">The search bar or top bar slides out of view when you scroll down, giving more space for content. It reappears when you scroll back up.</string>

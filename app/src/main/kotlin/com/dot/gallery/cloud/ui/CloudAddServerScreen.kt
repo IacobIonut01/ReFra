@@ -95,8 +95,8 @@ import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.presentation.setup.components.SetupWizardScaffold
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -347,7 +347,7 @@ private fun WizardBottomBar(
 private fun frostedFieldModifier(): Modifier = Modifier
     .fillMaxWidth()
     .clip(RoundedCornerShape(16.dp))
-    .hazeEffect(state = LocalHazeState.current, style = LocalHazeStyle.current)
+    .hazeEffectScaled(state = LocalHazeState.current, style = LocalHazeBlurStyle.current)
 
 @Composable
 private fun ServerStep(

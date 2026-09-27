@@ -111,7 +111,6 @@ import com.dot.gallery.feature_node.presentation.util.mediaSharedElement
 import com.dot.gallery.feature_node.presentation.util.rememberActivityResult
 import com.dot.gallery.feature_node.presentation.util.rememberBottomBarInset
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -124,7 +123,7 @@ internal fun albumScreenHorizontalInsets(
     end = paddingValues.calculateEndPadding(layoutDirection),
 )
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AlbumsScreen(
     paddingValues: PaddingValues,
@@ -268,6 +267,9 @@ fun AlbumsScreen(
             )
         }
     ) { innerPaddingValues ->
+        // hazeSource stays attached in every content state so the search bar keeps its
+        // frosted effect when the grid is empty/loading/error (#areas.isEmpty = no draw).
+        Box(modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current)) {
         when (mediaContentState(
             isLoading = albumsState.value.isLoading,
             error = albumsState.value.error,
@@ -293,7 +295,6 @@ fun AlbumsScreen(
                 with(sharedTransitionScope) {
                     GridPinchZoomLayout(
                         state = pinchState,
-                        modifier = Modifier.hazeSource(LocalHazeState.current),
                         indicatorTopPadding = innerPaddingValues.calculateTopPadding() + 16.dp,
                     ) {
                         LaunchedEffect(gridState.isScrollInProgress) {
@@ -672,7 +673,6 @@ fun AlbumsScreen(
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
-                            .hazeSource(LocalHazeState.current)
                             .padding(horizontal = 8.dp)
                             .fillMaxSize(),
                         contentPadding = PaddingValues(
@@ -994,7 +994,8 @@ fun AlbumsScreen(
         FloatingTopBarScrim(barZoneHeight = topBarScrimZone)
         }
     }
-}
+        }
+    }
 }
 }
 

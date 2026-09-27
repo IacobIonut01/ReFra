@@ -91,8 +91,8 @@ import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -116,9 +116,9 @@ fun SharedLinksScreen() {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                modifier = Modifier.hazeEffect(
+                modifier = Modifier.hazeEffectScaled(
                     state = LocalHazeState.current,
-                    style = LocalHazeStyle.current
+                    style = LocalHazeBlurStyle.current
                 ),
                 title = { Text(stringResource(R.string.cloud_shared_links)) },
                 navigationIcon = { NavigationBackButton() },

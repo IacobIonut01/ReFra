@@ -112,9 +112,8 @@ import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.MediaSharedElementKey
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
 import com.dot.gallery.feature_node.presentation.util.storyCardSharedElement
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -140,7 +139,6 @@ internal fun advanceStoryElapsed(
     (elapsedMillis + frameDeltaMillis.coerceAtLeast(0L)).coerceAtMost(durationMillis)
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun StoryViewerScreen(
     cards: List<StoryCard>?,
@@ -178,7 +176,6 @@ fun StoryViewerScreen(
 }
 
 @SuppressLint("NoCollectCallFound")
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 private fun StoryViewerContent(
     cards: List<StoryCard>?,
@@ -396,7 +393,7 @@ private fun StoryViewerContent(
     }
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun StoryCardViewer(
     card: StoryCard,
@@ -745,9 +742,10 @@ private fun StoryCardViewer(
                 val backBgModifier = if (allowBlur) {
                     Modifier
                         .clip(CircleShape)
-                        .hazeEffect(
+                        .hazeEffectScaled(
                             state = hazeState,
-                            style = HazeMaterials.ultraThin(containerColor = blurContainerColor)
+                            style = HazeMaterials.ultraThin(containerColor = blurContainerColor),
+                            glassContainerColor = blurContainerColor
                         )
                 } else {
                     Modifier.background(fallbackContainerColor, CircleShape)
@@ -795,9 +793,10 @@ private fun StoryCardViewer(
                     val pauseBgModifier = if (allowBlur) {
                         Modifier
                             .clip(CircleShape)
-                            .hazeEffect(
+                            .hazeEffectScaled(
                                 state = hazeState,
-                                style = HazeMaterials.ultraThin(containerColor = blurContainerColor)
+                                style = HazeMaterials.ultraThin(containerColor = blurContainerColor),
+                                glassContainerColor = blurContainerColor
                             )
                     } else {
                         Modifier.background(fallbackContainerColor, CircleShape)
@@ -849,9 +848,10 @@ private fun StoryCardViewer(
                 val actionBgModifier = if (allowBlur) {
                     Modifier
                         .clip(RoundedCornerShape(100))
-                        .hazeEffect(
+                        .hazeEffectScaled(
                             state = hazeState,
-                            style = HazeMaterials.ultraThin(containerColor = blurContainerColor)
+                            style = HazeMaterials.ultraThin(containerColor = blurContainerColor),
+                            glassContainerColor = blurContainerColor
                         )
                 } else {
                     Modifier.background(fallbackContainerColor, RoundedCornerShape(100))
@@ -878,9 +878,10 @@ private fun StoryCardViewer(
             val chipBgModifier = if (allowBlur) {
                 Modifier
                     .clip(RoundedCornerShape(100))
-                    .hazeEffect(
+                    .hazeEffectScaled(
                         state = hazeState,
-                        style = HazeMaterials.ultraThin(containerColor = blurContainerColor)
+                        style = HazeMaterials.ultraThin(containerColor = blurContainerColor),
+                        glassContainerColor = blurContainerColor
                     )
             } else {
                 Modifier.background(fallbackContainerColor, RoundedCornerShape(100))

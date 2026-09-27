@@ -132,14 +132,13 @@ import com.dot.gallery.feature_node.presentation.vault.components.AddToVaultShee
 import com.dot.gallery.feature_node.presentation.vault.components.ConfirmationSheet
 import com.dot.gallery.feature_node.presentation.vault.components.SelectVaultSheet
 import com.dot.gallery.ui.theme.Shapes
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun <T : Media> BoxScope.SelectionSheet(
     modifier: Modifier = Modifier,
@@ -562,11 +561,12 @@ fun <T : Media> BoxScope.SelectionSheet(
                         elevation = 4.dp,
                         shape = shape
                     )
-                    .hazeEffect(
+                    .hazeEffectScaled(
                         state = LocalHazeState.current,
                         style = HazeMaterials.regular(
                             containerColor = surfaceColor
-                        )
+                        ),
+                        glassContainerColor = surfaceColor
                     )
                     .horizontalScroll(rememberScrollState()),
                 verticalAlignment = Alignment.CenterVertically,
@@ -1353,7 +1353,6 @@ fun <T: Media> SelectAllAddon(
     )
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun SelectionAddon(
     modifier: Modifier = Modifier,
@@ -1384,11 +1383,12 @@ fun SelectionAddon(
                 elevation = 4.dp,
                 shape = shape
             )
-            .hazeEffect(
+            .hazeEffectScaled(
                 state = LocalHazeState.current,
                 style = HazeMaterials.thin(
                     containerColor = containerColor
-                )
+                ),
+                glassContainerColor = containerColor
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -1412,7 +1412,6 @@ fun SelectionAddon(
     }
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 private fun MiddleActionButton(
     icon: ImageVector,
@@ -1441,11 +1440,12 @@ private fun MiddleActionButton(
                 elevation = 4.dp,
                 shape = shape
             )
-            .hazeEffect(
+            .hazeEffectScaled(
                 state = LocalHazeState.current,
                 style = HazeMaterials.regular(
                     containerColor = surfaceColor
-                )
+                ),
+                glassContainerColor = surfaceColor
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),

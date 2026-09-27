@@ -99,7 +99,7 @@ import com.dot.gallery.feature_node.presentation.util.rememberBottomBarInset
 import com.dot.gallery.ui.core.icons.Albums
 import com.dot.gallery.ui.theme.ComponentSize
 import com.dot.gallery.ui.theme.Spacing
-import dev.chrisbanes.haze.LocalHazeStyle
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 
 internal fun navigationRailSlideOffset(
     fullWidth: Int,
@@ -368,7 +368,7 @@ fun GalleryNavBar(
             .then(backgroundModifier)
             .hazeEffectScaled(
                 state = LocalHazeState.current,
-                style = LocalHazeStyle.current
+                style = LocalHazeBlurStyle.current
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {

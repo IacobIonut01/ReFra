@@ -69,12 +69,11 @@ import com.dot.gallery.feature_node.domain.repository.MediaMutationResult
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetState
 import com.dot.gallery.ui.theme.Shapes
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun <T : Media> BoxScope.TrashSelectionSheet(
     modifier: Modifier = Modifier,
@@ -172,7 +171,7 @@ fun <T : Media> BoxScope.TrashSelectionSheet(
                         elevation = 4.dp,
                         shape = shape
                     )
-                    .hazeEffect(
+                    .hazeEffectScaled(
                         state = LocalHazeState.current,
                         style = HazeMaterials.regular(
                             containerColor = surfaceColor

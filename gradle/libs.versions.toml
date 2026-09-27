@@ -11,8 +11,7 @@ coreSplashscreen = "1.2.0"
 exifinterface = "1.4.2"
 fuzzywuzzyKotlin = "1.0.1"
 graphicsShapes = "1.1.0"
-haze = "1.7.2"
-hazeMaterials = "1.7.2"
+haze = "2.0.0"
 jxlCoder = "2.6.1"
 ngaTiff = "3.0.0"
 androidsvg = "1.4"
@@ -127,7 +126,10 @@ androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navig
 
 # Room
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
-haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "hazeMaterials" }
+haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
+haze-blur-materials = { module = "dev.chrisbanes.haze:haze-blur-materials", version.ref = "haze" }
+haze-glass = { module = "dev.chrisbanes.haze:haze-glass", version.ref = "haze" }
+haze-glass-material3 = { module = "dev.chrisbanes.haze:haze-glass-material3", version.ref = "haze" }
 jxl-coder-coil = { module = "io.github.awxkee:jxl-coder-coil", version.ref = "jxlCoder" }
 androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg" }
 nga-tiff = { module = "mil.nga:tiff", version.ref = "ngaTiff" }

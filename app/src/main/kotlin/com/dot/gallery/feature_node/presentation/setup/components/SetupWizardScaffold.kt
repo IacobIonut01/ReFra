@@ -50,10 +50,9 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.LocalHazeStyle
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 
 /**
  * Provides the [SharedTransitionScope] of the setup wizard so common chrome (back button,
@@ -106,11 +105,10 @@ private fun Modifier.setupSharedBounds(key: String): Modifier {
  * Shared chrome for every setup wizard page: animated background, an optional top bar with a
  * back button + step progress indicator, a scrollable content column and a bottom action bar.
  *
- * The animated background is registered as a Haze source and a frosted [LocalHazeStyle] is
+ * The animated background is registered as a Haze source and a frosted [LocalHazeBlurStyle] is
  * provided, so translucent inputs/cards drawn on top can softly blur it (see how the cloud
  * setup text fields use [LocalHazeState] for a glassy look instead of a solid dark box).
  */
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun SetupWizardScaffold(
     modifier: Modifier = Modifier,
@@ -137,7 +135,7 @@ fun SetupWizardScaffold(
 
         CompositionLocalProvider(
             LocalHazeState provides hazeState,
-            LocalHazeStyle provides HazeMaterials.regular(
+            LocalHazeBlurStyle provides HazeMaterials.regular(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
             )
         ) {

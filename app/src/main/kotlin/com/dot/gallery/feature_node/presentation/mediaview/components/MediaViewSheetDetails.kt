@@ -108,11 +108,10 @@ import com.dot.gallery.feature_node.presentation.util.rememberAppBottomSheetStat
 import com.dot.gallery.feature_node.presentation.util.rememberMediaInfo
 import com.dot.gallery.feature_node.presentation.util.trashRequest
 import com.dot.gallery.feature_node.presentation.vault.components.ConfirmationSheet
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun <T : Media> MediaViewSheetDetails(
     albumsState: State<AlbumState>,

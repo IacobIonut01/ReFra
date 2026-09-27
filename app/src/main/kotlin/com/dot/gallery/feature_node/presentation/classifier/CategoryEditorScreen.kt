@@ -123,8 +123,8 @@ import com.dot.gallery.feature_node.presentation.search.ImageSearchPickerSheet
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -318,9 +318,9 @@ fun CategoryEditorScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
-                modifier = Modifier.hazeEffect(
+                modifier = Modifier.hazeEffectScaled(
                     state = LocalHazeState.current,
-                    style = LocalHazeStyle.current
+                    style = LocalHazeBlurStyle.current
                 ),
                 title = {
                     Text(

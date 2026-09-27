@@ -266,7 +266,7 @@ fun <T : Media> MosaicMediaGrid(
     )
     if (contentState != MediaContentState.CONTENT) {
         Column(
-            modifier = Modifier.padding(paddingValues).fillMaxSize(),
+            modifier = modifier.padding(paddingValues).fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {

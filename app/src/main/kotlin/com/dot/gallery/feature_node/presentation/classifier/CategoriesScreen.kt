@@ -97,8 +97,8 @@ import com.dot.gallery.feature_node.presentation.util.rememberFeedbackManager
 import com.dot.gallery.ui.theme.BlackScrim
 import com.dot.gallery.ui.theme.WhiterBlackScrim
 import com.dot.gallery.ui.theme.isDarkTheme
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class, ExperimentalSharedTransitionApi::class)
@@ -138,9 +138,9 @@ fun CategoriesScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                modifier = Modifier.hazeEffect(
+                modifier = Modifier.hazeEffectScaled(
                     state = LocalHazeState.current,
-                    style = LocalHazeStyle.current
+                    style = LocalHazeBlurStyle.current
                 ),
                 title = {
                     TwoLinedDateToolbarTitle(
@@ -170,6 +170,9 @@ fun CategoriesScreen(
             }
         }
     ) { paddingValues ->
+        // hazeSource stays attached in every content state so the bars keep their frosted
+        // effect when the grid is empty/loading/error (no captured areas = effect draws nothing).
+        Box(modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current)) {
         when (mediaContentState(
             isLoading = mediaState.isLoading,
             error = mediaState.error,
@@ -185,7 +188,6 @@ fun CategoriesScreen(
             MediaContentState.EMPTY,
             MediaContentState.CONTENT -> GridPinchZoomLayout(
             state = pinchState,
-            modifier = Modifier.hazeSource(LocalHazeState.current),
             indicatorTopPadding = paddingValues.calculateTopPadding() + 16.dp,
         ) {
             LazyVerticalGrid(
@@ -331,6 +333,7 @@ fun CategoriesScreen(
                     }
                 }
             }
+        }
         }
     }
 }

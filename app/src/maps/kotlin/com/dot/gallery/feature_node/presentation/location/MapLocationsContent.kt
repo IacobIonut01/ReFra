@@ -89,10 +89,9 @@ import com.dot.gallery.feature_node.presentation.util.rememberSurfaceCapture
 import com.dot.gallery.feature_node.presentation.util.rememberWindowInsetsController
 import com.dot.gallery.ui.theme.isDarkTheme
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -119,7 +118,6 @@ private const val PHOTO_MARKER_LAYER = "photo-marker-layer"
 @Suppress("ComposeRules", "UNUSED_PARAMETER")
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class,
     ExperimentalCoroutinesApi::class,
     FlowPreview::class,
 )
@@ -701,7 +699,6 @@ internal fun MapLocationsContent(
             }
 
             // Back button
-            @OptIn(ExperimentalHazeMaterialsApi::class)
             NavigationBackButton(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -710,7 +707,7 @@ internal fun MapLocationsContent(
                 containerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surfaceContainer,
                 containerModifier = if (allowBlur) Modifier
                     .clip(CircleShape)
-                    .hazeEffect(
+                    .hazeEffectScaled(
                         state = sheetHazeState,
                         style = HazeMaterials.regular(
                             containerColor = MaterialTheme.colorScheme.surface
@@ -729,7 +726,7 @@ internal fun MapLocationsContent(
                 containerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surfaceContainer,
                 containerModifier = if (allowBlur) Modifier
                     .clip(CircleShape)
-                    .hazeEffect(
+                    .hazeEffectScaled(
                         state = sheetHazeState,
                         style = HazeMaterials.regular(
                             containerColor = MaterialTheme.colorScheme.surface
@@ -820,7 +817,6 @@ internal fun MapLocationsContent(
         // Blur support
         val surfaceColorLocal = MaterialTheme.colorScheme.surface
 
-        @OptIn(ExperimentalHazeMaterialsApi::class)
         val sheetHazeStyle = HazeMaterials.regular(
             containerColor = surfaceColorLocal
         )
@@ -862,7 +858,7 @@ internal fun MapLocationsContent(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                         .then(sheetBackgroundModifier)
-                        .hazeEffect(
+                        .hazeEffectScaled(
                             state = sheetHazeState,
                             style = sheetHazeStyle
                         )

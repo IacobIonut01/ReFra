@@ -68,8 +68,8 @@ import com.dot.gallery.core.presentation.components.LoadingMedia
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.feature_node.data.data_source.SmartScanPhase
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,9 +91,9 @@ fun PeopleListScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                modifier = Modifier.hazeEffect(
+                modifier = Modifier.hazeEffectScaled(
                     state = LocalHazeState.current,
-                    style = LocalHazeStyle.current
+                    style = LocalHazeBlurStyle.current
                 ),
                 title = {
                     Column {

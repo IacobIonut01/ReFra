@@ -46,6 +46,7 @@ import com.dot.gallery.core.Settings.Misc.getSecureMode
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.core.presentation.components.util.permissionGranted
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberAllowGlass
 import com.dot.gallery.core.Settings.Misc.rememberForceTheme
 import com.dot.gallery.core.Settings.Misc.rememberIsDarkMode
 import com.dot.gallery.core.presentation.components.AppBarContainer
@@ -65,6 +66,7 @@ import com.dot.gallery.feature_node.presentation.mediaview.rememberMediaViewerOv
 import com.dot.gallery.feature_node.presentation.storycards.StoryCardsViewModel
 import com.dot.gallery.feature_node.presentation.storycards.StoryViewerScreen
 import com.dot.gallery.feature_node.presentation.storycards.StoryViewerSnapshot
+import com.dot.gallery.feature_node.presentation.util.LocalHazeGlassEnabled
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.applyLauncherSplashTheme
@@ -75,9 +77,8 @@ import com.dot.gallery.ui.theme.GalleryTheme
 import com.dot.gallery.core.image.thumbnail.ThumbnailTelemetry
 import com.dot.gallery.core.metrics.StartupTracer
 import dagger.hilt.android.AndroidEntryPoint
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -105,7 +106,6 @@ class MainActivity : AppCompatActivity() {
 
     private var startupContentInstalled = false
 
-    @OptIn(ExperimentalHazeMaterialsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val activitySpan = StartupTracer.begin("MainActivity.onCreate")
         // Match the splash icon to the enabled launcher alias before the theme is
@@ -164,9 +164,8 @@ class MainActivity : AppCompatActivity() {
                             drawnLabel = "MainActivity.firstDrawn"
                         )
                         val allowBlur by rememberAllowBlur()
-                        val hazeState = rememberHazeState(
-                            blurEnabled = allowBlur
-                        )
+                        val allowGlass by rememberAllowGlass()
+                        val hazeState = rememberHazeState()
                         val navController = rememberNavController()
                         val mediaViewerOverlayController = rememberMediaViewerOverlayController()
                         val storyCardsViewModel = hiltViewModel<StoryCardsViewModel>()
@@ -261,9 +260,10 @@ class MainActivity : AppCompatActivity() {
                             LocalHazeState provides hazeState,
                             LocalScrollToTop provides scrollToTopController,
                             LocalMediaViewerOverlayController provides mediaViewerOverlayController,
-                            LocalHazeStyle provides HazeMaterials.regular(
+                            LocalHazeBlurStyle provides HazeMaterials.regular(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                            )
+                            ).then { blurEnabled(allowBlur) },
+                            LocalHazeGlassEnabled provides (allowBlur && allowGlass)
                         ) {
                             SetupMediaProviders(
                                 eventHandler = eventHandler,

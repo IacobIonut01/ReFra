@@ -240,8 +240,7 @@ import com.github.panpf.sketch.BitmapImage
 import com.github.panpf.sketch.cache.CachePolicy
 import com.github.panpf.sketch.request.ImageRequest
 import com.github.panpf.sketch.sketch
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -638,7 +637,7 @@ private class VideoFramePickerControllerRef {
 }
 
 @androidx.annotation.OptIn(UnstableApi::class)
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T : Media> MediaViewScreenRoute(
     toggleRotate: () -> Unit,
@@ -707,7 +706,7 @@ fun <T : Media> MediaViewScreenRoute(
 }
 
 @UnstableApi
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun <T : Media> MediaViewScreen(
     toggleRotate: () -> Unit,

@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
-import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toFile
 import com.dot.gallery.BuildConfig

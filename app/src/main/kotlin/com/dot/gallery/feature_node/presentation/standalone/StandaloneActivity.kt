@@ -34,20 +34,21 @@ import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberAllowGlass
 import com.dot.gallery.core.util.SetupMediaProviders
 import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.util.EventHandler
 import com.dot.gallery.feature_node.presentation.exif.MetadataViewScreen
 import com.dot.gallery.feature_node.presentation.exif.MetadataViewViewModel
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewScreenRoute
+import com.dot.gallery.feature_node.presentation.util.LocalHazeGlassEnabled
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.Screen
 import com.dot.gallery.feature_node.presentation.util.toggleOrientation
 import com.dot.gallery.ui.theme.GalleryTheme
 import dagger.hilt.android.AndroidEntryPoint
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import androidx.appcompat.app.AppCompatActivity
 import javax.inject.Inject
@@ -73,7 +74,7 @@ open class StandaloneActivity : AppCompatActivity() {
     @Inject
     lateinit var mediaSelector: MediaSelector
 
-    @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
+    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -88,7 +89,7 @@ open class StandaloneActivity : AppCompatActivity() {
         showIntent(intent)
     }
 
-    @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeMaterialsApi::class)
+    @OptIn(ExperimentalSharedTransitionApi::class)
     private fun showIntent(intent: Intent) {
         val action = intent.action.toString()
         // A review can be "secure" in two ways:
@@ -121,9 +122,8 @@ open class StandaloneActivity : AppCompatActivity() {
         setContent {
             GalleryTheme {
                 val allowBlur by rememberAllowBlur()
-                val hazeState = rememberHazeState(
-                    blurEnabled = allowBlur
-                )
+                val allowGlass by rememberAllowGlass()
+                val hazeState = rememberHazeState()
                 val viewModel =
                     hiltViewModel<StandaloneViewModel, StandaloneViewModel.Factory> { factory ->
                         factory.create(
@@ -134,9 +134,10 @@ open class StandaloneActivity : AppCompatActivity() {
                     }
                 CompositionLocalProvider(
                     LocalHazeState provides hazeState,
-                    LocalHazeStyle provides HazeMaterials.thin(
+                    LocalHazeBlurStyle provides HazeMaterials.thin(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    )
+                    ).then { blurEnabled(allowBlur) },
+                    LocalHazeGlassEnabled provides (allowBlur && allowGlass)
                 ) {
                     // Standalone has no NavHost, so the "view all metadata" button's navigate()
                     // call was dropped and nothing happened (#959/#946). We intercept that route

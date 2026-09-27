@@ -89,17 +89,15 @@ import com.dot.gallery.feature_node.presentation.util.SystemDateFormatField
 import com.dot.gallery.feature_node.presentation.util.getDate
 import com.dot.gallery.feature_node.presentation.util.systemDateTimePattern
 import com.dot.gallery.ui.theme.GalleryTheme
-import dev.chrisbanes.haze.hazeEffect
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 internal fun dateFormatEditorText(rawFormat: String): String = rawFormat
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
-    ExperimentalHazeMaterialsApi::class
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class
 )
 @Composable
 fun DateFormatScreen() {
@@ -243,7 +241,7 @@ fun DateFormatScreen() {
                             .padding(horizontal = 8.dp)
                             .clip(CircleShape)
                             .then(backgroundModifier)
-                            .hazeEffect(
+                            .hazeEffectScaled(
                                 state = LocalHazeState.current,
                                 style = HazeMaterials.ultraThin(
                                     containerColor = surfaceContainer
@@ -270,7 +268,7 @@ fun DateFormatScreen() {
                             .padding(horizontal = 8.dp)
                             .clip(CircleShape)
                             .then(backgroundModifier)
-                            .hazeEffect(
+                            .hazeEffectScaled(
                                 state = LocalHazeState.current,
                                 style = HazeMaterials.ultraThin(
                                     containerColor = surfaceContainer
@@ -367,7 +365,7 @@ fun DateFormatScreen() {
                             .padding(horizontal = 8.dp)
                             .clip(CircleShape)
                             .then(backgroundModifier)
-                            .hazeEffect(
+                            .hazeEffectScaled(
                                 state = LocalHazeState.current,
                                 style = HazeMaterials.ultraThin(
                                     containerColor = surfaceContainer
@@ -394,7 +392,7 @@ fun DateFormatScreen() {
                             .padding(horizontal = 8.dp)
                             .clip(CircleShape)
                             .then(backgroundModifier)
-                            .hazeEffect(
+                            .hazeEffectScaled(
                                 state = LocalHazeState.current,
                                 style = HazeMaterials.ultraThin(
                                     containerColor = surfaceContainer

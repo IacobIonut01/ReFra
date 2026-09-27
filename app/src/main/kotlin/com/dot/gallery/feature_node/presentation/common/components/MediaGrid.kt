@@ -166,7 +166,7 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
     )
     if (contentState != MediaContentState.CONTENT) {
         Column(
-            modifier = Modifier.padding(paddingValues).fillMaxSize(),
+            modifier = modifier.padding(paddingValues).fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(

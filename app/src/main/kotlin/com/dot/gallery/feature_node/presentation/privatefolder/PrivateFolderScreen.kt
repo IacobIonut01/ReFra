@@ -76,8 +76,8 @@ import com.dot.gallery.feature_node.presentation.vault.utils.VaultCredentialStat
 import com.dot.gallery.feature_node.presentation.vault.utils.VaultPasswordManager
 import com.dot.gallery.feature_node.presentation.vault.utils.VerifyResult
 import com.dot.gallery.feature_node.presentation.vault.utils.rememberBiometricState
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -264,9 +264,9 @@ fun PrivateFolderScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 LargeTopAppBar(
-                    modifier = Modifier.hazeEffect(
+                    modifier = Modifier.hazeEffectScaled(
                         state = LocalHazeState.current,
-                        style = LocalHazeStyle.current
+                        style = LocalHazeBlurStyle.current
                     ),
                     title = {
                         TwoLinedDateToolbarTitle(

@@ -32,15 +32,13 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import com.dot.gallery.feature_node.presentation.util.hazeEffectScaled
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 
 /**
  * Slim casting status banner showing the connected device name with a stop button.
  * Supports blur matching the app bar style. Positioned in the top area below the date header.
  */
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun CastStatusBanner(
     deviceName: String,
@@ -63,7 +61,7 @@ fun CastStatusBanner(
         modifier = modifier
             .clip(CircleShape)
             .then(backgroundModifier)
-            .hazeEffect(
+            .hazeEffectScaled(
                 state = LocalHazeState.current,
                 style = HazeMaterials.ultraThin(
                     containerColor = surfaceContainer
