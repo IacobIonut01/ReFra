@@ -206,7 +206,7 @@
     <string name="read_media_videos_summary">Ermöglicht es der App, deine Videos anzuzeigen</string>
     <string name="access_media_location">Standortdaten der Medien einlesen</string>
     <string name="access_media_location_summary"><![CDATA[Ermöglicht es der App, die Standortdaten deiner Bilder und Videos zu lesen]]></string>
-    <string name="grant_access">Grant access</string>
+    <string name="grant_access">Zugriff erlauben</string>
     <string name="internet">Internet</string>
     <string name="internet_summary"><![CDATA[Erforderlich zur Anzeige von Standortvorschauen Ihrer Bilder und Videos]]></string>
     <string name="fancy_blur">Unschärfe-Effekt</string>
@@ -481,8 +481,8 @@
     <string name="auto_hide_searchbar_summary">Beim Scrollen automatisch die Suchleiste oder die obere Leiste des Bildschirms ausblenden</string>
     <string name="auto_hide_navigationbar">Navigationsleiste beim Scrollen ausblenden</string>
     <string name="auto_hide_navigationbar_summary">Beim Scrollen automatisch die Navigationsleiste ausblenden</string>
-    <string name="auto_open_search_keyboard">Open keyboard on search</string>
-    <string name="auto_open_search_keyboard_summary">Show the keyboard automatically when opening search</string>
+    <string name="auto_open_search_keyboard">Tastatur bei der Suche öffnen</string>
+    <string name="auto_open_search_keyboard_summary">Die Tastatur beim Öffnen der Suche automatisch anzeigen</string>
     <string name="navigation">Navigation</string>
     <string name="vault_setup_title">Tresor einrichten</string>
     <string name="vault_setup_subtitle"><![CDATA[Verschlüssle deine privaten Fotos & Videos]]></string>
@@ -513,8 +513,8 @@
     <string name="disable_smoothing_description">Wenn aktiviert, werden Bilder mit der nächstgelegenen Nachbar-Skalierung gezeichnet, sodass das Heranzoomen von Pixelkunst saubere, scharfe Pixel beibehält, anstatt sie zu verwischen. Bei Fotos ausschalten, um eine sanfte Skalierung zu erzielen.</string>
     <string name="auto_hide_on_video_play">Benutzeroberfläche bei Videowiedergabe ausblenden</string>
     <string name="auto_hide_on_video_play_summary">Blendet die Benutzeroberfläche beim Abspielen von Videos nach 2 Sekunden aus</string>
-    <string name="dark_media_viewer_title">Dark viewer background</string>
-    <string name="dark_media_viewer_summary">Keep the media viewer background black in Light Theme</string>
+    <string name="dark_media_viewer_title">Dunkler Betrachterhintergrund</string>
+    <string name="dark_media_viewer_summary">Den Hintergrund des Medienbetrachters im hellen Design schwarz lassen</string>
     <string name="dark_media_viewer_description">When enabled, photos and videos are always shown on a black background — like most gallery apps — even when the app theme is light. Turn it off to let the viewer follow the light theme.</string>
     <string name="delete_location">Standort entfernen</string>
     <string name="delete_metadata">Metadaten löschen</string>
@@ -1035,8 +1035,8 @@
     <string name="visual_search_convert_sheet_title">Unsupported format?</string>
     <string name="visual_search_convert_sheet_body">%1$s may not be readable by %2$s. Convert a temporary copy first?</string>
     <string name="visual_search_convert_sheet_convert">Convert and share</string>
-    <string name="visual_search_convert_sheet_original">Share original</string>
-    <string name="visual_search_convert_sheet_remember">Remember my choice</string>
+    <string name="visual_search_convert_sheet_original">Original teilen</string>
+    <string name="visual_search_convert_sheet_remember">Auswahl merken</string>
     <string name="locked">Gesperrt</string>
     <string name="lock_album">Album sperren</string>
     <string name="unlock_album">Album entsperren</string>
@@ -1234,7 +1234,7 @@
     <string name="media_type_raw">Raw</string>
     <string name="media_type_albums_setting_title">Medientyp-Alben anzeigen</string>
     <string name="media_type_albums_setting_summary">Schnellalben für Videos, Fotos, GIFs und Raw-Dateien oben im Reiter „Alben“ hinzufügen</string>
-    <string name="location_categories_title">Location categories</string>
+    <string name="location_categories_title">Standort-Kategorien</string>
     <string name="location_categories_summary">Show the locations row on the Library tab</string>
     <!-- Album Sections -->
     <string name="album_sections_title">Alben nach Bereichen organisieren</string>
@@ -2010,10 +2010,10 @@
     <string name="cloud_free_space_remove_failed">Lokale Kopien konnten nicht entfernt werden.</string>
     <string name="cloud_free_space_auto">Run automatically</string>
     <string name="cloud_free_space_auto_summary">Periodically verifies backed-up items and removes their local copies in the background. Without All Files Access you\'ll get a notification to review instead.</string>
-    <string name="cloud_free_space_auto_frequency">Frequency</string>
-    <string name="cloud_free_space_every_day">Every day</string>
-    <string name="cloud_free_space_every_3d">Every 3 days</string>
-    <string name="cloud_free_space_every_week">Every week</string>
+    <string name="cloud_free_space_auto_frequency">Häufigkeit</string>
+    <string name="cloud_free_space_every_day">Täglich</string>
+    <string name="cloud_free_space_every_3d">alle 3 Tage</string>
+    <string name="cloud_free_space_every_week">Wöchentlich</string>
     <string name="cloud_free_space_auto_removed">Free Up Space removed %1$d backed-up local copies.</string>
     <string name="cloud_free_space_auto_review">%1$d backed-up local copies are ready to remove. Tap to review.</string>
     <string name="cloud_settings_more_header">Einstellungen</string>
