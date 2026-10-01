@@ -15,7 +15,15 @@ import kotlinx.serialization.json.Json
 data class WidgetData(
     val widgetId: Int,
     val type: WidgetType,
-    val mediaUris: List<String>
+    val mediaUris: List<String>,
+    /**
+     * Parallel to [mediaUris]: the timeline-resolvable media id for the item
+     * at that index, or null when the pick cannot be opened in the media
+     * viewer (vault, private folder). Absent entirely in data stored by
+     * versions before the deep-link fix — [WidgetDeepLink.resolveDeepLinkId]
+     * falls back to parsing the media URI in that case.
+     */
+    val mediaIds: List<Long?> = emptyList()
 )
 
 @Serializable
@@ -30,11 +38,18 @@ object WidgetPreferences {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    fun saveWidgetData(context: Context, widgetId: Int, type: WidgetType, uris: List<Uri>) {
+    fun saveWidgetData(
+        context: Context,
+        widgetId: Int,
+        type: WidgetType,
+        uris: List<Uri>,
+        mediaIds: List<Long?> = emptyList()
+    ) {
         val data = WidgetData(
             widgetId = widgetId,
             type = type,
-            mediaUris = uris.map { it.toString() }
+            mediaUris = uris.map { it.toString() },
+            mediaIds = mediaIds
         )
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit(commit = true) {

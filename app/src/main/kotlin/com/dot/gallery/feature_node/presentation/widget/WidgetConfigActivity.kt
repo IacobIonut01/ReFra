@@ -23,11 +23,16 @@ import com.dot.gallery.core.MediaHandler
 import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.MediaSelectorImpl
 import com.dot.gallery.core.util.SetupMediaProviders
+import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.UIEvent
 import com.dot.gallery.feature_node.domain.util.EventHandler
+import com.dot.gallery.feature_node.domain.util.getUri
+import com.dot.gallery.feature_node.domain.util.isCloud
+import com.dot.gallery.feature_node.domain.util.isLocalContent
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.components.PickerScreen
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetDeepLink
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetPreferences
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetType
 import com.dot.gallery.ui.theme.GalleryTheme
@@ -55,6 +60,9 @@ class WidgetConfigActivity : FragmentActivity() {
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private var isReconfigure = false
+
+    /** URIs handed back by the picker's first result callback, consumed by the second. */
+    private var pendingUris: List<Uri> = emptyList()
 
     private val widgetType: WidgetType by lazy {
         // Determine widget type from the provider info
@@ -155,16 +163,27 @@ class WidgetConfigActivity : FragmentActivity() {
             allowedMedia = AllowedMedia.PHOTOS,
             allowSelection = allowMultiple,
             onClose = ::finish,
-            sendMediaAsResult = ::onMediaSelected,
-            sendMediaAsMediaResult = { /* not used */ }
+            sendMediaAsResult = { uris -> pendingUris = uris },
+            sendMediaAsMediaResult = { media -> onMediaSelected(pendingUris, media) }
         )
     }
 
-    private fun onMediaSelected(selectedMedia: List<Uri>) {
+    private fun onMediaSelected(selectedMedia: List<Uri>, selectedItems: List<Media>) {
         if (selectedMedia.isEmpty()) {
             finish()
             return
         }
+
+        // The media viewer deep link needs the timeline id of each picked item.
+        // Vault and private-folder picks are excluded — they are absent from the
+        // unified timeline and a vault id is its original MediaStore row id.
+        val selected = selectedItems.map {
+            Triple(it.getUri().toString(), it.id, it.isLocalContent || it.isCloud)
+        }
+        val mediaIds = WidgetDeepLink.pairDeepLinkIds(
+            materialized = selectedMedia.map(Uri::toString),
+            selected = selected
+        )
 
         // Persist read permission for the selected URIs
         selectedMedia.forEach { uri ->
@@ -187,7 +206,8 @@ class WidgetConfigActivity : FragmentActivity() {
             context = this,
             widgetId = appWidgetId,
             type = widgetType,
-            uris = selectedMedia
+            uris = selectedMedia,
+            mediaIds = mediaIds
         )
 
         // Load bitmaps, cache to files, and push widget update

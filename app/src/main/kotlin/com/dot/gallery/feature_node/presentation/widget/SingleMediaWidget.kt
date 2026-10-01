@@ -14,6 +14,7 @@ import android.widget.RemoteViews
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.main.MainActivity
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetDeepLink
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -76,11 +77,22 @@ class SingleMediaWidgetReceiver : AppWidgetProvider() {
                 views.setViewVisibility(R.id.widget_no_photo_text, View.VISIBLE)
             }
 
-            // Set click to open app
-            val intent = Intent(context, MainActivity::class.java)
+            // Tap opens the displayed photo in the viewer; without a resolvable
+            // media id (empty widget, vault/private pick, pre-fix widget) it
+            // falls back to a plain app open.
+            val mediaId = WidgetDeepLink.resolveDeepLinkId(
+                WidgetPreferences.getWidgetData(context, appWidgetId), 0
+            )
+            val intent = Intent(context, MainActivity::class.java).apply {
+                if (mediaId != null) {
+                    putExtra(WidgetDeepLink.EXTRA_WIDGET_MEDIA_ID, mediaId)
+                }
+            }
+            // FLAG_MUTABLE so a reconfigured widget's PendingIntent picks up the
+            // new media id instead of keeping the extras frozen at creation.
             val pendingIntent = PendingIntent.getActivity(
                 context, appWidgetId, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 

@@ -5,6 +5,7 @@
 
 package com.dot.gallery.feature_node.presentation.main
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.WindowManager
@@ -73,6 +74,7 @@ import com.dot.gallery.feature_node.presentation.util.applyLauncherSplashTheme
 import com.dot.gallery.feature_node.presentation.util.currentLauncherAlias
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import com.dot.gallery.feature_node.presentation.util.toggleOrientation
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetDeepLink
 import com.dot.gallery.ui.theme.GalleryTheme
 import com.dot.gallery.core.image.thumbnail.ThumbnailTelemetry
 import com.dot.gallery.core.metrics.StartupTracer
@@ -81,6 +83,7 @@ import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -106,6 +109,13 @@ class MainActivity : AppCompatActivity() {
 
     private var startupContentInstalled = false
 
+    /**
+     * Pending home-screen widget tap → photo deep link (#1268). Widget
+     * PendingIntents carry the media id in [WidgetDeepLink.EXTRA_WIDGET_MEDIA_ID];
+     * the value is held here until the composition's navigation actions exist.
+     */
+    private val widgetMediaDeepLink = MutableStateFlow(-1L)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val activitySpan = StartupTracer.begin("MainActivity.onCreate")
         // Match the splash icon to the enabled launcher alias before the theme is
@@ -125,6 +135,7 @@ class MainActivity : AppCompatActivity() {
             mediaDistributor.hasPermission.value = true
         }
         StartupTracer.end(activitySpan)
+        consumeWidgetDeepLink(intent)
         lifecycleScope.launch {
             val initialPreferences = withContext(Dispatchers.IO) {
                 try {
@@ -223,6 +234,23 @@ class MainActivity : AppCompatActivity() {
                                 eventHandler.toggleNavigationBarAction = toggleNavigationBarAction
                                 eventHandler.navigateUpAction = navigateUpAction
                                 eventHandler.setFollowThemeAction = setFollowThemeAction
+                                // Widget tap → open that photo in the viewer. albumId=-1
+                                // routes through the unified timeline and presents as the
+                                // overlay viewer; a missing/deleted id auto-dismisses.
+                                val widgetDeepLinkJob = launch {
+                                    widgetMediaDeepLink.collect { mediaId ->
+                                        if (mediaId == -1L) return@collect
+                                        // Consume before navigating so a repeated tap on
+                                        // the same widget is not swallowed by conflation.
+                                        widgetMediaDeepLink.value = -1L
+                                        if (initialStartDestination == Screen.SetupScreen.route) {
+                                            return@collect
+                                        }
+                                        navigateAction(
+                                            Screen.MediaViewScreen.idAndAlbum(mediaId, -1L)
+                                        )
+                                    }
+                                }
                                 try {
                                     eventHandler.updaterFlow.collect { event ->
                                         when (event) {
@@ -236,6 +264,7 @@ class MainActivity : AppCompatActivity() {
                                         }
                                     }
                                 } finally {
+                                    widgetDeepLinkJob.cancel()
                                     eventHandler.navigateAction = {}
                                     eventHandler.toggleNavigationBarAction = {}
                                     eventHandler.navigateUpAction = {}
@@ -342,6 +371,20 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             startupContentInstalled = true
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // singleTop: a widget tap while the app is running lands here, not onCreate.
+        setIntent(intent)
+        consumeWidgetDeepLink(intent)
+    }
+
+    private fun consumeWidgetDeepLink(intent: Intent?) {
+        val mediaId = intent?.getLongExtra(WidgetDeepLink.EXTRA_WIDGET_MEDIA_ID, -1L) ?: -1L
+        if (mediaId != -1L) {
+            widgetMediaDeepLink.value = mediaId
         }
     }
 

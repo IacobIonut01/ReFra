@@ -2,7 +2,7 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="UnusedAttribute"
-    android:initialLayout="@layout/widget_single_content"
+    android:initialLayout="@layout/widget_grid_content"
     android:configure="com.dot.gallery.feature_node.presentation.widget.WidgetConfigActivity"
     android:minWidth="180dp"
     android:minHeight="180dp"

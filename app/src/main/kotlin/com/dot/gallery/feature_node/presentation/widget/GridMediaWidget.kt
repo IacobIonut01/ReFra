@@ -9,13 +9,8 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.view.View
+import android.net.Uri
 import android.widget.RemoteViews
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.scale
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.main.MainActivity
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
@@ -31,7 +26,8 @@ class GridMediaWidgetReceiver : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        // Render immediately from cache so the widget is never blank while reloading.
+        // Rebind the collection immediately so the widget is never blank
+        // while reloading.
         for (appWidgetId in appWidgetIds) {
             updateWidget(context, appWidgetManager, appWidgetId)
         }
@@ -73,63 +69,40 @@ class GridMediaWidgetReceiver : AppWidgetProvider() {
     }
 
     companion object {
-        private const val GRID_SPACING = 2
 
+        // setRemoteAdapter(Intent) is "deprecated" in favor of eagerly-built
+        // RemoteCollectionItems, but that API is API 31+ and this widget's
+        // photos are decoded lazily per cell — the service adapter stays.
+        @Suppress("DEPRECATION")
         fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
-            val uris = WidgetPreferences.getMediaUris(context, appWidgetId)
-            val bitmaps = uris.indices.mapNotNull { index ->
-                WidgetBitmapLoader.loadCachedBitmap(context, appWidgetId, index)
-            }
-            val views = RemoteViews(context.packageName, R.layout.widget_single_content)
+            val views = RemoteViews(context.packageName, R.layout.widget_grid_content)
 
-            if (bitmaps.isNotEmpty()) {
-                val gridBitmap = createGridBitmap(bitmaps)
-                views.setImageViewBitmap(R.id.widget_image, gridBitmap)
-                views.setViewVisibility(R.id.widget_image, View.VISIBLE)
-                views.setViewVisibility(R.id.widget_no_photo_text, View.GONE)
-            } else {
-                views.setViewVisibility(R.id.widget_image, View.GONE)
-                views.setViewVisibility(R.id.widget_no_photo_text, View.VISIBLE)
+            // RemoteViewsService intent identity ignores extras, so a unique
+            // data URI per widget id keeps each widget bound to its own
+            // factory instance.
+            val serviceIntent = Intent(context, GridMediaWidgetService::class.java).apply {
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                data = Uri.parse("refra-widget://grid/$appWidgetId")
             }
+            views.setRemoteAdapter(R.id.widget_grid, serviceIntent)
+            views.setEmptyView(R.id.widget_grid, R.id.widget_no_photo_text)
 
-            // Set click to open app
-            val intent = Intent(context, MainActivity::class.java)
-            val pendingIntent = PendingIntent.getActivity(
-                context, appWidgetId, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            // Per-cell media ids arrive through the fill-in intents the factory
+            // sets in getViewAt; the template alone is a plain app open.
+            // FLAG_MUTABLE is required — an immutable template silently drops
+            // fill-in extras on API 31+, which would lose the tapped media id.
+            val templateIntent = Intent(context, MainActivity::class.java)
+            val template = PendingIntent.getActivity(
+                context, appWidgetId, templateIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
-            views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+            views.setPendingIntentTemplate(R.id.widget_grid, template)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
-        }
-
-        private fun createGridBitmap(bitmaps: List<Bitmap>): Bitmap {
-            val cols = when {
-                bitmaps.size <= 1 -> 1
-                bitmaps.size <= 4 -> 2
-                else -> 3
-            }
-            val rows = (bitmaps.size + cols - 1) / cols
-            val cellSize = 1024 / cols
-            val totalWidth = cols * cellSize + (cols - 1) * GRID_SPACING
-            val totalHeight = rows * cellSize + (rows - 1) * GRID_SPACING
-
-            val result = createBitmap(totalWidth, totalHeight)
-            val canvas = Canvas(result)
-            canvas.drawColor(Color.DKGRAY)
-
-            bitmaps.forEachIndexed { index, bitmap ->
-                val row = index / cols
-                val col = index % cols
-                val x = col * (cellSize + GRID_SPACING)
-                val y = row * (cellSize + GRID_SPACING)
-
-                val scaled = bitmap.scale(cellSize, cellSize)
-                canvas.drawBitmap(scaled, x.toFloat(), y.toFloat(), null)
-                if (scaled !== bitmap) scaled.recycle()
-            }
-
-            return result
+            appWidgetManager.notifyAppWidgetViewDataChanged(
+                intArrayOf(appWidgetId),
+                R.id.widget_grid
+            )
         }
     }
 }

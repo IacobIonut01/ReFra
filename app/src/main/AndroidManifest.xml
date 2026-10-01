@@ -456,6 +456,10 @@
                 android:resource="@xml/grid_media_widget_info" />
         </receiver>
 
+        <service
+            android:name=".feature_node.presentation.widget.GridMediaWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${appProvider}"
