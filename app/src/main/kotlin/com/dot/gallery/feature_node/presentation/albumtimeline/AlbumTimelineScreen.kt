@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,19 +29,27 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Slideshow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -61,10 +70,13 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -76,10 +88,13 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.dot.gallery.feature_node.presentation.common.components.GridPinchZoomLayout
 import com.dot.gallery.feature_node.presentation.common.components.rememberGridPinchZoomState
 import com.dot.gallery.R
+import com.dot.gallery.cloud.core.CloudAlbumIdentity
+import com.dot.gallery.cloud.core.CloudRuntimeSettings
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.cloudMemberKey
 import com.dot.gallery.core.Settings.Album.rememberAlbumGroupByDate
 import com.dot.gallery.core.Settings.Album.rememberAlbumMediaSort
 import com.dot.gallery.core.Settings
@@ -89,10 +104,13 @@ import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
 import com.dot.gallery.core.Settings.Misc.rememberTimelineLayoutType
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
+import com.dot.gallery.core.presentation.components.ModalSheet
 import com.dot.gallery.core.presentation.components.NavigationButton
 import com.dot.gallery.core.presentation.components.SelectionSheet
+import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.feature_node.domain.model.Album
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
 import com.dot.gallery.feature_node.domain.model.MediaState
 import com.dot.gallery.feature_node.presentation.albumtimeline.components.AlbumSortDropdown
@@ -164,12 +182,18 @@ fun AlbumTimelineScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val selector = LocalMediaSelector.current
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
+    val cloudAlbumManageViewModel = hiltViewModel<CloudAlbumManageViewModel>()
+    val cloudSettingsByConfigId by CloudRuntimeSettings.settingsByConfigId.collectAsStateWithLifecycle()
 
     // Sort preferences - saved to DataStore, read by MediaDistributor
     var albumMediaSort by rememberAlbumMediaSort()
 
     // Media state is already sorted by MediaDistributor based on albumMediaSort
     val mediaState = albumMediaState
+    val selectedMediaList by selectedMedia(
+        media = mediaState.value.media,
+        selectedSet = selectedMedia
+    )
 
     val slideshowSheetState = rememberAppBottomSheetState()
     val slideshowScope = rememberCoroutineScope()
@@ -239,6 +263,20 @@ fun AlbumTimelineScreen(
                                 albumMediaSort = newSort
                             }
                         )
+                        currentAlbum?.let { album ->
+                            album.cloudIdentity?.let { identity ->
+                                CloudAlbumManageMenu(
+                                    album = album,
+                                    identity = identity,
+                                    readOnly = cloudSettingsByConfigId[identity.serverConfigId]?.readOnlyMode == true,
+                                    selection = selectedMediaList,
+                                    viewModel = cloudAlbumManageViewModel,
+                                    snackbarHostState = snackbarHostState,
+                                    onDeleted = { eventHandler.navigateUpAction() },
+                                    onSelectionHandled = { selector.clearSelection() }
+                                )
+                            }
+                        }
                     },
                     scrollBehavior = scrollBehavior,
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -400,10 +438,6 @@ fun AlbumTimelineScreen(
             }
             } // PullToRefreshBox
         }
-        val selectedMediaList by selectedMedia(
-            media = mediaState.value.media,
-            selectedSet = selectedMedia
-        )
         SelectionSheet(
             modifier = Modifier
                 .align(Alignment.BottomEnd),
@@ -530,5 +564,158 @@ private fun AlbumsMergedBanner(
                 }
             }
         }
+    }
+}
+@Composable
+private fun CloudAlbumManageMenu(
+    album: Album,
+    identity: CloudAlbumIdentity,
+    readOnly: Boolean,
+    selection: List<Media>,
+    viewModel: CloudAlbumManageViewModel,
+    snackbarHostState: SnackbarHostState,
+    onDeleted: () -> Unit,
+    onSelectionHandled: () -> Unit
+) {
+    val canRenameDelete = album.isCloudOwned && !readOnly
+    val canRemoveMembers = !readOnly && (album.isCloudOwned || album.cloudShareRole == "editor")
+        && selection.isNotEmpty()
+    if (!canRenameDelete && !canRemoveMembers) return
+
+    val scope = rememberCoroutineScope()
+    var expanded by remember { mutableStateOf(false) }
+    val renameSheetState = rememberAppBottomSheetState()
+    val originalName = album.cloudName.ifBlank { album.label }
+    var newName by rememberSaveable(album) { mutableStateOf(originalName) }
+    val nameFocusRequester = remember { FocusRequester() }
+    var showDelete by remember { mutableStateOf(false) }
+    val failureText = stringResource(R.string.cloud_album_action_failed)
+
+    val confirmRename: () -> Unit = {
+        val trimmed = newName.trim()
+        if (trimmed.isNotEmpty() && trimmed != originalName) {
+            scope.launch {
+                renameSheetState.hide()
+                viewModel.renameAlbum(identity, trimmed)
+                    .onFailure { snackbarHostState.showSnackbar(failureText) }
+            }
+        }
+    }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = Icons.Outlined.MoreVert,
+                contentDescription = null
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            if (canRenameDelete) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.rename_album)) },
+                    onClick = {
+                        expanded = false
+                        newName = originalName
+                        scope.launch { renameSheetState.show() }
+                    }
+                )
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            stringResource(R.string.delete_remote_album),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        showDelete = true
+                    }
+                )
+            }
+            if (canRemoveMembers) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.remove_from_album)) },
+                    onClick = {
+                        expanded = false
+                        val remoteIds = selection.mapNotNull { media ->
+                            cloudMemberKey(media.getUri().toString())
+                                ?.takeIf {
+                                    it.providerType == identity.providerType &&
+                                        it.serverConfigId == identity.serverConfigId
+                                }
+                                ?.remoteId
+                        }
+                        if (remoteIds.isEmpty()) return@DropdownMenuItem
+                        scope.launch {
+                            viewModel.removeMembers(identity, remoteIds)
+                                .onSuccess { onSelectionHandled() }
+                                .onFailure { snackbarHostState.showSnackbar(failureText) }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    ModalSheet(
+        sheetState = renameSheetState,
+        title = stringResource(R.string.rename_album),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        content = {
+        OutlinedTextField(
+            value = newName,
+            onValueChange = { newName = it },
+            singleLine = true,
+            label = { Text(stringResource(R.string.album_name)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(nameFocusRequester)
+                .imePadding(),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { confirmRename() })
+        )
+        Spacer(Modifier.height(16.dp))
+        SetupButton(
+            applyHorizontalPadding = false,
+            applyBottomPadding = false,
+            applyInsets = false,
+            enabled = newName.trim().let { it.isNotEmpty() && it != originalName },
+            text = stringResource(R.string.save),
+            onClick = confirmRename
+        )
+        LaunchedEffect(renameSheetState.isVisible) {
+            if (renameSheetState.isVisible) nameFocusRequester.requestFocus()
+        }
+        }
+    )
+
+    if (showDelete) {
+        AlertDialog(
+            onDismissRequest = { showDelete = false },
+            title = { Text(stringResource(R.string.delete_remote_album_confirm_title)) },
+            text = { Text(stringResource(R.string.delete_remote_album_confirm_summary)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDelete = false
+                        scope.launch {
+                            viewModel.deleteAlbum(identity)
+                                .onSuccess { onDeleted() }
+                                .onFailure { snackbarHostState.showSnackbar(failureText) }
+                        }
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.delete_remote_album),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDelete = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }

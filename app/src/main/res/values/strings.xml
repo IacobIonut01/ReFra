@@ -64,6 +64,13 @@
     <string name="album_trash_confirm_summary">All supported items in this album will move to Trash and can be restored later.</string>
     <string name="album_delete_confirm_title">Delete album permanently?</string>
     <string name="album_delete_confirm_summary">All items in this album will be permanently deleted. This cannot be undone.</string>
+    <string name="album_shared_badge">Shared</string>
+    <string name="rename_album">Rename album</string>
+    <string name="delete_remote_album">Delete remote album</string>
+    <string name="delete_remote_album_confirm_title">Delete album on the server?</string>
+    <string name="delete_remote_album_confirm_summary">The album will be removed from the server. The media inside it is not deleted.</string>
+    <string name="remove_from_album">Remove from album</string>
+    <string name="cloud_album_action_failed">Album action failed</string>
     <string name="pinned_albums_title">Pinned Albums</string>
     <string name="unpin">Unpin</string>
     <string name="pin">Pin</string>

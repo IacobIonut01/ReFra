@@ -36,6 +36,12 @@ data class CloudAlbum(
     val assetCount: Int,
     val thumbnailAssetId: String? = null,
     val isShared: Boolean = false,
+    /** False when the album is shared *with* this account and owned by someone else. */
+    val isOwned: Boolean = true,
+    /** Display name/email of the owning user when known (shared-with-me albums). */
+    val ownerName: String = "",
+    /** This account's collaborator role — "viewer" | "editor"; empty when owned or unknown. */
+    val shareRole: String = "",
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L,
     val syncEnabled: Boolean = true
@@ -54,7 +60,12 @@ data class CloudAlbum(
             timestamp = updatedAt / 1000L,
             count = assetCount.toLong(),
             size = 0L,
-            cloudIdentity = CloudAlbumIdentity(providerType, serverConfigId, remoteId)
+            cloudIdentity = CloudAlbumIdentity(providerType, serverConfigId, remoteId),
+            isCloudShared = isShared,
+            isCloudOwned = isOwned,
+            cloudShareRole = shareRole,
+            cloudOwnerName = ownerName,
+            cloudName = name
         )
     }
 

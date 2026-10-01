@@ -8,6 +8,7 @@ package com.dot.gallery.cloud.immich.data.api
 import com.dot.gallery.cloud.immich.data.dto.ImmichAlbumDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichAssetDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichAssetMediaResponseDto
+import com.dot.gallery.cloud.immich.data.dto.ImmichBulkIdResponseDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichBulkUploadCheckDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichBulkUploadCheckResultDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichDeltaSyncResponseDto
@@ -34,6 +35,7 @@ import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
@@ -121,11 +123,32 @@ interface ImmichApiService {
     @POST("api/albums")
     suspend fun createAlbum(@Body body: Map<String, @JvmSuppressWildcards Any>): Response<ImmichAlbumDto>
 
+    @PATCH("api/albums/{id}")
+    suspend fun updateAlbum(
+        @Path("id") id: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any>
+    ): Response<ImmichAlbumDto>
+
+    @DELETE("api/albums/{id}")
+    suspend fun deleteAlbum(@Path("id") id: String): Response<Unit>
+
+    @PUT("api/albums/{id}/users")
+    suspend fun updateAlbumUsers(
+        @Path("id") id: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any>
+    ): Response<ImmichAlbumDto>
+
     @PUT("api/albums/{id}/assets")
     suspend fun addAssetsToAlbum(
         @Path("id") albumId: String,
         @Body body: Map<String, @JvmSuppressWildcards Any>
-    ): Response<List<Map<String, Any>>>
+    ): Response<List<ImmichBulkIdResponseDto>>
+
+    @HTTP(method = "DELETE", path = "api/albums/{id}/assets", hasBody = true)
+    suspend fun removeAssetsFromAlbum(
+        @Path("id") albumId: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any>
+    ): Response<List<ImmichBulkIdResponseDto>>
 
     // People
     @GET("api/people")

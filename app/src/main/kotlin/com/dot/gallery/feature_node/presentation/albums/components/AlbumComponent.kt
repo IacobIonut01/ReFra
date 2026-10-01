@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.SdCard
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -218,26 +219,47 @@ private fun CloudProviderBadge(album: Album, modifier: Modifier = Modifier) {
             ProviderType.valueOf(album.relativePath.removePrefix("cloud/").substringBefore("/"))
         } catch (_: Exception) { null }
     }
-    Box(
-        modifier = modifier
-            .size(26.dp)
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.4f)),
-        contentAlignment = Alignment.Center
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        if (providerType != null) {
-            ProviderBrandIcon(
-                providerType = providerType,
-                tint = Color.White,
-                modifier = Modifier.size(16.dp)
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Outlined.Cloud,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(16.dp)
-            )
+        Box(
+            modifier = Modifier
+                .size(26.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (providerType != null) {
+                ProviderBrandIcon(
+                    providerType = providerType,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.Cloud,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+        if (album.isCloudShared) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.People,
+                    contentDescription = stringResource(R.string.album_shared_badge),
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }

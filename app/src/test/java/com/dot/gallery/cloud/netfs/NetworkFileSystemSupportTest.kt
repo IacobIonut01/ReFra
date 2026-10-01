@@ -57,10 +57,16 @@ class NetworkFileSystemSupportTest {
     }
 
     @Test
-    fun nasAlbumMembershipDoesNotWaitForPartialRoomIndex() {
+    fun authoritativeAlbumMembershipDoesNotWaitForRoomIndex() {
         assertTrue(usesLiveCloudAlbumMembership(ProviderType.SMB))
         assertTrue(usesLiveCloudAlbumMembership(ProviderType.NFS))
-        assertFalse(usesLiveCloudAlbumMembership(ProviderType.IMMICH))
+        // Immich's album endpoint owns membership (incl. shared/archived assets the
+        // own-library cache can never contain) — intersecting it with the Room
+        // cache emptied albums; it now takes the same live path as NAS folders.
+        assertTrue(usesLiveCloudAlbumMembership(ProviderType.IMMICH))
+        assertFalse(usesLiveCloudAlbumMembership(ProviderType.WEBDAV))
+        assertFalse(usesLiveCloudAlbumMembership(ProviderType.OWNCLOUD))
+        assertFalse(usesLiveCloudAlbumMembership(ProviderType.NEXTCLOUD))
     }
 
     @Test

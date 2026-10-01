@@ -8,6 +8,7 @@ package com.dot.gallery.core
 import com.dot.gallery.cloud.core.CloudAlbum
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.cloudAlbumId
+import com.dot.gallery.cloud.data.entity.CloudMediaEntity
 import com.dot.gallery.feature_node.domain.model.IgnoredAlbum
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -242,6 +243,27 @@ class CloudAlbumHidingTest {
                 membersByAlbum = mapOf(membersOf(ProviderType.SMB, 3L, "Download", "Download/a.jpg"))
             )
         )
+    }
+
+    @Test
+    fun trashedMembersAreExcludedFromLiveAlbumListing() {
+        // Immich's album endpoint returns trashed assets as members — the live
+        // membership branch must drop them or trashed items reappear in albums.
+        val entity = { id: String, trashed: Boolean ->
+            CloudMediaEntity(
+                remoteId = id,
+                providerType = ProviderType.IMMICH,
+                serverConfigId = 5L,
+                trashed = trashed
+            )
+        }
+        val kept = listOf(
+            entity("live-1", false),
+            entity("trashed-1", true),
+            entity("live-2", false)
+        ).excludingTrashedAlbumMembers()
+
+        assertEquals(listOf("live-1", "live-2"), kept.map { it.remoteId })
     }
 
     @Test

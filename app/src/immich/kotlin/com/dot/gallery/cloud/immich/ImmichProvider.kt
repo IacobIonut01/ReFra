@@ -29,6 +29,7 @@ import com.dot.gallery.cloud.core.capabilities.MemoriesCapableProvider
 import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumCopyResult
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumCopyState
+import com.dot.gallery.cloud.core.capabilities.RemoteAlbumShare
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumWriteProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteNameConflictPolicy
@@ -42,8 +43,10 @@ import com.dot.gallery.cloud.data.entity.CloudMediaEntity
 import com.dot.gallery.cloud.image.CloudMediaFetcher
 import com.dot.gallery.cloud.immich.data.api.ImmichApiService
 import com.dot.gallery.cloud.immich.data.api.ImmichAuthInterceptor
+import com.dot.gallery.cloud.immich.data.dto.ImmichAlbumDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichAssetDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichBulkCheckItemDto
+import com.dot.gallery.cloud.immich.data.dto.ImmichBulkIdResponseDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichBulkCheckResultItemDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichBulkUploadCheckDto
 import com.dot.gallery.cloud.immich.data.dto.ImmichLoginDto
@@ -53,6 +56,7 @@ import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -154,6 +158,7 @@ class ImmichProvider @Inject constructor(
     private var currentConfig: CloudServerConfig? = null
     private var baseUrl: String = ""
     private var apiService: ImmichApiService? = null
+    private var currentUserId: String? = null
     private val verifiedAssetIdsByHash = ConcurrentHashMap<String, String>()
 
     // Binds LAN-destined sockets to Wi-Fi so a local server is reachable even when that Wi-Fi
@@ -170,6 +175,7 @@ class ImmichProvider @Inject constructor(
         authInterceptor.apiKey = null
         authInterceptor.accessToken = null
         baseUrl = ""
+        currentUserId = null
         verifiedAssetIdsByHash.clear()
     }
 
@@ -334,6 +340,7 @@ class ImmichProvider @Inject constructor(
                 val validate = requireApi().validateToken()
                 if (validate.isSuccessful && validate.body()?.authStatus == true) {
                     val user = requireApi().getCurrentUser().body()
+                    currentUserId = user?.id
                     _connectionState.value = ConnectionState.CONNECTED
                     Result.success(
                         CloudAuthToken(
@@ -354,6 +361,7 @@ class ImmichProvider @Inject constructor(
                 if (loginResponse.isSuccessful) {
                     val body = loginResponse.body()!!
                     authInterceptor.accessToken = body.accessToken
+                    currentUserId = body.userId
                     _connectionState.value = ConnectionState.CONNECTED
                     Result.success(
                         CloudAuthToken(
@@ -450,20 +458,19 @@ class ImmichProvider @Inject constructor(
             val configId = requireConfigId()
             val response = requireApi().getAlbums()
             if (response.isSuccessful) {
-                val albums = response.body()?.map { dto ->
-                    CloudAlbum(
-                        remoteId = dto.id,
-                        providerType = ProviderType.IMMICH,
-                        serverConfigId = configId,
-                        name = dto.albumName,
-                        assetCount = dto.assetCount,
-                        thumbnailAssetId = dto.albumThumbnailAssetId,
-                        isShared = dto.shared,
-                        createdAt = ImmichAssetDto.parseIsoTimestamp(dto.createdAt ?: ""),
-                        updatedAt = ImmichAssetDto.parseIsoTimestamp(dto.updatedAt ?: "")
-                    )
-                } ?: emptyList()
-                emit(Resource.Success(albums))
+                val dtos = response.body().orEmpty().toMutableList()
+                // Older servers (API v1) only return owned albums for the plain call —
+                // merge the shared listing too. Newer servers already include shared
+                // albums in the base response, so dedupe by id. A failed shared fetch
+                // must not take down the albums already in hand.
+                val sharedResponse = runCatching { requireApi().getAlbums(shared = true) }.getOrNull()
+                if (sharedResponse?.isSuccessful == true) {
+                    val seen = dtos.mapTo(HashSet()) { it.id }
+                    sharedResponse.body().orEmpty().forEach { dto ->
+                        if (seen.add(dto.id)) dtos += dto
+                    }
+                }
+                emit(Resource.Success(dtos.map { it.toCloudAlbum(configId) }))
             } else {
                 emit(Resource.Error("Failed to fetch albums: ${response.code()}"))
             }
@@ -472,6 +479,30 @@ class ImmichProvider @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Unknown error"))
         }
+    }
+
+    private fun ImmichAlbumDto.toCloudAlbum(configId: Long): CloudAlbum {
+        // Owned unless the server attributes the album to a different user. When the
+        // account id is unknown (e.g. never authenticated) assume owned rather than
+        // hiding manage actions behind a wrong "viewer" guess.
+        val owned = ownerId == null || currentUserId == null || ownerId == currentUserId
+        val role = if (owned) "" else albumUsers.orEmpty()
+            .firstOrNull { it.user?.id == currentUserId }
+            ?.role?.lowercase().orEmpty()
+        return CloudAlbum(
+            remoteId = id,
+            providerType = ProviderType.IMMICH,
+            serverConfigId = configId,
+            name = albumName,
+            assetCount = assetCount,
+            thumbnailAssetId = albumThumbnailAssetId,
+            isShared = shared,
+            isOwned = owned,
+            ownerName = owner?.name?.ifBlank { owner?.email } ?: owner?.email.orEmpty(),
+            shareRole = role,
+            createdAt = ImmichAssetDto.parseIsoTimestamp(createdAt ?: ""),
+            updatedAt = ImmichAssetDto.parseIsoTimestamp(updatedAt ?: "")
+        )
     }
 
     override fun getRemoteAlbumMedia(albumId: String): Flow<Resource<List<CloudMediaEntity>>> = flow {
@@ -496,19 +527,65 @@ class ImmichProvider @Inject constructor(
             val configId = requireConfigId()
             val response = requireApi().createAlbum(mapOf("albumName" to name))
             if (response.isSuccessful) {
-                val dto = response.body()!!
-                Result.success(
-                    CloudAlbum(
-                        remoteId = dto.id,
-                        providerType = ProviderType.IMMICH,
-                        serverConfigId = configId,
-                        name = dto.albumName,
-                        assetCount = 0,
-                        isShared = false
-                    )
-                )
+                Result.success(response.body()!!.toCloudAlbum(configId))
             } else {
                 Result.failure(Exception("Failed to create album: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun renameAlbum(remoteAlbumId: String, newName: String): Result<CloudAlbum> {
+        return try {
+            val configId = requireConfigId()
+            val response = requireApi().updateAlbum(remoteAlbumId, mapOf("albumName" to newName))
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.toCloudAlbum(configId))
+            } else {
+                Result.failure(Exception("Failed to rename album: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteRemoteAlbum(remoteAlbumId: String): Result<Unit> {
+        return try {
+            val response = requireApi().deleteAlbum(remoteAlbumId)
+            if (response.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Failed to delete album: ${response.code()}"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun removeFromAlbum(remoteAlbumId: String, assetIds: List<String>): Result<Unit> {
+        return try {
+            val response = requireApi().removeAssetsFromAlbum(remoteAlbumId, mapOf("ids" to assetIds))
+            if (response.isSuccessful) {
+                albumAssetResult(response.body().orEmpty(), assetIds.size, "removeFromAlbum")
+            } else {
+                Result.failure(Exception("Failed to remove assets from album: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateAlbumUsers(remoteAlbumId: String, users: List<RemoteAlbumShare>): Result<CloudAlbum> {
+        return try {
+            val configId = requireConfigId()
+            val response = requireApi().updateAlbumUsers(
+                remoteAlbumId,
+                mapOf("albumUsers" to users.map {
+                    mapOf("userId" to it.userId, "role" to it.role.name.lowercase())
+                })
+            )
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.toCloudAlbum(configId))
+            } else {
+                Result.failure(Exception("Failed to update album users: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -518,10 +595,40 @@ class ImmichProvider @Inject constructor(
     override suspend fun addToAlbum(albumId: String, assetIds: List<String>): Result<Unit> {
         return try {
             val response = requireApi().addAssetsToAlbum(albumId, mapOf("ids" to assetIds))
-            if (response.isSuccessful) Result.success(Unit)
-            else Result.failure(Exception("Failed to add to album: ${response.code()}"))
+            if (response.isSuccessful) {
+                albumAssetResult(response.body().orEmpty(), assetIds.size, "addToAlbum")
+            } else {
+                Result.failure(Exception("Failed to add to album: ${response.code()}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    // Immich answers album asset mutations with 200 + per-item verdicts — a
+    // discarded entry is still transport-"ok", so it must surface as a failure
+    // here and be logged loudly, or the write reports success for data the
+    // server silently dropped.
+    private fun albumAssetResult(
+        items: List<ImmichBulkIdResponseDto>,
+        requested: Int,
+        op: String
+    ): Result<Unit> {
+        val failures = items.filterNot { it.success }
+        return if (failures.isEmpty() && (items.isNotEmpty() || requested == 0)) {
+            Result.success(Unit)
+        } else {
+            val discarded = if (items.isEmpty()) {
+                "no per-item verdict returned"
+            } else {
+                failures.joinToString { "${it.id}:${it.error ?: "unknown"}" }
+            }
+            printWarn(
+                "cloud.album",
+                "Immich $op discarded ${failures.size}/$requested items",
+                ctx = mapOf("discarded" to discarded)
+            )
+            Result.failure(Exception("${failures.size} item(s) could not be applied to the album"))
         }
     }
 

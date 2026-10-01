@@ -561,8 +561,16 @@ class CloudUploadWorker @AssistedInject constructor(
                     }
 
                     runCatching { provider.addToAlbum(remoteAlbumId, assetIds) }
-                        .onSuccess {
-                            printDebug("CloudUploadWorker: album-sync added ${assetIds.size} assets to '$albumLabel' (#${config.id})")
+                        .onSuccess { result ->
+                            result.onSuccess {
+                                printDebug("CloudUploadWorker: album-sync added ${assetIds.size} assets to '$albumLabel' (#${config.id})")
+                            }
+                            result.onFailure { e ->
+                                printWarn(
+                                    "worker.cloud-upload",
+                                    "album-sync addToAlbum discarded items for '$albumLabel': ${e.message}"
+                                )
+                            }
                         }
                         .onFailure { e ->
                             printDebug("CloudUploadWorker: album-sync addToAlbum failed for '$albumLabel': ${e.message}")

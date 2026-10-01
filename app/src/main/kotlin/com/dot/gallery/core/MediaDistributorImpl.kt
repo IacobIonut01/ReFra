@@ -81,11 +81,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import android.provider.MediaStore
 import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.startup.StartupWorkGate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,7 +112,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -139,7 +145,17 @@ internal fun matchingLocationMediaIds(
 }
 
 internal fun usesLiveCloudAlbumMembership(providerType: ProviderType): Boolean =
-    providerType == ProviderType.SMB || providerType == ProviderType.NFS
+    providerType == ProviderType.SMB || providerType == ProviderType.NFS ||
+        providerType == ProviderType.IMMICH
+
+/**
+ * Album members that should render in the album view. Album endpoints (Immich
+ * `GET /api/albums/{id}`) report trashed members too, and nothing downstream
+ * drops them — the `trashed = 0` filter only ever applied to cache-derived
+ * media.
+ */
+internal fun List<CloudMediaEntity>.excludingTrashedAlbumMembers(): List<CloudMediaEntity> =
+    filter { !it.trashed }
 
 private fun Settings.Album.LastSort.toMediaOrder(): MediaOrder = when (kind) {
     FilterKind.DATE -> MediaOrder.Date(orderType)
@@ -618,15 +634,34 @@ class MediaDistributorImpl @Inject constructor(
         // real item count.
         try {
             val albums = _cloudAlbumsFlow.value
+            // Fetch every album's member list with bounded parallelism — a serial
+            // fetch multiplies full member payloads (Immich returns complete asset
+            // DTOs; there is no ids-only variant) by network round-trips.
+            val memberPermits = Semaphore(4)
+            val fetched = coroutineScope {
+                albums.map { album ->
+                    async {
+                        memberPermits.withPermit {
+                            val resource = try {
+                                cloudRepository.getAlbumMedia(
+                                    album.providerType,
+                                    album.serverConfigId,
+                                    album.remoteId
+                                ).first()
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                Resource.Error(e.message ?: "album media fetch failed")
+                            }
+                            album to resource
+                        }
+                    }
+                }.awaitAll()
+            }
             val membersByAlbum = HashMap<CloudAlbumMemberId, Set<CloudAlbumMemberId>>()
             val enriched = ArrayList<CloudAlbum>(albums.size)
             var didEnrich = false
-            for (album in albums) {
-                val resource = cloudRepository.getAlbumMedia(
-                    album.providerType,
-                    album.serverConfigId,
-                    album.remoteId
-                ).first()
+            for ((album, resource) in fetched) {
                 val media = if (resource is Resource.Success) resource.data ?: emptyList() else emptyList()
                 membersByAlbum[CloudAlbumMemberId(
                     album.providerType,
@@ -670,11 +705,14 @@ class MediaDistributorImpl @Inject constructor(
         }
     }
 
-    private fun isCloudAlbumId(albumId: Long): Boolean {
+    private fun isCloudAlbumId(
+        albumId: Long,
+        albums: List<CloudAlbum> = _cloudAlbumsFlow.value
+    ): Boolean {
         if (albumId >= 0) return false
         // Check unsorted virtual albums
         if (isUnsortedCloudAlbumId(albumId)) return true
-        return _cloudAlbumsFlow.value.any {
+        return albums.any {
             cloudAlbumId(it.providerType, it.serverConfigId, it.remoteId) == albumId
         }
     }
@@ -976,7 +1014,18 @@ class MediaDistributorImpl @Inject constructor(
     ): Flow<MediaState<Media.UriMedia>> = when {
         MediaTypeAlbum.isMediaTypeAlbumId(albumId) -> mediaTypeAlbumTimelineMediaFlow(albumId)
         isUnsortedCloudAlbumId(albumId) -> unsortedCloudAlbumTimelineMediaFlow(albumId)
-        isCloudAlbumId(albumId) -> cloudAlbumTimelineMediaFlow(albumId)
+        // Negative ids span both cloud album hash ids and (possibly negative) MediaStore
+        // bucket ids, so cloud membership is resolved reactively: an album opened before
+        // the remote album list lands (process-death restore, early nav, slow connect)
+        // switches to the cloud flow once the list arrives instead of being stuck on
+        // the local path until re-entry.
+        albumId < 0 -> _cloudAlbumsFlow
+            .map { albums -> isCloudAlbumId(albumId, albums) }
+            .distinctUntilChanged()
+            .flatMapLatest { isCloud ->
+                if (isCloud) cloudAlbumTimelineMediaFlow(albumId)
+                else localAlbumTimelineMediaFlow(albumId, loadMode)
+            }
         else -> localAlbumTimelineMediaFlow(albumId, loadMode)
     }
 
@@ -1038,14 +1087,18 @@ class MediaDistributorImpl @Inject constructor(
                         val albumSort = values[3] as Settings.Album.LastSort
                         @Suppress("UNCHECKED_CAST")
                         val cachedNonTrashed = values[4] as List<Media.UriMedia>
-                        val allMedia = when (resource) {
-                            is Resource.Success -> resource.data?.map { it.toUriMedia() } ?: emptyList()
-                            is Resource.Error -> resource.data?.map { it.toUriMedia() } ?: emptyList()
+                        val entities = when (resource) {
+                            is Resource.Success -> resource.data ?: emptyList()
+                            is Resource.Error -> resource.data ?: emptyList()
                         }
-                        // NAS membership comes from one complete live index; other providers stay cache-filtered.
+                        // Authoritative membership comes from the live fetch: the NAS
+                        // folder index for SMB/NFS, `GET /api/albums/{id}` for Immich —
+                        // which also covers shared/archived assets the own-library Room
+                        // cache never holds. Other providers stay cache-filtered.
                         val media = if (usesLiveCloudAlbumMembership(cloudAlbum.providerType)) {
-                            allMedia
+                            entities.excludingTrashedAlbumMembers().map { it.toUriMedia() }
                         } else {
+                            val allMedia = entities.map { it.toUriMedia() }
                             val cachedIds = cachedNonTrashed.mapTo(HashSet()) { it.id }
                             if (cachedIds.isNotEmpty()) allMedia.filter { it.id in cachedIds } else allMedia
                         }

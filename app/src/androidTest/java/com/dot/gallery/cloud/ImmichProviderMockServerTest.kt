@@ -202,6 +202,95 @@ class ImmichProviderMockServerTest {
     }
 
     @Test
+    fun getRemoteAlbumsMergesSharedListingAndMapsRole() = runBlocking {
+        val ownedJson = """
+            [ { "id": "album-1", "albumName": "Trip", "assetCount": 5, "shared": false,
+                "ownerId": "u1" } ]
+        """.trimIndent()
+        // The shared listing repeats an owned album (v2 includes both) — dedupe by id —
+        // and carries the album shared WITH this account, owned by "u2".
+        val sharedJson = """
+            [ { "id": "album-1", "albumName": "Trip", "assetCount": 5, "shared": false,
+                "ownerId": "u1" },
+              { "id": "album-2", "albumName": "Family", "assetCount": 2, "shared": true,
+                "ownerId": "u2", "owner": { "id": "u2", "name": "Partner", "email": "p@x" },
+                "albumUsers": [ { "user": { "id": "u1" }, "role": "editor" } ] } ]
+        """.trimIndent()
+        server.dispatcher = dispatcher { req ->
+            when {
+                req.path?.endsWith("/api/auth/validateToken") == true ->
+                    json("""{ "authStatus": true }""")
+                req.path?.endsWith("/api/users/me") == true ->
+                    json("""{ "id": "u1", "email": "g@x", "isAdmin": false }""")
+                req.path == "/api/albums" -> json(ownedJson)
+                req.path?.startsWith("/api/albums?shared=") == true -> json(sharedJson)
+                else -> null
+            }
+        }
+        val config = CloudServerConfig(id = 6, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        provider.configure(config)
+        provider.authenticate(config)
+
+        val resource = provider.getRemoteAlbums().first()
+
+        val albums = (resource as Resource.Success).data!!
+        assertEquals(listOf("album-1", "album-2"), albums.map { it.remoteId })
+        val shared = albums.single { it.remoteId == "album-2" }
+        assertTrue(shared.isShared)
+        assertTrue("album owned by u2 must not be treated as owned", !shared.isOwned)
+        assertEquals("editor", shared.shareRole)
+        assertEquals("Partner", shared.ownerName)
+    }
+
+    @Test
+    fun getRemoteAlbumMediaMapsTrashedAndArchivedMembers() = runBlocking {
+        val albumJson = """
+            { "id": "album-1", "albumName": "Trip", "assetCount": 3,
+              "assets": [
+                { "id": "a1", "type": "IMAGE", "originalFileName": "a.jpg" },
+                { "id": "a2", "type": "IMAGE", "originalFileName": "b.jpg", "isTrashed": true },
+                { "id": "a3", "type": "IMAGE", "originalFileName": "c.jpg", "isArchived": true }
+              ] }
+        """.trimIndent()
+        server.dispatcher = dispatcher { req ->
+            if (req.path == "/api/albums/album-1") json(albumJson) else null
+        }
+        provider.configure(
+            CloudServerConfig(id = 7, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        val resource = provider.getRemoteAlbumMedia("album-1").first()
+
+        val members = (resource as Resource.Success).data!!
+        assertEquals(3, members.size)
+        assertTrue("trashed members must arrive flagged for the album-view filter",
+            members.single { it.remoteId == "a2" }.trashed)
+        assertTrue(members.single { it.remoteId == "a3" }.archived)
+        assertTrue(!members.single { it.remoteId == "a1" }.trashed)
+    }
+
+    @Test
+    fun removeFromAlbumFailsOnPerItemDiscard() = runBlocking {
+        // Immich answers 200 even when individual ids are discarded — the only
+        // trace is the per-item {id, success, error} verdict.
+        val body = """
+            [ { "id": "a1", "success": true },
+              { "id": "a2", "success": false, "error": "no_permission" } ]
+        """.trimIndent()
+        server.dispatcher = dispatcher { req ->
+            if (req.path == "/api/albums/album-1/assets") json(body) else null
+        }
+        provider.configure(
+            CloudServerConfig(id = 8, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        val result = provider.removeFromAlbum("album-1", listOf("a1", "a2"))
+
+        assertTrue("a discarded item must surface as failure, not transport success",
+            result.isFailure)
+    }
+
+    @Test
     fun uploadStreamsSourceWithoutCreatingTemporaryCopy() = runBlocking {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val source = context.cacheDir.resolve("immich-upload-source.jpg").apply {
@@ -287,7 +376,8 @@ class ImmichProviderMockServerTest {
                 req.path?.endsWith("/api/assets/bulk-upload-check") == true -> json(
                     """{ "results": [ { "id": "0", "action": "reject", "assetId": "asset-1", "reason": "duplicate", "isTrashed": false } ] }"""
                 )
-                req.path?.endsWith("/api/albums/album-1/assets") == true -> json("[]")
+                req.path?.endsWith("/api/albums/album-1/assets") == true ->
+                    json("""[ { "id": "asset-1", "success": true } ]""")
                 req.path?.endsWith("/api/assets") == true -> {
                     uploadCalled.set(true)
                     json("""{ "id": "uploaded-1", "status": "created" }""")

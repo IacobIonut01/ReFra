@@ -15,6 +15,7 @@ import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.SharedLinkInfo
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumCopyResult
+import com.dot.gallery.cloud.core.capabilities.RemoteAlbumShare
 import com.dot.gallery.cloud.core.capabilities.RemoteNameConflictPolicy
 import com.dot.gallery.cloud.core.capabilities.SyncDelta
 import com.dot.gallery.cloud.data.entity.CloudMediaEntity
@@ -49,6 +50,32 @@ interface CloudRepository {
         configId: Long,
         albumId: String
     ): Flow<Resource<List<CloudMediaEntity>>>
+
+    // Album management — routed to the owning account; unsupported when the
+    // provider lacks ALBUM_WRITE or doesn't implement the op (failure Result).
+    suspend fun renameAlbum(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String,
+        newName: String
+    ): Result<CloudAlbum>
+    suspend fun deleteRemoteAlbum(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String
+    ): Result<Unit>
+    suspend fun removeFromAlbum(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String,
+        assetIds: List<String>
+    ): Result<Unit>
+    suspend fun updateAlbumUsers(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String,
+        users: List<RemoteAlbumShare>
+    ): Result<CloudAlbum>
 
     // People from all providers
     fun getAllPeople(): Flow<Resource<List<PersonInfo>>>

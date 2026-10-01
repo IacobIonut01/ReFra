@@ -26,6 +26,7 @@ import com.dot.gallery.cloud.core.capabilities.MemoriesCapableProvider
 import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumCopyResult
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumCopyState
+import com.dot.gallery.cloud.core.capabilities.RemoteAlbumShare
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumWriteProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteNameConflictPolicy
@@ -263,6 +264,73 @@ class CloudRepositoryImpl @Inject constructor(
         getRemoteAlbumMediaForAccount(registry, type, configId, albumId).onEach {
             CloudTrace.d("Repo.getAlbumMedia[$type/$configId] '$albumId' -> ${if (it is Resource.Error) "ERROR ${it.message}" else "${it.data?.size ?: 0} items"}")
         }
+
+    /**
+     * Routes an album-management call to the write-capable provider behind
+     * [configId], enforcing the ALBUM_WRITE capability and connectivity —
+     * mirrored on [copyRemoteAlbumForAccount]. Provider-side default
+     * implementations surface "unsupported" as a failure Result.
+     */
+    private suspend fun <T> withAlbumWriteProvider(
+        type: ProviderType,
+        configId: Long,
+        block: suspend (RemoteAlbumWriteProvider) -> Result<T>
+    ): Result<T> {
+        val provider = resolveProviderAccount<RemoteAlbumWriteProvider>(
+            registry = registry,
+            type = type,
+            configId = configId,
+            capabilityName = "album writes"
+        ).getOrElse { return Result.failure(it) }
+        if (ProviderCapability.ALBUM_WRITE !in provider.capabilities) {
+            return Result.failure(Exception("Provider account $configId does not support album writes"))
+        }
+        if (!provider.isAvailable) {
+            return Result.failure(Exception("Provider account $configId is not connected"))
+        }
+        return try {
+            block(provider)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun renameAlbum(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String,
+        newName: String
+    ): Result<CloudAlbum> = withAlbumWriteProvider(type, configId) {
+        it.renameAlbum(remoteAlbumId, newName)
+    }
+
+    override suspend fun deleteRemoteAlbum(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String
+    ): Result<Unit> = withAlbumWriteProvider(type, configId) {
+        it.deleteRemoteAlbum(remoteAlbumId)
+    }
+
+    override suspend fun removeFromAlbum(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String,
+        assetIds: List<String>
+    ): Result<Unit> = withAlbumWriteProvider(type, configId) {
+        it.removeFromAlbum(remoteAlbumId, assetIds)
+    }
+
+    override suspend fun updateAlbumUsers(
+        type: ProviderType,
+        configId: Long,
+        remoteAlbumId: String,
+        users: List<RemoteAlbumShare>
+    ): Result<CloudAlbum> = withAlbumWriteProvider(type, configId) {
+        it.updateAlbumUsers(remoteAlbumId, users)
+    }
 
     // === People ===
 

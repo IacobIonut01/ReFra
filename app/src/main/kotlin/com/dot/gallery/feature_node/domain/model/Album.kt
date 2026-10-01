@@ -30,6 +30,14 @@ data class Album(
     val mergeReasons: List<AlbumMergeReason> = emptyList(),
     val storageVolume: String? = null,
     val cloudIdentity: CloudAlbumIdentity? = null,
+    // Cloud sharing metadata (from CloudAlbum.toAlbum) — drives the "Shared"
+    // badge on album cards and album-manage menu gating.
+    val isCloudShared: Boolean = false,
+    val isCloudOwned: Boolean = true,
+    val cloudShareRole: String = "",
+    val cloudOwnerName: String = "",
+    /** Raw remote album name, without the " (Provider)" label suffix. */
+    val cloudName: String = "",
 ) : Parcelable {
 
     val sourceAlbumIds: List<Long> get() = mergedAlbumIds.ifEmpty { listOf(id) }

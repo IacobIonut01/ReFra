@@ -128,9 +128,30 @@ data class ImmichAlbumDto(
     @SerializedName("albumThumbnailAssetId") val albumThumbnailAssetId: String? = null,
     @SerializedName("assetCount") val assetCount: Int = 0,
     val shared: Boolean = false,
+    @SerializedName("ownerId") val ownerId: String? = null,
+    val owner: ImmichUserDto? = null,
+    @SerializedName("hasSharedLink") val hasSharedLink: Boolean = false,
+    @SerializedName("albumUsers") val albumUsers: List<ImmichAlbumUserDto>? = null,
     @SerializedName("createdAt") val createdAt: String? = null,
     @SerializedName("updatedAt") val updatedAt: String? = null,
     val assets: List<ImmichAssetDto>? = null
+)
+
+/** `AlbumUserResponseDto` — a collaborator entry on `albumUsers`. */
+data class ImmichAlbumUserDto(
+    val user: ImmichUserDto? = null,
+    val role: String = ""
+)
+
+/**
+ * `BulkIdResponseDto` — per-item verdict returned by album asset add/remove.
+ * The HTTP call answers 200 even when individual ids are discarded; the only
+ * trace is this nested `success`/`error` pair.
+ */
+data class ImmichBulkIdResponseDto(
+    val id: String = "",
+    val success: Boolean = false,
+    val error: String? = null
 )
 
 data class ImmichPersonDto(
