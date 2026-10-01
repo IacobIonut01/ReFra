@@ -114,7 +114,11 @@ interface ImmichApiService {
     // Albums
     @GET("api/albums")
     suspend fun getAlbums(
-        @Query("shared") shared: Boolean? = null
+        @Query("shared") shared: Boolean? = null,
+        // Server-side membership filter: only albums containing this asset. Servers
+        // too old to know the parameter ignore it and return every album, so callers
+        // must treat a large result set as unfiltered.
+        @Query("assetId") assetId: String? = null
     ): Response<List<ImmichAlbumDto>>
 
     @GET("api/albums/{id}")

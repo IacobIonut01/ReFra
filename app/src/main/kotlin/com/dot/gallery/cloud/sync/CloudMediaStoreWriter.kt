@@ -5,14 +5,52 @@
 
 package com.dot.gallery.cloud.sync
 
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+private val ASSET_STORE_UUID =
+    Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+private val ASSET_STORE_SHARD = Regex("^[0-9a-fA-F]{2}$")
+
+/**
+ * Sanitizes a download sub-path (relative to `Pictures/`/`Movies/`): drops empty and
+ * `.`/`..` segments, and — when the path embeds a remote asset-store layout such as
+ * Immich's `upload/<userId>/<xx>` shard tree — substitutes [fallback] instead, so an
+ * internal storage layout can never leak into user-visible folders. Pure function,
+ * kept free of Android APIs so it stays unit-testable on the JVM.
+ */
+internal fun sanitizeDownloadSubPath(subPath: String, fallback: String): String {
+    val cleanFallback = fallback.trim('/').ifBlank { "Cloud" }
+    val segments = subPath.split('/')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() && it != "." && it != ".." }
+    if (segments.isEmpty()) return cleanFallback
+    for (i in 1 until segments.size) {
+        if (ASSET_STORE_UUID.matches(segments[i - 1]) && ASSET_STORE_SHARD.matches(segments[i])) {
+            return cleanFallback
+        }
+    }
+    return segments.joinToString("/")
+}
+
+/**
+ * Makes a remote album name safe to use as a single MediaStore folder segment.
+ * Pure function — JVM unit tests cover it.
+ */
+internal fun sanitizeDownloadPathSegment(name: String): String =
+    name.replace(Regex("[/\\\\]"), "-")
+        .replace(Regex("[\\u0000-\\u001f]"), "")
+        .trim()
+        .trimStart('.')
+        .ifBlank { "Album" }
 
 /**
  * Shared MediaStore writer for cloud downloads. Used by the manual "Download" action
@@ -27,6 +65,8 @@ object CloudMediaStoreWriter {
      * @param relativeSubPath sub-path appended to `Pictures/` or `Movies/`
      *   (e.g. `Cloud` for manual downloads, `Album/Sub` when mirroring remote folders,
      *   or the provider display name as a fallback root).
+     * @param fallbackSubPath used when [relativeSubPath] sanitizes to nothing or is
+     *   rejected as an internal asset-store layout.
      * @param takenTimestamp remote capture time in epoch millis; written to DATE_TAKEN so
      *   the downloaded file sorts where it was shot, not when it was fetched.
      */
@@ -34,6 +74,7 @@ object CloudMediaStoreWriter {
         val displayName: String,
         val mimeType: String,
         val relativeSubPath: String = "Cloud",
+        val fallbackSubPath: String = "Cloud",
         val takenTimestamp: Long? = null
     )
 
@@ -55,10 +96,14 @@ object CloudMediaStoreWriter {
                     MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                 else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             }
+            val subPath = sanitizeDownloadSubPath(
+                request.relativeSubPath,
+                request.fallbackSubPath
+            )
             val relativePath = if (isVideo)
-                Environment.DIRECTORY_MOVIES + "/" + request.relativeSubPath.trim('/')
+                Environment.DIRECTORY_MOVIES + "/" + subPath
             else
-                Environment.DIRECTORY_PICTURES + "/" + request.relativeSubPath.trim('/')
+                Environment.DIRECTORY_PICTURES + "/" + subPath
 
             val values = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, request.displayName)
@@ -91,14 +136,33 @@ object CloudMediaStoreWriter {
         }
 
     /**
-     * Best-effort delete of the download source. Cache files are plain files for the
-     * providers today, but keep the content-resolver attempt for content:// sources.
+     * Best-effort delete of the download source. Providers return `file://` cache URIs,
+     * so only files under the app cache directory are deleted. A `content://media` URI
+     * here would mean a provider handed back an existing user file — that is a copy
+     * source, never something this pipeline may delete, so it is refused loudly.
      */
     fun deleteSource(context: Context, source: Uri) {
-        try {
-            context.contentResolver.delete(source, null, null)
-        } catch (_: Exception) {
-            java.io.File(source.path ?: return).delete()
+        when {
+            source.authority == MediaStore.AUTHORITY -> {
+                printWarn(
+                    "cloud.download",
+                    "deleteSource refused MediaStore uri",
+                    ctx = mapOf("uri" to source.toString())
+                )
+            }
+            source.scheme == ContentResolver.SCHEME_FILE -> {
+                val path = source.path ?: return
+                runCatching {
+                    val file = java.io.File(path)
+                    val cachePath = context.cacheDir.canonicalPath
+                    if (file.canonicalPath == cachePath ||
+                        file.canonicalPath.startsWith("$cachePath/")
+                    ) {
+                        file.delete()
+                    }
+                }
+            }
+            else -> runCatching { context.contentResolver.delete(source, null, null) }
         }
     }
 }

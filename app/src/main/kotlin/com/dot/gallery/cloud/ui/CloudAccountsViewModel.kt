@@ -5,6 +5,7 @@
 
 package com.dot.gallery.cloud.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
@@ -17,6 +18,7 @@ import com.dot.gallery.cloud.core.Disconnectable
 import com.dot.gallery.cloud.core.ProviderCapability
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.cloud.core.SyncState
 import com.dot.gallery.cloud.core.auth.CloudInteractiveAuthHandler
 import com.dot.gallery.cloud.core.auth.InteractiveAuthErrorKind
 import com.dot.gallery.cloud.core.auth.InteractiveAuthException
@@ -25,6 +27,7 @@ import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.data.dao.CloudAlbumSyncDao
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
 import com.dot.gallery.cloud.data.dao.CloudOfflinePinDao
+import com.dot.gallery.cloud.data.dao.PendingDownloadInfo
 import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.data.dao.CloudTagDao
 import com.dot.gallery.cloud.data.dao.CloudUploadPrefDao
@@ -40,6 +43,7 @@ import com.dot.gallery.cloud.sync.CloudDownloadWorker
 import com.dot.gallery.cloud.sync.CloudOfflineDownloadWorker
 import com.dot.gallery.cloud.sync.CloudSyncScheduler
 import com.dot.gallery.cloud.sync.cloudSyncScheduleChanged
+import com.dot.gallery.cloud.sync.deleteAppLocalCopies
 import com.dot.gallery.cloud.sync.fetchAllCloudIndexPages
 import com.dot.gallery.core.backup.PendingCloudFavoriteStore
 import com.dot.gallery.feature_node.domain.model.Album
@@ -49,6 +53,7 @@ import com.dot.gallery.feature_node.domain.util.OrderType
 import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.feature_node.presentation.util.printWarn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -147,6 +152,7 @@ data class AddServerUiState(
 
 @HiltViewModel
 class CloudAccountsViewModel @Inject constructor(
+    @param:ApplicationContext private val appContext: Context,
     private val configDao: CloudServerConfigDao,
     private val cloudMediaDao: CloudMediaDao,
     private val cloudTagDao: CloudTagDao,
@@ -675,6 +681,66 @@ class CloudAccountsViewModel @Inject constructor(
     /** Enqueues a one-time remote -> local download pass for [configId] (used by "Download remote media" and "Download all"). */
     fun triggerDownload(configId: Long) {
         CloudDownloadWorker.triggerNow(workManager, configId)
+    }
+
+    /** Count + byte size of the `REMOTE_ONLY` rows an enabled download would pull. */
+    suspend fun pendingDownloadStats(configId: Long): PendingDownloadInfo =
+        withContext(Dispatchers.IO) {
+            val includeVideos = configDao.getById(configId)?.downloadVideos ?: true
+            cloudMediaDao.getSyncStateStats(configId, SyncState.REMOTE_ONLY, includeVideos)
+        }
+
+    /** Per-account count + size of app-downloaded local copies (the `appLocalCopy` rows). */
+    private val _downloadedCopies = MutableStateFlow<Map<Long, PendingDownloadInfo>>(emptyMap())
+    val downloadedCopies: StateFlow<Map<Long, PendingDownloadInfo>> = _downloadedCopies.asStateFlow()
+
+    private val _removingCopies = MutableStateFlow<Set<Long>>(emptySet())
+    val removingCopies: StateFlow<Set<Long>> = _removingCopies.asStateFlow()
+
+    fun loadDownloadedCopiesInfo() {
+        viewModelScope.launch {
+            val next = configDao.getAll().first().associate { config ->
+                val states = cloudMediaDao.getLocalCopyStatesForConfig(config.id)
+                config.id to PendingDownloadInfo(states.size, states.sumOf { it.size })
+            }
+            _downloadedCopies.value = next
+        }
+    }
+
+    /**
+     * "Remove downloaded copies" repair action: deletes every file this app downloaded
+     * for [configId] (app-owned copies only — the `OWNER_PACKAGE_NAME` check in
+     * [deleteAppLocalCopies] double-guards that) and releases the rows back to
+     * `REMOTE_ONLY` so they can be fetched again into the fixed destination folders.
+     */
+    fun removeDownloadedCopies(configId: Long) {
+        if (configId in _removingCopies.value) return
+        viewModelScope.launch {
+            _removingCopies.value = _removingCopies.value + configId
+            try {
+                val states = cloudMediaDao.getLocalCopyStatesForConfig(configId)
+                val removed = withContext(Dispatchers.IO) {
+                    deleteAppLocalCopies(appContext, states)
+                }
+                if (removed.isNotEmpty()) {
+                    cloudMediaDao.releaseAppLocalCopies(configId, removed.map { it.remoteId })
+                    removed.forEach {
+                        cloudMediaDao.deleteBackupRevision(configId, it.localCopyPath)
+                    }
+                }
+                val remaining = states.size - removed.size
+                _downloadedCopies.value = _downloadedCopies.value +
+                    (configId to PendingDownloadInfo(remaining, states.filter { state ->
+                        removed.none { it.remoteId == state.remoteId }
+                    }.sumOf { it.size }))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                printError("cloud.accounts", "removeDownloadedCopies failed", e)
+            } finally {
+                _removingCopies.value = _removingCopies.value - configId
+            }
+        }
     }
 
     fun triggerSync(configId: Long) {

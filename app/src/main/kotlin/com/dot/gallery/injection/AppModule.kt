@@ -58,6 +58,7 @@ import com.dot.gallery.core.metrics.MetricsCollector
 import com.dot.gallery.core.memory.ByteArrayPool
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
+import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import dagger.Module
 import dagger.Provides
@@ -162,8 +163,12 @@ object AppModule {
         workManager: WorkManager,
         providerRegistry: ProviderRegistry,
         cloudMediaDao: CloudMediaDao,
+        cloudServerConfigDao: CloudServerConfigDao,
     ): MediaHandler = StartupTracer.trace("AppModule.provideMediaHandler") {
-        MediaHandlerImpl(mediaRepository, context, workManager, providerRegistry, cloudMediaDao)
+        MediaHandlerImpl(
+            mediaRepository, context, workManager, providerRegistry, cloudMediaDao,
+            cloudServerConfigDao
+        )
     }
 
     @Provides

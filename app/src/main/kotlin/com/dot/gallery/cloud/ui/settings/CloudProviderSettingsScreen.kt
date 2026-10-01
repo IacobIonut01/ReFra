@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -47,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,10 +56,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.text.format.Formatter
 import com.dot.gallery.R
 import com.dot.gallery.cloud.core.CloudStorageInfo
 import com.dot.gallery.cloud.core.ConnectionState
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.cloud.data.dao.PendingDownloadInfo
 import com.dot.gallery.cloud.data.entity.CloudServerConfigEntity
 import com.dot.gallery.cloud.ui.CloudAccountDeletionState
 import com.dot.gallery.cloud.ui.CloudAccountsViewModel
@@ -82,11 +86,16 @@ fun CloudProviderSettingsScreen(
     val serverVersions by viewModel.serverVersions.collectAsStateWithLifecycle()
     val syncProgressMap by viewModel.syncProgress.collectAsStateWithLifecycle()
     val deletionState by viewModel.deletionState.collectAsStateWithLifecycle()
+    val downloadedCopiesMap by viewModel.downloadedCopies.collectAsStateWithLifecycle()
+    val removingCopies by viewModel.removingCopies.collectAsStateWithLifecycle()
     val isDeleting = deletionState == CloudAccountDeletionState.Deleting(configId)
     val deletionFailed = deletionState == CloudAccountDeletionState.Failed(configId)
     val eventHandler = LocalEventHandler.current
+    val context = LocalContext.current
     var showDeleteDialog by rememberSaveable(configId) { mutableStateOf(false) }
     var showIntervalDialog by remember { mutableStateOf(false) }
+    var showDownloadEnableDialog by rememberSaveable(configId) { mutableStateOf(false) }
+    var showRemoveCopiesDialog by rememberSaveable(configId) { mutableStateOf(false) }
 
     LaunchedEffect(deletionState, configId) {
         if (deletionState == CloudAccountDeletionState.Deleted(configId)) {
@@ -147,6 +156,7 @@ fun CloudProviderSettingsScreen(
     LaunchedEffect(configId) {
         viewModel.loadStorageInfo()
         viewModel.loadServerVersions()
+        viewModel.loadDownloadedCopiesInfo()
     }
 
     if (config == null) {
@@ -200,6 +210,20 @@ fun CloudProviderSettingsScreen(
     val offlineSummary = stringResource(R.string.cloud_offline_summary)
     val advancedTitle = stringResource(R.string.cloud_advanced)
     val advancedSummary = stringResource(R.string.cloud_adv_troubleshooting)
+    val copiesInfo = downloadedCopiesMap[config.id]
+    val copiesCount = copiesInfo?.itemCount ?: 0
+    val isRemovingCopies = config.id in removingCopies
+    val showRemoveRow = copiesCount > 0 || isRemovingCopies
+    val removeCopiesTitle = stringResource(R.string.cloud_remove_downloaded_copies)
+    val removeCopiesSummary = if (isRemovingCopies) {
+        stringResource(R.string.cloud_remove_downloaded_copies_removing)
+    } else {
+        stringResource(
+            R.string.cloud_remove_downloaded_copies_summary,
+            copiesCount,
+            Formatter.formatFileSize(context, copiesInfo?.totalBytes ?: 0L)
+        )
+    }
     val resourceStrings = listOf(
         syncHeader,
         syncNowSyncingTitle,
@@ -235,9 +259,14 @@ fun CloudProviderSettingsScreen(
         offlineSummary,
         advancedTitle,
         advancedSummary,
+        removeCopiesTitle,
+        removeCopiesSummary,
     )
 
-    val settingsList = remember(config, isSyncing, connState, version, resourceStrings) {
+    val settingsList = remember(
+        config, isSyncing, connState, version, resourceStrings,
+        copiesCount, isRemovingCopies, showRemoveRow
+    ) {
         val items = mutableStateListOf<SettingsEntity>()
 
         // Sync section
@@ -292,10 +321,17 @@ fun CloudProviderSettingsScreen(
                 summary = downloadRemoteSummary,
                 isChecked = config.downloadRemoteEnabled,
                 onCheck = { checked ->
-                    viewModel.updateConfigById(configId) { copy(downloadRemoteEnabled = checked) }
-                    if (checked) viewModel.triggerDownload(configId)
+                    if (checked) {
+                        showDownloadEnableDialog = true
+                    } else {
+                        viewModel.updateConfigById(configId) { copy(downloadRemoteEnabled = false) }
+                    }
                 },
-                screenPosition = if (config.downloadRemoteEnabled) Position.Top else Position.Alone
+                screenPosition = if (config.downloadRemoteEnabled || showRemoveRow) {
+                    Position.Top
+                } else {
+                    Position.Alone
+                }
             )
         )
         if (config.downloadRemoteEnabled) {
@@ -307,6 +343,17 @@ fun CloudProviderSettingsScreen(
                     onCheck = { checked ->
                         viewModel.updateConfigById(configId) { copy(downloadVideos = checked) }
                     },
+                    screenPosition = if (showRemoveRow) Position.Middle else Position.Bottom
+                )
+            )
+        }
+        if (showRemoveRow) {
+            items.add(
+                SettingsEntity.Preference(
+                    title = removeCopiesTitle,
+                    summary = removeCopiesSummary,
+                    enabled = copiesCount > 0 && !isRemovingCopies,
+                    onClick = { showRemoveCopiesDialog = true },
                     screenPosition = Position.Bottom
                 )
             )
@@ -449,6 +496,77 @@ fun CloudProviderSettingsScreen(
             onSelect = { minutes ->
                 showIntervalDialog = false
                 viewModel.updateConfigById(configId) { copy(syncIntervalMinutes = minutes) }
+            }
+        )
+    }
+
+    if (showDownloadEnableDialog) {
+        val stats by produceState<PendingDownloadInfo?>(initialValue = null, configId) {
+            value = viewModel.pendingDownloadStats(configId)
+        }
+        AlertDialog(
+            onDismissRequest = { showDownloadEnableDialog = false },
+            title = { Text(downloadRemoteTitle) },
+            text = {
+                Text(
+                    stats?.let {
+                        stringResource(
+                            R.string.cloud_download_remote_confirm,
+                            it.itemCount,
+                            Formatter.formatFileSize(context, it.totalBytes)
+                        )
+                    } ?: stringResource(R.string.cloud_download_remote_confirm_loading)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDownloadEnableDialog = false
+                        viewModel.updateConfigById(configId) { copy(downloadRemoteEnabled = true) }
+                        viewModel.triggerDownload(configId)
+                    }
+                ) {
+                    Text(downloadRemoteTitle)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDownloadEnableDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showRemoveCopiesDialog) {
+        AlertDialog(
+            onDismissRequest = { showRemoveCopiesDialog = false },
+            title = { Text(removeCopiesTitle) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.cloud_remove_downloaded_copies_confirm,
+                        copiesCount,
+                        Formatter.formatFileSize(context, copiesInfo?.totalBytes ?: 0L)
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    onClick = {
+                        viewModel.removeDownloadedCopies(configId)
+                        showRemoveCopiesDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.cloud_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemoveCopiesDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
             }
         )
     }

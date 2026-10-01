@@ -2150,6 +2150,15 @@
     <string name="cloud_download_remote_summary">Automatically download this account’s photos to this device</string>
     <string name="cloud_download_videos">Download videos</string>
     <string name="cloud_download_videos_summary">Include videos in automatic downloads</string>
+    <string name="cloud_download_remote_confirm">This will download every remote-only item from this account (%1$d items, about %2$s). Items already on this device are linked instead of downloaded again.</string>
+    <string name="cloud_download_remote_confirm_loading">This will download every remote-only item from this account. Items already on this device are linked instead of downloaded again.</string>
+    <string name="cloud_download_low_space_title">Not enough storage</string>
+    <string name="cloud_download_low_space_text">Couldn’t finish downloading remote media for %1$s. Free up space and it will resume on the next sync.</string>
+    <string name="cloud_remove_downloaded_copies">Remove downloaded copies</string>
+    <string name="cloud_remove_downloaded_copies_summary">%1$d downloaded files (%2$s) on this device</string>
+    <string name="cloud_remove_downloaded_copies_confirm">Delete the %1$d files this app downloaded to this device (%2$s)? They stay on the server and can be downloaded again.</string>
+    <string name="cloud_remove_downloaded_copies_removing">Removing downloaded copies…</string>
+    <string name="cloud_delete_local_all_confirm">The original files of every selected album will be deleted from this device right after each upload finishes and is verified on the server. They remain available in the cloud.</string>
     <string name="cloud_download_all">Download all remote media</string>
     <string name="cloud_adv_sync">Sync</string>
     <string name="cloud_adv_sync_deletions">Sync remote deletions</string>

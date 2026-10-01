@@ -47,6 +47,12 @@ data class CloudMediaSmartFeatureRevision(
     val size: Long
 )
 
+/** Result of [CloudMediaDao.getSyncStateStats] — item count + total byte size. */
+data class PendingDownloadInfo(
+    val itemCount: Int,
+    val totalBytes: Long
+)
+
 internal fun shouldInvalidateBackupRevision(
     incomingFingerprint: String,
     incomingHasContentHash: Boolean,
@@ -429,6 +435,13 @@ interface CloudMediaDao {
         archived: Boolean
     )
 
+    /**
+     * Writes a local-file binding onto a cloud row. [appOwned] is intentionally
+     * required — it must stay `true` ONLY for files the app itself created (download
+     * worker); linking the user's own pre-existing file (the reconcile path in
+     * `CloudLocalCopies.findVerifiedLocalCopy`) passes `false`, because every
+     * destructive reader of `localCopyPath` filters on this flag.
+     */
     @Query(
         """
         UPDATE cloud_media SET localCopyPath = :path, syncState = :state, appLocalCopy = :appOwned
@@ -441,8 +454,39 @@ interface CloudMediaDao {
         serverConfigId: Long,
         path: String,
         state: SyncState,
-        appOwned: Boolean = true
+        appOwned: Boolean
     )
+
+    /**
+     * Releases an app-downloaded copy binding after the file was removed: the row goes
+     * back to `REMOTE_ONLY` so a future download can recreate it in the (by then fixed)
+     * destination folder. Only rows actually owned by the app are touched — a user's
+     * original file is never re-linked to REMOTE_ONLY by this.
+     */
+    @Query(
+        """
+        UPDATE cloud_media SET localCopyPath = '', appLocalCopy = 0, syncState = 'REMOTE_ONLY'
+        WHERE serverConfigId = :configId AND remoteId IN (:remoteIds) AND appLocalCopy = 1
+        """
+    )
+    suspend fun releaseAppLocalCopies(configId: Long, remoteIds: List<String>): Int
+
+    /**
+     * Aggregate over `REMOTE_ONLY` rows — count + byte size of what an enabled download
+     * would pull — for the download-enable confirmation dialog and storage preflight.
+     */
+    @Query(
+        """
+        SELECT COUNT(*) AS itemCount, COALESCE(SUM(size), 0) AS totalBytes FROM cloud_media
+        WHERE serverConfigId = :configId AND syncState = :state AND trashed = 0
+            AND (:includeVideos = 1 OR mimeType NOT LIKE 'video/%')
+        """
+    )
+    suspend fun getSyncStateStats(
+        configId: Long,
+        state: SyncState,
+        includeVideos: Boolean
+    ): PendingDownloadInfo
 
     @Query(
         """

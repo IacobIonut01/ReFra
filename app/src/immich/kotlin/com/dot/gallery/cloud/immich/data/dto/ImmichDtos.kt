@@ -41,8 +41,12 @@ data class ImmichAssetDto(
             providerType = ProviderType.IMMICH,
             serverConfigId = serverConfigId,
             label = originalFileName.ifBlank { originalPath.substringAfterLast('/') },
+            // `path` stays the server's internal asset-store path (truthful in the
+            // details sheet), but `relativePath` must stay empty: it feeds both the
+            // displayed album name and the MediaStore download sub-path, and Immich's
+            // `upload/<userId>/<xx>/<yy>` shard tree must never become a local folder.
             path = originalPath,
-            relativePath = originalPath.substringBeforeLast('/'),
+            relativePath = "",
             mimeType = mimeType,
             timestamp = timestamp,
             takenTimestamp = parseIsoTimestamp(localDateTime ?: "").takeIf { it > 0 },

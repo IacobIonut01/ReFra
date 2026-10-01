@@ -138,4 +138,21 @@ class ImmichDtoMappingTest {
         assertEquals("beach.jpg", entity.label)
         assertEquals("Sony", entity.cameraMake)
     }
+
+    @Test
+    fun assetStorePathNeverBecomesRelativePath() {
+        // Regression guard for #1270: `originalPath` is the SERVER's internal
+        // asset-store layout (upload/<userId>/<shard>/<shard>), not a user album —
+        // mirroring it into `relativePath` recreated that tree under Pictures/.
+        val dto = ImmichAssetDto(
+            id = "shard-1",
+            type = "IMAGE",
+            originalPath = "/photos/upload/e2f0c95f-f60b-41bd-af75-1c3d0f6b5a01/ed/4f/PXL_20260914_185724932.jpg",
+            originalFileName = "PXL_20260914_185724932.jpg",
+            originalMimeType = "image/jpeg"
+        )
+        val entity = dto.toCloudMediaEntity(serverConfigId = 3L, baseUrl = "https://immich.test")
+        assertEquals("", entity.relativePath)
+        assertEquals(dto.originalPath, entity.path)
+    }
 }

@@ -14,6 +14,7 @@ import com.dot.gallery.cloud.core.ConnectionState
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.capabilities.RemoteAlbumCopyState
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
+import com.dot.gallery.cloud.data.entity.CloudMediaEntity
 import com.dot.gallery.cloud.immich.ImmichProvider
 import com.dot.gallery.cloud.immich.data.api.ImmichAuthInterceptor
 import com.dot.gallery.core.Resource
@@ -544,5 +545,115 @@ class ImmichProviderMockServerTest {
             "REMOTE_ASSETS", "REMOTE_ALBUMS", "SYNC", "ALBUM_WRITE", "PEOPLE", "MAP",
             "SMART_SEARCH", "SHARE_CREATE", "SHARE_MANAGE", "ARCHIVE", "MEMORIES", "TAGS"
         ).forEach { assertTrue("Immich must declare $it", it in caps) }
+    }
+
+    private fun shardPathEntity(configId: Long, remoteId: String = "shard-asset") =
+        CloudMediaEntity(
+            remoteId = remoteId,
+            providerType = ProviderType.IMMICH,
+            serverConfigId = configId,
+            label = "x.jpg",
+            // The exact kind of path Immich hands out — internal asset-store layout,
+            // never a user folder. `relativePath` must stay empty for these.
+            path = "/photos/upload/e2f0c95f-f60b-41bd-af75-1c3d0f6b5a01/ed/4f/x.jpg",
+            relativePath = "",
+            mimeType = "image/jpeg"
+        )
+
+    @Test
+    fun downloadSubPathUsesRemoteAlbumName() = runBlocking {
+        var sawAssetFilter = false
+        server.dispatcher = dispatcher { req ->
+            if (req.path?.startsWith("/api/albums") == true) {
+                sawAssetFilter = req.requestUrl?.queryParameter("assetId") == "shard-asset"
+                json(
+                    """[ { "id": "al-1", "albumName": "Camera Roll", "assetCount": 3,
+                          "shared": false, "ownerId": "u1" } ]"""
+                )
+            } else {
+                null
+            }
+        }
+        provider.configure(
+            CloudServerConfig(id = 20, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        val subPath = provider.downloadSubPath(shardPathEntity(20), "Home")
+
+        assertEquals("Home/Camera Roll", subPath)
+        assertTrue("album lookup must pass the assetId filter", sawAssetFilter)
+    }
+
+    @Test
+    fun downloadSubPathFallsBackToAccountWhenNoAlbum() = runBlocking {
+        server.dispatcher = dispatcher { req ->
+            if (req.path?.startsWith("/api/albums") == true) json("[]") else null
+        }
+        provider.configure(
+            CloudServerConfig(id = 21, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        assertEquals("Home", provider.downloadSubPath(shardPathEntity(21), "Home"))
+    }
+
+    @Test
+    fun downloadSubPathIgnoresUnfilteredAlbumList() = runBlocking {
+        // A server too old for the assetId parameter returns EVERY album — that must
+        // be treated as "unknown", not used to pick a (wrong) folder name.
+        val manyAlbums = buildString {
+            append("[")
+            append(
+                (1..10).joinToString(",") {
+                    """{ "id": "al-$it", "albumName": "Album$it", "assetCount": 1, "shared": false }"""
+                }
+            )
+            append("]")
+        }
+        server.dispatcher = dispatcher { req ->
+            if (req.path?.startsWith("/api/albums") == true) json(manyAlbums) else null
+        }
+        provider.configure(
+            CloudServerConfig(id = 22, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        assertEquals("Home", provider.downloadSubPath(shardPathEntity(22), "Home"))
+    }
+
+    @Test
+    fun downloadSubPathSanitizesAlbumName() = runBlocking {
+        server.dispatcher = dispatcher { req ->
+            if (req.path?.startsWith("/api/albums") == true) {
+                json("""[ { "id": "al-1", "albumName": "a/b", "assetCount": 1, "shared": false } ]""")
+            } else {
+                null
+            }
+        }
+        provider.configure(
+            CloudServerConfig(id = 23, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        assertEquals("Home/a-b", provider.downloadSubPath(shardPathEntity(23), "Home"))
+    }
+
+    @Test
+    fun downloadSubPathCachesAlbumLookupPerAccount() = runBlocking {
+        var albumRequests = 0
+        server.dispatcher = dispatcher { req ->
+            if (req.path?.startsWith("/api/albums") == true) {
+                albumRequests++
+                json("""[ { "id": "al-1", "albumName": "Trip", "assetCount": 5, "shared": false } ]""")
+            } else {
+                null
+            }
+        }
+        provider.configure(
+            CloudServerConfig(id = 24, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+        val entity = shardPathEntity(24)
+
+        provider.downloadSubPath(entity, "Home")
+        provider.downloadSubPath(entity, "Home")
+
+        assertEquals("album lookup must be cached within the account session", 1, albumRequests)
     }
 }

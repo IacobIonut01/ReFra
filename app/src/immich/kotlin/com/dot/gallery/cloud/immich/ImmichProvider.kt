@@ -41,6 +41,7 @@ import com.dot.gallery.cloud.core.capabilities.TagsCapableProvider
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
 import com.dot.gallery.cloud.data.entity.CloudMediaEntity
 import com.dot.gallery.cloud.image.CloudMediaFetcher
+import com.dot.gallery.cloud.sync.sanitizeDownloadPathSegment
 import com.dot.gallery.cloud.immich.data.api.ImmichApiService
 import com.dot.gallery.cloud.immich.data.api.ImmichAuthInterceptor
 import com.dot.gallery.cloud.immich.data.dto.ImmichAlbumDto
@@ -93,6 +94,9 @@ import javax.net.ssl.X509TrustManager
 private const val IMMICH_DELTA_PAGE_SIZE = 1000
 private const val IMMICH_RECONCILE_PAGE_SIZE = 1000
 private const val IMMICH_MAX_RECONCILE_PAGES = 500
+// A single asset realistically lives in a handful of albums; more than this means
+// the server ignored the `assetId` filter and returned the full album list.
+private const val MAX_ALBUM_LOOKUP_CANDIDATES = 8
 
 internal fun immichChecksum(contentHash: String): String {
     val normalized = contentHash.lowercase()
@@ -160,6 +164,9 @@ class ImmichProvider @Inject constructor(
     private var apiService: ImmichApiService? = null
     private var currentUserId: String? = null
     private val verifiedAssetIdsByHash = ConcurrentHashMap<String, String>()
+    // remoteId -> album name (empty string = checked, in no album). Cleared with the
+    // rest of the per-account state on configure()/disconnect().
+    private val downloadAlbumNames = ConcurrentHashMap<String, String>()
 
     // Binds LAN-destined sockets to Wi-Fi so a local server is reachable even when that Wi-Fi
     // has no internet (Android would otherwise route via mobile data and time out).
@@ -177,6 +184,7 @@ class ImmichProvider @Inject constructor(
         baseUrl = ""
         currentUserId = null
         verifiedAssetIdsByHash.clear()
+        downloadAlbumNames.clear()
     }
 
     private fun applyInsecureTls(builder: OkHttpClient.Builder) {
@@ -212,6 +220,7 @@ class ImmichProvider @Inject constructor(
     override fun configure(config: CloudServerConfig) {
         currentConfig = config
         verifiedAssetIdsByHash.clear()
+        downloadAlbumNames.clear()
         baseUrl = config.serverUrl.trimEnd('/')
         authInterceptor.apiKey = config.apiKey
         apiService = createApiService(baseUrl)
@@ -1165,6 +1174,40 @@ class ImmichProvider @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /**
+     * Immich's `originalPath` points at the server's internal asset store, never a
+     * user folder, so [entity]'s `relativePath` is intentionally empty. Downloads land
+     * under `Pictures/<account>/<remote album>` — membership resolved via the
+     * `assetId` filter on `GET /albums`, cached per configured account because album
+     * assignment is stable across a download run.
+     */
+    override suspend fun downloadSubPath(
+        entity: CloudMediaEntity,
+        accountLabel: String
+    ): String {
+        val albumName = downloadAlbumNames.getOrPut(entity.remoteId) {
+            fetchAlbumNameForAsset(entity.remoteId).orEmpty()
+        }.ifBlank { null }
+        return albumName?.let { "$accountLabel/${sanitizeDownloadPathSegment(it)}" }
+            ?: accountLabel
+    }
+
+    private suspend fun fetchAlbumNameForAsset(remoteId: String): String? {
+        val api = runCatching { requireApi() }.getOrNull() ?: return null
+        val candidates = runCatching {
+            api.getAlbums(assetId = remoteId).takeIf { it.isSuccessful }?.body()
+        }.getOrNull().orEmpty()
+        if (candidates.isEmpty() || candidates.size > MAX_ALBUM_LOOKUP_CANDIDATES) {
+            return null
+        }
+        return candidates
+            .sortedWith(
+                compareBy<ImmichAlbumDto> { it.ownerId != null && it.ownerId != currentUserId }
+                    .thenBy { it.shared }
+            )
+            .firstNotNullOfOrNull { it.albumName.takeIf(String::isNotBlank) }
     }
 
     override suspend fun getSyncDelta(timestamp: Long, reconcileIndex: Boolean): Result<SyncDelta> {

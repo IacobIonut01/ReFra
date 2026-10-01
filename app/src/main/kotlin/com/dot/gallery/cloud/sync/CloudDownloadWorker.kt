@@ -5,8 +5,17 @@
 
 package com.dot.gallery.cloud.sync
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -19,6 +28,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.dot.gallery.R
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.SyncState
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
@@ -78,6 +88,7 @@ class CloudDownloadWorker @AssistedInject constructor(
             }
 
             var downloaded = 0
+            var linked = 0
             var failed = 0
 
             for (config in configs) {
@@ -95,6 +106,13 @@ class CloudDownloadWorker @AssistedInject constructor(
                     .toList()
                 if (pending.isEmpty()) continue
 
+                // Storage preflight: bail when the pending set can't fit with headroom —
+                // downloaded copies land on the primary external volume.
+                var freeBytes = runCatching {
+                    applicationContext.getExternalFilesDir(null)?.usableSpace
+                }.getOrNull() ?: Long.MAX_VALUE
+                var lowStorageHit = false
+
                 printDebug("CloudDownloadWorker: ${pending.size} items to download for $accountLabel")
                 var processed = 0
                 for (entity in pending) {
@@ -106,6 +124,36 @@ class CloudDownloadWorker @AssistedInject constructor(
                         KEY_CURRENT_FILE to entity.label,
                         KEY_CURRENT_ACCOUNT to accountLabel
                     ))
+
+                    // Reconcile first: when identical content already exists locally
+                    // (e.g. the library was uploaded by another app before ReFra saw
+                    // it), link the row instead of downloading a duplicate.
+                    val linkedUri = findVerifiedLocalCopy(applicationContext, entity)
+                    if (linkedUri != null) {
+                        cloudMediaDao.updateLocalCopy(
+                            entity.remoteId, entity.providerType, config.id,
+                            linkedUri.toString(), SyncState.SYNCED, appOwned = false
+                        )
+                        cloudMediaDao.upsertBackupRevision(
+                            CloudBackupRevisionEntity(
+                                serverConfigId = config.id,
+                                providerType = entity.providerType,
+                                localUri = linkedUri.toString(),
+                                localSize = entity.size,
+                                localTimestamp = entity.timestamp / 1000L,
+                                remoteId = entity.remoteId,
+                                remoteFingerprint = entity.backupFingerprint(),
+                                verifiedAt = System.currentTimeMillis()
+                            )
+                        )
+                        linked++
+                        continue
+                    }
+
+                    if (entity.size > 0 && entity.size > freeBytes - DOWNLOAD_FREE_HEADROOM) {
+                        lowStorageHit = true
+                        continue
+                    }
                     cloudMediaDao.updateSyncState(
                         entity.remoteId, entity.providerType, config.id, SyncState.DOWNLOADING
                     )
@@ -136,11 +184,12 @@ class CloudDownloadWorker @AssistedInject constructor(
                         failed++
                         continue
                     }
-                    // Mirror the remote folder layout under Pictures/ or Movies/ so a
-                    // downloaded album lands in an identically-named local album; Immich
-                    // has no paths, so its files collect under the provider name.
-                    val subPath = entity.relativePath.trim('/')
-                        .ifBlank { config.providerType.displayName }
+                    // The provider decides the destination: path-based stores mirror
+                    // their real remote folders; Immich maps to `<account>/<album>`
+                    // because its server-side paths are internal storage detail.
+                    val subPath = runCatching {
+                        syncProvider.downloadSubPath(entity, accountLabel)
+                    }.getOrNull()?.takeIf { it.isNotBlank() } ?: accountLabel
                     val localUri = CloudMediaStoreWriter.write(
                         context = applicationContext,
                         source = cacheUri,
@@ -150,6 +199,7 @@ class CloudDownloadWorker @AssistedInject constructor(
                             },
                             mimeType = entity.mimeType,
                             relativeSubPath = subPath,
+                            fallbackSubPath = accountLabel,
                             takenTimestamp = entity.takenTimestamp
                         )
                     )
@@ -161,9 +211,10 @@ class CloudDownloadWorker @AssistedInject constructor(
                         failed++
                         continue
                     }
+                    freeBytes -= entity.size
                     cloudMediaDao.updateLocalCopy(
                         entity.remoteId, entity.providerType, config.id,
-                        localUri.toString(), SyncState.SYNCED
+                        localUri.toString(), SyncState.SYNCED, appOwned = true
                     )
                     // Loop prevention marker: binds the fresh local file to the remote id.
                     // CloudUploadWorker primarily skips via localCopyPath, but the revision
@@ -182,6 +233,9 @@ class CloudDownloadWorker @AssistedInject constructor(
                     )
                     downloaded++
                 }
+                if (lowStorageHit) {
+                    postLowStorageNotification(config.id, accountLabel)
+                }
                 setProgress(workDataOf(
                     KEY_TOTAL_ITEMS to pending.size,
                     KEY_COMPLETED_ITEMS to processed,
@@ -190,13 +244,58 @@ class CloudDownloadWorker @AssistedInject constructor(
                 ))
             }
 
-            printDebug("CloudDownloadWorker: Done — $downloaded downloaded, $failed failed")
+            printDebug("CloudDownloadWorker: Done — $downloaded downloaded, $linked linked, $failed failed")
             if (isStopped) Result.retry() else Result.success()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             printDebug("CloudDownloadWorker: Failed: ${e.message}")
             Result.retry()
+        }
+    }
+
+    private fun ensureChannel(): String {
+        val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (nm.getNotificationChannel(CHANNEL_STATUS) == null) {
+            nm.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_STATUS,
+                    applicationContext.getString(R.string.cloud_download_remote),
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+            )
+        }
+        return CHANNEL_STATUS
+    }
+
+    private fun canPostNotifications(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    applicationContext, Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+
+    private fun postLowStorageNotification(configId: Long, accountLabel: String) {
+        if (!canPostNotifications()) return
+        val builder = NotificationCompat.Builder(applicationContext, ensureChannel())
+            .setSmallIcon(R.drawable.ic_cloud_upload)
+            .setContentTitle(applicationContext.getString(R.string.cloud_download_low_space_title))
+            .setContentText(
+                applicationContext.getString(R.string.cloud_download_low_space_text, accountLabel)
+            )
+            .setAutoCancel(true)
+        val intent = applicationContext.packageManager
+            .getLaunchIntentForPackage(applicationContext.packageName)
+        if (intent != null) {
+            builder.setContentIntent(
+                PendingIntent.getActivity(
+                    applicationContext, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+            )
+        }
+        runCatching {
+            NotificationManagerCompat.from(applicationContext)
+                .notify(NOTIFICATION_ID_LOW_SPACE + configId.toInt(), builder.build())
         }
     }
 
@@ -218,6 +317,15 @@ class CloudDownloadWorker @AssistedInject constructor(
          * backfill from pinning the scheduler slot for hours.
          */
         private const val MAX_ITEMS_PER_RUN = 500
+
+        /**
+         * Free-space headroom kept on the target volume — a download that would push
+         * the volume below this is deferred and the user is notified instead.
+         */
+        private const val DOWNLOAD_FREE_HEADROOM = 512L * 1024 * 1024
+
+        private const val CHANNEL_STATUS = "cloud_download_status"
+        private const val NOTIFICATION_ID_LOW_SPACE = 4400
 
         fun schedule(workManager: WorkManager, intervalMinutes: Long, wifiOnly: Boolean) {
             val constraints = Constraints.Builder()

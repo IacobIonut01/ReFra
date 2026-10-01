@@ -17,6 +17,7 @@ import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
+import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.sync.CloudMediaStoreWriter
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.logging.withLogScope
@@ -51,7 +52,8 @@ class MediaHandlerImpl @Inject constructor(
     private val context: Context,
     private val workManager: WorkManager,
     private val providerRegistry: ProviderRegistry,
-    private val cloudMediaDao: CloudMediaDao
+    private val cloudMediaDao: CloudMediaDao,
+    private val cloudServerConfigDao: CloudServerConfigDao
 ) : MediaHandler {
 
     private fun <T : Media> extractCloudInfo(media: T): Triple<String, String, Long>? {
@@ -319,14 +321,23 @@ class MediaHandlerImpl @Inject constructor(
                 }
                 val cacheUri = downloadResult.getOrNull() ?: continue
 
-                // Save from cache to MediaStore via the shared writer used by the
-                // automatic download worker.
+                // Same destination rule as the automatic worker: the provider picks the
+                // sub-path (remote folder mirror for path stores, account/album for
+                // Immich) instead of dumping everything under `Cloud/`.
+                val accountLabel = cloudServerConfigDao.getById(configId)
+                    ?.displayName?.takeIf { it.isNotBlank() } ?: providerType.displayName
+                val entity = cloudMediaDao.getByRemoteId(remoteId, providerType, configId)
+                val subPath = entity?.let {
+                    runCatching { syncProvider.downloadSubPath(it, accountLabel) }.getOrNull()
+                }?.takeIf { it.isNotBlank() } ?: accountLabel
                 val insertUri = CloudMediaStoreWriter.write(
                     context = context,
                     source = cacheUri,
                     request = CloudMediaStoreWriter.Request(
                         displayName = media.label,
-                        mimeType = media.mimeType
+                        mimeType = media.mimeType,
+                        relativeSubPath = subPath,
+                        fallbackSubPath = accountLabel
                     )
                 )
                 if (insertUri != null) {

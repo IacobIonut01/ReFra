@@ -95,6 +95,7 @@ fun CloudUploadSettingsScreen(
     val uploadRunning by viewModel.uploadWorkRunning.collectAsStateWithLifecycle()
 
     var showDedupDialog by remember { mutableStateOf(false) }
+    var showDeleteLocalConfirm by remember { mutableStateOf(false) }
     var pathEditAlbum by remember { mutableStateOf<Album?>(null) }
     val dedupState by viewModel.dedupState.collectAsStateWithLifecycle()
 
@@ -270,10 +271,17 @@ fun CloudUploadSettingsScreen(
                             Switch(
                                 checked = deleteLocalEnabledForSelection(enabledAlbums, deleteLocalPrefs),
                                 onCheckedChange = { enabled ->
-                                    enabledAlbums.forEach { albumId ->
-                                        val album = localAlbums.find { it.id == albumId }
-                                        if (album != null) {
-                                            viewModel.setDeleteLocalEnabled(album.id, album.label, enabled)
+                                    if (enabled) {
+                                        // Arms deletion of the user's ORIGINAL files
+                                        // for every selected album — requires the
+                                        // explicit confirm below, not a stray tap.
+                                        showDeleteLocalConfirm = true
+                                    } else {
+                                        enabledAlbums.forEach { albumId ->
+                                            val album = localAlbums.find { it.id == albumId }
+                                            if (album != null) {
+                                                viewModel.setDeleteLocalEnabled(album.id, album.label, false)
+                                            }
                                         }
                                     }
                                 }
@@ -344,6 +352,34 @@ fun CloudUploadSettingsScreen(
                 }
             }
         }
+    }
+
+    if (showDeleteLocalConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteLocalConfirm = false },
+            title = { Text(stringResource(R.string.cloud_delete_local_after_upload)) },
+            text = { Text(stringResource(R.string.cloud_delete_local_all_confirm)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteLocalConfirm = false
+                        enabledAlbums.forEach { albumId ->
+                            val album = localAlbums.find { it.id == albumId }
+                            if (album != null) {
+                                viewModel.setDeleteLocalEnabled(album.id, album.label, true)
+                            }
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.cloud_delete_local_after_upload))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteLocalConfirm = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
     }
 
     if (showDedupDialog) {

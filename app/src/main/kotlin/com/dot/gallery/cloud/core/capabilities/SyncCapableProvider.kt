@@ -49,6 +49,17 @@ interface SyncCapableProvider : MediaCapabilityProvider {
     suspend fun downloadAsset(remoteId: String): Result<Uri>
 
     /**
+     * Sub-path (relative to `Pictures/`/`Movies/`) where a downloaded copy of
+     * [entity] should land. The default mirrors the remote folder layout — correct
+     * for providers whose paths are user-visible directories (WebDAV, SMB, NFS).
+     * Providers whose remote "path" is internal storage detail (e.g. Immich's
+     * asset-store shard tree, which is never a user album) must override this to
+     * return a user-meaningful destination such as `<account>/<remote album>`.
+     */
+    suspend fun downloadSubPath(entity: CloudMediaEntity, accountLabel: String): String =
+        entity.relativePath.trim('/').ifBlank { accountLabel }
+
+    /**
      * Fetches remote changes since [timestamp]. When [reconcileIndex] is true the
      * provider should additionally produce a complete remote-id index (if it can do so
      * reliably) so the caller can prune rows whose remote file vanished. Providers with
