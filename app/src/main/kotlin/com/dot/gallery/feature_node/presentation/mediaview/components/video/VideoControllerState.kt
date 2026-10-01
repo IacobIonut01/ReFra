@@ -14,4 +14,6 @@ data class VideoControllerState(
     val onDisableSubtitles: () -> Unit,
     val onAddExternalSubtitle: (Uri) -> Unit,
     val onRemoveSubtitle: (SubtitleTrack) -> Unit,
+    /** Detected HDR format of the selected video track (NONE for SDR or before tracks resolve). */
+    val videoHdr: VideoHdrInfo = VideoHdrInfo.NONE,
 )

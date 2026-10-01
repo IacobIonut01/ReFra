@@ -19,6 +19,8 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.feature_node.domain.model.SubtitleTrack
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import java.util.Locale
@@ -30,6 +32,8 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isCloud
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.presentation.util.printDebug
+import com.dot.gallery.feature_node.presentation.util.printInfo
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import dagger.assisted.Assisted
@@ -87,7 +91,8 @@ class VideoPlayerViewModel @AssistedInject constructor(
         val bufferedPercent: Int = 0,
         val frameRate: Float = 60f,
         val isPlaying: Boolean = false,
-        val subtitleTracks: List<SubtitleTrack> = emptyList()
+        val subtitleTracks: List<SubtitleTrack> = emptyList(),
+        val videoHdr: VideoHdrInfo = VideoHdrInfo.NONE
     )
 
     private val keychainHolder = KeychainHolder(appContext)
@@ -176,6 +181,33 @@ class VideoPlayerViewModel @AssistedInject constructor(
 
                 override fun onTracksChanged(tracks: Tracks) {
                     updateSubtitleTracks(tracks)
+                    updateVideoHdrInfo(tracks)
+                }
+            })
+            // Reports which decoder was actually selected for the video track — the field that
+            // proves on a reporter's device whether a Dolby Vision decoder (c2.dolby.*/OMX.dolby.*)
+            // or a base-layer fallback was picked.
+            addAnalyticsListener(object : AnalyticsListener {
+                override fun onVideoDecoderInitialized(
+                    eventTime: AnalyticsListener.EventTime,
+                    decoderName: String,
+                    initializedTimestampMs: Long,
+                    initializationDurationMs: Long
+                ) {
+                    if (_state.value.videoHdr.decoderName == decoderName) return
+                    _state.update {
+                        it.copy(videoHdr = it.videoHdr.copy(decoderName = decoderName))
+                    }
+                    val info = _state.value.videoHdr
+                    printInfo(
+                        "video.hdr",
+                        "decoder=$decoderName type=${info.type} codecs=${info.codecs} " +
+                            "dvPlayback=${dolbyVisionPlayback(
+                                info,
+                                HdrCapabilities.hasDolbyVisionDecoder(),
+                                HdrCapabilities.hasDolbyVisionDisplay(appContext)
+                            )}"
+                    )
                 }
             })
         }
@@ -250,7 +282,13 @@ class VideoPlayerViewModel @AssistedInject constructor(
         if (existingUri == uri && !_state.value.playbackFailed) return
 
         initialSeekApplied = false
-        _state.update { it.copy(ready = false, playbackFailed = false) }
+        _state.update {
+            it.copy(
+                ready = false,
+                playbackFailed = false,
+                videoHdr = VideoHdrInfo.NONE
+            )
+        }
         val item = MediaItem.Builder()
             .setUri(uri)
             .setMimeType(mime)
@@ -471,6 +509,46 @@ class VideoPlayerViewModel @AssistedInject constructor(
         }
         printDebug("Subtitle tracks total: ${subs.size} (embedded=$embeddedCount, manual=$manualCount)")
         _state.update { it.copy(subtitleTracks = subs) }
+    }
+
+    /**
+     * Classify the selected video track's HDR format (Dolby Vision / HDR10 / HLG / SDR) from its
+     * [androidx.media3.common.Format] into [PlaybackState.videoHdr]. The media viewer drives the
+     * window's COLOR_MODE_HDR from this — without it the window stays in SDR and HDR output is
+     * tone-mapped by the compositor even on capable devices (#1274).
+     */
+    @UnstableApi
+    private fun updateVideoHdrInfo(tracks: Tracks) {
+        val videoGroup = tracks.groups.firstOrNull { group ->
+            group.type == C.TRACK_TYPE_VIDEO && group.isSelected
+        } ?: tracks.groups.firstOrNull { it.type == C.TRACK_TYPE_VIDEO }
+        val format = videoGroup?.let { group ->
+            (0 until group.length)
+                .firstOrNull { group.isTrackSelected(it) }
+                ?.let(group::getTrackFormat)
+                ?: group.getTrackFormat(0)
+        }
+        val info = format?.let {
+            classifyVideoHdr(it.sampleMimeType, it.codecs, it.colorInfo?.colorTransfer)
+        } ?: VideoHdrInfo.NONE
+        if (info.type == _state.value.videoHdr.type && info.codecs == _state.value.videoHdr.codecs) return
+        // Preserve the decoder name reported by the analytics listener across track updates.
+        _state.update { it.copy(videoHdr = info.copy(decoderName = it.videoHdr.decoderName)) }
+        if (info.type != VideoHdrType.NONE) {
+            val playback = dolbyVisionPlayback(
+                info,
+                HdrCapabilities.hasDolbyVisionDecoder(),
+                HdrCapabilities.hasDolbyVisionDisplay(appContext)
+            )
+            val message = "HDR video track: type=${info.type} mime=${format?.sampleMimeType} " +
+                "codecs=${info.codecs} colorTransfer=${format?.colorInfo?.colorTransfer} " +
+                "dvProfile=${info.dolbyVisionProfile} dvPlayback=$playback"
+            if (playback == DolbyVisionPlayback.UNSUPPORTED) {
+                printWarn("video.hdr", "$message — no Dolby Vision decoder on this device")
+            } else {
+                printInfo("video.hdr", message)
+            }
+        }
     }
 
     fun selectSubtitleTrack(track: SubtitleTrack) {

@@ -149,6 +149,7 @@ data class FrameVideoMetadata(
     val rotationDegrees: Int,
     val isConstantFrameRate: Boolean,
     val isHdr: Boolean,
+    val isDolbyVision: Boolean = false,
 )
 
 data class FramePreview(

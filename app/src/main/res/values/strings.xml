@@ -885,6 +885,15 @@
     <string name="auto_hide_on_video_play_description">Automatically hides the top and bottom bars when a video starts playing, giving you a full-screen experience. Tap the screen to bring the controls back.</string>
     <string name="auto_play_video_description">Videos start playing automatically when you swipe to them in the media viewer. Disable this to require a manual tap to play.</string>
     <string name="video_surface_rebind_description">On some devices the video can turn black when you hide or show the playback controls, even though the audio keeps playing. This re-binds the video surface on each change to keep it visible. Enabled by default on devices where the issue is known to occur.</string>
+    <string name="hdr_video_playback">HDR video playback</string>
+    <string name="hdr_video_playback_summary">Play Dolby Vision, HDR10 and HLG videos in HDR on a compatible display</string>
+    <string name="hdr_video_playback_description">Switches the screen into HDR mode while a Dolby Vision, HDR10 or HLG video is playing. Requires an HDR-capable display; has no effect on unsupported hardware.</string>
+    <string name="video_format">Video format</string>
+    <string name="video_format_dolby_vision">Dolby Vision</string>
+    <string name="video_format_dolby_vision_compatible">Dolby Vision (compatible base layer)</string>
+    <string name="video_format_dolby_vision_unsupported">Dolby Vision — not supported on this device</string>
+    <string name="video_format_hdr10">HDR10</string>
+    <string name="video_format_hlg">HLG</string>
     <string name="fancy_blur_description">Applies a blur effect to the background behind photos in the media viewer. Requires Android 12 or higher.</string>
     <string name="liquid_glass_description">Replaces the plain blur on frosted bars and sheets with a Liquid Glass-style refraction effect. Requires Fancy Blur to be enabled.</string>
     <string name="shared_elements_description">Enables smooth shared element transitions between the grid thumbnails and the full-screen media viewer. This creates a visual connection as items zoom in and out.</string>

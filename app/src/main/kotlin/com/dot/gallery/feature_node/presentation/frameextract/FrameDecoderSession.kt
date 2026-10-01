@@ -10,6 +10,7 @@ import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.LruCache
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.isDolbyVisionCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -85,6 +86,13 @@ class FrameDecoderSession(
             val colorTransfer = format.intOrNull(MediaFormat.KEY_COLOR_TRANSFER)
             val hdr = colorTransfer == MediaFormat.COLOR_TRANSFER_ST2084 ||
                 colorTransfer == MediaFormat.COLOR_TRANSFER_HLG
+            // Dolby Vision tracks surface as video/dolby-vision (or a dvhe/dvh1/dvav codec
+            // string on the container MIME) — flagged for metadata only; extracted frames are
+            // still tone-mapped to sRGB by normalize().
+            val dolbyVision = isDolbyVisionCodec(
+                format.stringOrNull(MediaFormat.KEY_MIME),
+                format.stringOrNull(MediaFormat.KEY_CODECS_STRING)
+            )
             metadata = FrameVideoMetadata(
                 durationUs = durationUs,
                 frameCount = frameCount,
@@ -93,7 +101,8 @@ class FrameDecoderSession(
                 height = if (rotation == 90 || rotation == 270) width else height,
                 rotationDegrees = rotation,
                 isConstantFrameRate = constant,
-                isHdr = hdr,
+                isHdr = hdr || dolbyVision,
+                isDolbyVision = dolbyVision,
             )
             timeline = if (constant) {
                 FrameTimeline.constant(durationUs, frameCount, frameRate)
@@ -320,6 +329,8 @@ class FrameDecoderSession(
     private fun MediaMetadataRetriever.metadataInt(key: Int): Int? = extractMetadata(key)?.toIntOrNull()
     private fun MediaMetadataRetriever.metadataLong(key: Int): Long? = extractMetadata(key)?.toLongOrNull()
     private fun MediaFormat.intOrNull(key: String): Int? = if (containsKey(key)) getInteger(key) else null
+    private fun MediaFormat.stringOrNull(key: String): String? =
+        if (containsKey(key)) getString(key) else null
     private fun MediaFormat.longOrNull(key: String): Long? = if (containsKey(key)) getLong(key) else null
     private fun MediaFormat.floatOrNull(key: String): Float? = if (containsKey(key)) {
         runCatching { getFloat(key) }.getOrElse { getInteger(key).toFloat() }

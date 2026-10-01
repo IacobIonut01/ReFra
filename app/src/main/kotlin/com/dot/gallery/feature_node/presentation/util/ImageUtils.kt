@@ -54,6 +54,7 @@ import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.domain.util.isCloud
 import com.dot.gallery.feature_node.domain.util.isEncrypted
 import com.dot.gallery.feature_node.presentation.mediaview.components.retrieveMetadata
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoHdrInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.dot.gallery.cloud.util.CloudMediaDownloader
@@ -234,12 +235,13 @@ fun ActivityResultLauncher<IntentSenderRequest>.launchWriteRequest(
 fun <T : Media> rememberMediaInfo(
     media: T,
     exifMetadata: MediaMetadata?,
+    videoHdr: VideoHdrInfo = VideoHdrInfo.NONE,
     onLabelClick: () -> Unit
 ): List<InfoRow> {
     val context = LocalContext.current
     val exifDateFormat by rememberExifDateFormat()
-    return remember(exifMetadata, media, exifDateFormat) {
-        media.retrieveMetadata(context, exifDateFormat, exifMetadata, onLabelClick)
+    return remember(exifMetadata, media, exifDateFormat, videoHdr) {
+        media.retrieveMetadata(context, exifDateFormat, exifMetadata, onLabelClick, videoHdr)
     }
 }
 

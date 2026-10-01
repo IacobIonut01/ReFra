@@ -28,6 +28,7 @@ import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.mediaview.LocalMediaViewerVisualPolicy
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoControllerState
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoHdrInfo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayer
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.hazeSource
@@ -73,6 +74,9 @@ fun <T : Media> MediaPreviewComponent(
     cutoutEnabled: Boolean = true,
     onLoadFailed: () -> Unit = {},
     onVideoEnded: () -> Unit = {},
+    // Reports the detected HDR format even when playback fails (the controller lambda is
+    // `ready`-gated and never composes for undecodable tracks) (#1274).
+    onVideoHdrChanged: (VideoHdrInfo) -> Unit = {},
     // When false the (expensive, fullscreen `.blur(100.dp)`) blurred backdrop is skipped. Used to
     // keep it off the shared-element open/close transition's critical frames — it's imperceptible
     // during the animation but a heavy per-frame RenderEffect pass.
@@ -131,7 +135,8 @@ fun <T : Media> MediaPreviewComponent(
                         storyActive = storyActive,
                         compositedOutput = storyActive || !swipeToDismissEnabled,
                         onLoadFailed = onLoadFailed,
-                        onVideoEnded = onVideoEnded
+                        onVideoEnded = onVideoEnded,
+                        onVideoHdrChanged = onVideoHdrChanged
                     )
                 }
 

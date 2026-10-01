@@ -6,7 +6,9 @@
 package com.dot.gallery.core.util
 
 import android.content.Context
+import android.media.MediaCodecList
 import android.os.Build
+import android.view.Display
 
 /**
  * Detects whether the current display can actually render HDR content, so the app can skip all HDR
@@ -24,8 +26,17 @@ object HdrCapabilities {
      */
     const val DESIRED_HDR_HEADROOM = 3f
 
+    /** The platform MIME for Dolby Vision video tracks (`MediaCodecList` decoder lookup). */
+    private const val MIME_DOLBY_VISION = "video/dolby-vision"
+
     @Volatile
     private var cached: Boolean? = null
+
+    @Volatile
+    private var cachedHdrTypes: Set<Int>? = null
+
+    @Volatile
+    private var cachedDolbyVisionDecoder: Boolean? = null
 
     /**
      * True when the current display advertises HDR support. The result is cached after the first
@@ -35,6 +46,47 @@ object HdrCapabilities {
         cached?.let { return it }
         val result = compute(context)
         cached = result
+        return result
+    }
+
+    /**
+     * The HDR types the current display advertises — a subset of
+     * [android.view.Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION],
+     * `HDR_TYPE_HDR10`, `HDR_TYPE_HDR10_PLUS` and `HDR_TYPE_HLG`. Empty on SDR displays.
+     * Available since API 26, unlike [isHdrDisplay] which is gated on the API 34
+     * `isScreenHdr` flag. Cached like [isHdrDisplay].
+     */
+    fun displayHdrTypes(context: Context): Set<Int> {
+        cachedHdrTypes?.let { return it }
+        @Suppress("DEPRECATION") // no replacement API; still the only HDR-types accessor
+        val types = runCatching {
+            context.display.hdrCapabilities?.supportedHdrTypes?.toSet()
+        }.getOrNull().orEmpty()
+        cachedHdrTypes = types
+        return types
+    }
+
+    /**
+     * Whether the current display advertises Dolby Vision
+     * ([android.view.Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION]).
+     */
+    fun hasDolbyVisionDisplay(context: Context): Boolean =
+        displayHdrTypes(context).contains(Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION)
+
+    /**
+     * Whether the device ships a decoder for `video/dolby-vision` (typically a `c2.dolby.*` or
+     * `OMX.dolby.*` codec). Without one, Dolby Vision can only be rendered through the stream's
+     * backward-compatible base layer — profiles without one (e.g. profile 5) cannot be decoded
+     * correctly at all. Cached; the codec list is constant for the process lifetime.
+     */
+    fun hasDolbyVisionDecoder(): Boolean {
+        cachedDolbyVisionDecoder?.let { return it }
+        val result = runCatching {
+            MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
+                !info.isEncoder && info.supportedTypes.any { it.equals(MIME_DOLBY_VISION, ignoreCase = true) }
+            }
+        }.getOrDefault(false)
+        cachedDolbyVisionDecoder = result
         return result
     }
 

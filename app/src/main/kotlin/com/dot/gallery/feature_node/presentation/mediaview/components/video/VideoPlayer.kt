@@ -94,6 +94,11 @@ private suspend fun Animatable<Float, AnimationVector1D>.animateOrSnap(
 internal fun shouldPlayVideoOnce(slideshowActive: Boolean, storyActive: Boolean): Boolean =
     slideshowActive || storyActive
 
+/**
+ * TextureView is required when the video is composited (story reel, slideshow), but it cannot
+ * carry Dolby Vision metadata — DV output over a SurfaceTexture is tone-mapped to SDR. That
+ * degradation is accepted for composited modes; the main viewer path always uses SurfaceView.
+ */
 internal fun shouldUseTextureVideoOutput(
     storyActive: Boolean,
     compositedOutput: Boolean,
@@ -115,7 +120,8 @@ fun <T : Media> VideoPlayer(
     storyActive: Boolean = false,
     compositedOutput: Boolean = storyActive,
     onLoadFailed: () -> Unit = {},
-    onVideoEnded: () -> Unit = {}
+    onVideoEnded: () -> Unit = {},
+    onVideoHdrChanged: (VideoHdrInfo) -> Unit = {}
 ) {
     // Acquire or create the ViewModel for this media id
     val vm: VideoPlayerViewModel =
@@ -131,6 +137,14 @@ fun <T : Media> VideoPlayer(
 
     LaunchedEffect(playback.playbackFailed) {
         if (playback.playbackFailed) onLoadFailed()
+    }
+
+    // HDR classification rides onTracksChanged, which fires before the renderer is ready and
+    // stays set even when decoding fails — so it must be reported outside the `ready`-gated
+    // controller below or failed/unsupported clips (e.g. profile-5 Dolby Vision) would never
+    // reach the details sheet (#1274).
+    LaunchedEffect(playback.videoHdr) {
+        onVideoHdrChanged(playback.videoHdr)
     }
 
     // Adapter states to satisfy legacy videoController signature
@@ -540,7 +554,8 @@ fun <T : Media> VideoPlayer(
                 onSelectSubtitle = vm::selectSubtitleTrack,
                 onDisableSubtitles = vm::disableSubtitles,
                 onAddExternalSubtitle = vm::addExternalSubtitle,
-                onRemoveSubtitle = vm::removeExternalSubtitle
+                onRemoveSubtitle = vm::removeExternalSubtitle,
+                videoHdr = playback.videoHdr
             )
         )
     }

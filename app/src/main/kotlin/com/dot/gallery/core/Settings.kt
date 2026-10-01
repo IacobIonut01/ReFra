@@ -1063,6 +1063,19 @@ object Settings {
         fun rememberVideoSurfaceRebind() =
             rememberPreference(key = VIDEO_SURFACE_REBIND, defaultValue = SdkCompat.isSamsung)
 
+        private val VIDEO_HDR_PLAYBACK = booleanPreferencesKey("video_hdr_playback")
+
+        /**
+         * Lets the media viewer switch the window into
+         * [android.content.pm.ActivityInfo.COLOR_MODE_HDR] while a Dolby Vision / HDR10 / HLG
+         * video is playing (#1274). Only takes effect on HDR-capable displays — the window
+         * toggle itself is gated on `HdrCapabilities.isHdrDisplay`, so this silently no-ops on
+         * SDR-only hardware.
+         */
+        @Composable
+        fun rememberVideoHdrPlayback() =
+            rememberPreference(key = VIDEO_HDR_PLAYBACK, defaultValue = true)
+
         private val SHARED_ELEMENTS = booleanPreferencesKey("shared_elements")
 
         @Composable

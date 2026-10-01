@@ -155,6 +155,7 @@ import com.dot.gallery.core.Settings.Misc.rememberDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberExtendedDateHeaderFormat
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
+import com.dot.gallery.core.Settings.Misc.rememberVideoHdrPlayback
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchAllowVault
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertFormat
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertMode
@@ -210,6 +211,7 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.media.Moti
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoState
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.ViewerSharedElementThumbnail
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.SubtitleBottomSheet
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoHdrInfo
 import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoPlayerController
 import com.dot.gallery.feature_node.presentation.mediaview.slideshow.SlideshowAdvance
 import com.dot.gallery.feature_node.presentation.mediaview.slideshow.buildSlideshowOrder
@@ -1100,6 +1102,11 @@ fun <T : Media> MediaViewScreen(
         val motionPhotoState = motionPhotoStateFactory(currentMedia)
         val videoFramePickerController =
             remember(currentMedia?.id) { VideoFramePickerControllerRef() }
+        // HDR classification of the current page's video track, published from the
+        // videoController slot under the `index == currentPage` guard and consumed by the
+        // HDR window-mode effect below (#1274). Stays NONE for images/SDR videos.
+        val videoHdrInfo = remember { mutableStateOf(VideoHdrInfo.NONE) }
+        val hdrVideoEnabled by rememberVideoHdrPlayback()
         val openFramePicker: () -> Unit =
             remember(currentMedia, motionPhotoState.motionInfo, currentVault) {
                 {
@@ -1562,6 +1569,20 @@ fun <T : Media> MediaViewScreen(
                                     printWarning("Setting HDR Mode to $hasGainmap")
                                 } ?: printWarning("Resulting image null")
                             }
+                        } else if (media?.isVideo == true) {
+                            // Video HDR (#1274): driven by the playing track's published HDR
+                            // classification — the window enters COLOR_MODE_HDR once the tracks
+                            // resolve to Dolby Vision/HDR10/HLG and leaves it when playback ends,
+                            // the page changes, or the user disables HDR video playback.
+                            snapshotFlow { videoHdrInfo.value.isHdr && hdrVideoEnabled }
+                                .collectLatest { hdr ->
+                                    withContext(Dispatchers.Main.immediate) {
+                                        context.setHdrMode(hdr)
+                                    }
+                                    printWarning(
+                                        "Setting HDR Mode to $hdr (video=${videoHdrInfo.value.type})"
+                                    )
+                                }
                         } else {
                             withContext(Dispatchers.Main.immediate) {
                                 context.setHdrMode(false)
@@ -2155,6 +2176,13 @@ fun <T : Media> MediaViewScreen(
                                     },
                                     onVideoEnded = {
                                         media?.id?.let { videoEndedFlow.tryEmit(it) }
+                                    },
+                                    // Only the current page's HDR state is allowed to drive window
+                                    // HDR mode and the details-sheet row (#1274).
+                                    onVideoHdrChanged = if (index == currentPage) {
+                                        { videoHdrInfo.value = it }
+                                    } else {
+                                        {}
                                     },
                                     onSwipeDown = {
                                         if (!overlayMode && !isLocked && !isDismissing) {
@@ -3006,6 +3034,7 @@ fun <T : Media> MediaViewScreen(
                                 restoreMedia = restoreMedia,
                                 currentVault = currentVault,
                                 motionPhotoState = motionPhotoState,
+                                videoHdr = videoHdrInfo.value,
                                 onOpenFramePicker = openFramePicker,
                                 cloudBackups = currentCloudBackups,
                                 onOpenPersonTimeline = { person ->

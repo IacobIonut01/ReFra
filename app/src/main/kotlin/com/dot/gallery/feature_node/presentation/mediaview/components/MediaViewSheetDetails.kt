@@ -94,6 +94,7 @@ import com.dot.gallery.feature_node.presentation.exif.MetadataEditSheet
 import com.dot.gallery.feature_node.presentation.exif.MoveMediaSheet
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoShotsSection
 import com.dot.gallery.feature_node.presentation.mediaview.components.media.MotionPhotoState
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoHdrInfo
 import com.dot.gallery.feature_node.presentation.mediaview.MediaViewViewModel
 import com.dot.gallery.feature_node.presentation.mediaview.rememberMediaViewerNavigate
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
@@ -121,6 +122,7 @@ fun <T : Media> MediaViewSheetDetails(
     restoreMedia: ((Vault, T, () -> Unit) -> Unit)?,
     currentVault: Vault?,
     motionPhotoState: MotionPhotoState? = null,
+    videoHdr: VideoHdrInfo = VideoHdrInfo.NONE,
     onOpenFramePicker: () -> Unit = {},
     cloudBackups: List<Media.UriMedia> = emptyList(),
     onOpenPersonTimeline: (PersonInfo) -> Unit = {},
@@ -363,6 +365,7 @@ fun <T : Media> MediaViewSheetDetails(
                 val mediaInfoList = rememberMediaInfo(
                     media = currentMedia,
                     exifMetadata = metadata,
+                    videoHdr = videoHdr,
                     onLabelClick = {
                         if (!currentMedia.readUriOnly) {
                             scope.launch {

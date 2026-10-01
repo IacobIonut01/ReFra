@@ -41,10 +41,15 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.R
+import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.feature_node.domain.model.InfoRow
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.util.isVideo
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.DolbyVisionPlayback
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoHdrInfo
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.VideoHdrType
+import com.dot.gallery.feature_node.presentation.mediaview.components.video.dolbyVisionPlayback
 import com.dot.gallery.feature_node.presentation.util.formatMinSec
 import com.dot.gallery.feature_node.presentation.util.formatSize
 import com.dot.gallery.feature_node.presentation.util.toBitrateString
@@ -137,7 +142,8 @@ fun Media.retrieveMetadata(
     context: Context,
     exifDateFormat: String,
     mediaMetadata: MediaMetadata?,
-    onLabelClick: () -> Unit
+    onLabelClick: () -> Unit,
+    videoHdr: VideoHdrInfo = VideoHdrInfo.NONE
 ): List<InfoRow> {
     val info = mutableListOf<InfoRow>()
 
@@ -292,6 +298,38 @@ fun Media.retrieveMetadata(
             }
         }
 
+    }
+
+    // HDR classification of the playing track, published by the player (#1274). Kept outside
+    // the metadata scope so the row still renders when no parsed metadata exists. For Dolby
+    // Vision the label also reflects how the device actually renders it.
+    if (isVideo && videoHdr.isHdr) {
+        val formatLabel = when (videoHdr.type) {
+            VideoHdrType.DOLBY_VISION -> when (
+                dolbyVisionPlayback(
+                    videoHdr,
+                    HdrCapabilities.hasDolbyVisionDecoder(),
+                    HdrCapabilities.hasDolbyVisionDisplay(context)
+                )
+            ) {
+                DolbyVisionPlayback.BASE_LAYER ->
+                    context.getString(R.string.video_format_dolby_vision_compatible)
+                DolbyVisionPlayback.UNSUPPORTED ->
+                    context.getString(R.string.video_format_dolby_vision_unsupported)
+                else -> context.getString(R.string.video_format_dolby_vision)
+            }
+            VideoHdrType.HDR10 -> context.getString(R.string.video_format_hdr10)
+            VideoHdrType.HLG -> context.getString(R.string.video_format_hlg)
+            VideoHdrType.NONE -> ""
+        }
+        info += InfoRow(
+            icon = Icons.Outlined.VideoFile,
+            label = context.getString(R.string.video_format),
+            content = buildString {
+                append(formatLabel)
+                videoHdr.codecs?.let { append(" • $it") }
+            }
+        )
     }
 
     return info

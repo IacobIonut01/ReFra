@@ -108,7 +108,9 @@ import com.dot.gallery.core.Settings.Misc.rememberShowFavoriteButton
 import com.dot.gallery.core.Settings.Misc.rememberShowMediaViewDateHeader
 import com.dot.gallery.core.Settings.Misc.rememberTapSidesToNavigate
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
+import com.dot.gallery.core.Settings.Misc.rememberVideoHdrPlayback
 import com.dot.gallery.core.Settings.Misc.rememberVideoSurfaceRebind
+import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchAllowVault
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertFormat
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertMode
@@ -152,6 +154,7 @@ private const val DETAIL_EDITOR = "editor"
 private const val DETAIL_AUTO_HIDE_VIDEO = "auto_hide_video"
 private const val DETAIL_AUTO_PLAY = "auto_play"
 private const val DETAIL_SURFACE_REBIND = "surface_rebind"
+private const val DETAIL_HDR_VIDEO = "hdr_video"
 private const val DETAIL_DISABLE_SMOOTHING = "disable_smoothing"
 private const val DETAIL_DARK_BACKGROUND = "dark_background"
 private const val DETAIL_LONG_PRESS_CUTOUT = "long_press_cutout"
@@ -172,6 +175,10 @@ fun SettingsMediaViewerScreen() {
     var autoHideOnVideoPlay by rememberAutoHideOnVideoPlay()
     var autoPlayVideo by rememberVideoAutoplay()
     var videoSurfaceRebind by rememberVideoSurfaceRebind()
+    var hdrVideoPlayback by rememberVideoHdrPlayback()
+    // HDR output needs an HDR display; on SDR-only hardware the toggle is shown
+    // disabled so the setting stays discoverable without pretending to work.
+    val hdrDisplayCapable = remember { HdrCapabilities.isHdrDisplay(context) }
     var disableSmoothing by rememberDisableSmoothing()
     var darkMediaViewer by rememberDarkMediaViewer()
     var longPressCutout by rememberLongPressCutout()
@@ -314,6 +321,16 @@ fun SettingsMediaViewerScreen() {
                 description = stringResource(R.string.video_surface_rebind_description),
             )
         }
+        DETAIL_HDR_VIDEO -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(R.string.hdr_video_playback),
+                isChecked = hdrVideoPlayback,
+                onCheckedChange = { hdrVideoPlayback = it },
+                description = stringResource(R.string.hdr_video_playback_description),
+                enabled = hdrDisplayCapable,
+            )
+        }
         DETAIL_VISUAL_SEARCH -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -372,6 +389,9 @@ fun SettingsMediaViewerScreen() {
                 onAutoPlayChange = { autoPlayVideo = it },
                 videoSurfaceRebind = videoSurfaceRebind,
                 onSurfaceRebindChange = { videoSurfaceRebind = it },
+                hdrVideoPlayback = hdrVideoPlayback,
+                onHdrVideoPlaybackChange = { hdrVideoPlayback = it },
+                hdrDisplayCapable = hdrDisplayCapable,
                 reencodeMode = reencodeMode,
                 onReencodeModeChange = { reencodeMode = it },
                 reencodeLossyQuality = reencodeLossyQuality,
@@ -419,6 +439,9 @@ private fun MediaViewerListScreen(
     onAutoPlayChange: (Boolean) -> Unit,
     videoSurfaceRebind: Boolean,
     onSurfaceRebindChange: (Boolean) -> Unit,
+    hdrVideoPlayback: Boolean,
+    onHdrVideoPlaybackChange: (Boolean) -> Unit,
+    hdrDisplayCapable: Boolean,
     reencodeMode: String,
     onReencodeModeChange: (String) -> Unit,
     reencodeLossyQuality: Int,
@@ -628,13 +651,25 @@ private fun MediaViewerListScreen(
             screenPosition = Position.Bottom
         )
 
+        val hdrVideoPlaybackPref = rememberSwitchPreference(
+            hdrVideoPlayback, hdrDisplayCapable,
+            title = stringResource(R.string.hdr_video_playback),
+            summary = stringResource(R.string.hdr_video_playback_summary),
+            isChecked = hdrVideoPlayback,
+            onCheck = onHdrVideoPlaybackChange,
+            onClick = { onDetailClick(DETAIL_HDR_VIDEO) },
+            enabled = hdrDisplayCapable,
+            screenPosition = Position.Middle
+        )
+
         return remember(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
             showFavoriteButtonPref, defaultEditorPref, disableSmoothingPref, darkMediaViewerPref,
             longPressCutoutPref,
             visualSearchPref, slideshowPref,
             saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
-            videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref
+            videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref,
+            hdrVideoPlaybackPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(viewingHeader)
@@ -661,6 +696,7 @@ private fun MediaViewerListScreen(
                 add(videoPlaybackHeader)
                 add(autoHideOnVideoPlayPref)
                 add(autoPlayVideoPref)
+                add(hdrVideoPlaybackPref)
                 add(videoSurfaceRebindPref)
             }
         }
