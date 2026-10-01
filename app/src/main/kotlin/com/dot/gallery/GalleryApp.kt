@@ -52,6 +52,7 @@ import com.dot.gallery.core.startup.StartupWorkGate
 import com.dot.gallery.core.workers.TempVaultCleanupWorker
 import com.dot.gallery.core.workers.enqueueCaptureTimeIndex
 import com.dot.gallery.core.workers.enqueueMetadataLocationRepair
+import com.dot.gallery.core.workers.enqueueRedactedLocationRepair
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
 import com.dot.gallery.feature_node.presentation.frameextract.FrameSourceCleanup
@@ -235,6 +236,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
             startupGate.awaitFirstContent()
             workManager.enqueueCaptureTimeIndex()
             workManager.enqueueMetadataLocationRepair()
+            workManager.enqueueRedactedLocationRepair()
             metadataSanitizer.recoverPendingTransactions()
             FrameSourceCleanup.sweep(this@GalleryApp)
         }

@@ -28,7 +28,7 @@ object SafeExif {
 
     /** Open an [ExifInterface] over [uri] using a seekable file descriptor. Returns null on failure. */
     fun open(context: Context, uri: Uri): ExifInterface? = try {
-        context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+        context.openUnredactedFileDescriptor(uri)?.use { pfd ->
             ExifInterface(pfd.fileDescriptor)
         }
     } catch (_: Throwable) {

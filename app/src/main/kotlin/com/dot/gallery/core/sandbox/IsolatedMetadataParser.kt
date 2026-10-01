@@ -5,23 +5,17 @@
 
 package com.dot.gallery.core.sandbox
 
-import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
-import android.os.ParcelFileDescriptor
-import android.provider.MediaStore
-import androidx.core.content.ContextCompat
 import com.dot.gallery.core.decoder.format.SpecialFormatProbe
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_ERROR
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_IS_VIDEO
@@ -31,6 +25,7 @@ import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_RAW_DI
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.MSG_PARSE_IMAGE
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.MSG_PARSE_RAW_METADATA
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.MSG_PARSE_VIDEO
+import com.dot.gallery.core.util.openUnredactedFileDescriptor
 import com.dot.gallery.feature_node.presentation.exif.MetadataDirectory
 import com.dot.gallery.feature_node.presentation.exif.MetadataTag
 import com.dot.gallery.feature_node.presentation.util.printDebug
@@ -43,21 +38,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
-
-internal fun shouldRequestOriginalMetadata(
-    sdkInt: Int,
-    permissionGranted: Boolean,
-    isMediaStoreUri: Boolean
-): Boolean = sdkInt >= Build.VERSION_CODES.Q && permissionGranted && isMediaStoreUri
-
-internal fun <T> openOriginalOrFallback(
-    requestOriginal: Boolean,
-    openOriginal: () -> T?,
-    openFallback: () -> T?
-): T? {
-    if (requestOriginal) runCatching(openOriginal).getOrNull()?.let { return it }
-    return runCatching(openFallback).getOrNull()
-}
 
 /**
  * Client for [IsolatedMetadataService].
@@ -119,26 +99,6 @@ class IsolatedMetadataParser(private val context: Context) {
             bound = false
             serviceMessenger = null
         }
-    }
-
-    private fun openMetadataFileDescriptor(uri: Uri): ParcelFileDescriptor? {
-        val permissionGranted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_MEDIA_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        val isMediaStoreUri = uri.scheme == "content" && uri.authority == MediaStore.AUTHORITY
-        val requestOriginal = shouldRequestOriginalMetadata(
-            Build.VERSION.SDK_INT,
-            permissionGranted,
-            isMediaStoreUri
-        )
-        return openOriginalOrFallback(
-            requestOriginal = requestOriginal,
-            openOriginal = {
-                context.contentResolver.openFileDescriptor(MediaStore.setRequireOriginal(uri), "r")
-            },
-            openFallback = { context.contentResolver.openFileDescriptor(uri, "r") }
-        )
     }
 
     // ── Per-file isolation (API 29+) ──────────────────────────────────────
@@ -232,7 +192,7 @@ class IsolatedMetadataParser(private val context: Context) {
             return@withContext parseImageMetadata(uri, label)
         }
         try {
-            val pfd = openMetadataFileDescriptor(uri) ?: return@withContext null
+            val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext null
 
             pfd.use {
                 val result = sendAndReceive(conn.messenger, MSG_PARSE_IMAGE, Bundle().apply {
@@ -265,7 +225,7 @@ class IsolatedMetadataParser(private val context: Context) {
             return@withContext parseVideoMetadata(uri)
         }
         try {
-            val pfd = openMetadataFileDescriptor(uri) ?: return@withContext null
+            val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext null
 
             pfd.use {
                 val result = sendAndReceive(conn.messenger, MSG_PARSE_VIDEO, Bundle().apply {
@@ -296,7 +256,7 @@ class IsolatedMetadataParser(private val context: Context) {
             return@withContext parseRawMetadata(uri, isVideo)
         }
         try {
-            val pfd = openMetadataFileDescriptor(uri) ?: return@withContext emptyList()
+            val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext emptyList()
 
             pfd.use {
                 val bundle = sendAndReceive(conn.messenger, MSG_PARSE_RAW_METADATA, Bundle().apply {
@@ -326,7 +286,7 @@ class IsolatedMetadataParser(private val context: Context) {
     ): Bundle? = withContext(Dispatchers.IO) {
         val startNs = System.nanoTime()
         ensureBound()
-        val pfd = openMetadataFileDescriptor(uri) ?: return@withContext null
+        val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext null
 
         pfd.use {
             val result = sendAndReceive(MSG_PARSE_IMAGE, Bundle().apply {
@@ -347,7 +307,7 @@ class IsolatedMetadataParser(private val context: Context) {
     suspend fun parseVideoMetadata(uri: Uri): Bundle? = withContext(Dispatchers.IO) {
         val startNs = System.nanoTime()
         ensureBound()
-        val pfd = openMetadataFileDescriptor(uri) ?: return@withContext null
+        val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext null
 
         pfd.use {
             val result = sendAndReceive(MSG_PARSE_VIDEO, Bundle().apply {
@@ -368,7 +328,7 @@ class IsolatedMetadataParser(private val context: Context) {
         withContext(Dispatchers.IO) {
             val startNs = System.nanoTime()
             ensureBound()
-            val pfd = openMetadataFileDescriptor(uri) ?: return@withContext emptyList()
+            val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext emptyList()
 
             pfd.use {
                 val bundle = sendAndReceive(MSG_PARSE_RAW_METADATA, Bundle().apply {

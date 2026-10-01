@@ -147,6 +147,7 @@
     <string name="read_media_videos_summary">Ermöglicht es der App, deine Videos anzuzeigen</string>
     <string name="access_media_location">Standortdaten der Medien einlesen</string>
     <string name="access_media_location_summary"><![CDATA[Ermöglicht es der App, die Standortdaten deiner Bilder und Videos zu lesen]]></string>
+    <string name="location_access_row_hint">Zugriff erlauben, um Foto-Standorte zu lesen</string>
     <string name="internet">Internet</string>
     <string name="internet_summary"><![CDATA[Erforderlich zur Anzeige von Standortvorschauen Ihrer Bilder und Videos]]></string>
     <string name="fancy_blur">Unschärfe-Effekt</string>

@@ -155,7 +155,9 @@ data class MediaMetadata(
         }
 
     val formattedCords: String?
-        get() = if (gpsLatitude != null && gpsLongitude != null) String.format(
+        get() = if (gpsLatitude != null && gpsLongitude != null &&
+            !isRedactedCoordinate(gpsLatitude, gpsLongitude)
+        ) String.format(
             Locale.getDefault(), "%.3f, %.3f", gpsLatitude, gpsLongitude
         ) else null
 
@@ -218,6 +220,16 @@ enum class MetadataParsingPolicy {
 
 internal fun metadataParsingPolicy(bulk: Boolean): MetadataParsingPolicy =
     if (bulk) MetadataParsingPolicy.BULK_ISOLATED_ONLY else MetadataParsingPolicy.ON_DEMAND_COMPATIBLE
+
+/**
+ * The literal 0,0 coordinate pair is what MediaProvider writes into the GPS EXIF byte
+ * ranges when it serves a file with location redacted (missing ACCESS_MEDIA_LOCATION)
+ * — the IFD survives but parses as `GeoLocation(0.0, 0.0)`. Media genuinely lacking
+ * GPS has no GeoLocation at all and stores NULL instead, so an exact 0,0 match is the
+ * redaction signature and must be treated as "no coordinate", never as a position.
+ */
+internal fun isRedactedCoordinate(latitude: Double, longitude: Double): Boolean =
+    latitude == 0.0 && longitude == 0.0
 
 internal suspend fun <T> bestEffortReverseGeocode(
     enabled: Boolean,
@@ -309,8 +321,14 @@ private suspend fun mediaMetadataFromImageBundle(
     context: Context,
     allowInProcessFallback: Boolean
 ): MediaMetadata {
-    val gpsLatitude = if (bundle.containsKey(Keys.KEY_GPS_LAT)) bundle.getDouble(Keys.KEY_GPS_LAT) else null
-    val gpsLongitude = if (bundle.containsKey(Keys.KEY_GPS_LON)) bundle.getDouble(Keys.KEY_GPS_LON) else null
+    val rawLatitude = if (bundle.containsKey(Keys.KEY_GPS_LAT)) bundle.getDouble(Keys.KEY_GPS_LAT) else null
+    val rawLongitude = if (bundle.containsKey(Keys.KEY_GPS_LON)) bundle.getDouble(Keys.KEY_GPS_LON) else null
+    // Defensive gate for bundles produced by an older isolated service that stored the
+    // redacted 0,0 pair — keep them absent so nothing downstream renders a fake fix.
+    val (gpsLatitude, gpsLongitude) =
+        if (rawLatitude != null && rawLongitude != null && isRedactedCoordinate(rawLatitude, rawLongitude)) {
+            null to null
+        } else rawLatitude to rawLongitude
 
     // Geocoding runs in the main app process (needs network + GMS)
     val address = bestEffortReverseGeocode(
@@ -495,7 +513,7 @@ private suspend fun buildFallbackImageMetadata(
             resX = exif.getAttributeDouble(ExifInterface.TAG_X_RESOLUTION, 0.0).takeIf { it > 0 }
             resY = exif.getAttributeDouble(ExifInterface.TAG_Y_RESOLUTION, 0.0).takeIf { it > 0 }
             resUnit = exif.getAttributeInt(ExifInterface.TAG_RESOLUTION_UNIT, 0).takeIf { it > 0 }
-            exif.latLong?.let {
+            exif.latLong?.takeUnless { isRedactedCoordinate(it[0], it[1]) }?.let {
                 gpsLatitude = it[0]
                 gpsLongitude = it[1]
             }

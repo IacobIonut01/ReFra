@@ -127,6 +127,15 @@ interface MetadataDao {
     @Query("SELECT * FROM media_metadata_core WHERE mediaId = :id")
     suspend fun getCoreMetadata(id: Long): MediaMetadataCore?
 
+    /**
+     * Media ids whose stored coordinates are the literal 0,0 pair — the signature
+     * MediaProvider produces when it serves a file with GPS redacted because
+     * ACCESS_MEDIA_LOCATION is missing. Genuine no-GPS media stores NULL, so this
+     * set is exactly "rows parsed under redaction" and safe to re-parse on grant.
+     */
+    @Query("SELECT mediaId FROM media_metadata_core WHERE gpsLatitude = 0.0 AND gpsLongitude = 0.0")
+    suspend fun getZeroCoordinateMediaIds(): List<Long>
+
     @Query(
         """
         SELECT mediaId, gpsLatitude, gpsLongitude

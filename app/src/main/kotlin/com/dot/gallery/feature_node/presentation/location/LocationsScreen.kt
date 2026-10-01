@@ -46,8 +46,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.work.WorkManager
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -67,6 +69,7 @@ import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Color
 import com.dot.gallery.core.presentation.components.util.advancedShadow
+import com.dot.gallery.core.workers.enqueueRedactedLocationRepair
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.util.GlideInvalidation
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
@@ -101,9 +104,15 @@ fun LocationsScreen(
         // EXIF, so nothing can resolve to a location — surface that instead of
         // silently showing an empty screen.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val context = LocalContext.current
             val locationPermission = rememberPermissionState(
                 Manifest.permission.ACCESS_MEDIA_LOCATION
-            )
+            ) { granted ->
+                // Rows parsed under redaction carry a 0,0 signature — re-parse them now.
+                if (granted) {
+                    WorkManager.getInstance(context).enqueueRedactedLocationRepair()
+                }
+            }
             if (!locationPermission.status.isGranted) {
                 Card(
                     modifier = Modifier

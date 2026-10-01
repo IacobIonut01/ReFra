@@ -4,10 +4,11 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataPolicy
 import com.dot.gallery.core.metadata.MetadataRemovalMode
-import com.dot.gallery.core.sandbox.openOriginalOrFallback
-import com.dot.gallery.core.sandbox.shouldRequestOriginalMetadata
+import com.dot.gallery.core.util.openOriginalOrFallback
+import com.dot.gallery.core.util.shouldRequestOriginalMetadata
 import com.dot.gallery.feature_node.data.repository.shouldUsePerFileMetadataIsolation
 import com.dot.gallery.feature_node.domain.model.MetadataParsingPolicy
+import com.dot.gallery.feature_node.domain.model.isRedactedCoordinate
 import com.dot.gallery.feature_node.domain.model.bestEffortReverseGeocode
 import com.dot.gallery.feature_node.domain.model.metadataParsingPolicy
 import kotlinx.coroutines.CancellationException
@@ -118,6 +119,15 @@ class MetadataPolicyTest {
             latitude = 51.5,
             longitude = -0.1
         ) { _, _ -> throw CancellationException("cancelled") }
+    }
+
+    @Test
+    fun redactedCoordinateSignatureIsExactZeroPair() {
+        assertTrue(isRedactedCoordinate(0.0, 0.0))
+        assertTrue(isRedactedCoordinate(-0.0, -0.0))
+        assertFalse(isRedactedCoordinate(0.0, 26.1))
+        assertFalse(isRedactedCoordinate(44.4, 26.1))
+        assertFalse(isRedactedCoordinate(Double.NaN, 0.0))
     }
 
     @Test

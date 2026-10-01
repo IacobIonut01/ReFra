@@ -12,6 +12,7 @@ import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
 import com.dot.gallery.cloud.offline.CloudMediaCache
+import com.dot.gallery.core.util.openUnredactedFileDescriptor
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.util.MotionPhotoHelper
@@ -261,7 +262,7 @@ class FrameSourceMaterializer @Inject constructor(
         val location = runCatching {
             prepared.localFile?.takeIf(File::exists)?.let { file ->
                 ExifInterface(file).latLong
-            } ?: context.contentResolver.openFileDescriptor(prepared.sourceUri, "r")?.use { descriptor ->
+            } ?: context.openUnredactedFileDescriptor(prepared.sourceUri)?.use { descriptor ->
                 ExifInterface(descriptor.fileDescriptor).latLong
             }
         }.getOrNull() ?: return prepared

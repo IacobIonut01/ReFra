@@ -12,10 +12,13 @@ import androidx.work.WorkManager
 import com.dot.gallery.cloud.core.CloudMapMarker
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.data.entity.CloudMediaEntity
+import android.content.ContentUris
+import android.provider.MediaStore
 import com.dot.gallery.core.workers.METADATA_LOCATION_REPAIR_WORK
 import com.dot.gallery.core.workers.metadataLocationRepairRequest
 import com.dot.gallery.core.workers.metadataLocationRepairResult
 import com.dot.gallery.core.workers.repairPendingMetadataLocations
+import com.dot.gallery.core.workers.repairRedactedMetadataLocations
 import com.dot.gallery.feature_node.data.data_source.GeocodedMetadataLocation
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.feature_node.data.data_source.MediaFeature
@@ -24,6 +27,8 @@ import com.dot.gallery.feature_node.data.data_source.MediaFeatureStatus
 import com.dot.gallery.feature_node.data.data_source.MetadataDao
 import com.dot.gallery.feature_node.domain.model.GeoMedia
 import com.dot.gallery.feature_node.domain.model.LocationMedia
+import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.MediaMetadata
 import com.dot.gallery.feature_node.domain.model.MediaMetadataCore
 import com.dot.gallery.feature_node.domain.model.MediaVersion
 import com.dot.gallery.feature_node.presentation.location.AccountCloudMapMarker
@@ -616,6 +621,92 @@ class MetadataDaoTest {
 
         assertEquals("Constanța", address.locationGroupName)
     }
+
+    @Test
+    fun zeroCoordinateRowsAreSelectedForRedactionRepair() = runBlocking {
+        dao.upsertCore(metadata(1L, locationName = null, country = null, city = null)
+            .copy(gpsLatitude = 0.0, gpsLongitude = 0.0))
+        dao.upsertCore(metadata(2L, locationName = null, country = null, city = null))
+        dao.upsertCore(metadata(3L, locationName = null, country = null, city = null)
+            .copy(gpsLatitude = null, gpsLongitude = null))
+        dao.upsertCore(metadata(4L, locationName = null, country = null, city = null)
+            .copy(gpsLatitude = 0.0, gpsLongitude = 26.1))
+
+        assertEquals(listOf(1L), dao.getZeroCoordinateMediaIds())
+    }
+
+    @Test
+    fun redactedLocationRepairReparsesOnlyPoisonedRows() = runBlocking {
+        val mediaDao = database.getMediaDao()
+        mediaDao.addMediaList(listOf(uriMedia(1L), uriMedia(3L)))
+        dao.upsertCore(metadata(1L, locationName = null, country = null, city = null)
+            .copy(gpsLatitude = 0.0, gpsLongitude = 0.0))
+        dao.upsertCore(metadata(2L, locationName = null, country = null, city = null)
+            .copy(gpsLatitude = 0.0, gpsLongitude = 0.0))
+        dao.upsertCore(metadata(3L, locationName = null, country = null, city = null)
+            .copy(gpsLatitude = 0.0, gpsLongitude = 0.0))
+        dao.upsertCore(metadata(4L, locationName = null, country = null, city = null))
+
+        val parsedIds = mutableListOf<Long>()
+        val repaired = repairRedactedMetadataLocations(mediaDao, dao) { media ->
+            parsedIds += media.id
+            if (media.id == 3L) null else parsedMetadata(media.id, 44.4, 26.1)
+        }
+
+        assertEquals(1, repaired)
+        assertEquals(setOf(1L, 3L), parsedIds.toSet())
+        assertEquals(44.4, dao.getCoreMetadata(1L)?.gpsLatitude ?: -1.0, 0.0)
+        assertEquals(0.0, dao.getCoreMetadata(2L)?.gpsLatitude ?: -1.0, 0.0)
+        assertEquals(0.0, dao.getCoreMetadata(3L)?.gpsLatitude ?: -1.0, 0.0)
+        assertEquals(51.5, dao.getCoreMetadata(4L)?.gpsLatitude ?: -1.0, 0.0)
+    }
+
+    private fun uriMedia(id: Long) = Media.UriMedia(
+        id = id,
+        label = "IMG_$id.jpg",
+        uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id),
+        path = "/storage/emulated/0/DCIM/IMG_$id.jpg",
+        relativePath = "DCIM/",
+        albumID = -1L,
+        albumLabel = "Camera",
+        timestamp = 1_700_000_000L,
+        fullDate = "",
+        mimeType = "image/jpeg",
+        favorite = 0,
+        trashed = 0,
+        size = 1_000_000L
+    )
+
+    private fun parsedMetadata(mediaId: Long, lat: Double?, lon: Double?) = MediaMetadata(
+        mediaId = mediaId,
+        imageDescription = null,
+        dateTimeOriginal = null,
+        manufacturerName = "Google",
+        modelName = "Pixel",
+        aperture = null,
+        exposureTime = null,
+        iso = null,
+        gpsLatitude = lat,
+        gpsLongitude = lon,
+        gpsLocationName = null,
+        gpsLocationNameCountry = null,
+        gpsLocationNameCity = null,
+        imageWidth = 4000,
+        imageHeight = 3000,
+        imageResolutionX = null,
+        imageResolutionY = null,
+        resolutionUnit = null,
+        durationMs = null,
+        videoWidth = null,
+        videoHeight = null,
+        frameRate = null,
+        bitRate = null,
+        isNightMode = false,
+        isPanorama = false,
+        isPhotosphere = false,
+        isLongExposure = false,
+        isMotionPhoto = false
+    )
 
     private fun londonAddress() = Address(Locale.US).apply {
         locality = "London"

@@ -26,6 +26,7 @@ import com.drew.metadata.mov.media.QuickTimeVideoDirectory
 import com.drew.metadata.mp4.media.Mp4VideoDirectory
 import com.drew.metadata.xmp.XmpDirectory
 import com.drew.metadata.xmp.XmpReader
+import com.dot.gallery.feature_node.domain.model.isRedactedCoordinate
 import com.dot.gallery.feature_node.domain.model.parseCaptureTimestamp
 import com.dot.gallery.feature_node.presentation.util.printError
 import java.io.ByteArrayInputStream
@@ -253,14 +254,17 @@ class IsolatedMetadataService : Service() {
             }
         }
 
-        // GPS
+        // GPS. A redacted read (no ACCESS_MEDIA_LOCATION) reaches us as a zeroed
+        // GpsDirectory parsing to 0,0 — drop it so the row stores absent, not a fake fix.
         meta.getDirectoriesOfType(GpsDirectory::class.java).forEach { dir ->
-            dir.geoLocation?.let {
-                if (!result.containsKey(KEY_GPS_LAT)) {
-                    result.putDouble(KEY_GPS_LAT, it.latitude)
-                    result.putDouble(KEY_GPS_LON, it.longitude)
+            dir.geoLocation
+                ?.takeUnless { isRedactedCoordinate(it.latitude, it.longitude) }
+                ?.let {
+                    if (!result.containsKey(KEY_GPS_LAT)) {
+                        result.putDouble(KEY_GPS_LAT, it.latitude)
+                        result.putDouble(KEY_GPS_LON, it.longitude)
+                    }
                 }
-            }
         }
 
         // XMP + feature flags

@@ -52,6 +52,7 @@ import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.work.WorkManager
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.dot.gallery.R
@@ -71,6 +72,7 @@ import com.dot.gallery.core.metadata.SanitizationResult
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.NavigationBarSpacer
 import com.dot.gallery.core.util.SdkCompat
+import com.dot.gallery.core.workers.enqueueRedactedLocationRepair
 import com.dot.gallery.feature_node.domain.model.AlbumState
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.domain.model.MediaMetadataState
@@ -477,6 +479,26 @@ fun <T : Media> MediaViewSheetDetails(
                                     navigateFromViewer(Screen.LocationsScreen.withMediaId(currentMedia.id))
                                 }
                             )
+                            if (locationData == null && currentMedia.isImage &&
+                                !currentMedia.isCloud && !currentMedia.isEncrypted &&
+                                !currentMedia.readUriOnly
+                            ) {
+                                LocationAccessItem(
+                                    iconBackgroundModifier = Modifier
+                                        .then(iconBackgroundModifier)
+                                        .hazeEffectScaled(
+                                            state = LocalHazeState.current,
+                                            style = iconBackgroundHazeStyle
+                                        ),
+                                    onGranted = {
+                                        scope.launch {
+                                            handler.collectMetadataFor(currentMedia)
+                                            WorkManager.getInstance(context)
+                                                .enqueueRedactedLocationRepair()
+                                        }
+                                    }
+                                )
+                            }
                             AnimatedVisibility(visible = currentMedia.canMakeActions) {
                                 Row(
                                     modifier = Modifier

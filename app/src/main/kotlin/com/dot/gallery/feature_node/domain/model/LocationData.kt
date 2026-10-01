@@ -28,10 +28,14 @@ fun rememberLocationData(
     var locationName by remember { mutableStateOf(exifMetadata?.formattedCords) }
     LaunchedEffect(geocoder, exifMetadata) {
         withContext(Dispatchers.IO) {
-            if (exifMetadata?.gpsLongitude != null && exifMetadata.gpsLatitude != null) {
+            val latitude = exifMetadata?.gpsLatitude
+            val longitude = exifMetadata?.gpsLongitude
+            if (latitude != null && longitude != null &&
+                !isRedactedCoordinate(latitude, longitude)
+            ) {
                 geocoder?.getLocation(
-                    exifMetadata.gpsLatitude,
-                    exifMetadata.gpsLongitude
+                    latitude,
+                    longitude
                 ) { address ->
                     address?.let {
                         val addressName = it.formattedAddress
@@ -45,7 +49,9 @@ fun rememberLocationData(
     }
     return remember(exifMetadata, locationName) {
         exifMetadata?.let {
-            if (it.gpsLatitude == null || it.gpsLongitude == null) return@let null
+            if (it.gpsLatitude == null || it.gpsLongitude == null ||
+                isRedactedCoordinate(it.gpsLatitude, it.gpsLongitude)
+            ) return@let null
             LocationData(
                 latitude = it.gpsLatitude,
                 longitude = it.gpsLongitude,
