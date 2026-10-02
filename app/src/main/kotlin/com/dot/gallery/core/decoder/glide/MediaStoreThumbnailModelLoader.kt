@@ -24,6 +24,7 @@ import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
+import com.dot.gallery.core.image.thumbnail.HeavyThumbnailClassifier
 import com.dot.gallery.feature_node.presentation.util.printError
 import java.io.IOException
 
@@ -85,19 +86,28 @@ class MediaStoreThumbnailModelLoader(
         bypassCache.get(key)?.let { return it }
         val shouldBypass = runCatching {
             val mime = contentResolver.getType(uri)
-            if (mime == "image/jpeg") {
-                contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
-                    val exif = ExifInterface(descriptor.fileDescriptor)
-                    shouldBypassPlatformThumbnail(
-                        hasEmbeddedThumbnail = exif.hasThumbnail(),
-                        lensModel = exif.getAttribute(ExifInterface.TAG_LENS_MODEL),
-                    )
-                } ?: false
-            } else {
-                // The platform thumbnailer corrupts >10-bit AVIF exactly like ImageDecoder.
-                // A confident >10-bit probe on a bounded head chunk bypasses to the app's own
-                // HEIF decoders; anything less keeps the fast platform path.
-                HeifUriProbe.needsSoftwareDecode(contentResolver, uri, mime)
+            when {
+                // #1276: the platform thumbnailer has no decoder for software-only formats
+                // (JXL/PSD/JP2/TIFF/RAW, >10-bit HEIF) — attempting it is a guaranteed
+                // IOException plus a per-cell error log, once per miss forever. classify() is
+                // memoized per Uri, so URIs already claimed by the persistent thumbnail loader
+                // cost a map hit; unusable-MIME formats get sniffed once per process.
+                HeavyThumbnailClassifier.classify(contentResolver, uri) != null -> true
+                mime == "image/jpeg" -> {
+                    contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
+                        val exif = ExifInterface(descriptor.fileDescriptor)
+                        shouldBypassPlatformThumbnail(
+                            hasEmbeddedThumbnail = exif.hasThumbnail(),
+                            lensModel = exif.getAttribute(ExifInterface.TAG_LENS_MODEL),
+                        )
+                    } ?: false
+                }
+                else -> {
+                    // The platform thumbnailer corrupts >10-bit AVIF exactly like ImageDecoder.
+                    // A confident >10-bit probe on a bounded head chunk bypasses to the app's own
+                    // HEIF decoders; anything less keeps the fast platform path.
+                    HeifUriProbe.needsSoftwareDecode(contentResolver, uri, mime)
+                }
             }
         }.getOrDefault(false)
         bypassCache.put(key, shouldBypass)

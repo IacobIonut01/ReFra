@@ -41,6 +41,21 @@ object ImageFormatSniffer {
                 header[2] == 0xFF.toByte() && header[3] == 0x51.toByte()
     }
 
+    /**
+     * JPEG XL: raw codestream (`FF 0A`) or ISO-BMFF container signature box
+     * (`00 00 00 0C` + `JXL ` + `0D 0A 87 0A`).
+     */
+    fun isJxl(header: ByteArray, length: Int = header.size): Boolean {
+        if (length >= 2 && header[0] == 0xFF.toByte() && header[1] == 0x0A.toByte()) return true
+        return length >= 12 &&
+                header[0] == 0x00.toByte() && header[1] == 0x00.toByte() &&
+                header[2] == 0x00.toByte() && header[3] == 0x0C.toByte() &&
+                header[4] == 0x4A.toByte() && header[5] == 0x58.toByte() && // 'JX'
+                header[6] == 0x4C.toByte() && header[7] == 0x20.toByte() && // 'L '
+                header[8] == 0x0D.toByte() && header[9] == 0x0A.toByte() &&
+                header[10] == 0x87.toByte() && header[11] == 0x0A.toByte()
+    }
+
     /** JPEG: SOI marker `FF D8 FF`. */
     fun isJpeg(header: ByteArray, length: Int = header.size): Boolean =
         length >= 3 &&

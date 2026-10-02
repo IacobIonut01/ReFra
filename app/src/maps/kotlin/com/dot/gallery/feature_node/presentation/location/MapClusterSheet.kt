@@ -69,7 +69,7 @@ internal fun MapClusterSheet(
                             modifier = Modifier.fillMaxSize(),
                             requestBuilderTransform = {
                                 it.centerCrop()
-                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                                     .signature(GlideInvalidation.signature(item.media))
                             },
                         )

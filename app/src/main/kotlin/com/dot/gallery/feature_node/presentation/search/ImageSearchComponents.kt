@@ -129,7 +129,7 @@ fun ImageSearchChip(
                 contentDescription = stringResource(R.string.image_search_preview),
                 contentScale = ContentScale.Crop,
                 requestBuilderTransform = {
-                    it.centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL)
+                    it.centerCrop().diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 }
             )
         }
@@ -182,7 +182,7 @@ fun ImageSearchPreviewDialog(
                     contentDescription = stringResource(R.string.image_search_preview),
                     contentScale = ContentScale.Crop,
                     requestBuilderTransform = {
-                        it.centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL)
+                        it.centerCrop().diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                     }
                 )
                 Text(

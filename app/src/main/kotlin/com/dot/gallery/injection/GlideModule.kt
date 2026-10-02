@@ -42,6 +42,7 @@ import com.dot.gallery.core.decoder.glide.SandboxedJxlBitmapDecoder
 import com.dot.gallery.core.decoder.glide.JxlEncryptedDecoder
 import com.dot.gallery.core.decoder.glide.JxlEncryptedSourceDecoder
 import com.dot.gallery.core.decoder.glide.MediaStoreThumbnailModelLoader
+import com.dot.gallery.core.decoder.glide.PersistentThumbnailModelLoader
 import com.dot.gallery.core.decoder.glide.MimeInputStream
 import com.dot.gallery.cloud.image.CloudGlideModelLoader
 import com.dot.gallery.core.decoder.glide.MimeInputStreamModelLoader
@@ -111,6 +112,16 @@ class GlideModule: AppGlideModule() {
             Uri::class.java,
             Bitmap::class.java,
             MediaStoreThumbnailModelLoader.Factory(context)
+        )
+
+        // #1276: persistent canonical-thumbnail store for software-decoded formats
+        // (JXL/PSD/JP2/TIFF/RAW/>10-bit HEIF). Prepended after MediaStoreThumbnailModelLoader so
+        // it is checked first: those formats always fail the platform thumbnailer, and a stored
+        // 512 px entry survives Glide disk-cache eviction — one decode per file per install.
+        registry.prepend(
+            Uri::class.java,
+            Bitmap::class.java,
+            PersistentThumbnailModelLoader.Factory(context)
         )
 
         // New streaming model loaders (File/Uri -> EncryptedMediaSource -> InputStream) placed first.

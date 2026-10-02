@@ -68,16 +68,7 @@ object SpecialFormatProbe {
     }
 
     /** JPEG XL: raw codestream (FF 0A) or ISO-BMFF container signature box. */
-    private fun isJxl(b: ByteArray): Boolean {
-        if (b.size >= 2 && b[0] == 0xFF.toByte() && b[1] == 0x0A.toByte()) return true
-        return b.size >= 12 &&
-                b[0] == 0x00.toByte() && b[1] == 0x00.toByte() &&
-                b[2] == 0x00.toByte() && b[3] == 0x0C.toByte() &&
-                b[4] == 0x4A.toByte() && b[5] == 0x58.toByte() && // 'JX'
-                b[6] == 0x4C.toByte() && b[7] == 0x20.toByte() && // 'L '
-                b[8] == 0x0D.toByte() && b[9] == 0x0A.toByte() &&
-                b[10] == 0x87.toByte() && b[11] == 0x0A.toByte()
-    }
+    private fun isJxl(b: ByteArray): Boolean = ImageFormatSniffer.isJxl(b, b.size)
 
     /** HEIF/HEIC/AVIF: ISO-BMFF with an 'ftyp' box whose major/compatible brand is HEIF-family. */
     private fun isHeifOrAvif(b: ByteArray): Boolean {

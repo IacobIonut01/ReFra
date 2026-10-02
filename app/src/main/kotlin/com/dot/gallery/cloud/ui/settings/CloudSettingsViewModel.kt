@@ -17,6 +17,7 @@ import com.dot.gallery.cloud.network.ServerUrlResolver
 import com.dot.gallery.cloud.offline.CloudMediaCache
 import com.dot.gallery.cloud.sync.CloudSyncScheduler
 import com.dot.gallery.cloud.sync.cloudSyncScheduleChanged
+import com.dot.gallery.core.image.thumbnail.LocalThumbnailStore
 import com.github.panpf.sketch.sketch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -133,6 +134,9 @@ class CloudSettingsViewModel @Inject constructor(
                 runCatching { context.sketch.resultCache.clear() }
                 runCatching { context.sketch.downloadCache.clear() }
                 runCatching { Glide.get(context).clearDiskCache() }
+                // #1276: the persistent thumbnail store lives in filesDir, not Glide's cache —
+                // clear it under the same "clear image caches" semantic.
+                runCatching { LocalThumbnailStore.clearShared(context) }
                 runCatching { File(context.cacheDir, "cloud_zoom_originals").deleteRecursively() }
                 runCatching { File(context.cacheDir, "cloud_http_cache").deleteRecursively() }
             }

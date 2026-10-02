@@ -126,7 +126,10 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
             loading = placeholder(0x4D444444.toDrawable()),
             failure = placeholder(0x33444444.toDrawable()),
             requestBuilderTransform = {
-                val base = it.centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL)
+                // #1276: AUTOMATIC, not ALL — ALL also source-caches the fetched InputStream for
+                // LOCAL fetchers, copying each multi-MB original into the bounded disk cache and
+                // evicting the decoded thumbnails it just wrote. Remote models still cache source.
+                val base = it.centerCrop().diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 // Cheap MOTION-tier sub-request: small, static, stable key. It is used both as the
                 // standalone request during a fling and as the idle refined request's thumbnail
                 // placeholder, so the same bitmap is decoded once and reused (no flicker/re-decode).

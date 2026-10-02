@@ -60,7 +60,7 @@ internal fun StaticMapPreview(
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 requestBuilderTransform = {
-                    it.diskCacheStrategy(DiskCacheStrategy.ALL)
+                    it.diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 },
             )
         }

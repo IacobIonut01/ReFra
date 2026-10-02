@@ -797,7 +797,7 @@ fun AlbumPreferenceItem(
                         modifier = Modifier.fillMaxSize(),
                         requestBuilderTransform = {
                             it.centerCrop()
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                         }
                     )
                     // Dark scrim overlay on back thumbnail
@@ -822,7 +822,7 @@ fun AlbumPreferenceItem(
                         modifier = Modifier.fillMaxSize(),
                         requestBuilderTransform = {
                             it.centerCrop()
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                         }
                     )
                 }
@@ -862,7 +862,7 @@ fun AlbumPreferenceItem(
                                 modifier = Modifier.fillMaxSize(),
                                 requestBuilderTransform = {
                                     it.centerCrop()
-                                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                                 }
                             )
                         }

@@ -203,7 +203,7 @@ fun CollectionComponent(
                     contentScale = ContentScale.Crop,
                     requestBuilderTransform = {
                         it.centerCrop()
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                             .thumbnail(it.clone().sizeMultiplier(0.4f))
                     }
                 )
@@ -416,7 +416,7 @@ fun CollectionRowComponent(
                     contentScale = ContentScale.Crop,
                     requestBuilderTransform = {
                         it.centerCrop()
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                             .thumbnail(it.clone().sizeMultiplier(0.4f))
                     }
                 )

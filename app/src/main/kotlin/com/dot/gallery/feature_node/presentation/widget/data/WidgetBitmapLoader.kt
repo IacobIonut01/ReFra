@@ -100,7 +100,7 @@ object WidgetBitmapLoader {
                 .load(uri)
                 .centerCrop()
                 .override(maxWidth, maxHeight)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .submit()
                 .get()
             return@withContext bitmap

@@ -7,6 +7,7 @@ import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapResource
+import com.dot.gallery.core.decoder.format.ImageFormatSniffer
 import java.io.InputStream
 
 class JxlBitmapDecoder(
@@ -18,19 +19,7 @@ class JxlBitmapDecoder(
         val head = ByteArray(12)
         val read = source.read(head)
         source.reset()
-        if (read < 2) return false
-        // Raw JPEG XL codestream: starts with 0xFF 0x0A
-        if (head[0] == 0xFF.toByte() && head[1] == 0x0A.toByte()) return true
-        // ISO-BMFF container: 12-byte signature box with type 'JXL ' at offset 4
-        if (read >= 12 &&
-            head[0] == 0x00.toByte() && head[1] == 0x00.toByte() &&
-            head[2] == 0x00.toByte() && head[3] == 0x0C.toByte() &&
-            head[4] == 0x4A.toByte() && head[5] == 0x58.toByte() &&
-            head[6] == 0x4C.toByte() && head[7] == 0x20.toByte() &&
-            head[8] == 0x0D.toByte() && head[9] == 0x0A.toByte() &&
-            head[10] == 0x87.toByte() && head[11] == 0x0A.toByte()
-        ) return true
-        return false
+        return ImageFormatSniffer.isJxl(head, read)
     }
 
     override fun decode(

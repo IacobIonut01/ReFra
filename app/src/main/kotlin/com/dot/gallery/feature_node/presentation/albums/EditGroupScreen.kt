@@ -261,7 +261,7 @@ private fun EditGroupAlbumItem(
                     contentScale = ContentScale.Crop,
                     requestBuilderTransform = {
                         val newRequest = it.centerCrop()
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                         newRequest.thumbnail(newRequest.clone().sizeMultiplier(0.4f))
                             .signature(GlideInvalidation.signature(album))
                     }

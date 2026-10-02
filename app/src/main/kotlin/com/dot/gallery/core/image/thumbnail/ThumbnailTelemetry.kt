@@ -5,6 +5,7 @@
 
 package com.dot.gallery.core.image.thumbnail
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.os.Trace
@@ -16,6 +17,8 @@ import com.dot.gallery.BuildConfig
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printInfo
 import com.dot.gallery.feature_node.presentation.util.printWarn
+import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicIntegerArray
 import java.util.concurrent.atomic.AtomicLong
 
@@ -59,6 +62,19 @@ object ThumbnailTelemetry {
     // Latency histogram (BUCKET_EDGES_MS.size + 1 buckets, last is overflow).
     private val histogram = AtomicIntegerArray(BUCKET_EDGES_MS.size + 1)
     private val totalLatencyMs = AtomicLong(0)
+
+    // #1276: per-format fill counter for the persistent thumbnail store — "which formats
+    // regenerate" is measurable instead of anecdotal. Keyed by HeavyThumbFormat name (≤6 entries).
+    private val storeFills = ConcurrentHashMap<String, AtomicLong>()
+
+    /**
+     * Records a store fill (decode that wrote a canonical thumbnail) for [format]
+     * (`HeavyThumbFormat.name`). No-op in release.
+     */
+    fun recordStoreFill(format: String) {
+        if (!enabled) return
+        storeFills.getOrPut(format) { AtomicLong(0) }.incrementAndGet()
+    }
 
     /**
      * A [RequestListener] that times a single Glide request and folds the result into the
@@ -138,6 +154,7 @@ object ThumbnailTelemetry {
         totalLatencyMs.set(0)
         for (i in 0 until cacheSourceCounts.length()) cacheSourceCounts.set(i, 0)
         for (i in 0 until histogram.length()) histogram.set(i, 0)
+        storeFills.clear()
     }
 
     /** Concise, allocation-light snapshot suitable for logcat and instrumentation assertions. */
@@ -159,14 +176,42 @@ object ThumbnailTelemetry {
             val overflow = histogram.get(BUCKET_EDGES_MS.size)
             if (overflow > 0) append(">${BUCKET_EDGES_MS.last()}ms:$overflow")
         }.trim()
+        val fills = buildString {
+            storeFills.entries.sortedBy { it.key }.forEach { (k, v) ->
+                if (v.get() > 0) append("$k=${v.get()} ")
+            }
+        }.trim()
         return "Thumbnails: started=${started.get()} ok=$ok failed=${failed.get()} " +
                 "avg=${avg}ms slow[>750=${slow750.get()} >2s=${slow2s.get()} >5s=${slow5s.get()}] " +
-                "cache[$cache] hist[$hist]"
+                "cache[$cache] hist[$hist] storeFills[$fills]"
     }
 
     /** Emit [dump] to logcat under [TAG]; call after a scroll/soak window. */
     fun logDump() {
         if (!enabled) return
         printInfo(TAG, dump())
+    }
+
+    /**
+     * #1276: disk-cache occupancy — Glide's bounded cache plus the persistent thumbnail store's
+     * entries/bytes/hit-miss counters. Confirms whether `image_manager_disk_cache` is saturated
+     * and whether the store is absorbing heavy-format decodes. Call alongside [logDump].
+     */
+    fun logStorageStats(context: Context) {
+        if (!enabled) return
+        fun dirStats(dir: File): Pair<Int, Long> {
+            val files = runCatching { dir.listFiles { f -> f.isFile } }.getOrNull()
+                ?: return 0 to 0L
+            return files.size to files.sumOf { it.length() }
+        }
+        val (glideEntries, glideBytes) =
+            dirStats(File(context.cacheDir, "image_manager_disk_cache"))
+        val snap = LocalThumbnailStore.shared(context).snapshot()
+        printInfo(
+            TAG,
+            "storage glideCache[entries=$glideEntries bytes=${glideBytes / 1024}KB] " +
+                    "thumbStore[entries=${snap.entries} bytes=${snap.bytes / 1024}KB " +
+                    "hits=${snap.hits} misses=${snap.misses} writes=${snap.writes}]"
+        )
     }
 }

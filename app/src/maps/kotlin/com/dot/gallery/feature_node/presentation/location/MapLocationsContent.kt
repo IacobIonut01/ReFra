@@ -307,7 +307,7 @@ internal fun MapLocationsContent(
                     .asBitmap()
                     .load(uri)
                     .centerCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                     .signature(GlideInvalidation.signature(item.media))
                     .submit(thumbSize, thumbSize)
                     .get()

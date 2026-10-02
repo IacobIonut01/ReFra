@@ -95,7 +95,7 @@ fun MapPreviewCard(
                 contentScale = ContentScale.Crop,
                 requestBuilderTransform = {
                     it.signature(GlideInvalidation.signature(latestMedia))
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 }
             )
         }

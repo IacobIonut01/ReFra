@@ -127,7 +127,7 @@ fun LocationDetailSheet(
                                 .align(Alignment.Center),
                             contentScale = ContentScale.Crop,
                             requestBuilderTransform = {
-                                it.diskCacheStrategy(DiskCacheStrategy.ALL)
+                                it.diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                             }
                         )
                     }

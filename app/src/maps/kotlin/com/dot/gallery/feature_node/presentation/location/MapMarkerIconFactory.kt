@@ -28,7 +28,7 @@ object MapMarkerIconFactory {
         val target = glide
             .asBitmap()
             .load(media.getUri())
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
             .signature(GlideInvalidation.signature(media))
             .submit(sizePx, sizePx)
         return try {

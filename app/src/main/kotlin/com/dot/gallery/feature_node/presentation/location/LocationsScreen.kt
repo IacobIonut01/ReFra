@@ -391,7 +391,7 @@ private fun MapMediaCell(
             modifier = Modifier.fillMaxSize(),
             requestBuilderTransform = {
                 it.centerCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                     .signature(GlideInvalidation.signature(media))
             }
         )

@@ -399,6 +399,8 @@ class MainActivity : AppCompatActivity() {
         // Phase 1 (#1076): flush bounded thumbnail telemetry when backgrounding so a scroll/soak
         // session's latency + cache-source distribution can be read from logcat (staging/debug only).
         ThumbnailTelemetry.logDump()
+        // #1276: disk-cache occupancy + persistent-thumbnail-store counters alongside the dump.
+        ThumbnailTelemetry.logStorageStats(this)
     }
 
     private fun enforceSecureFlag() {
