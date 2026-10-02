@@ -28,7 +28,8 @@ data class WebDavResource(
     val etag: String = "",
     val isCollection: Boolean = false,
     val fileId: String = "",
-    val favorite: Boolean = false
+    val favorite: Boolean = false,
+    val creationDate: String = ""
 )
 
 /**
@@ -89,6 +90,7 @@ class WebDavClient(
                     <d:getcontenttype/>
                     <d:getcontentlength/>
                     <d:getlastmodified/>
+                    <d:creationdate/>
                     <d:getetag/>
                     <d:resourcetype/>
                     <oc:fileid/>
@@ -251,6 +253,7 @@ class WebDavClient(
                 val contentType = getTextContent(responseEl, "DAV:", "getcontenttype") ?: ""
                 val contentLength = getTextContent(responseEl, "DAV:", "getcontentlength")?.toLongOrNull() ?: 0L
                 val lastModified = getTextContent(responseEl, "DAV:", "getlastmodified") ?: ""
+                val creationDate = getTextContent(responseEl, "DAV:", "creationdate") ?: ""
                 val etag = getTextContent(responseEl, "DAV:", "getetag") ?: ""
                 val fileId = getTextContent(responseEl, "http://owncloud.org/ns", "fileid") ?: ""
                 val favorite = (getTextContent(responseEl, "http://owncloud.org/ns", "favorite") ?: "0") == "1"
@@ -276,6 +279,7 @@ class WebDavClient(
                         contentType = contentType,
                         contentLength = contentLength,
                         lastModified = lastModified,
+                        creationDate = creationDate,
                         etag = etag,
                         isCollection = isCollection,
                         fileId = fileId,

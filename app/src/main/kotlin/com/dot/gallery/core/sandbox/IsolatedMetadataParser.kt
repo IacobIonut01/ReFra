@@ -17,6 +17,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
+import android.os.ParcelFileDescriptor
 import com.dot.gallery.core.decoder.format.SpecialFormatProbe
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_ERROR
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion.KEY_IS_VIDEO
@@ -286,9 +287,22 @@ class IsolatedMetadataParser(private val context: Context) {
         uri: Uri,
         label: String
     ): Bundle? = withContext(Dispatchers.IO) {
+        val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext null
+        parseImageMetadata(pfd, label)
+    }
+
+    /**
+     * [parseImageMetadata] variant that reads from an already-open descriptor —
+     * the capture-time index hands cloud media bytes staged in a cache file this
+     * way, since `cloud://` URIs can't be opened through the content resolver.
+     * The descriptor is closed by this call.
+     */
+    suspend fun parseImageMetadata(
+        pfd: ParcelFileDescriptor,
+        label: String
+    ): Bundle? = withContext(Dispatchers.IO) {
         val startNs = System.nanoTime()
         ensureBound()
-        val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext null
 
         pfd.use {
             val result = sendAndReceive(MSG_PARSE_IMAGE, Bundle().apply {
@@ -307,20 +321,30 @@ class IsolatedMetadataParser(private val context: Context) {
      * Returns a [Bundle] with video fields, or null on failure.
      */
     suspend fun parseVideoMetadata(uri: Uri): Bundle? = withContext(Dispatchers.IO) {
-        val startNs = System.nanoTime()
-        ensureBound()
         val pfd = context.openUnredactedFileDescriptor(uri) ?: return@withContext null
-
-        pfd.use {
-            val result = sendAndReceive(MSG_PARSE_VIDEO, Bundle().apply {
-                putParcelable(KEY_PFD, it)
-            })
-
-            val elapsedMs = (System.nanoTime() - startNs) / 1_000_000
-            printDebug("IsolatedMetadataParser: video parse took ${elapsedMs}ms (isolated)")
-            result
-        }
+        parseVideoMetadata(pfd)
     }
+
+    /**
+     * [parseVideoMetadata] variant that reads from an already-open descriptor —
+     * see the image overload for when this is used. The descriptor is closed by
+     * this call.
+     */
+    suspend fun parseVideoMetadata(pfd: ParcelFileDescriptor): Bundle? =
+        withContext(Dispatchers.IO) {
+            val startNs = System.nanoTime()
+            ensureBound()
+
+            pfd.use {
+                val result = sendAndReceive(MSG_PARSE_VIDEO, Bundle().apply {
+                    putParcelable(KEY_PFD, it)
+                })
+
+                val elapsedMs = (System.nanoTime() - startNs) / 1_000_000
+                printDebug("IsolatedMetadataParser: video parse took ${elapsedMs}ms (isolated)")
+                result
+            }
+        }
 
     /**
      * Parse raw metadata for the "View all metadata" screen.

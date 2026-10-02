@@ -19,6 +19,7 @@ import com.dot.gallery.feature_node.domain.model.CaptureTimeOrigin
 import com.dot.gallery.feature_node.domain.model.Media
 import com.dot.gallery.feature_node.presentation.util.getCurrentAndroid
 import com.dot.gallery.feature_node.presentation.util.getDate
+import com.dot.gallery.feature_node.presentation.util.parseTimestampFromFilename
 import java.util.Base64
 import java.util.Calendar
 import java.util.Locale
@@ -115,8 +116,16 @@ data class CloudMediaEntity(
         // Media.definedTimestamp will divide by 1000 when needed
         val displayName = providerType.displayName
         val displayPath = if (path.isNotBlank()) "$displayName/$path" else "$displayName/$label"
+        // Capture-time tiering mirrors the local MediaStore flow
+        // (MediaStore date-taken -> filename -> modified): providers that can't report a
+        // capture date (WebDAV/Nextcloud/ownCloud/SMB/NFS) still get a filename-derived
+        // one, which the capture-time index later refines with the real embedded value.
+        val filenameTakenTimestamp = if (takenTimestamp == null) {
+            label.parseTimestampFromFilename()
+        } else null
+        val resolvedTakenTimestamp = takenTimestamp ?: filenameTakenTimestamp
         // Use takenTimestamp (millis/1000) for display date if available, else fallback to timestamp seconds
-        val displayDateSeconds = takenTimestamp?.let { it / 1000L } ?: timestampSeconds
+        val displayDateSeconds = resolvedTakenTimestamp?.let { it / 1000L } ?: timestampSeconds
         // Path-based providers (WebDAV/Nextcloud/ownCloud/SMB/NFS) can't report a video's duration,
         // but the item is still a video. `Media.isVideo` requires a non-null duration, so for video
         // mime types default a missing duration to "" (rendered as unknown length). Without this the
@@ -131,11 +140,11 @@ data class CloudMediaEntity(
             albumID = CLOUD_ALBUM_ID,
             albumLabel = displayName,
             timestamp = timestampSeconds,
-            takenTimestamp = takenTimestamp,
-            captureTimeOrigin = if (takenTimestamp != null) {
-                CaptureTimeOrigin.CLOUD_PROVIDER
-            } else {
-                CaptureTimeOrigin.MODIFIED_FALLBACK
+            takenTimestamp = resolvedTakenTimestamp,
+            captureTimeOrigin = when {
+                takenTimestamp != null -> CaptureTimeOrigin.CLOUD_PROVIDER
+                filenameTakenTimestamp != null -> CaptureTimeOrigin.FILENAME
+                else -> CaptureTimeOrigin.MODIFIED_FALLBACK
             },
             fullDate = fullDate ?: displayDateSeconds.getDate(Constants.EXTENDED_DATE_FORMAT),
             mimeType = mimeType,
@@ -150,6 +159,14 @@ data class CloudMediaEntity(
         const val CLOUD_ALBUM_ID = -500L
     }
 }
+
+/**
+ * Provider-reported capture time, else the filename-derived one — the same
+ * resolution [toUriMedia] applies. Shared with [CloudMediaSnapshotMapper] so
+ * the pre-computed display date matches what the mapped media ends up with.
+ */
+internal fun CloudMediaEntity.effectiveTakenTimestamp(): Long? =
+    takenTimestamp ?: label.parseTimestampFromFilename()
 
 internal class CloudMediaSnapshotMapper {
     private data class Entry(val source: CloudMediaEntity, val media: Media.UriMedia)
@@ -170,7 +187,7 @@ internal class CloudMediaSnapshotMapper {
             val entry = if (sameFormatting && previous != null &&
                 previous.source.hasSameMediaPresentation(entity)
             ) previous else {
-                calendar.timeInMillis = (entity.takenTimestamp?.let { it / 1000L }
+                calendar.timeInMillis = (entity.effectiveTakenTimestamp()?.let { it / 1000L }
                     ?: (entity.timestamp / 1000L)) * 1000L
                 val date = DateFormat.format(Constants.EXTENDED_DATE_FORMAT, calendar).toString()
                 Entry(entity, entity.toUriMedia(fullDate = date))

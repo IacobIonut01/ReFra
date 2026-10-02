@@ -43,6 +43,7 @@ import com.dot.gallery.cloud.webdav.data.api.WebDavResource
 import com.dot.gallery.cloud.webdav.data.api.buildWebDavOkHttp
 import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.domain.model.Media
+import com.dot.gallery.feature_node.domain.model.parseCaptureTimestamp
 import com.dot.gallery.feature_node.domain.util.getUri
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import kotlinx.coroutines.CancellationException
@@ -836,6 +837,10 @@ open class WebDavMediaProvider(
         } catch (_: Exception) {
             System.currentTimeMillis()
         }
+        // RFC 4918 `creationdate` is ISO-8601. Most servers don't return it (SabreDAV
+        // omits it by default), but when present it's the closest provider-side
+        // capture time available; embedded EXIF resolution refines it later.
+        val creationTs = parseCaptureTimestamp(creationDate)
         // Use the file path as the stable remoteId for all WebDAV flavors. The
         // path is what every WebDAV/OCS call expects (preview, delete, favorite,
         // download); the numeric `oc:fileid` is only reliably present on some
@@ -864,6 +869,7 @@ open class WebDavMediaProvider(
             relativePath = remotePath.substringBeforeLast('/'),
             mimeType = mimeType,
             timestamp = ts,
+            takenTimestamp = creationTs,
             size = contentLength,
             syncState = SyncState.REMOTE_ONLY,
             favorite = dialect.readsFavoriteFlag && favorite,

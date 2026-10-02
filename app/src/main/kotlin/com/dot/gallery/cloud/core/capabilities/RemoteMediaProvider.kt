@@ -14,9 +14,15 @@ import com.dot.gallery.cloud.core.ConnectionState
 import com.dot.gallery.cloud.core.MediaCapabilityProvider
 import com.dot.gallery.cloud.core.ThumbnailSize
 import com.dot.gallery.cloud.data.entity.CloudMediaEntity
+import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
 import com.dot.gallery.core.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
+import okhttp3.Request
+import java.io.ByteArrayOutputStream
+import java.net.HttpURLConnection
 
 interface RemoteMediaProvider : MediaCapabilityProvider {
     val connectionState: StateFlow<ConnectionState>
@@ -69,6 +75,54 @@ interface RemoteMediaProvider : MediaCapabilityProvider {
      * Content-addressable stores (e.g. Immich) serve previews over HTTP and keep the default.
      */
     suspend fun getVideoThumbnailBytes(remoteId: String, size: ThumbnailSize): ByteArray? = null
+
+    /**
+     * Reads up to [length] bytes of the remote original starting at [offset] via a
+     * ranged GET on [getOriginalUrl] with [getAuthHeaders]. The capture-time index
+     * uses this to read embedded metadata (EXIF DateTimeOriginal, container
+     * creation time) without downloading the whole file — every provider whose
+     * originals are HTTP(S)-reachable inherits it for free, including SMB/NFS via
+     * their loopback server.
+     *
+     * Returns null when no original URL exists, the request fails, or the server
+     * ignored the Range header on a non-zero [offset] (a mid-file read can't be
+     * served from a full-body 200 without transferring the whole prefix). A 200
+     * at offset 0 still returns the capped prefix.
+     */
+    suspend fun fetchRange(remoteId: String, offset: Long, length: Long): ByteArray? =
+        withContext(Dispatchers.IO) {
+            if (offset < 0L || length <= 0L || length > Int.MAX_VALUE) return@withContext null
+            val url = getOriginalUrl(remoteId)
+                .takeIf { it.startsWith("http://") || it.startsWith("https://") }
+                ?: return@withContext null
+            val client = CloudFetcherRegistryHolder.okHttpClient ?: return@withContext null
+            runCatching {
+                val request = Request.Builder().url(url)
+                    .header("Range", "bytes=$offset-${offset + length - 1}")
+                    .apply { getAuthHeaders().forEach { (k, v) -> header(k, v) } }
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    when {
+                        !response.isSuccessful -> null
+                        offset > 0L && response.code != HttpURLConnection.HTTP_PARTIAL -> null
+                        else -> response.body.byteStream().use { stream ->
+                            val out = ByteArrayOutputStream(minOf(length, 64L * 1024L).toInt())
+                            val buffer = ByteArray(16 * 1024)
+                            var remaining = length
+                            while (remaining > 0L) {
+                                val read = stream.read(
+                                    buffer, 0, minOf(buffer.size.toLong(), remaining).toInt()
+                                )
+                                if (read < 0) break
+                                out.write(buffer, 0, read)
+                                remaining -= read
+                            }
+                            out.toByteArray().takeIf { it.isNotEmpty() }
+                        }
+                    }
+                }
+            }.getOrNull()
+        }
 
     fun configure(config: CloudServerConfig)
 }

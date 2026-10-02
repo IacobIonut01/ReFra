@@ -147,6 +147,7 @@ object AppModule {
             workManager,
             database.getScannedMediaDao(),
             database.getSmartScanDao(),
+            database.getMediaCaptureTimeDao(),
             startupGate
         )
     }

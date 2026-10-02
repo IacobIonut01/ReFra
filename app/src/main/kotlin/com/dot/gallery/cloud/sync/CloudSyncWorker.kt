@@ -30,6 +30,7 @@ import com.dot.gallery.cloud.data.dao.SyncStateDao
 import com.dot.gallery.cloud.data.entity.CloudServerConfigEntity
 import com.dot.gallery.cloud.data.entity.SyncStateEntity
 import com.dot.gallery.core.smart.SmartScanScheduler
+import com.dot.gallery.core.workers.enqueueCaptureTimeIndex
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import dagger.assisted.Assisted
@@ -123,7 +124,13 @@ class CloudSyncWorker @AssistedInject constructor(
                     printDebug("CloudSyncWorker: Sync failed for ${config.providerType.displayName} #${config.id}: ${error.message}")
                 }
             }
-            if (mediaChanged) smartScanScheduler.automatic(SmartScanFeature.ALL_MASK)
+            if (mediaChanged) {
+                smartScanScheduler.automatic(SmartScanFeature.ALL_MASK)
+                // New/changed cloud rows need a capture-time index pass so remote
+                // media (WebDAV/SMB/NFS carry no provider capture date) gets its
+                // embedded EXIF/container time resolved into media_capture_time.
+                WorkManager.getInstance(applicationContext).enqueueCaptureTimeIndex()
+            }
             return if (retryNeeded) Result.retry() else Result.success()
         } catch (e: CancellationException) {
             throw e

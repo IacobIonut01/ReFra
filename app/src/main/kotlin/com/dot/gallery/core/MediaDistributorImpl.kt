@@ -42,7 +42,10 @@ import com.dot.gallery.feature_node.domain.model.Vault
 import com.dot.gallery.feature_node.domain.model.VaultState
 import com.dot.gallery.feature_node.domain.model.ScannedMedia
 import com.dot.gallery.feature_node.domain.model.shouldIgnore
+import com.dot.gallery.feature_node.data.data_source.MediaCaptureTimeDao
+import com.dot.gallery.feature_node.data.data_source.MediaCaptureTimeEntity
 import com.dot.gallery.feature_node.data.data_source.ScannedMediaDao
+import com.dot.gallery.feature_node.data.data_source.applyTo
 import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.feature_node.data.data_source.SmartScanDao
 import com.dot.gallery.feature_node.data.data_source.SmartScanFeature
@@ -192,6 +195,7 @@ class MediaDistributorImpl @Inject constructor(
     workManager: WorkManager,
     private val scannedMediaDao: ScannedMediaDao,
     private val smartScanDao: SmartScanDao,
+    private val mediaCaptureTimeDao: MediaCaptureTimeDao,
     private val startupGate: StartupWorkGate
 ) : MediaDistributor {
     
@@ -527,43 +531,73 @@ class MediaDistributorImpl @Inject constructor(
             .stateIn(appScope, sharingMethod, emptySet())
     private val cloudRefreshMutex = Mutex()
 
+    /**
+     * Resolved capture times keyed by media id — the `media_capture_time` overlay the
+     * capture-time index worker writes. Applied to cloud items exactly like the local
+     * flows in MediaRepositoryImpl so WebDAV/SMB/NFS media sort by EXIF date too.
+     * Emits an empty index before first content so startup isn't gated on the table.
+     */
+    private val captureTimeIndexFlow: Flow<Map<Long, MediaCaptureTimeEntity>> = flow {
+        emit(emptyMap())
+        startupGate.awaitFirstContent()
+        emitAll(mediaCaptureTimeDao.observeAll().map { entries ->
+            entries.associateBy(MediaCaptureTimeEntity::mediaId)
+        })
+    }.distinctUntilChanged()
+
+    private fun List<Media.UriMedia>.withCaptureTimeIndex(
+        index: Map<Long, MediaCaptureTimeEntity>
+    ): List<Media.UriMedia> = map { item -> index[item.id]?.applyTo(item) ?: item }
+
     // Eagerly load cached cloud media so the timeline can merge them.
     // The one-shot Room query runs on IO and typically completes before
     // the slower MediaStore query.
     // distinctUntilChanged() (structural) instead of size-only: an in-place mutation that keeps
     // the count constant (e.g. a favorite/archive toggle, or an asset swapped for another) changes
     // content but not size, so a size-only guard would drop the update and leave the timeline stale.
-    private val _cloudCachedMedia: StateFlow<List<Media.UriMedia>> = flow {
-        val mapper = CloudMediaSnapshotMapper()
-        emit(withContext(Dispatchers.IO) {
-            mapper.map(cloudRepository.getCachedMediaAsync())
-        })
-        emitAll(cloudRepository.getCachedMedia().map { entities ->
-            mapper.map(entities)
-        })
-    }.distinctUntilChanged()
+    private val _cloudCachedMedia: StateFlow<List<Media.UriMedia>> = combine(
+        flow {
+            val mapper = CloudMediaSnapshotMapper()
+            emit(withContext(Dispatchers.IO) {
+                mapper.map(cloudRepository.getCachedMediaAsync())
+            })
+            emitAll(cloudRepository.getCachedMedia().map { entities ->
+                mapper.map(entities)
+            })
+        },
+        captureTimeIndexFlow
+    ) { media, index -> media.withCaptureTimeIndex(index) }
+     .distinctUntilChanged()
      .stateIn(appScope, sharingMethod, emptyList())
 
-    private val _cloudCachedFavorites: StateFlow<List<Media.UriMedia>> = flow {
-        val mapper = CloudMediaSnapshotMapper()
-        emit(withContext(Dispatchers.IO) {
-            mapper.map(cloudRepository.getCachedFavoritesAsync())
-        })
-        emitAll(cloudRepository.getCachedFavorites().map { entities ->
-            mapper.map(entities)
-        })
-    }.distinctUntilChanged()
+    private val _cloudCachedFavorites: StateFlow<List<Media.UriMedia>> = combine(
+        flow {
+            val mapper = CloudMediaSnapshotMapper()
+            emit(withContext(Dispatchers.IO) {
+                mapper.map(cloudRepository.getCachedFavoritesAsync())
+            })
+            emitAll(cloudRepository.getCachedFavorites().map { entities ->
+                mapper.map(entities)
+            })
+        },
+        captureTimeIndexFlow
+    ) { media, index -> media.withCaptureTimeIndex(index) }
+     .distinctUntilChanged()
      .stateIn(appScope, sharingMethod, emptyList())
 
-    private val _cloudCachedTrashed: StateFlow<List<Media.UriMedia>> = flow {
-        val mapper = CloudMediaSnapshotMapper()
-        emit(withContext(Dispatchers.IO) {
-            mapper.map(cloudRepository.getCachedTrashedAsync())
-        })
-        emitAll(cloudRepository.getCachedTrashed().map { entities ->
-            mapper.map(entities)
-        })
-    }.distinctUntilChanged()
+    private val _cloudCachedTrashed: StateFlow<List<Media.UriMedia>> = combine(
+        flow {
+            val mapper = CloudMediaSnapshotMapper()
+            emit(withContext(Dispatchers.IO) {
+                mapper.map(cloudRepository.getCachedTrashedAsync())
+            })
+            emitAll(cloudRepository.getCachedTrashed().map { entities ->
+                mapper.map(entities)
+            })
+        },
+        captureTimeIndexFlow
+    ) { media, index -> media.withCaptureTimeIndex(index) }
+     .distinctUntilChanged()
      .stateIn(appScope, sharingMethod, emptyList())
 
     override val cloudSyncStates: StateFlow<Map<Long, SyncState>> =
@@ -1077,7 +1111,8 @@ class MediaDistributorImpl @Inject constructor(
                         settingsFlow,
                         dateFormatsFlow,
                         albumMediaSortFlow,
-                        _cloudCachedMedia
+                        _cloudCachedMedia,
+                        captureTimeIndexFlow
                     ) { values ->
                         @Suppress("UNCHECKED_CAST")
                         val resource = values[0] as Resource<List<CloudMediaEntity>>
@@ -1087,6 +1122,8 @@ class MediaDistributorImpl @Inject constructor(
                         val albumSort = values[3] as Settings.Album.LastSort
                         @Suppress("UNCHECKED_CAST")
                         val cachedNonTrashed = values[4] as List<Media.UriMedia>
+                        @Suppress("UNCHECKED_CAST")
+                        val captureTimeIndex = values[5] as Map<Long, MediaCaptureTimeEntity>
                         val entities = when (resource) {
                             is Resource.Success -> resource.data ?: emptyList()
                             is Resource.Error -> resource.data ?: emptyList()
@@ -1101,7 +1138,7 @@ class MediaDistributorImpl @Inject constructor(
                             val allMedia = entities.map { it.toUriMedia() }
                             val cachedIds = cachedNonTrashed.mapTo(HashSet()) { it.id }
                             if (cachedIds.isNotEmpty()) allMedia.filter { it.id in cachedIds } else allMedia
-                        }
+                        }.withCaptureTimeIndex(captureTimeIndex)
                         val error = if (resource is Resource.Error) resource.message ?: "" else ""
                         val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
                         val sorter = albumSort.toMediaOrder()
