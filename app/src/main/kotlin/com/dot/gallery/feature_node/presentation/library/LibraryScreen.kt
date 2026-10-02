@@ -1,7 +1,9 @@
 package com.dot.gallery.feature_node.presentation.library
 
+import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
@@ -84,6 +86,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -122,6 +125,7 @@ import com.dot.gallery.feature_node.presentation.common.components.GridPinchZoom
 import com.dot.gallery.feature_node.presentation.common.components.rememberGridPinchZoomState
 import com.dot.gallery.feature_node.presentation.library.components.LibrarySmallItem
 import com.dot.gallery.feature_node.presentation.library.components.EditableLibraryShortcutsGrid
+import com.dot.gallery.feature_node.presentation.library.components.LibrarySectionsEditCard
 import com.dot.gallery.feature_node.presentation.library.components.mergeShortcutPrefs
 import com.dot.gallery.feature_node.presentation.library.components.rememberLibraryRuntimeShortcuts
 import com.dot.gallery.feature_node.presentation.library.components.MapPreviewCard
@@ -195,7 +199,8 @@ internal fun LibraryScreenContent(
     var lastCellIndex by rememberAlbumGridSize()
 
     val locations = snapshot.locations.orEmpty()
-    val showLocationCategories by Settings.Library.rememberShowLocationCategories()
+    var showLocationCategories by Settings.Library.rememberShowLocationCategories()
+    var hiddenSections by Settings.Library.rememberHiddenSections()
     val indicatorState = snapshot.indicators
 
     // New category system
@@ -211,6 +216,16 @@ internal fun LibraryScreenContent(
     var noClassification by rememberNoClassification()
     val mapsEnabled = remember { BuildConfig.MAPS_ENABLED }
     val isDark = isDarkTheme()
+
+    // Section visibility = user toggle (edit-mode Sections card / settings)
+    // AND content — an empty section hides entirely. People is the exception:
+    // its header stays while hidden people exist so they remain reachable (#1262).
+    val showLocationsSection = showLocationCategories && locations.isNotEmpty()
+    val showPeopleSection = Settings.Library.SECTION_PEOPLE !in hiddenSections &&
+        cloudState.hasPeople &&
+        (cloudState.people.isNotEmpty() || cloudState.hiddenPeopleCount > 0)
+    val showCategoriesSection = Settings.Library.SECTION_CATEGORIES !in hiddenSections &&
+        aiAvailable && !noClassification
 
     val configuration = LocalConfiguration.current
     val layoutDirection = LocalLayoutDirection.current
@@ -239,10 +254,12 @@ internal fun LibraryScreenContent(
     val gridState = rememberLazyGridState(
         initialFirstVisibleItemIndex = restoredLibraryIndex(
             libraryGridSectionKeys(
-                hasLocations = showLocationCategories && locations.isNotEmpty(),
-                hasPeople = cloudState.hasPeople && cloudState.people.isNotEmpty(),
-                hasCategories = aiAvailable && !noClassification && topCategories.isNotEmpty(),
-                hasNoCategories = aiAvailable && !noClassification &&
+                hasLocations = showLocationsSection,
+                hasLocationsList = locations.isNotEmpty(),
+                hasPeople = showPeopleSection,
+                hasPeopleList = cloudState.people.isNotEmpty(),
+                hasCategories = showCategoriesSection && topCategories.isNotEmpty(),
+                hasNoCategories = showCategoriesSection &&
                     noCategoriesFound && modelStatus == ModelStatus.READY,
             ),
             snapshot.viewport.grid
@@ -358,12 +375,18 @@ internal fun LibraryScreenContent(
     }
 
     // Locations
-    val noLocationsFound = locations.isEmpty() || !showLocationCategories
     val totalLocationsCount = snapshot.locationCount
 
     // In-place shortcut editing (Quick-Settings style)
     var shortcutsEditMode by remember { mutableStateOf(false) }
     BackHandler(enabled = shortcutsEditMode) { shortcutsEditMode = false }
+    val view = LocalView.current
+    // Long-press on any Library section — not only the shortcut tiles — enters
+    // the edit UI, matching how the tiles behave (#1262).
+    val enterEditMode: () -> Unit = {
+        shortcutsEditMode = true
+        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+    }
 
     Scaffold(
         modifier = Modifier.padding(
@@ -380,6 +403,7 @@ internal fun LibraryScreenContent(
                     val tertiaryContainer = MaterialTheme.colorScheme.tertiaryFixed
                     val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryFixed
                     val allowBlur by rememberAllowBlur()
+
                     val settingsInteractionSource = remember { MutableInteractionSource() }
                     val isPressed = settingsInteractionSource.collectIsPressedAsState()
                     val cornerRadius by animateDpAsState(
@@ -462,32 +486,64 @@ internal fun LibraryScreenContent(
                     val working = remember(runtime, shortcutsLayout) {
                         mergeShortcutPrefs(shortcutsLayout, runtime).map { it.pref }
                     }
-                    EditableLibraryShortcutsGrid(
-                        working = working,
-                        runtime = runtime,
-                        editMode = shortcutsEditMode,
-                        onClick = { eventHandler.navigate(it) },
-                        onEnterEditMode = { shortcutsEditMode = true },
-                        onExitEditMode = { shortcutsEditMode = false },
-                        onChange = { newWorking ->
-                            val availableIds = runtime.keys.map { it.id }.toSet()
-                            val leftovers = shortcutsLayout.filter { it.id !in availableIds }
-                            shortcutsLayout = newWorking + leftovers
-                        },
+                    Column(
                         modifier = Modifier
                             .pinchItem(key = "libraryShortcuts")
                             .padding(horizontal = 16.dp)
                             .padding(top = 32.dp)
-                    )
+                    ) {
+                        EditableLibraryShortcutsGrid(
+                            working = working,
+                            runtime = runtime,
+                            editMode = shortcutsEditMode,
+                            onClick = { eventHandler.navigate(it) },
+                            onEnterEditMode = { shortcutsEditMode = true },
+                            onExitEditMode = { shortcutsEditMode = false },
+                            onChange = { newWorking ->
+                                val availableIds = runtime.keys.map { it.id }.toSet()
+                                val leftovers = shortcutsLayout.filter { it.id !in availableIds }
+                                shortcutsLayout = newWorking + leftovers
+                            }
+                        )
+                        // Manual section toggles — the only way back once a section is
+                        // hidden, so it lives inside the same edit surface (#1262).
+                        AnimatedVisibility(visible = shortcutsEditMode) {
+                            LibrarySectionsEditCard(
+                                showLocations = showLocationCategories,
+                                onLocationsChange = { showLocationCategories = it },
+                                hasLocations = locations.isNotEmpty(),
+                                peopleAvailable = cloudState.hasPeople,
+                                showPeople = Settings.Library.SECTION_PEOPLE !in hiddenSections,
+                                onPeopleChange = { checked ->
+                                    hiddenSections = if (checked) {
+                                        hiddenSections - Settings.Library.SECTION_PEOPLE
+                                    } else {
+                                        hiddenSections + Settings.Library.SECTION_PEOPLE
+                                    }
+                                },
+                                categoriesAvailable = aiAvailable && !noClassification,
+                                showCategories = Settings.Library.SECTION_CATEGORIES !in hiddenSections,
+                                onCategoriesChange = { checked ->
+                                    hiddenSections = if (checked) {
+                                        hiddenSections - Settings.Library.SECTION_CATEGORIES
+                                    } else {
+                                        hiddenSections + Settings.Library.SECTION_CATEGORIES
+                                    }
+                                },
+                                modifier = Modifier.padding(top = 16.dp)
+                            )
+                        }
+                    }
                 }
 
-                // Locations section
-                if (!noLocationsFound) {
+                // Locations section — user-toggleable; with no geotagged media the
+                // header stays as a plain navigable row instead of auto-hiding (#1262).
+                if (showLocationsSection) {
                     item(
                         span = { GridItemSpan(maxLineSpan) },
                         key = "LocationsHeader"
                     ) {
-                        if (mapsEnabled) {
+                        if (mapsEnabled && locations.isNotEmpty()) {
                             MapPreviewCard(
                                 modifier = Modifier
                                     .pinchItem(key = "LocationsHeader")
@@ -495,9 +551,12 @@ internal fun LibraryScreenContent(
                                     .padding(top = 8.dp)
                                     .clip(RoundedCornerShape(24.dp))
                                     .editLock(shortcutsEditMode)
-                                    .clickable {
-                                        eventHandler.navigate(Screen.LocationsScreen())
-                                    },
+                                    .combinedClickable(
+                                        onClick = {
+                                            eventHandler.navigate(Screen.LocationsScreen())
+                                        },
+                                        onLongClick = enterEditMode
+                                    ),
                                 latestMedia = latestGeo?.media,
                                 latitude = latestGeo?.latitude,
                                 longitude = latestGeo?.longitude,
@@ -521,14 +580,18 @@ internal fun LibraryScreenContent(
                                     indicatorCounter = totalLocationsCount,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable {
-                                            eventHandler.navigate(Screen.LocationsScreen())
-                                        }
+                                        .combinedClickable(
+                                            onClick = {
+                                                eventHandler.navigate(Screen.LocationsScreen())
+                                            },
+                                            onLongClick = enterEditMode
+                                        )
                                 )
                             }
                         }
                     }
                     // Locations carousel
+                    if (locations.isNotEmpty()) {
                     item(
                         span = { GridItemSpan(maxLineSpan) },
                         key = "LocationsList"
@@ -564,28 +627,31 @@ internal fun LibraryScreenContent(
                                             .height(256.dp)
                                             .testTag("library-location-${media.id}")
                                             .clip(RoundedCornerShape(24.dp))
-                                            .clickable {
-                                                val city = locationMedia.city
-                                                val country = locationMedia.country
-                                                val latitude = locationMedia.latitude
-                                                val longitude = locationMedia.longitude
-                                                if (!city.isNullOrBlank() || !country.isNullOrBlank() ||
-                                                    latitude != null && longitude != null
-                                                ) {
-                                                    eventHandler.navigate(
-                                                        Screen.LocationTimelineScreen.location(
-                                                            gpsLocationNameCity = city.orEmpty(),
-                                                            gpsLocationNameCountry = country.orEmpty(),
-                                                            latitude = latitude,
-                                                            longitude = longitude,
+                                            .combinedClickable(
+                                                onClick = {
+                                                    val city = locationMedia.city
+                                                    val country = locationMedia.country
+                                                    val latitude = locationMedia.latitude
+                                                    val longitude = locationMedia.longitude
+                                                    if (!city.isNullOrBlank() || !country.isNullOrBlank() ||
+                                                        latitude != null && longitude != null
+                                                    ) {
+                                                        eventHandler.navigate(
+                                                            Screen.LocationTimelineScreen.location(
+                                                                gpsLocationNameCity = city.orEmpty(),
+                                                                gpsLocationNameCountry = country.orEmpty(),
+                                                                latitude = latitude,
+                                                                longitude = longitude,
+                                                            )
                                                         )
-                                                    )
-                                                } else {
-                                                    eventHandler.navigate(
-                                                        Screen.MediaViewScreen.idAndAlbum(media.id, -1L)
-                                                    )
-                                                }
-                                            },
+                                                    } else {
+                                                        eventHandler.navigate(
+                                                            Screen.MediaViewScreen.idAndAlbum(media.id, -1L)
+                                                        )
+                                                    }
+                                                },
+                                                onLongClick = enterEditMode
+                                            ),
                                     ) {
                                         GlideImage(
                                             modifier = Modifier.fillMaxSize(),
@@ -621,11 +687,14 @@ internal fun LibraryScreenContent(
                             }
                         }
                     }
+                    }
                 }
 
-                // People section — circle heads row (below locations). Shown whenever there are
-                // people to display (cloud accounts and/or on-device Person grouping).
-                if (cloudState.hasPeople && cloudState.people.isNotEmpty()) {
+                // People section — circle heads row (below locations). The header stays
+                // reachable while hidden people exist even when no visible person is left:
+                // hiding the only person must not strand them behind an auto-hidden
+                // section (#1262). The circles row itself stays visible-only.
+                if (showPeopleSection) {
                     item(
                         span = { GridItemSpan(maxLineSpan) },
                         key = "PeopleHeader"
@@ -640,6 +709,13 @@ internal fun LibraryScreenContent(
                         ) {
                             LibrarySmallItem(
                                 title = stringResource(R.string.cloud_people),
+                                subtitle = if (cloudState.hiddenPeopleCount > 0) {
+                                    pluralStringResource(
+                                        R.plurals.people_hidden_count,
+                                        cloudState.hiddenPeopleCount,
+                                        cloudState.hiddenPeopleCount
+                                    )
+                                } else null,
                                 icon = null,
                                 contentColor = MaterialTheme.colorScheme.onSurface,
                                 containerColor = MaterialTheme.colorScheme.surface,
@@ -647,12 +723,16 @@ internal fun LibraryScreenContent(
                                 indicatorCounter = snapshot.peopleCount,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable {
-                                        eventHandler.navigate(Screen.PeopleListScreen.route)
-                                    }
+                                    .combinedClickable(
+                                        onClick = {
+                                            eventHandler.navigate(Screen.PeopleListScreen.route)
+                                        },
+                                        onLongClick = enterEditMode
+                                    )
                             )
                         }
                     }
+                    if (cloudState.people.isNotEmpty()) {
                     item(
                         span = { GridItemSpan(maxLineSpan) },
                         key = "PeopleList"
@@ -675,14 +755,17 @@ internal fun LibraryScreenContent(
                                         .size(80.dp)
                                         .testTag("library-person-${person.accountKey}")
                                         .clip(CircleShape)
-                                        .clickable {
-                                            eventHandler.navigate(
-                                                Screen.PersonDetailScreen.personId(
-                                                    person.serverConfigId,
-                                                    person.id,
+                                        .combinedClickable(
+                                            onClick = {
+                                                eventHandler.navigate(
+                                                    Screen.PersonDetailScreen.personId(
+                                                        person.serverConfigId,
+                                                        person.id,
+                                                    )
                                                 )
-                                            )
-                                        }
+                                            },
+                                            onLongClick = enterEditMode
+                                        )
                                 ) {
                                     if (person.thumbnailUrl != null) {
                                         GlideImage(
@@ -710,9 +793,10 @@ internal fun LibraryScreenContent(
                             }
                         }
                     }
+                    }
                 }
 
-                if (aiAvailable && !noClassification) {
+                if (showCategoriesSection) {
                     if (topCategories.isNotEmpty()) {
                         // "See all categories" header below carousel
                         item(
@@ -736,9 +820,12 @@ internal fun LibraryScreenContent(
                                     indicatorCounter = totalCategoryCount,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable {
-                                            eventHandler.navigate(Screen.CategoriesScreen())
-                                        }
+                                        .combinedClickable(
+                                            onClick = {
+                                                eventHandler.navigate(Screen.CategoriesScreen())
+                                            },
+                                            onLongClick = enterEditMode
+                                        )
                                 )
                             }
                         }
@@ -895,19 +982,17 @@ internal fun LibraryScreenContent(
 
 internal fun libraryGridSectionKeys(
     hasLocations: Boolean,
+    hasLocationsList: Boolean,
     hasPeople: Boolean,
+    hasPeopleList: Boolean,
     hasCategories: Boolean,
     hasNoCategories: Boolean,
 ): List<String> = buildList {
     add("libraryShortcuts")
-    if (hasLocations) {
-        add("LocationsHeader")
-        add("LocationsList")
-    }
-    if (hasPeople) {
-        add("PeopleHeader")
-        add("PeopleList")
-    }
+    if (hasLocations) add("LocationsHeader")
+    if (hasLocationsList) add("LocationsList")
+    if (hasPeople) add("PeopleHeader")
+    if (hasPeopleList) add("PeopleList")
     if (hasCategories) {
         add("CategoriesHeader")
         add("CategoriesList")

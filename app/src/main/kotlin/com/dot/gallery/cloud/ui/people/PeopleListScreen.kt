@@ -87,6 +87,8 @@ fun PeopleListScreen(
     )
 
     val localCount = state.namedPeople.size + state.newPeople.size
+    // Hidden people count toward the header so the totals stay truthful (#1262).
+    val peopleCount = localCount + state.hiddenPeopleCount
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -98,11 +100,11 @@ fun PeopleListScreen(
                 title = {
                     Column {
                         Text(stringResource(R.string.cloud_people))
-                        if (localCount > 0 || state.scannedPhotoCount > 0) {
+                        if (peopleCount > 0 || state.scannedPhotoCount > 0) {
                             Text(
                                 text = stringResource(
                                     R.string.people_count_photos,
-                                    localCount,
+                                    peopleCount,
                                     state.scannedPhotoCount
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -173,7 +175,10 @@ fun PeopleListScreen(
                         .padding(innerPadding)
                 )
             }
-            localCount == 0 && state.providerSections.isEmpty() -> {
+            // Hidden people keep this page alive — they are the only way to
+            // unhide, so "no visible people" must not collapse to EmptyPeople.
+            localCount == 0 && state.hiddenPeopleCount == 0 &&
+                state.providerSections.isEmpty() -> {
                 EmptyPeople(
                     modifier = Modifier
                         .fillMaxSize()
@@ -245,7 +250,9 @@ fun PeopleListScreen(
                             )
                         }
                     }
-                    if (state.showHidden && state.hiddenPeople.isNotEmpty()) {
+                    // The ViewModel only populates hiddenPeople while the toggle is
+                    // on or while hidden people are the only content on this page.
+                    if (state.hiddenPeople.isNotEmpty()) {
                         item(key = "header_hidden", span = { GridItemSpan(maxLineSpan) }) {
                             PeopleSectionHeader(
                                 title = stringResource(R.string.people_hidden_section),

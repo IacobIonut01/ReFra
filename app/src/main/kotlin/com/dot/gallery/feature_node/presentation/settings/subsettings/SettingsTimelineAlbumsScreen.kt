@@ -195,6 +195,7 @@ fun SettingsTimelineAlbumsScreen() {
     var groupMethodVault by rememberVaultGroupMethod()
     var groupMethodCloudArchive by rememberCloudArchiveGroupMethod()
     var showLocationCategories by Settings.Library.rememberShowLocationCategories()
+    var hiddenSections by Settings.Library.rememberHiddenSections()
 
     when (detailKey) {
         DETAIL_TIMELINE_LAYOUT -> {
@@ -480,6 +481,8 @@ fun SettingsTimelineAlbumsScreen() {
                 favIconPosition = favIconPosition,
                 showLocationCategories = showLocationCategories,
                 onShowLocationCategoriesChange = { showLocationCategories = it },
+                hiddenSections = hiddenSections,
+                onHiddenSectionsChange = { hiddenSections = it },
                 onDetailClick = { detailKey = it },
                 onDateFormatClick = { eventHandler.navigate(Screen.DateFormatScreen()) },
                 onStoryCardsClick = { eventHandler.navigate(Screen.StoryCardsSettingsScreen()) },
@@ -517,6 +520,8 @@ private fun TimelineAlbumsListScreen(
     favIconPosition: String,
     showLocationCategories: Boolean = true,
     onShowLocationCategoriesChange: (Boolean) -> Unit = {},
+    hiddenSections: Set<String> = emptySet(),
+    onHiddenSectionsChange: (Set<String>) -> Unit = {},
     onDetailClick: (String) -> Unit,
     onDateFormatClick: () -> Unit,
     onStoryCardsClick: () -> Unit = {},
@@ -738,7 +743,35 @@ private fun TimelineAlbumsListScreen(
             summary = stringResource(R.string.location_categories_summary),
             isChecked = showLocationCategories,
             onCheck = onShowLocationCategoriesChange,
-            screenPosition = Position.Alone
+            screenPosition = Position.Top
+        )
+
+        // Section visibility parity with the Library edit-mode Sections card (#1262).
+        val peopleSectionPref = rememberSwitchPreference(
+            hiddenSections,
+            title = stringResource(R.string.library_people_section_title),
+            summary = stringResource(R.string.library_people_section_summary),
+            isChecked = Settings.Library.SECTION_PEOPLE !in hiddenSections,
+            onCheck = { checked ->
+                onHiddenSectionsChange(
+                    if (checked) hiddenSections - Settings.Library.SECTION_PEOPLE
+                    else hiddenSections + Settings.Library.SECTION_PEOPLE
+                )
+            },
+            screenPosition = Position.Middle
+        )
+        val categoriesSectionPref = rememberSwitchPreference(
+            hiddenSections,
+            title = stringResource(R.string.library_categories_section_title),
+            summary = stringResource(R.string.library_categories_section_summary),
+            isChecked = Settings.Library.SECTION_CATEGORIES !in hiddenSections,
+            onCheck = { checked ->
+                onHiddenSectionsChange(
+                    if (checked) hiddenSections - Settings.Library.SECTION_CATEGORIES
+                    else hiddenSections + Settings.Library.SECTION_CATEGORIES
+                )
+            },
+            screenPosition = Position.Bottom
         )
 
         return remember(
@@ -747,7 +780,8 @@ private fun TimelineAlbumsListScreen(
             showSearchBarFavButtonPref, storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
             pinnedAlbumsAsGridPref, showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
-            dateHeadersPref, groupMethodPref, libraryHeader, locationCategoriesPref
+            dateHeadersPref, groupMethodPref, libraryHeader, locationCategoriesPref,
+            peopleSectionPref, categoriesSectionPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
@@ -779,6 +813,8 @@ private fun TimelineAlbumsListScreen(
 
                 add(libraryHeader)
                 add(locationCategoriesPref)
+                add(peopleSectionPref)
+                add(categoriesSectionPref)
             }
         }
     }

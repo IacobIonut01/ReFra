@@ -364,10 +364,26 @@ object Settings {
 
         /**
          * Whether the Library screen shows the Locations carousel section (#1181).
+         * Also read by `LibraryContentInputs` as the data-collection gate — it is a
+         * data switch, not just a display toggle.
          */
         @Composable
         fun rememberShowLocationCategories() =
             rememberPreference(key = SHOW_LOCATION_CATEGORIES, defaultValue = true)
+
+        /** Section ids that can be toggled in the Library edit mode (#1262). */
+        const val SECTION_PEOPLE = "people"
+        const val SECTION_CATEGORIES = "categories"
+
+        private val HIDDEN_SECTIONS = stringSetPreferencesKey("library_hidden_sections")
+
+        /**
+         * Sections the user hid via the Library edit mode. Locations is not in this
+         * set — it keeps [SHOW_LOCATION_CATEGORIES], which also gates collection.
+         */
+        @Composable
+        fun rememberHiddenSections() =
+            rememberPreference(key = HIDDEN_SECTIONS, defaultValue = emptySet<String>())
     }
 
     object SmartFeatures {

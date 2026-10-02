@@ -8,8 +8,10 @@ package com.dot.gallery.cloud.ui.people
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dot.gallery.cloud.core.LOCAL_PEOPLE_CONFIG_ID
 import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderRegistry
+import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.local.FaceCropLoader
 import com.dot.gallery.core.Constants
@@ -115,6 +117,24 @@ class PersonDetailViewModel @Inject constructor(
         }
     }
 
+    /** Unhiding keeps the user on the page — the person simply becomes visible again. */
+    fun unhidePerson() {
+        val id = _uiState.value.person?.id ?: return
+        viewModelScope.launch { localProvider()?.setHidden(id, false) }
+    }
+
+    /**
+     * Delete the person group entirely (#1262): photos are untouched, and the
+     * faces are recorded as suppressed so re-grouping can't resurrect it.
+     */
+    fun deletePerson(onDone: () -> Unit) {
+        val id = _uiState.value.person?.id ?: return
+        viewModelScope.launch {
+            localProvider()?.deletePerson(id)
+            onDone()
+        }
+    }
+
     /**
      * Merge this person into [targetPersonId], then invoke [onMerged]. The caller
      * navigates away in the callback — launching the write on [viewModelScope] and
@@ -204,28 +224,45 @@ class PersonDetailViewModel @Inject constructor(
     private fun loadPerson() {
         if (personId.isBlank() || configId == Long.MIN_VALUE) return
         _uiState.value = _uiState.value.copy(isLoading = true)
+        // Local people resolve through the provider's own row lookup so hidden
+        // people stay openable — getAllPeople() only ever carries visible
+        // persons, which is what stranded hidden people (#1262).
+        val local = if (configId == LOCAL_PEOPLE_CONFIG_ID) localProvider() else null
 
         viewModelScope.launch {
             repository.getAllPeople().collect { resource ->
                 if (resource is Resource.Success) {
-                    val person = resource.data?.find {
-                        it.id == personId && it.serverConfigId == configId
+                    if (local == null) {
+                        _uiState.value = _uiState.value.copy(
+                            person = resource.data?.find {
+                                it.id == personId && it.serverConfigId == configId
+                            }
+                        )
                     }
-                    _uiState.value = _uiState.value.copy(person = person)
                     _mergeCandidates.value = resource.data
                         ?.filter {
-                            it.accountKey != person?.accountKey &&
+                            it.id != personId &&
                                 it.serverConfigId == configId &&
-                                it.providerType == com.dot.gallery.cloud.core.ProviderType.LOCAL_PEOPLE
+                                it.providerType == ProviderType.LOCAL_PEOPLE
                         } ?: emptyList()
                 }
             }
         }
 
+        if (local != null) {
+            viewModelScope.launch {
+                local.observePerson(personId).collect { person ->
+                    _uiState.value = _uiState.value.copy(person = person)
+                }
+            }
+        }
+
         viewModelScope.launch {
-            val peopleResource = repository.getAllPeople().first { it is Resource.Success }
-            val person = peopleResource.data.orEmpty().find {
-                it.id == personId && it.serverConfigId == configId
+            val person = if (local != null) {
+                local.observePerson(personId).first()
+            } else {
+                repository.getAllPeople().first { it is Resource.Success }.data.orEmpty()
+                    .find { it.id == personId && it.serverConfigId == configId }
             }
             if (person == null) {
                 _uiState.value = _uiState.value.copy(

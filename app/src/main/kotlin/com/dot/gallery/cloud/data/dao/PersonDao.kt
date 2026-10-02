@@ -24,11 +24,22 @@ interface PersonDao {
     @Query("SELECT * FROM people WHERE providerType = :type AND hidden = 0 ORDER BY faceCount DESC")
     fun getVisibleByProvider(type: ProviderType): Flow<List<PersonEntity>>
 
+    /**
+     * Live count of hidden persons for a provider. The Library People section stays
+     * reachable while this is non-zero even when every visible person is gone (#1262).
+     */
+    @Query("SELECT COUNT(*) FROM people WHERE providerType = :type AND hidden = 1")
+    fun observeHiddenCount(type: ProviderType = ProviderType.LOCAL_PEOPLE): Flow<Int>
+
     @Query("SELECT * FROM people WHERE providerType = :type ORDER BY faceCount DESC")
     suspend fun getByProviderOnce(type: ProviderType): List<PersonEntity>
 
     @Query("SELECT * FROM people WHERE id = :id")
     suspend fun getById(id: String): PersonEntity?
+
+    /** Reactive single-person lookup — includes hidden rows (unlike [getVisibleByProvider]). */
+    @Query("SELECT * FROM people WHERE id = :id")
+    fun observeById(id: String): Flow<PersonEntity?>
 
     @Upsert
     suspend fun insertAll(people: List<PersonEntity>)

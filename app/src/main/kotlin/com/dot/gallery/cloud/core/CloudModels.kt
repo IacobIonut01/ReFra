@@ -164,7 +164,9 @@ data class PersonInfo(
     val serverConfigId: Long,
     val thumbnailUrl: String? = null,
     val assetCount: Int = 0,
-    val birthDate: String? = null
+    val birthDate: String? = null,
+    /** Hidden people are excluded from list providers; only person-scoped lookups carry this. */
+    val hidden: Boolean = false
 ) {
     val accountKey: String
         get() = "${providerType.name}/$serverConfigId/$id"

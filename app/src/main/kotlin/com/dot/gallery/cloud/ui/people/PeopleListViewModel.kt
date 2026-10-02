@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -56,8 +57,11 @@ data class PeopleListUiState(
     val namedPeople: List<PersonInfo> = emptyList(),
     /** Unnamed on-device people ("New people"), most photos first. */
     val newPeople: List<PersonInfo> = emptyList(),
-    /** Hidden on-device people — only populated while [showHidden] is on. */
+    /** Hidden on-device people — populated while [showHidden] is on, or when hidden
+     *  people are the only content so they never become unreachable (#1262). */
     val hiddenPeople: List<PersonInfo> = emptyList(),
+    /** Hidden person count — tracked unconditionally for the empty-state gate. */
+    val hiddenPeopleCount: Int = 0,
     /** Non-local provider sections (Immich & friends), shown below the local groups. */
     val providerSections: List<ProviderPeopleSection> = emptyList(),
     /** Local pairs worth a manual "same person?" review. */
@@ -198,10 +202,24 @@ class PeopleListViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            localProvider()?.observeHiddenPeopleCount()?.collect { count ->
+                _uiState.value = _uiState.value.copy(hiddenPeopleCount = count)
+            }
+        }
+        viewModelScope.launch {
             _uiState
-                .map { it.showHidden }
-                .flatMapLatest { show ->
-                    if (show) localProvider()?.observeHiddenPeople() ?: flowOf(emptyList())
+                .map {
+                    // Load hidden people when the toggle is on — and also when they
+                    // are the only content, so hiding the last visible person cannot
+                    // strand them behind an empty page (#1262).
+                    it.showHidden || (
+                        it.namedPeople.isEmpty() && it.newPeople.isEmpty() &&
+                            it.providerSections.isEmpty() && it.hiddenPeopleCount > 0
+                        )
+                }
+                .distinctUntilChanged()
+                .flatMapLatest { shouldLoad ->
+                    if (shouldLoad) localProvider()?.observeHiddenPeople() ?: flowOf(emptyList())
                     else flowOf(emptyList())
                 }
                 .collect { hidden -> _uiState.value = _uiState.value.copy(hiddenPeople = hidden) }
@@ -240,7 +258,6 @@ class PeopleListViewModel @Inject constructor(
                         isLoading = false,
                         error = resource.message
                     )
-                    else -> Unit
                 }
             }
         }

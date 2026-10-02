@@ -34,10 +34,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BlurOn
 import androidx.compose.material.icons.outlined.Cake
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
@@ -49,6 +51,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -112,6 +115,7 @@ fun PersonDetailScreen(
     var showBlurDialog by remember { mutableStateOf(false) }
     var showMergeDialog by remember { mutableStateOf(false) }
     var showCoverDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val personName = state.person?.name?.ifBlank {
         stringResource(R.string.cloud_people_unknown)
@@ -164,6 +168,8 @@ fun PersonDetailScreen(
                     },
                     onBirthdayClick = { showBirthdayPicker = true },
                     onHideClick = { viewModel.hidePerson { eventHandler.navigateUp() } },
+                    onUnhideClick = { viewModel.unhidePerson() },
+                    onDeleteClick = { showDeleteDialog = true },
                     onBlurEverywhereClick = { showBlurDialog = true },
                     canMerge = mergeCandidates.isNotEmpty(),
                     onMergeClick = { showMergeDialog = true },
@@ -381,6 +387,35 @@ fun PersonDetailScreen(
         }
     }
 
+    // Delete the whole person group — photos are kept; faces are suppressed so
+    // re-grouping can't resurrect it (#1262).
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            icon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+            title = { Text(stringResource(R.string.person_delete_title, personName)) },
+            text = { Text(stringResource(R.string.person_delete_summary)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.deletePerson { eventHandler.navigateUp() }
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.person_delete_confirm),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+
     // Choose a new cover — detected face crops make tighter covers than full photos.
     if (showCoverDialog) {
         ModalBottomSheet(onDismissRequest = { showCoverDialog = false }) {
@@ -470,17 +505,26 @@ private fun personDateRange(media: List<Media.UriMedia>): Pair<String, String>? 
 private fun PersonActionChip(
     onClick: () -> Unit,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String
+    label: String,
+    destructive: Boolean = false
 ) {
     SuggestionChip(
         onClick = onClick,
         label = { Text(label) },
         icon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-        colors = SuggestionChipDefaults.suggestionChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            labelColor = MaterialTheme.colorScheme.onSurface,
-            iconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        colors = if (destructive) {
+            SuggestionChipDefaults.suggestionChipColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                labelColor = MaterialTheme.colorScheme.onErrorContainer,
+                iconContentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        } else {
+            SuggestionChipDefaults.suggestionChipColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                labelColor = MaterialTheme.colorScheme.onSurface,
+                iconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     )
 }
 
@@ -495,6 +539,8 @@ private fun PersonHeader(
     onRenameClick: () -> Unit,
     onBirthdayClick: () -> Unit,
     onHideClick: () -> Unit = {},
+    onUnhideClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
     onBlurEverywhereClick: () -> Unit = {},
     canMerge: Boolean = false,
     onMergeClick: () -> Unit = {},
@@ -597,6 +643,38 @@ private fun PersonHeader(
         }
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Hidden state — a tonal banner with a direct way back, since a hidden
+        // person is otherwise invisible everywhere in the app (#1262).
+        if (state.person?.hidden == true) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier.padding(start = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        Icons.Outlined.VisibilityOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = stringResource(R.string.person_hidden_banner),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = onUnhideClick) {
+                        Text(stringResource(R.string.person_hidden_banner_action))
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         // One scrolling row of actions — no more stacked chip rows.
         LazyRow(
             contentPadding = PaddingValues(horizontal = 8.dp),
@@ -627,18 +705,36 @@ private fun PersonHeader(
                         )
                     }
                 }
-                item {
-                    PersonActionChip(
-                        onClick = onHideClick,
-                        icon = Icons.Outlined.VisibilityOff,
-                        label = stringResource(R.string.cloud_person_hide)
-                    )
+                if (state.person?.hidden == true) {
+                    item {
+                        PersonActionChip(
+                            onClick = onUnhideClick,
+                            icon = Icons.Outlined.Visibility,
+                            label = stringResource(R.string.person_unhide)
+                        )
+                    }
+                } else {
+                    item {
+                        PersonActionChip(
+                            onClick = onHideClick,
+                            icon = Icons.Outlined.VisibilityOff,
+                            label = stringResource(R.string.cloud_person_hide)
+                        )
+                    }
                 }
                 item {
                     PersonActionChip(
                         onClick = onBlurEverywhereClick,
                         icon = Icons.Outlined.BlurOn,
                         label = stringResource(R.string.cloud_person_blur_everywhere)
+                    )
+                }
+                item {
+                    PersonActionChip(
+                        onClick = onDeleteClick,
+                        icon = Icons.Outlined.Delete,
+                        label = stringResource(R.string.person_delete),
+                        destructive = true
                     )
                 }
             }

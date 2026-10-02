@@ -23,6 +23,7 @@ import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.capabilities.ShareLinkCapableProvider
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
 import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
+import com.dot.gallery.cloud.data.dao.PersonDao
 import com.dot.gallery.cloud.data.entity.CloudServerConfigEntity
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.core.MediaDistributor
@@ -150,6 +151,7 @@ internal class LibraryContentInputs(
     val categoryCount: Flow<Int>,
     val connectionStates: Flow<Map<Long, ConnectionState>>,
     val peopleInvalidation: Flow<Unit>,
+    val hiddenPeopleCount: Flow<Int>,
     val faceDetectStatus: Flow<ModelStatus>,
     val providerByConfigId: (Long) -> MediaCapabilityProvider?,
     val sharedLinks: (ProviderType, Long) -> Flow<Resource<List<SharedLinkInfo>>>,
@@ -191,6 +193,7 @@ class LibraryContentSource internal constructor(
         providerRegistry: ProviderRegistry,
         cloudMediaDao: CloudMediaDao,
         cloudServerConfigDao: CloudServerConfigDao,
+        personDao: PersonDao,
         modelManager: ModelManager,
         @ApplicationContext context: Context,
     ) : this(
@@ -209,6 +212,7 @@ class LibraryContentSource internal constructor(
             categoryCount = repository.getCategoryCount(),
             connectionStates = providerRegistry.connectionStates,
             peopleInvalidation = cloudRepository.peopleInvalidation,
+            hiddenPeopleCount = personDao.observeHiddenCount(),
             faceDetectStatus = modelManager.status(ModelGroup.FACE_DETECT),
             providerByConfigId = providerRegistry::getByConfigId,
             sharedLinks = { type, configId -> cloudRepository.getSharedLinks(type, configId) },
@@ -246,6 +250,7 @@ class LibraryContentSource internal constructor(
     private val policyFlow = MutableStateFlow<Policy?>(null)
     private val peoplePartitions = MutableStateFlow<Map<Long, List<PersonInfo>>>(emptyMap())
     private val peopleCounts = MutableStateFlow<Map<Long, Int>>(emptyMap())
+    private val hiddenPeopleCount = MutableStateFlow(0)
     private val sharedLinkCounts = MutableStateFlow<Map<Long, Int>>(emptyMap())
     private val persistRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val liveStartMutex = Mutex()
@@ -479,6 +484,9 @@ class LibraryContentSource internal constructor(
             cloud = snapshot.cloud.copy(
                 people = people,
                 sharedLinkCount = linkCounts.values.sum(),
+                hiddenPeopleCount = if (policy.hasMediaAccess) {
+                    snapshot.cloud.hiddenPeopleCount
+                } else 0,
             ),
         )
     }
@@ -539,7 +547,7 @@ class LibraryContentSource internal constructor(
                 peopleCount = cur.peopleCountsByAccount.entries
                     .filter { it.key != LOCAL_PEOPLE_CONFIG_ID }.sumOf { it.value }
                     .coerceAtLeast(people.size),
-                cloud = cur.cloud.copy(people = people)
+                cloud = cur.cloud.copy(people = people, hiddenPeopleCount = 0)
             )
         }
         persistRequests.tryEmit(Unit)
@@ -815,6 +823,17 @@ class LibraryContentSource internal constructor(
     // on-device Person grouping surfaces in the Library even when no cloud account exists.
     private suspend fun collectPeople(gen: Int) {
         try {
+            supervisorScope {
+                // Hidden people live outside the partitions: the count keeps the People
+                // section reachable when every visible person is hidden (#1262), and it
+                // must be DB-driven rather than provider-driven so it survives the face
+                // model being uninstalled (isAvailable == false skips the provider).
+                launch {
+                    inputs.hiddenPeopleCount.collect { count ->
+                        hiddenPeopleCount.value = count
+                        publishPeople(gen)
+                    }
+                }
             // Re-fetch people when a name changes
             combine(
                 inputs.activeConfigs,
@@ -882,6 +901,7 @@ class LibraryContentSource internal constructor(
                         }
                     }
                 }
+                }
             }
         } catch (e: CancellationException) {
             throw e
@@ -897,7 +917,11 @@ class LibraryContentSource internal constructor(
                 peopleCount = peopleCounts.value.values.sum().coerceAtLeast(people.size),
                 cloud = cur.cloud.copy(
                     people = people,
-                    hasPeople = cur.cloud.hasPeople || people.isNotEmpty()
+                    // Hidden people keep the section flag alive: the header must stay
+                    // reachable even after the last visible person is hidden (#1262).
+                    hasPeople = cur.cloud.hasPeople || people.isNotEmpty() ||
+                        hiddenPeopleCount.value > 0,
+                    hiddenPeopleCount = hiddenPeopleCount.value
                 )
             )
         }

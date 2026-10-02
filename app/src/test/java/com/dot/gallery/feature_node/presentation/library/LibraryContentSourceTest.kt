@@ -170,6 +170,7 @@ class LibraryContentSourceTest {
         val connStates = MutableStateFlow(connections)
         val invalidation = MutableSharedFlow<Unit>(extraBufferCapacity = 4)
         val faceDetect = MutableStateFlow(ModelStatus.READY)
+        val hiddenCount = MutableStateFlow(0)
         val linkFlows = mutableMapOf<Long, MutableSharedFlow<Resource<List<SharedLinkInfo>>>>()
 
         var grantMask = initialGrantMask
@@ -204,6 +205,7 @@ class LibraryContentSourceTest {
                 categoryCount = categoryCount,
                 connectionStates = connStates,
                 peopleInvalidation = invalidation,
+                hiddenPeopleCount = hiddenCount,
                 faceDetectStatus = faceDetect,
                 providerByConfigId = { providers[it] },
                 sharedLinks = { _, cfg ->
@@ -348,6 +350,54 @@ class LibraryContentSourceTest {
         runCurrent()
         assertEquals(listOf(person("a", 11)), h.source.state.value.cloud.people)
         assertEquals(7, h.source.state.value.peopleCount)
+        h.close()
+    }
+
+    @Test
+    fun hiddenPeopleCountKeepsThePeopleSectionAlive() = runTest {
+        // #1262: hiding the last visible person must not remove the People
+        // section — the hidden count alone keeps the header reachable.
+        val h = harness(this)
+        h.restoreVisibleDrawn(); runCurrent()
+        assertEquals(0, h.source.state.value.cloud.hiddenPeopleCount)
+        assertTrue(h.source.state.value.cloud.people.isEmpty())
+        h.hiddenCount.value = 2
+        runCurrent()
+        val cloud = h.source.state.value.cloud
+        assertEquals(2, cloud.hiddenPeopleCount)
+        assertTrue(cloud.people.isEmpty())
+        assertTrue(cloud.hasPeople)
+        h.close()
+    }
+
+    @Test
+    fun hiddenPeopleCountDropsWhenMediaAccessIsLost() = runTest {
+        val h = harness(this)
+        h.restoreVisibleDrawn(); runCurrent()
+        h.hiddenCount.value = 2
+        runCurrent()
+        assertEquals(2, h.source.state.value.cloud.hiddenPeopleCount)
+        h.source.onHidden(); runCurrent()
+        h.hasAccess = false
+        h.grantMask = null
+        h.source.onVisible(); runCurrent()
+        assertEquals(0, h.source.state.value.cloud.hiddenPeopleCount)
+        h.close()
+    }
+
+    @Test
+    fun restoredHiddenCountSurvivesAColdStart() = runTest {
+        val cached = LibrarySnapshot(
+            cloud = CloudLibraryState(hiddenPeopleCount = 3, hasPeople = true)
+        )
+        val h = harness(this, cached = cached)
+        h.hiddenCount.value = 3 // the DAO flow is the authority once live starts
+        h.source.restore()
+        assertEquals(cached, h.source.state.value)
+        h.source.onVisible(); h.source.onContentDrawn(); runCurrent()
+        val cloud = h.source.state.value.cloud
+        assertEquals(3, cloud.hiddenPeopleCount)
+        assertTrue(cloud.hasPeople)
         h.close()
     }
 

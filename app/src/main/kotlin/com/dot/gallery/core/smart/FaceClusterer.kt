@@ -89,6 +89,19 @@ object FaceClusterer {
         val personId: String
     )
 
+    /**
+     * A media+box region that must never enter a person group — written when a
+     * person is deleted (#1262). Matched to live faces by [LINK_MATCH_IOU], the
+     * same rule as [FaceAssertion], so it survives re-detected face ids.
+     */
+    class Suppression(
+        val mediaId: Long,
+        val left: Float,
+        val top: Float,
+        val right: Float,
+        val bottom: Float
+    )
+
     /** A connected component of faces plus its normalized centroid. */
     class Component(
         val faceIds: List<Long>,
@@ -109,10 +122,22 @@ object FaceClusterer {
         persons: List<PersonSeed>,
         faceAssertions: List<FaceAssertion>,
         mediaAssertions: List<MediaAssertion>,
+        suppressions: List<Suppression> = emptyList(),
         onProgress: suspend (processed: Int, total: Int) -> Unit = { _, _ -> }
     ): Result {
-        val usable = faces.filter { it.quality >= MIN_FACE_QUALITY }
-        val unusableFaceIds = faces.filter { it.quality < MIN_FACE_QUALITY }.map { it.id }
+        fun suppressed(face: Face): Boolean = suppressions.any { s ->
+            s.mediaId == face.mediaId &&
+                boxIoU(
+                    face.left, face.top, face.right, face.bottom,
+                    s.left, s.top, s.right, s.bottom
+                ) >= LINK_MATCH_IOU
+        }
+        val usable = faces.filter { it.quality >= MIN_FACE_QUALITY && !suppressed(it) }
+        // Suppressed faces ride along with the low-quality faces so apply()
+        // forcibly clears any stale personId they may still carry.
+        val unusableFaceIds = faces
+            .filter { it.quality < MIN_FACE_QUALITY || suppressed(it) }
+            .map { it.id }
         val n = usable.size
         if (n == 0) {
             return Result(
@@ -165,16 +190,8 @@ object FaceClusterer {
             }
         }
 
-        fun boxIoU(face: Face, l: Float, t: Float, r: Float, b: Float): Float {
-            val ix = maxOf(face.left, l)
-            val iy = maxOf(face.top, t)
-            val ax = minOf(face.right, r)
-            val ay = minOf(face.bottom, b)
-            val inter = (ax - ix).coerceAtLeast(0f) * (ay - iy).coerceAtLeast(0f)
-            if (inter <= 0f) return 0f
-            val union = face.area + (r - l) * (b - t) - inter
-            return if (union <= 0f) 0f else inter / union
-        }
+        fun boxIoU(face: Face, l: Float, t: Float, r: Float, b: Float): Float =
+            boxIoU(face.left, face.top, face.right, face.bottom, l, t, r, b)
 
         // Best-IoU live face per assertion; assertions pointing at deleted persons are ignored.
         val facesByMedia = usable.indices.groupBy { usable[it].mediaId }
@@ -396,6 +413,22 @@ object FaceClusterer {
         for (x in v) sum += x * x
         val norm = sqrt(sum).coerceAtLeast(1e-10f)
         return FloatArray(v.size) { v[it] / norm }
+    }
+
+    /** Intersection-over-union of two normalized boxes. */
+    private fun boxIoU(
+        l1: Float, t1: Float, r1: Float, b1: Float,
+        l2: Float, t2: Float, r2: Float, b2: Float
+    ): Float {
+        val ix = maxOf(l1, l2)
+        val iy = maxOf(t1, t2)
+        val ax = minOf(r1, r2)
+        val ay = minOf(b1, b2)
+        val inter = (ax - ix).coerceAtLeast(0f) * (ay - iy).coerceAtLeast(0f)
+        if (inter <= 0f) return 0f
+        val area1 = (r1 - l1).coerceAtLeast(0f) * (b1 - t1).coerceAtLeast(0f)
+        val union = area1 + (r2 - l2) * (b2 - t2) - inter
+        return if (union <= 0f) 0f else inter / union
     }
 
     private class UnionFind(size: Int) {

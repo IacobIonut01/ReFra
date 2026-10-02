@@ -2051,6 +2051,17 @@
     <string name="people_scanning_grouping">Grouping people…</string>
     <string name="people_show_hidden">Show hidden people</string>
     <string name="people_hide_hidden">Hide hidden people</string>
+    <plurals name="people_hidden_count">
+        <item quantity="one">%1$d hidden</item>
+        <item quantity="other">%1$d hidden</item>
+    </plurals>
+    <string name="person_unhide">Unhide person</string>
+    <string name="person_hidden_banner">This person is hidden</string>
+    <string name="person_hidden_banner_action">Unhide</string>
+    <string name="person_delete">Delete person</string>
+    <string name="person_delete_title">Delete %1$s?</string>
+    <string name="person_delete_summary">The person group is removed and their faces won’t be grouped again. Your photos are not deleted.</string>
+    <string name="person_delete_confirm">Delete</string>
     <string name="people_regroup">Re-group faces</string>
     <string name="people_duplicates_title">Possible duplicates</string>
     <plurals name="people_duplicates_summary">
@@ -2384,6 +2395,14 @@
     <string name="library_shortcut_drag">Drag to reorder</string>
     <string name="library_section_visible">Shown</string>
     <string name="library_section_hidden">Hidden</string>
+    <string name="library_sections_title">Sections</string>
+    <string name="library_section_locations_empty">No locations to show yet</string>
+    <string name="library_section_people_unavailable">No people to show yet</string>
+    <string name="library_section_categories_unavailable">Smart categories are turned off</string>
+    <string name="library_people_section_title">People</string>
+    <string name="library_people_section_summary">Show the People section on the Library page</string>
+    <string name="library_categories_section_title">Categories</string>
+    <string name="library_categories_section_summary">Show smart categories on the Library page</string>
 
     <!-- Subject Cutout -->
     <string name="cutout_no_object">No object detected under long-press</string>

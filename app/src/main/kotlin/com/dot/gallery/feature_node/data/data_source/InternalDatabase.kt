@@ -33,6 +33,7 @@ import com.dot.gallery.cloud.data.entity.DetectedFaceEntity
 import com.dot.gallery.cloud.data.entity.FaceClusterEntity
 import com.dot.gallery.cloud.data.entity.FaceExclusionEntity
 import com.dot.gallery.cloud.data.entity.FaceLinkEntity
+import com.dot.gallery.cloud.data.entity.FaceSuppressionEntity
 import com.dot.gallery.cloud.data.entity.OcrResultEntity
 import com.dot.gallery.cloud.data.entity.PersonEntity
 import com.dot.gallery.cloud.data.entity.CloudUploadPrefEntity
@@ -98,6 +99,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         FaceClusterEntity::class,
         FaceExclusionEntity::class,
         FaceLinkEntity::class,
+        FaceSuppressionEntity::class,
         OcrResultEntity::class,
         SyncStateEntity::class,
         CloudAlbumSyncEntity::class,
@@ -113,7 +115,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         CloudTagEntity::class,
         CloudMediaTagEntity::class
     ],
-    version = 51,
+    version = 52,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -169,6 +171,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 48, to = 49), // uploadBasePath/uploadVideosPath + cloud_upload_pref.customPath
         AutoMigration(from = 49, to = 50), // face_exclusions (user "not this person" assertions)
         AutoMigration(from = 50, to = 51), // face_links (face-scoped include/exclude assertions)
+        AutoMigration(from = 51, to = 52), // face_suppressions (deleted-person face bans, #1262)
     ]
 )
 @TypeConverters(Converters::class, CloudConverters::class, SmartScanConverters::class)

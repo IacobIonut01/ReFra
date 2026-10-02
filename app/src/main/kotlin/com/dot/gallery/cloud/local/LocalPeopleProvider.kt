@@ -19,6 +19,7 @@ import com.dot.gallery.cloud.data.entity.DetectedFaceEntity
 import com.dot.gallery.cloud.data.entity.FaceExclusionEntity
 import com.dot.gallery.cloud.data.entity.FaceLinkEntity
 import com.dot.gallery.cloud.data.entity.FaceLinkKind
+import com.dot.gallery.cloud.data.entity.FaceSuppressionEntity
 import com.dot.gallery.cloud.data.entity.PersonEntity
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.ml.FaceHelper
@@ -82,7 +83,8 @@ class LocalPeopleProvider @Inject constructor(
         providerType = ProviderType.LOCAL_PEOPLE,
         serverConfigId = LOCAL_PEOPLE_CONFIG_ID,
         thumbnailUrl = thumbnailUrl,
-        assetCount = photoCount
+        assetCount = photoCount,
+        hidden = hidden
     )
 
     override fun getPeople(): Flow<Resource<List<PersonInfo>>> = combine(
@@ -96,6 +98,12 @@ class LocalPeopleProvider @Inject constructor(
     /** Distinct photos that contain at least one assigned face — "M photos" in the header. */
     fun observeIndexedPhotoCount(): Flow<Int> = faceDao.observeIndexedPhotoCount()
 
+    /**
+     * Hidden local people count — always collected by the People list/library so the
+     * feature stays reachable when every person is hidden (#1262).
+     */
+    fun observeHiddenPeopleCount(): Flow<Int> = personDao.observeHiddenCount()
+
     /** Hidden local people — surfaced behind the list's "show hidden" toggle. */
     fun observeHiddenPeople(): Flow<List<PersonInfo>> = combine(
         personDao.getByProvider(ProviderType.LOCAL_PEOPLE),
@@ -103,6 +111,21 @@ class LocalPeopleProvider @Inject constructor(
     ) { people, counts ->
         val byId = counts.associate { it.personId to it.photoCount }
         people.filter { it.hidden }.map { it.toInfo(byId[it.id] ?: 0) }
+    }
+
+    /**
+     * Reactive single-person lookup that includes hidden rows (#1262): a hidden
+     * person's detail page must keep working — it is the only place they can be
+     * unhidden from once the grid's hidden section is collapsed. Emits null once
+     * the row is gone (deleted or merged away).
+     */
+    fun observePerson(personId: String): Flow<PersonInfo?> = combine(
+        personDao.observeById(personId),
+        faceDao.observePersonPhotoCounts()
+    ) { entity, counts ->
+        entity
+            ?.takeIf { it.providerType == ProviderType.LOCAL_PEOPLE }
+            ?.toInfo(counts.firstOrNull { it.personId == personId }?.photoCount ?: 0)
     }
 
     /** Every face currently assigned to [personId], best-confidence first — the face strip. */
@@ -382,6 +405,41 @@ class LocalPeopleProvider @Inject constructor(
         person.thumbnailUrl?.let { url ->
             runCatching { File(requireNotNull(url.toUri().path)).delete() }
         }
+    }
+
+    /**
+     * Delete [personId] entirely (#1262): the person row is removed — FK SET_NULL
+     * un-assigns its faces while links, exclusions and clusters cascade — and every
+     * face that belonged to it is recorded in `face_suppressions` so the batch
+     * clusterer never groups the same faces into a resurrected person on the next
+     * scan. Photos themselves are untouched.
+     */
+    suspend fun deletePerson(personId: String) {
+        val person = personDao.getById(personId) ?: return
+        val now = System.currentTimeMillis()
+        // NonCancellable: a delete is a user decision that must not be silently
+        // rolled back when the calling screen's viewModelScope dies mid-write.
+        withContext(NonCancellable) {
+            database.withTransaction {
+                val faces = faceDao.getByPersonOnce(personId)
+                if (faces.isNotEmpty()) {
+                    faceDao.insertSuppressions(faces.map {
+                        FaceSuppressionEntity(
+                            mediaId = it.mediaId,
+                            left = it.left,
+                            top = it.top,
+                            right = it.right,
+                            bottom = it.bottom,
+                            createdAt = now
+                        )
+                    })
+                }
+                personDao.deleteById(personId)
+            }
+        }
+        // Cover file removal happens outside the transaction — file ops must not
+        // sit inside Room's transaction (matches mergePeople/removeFacesFromPerson).
+        deleteThumbnailFile(person)
     }
 
     suspend fun setHidden(personId: String, hidden: Boolean) = personDao.setHidden(personId, hidden)

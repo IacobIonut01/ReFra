@@ -10,6 +10,7 @@ import com.dot.gallery.core.smart.FaceClusterer.Face
 import com.dot.gallery.core.smart.FaceClusterer.FaceAssertion
 import com.dot.gallery.core.smart.FaceClusterer.MediaAssertion
 import com.dot.gallery.core.smart.FaceClusterer.PersonSeed
+import com.dot.gallery.core.smart.FaceClusterer.Suppression
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -64,9 +65,10 @@ class FaceClustererTest {
         faces: List<Face>,
         persons: List<PersonSeed> = emptyList(),
         faceAssertions: List<FaceAssertion> = emptyList(),
-        mediaAssertions: List<MediaAssertion> = emptyList()
+        mediaAssertions: List<MediaAssertion> = emptyList(),
+        suppressions: List<Suppression> = emptyList()
     ) = runBlocking {
-        FaceClusterer.cluster(faces, persons, faceAssertions, mediaAssertions)
+        FaceClusterer.cluster(faces, persons, faceAssertions, mediaAssertions, suppressions)
     }
 
     private fun FaceClusterer.Result.personOf(faceId: Long): String? =
@@ -311,6 +313,79 @@ class FaceClustererTest {
         assertTrue(odd2.id in oddGroups.single().faceIds)
         // The unrelated singleton ends up alone — fresh or unassigned, never in p1.
         assertTrue(result.personOf(odd3.id) != "p1")
+    }
+
+    @Test
+    fun suppressedFaceNeverJoinsAnyPerson() {
+        // Person deleted → its faces were written as suppressions. Even when the
+        // remaining faces are a near-duplicate of another person, the suppressed
+        // box must stay out of every group.
+        val suppressed = face(1, embedding(0, 10, 0.9f), personId = "p_gone")
+        val member = face(2, embedding(0, 11, 0.9f), personId = "p1")
+
+        val result = cluster(
+            listOf(suppressed, member),
+            persons = listOf(person("p1")),
+            suppressions = listOf(
+                Suppression(
+                    mediaId = suppressed.mediaId,
+                    left = suppressed.left, top = suppressed.top,
+                    right = suppressed.right, bottom = suppressed.bottom
+                )
+            )
+        )
+
+        assertTrue(suppressed.id in result.unassignedFaceIds)
+        assertTrue(result.resolved.none { suppressed.id in it.second.faceIds })
+        assertTrue(result.fresh.none { suppressed.id in it.faceIds })
+        assertEquals("p1", result.personOf(member.id))
+    }
+
+    @Test
+    fun suppressedFacesDoNotFormAFreshPersonTogether() {
+        // Two suppressed boxes that are similar to each other must not resurrect
+        // as a new unnamed person — they are dropped before grouping runs.
+        val s1 = face(1, embedding(0, 10, 0.85f))
+        val s2 = face(2, embedding(0, 11, 0.85f))
+        val live = face(3, embedding(40, 50, 0.85f))
+
+        val result = cluster(
+            listOf(s1, s2, live),
+            suppressions = listOf(
+                Suppression(1, s1.left, s1.top, s1.right, s1.bottom),
+                Suppression(2, s2.left, s2.top, s2.right, s2.bottom)
+            )
+        )
+
+        assertTrue(s1.id in result.unassignedFaceIds)
+        assertTrue(s2.id in result.unassignedFaceIds)
+        assertEquals(1, result.fresh.size)
+        assertEquals(listOf(live.id), result.fresh.single().faceIds)
+    }
+
+    @Test
+    fun suppressionOnlyMatchesTheSameMediaAndOverlappingBox() {
+        // Same box on a different media, or a disjoint box on the same media,
+        // must not suppress the face.
+        val f = face(1, embedding(0, 10, 0.85f), personId = "p1")
+
+        val differentMedia = cluster(
+            listOf(f),
+            persons = listOf(person("p1")),
+            suppressions = listOf(
+                Suppression(99, f.left, f.top, f.right, f.bottom)
+            )
+        )
+        assertEquals("p1", differentMedia.personOf(f.id))
+
+        val disjointBox = cluster(
+            listOf(f),
+            persons = listOf(person("p1")),
+            suppressions = listOf(
+                Suppression(1, 0.7f, 0.7f, 0.9f, 0.9f)
+            )
+        )
+        assertEquals("p1", disjointBox.personOf(f.id))
     }
 
     private companion object {

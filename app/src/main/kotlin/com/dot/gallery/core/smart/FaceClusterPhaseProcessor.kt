@@ -65,6 +65,7 @@ class FaceClusterPhaseProcessor @Inject constructor(
         faceDao.deleteOrphans()
         faceDao.deleteOrphanExclusions()
         faceDao.deleteOrphanLinks()
+        faceDao.deleteOrphanSuppressions()
 
         val allFaces = faceDao.getAll()
         val embedded = allFaces.mapNotNull { face ->
@@ -116,10 +117,15 @@ class FaceClusterPhaseProcessor @Inject constructor(
         val mediaAssertions = faceDao.getExclusions().map {
             FaceClusterer.MediaAssertion(mediaId = it.mediaId, personId = it.personId)
         }
+        // Faces banned by a person delete stay unassigned forever — the same
+        // media+box IoU matching as face_links, so bans survive re-detection.
+        val suppressions = faceDao.getSuppressions().map {
+            FaceClusterer.Suppression(it.mediaId, it.left, it.top, it.right, it.bottom)
+        }
 
         val total = inputs.size.coerceAtLeast(1)
         progress(context, total, 0, 0, 0, 0)
-        val result = FaceClusterer.cluster(inputs, seeds, assertions, mediaAssertions) { done, _ ->
+        val result = FaceClusterer.cluster(inputs, seeds, assertions, mediaAssertions, suppressions) { done, _ ->
             progress(context, total, done.coerceIn(0, total), done.coerceIn(0, total), 0, 0)
         }
 

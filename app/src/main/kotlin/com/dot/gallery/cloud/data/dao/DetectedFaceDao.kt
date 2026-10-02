@@ -16,6 +16,7 @@ import com.dot.gallery.cloud.data.entity.FaceClusterEntity
 import com.dot.gallery.cloud.data.entity.FaceExclusionEntity
 import com.dot.gallery.cloud.data.entity.FaceLinkEntity
 import com.dot.gallery.cloud.data.entity.FaceLinkKind
+import com.dot.gallery.cloud.data.entity.FaceSuppressionEntity
 import kotlinx.coroutines.flow.Flow
 
 data class DetectedFaceHeader(
@@ -194,4 +195,21 @@ interface DetectedFaceDao {
         """
     )
     suspend fun deleteOrphanLinks(): Int
+
+    // ── Face suppressions ("never cluster this face", written on person delete) ──
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSuppressions(suppressions: List<FaceSuppressionEntity>)
+
+    @Query("SELECT * FROM face_suppressions")
+    suspend fun getSuppressions(): List<FaceSuppressionEntity>
+
+    @Query(
+        """
+        DELETE FROM face_suppressions
+        WHERE NOT EXISTS (SELECT 1 FROM media WHERE media.id = face_suppressions.mediaId)
+          AND NOT EXISTS (SELECT 1 FROM cloud_media WHERE cloud_media.globalMediaId = face_suppressions.mediaId)
+        """
+    )
+    suspend fun deleteOrphanSuppressions(): Int
 }

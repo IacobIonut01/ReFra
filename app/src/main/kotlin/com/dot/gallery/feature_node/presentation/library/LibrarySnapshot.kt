@@ -253,7 +253,9 @@ internal fun validateLibrarySnapshot(
                 !isPersistableThumbnailUrl(it.thumbnailUrl, it, faceThumbDir)
         }
     ) return false
-    if (cloud.archivedCount < 0 || cloud.sharedLinkCount < 0 || cloud.totalCloudCount < 0) {
+    if (cloud.archivedCount < 0 || cloud.sharedLinkCount < 0 || cloud.totalCloudCount < 0 ||
+        cloud.hiddenPeopleCount < 0
+    ) {
         return false
     }
     val viewport = snapshot.viewport

@@ -318,6 +318,11 @@ class LibrarySnapshotTest {
                 LibrarySnapshot(cloud = CloudLibraryState(archivedCount = -1))
             )
         )
+        assertFalse(
+            validateLibrarySnapshot(
+                LibrarySnapshot(cloud = CloudLibraryState(hiddenPeopleCount = -1))
+            )
+        )
     }
 
     @Test

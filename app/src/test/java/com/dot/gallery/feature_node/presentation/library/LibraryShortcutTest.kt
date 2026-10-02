@@ -144,6 +144,54 @@ class LibraryShortcutTest {
         )
     }
 
+    @Test
+    fun hiddenOnlyPeopleKeepTheHeaderKeyWithoutAListKey() {
+        // #1262: every person hidden → PeopleHeader stays (entry to PeopleListScreen
+        // where the hidden section lives) but no PeopleList row is emitted.
+        val keys = libraryGridSectionKeys(
+            hasLocations = false,
+            hasLocationsList = false,
+            hasPeople = true,
+            hasPeopleList = false,
+            hasCategories = false,
+            hasNoCategories = false
+        )
+
+        assertEquals(listOf("libraryShortcuts", "PeopleHeader"), keys)
+    }
+
+    @Test
+    fun sectionKeysTrackEveryVisibleBlock() {
+        assertEquals(
+            listOf(
+                "libraryShortcuts",
+                "LocationsHeader", "LocationsList",
+                "PeopleHeader", "PeopleList",
+                "CategoriesHeader", "CategoriesList",
+                "NoCategories"
+            ),
+            libraryGridSectionKeys(
+                hasLocations = true,
+                hasLocationsList = true,
+                hasPeople = true,
+                hasPeopleList = true,
+                hasCategories = true,
+                hasNoCategories = true
+            )
+        )
+        assertEquals(
+            listOf("libraryShortcuts"),
+            libraryGridSectionKeys(
+                hasLocations = false,
+                hasLocationsList = false,
+                hasPeople = false,
+                hasPeopleList = false,
+                hasCategories = false,
+                hasNoCategories = false
+            )
+        )
+    }
+
     private fun runtimeShortcut(shortcut: LibraryShortcut) = RuntimeShortcut(
         shortcut = shortcut,
         title = shortcut.id,
