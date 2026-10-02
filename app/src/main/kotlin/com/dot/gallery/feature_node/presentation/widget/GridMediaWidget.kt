@@ -14,6 +14,7 @@ import android.widget.RemoteViews
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.main.MainActivity
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetDisplayStyle
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,14 +35,17 @@ class GridMediaWidgetReceiver : AppWidgetProvider() {
 
         // Self-heal: if cached bitmaps are missing (e.g. after an app update, reboot
         // or the system clearing app cache) but the URIs are still persisted,
-        // reload and re-cache them, then push the update again.
+        // reload and re-cache them, then push the update again. Icon-mode
+        // widgets draw no bitmap, so there is nothing to heal for them.
         val appContext = context.applicationContext
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val awm = AppWidgetManager.getInstance(appContext)
                 for (appWidgetId in appWidgetIds) {
-                    val uris = WidgetPreferences.getMediaUris(appContext, appWidgetId)
+                    val data = WidgetPreferences.getWidgetData(appContext, appWidgetId)
+                    if (data?.displayStyle == WidgetDisplayStyle.ICON && !data.icon.isNullOrBlank()) continue
+                    val uris = data?.mediaUris.orEmpty().map(Uri::parse)
                     if (uris.isEmpty()) continue
                     var reloaded = false
                     uris.forEachIndexed { index, uri ->

@@ -7,11 +7,16 @@ package com.dot.gallery.feature_node.presentation.widget.data
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.net.Uri
 import android.util.Size
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -44,16 +49,35 @@ object WidgetBitmapLoader {
 
     /**
      * Reads a previously cached bitmap from file. This is a synchronous call
-     * safe to use from AppWidgetProvider.onUpdate.
+     * safe to use from AppWidgetProvider.onUpdate. When [grayscale] is set the
+     * decoded bitmap is returned desaturated — the cached file stays in colour
+     * so a style change never forces a re-decode.
      */
-    fun loadCachedBitmap(context: Context, widgetId: Int, index: Int): Bitmap? {
+    fun loadCachedBitmap(
+        context: Context,
+        widgetId: Int,
+        index: Int,
+        grayscale: Boolean = false
+    ): Bitmap? {
         val file = getBitmapFile(context, widgetId, index)
         if (!file.exists()) return null
-        return try {
+        val bitmap = try {
             BitmapFactory.decodeFile(file.absolutePath)
         } catch (e: Exception) {
+            printWarn("app.widget", "cached widget bitmap decode failed", ctx = mapOf("file" to file.name))
             null
+        } ?: return null
+        return if (grayscale) bitmap.toGrayscale() else bitmap
+    }
+
+    /** Saturation-0 copy for [WidgetDisplayStyle.GRAYSCALE]. */
+    private fun Bitmap.toGrayscale(): Bitmap {
+        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f) })
         }
+        Canvas(result).drawBitmap(this, 0f, 0f, paint)
+        return result
     }
 
     fun clearCache(context: Context, widgetId: Int) {

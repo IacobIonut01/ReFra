@@ -14,6 +14,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
 import com.dot.gallery.R
 import com.dot.gallery.core.Constants
@@ -32,7 +35,9 @@ import com.dot.gallery.feature_node.domain.util.isLocalContent
 import com.dot.gallery.feature_node.presentation.picker.AllowedMedia
 import com.dot.gallery.feature_node.presentation.picker.components.PickerScreen
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetData
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetDeepLink
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetDisplayStyle
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetPreferences
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetType
 import com.dot.gallery.ui.theme.GalleryTheme
@@ -61,8 +66,14 @@ class WidgetConfigActivity : FragmentActivity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private var isReconfigure = false
 
+    /** Saved config read at launch — pre-fills the style step on reconfigure. */
+    private var existingData: WidgetData? = null
+
     /** URIs handed back by the picker's first result callback, consumed by the second. */
     private var pendingUris: List<Uri> = emptyList()
+
+    /** Step-1 pick awaiting the style step; non-null swaps in [WidgetStyleScreen]. */
+    private var pendingSelection by mutableStateOf<Pair<List<Uri>, List<Media>>?>(null)
 
     private val widgetType: WidgetType by lazy {
         // Determine widget type from the provider info
@@ -90,7 +101,8 @@ class WidgetConfigActivity : FragmentActivity() {
         }
 
         // Detect reconfigure: widget already has saved data
-        isReconfigure = WidgetPreferences.getWidgetData(this, appWidgetId) != null
+        existingData = WidgetPreferences.getWidgetData(this, appWidgetId)
+        isReconfigure = existingData != null
 
         // For initial config, set CANCELED so backing out doesn't add the widget.
         // For reconfigure, the widget already exists — just finish normally on back.
@@ -137,10 +149,26 @@ class WidgetConfigActivity : FragmentActivity() {
                 mediaSelector = mediaSelector
             ) {
                 GalleryTheme {
-                    WidgetConfigScreen(
-                        title = title,
-                        allowMultiple = allowMultiple
-                    )
+                    val selection = pendingSelection
+                    if (selection == null) {
+                        WidgetConfigScreen(
+                            title = title,
+                            allowMultiple = allowMultiple
+                        )
+                    } else {
+                        WidgetStyleScreen(
+                            previewUris = selection.first,
+                            widgetType = widgetType,
+                            initialStyle = existingData?.displayStyle
+                                ?: WidgetDisplayStyle.IMAGE,
+                            initialIcon = existingData?.icon,
+                            isReconfigure = isReconfigure,
+                            onBack = { pendingSelection = null },
+                            onDone = { style, icon ->
+                                finishConfig(selection.first, selection.second, style, icon)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -173,7 +201,17 @@ class WidgetConfigActivity : FragmentActivity() {
             finish()
             return
         }
+        // Step 2 of the flow: hold the pick and let WidgetStyleScreen choose how
+        // the widget renders it (colour / black & white / icon stand-in).
+        pendingSelection = selectedMedia to selectedItems
+    }
 
+    private fun finishConfig(
+        selectedMedia: List<Uri>,
+        selectedItems: List<Media>,
+        style: WidgetDisplayStyle,
+        icon: String?,
+    ) {
         // The media viewer deep link needs the timeline id of each picked item.
         // Vault and private-folder picks are excluded — they are absent from the
         // unified timeline and a vault id is its original MediaStore row id.
@@ -207,7 +245,9 @@ class WidgetConfigActivity : FragmentActivity() {
             widgetId = appWidgetId,
             type = widgetType,
             uris = selectedMedia,
-            mediaIds = mediaIds
+            mediaIds = mediaIds,
+            displayStyle = style,
+            icon = icon
         )
 
         // Load bitmaps, cache to files, and push widget update

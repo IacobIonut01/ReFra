@@ -1192,6 +1192,15 @@
     <string name="widget_grid_description">Display a grid of photos on your home screen (2×2, 4×4, or 6×6 depending on size)</string>
     <string name="widget_select_photo">Select Photo</string>
     <string name="widget_select_photos">Select Photos</string>
+    <string name="widget_style_title">Widget style</string>
+    <string name="widget_style_subtitle">Pick how your photo looks on the home screen</string>
+    <string name="widget_style_original">Original photo</string>
+    <string name="widget_style_bw">Black &amp; white</string>
+    <string name="widget_style_icon">Icon or emoji</string>
+    <string name="widget_style_add">Add widget</string>
+    <string name="widget_icon_section">Widget icon</string>
+    <string name="widget_icon_label">Icon or emoji</string>
+    <string name="widget_icon_description">Shown instead of the photo — tapping the widget still opens it</string>
 
     <!-- Editor tabs -->
     <string name="editor_develop">Develop</string>

@@ -238,6 +238,12 @@ class MainActivity : AppCompatActivity() {
                                 // routes through the unified timeline and presents as the
                                 // overlay viewer; a missing/deleted id auto-dismisses.
                                 val widgetDeepLinkJob = launch {
+                                    // consumeWidgetDeepLink can seed the flow before the
+                                    // NavHost inside NavigationComp attaches the graph —
+                                    // navigating then throws "Navigation graph has not
+                                    // been set". The first back-stack entry is emitted
+                                    // exactly when the graph exists, so wait for it.
+                                    navController.currentBackStackEntryFlow.first()
                                     widgetMediaDeepLink.collect { mediaId ->
                                         if (mediaId == -1L) return@collect
                                         // Consume before navigating so a repeated tap on

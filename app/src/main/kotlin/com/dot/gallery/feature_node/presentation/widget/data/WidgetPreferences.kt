@@ -23,7 +23,17 @@ data class WidgetData(
      * versions before the deep-link fix — [WidgetDeepLink.resolveDeepLinkId]
      * falls back to parsing the media URI in that case.
      */
-    val mediaIds: List<Long?> = emptyList()
+    val mediaIds: List<Long?> = emptyList(),
+    /**
+     * How the picked photos are drawn on the home screen. Absent in data
+     * stored before display styles existed — defaults to [WidgetDisplayStyle.IMAGE].
+     */
+    val displayStyle: WidgetDisplayStyle = WidgetDisplayStyle.IMAGE,
+    /**
+     * Emoji or short label shown instead of the photo when
+     * [displayStyle] is [WidgetDisplayStyle.ICON]. Null renders the photo.
+     */
+    val icon: String? = null
 )
 
 @Serializable
@@ -43,13 +53,17 @@ object WidgetPreferences {
         widgetId: Int,
         type: WidgetType,
         uris: List<Uri>,
-        mediaIds: List<Long?> = emptyList()
+        mediaIds: List<Long?> = emptyList(),
+        displayStyle: WidgetDisplayStyle = WidgetDisplayStyle.IMAGE,
+        icon: String? = null
     ) {
         val data = WidgetData(
             widgetId = widgetId,
             type = type,
             mediaUris = uris.map { it.toString() },
-            mediaIds = mediaIds
+            mediaIds = mediaIds,
+            displayStyle = displayStyle,
+            icon = icon
         )
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit(commit = true) {

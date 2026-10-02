@@ -10,9 +10,11 @@ import android.content.Intent
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.dot.gallery.R
+import android.view.View
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetData
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetDeepLink
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetDisplayStyle
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetPreferences
 
 /**
@@ -54,17 +56,35 @@ private class GridMediaWidgetFactory(
 
     override fun getViewAt(position: Int): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_grid_item)
-        val bitmap = WidgetBitmapLoader.loadCachedBitmap(context, appWidgetId, position)
-        if (bitmap != null) {
-            views.setImageViewBitmap(R.id.widget_grid_image, bitmap)
+        // Icon mode draws the stored emoji/label in every cell instead of the
+        // photos; a blank icon falls back to the photo.
+        val iconText = data?.icon?.takeIf {
+            data?.displayStyle == WidgetDisplayStyle.ICON && it.isNotBlank()
+        }
+        if (iconText != null) {
+            views.setTextViewText(R.id.widget_grid_icon, iconText)
+            views.setViewVisibility(R.id.widget_grid_icon, View.VISIBLE)
+            views.setViewVisibility(R.id.widget_grid_image, View.GONE)
         } else {
-            views.setImageViewResource(R.id.widget_grid_image, R.drawable.widget_preview_bg)
+            views.setViewVisibility(R.id.widget_grid_icon, View.GONE)
+            views.setViewVisibility(R.id.widget_grid_image, View.VISIBLE)
+            val bitmap = WidgetBitmapLoader.loadCachedBitmap(
+                context, appWidgetId, position,
+                grayscale = data?.displayStyle == WidgetDisplayStyle.GRAYSCALE
+            )
+            if (bitmap != null) {
+                views.setImageViewBitmap(R.id.widget_grid_image, bitmap)
+            } else {
+                views.setImageViewResource(R.id.widget_grid_image, R.drawable.widget_preview_bg)
+            }
         }
         val fillIn = Intent()
         WidgetDeepLink.resolveDeepLinkId(data, position)?.let { mediaId ->
             fillIn.putExtra(WidgetDeepLink.EXTRA_WIDGET_MEDIA_ID, mediaId)
         }
-        views.setOnClickFillInIntent(R.id.widget_grid_image, fillIn)
+        // On the item root so the tap lands whether the cell shows the photo
+        // or its icon stand-in.
+        views.setOnClickFillInIntent(R.id.widget_grid_item_root, fillIn)
         return views
     }
 

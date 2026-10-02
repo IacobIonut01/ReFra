@@ -1,7 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widget_grid_image"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_grid_item_root"
     android:layout_width="match_parent"
-    android:layout_height="96dp"
-    android:scaleType="centerCrop"
-    android:contentDescription="@string/widget_grid_label" />
+    android:layout_height="96dp">
+
+    <ImageView
+        android:id="@+id/widget_grid_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/widget_grid_label" />
+
+    <TextView
+        android:id="@+id/widget_grid_icon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:padding="6dp"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="10sp"
+        android:autoSizeMaxTextSize="48sp"
+        android:autoSizeStepGranularity="4sp"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+</FrameLayout>

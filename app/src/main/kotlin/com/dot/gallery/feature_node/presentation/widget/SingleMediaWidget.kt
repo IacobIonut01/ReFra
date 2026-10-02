@@ -15,6 +15,7 @@ import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.main.MainActivity
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetBitmapLoader
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetDeepLink
+import com.dot.gallery.feature_node.presentation.widget.data.WidgetDisplayStyle
 import com.dot.gallery.feature_node.presentation.widget.data.WidgetPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,13 +35,16 @@ class SingleMediaWidgetReceiver : AppWidgetProvider() {
 
         // Self-heal: if a cached bitmap is missing (e.g. after an app update, reboot
         // or the system clearing app cache) but the URIs are still persisted,
-        // reload and re-cache the bitmap, then push the update again.
+        // reload and re-cache the bitmap, then push the update again. Icon-mode
+        // widgets draw no bitmap, so there is nothing to heal for them.
         val appContext = context.applicationContext
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val awm = AppWidgetManager.getInstance(appContext)
                 for (appWidgetId in appWidgetIds) {
+                    val data = WidgetPreferences.getWidgetData(appContext, appWidgetId)
+                    if (data?.displayStyle == WidgetDisplayStyle.ICON && !data.icon.isNullOrBlank()) continue
                     if (WidgetBitmapLoader.loadCachedBitmap(appContext, appWidgetId, 0) != null) continue
                     val uris = WidgetPreferences.getMediaUris(appContext, appWidgetId)
                     val uri = uris.firstOrNull() ?: continue
@@ -65,24 +69,40 @@ class SingleMediaWidgetReceiver : AppWidgetProvider() {
 
     companion object {
         fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
-            val bitmap = WidgetBitmapLoader.loadCachedBitmap(context, appWidgetId, 0)
+            val data = WidgetPreferences.getWidgetData(context, appWidgetId)
             val views = RemoteViews(context.packageName, R.layout.widget_single_content)
 
-            if (bitmap != null) {
-                views.setImageViewBitmap(R.id.widget_image, bitmap)
-                views.setViewVisibility(R.id.widget_image, View.VISIBLE)
+            // Icon mode draws the stored emoji/label instead of the photo; a
+            // blank icon falls back to the photo so the widget is never empty.
+            val iconText = data?.icon?.takeIf {
+                data.displayStyle == WidgetDisplayStyle.ICON && it.isNotBlank()
+            }
+            if (iconText != null) {
+                views.setTextViewText(R.id.widget_icon_text, iconText)
+                views.setViewVisibility(R.id.widget_icon_text, View.VISIBLE)
+                views.setViewVisibility(R.id.widget_image, View.GONE)
                 views.setViewVisibility(R.id.widget_no_photo_text, View.GONE)
             } else {
-                views.setViewVisibility(R.id.widget_image, View.GONE)
-                views.setViewVisibility(R.id.widget_no_photo_text, View.VISIBLE)
+                views.setViewVisibility(R.id.widget_icon_text, View.GONE)
+                val bitmap = WidgetBitmapLoader.loadCachedBitmap(
+                    context, appWidgetId, 0,
+                    grayscale = data?.displayStyle == WidgetDisplayStyle.GRAYSCALE
+                )
+                if (bitmap != null) {
+                    views.setImageViewBitmap(R.id.widget_image, bitmap)
+                    views.setViewVisibility(R.id.widget_image, View.VISIBLE)
+                    views.setViewVisibility(R.id.widget_no_photo_text, View.GONE)
+                } else {
+                    views.setViewVisibility(R.id.widget_image, View.GONE)
+                    views.setViewVisibility(R.id.widget_no_photo_text, View.VISIBLE)
+                }
             }
 
             // Tap opens the displayed photo in the viewer; without a resolvable
             // media id (empty widget, vault/private pick, pre-fix widget) it
-            // falls back to a plain app open.
-            val mediaId = WidgetDeepLink.resolveDeepLinkId(
-                WidgetPreferences.getWidgetData(context, appWidgetId), 0
-            )
+            // falls back to a plain app open. Applies to every style — icon
+            // widgets are meant to be shortcuts into the hidden photo.
+            val mediaId = WidgetDeepLink.resolveDeepLinkId(data, 0)
             val intent = Intent(context, MainActivity::class.java).apply {
                 if (mediaId != null) {
                     putExtra(WidgetDeepLink.EXTRA_WIDGET_MEDIA_ID, mediaId)
