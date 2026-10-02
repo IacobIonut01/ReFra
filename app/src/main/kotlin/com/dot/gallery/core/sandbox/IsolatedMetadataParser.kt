@@ -9,6 +9,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -31,6 +32,7 @@ import com.dot.gallery.feature_node.presentation.exif.MetadataTag
 import com.dot.gallery.feature_node.presentation.util.printDebug
 import com.dot.gallery.feature_node.presentation.util.printWarning
 import java.util.concurrent.Executors
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -393,13 +395,17 @@ class IsolatedMetadataParser(private val context: Context) {
      * PSD, SVG, HEIF/AVIF/TIFF). metadata-extractor omits or can't read their dimensions, so probe
      * the intrinsic size in-process (the same native decoders used for rendering) and prepend a
      * synthetic directory when no width/height tag is already present.
+     *
+     * For videos, an entirely empty reply is rebuilt with [probeVideoDirectories] — the
+     * service-side retriever can take the isolated process down before metadata-extractor
+     * runs (Android 12, #1267), which otherwise leaves the screen blank.
      */
     private fun augmentWithProbeSize(
         uri: Uri,
         isVideo: Boolean,
         directories: List<MetadataDirectory>
     ): List<MetadataDirectory> {
-        if (isVideo) return directories
+        if (isVideo) return directories.ifEmpty { probeVideoDirectories(uri) }
         val hasDimensions = directories.any { dir ->
             dir.tags.any { it.name.contains("width", ignoreCase = true) }
         }
@@ -414,6 +420,42 @@ class IsolatedMetadataParser(private val context: Context) {
         )
         return listOf(synthetic) + directories
     }
+
+    /**
+     * Rebuilds the "Video Metadata" directory in-process when the isolated reply came
+     * back empty. Mirrors the service-side tag set ([IsolatedMetadataService.VIDEO_TAG_MAP]);
+     * the retriever only forwards parsing to the platform's mediaextractor daemon, so this
+     * does not move untrusted parsing into the app process.
+     */
+    private fun probeVideoDirectories(uri: Uri): List<MetadataDirectory> =
+        runCatching {
+            context.openUnredactedFileDescriptor(uri)?.use { pfd ->
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(pfd.fileDescriptor)
+                    val tagNames = ArrayList<String>()
+                    val tagDescs = ArrayList<String>()
+                    for ((key, name) in IsolatedMetadataService.VIDEO_TAG_MAP) {
+                        retriever.extractMetadata(key)?.let { value ->
+                            tagNames.add(name)
+                            tagDescs.add(value)
+                        }
+                    }
+                    if (tagNames.isEmpty()) emptyList() else listOf(
+                        MetadataDirectory(
+                            name = "Video Metadata",
+                            tags = tagNames.zip(tagDescs).map { (n, d) -> MetadataTag(n, d) }
+                        )
+                    )
+                } finally {
+                    retriever.release()
+                }
+            } ?: emptyList()
+        }.getOrElse {
+            if (it is CancellationException) throw it
+            printWarning("IsolatedMetadataParser: in-process video probe failed: ${it.message}")
+            emptyList()
+        }
 
     private fun unbundleRawMetadata(bundle: Bundle): List<MetadataDirectory> {
         val dirNames = bundle.getStringArrayList(KEY_RAW_DIR_NAMES) ?: return emptyList()

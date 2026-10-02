@@ -172,7 +172,9 @@ class MediaViewViewModel @Inject constructor(
         if (media == null) return
         if (media.id == lastMetadataFetchId) return
         val existing = metadataState.metadata.firstOrNull { it.mediaId == media.id }
-        if (existing != null && (existing.imageWidth > 0 || existing.manufacturerName != null)) {
+        if (existing != null && (existing.imageWidth > 0 || existing.manufacturerName != null ||
+                existing.durationMs != null)
+        ) {
             return
         }
         lastMetadataFetchId = media.id

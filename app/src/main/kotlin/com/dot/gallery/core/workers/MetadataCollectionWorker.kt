@@ -22,6 +22,7 @@ import com.dot.gallery.feature_node.domain.model.MediaVersion
 import com.dot.gallery.feature_node.domain.model.metadataParsingPolicy
 import com.dot.gallery.feature_node.domain.model.retrieveExtraMediaMetadata
 import com.dot.gallery.feature_node.domain.repository.MediaRepository
+import com.dot.gallery.feature_node.domain.util.isVideo
 import com.dot.gallery.feature_node.presentation.util.isMetadataUpToDate
 import com.dot.gallery.feature_node.presentation.util.mediaStoreVersion
 import com.dot.gallery.feature_node.presentation.util.printDebug
@@ -78,7 +79,11 @@ class MetadataCollectionWorker @AssistedInject constructor(
         printDebug("Retrieved ${media?.size ?: 0} media items from repository.")
         val differentMedia = if (!forceReload) {
             val oldMediaIds = oldMedia.mapTo(HashSet(oldMedia.size)) { it.id }
-            media.orEmpty().filter { it.id !in oldMediaIds }
+            // Also re-collect videos that lack complete metadata rows — an earlier
+            // parse may have produced nothing (e.g. isolated-service video parse
+            // failing on Android 12, #1267) and this is their only bulk retry.
+            val completeIds = database.getMetadataDao().getCompleteMetadataIds().toHashSet()
+            media.orEmpty().filter { it.id !in oldMediaIds || it.isVideo && it.id !in completeIds }
         } else media
         printDebug("Found ${differentMedia?.size ?: 0} new or updated media items.")
         media?.let {

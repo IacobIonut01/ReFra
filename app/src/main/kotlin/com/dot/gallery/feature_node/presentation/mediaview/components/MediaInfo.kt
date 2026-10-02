@@ -300,6 +300,26 @@ fun Media.retrieveMetadata(
 
     }
 
+    // Floor rows: a missing metadata row must never hide the file itself. Size and
+    // duration already come from the MediaStore projection, so surface them even
+    // when every parser failed (#1267).
+    if (mediaMetadata == null && size > 0) {
+        info += InfoRow(
+            icon = Icons.Outlined.Info,
+            label = context.getString(R.string.type_size),
+            content = formatSize(size)
+        )
+    }
+    if (isVideo && (mediaMetadata?.durationMs ?: 0L) <= 0L) {
+        duration.formatMinSec().takeIf { it.isNotBlank() }?.let {
+            info += InfoRow(
+                icon = Icons.Outlined.VideoFile,
+                label = context.getString(R.string.duration),
+                content = it
+            )
+        }
+    }
+
     // HDR classification of the playing track, published by the player (#1274). Kept outside
     // the metadata scope so the row still renders when no parsed metadata exists. For Dolby
     // Vision the label also reflects how the device actually renders it.

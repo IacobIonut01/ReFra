@@ -29,11 +29,14 @@ import com.drew.metadata.xmp.XmpReader
 import com.dot.gallery.feature_node.domain.model.isRedactedCoordinate
 import com.dot.gallery.feature_node.domain.model.parseCaptureTimestamp
 import com.dot.gallery.feature_node.presentation.util.printError
+import com.dot.gallery.feature_node.presentation.util.printWarn
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.InputStream
 import java.io.PushbackInputStream
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Isolated-process service for metadata parsing.
@@ -326,6 +329,54 @@ class IsolatedMetadataService : Service() {
 
     // ── Video metadata parsing (MediaMetadataRetriever) ───────────────────
 
+    private var retrieverWedged = false
+
+    /**
+     * Runs a [MediaMetadataRetriever] leg on a one-shot worker thread with a bounded wait.
+     *
+     * Inside an isolated process the retriever may block forever instead of throwing —
+     * on Android 12 even the constructor loops on "MediaPlayerService not published"
+     * because isolated_app can never reach media.player via servicemanager. Since
+     * requests are handled serially on the main looper, one wedged retriever blocks
+     * this service for every later parse (each burning the client's 30s timeout), so
+     * the retriever is constructed inside the worker too.
+     *
+     * The native wait is uninterruptible, so on timeout the thread is abandoned and
+     * [retrieverWedged] latches: every later parse skips the retriever leg outright
+     * instead of leaking another thread. Returns null when the leg wedged, threw, or
+     * was skipped.
+     */
+    private fun <T> withRetrieverWatchdog(block: (MediaMetadataRetriever) -> T): T? {
+        if (retrieverWedged) return null
+        val latch = CountDownLatch(1)
+        var outcome: Result<T>? = null
+        Thread({
+            var retriever: MediaMetadataRetriever? = null
+            outcome = runCatching {
+                retriever = MediaMetadataRetriever()
+                block(retriever!!)
+            }
+            latch.countDown()
+            retriever?.let { r -> runCatching { r.release() } }
+        }, "metadata-retriever").apply { isDaemon = true }.start()
+        if (!latch.await(RETRIEVER_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            retrieverWedged = true
+            printWarn(
+                "service.sandbox",
+                "MediaMetadataRetriever wedged waiting for media.player; " +
+                    "skipping the retriever leg for the rest of this process"
+            )
+            return null
+        }
+        return outcome?.onFailure {
+            printError(
+                "service.sandbox",
+                "video metadata retriever failed; falling back to metadata-extractor",
+                it
+            )
+        }?.getOrNull()
+    }
+
     @Suppress("DEPRECATION")
     private fun parseVideoMetadata(input: Bundle): Bundle {
         val pfd = input.getParcelable<ParcelFileDescriptor>(KEY_PFD)
@@ -334,48 +385,40 @@ class IsolatedMetadataService : Service() {
         return pfd.use { fd ->
             val result = Bundle()
 
-            // ── 1) MediaMetadataRetriever (best-effort) ───────────────────
+            // ── 1) MediaMetadataRetriever (best-effort, watchdogged) ──────
             // setDataSource throws a RuntimeException on some containers/codecs
             // (e.g. HEVC .MOV from iPhones). Treat that as non-fatal so the
             // summary — and the "View all metadata" entry point — still appears;
             // dimensions are recovered from metadata-extractor below.
-            val retriever = MediaMetadataRetriever()
-            try {
+            withRetrieverWatchdog { retriever ->
                 retriever.setDataSource(fd.fileDescriptor)
-
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    ?.toLongOrNull()?.let { result.putLong(KEY_DURATION_MS, it) }
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                    ?.toIntOrNull()?.let { result.putInt(KEY_VIDEO_WIDTH, it) }
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-                    ?.toIntOrNull()?.let { result.putInt(KEY_VIDEO_HEIGHT, it) }
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
-                    ?.toIntOrNull()?.let { result.putInt(KEY_BIT_RATE, it) }
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)?.let { rawDate ->
-                    parseCaptureTimestamp(rawDate)?.let {
-                        result.putLong(KEY_CAPTURE_TIMESTAMP_MILLIS, it)
-                    }
-                }
-
-                val frameRate = retriever
-                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
-                    ?.toFloatOrNull()
-                    ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)
-                        ?.let { cnt ->
-                            result.getLong(KEY_DURATION_MS, 0L).takeIf { it > 0 }
-                                ?.let { d -> cnt.toFloat() / (d / 1000f) }
+                Bundle().apply {
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull()?.let { putLong(KEY_DURATION_MS, it) }
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                        ?.toIntOrNull()?.let { putInt(KEY_VIDEO_WIDTH, it) }
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                        ?.toIntOrNull()?.let { putInt(KEY_VIDEO_HEIGHT, it) }
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
+                        ?.toIntOrNull()?.let { putInt(KEY_BIT_RATE, it) }
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
+                        ?.let { rawDate ->
+                            parseCaptureTimestamp(rawDate)?.let {
+                                putLong(KEY_CAPTURE_TIMESTAMP_MILLIS, it)
+                            }
                         }
-                frameRate?.let { result.putFloat(KEY_FRAME_RATE, it) }
-            } catch (e: Exception) {
-                // Non-fatal: fall through to metadata-extractor.
-                printError(
-                    "service.sandbox",
-                    "video metadata retriever failed; falling back to metadata-extractor",
-                    e
-                )
-            } finally {
-                retriever.release()
-            }
+
+                    val frameRate = retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
+                        ?.toFloatOrNull()
+                        ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)
+                            ?.let { cnt ->
+                                getLong(KEY_DURATION_MS, 0L).takeIf { it > 0 }
+                                    ?.let { d -> cnt.toFloat() / (d / 1000f) }
+                            }
+                    frameRate?.let { putFloat(KEY_FRAME_RATE, it) }
+                }
+            }?.let(result::putAll)
 
             // ── 2) metadata-extractor fallback for dimensions and capture time ──
             // Recovers width/height from the QuickTime/MP4 video track when the
@@ -476,67 +519,25 @@ class IsolatedMetadataService : Service() {
         var dirIndex = 0
 
         // ── 1) MediaMetadataRetriever (container/stream level tags) ────────
-        val retriever = MediaMetadataRetriever()
-        try {
+        // Watchdogged like parseVideoMetadata: setDataSource may wedge inside
+        // the isolated process, and one wedged retriever stalls every request.
+        withRetrieverWatchdog { retriever ->
             retriever.setDataSource(pfd.fileDescriptor)
             val tagNames = ArrayList<String>()
             val tagDescs = ArrayList<String>()
-
-            val keyMap = mapOf(
-                MediaMetadataRetriever.METADATA_KEY_ALBUM to "Album",
-                MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST to "Album Artist",
-                MediaMetadataRetriever.METADATA_KEY_ARTIST to "Artist",
-                MediaMetadataRetriever.METADATA_KEY_AUTHOR to "Author",
-                MediaMetadataRetriever.METADATA_KEY_BITRATE to "Bitrate",
-                MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER to "Track Number",
-                MediaMetadataRetriever.METADATA_KEY_COMPILATION to "Compilation",
-                MediaMetadataRetriever.METADATA_KEY_COMPOSER to "Composer",
-                MediaMetadataRetriever.METADATA_KEY_DATE to "Date",
-                MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER to "Disc Number",
-                MediaMetadataRetriever.METADATA_KEY_DURATION to "Duration",
-                MediaMetadataRetriever.METADATA_KEY_GENRE to "Genre",
-                MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO to "Has Audio",
-                MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO to "Has Video",
-                MediaMetadataRetriever.METADATA_KEY_LOCATION to "Location",
-                MediaMetadataRetriever.METADATA_KEY_MIMETYPE to "MIME Type",
-                MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS to "Number of Tracks",
-                MediaMetadataRetriever.METADATA_KEY_TITLE to "Title",
-                MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT to "Video Height",
-                MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH to "Video Width",
-                MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION to "Video Rotation",
-                MediaMetadataRetriever.METADATA_KEY_WRITER to "Writer",
-                MediaMetadataRetriever.METADATA_KEY_YEAR to "Year",
-                MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT to "Frame Count",
-                MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE to "Capture Frame Rate",
-                MediaMetadataRetriever.METADATA_KEY_COLOR_STANDARD to "Color Standard",
-                MediaMetadataRetriever.METADATA_KEY_COLOR_TRANSFER to "Color Transfer",
-                MediaMetadataRetriever.METADATA_KEY_COLOR_RANGE to "Color Range",
-                MediaMetadataRetriever.METADATA_KEY_SAMPLERATE to "Sample Rate",
-                MediaMetadataRetriever.METADATA_KEY_BITS_PER_SAMPLE to "Bits Per Sample",
-            )
-            for ((key, name) in keyMap) {
+            for ((key, name) in VIDEO_TAG_MAP) {
                 retriever.extractMetadata(key)?.let { value ->
                     tagNames.add(name)
                     tagDescs.add(value)
                 }
             }
-            if (tagNames.isNotEmpty()) {
-                val dirKey = "dir_$dirIndex"
-                dirNames.add("Video Metadata")
-                result.putStringArrayList("${dirKey}_names", tagNames)
-                result.putStringArrayList("${dirKey}_descs", tagDescs)
-                dirIndex++
-            }
-        } catch (e: Exception) {
-            // setDataSource throws on some containers/codecs (e.g. HEVC .MOV).
-            // Non-fatal: metadata-extractor below still reads the QuickTime tags.
-            printError(
-                "service.sandbox",
-                "raw video metadata retriever failed; falling back to metadata-extractor",
-                e
-            )
-        } finally {
-            retriever.release()
+            tagNames to tagDescs
+        }?.takeIf { it.first.isNotEmpty() }?.let { (tagNames, tagDescs) ->
+            val dirKey = "dir_$dirIndex"
+            dirNames.add("Video Metadata")
+            result.putStringArrayList("${dirKey}_names", tagNames)
+            result.putStringArrayList("${dirKey}_descs", tagDescs)
+            dirIndex++
         }
 
         // ── 2) metadata-extractor (rich container EXIF: QuickTime/MOV, MP4) ─
@@ -583,6 +584,13 @@ class IsolatedMetadataService : Service() {
          * practice; capping the read keeps peak memory bounded in the isolated process.
          */
         private const val MAX_EXIF_SCAN_BYTES = 8 * 1024 * 1024
+
+        /**
+         * How long a retriever leg may run before it is abandoned. Must stay well under
+         * the client's reply timeout so a wedged leg still lets the metadata-extractor
+         * fallback answer within the same request.
+         */
+        private const val RETRIEVER_TIMEOUT_MS = 8_000L
         private val JXL_CONTAINER_SIGNATURE = byteArrayOf(
             0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20,
             0x0D, 0x0A, 0x87.toByte(), 0x0A
@@ -626,6 +634,44 @@ class IsolatedMetadataService : Service() {
 
         // Bundle keys — output (raw metadata)
         const val KEY_RAW_DIR_NAMES = "raw_dir_names"
+
+        /**
+         * Container/stream tags extracted into the raw-metadata "Video Metadata"
+         * directory. Shared with the client's in-process probe ([IsolatedMetadataParser])
+         * so the synthesized fallback directory lists the same tags.
+         */
+        internal val VIDEO_TAG_MAP: Map<Int, String> = linkedMapOf(
+            MediaMetadataRetriever.METADATA_KEY_ALBUM to "Album",
+            MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST to "Album Artist",
+            MediaMetadataRetriever.METADATA_KEY_ARTIST to "Artist",
+            MediaMetadataRetriever.METADATA_KEY_AUTHOR to "Author",
+            MediaMetadataRetriever.METADATA_KEY_BITRATE to "Bitrate",
+            MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER to "Track Number",
+            MediaMetadataRetriever.METADATA_KEY_COMPILATION to "Compilation",
+            MediaMetadataRetriever.METADATA_KEY_COMPOSER to "Composer",
+            MediaMetadataRetriever.METADATA_KEY_DATE to "Date",
+            MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER to "Disc Number",
+            MediaMetadataRetriever.METADATA_KEY_DURATION to "Duration",
+            MediaMetadataRetriever.METADATA_KEY_GENRE to "Genre",
+            MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO to "Has Audio",
+            MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO to "Has Video",
+            MediaMetadataRetriever.METADATA_KEY_LOCATION to "Location",
+            MediaMetadataRetriever.METADATA_KEY_MIMETYPE to "MIME Type",
+            MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS to "Number of Tracks",
+            MediaMetadataRetriever.METADATA_KEY_TITLE to "Title",
+            MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT to "Video Height",
+            MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH to "Video Width",
+            MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION to "Video Rotation",
+            MediaMetadataRetriever.METADATA_KEY_WRITER to "Writer",
+            MediaMetadataRetriever.METADATA_KEY_YEAR to "Year",
+            MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT to "Frame Count",
+            MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE to "Capture Frame Rate",
+            MediaMetadataRetriever.METADATA_KEY_COLOR_STANDARD to "Color Standard",
+            MediaMetadataRetriever.METADATA_KEY_COLOR_TRANSFER to "Color Transfer",
+            MediaMetadataRetriever.METADATA_KEY_COLOR_RANGE to "Color Range",
+            MediaMetadataRetriever.METADATA_KEY_SAMPLERATE to "Sample Rate",
+            MediaMetadataRetriever.METADATA_KEY_BITS_PER_SAMPLE to "Bits Per Sample",
+        )
 
         // Bundle keys — error
         const val KEY_ERROR = "error"

@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.location.Geocoder
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -22,6 +23,7 @@ import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.dot.gallery.core.decoder.format.SpecialFormatProbe
 import com.dot.gallery.core.util.SafeExif
+import com.dot.gallery.core.util.openUnredactedFileDescriptor
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.sandbox.IsolatedMetadataService.Companion as Keys
 import com.dot.gallery.feature_node.domain.util.getUri
@@ -295,8 +297,18 @@ suspend fun Context.retrieveExtraMediaMetadata(
                     )
                 } else {
                     isolatedParser.parseVideoMetadata(uri)
-                } ?: return@runCatching null
-                mediaMetadataFromVideoBundle(media.id, bundle)
+                }
+                // The service-side MediaMetadataRetriever cannot reach the mediaextractor
+                // daemon from an isolated UID on Android 12, and that failure takes the
+                // whole IPC reply down with it (#1267). Probe in-process and backfill
+                // whatever the isolated pass could not produce.
+                val probe = if (policy == MetadataParsingPolicy.ON_DEMAND_COMPATIBLE &&
+                    bundle.videoProbeNeeded()
+                ) {
+                    probeVideoMetadataInProcess(this@retrieveExtraMediaMetadata, uri)
+                } else null
+                if (bundle == null && probe == null) null
+                else mediaMetadataFromVideoBundle(media.id, bundle, probe)
             } else {
                 null
             }?.also {
@@ -403,7 +415,7 @@ private suspend fun mediaMetadataFromImageBundle(
     )
 }
 
-private fun mediaMetadataFromVideoBundle(mediaId: Long, bundle: Bundle): MediaMetadata {
+private fun mediaMetadataFromVideoBundle(mediaId: Long, bundle: Bundle?, probe: VideoProbe?): MediaMetadata {
     return MediaMetadata(
         mediaId = mediaId,
         imageDescription = null,
@@ -423,11 +435,11 @@ private fun mediaMetadataFromVideoBundle(mediaId: Long, bundle: Bundle): MediaMe
         imageResolutionX = null,
         imageResolutionY = null,
         resolutionUnit = null,
-        durationMs = if (bundle.containsKey(Keys.KEY_DURATION_MS)) bundle.getLong(Keys.KEY_DURATION_MS) else null,
-        videoWidth = if (bundle.containsKey(Keys.KEY_VIDEO_WIDTH)) bundle.getInt(Keys.KEY_VIDEO_WIDTH) else null,
-        videoHeight = if (bundle.containsKey(Keys.KEY_VIDEO_HEIGHT)) bundle.getInt(Keys.KEY_VIDEO_HEIGHT) else null,
-        frameRate = if (bundle.containsKey(Keys.KEY_FRAME_RATE)) bundle.getFloat(Keys.KEY_FRAME_RATE) else null,
-        bitRate = if (bundle.containsKey(Keys.KEY_BIT_RATE)) bundle.getInt(Keys.KEY_BIT_RATE) else null,
+        durationMs = if (bundle?.containsKey(Keys.KEY_DURATION_MS) == true) bundle.getLong(Keys.KEY_DURATION_MS) else probe?.durationMs,
+        videoWidth = if (bundle?.containsKey(Keys.KEY_VIDEO_WIDTH) == true) bundle.getInt(Keys.KEY_VIDEO_WIDTH) else probe?.videoWidth,
+        videoHeight = if (bundle?.containsKey(Keys.KEY_VIDEO_HEIGHT) == true) bundle.getInt(Keys.KEY_VIDEO_HEIGHT) else probe?.videoHeight,
+        frameRate = if (bundle?.containsKey(Keys.KEY_FRAME_RATE) == true) bundle.getFloat(Keys.KEY_FRAME_RATE) else probe?.frameRate,
+        bitRate = if (bundle?.containsKey(Keys.KEY_BIT_RATE) == true) bundle.getInt(Keys.KEY_BIT_RATE) else probe?.bitRate,
         isNightMode = false,
         isPanorama = false,
         isPhotosphere = false,
@@ -435,6 +447,91 @@ private fun mediaMetadataFromVideoBundle(mediaId: Long, bundle: Bundle): MediaMe
         isMotionPhoto = false
     )
 }
+
+/**
+ * Video fields read by an in-process [MediaMetadataRetriever] — the fallback for
+ * everything the isolated service's video reply could not carry. The retriever
+ * delegates untrusted container parsing to the platform's sandboxed mediaextractor
+ * daemon, so probing in-process does not weaken the parser isolation (which exists
+ * to contain metadata-extractor), unlike the equivalent image fallback.
+ */
+internal data class VideoProbe(
+    val durationMs: Long? = null,
+    val videoWidth: Int? = null,
+    val videoHeight: Int? = null,
+    val frameRate: Float? = null,
+    val bitRate: Int? = null
+) {
+    val isEmpty: Boolean
+        get() = durationMs == null && videoWidth == null && videoHeight == null &&
+                frameRate == null && bitRate == null
+
+    /** Present fields win; [other] only backfills what this probe lacks. */
+    fun mergeMissing(other: VideoProbe?): VideoProbe =
+        if (other == null) this else VideoProbe(
+            durationMs = durationMs ?: other.durationMs,
+            videoWidth = videoWidth ?: other.videoWidth,
+            videoHeight = videoHeight ?: other.videoHeight,
+            frameRate = frameRate ?: other.frameRate,
+            bitRate = bitRate ?: other.bitRate
+        )
+}
+
+/**
+ * A video needs the in-process probe whenever duration or dimensions never made it
+ * through IPC — e.g. Android 12, where the isolated retriever leg dies before the
+ * reply is sent.
+ */
+internal fun videoProbeNeeded(hasDuration: Boolean, hasWidth: Boolean, hasHeight: Boolean): Boolean =
+    !hasDuration || !hasWidth || !hasHeight
+
+private fun Bundle?.videoProbeNeeded(): Boolean = this == null || videoProbeNeeded(
+    hasDuration = containsKey(Keys.KEY_DURATION_MS),
+    hasWidth = containsKey(Keys.KEY_VIDEO_WIDTH),
+    hasHeight = containsKey(Keys.KEY_VIDEO_HEIGHT)
+)
+
+/**
+ * Reads duration/dimensions/bitrate/fps for [uri] with an in-process
+ * [MediaMetadataRetriever]. Returns null when the file cannot be opened or yields
+ * nothing — callers then keep the historical "no metadata" outcome.
+ */
+private fun probeVideoMetadataInProcess(context: Context, uri: Uri): VideoProbe? =
+    runCatching {
+        context.openUnredactedFileDescriptor(uri)?.use { pfd ->
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(pfd.fileDescriptor)
+                val durationMs = retriever
+                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    ?.toLongOrNull()
+                val frameRate = retriever
+                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
+                    ?.toFloatOrNull()
+                    ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)
+                        ?.toFloatOrNull()
+                        ?.let { frames -> durationMs?.takeIf { it > 0 }?.let { frames / (it / 1000f) } }
+                VideoProbe(
+                    durationMs = durationMs,
+                    videoWidth = retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                        ?.toIntOrNull(),
+                    videoHeight = retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                        ?.toIntOrNull(),
+                    frameRate = frameRate,
+                    bitRate = retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
+                        ?.toIntOrNull()
+                )
+            } finally {
+                retriever.release()
+            }
+        }
+    }.onFailure {
+        if (it is CancellationException) throw it
+        printError(TAG, "In-process video probe failed for $uri", it)
+    }.getOrNull()?.takeUnless { it.isEmpty }
 
 /**
  * In-process fallback used when the isolated metadata parser returns nothing for an image
