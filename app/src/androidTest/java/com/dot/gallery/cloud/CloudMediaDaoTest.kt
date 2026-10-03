@@ -123,16 +123,13 @@ class CloudMediaDaoTest {
 
     @Test
     fun captureDateUpdateIsScopedAndRejectsStaleResults() = runBlocking {
-        val first = media("photo.jpg", ProviderType.WEBDAV, 1L).copy(
-            originalUrl = "https://example.test/photo.jpg", size = 100L
-        )
-        val second = media("photo.jpg", ProviderType.WEBDAV, 2L).copy(
-            originalUrl = first.originalUrl, size = first.size
-        )
-        val otherProvider = media("photo.jpg", ProviderType.OWNCLOUD, 1L).copy(
-            originalUrl = first.originalUrl, size = first.size
-        )
-        dao.insertAll(listOf(first, second, otherProvider))
+        val records = listOf(
+            ProviderType.WEBDAV to 1L, ProviderType.WEBDAV to 2L, ProviderType.OWNCLOUD to 1L
+        ).map { (provider, configId) ->
+            media("photo.jpg", provider, configId).copy(originalUrl = "https://example.test/photo.jpg", size = 100L)
+        }
+        val first = records.first()
+        dao.insertAll(records)
 
         assertEquals(0, dao.updateCaptureTime(first.remoteId, first.providerType, 1L, first.originalUrl, 99L, first.timestamp, 500L))
         assertEquals(0, dao.updateCaptureTime(first.remoteId, first.providerType, 1L, first.originalUrl, first.size, 999L, 500L))

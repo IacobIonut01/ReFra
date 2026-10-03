@@ -22,12 +22,12 @@ import kotlinx.coroutines.SupervisorJob
 import java.io.InputStream
 import java.lang.reflect.Proxy
 import java.nio.file.Files
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -165,10 +165,8 @@ class HttpResponseClosureTest {
         )
         val requestStarted = CountDownLatch(1)
         val releaseResponse = CountDownLatch(1)
-        val callbackCompleted = CountDownLatch(1)
-        val callbackFailure = AtomicReference<Exception?>()
-        val callbackBytes = AtomicReference<ByteArray?>()
-        val metadataBytes = AtomicReference<ByteArray?>()
+        val callbackResult = CompletableFuture<ByteArray?>()
+        var metadataBytes: ByteArray? = null
         val deliveries = LinkedBlockingQueue<Runnable>()
         val scope = CoroutineScope(SupervisorJob() + object : CoroutineDispatcher() {
             override fun dispatch(context: CoroutineContext, block: Runnable) {
@@ -193,7 +191,7 @@ class HttpResponseClosureTest {
             CloudRepository::class.java.classLoader, arrayOf(CloudRepository::class.java)
         ) { _, method, args ->
             check(method.name == "recordCaptureTime")
-            metadataBytes.set(args!![4] as ByteArray)
+            metadataBytes = args!![4] as ByteArray
             Unit
         } as CloudRepository
         val fetcher = CloudOkHttpFetcher(
@@ -211,38 +209,33 @@ class HttpResponseClosureTest {
             val load = executor.submit {
                 fetcher.loadData(Priority.NORMAL, object : DataFetcher.DataCallback<InputStream> {
                     override fun onDataReady(data: InputStream?) {
-                        callbackBytes.set(data?.readBytes())
-                        callbackCompleted.countDown()
+                        callbackResult.complete(data?.readBytes())
                     }
 
                     override fun onLoadFailed(e: Exception) {
-                        callbackFailure.set(e)
-                        callbackCompleted.countDown()
+                        callbackResult.completeExceptionally(e)
                     }
                 })
             }
 
             load.get(5, TimeUnit.SECONDS)
             assertTrue(
-                "request did not start; callback=${callbackFailure.get()}",
+                "request did not start; callback=$callbackResult",
                 requestStarted.await(5, TimeUnit.SECONDS)
             )
             releaseResponse.countDown()
             val delivery = deliveries.poll(5, TimeUnit.SECONDS)
             assertTrue("image delivery was not scheduled", delivery != null)
-            assertNull(metadataBytes.get())
-            assertEquals(1L, callbackCompleted.count)
+            assertNull(metadataBytes)
+            assertFalse(callbackResult.isDone)
             if (cancelBeforeDelivery) fetcher.cancel()
             delivery!!.run()
-            assertNull(callbackFailure.get())
             if (cancelBeforeDelivery) {
-                assertNull(metadataBytes.get())
-                assertNull(callbackBytes.get())
-                assertEquals(1L, callbackCompleted.count)
+                assertNull(metadataBytes)
+                assertFalse(callbackResult.isDone)
             } else {
-                assertTrue(callbackCompleted.await(5, TimeUnit.SECONDS))
-                assertArrayEquals(responseBytes, callbackBytes.get())
-                assertArrayEquals(responseBytes, metadataBytes.get())
+                assertArrayEquals(responseBytes, callbackResult.get(5, TimeUnit.SECONDS))
+                assertArrayEquals(responseBytes, metadataBytes)
             }
             assertEquals(1, server.requestCount)
         } finally {

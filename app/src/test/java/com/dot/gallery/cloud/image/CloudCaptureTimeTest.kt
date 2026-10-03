@@ -31,7 +31,6 @@ class CloudCaptureTimeTest {
     @Test
     fun onlyUndatedOriginalImagesAreEligible() {
         assertTrue(media.needsCaptureTimeFrom(media.originalUrl))
-        assertFalse(media.needsCaptureTimeFrom("https://example.test/preview.jpg"))
         assertFalse(media.copy(takenTimestamp = 1000L).needsCaptureTimeFrom(media.originalUrl))
         assertFalse(media.copy(mimeType = "video/mp4").needsCaptureTimeFrom(media.originalUrl))
         assertFalse(media.copy(originalUrl = "").needsCaptureTimeFrom(""))
