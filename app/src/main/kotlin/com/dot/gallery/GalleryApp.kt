@@ -13,6 +13,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import com.dot.gallery.cloud.core.ProviderRegistry
+import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.di.CloudProviderInitializer
 import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
 import com.dot.gallery.cloud.image.supportCloudMedia
@@ -172,6 +173,9 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
     lateinit var providerRegistry: ProviderRegistry
 
     @Inject
+    lateinit var cloudRepository: CloudRepository
+
+    @Inject
     lateinit var cloudProviderInitializer: CloudProviderInitializer
 
     @Inject
@@ -212,6 +216,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, Configuration.Provide
         }
 
         CloudFetcherRegistryHolder.registry = providerRegistry
+        CloudFetcherRegistryHolder.repository = cloudRepository
         // Register on-device local capability providers (People). Keyed by a reserved negative
         // config id so it never collides with real cloud account ids. isAvailable() gates on the
         // face model being installed, so it stays hidden until models are present.
