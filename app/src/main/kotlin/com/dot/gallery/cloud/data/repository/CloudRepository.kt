@@ -31,7 +31,7 @@ interface CloudRepository {
     val connectionStates: StateFlow<Map<ProviderType, ConnectionState>>
     val peopleInvalidation: SharedFlow<Unit>
 
-    /** Extracts a missing capture date from an original already loaded for display. */
+    // Extracts a missing capture date from an original already loaded for display.
     suspend fun recordCaptureTime(
         provider: ProviderType, configId: Long, remoteId: String, url: String, bytes: ByteArray
     )

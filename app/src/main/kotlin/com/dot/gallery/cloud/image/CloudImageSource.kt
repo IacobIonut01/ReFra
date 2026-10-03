@@ -196,6 +196,8 @@ class CloudImageSource private constructor(
                     throw e
                 }
             }
+            // no shared imaga reader path; since this is could be the first time
+            // an image is downloaded, we need to record the capture time here too.
             CloudFetcherRegistryHolder.repository?.recordCaptureTime(
                 providerType, configId, remoteId, url, target
             )
