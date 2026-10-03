@@ -16,14 +16,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CloudCaptureTimeTest {
-    private fun image(
-        provider: ProviderType = ProviderType.WEBDAV,
-        remoteId: String = "image.jpg",
-        configId: Long = 1L
-    ) = CloudMediaEntity(
-        remoteId = remoteId,
+    private fun image(provider: ProviderType = ProviderType.WEBDAV) = CloudMediaEntity(
+        remoteId = "image.jpg",
         providerType = provider,
-        serverConfigId = configId,
+        serverConfigId = 1L,
         originalUrl = "https://example.test/image.jpg",
         mimeType = "image/jpeg",
         size = 1234L,
@@ -33,28 +29,22 @@ class CloudCaptureTimeTest {
     private val media = image()
 
     @Test
-    fun onlyUndatedWebDavOriginalImagesAreEligible() {
-        for (provider in listOf(ProviderType.WEBDAV, ProviderType.OWNCLOUD, ProviderType.NEXTCLOUD)) {
-            assertTrue(image(provider = provider).needsCaptureTimeFrom(media.originalUrl))
-        }
+    fun onlyUndatedOriginalImagesAreEligible() {
+        assertTrue(media.needsCaptureTimeFrom(media.originalUrl))
         assertFalse(media.needsCaptureTimeFrom("https://example.test/preview.jpg"))
         assertFalse(media.copy(takenTimestamp = 1000L).needsCaptureTimeFrom(media.originalUrl))
         assertFalse(media.copy(mimeType = "video/mp4").needsCaptureTimeFrom(media.originalUrl))
-        assertFalse(image(provider = ProviderType.IMMICH).needsCaptureTimeFrom(media.originalUrl))
         assertFalse(media.copy(originalUrl = "").needsCaptureTimeFrom(""))
     }
 
     @Test
-    fun changedRevisionOrIdentityDoesNotInheritDate() {
+    fun changedRevisionDoesNotInheritDate() {
         val previous = media.copy(takenTimestamp = 1000L)
         for (incoming in listOf(
             media.copy(size = 999L),
             media.copy(timestamp = 3000L),
             media.copy(originalUrl = "https://other.test/image.jpg"),
-            media.copy(mimeType = "video/mp4"),
-            image(remoteId = "other.jpg"),
-            image(configId = 2L),
-            image(provider = ProviderType.OWNCLOUD)
+            media.copy(mimeType = "video/mp4")
         )) {
             assertNull(incoming.withPreservedCaptureTime(previous).takenTimestamp)
         }

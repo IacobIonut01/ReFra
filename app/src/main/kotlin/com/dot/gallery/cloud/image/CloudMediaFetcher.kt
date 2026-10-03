@@ -112,11 +112,9 @@ class CloudMediaFetcher private constructor(
                     return@withContext Result.failure(Exception("Empty response body"))
                 }
 
-                if (typeParam == null) {
-                    CloudFetcherRegistryHolder.repository?.recordCaptureTime(
-                        providerType, configId, remoteId, url, bytes
-                    )
-                }
+                CloudFetcherRegistryHolder.repository?.recordCaptureTime(
+                    providerType, configId, remoteId, url, bytes
+                )
 
                 val mimeType = it.header("Content-Type")
                 CloudTrace.d("Sketch.fetch[$providerType] $sizeParam '$remoteId' <- ${CloudTrace.bytes(bytes.size.toLong())} ($mimeType)")

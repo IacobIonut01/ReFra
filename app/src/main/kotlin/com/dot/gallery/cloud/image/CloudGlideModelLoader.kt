@@ -283,11 +283,9 @@ internal class CloudOkHttpFetcher(
                             // Read capture metadata without blocking the HTTP callback thread.
                             scope.launch {
                                 try {
-                                    if (parsed.typeParam == null) {
-                                        CloudFetcherRegistryHolder.repository?.recordCaptureTime(
-                                            parsed.providerType, parsed.configId, parsed.remoteId, url, bytes
-                                        )
-                                    }
+                                    CloudFetcherRegistryHolder.repository?.recordCaptureTime(
+                                        parsed.providerType, parsed.configId, parsed.remoteId, url, bytes
+                                    )
                                     if (isActive) callback.onDataReady(ByteArrayInputStream(bytes))
                                 } catch (e: CancellationException) {
                                     throw e

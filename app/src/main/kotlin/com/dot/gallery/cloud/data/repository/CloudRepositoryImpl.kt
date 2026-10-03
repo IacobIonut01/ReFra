@@ -74,7 +74,7 @@ import javax.inject.Singleton
 
 // Ensure the original URL is the same to differentiate preview from OG image 
 internal fun CloudMediaEntity.needsCaptureTimeFrom(url: String): Boolean =
-    providerType.readsWebDavCaptureTime() && takenTimestamp == null &&
+    takenTimestamp == null &&
         mimeType.startsWith("image/") && url.isNotBlank() && url == originalUrl
 
 internal inline fun <reified T : MediaCapabilityProvider> resolveProviderAccount(

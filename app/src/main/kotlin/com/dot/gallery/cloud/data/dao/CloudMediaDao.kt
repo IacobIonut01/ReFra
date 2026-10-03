@@ -25,8 +25,7 @@ internal fun ProviderType.readsWebDavCaptureTime(): Boolean =
 internal fun CloudMediaEntity.withPreservedCaptureTime(previous: CloudMediaEntity?): CloudMediaEntity {
     if (!providerType.readsWebDavCaptureTime() || takenTimestamp != null || previous == null) return this
     // Use size and modification time to detect revisions; cloud index doesn't store ETags.
-    return if (remoteId == previous.remoteId && providerType == previous.providerType &&
-        serverConfigId == previous.serverConfigId && size == previous.size &&
+    return if (size == previous.size &&
         timestamp == previous.timestamp && originalUrl == previous.originalUrl && mimeType == previous.mimeType
     ) copy(takenTimestamp = previous.takenTimestamp) else this
 }
