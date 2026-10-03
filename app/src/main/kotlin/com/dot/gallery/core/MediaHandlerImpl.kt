@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import com.dot.gallery.cloud.core.CloudUri
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.cloud.core.remoteTrashPermitted
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
@@ -124,6 +125,17 @@ class MediaHandlerImpl @Inject constructor(
                 cloudMedia.forEach { media ->
                     val (providerName, remoteId, configId) = extractCloudInfo(media) ?: return@forEach
                     val provider = getCloudProvider(providerName, configId) ?: return@forEach
+                    // Never hard-delete under a trash label: providers without a
+                    // real bin implement trashAsset as deleteAsset (#1279). Such
+                    // items must reach deleteMedia through the warned path.
+                    if (!remoteTrashPermitted(trash, provider.capabilities)) {
+                        printWarn(
+                            tag = "MediaHandler",
+                            message = "Skipping trash for provider without a bin",
+                            ctx = mapOf("provider" to providerName),
+                        )
+                        return@forEach
+                    }
                     val outcome = if (trash) {
                         provider.trashAsset(remoteId)
                     } else {

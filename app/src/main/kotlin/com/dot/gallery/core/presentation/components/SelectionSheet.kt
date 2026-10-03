@@ -117,8 +117,11 @@ import com.dot.gallery.feature_node.presentation.mediaview.components.MediaInfoR
 import com.dot.gallery.feature_node.presentation.mediaview.isReadOnlyCloudMedia
 import com.dot.gallery.feature_node.presentation.mediaview.rememberedDerivedState
 import com.dot.gallery.feature_node.presentation.privatefolder.PrivateFolderMoveViewModel
+import com.dot.gallery.feature_node.presentation.trashed.components.RemovalClass
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialog
 import com.dot.gallery.feature_node.presentation.trashed.components.TrashDialogAction
+import com.dot.gallery.feature_node.presentation.trashed.components.planRemoval
+import com.dot.gallery.feature_node.presentation.trashed.components.removalClass
 import com.dot.gallery.feature_node.presentation.trashed.components.resolveTrashDialogAction
 import com.dot.gallery.feature_node.presentation.util.LocalHazeState
 import com.dot.gallery.feature_node.presentation.util.launchEditIntent
@@ -350,6 +353,24 @@ fun <T : Media> BoxScope.SelectionSheet(
             providerSupportsTrash = cloudSupportsTrash,
         )
     )
+    // Selected cloud items whose provider has no recoverable bin — under a TRASH
+    // action the TrashDialog warns they will be deleted permanently (#1279).
+    // Read-only items are excluded here; they are filtered out of the batch at
+    // confirm time instead.
+    val untrashableCloudIds = remember(selectedSnapshot, cloudSettingsByConfigId) {
+        if (!isMixedCloudSelection) {
+            emptySet()
+        } else {
+            selectedSnapshot.mapNotNullTo(HashSet()) { media ->
+                if (media.removalClass(
+                        isReadOnlyCloud = media.isReadOnlyCloudMedia(cloudSettingsByConfigId),
+                        providerSupportsTrash = cloudSelectionViewModel.supportsTrash(media),
+                    ) == RemovalClass.DELETE_ONLY
+                ) media.id else null
+            }
+        }
+    }
+    val cloudReadOnlySkippedText = stringResource(R.string.cloud_copy_read_only)
     val selectionActionCtx = remember(selectedSnapshot) {
         mapOf(
             "count" to selectedSnapshot.size.toString(),
@@ -737,8 +758,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                             }
                             
                             SelectionAction.TRASH -> {
-                                if (isMixedCloudSelection) {
-                                } else if (isInPrivateFolder) {
+                                if (isInPrivateFolder) {
                                     SelectionBarColumn(
                                         imageVector = action.icon,
                                         title = stringResource(R.string.action_delete)
@@ -1022,6 +1042,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         data = selectedMedia,
         action = effectiveTrashAction,
         cloudBackups = timelineMediaState.value.cloudBackups,
+        untrashableIds = untrashableCloudIds,
     ) {
         // A trashed item leaves the regular views but is arriving in the trash view; a
         // permanent delete leaves every view.
@@ -1030,18 +1051,54 @@ fun <T : Media> BoxScope.SelectionSheet(
         } else {
             PendingRemovalScope.EVERYWHERE
         }
+        // Mixed local+cloud selections (#1279): per-item capability decides the
+        // real path. Locals and cloud items whose provider has a real bin go
+        // through trash; cloud items without one were warned in the dialog and
+        // are deleted permanently; read-only account items are never touched.
+        val plan = it.planRemoval(
+            isReadOnlyCloud = { m -> m.isReadOnlyCloudMedia(cloudSettingsByConfigId) },
+            providerSupportsTrash = { m -> cloudSelectionViewModel.supportsTrash(m) },
+        )
+        if (plan.blocked.isNotEmpty()) {
+            Toast.makeText(context, cloudReadOnlySkippedText, Toast.LENGTH_SHORT).show()
+        }
+        // Ids this mutation actually covers — blocked items must never be marked
+        // for removal (they still exist remotely).
+        val affectedIds: Set<Long>
         val mutationResult = if (effectiveTrashAction == TrashDialogAction.TRASH) {
-            handler.trashMedia(deletionResult, it, true)
+            var cloudDeleteFailed = false
+            if (plan.deleteOnly.isNotEmpty()) {
+                // Cloud-only deletes run synchronously in the handler — no
+                // MediaStore request is involved.
+                when (handler.deleteMedia(deletionResult, plan.deleteOnly)) {
+                    MediaMutationResult.COMPLETED -> distributor.markPendingRemoval(
+                        plan.deleteOnly.mapTo(HashSet()) { m -> m.id },
+                        PendingRemovalScope.EVERYWHERE
+                    )
+                    MediaMutationResult.FAILED -> cloudDeleteFailed = true
+                    MediaMutationResult.REQUEST_LAUNCHED -> Unit
+                }
+            }
+            if (cloudDeleteFailed) {
+                Toast.makeText(context, cloudDeleteFailedText, Toast.LENGTH_SHORT).show()
+            }
+            affectedIds = plan.trashable.mapTo(HashSet()) { m -> m.id }
+            if (plan.trashable.isNotEmpty()) {
+                handler.trashMedia(deletionResult, plan.trashable, true)
+            } else {
+                MediaMutationResult.COMPLETED
+            }
         } else {
-            handler.deleteMedia(deletionResult, it)
+            affectedIds = plan.targets.mapTo(HashSet()) { m -> m.id }
+            handler.deleteMedia(deletionResult, plan.targets)
         }
         when (mutationResult) {
             MediaMutationResult.COMPLETED -> {
-                distributor.markPendingRemoval(it.map { m -> m.id }, removalScope)
+                distributor.markPendingRemoval(affectedIds, removalScope)
                 selector.clearSelection()
             }
             MediaMutationResult.REQUEST_LAUNCHED -> {
-                pendingDeletionIds = it.mapTo(HashSet()) { m -> m.id }
+                pendingDeletionIds = affectedIds
                 pendingDeletionScope = removalScope
             }
             MediaMutationResult.FAILED -> Unit

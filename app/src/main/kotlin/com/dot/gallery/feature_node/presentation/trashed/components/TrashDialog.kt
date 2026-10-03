@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import com.dot.gallery.core.presentation.components.SetupButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +39,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,6 +89,11 @@ fun <T : Media> TrashDialog(
     data: List<T>,
     action: TrashDialogAction,
     cloudBackups: Map<Long, List<Media.UriMedia>> = emptyMap(),
+    // Ids of items that cannot go through a recoverable trash path (e.g. cloud
+    // items whose provider has no bin). Under a TRASH action they are marked in
+    // the preview row and the dialog warns they will be deleted permanently —
+    // the same treatment un-trashable SD-card items had (#1279).
+    untrashableIds: Set<Long> = emptySet(),
     onConfirm: suspend (List<Media>) -> Unit
 ) {
     val dataCopy = remember(data) {
@@ -243,6 +252,44 @@ fun <T : Media> TrashDialog(
                     )
                 }
 
+                val hasUntrashable by remember(action, untrashableIds) {
+                    derivedStateOf { action == TRASH && dataCopy.any { it.id in untrashableIds } }
+                }
+                AnimatedVisibility(visible = hasUntrashable && !confirmed) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.errorContainer,
+                                    shape = Shapes.large
+                                )
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                imageVector = Icons.Outlined.ErrorOutline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Text(
+                                text = stringResource(R.string.trash_incompatible_title),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.trash_incompatible_summary),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
                 val alpha by animateFloatAsState(
                     targetValue = if (!confirmed) 1f else 0.5f,
                     label = "alphaAnimation"
@@ -272,7 +319,12 @@ fun <T : Media> TrashDialog(
                     ) {
                         val context = LocalContext.current
                         val longPressText = stringResource(R.string.long_press_to_remove)
-                        val shape = Shapes.large
+                        val untrashable = action == TRASH && it.id in untrashableIds
+                        val borderWidth = if (untrashable) 2.dp else 0.5.dp
+                        val borderColor =
+                            if (untrashable) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        val shape = if (untrashable) Shapes.extraLarge else Shapes.large
                         val feedbackManager = rememberFeedbackManager()
                         Box(
                             modifier = Modifier
@@ -280,8 +332,8 @@ fun <T : Media> TrashDialog(
                                 .size(width = 80.dp, height = 120.dp)
                                 .clip(shape)
                                 .border(
-                                    width = 0.5.dp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    width = borderWidth,
+                                    color = borderColor,
                                     shape = shape
                                 )
                                 .combinedClickable(

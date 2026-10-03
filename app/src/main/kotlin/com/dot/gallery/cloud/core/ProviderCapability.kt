@@ -36,3 +36,18 @@ enum class ProviderCapability {
     /** Server-side user tags/labels that can be synced read-only into the local DB. */
     TAGS
 }
+
+/**
+ * Whether a provider with [capabilities] may serve a user-facing trash
+ * ([trash] = true) or restore ([trash] = false) request.
+ *
+ * Providers without a real bin implement `trashAsset` as a permanent delete
+ * and do not declare [TRASH]; a trash-labelled call must never reach them —
+ * their items go through `deleteMedia` under the dialog's permanent-delete
+ * warning instead (#1279). Restores are unaffected: a provider without a bin
+ * never holds restorable items.
+ */
+fun remoteTrashPermitted(
+    trash: Boolean,
+    capabilities: Set<ProviderCapability>,
+): Boolean = !trash || ProviderCapability.TRASH in capabilities

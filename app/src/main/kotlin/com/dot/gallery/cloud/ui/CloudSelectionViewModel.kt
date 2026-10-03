@@ -57,6 +57,8 @@ class CloudSelectionViewModel @Inject constructor(
     fun supportsTrash(media: List<Media>): Boolean =
         ProviderCapability.TRASH in capabilitiesFor(media)
 
+    fun supportsTrash(media: Media): Boolean = supportsTrash(listOf(media))
+
     /** Resolve only the exact account carried by the media URI; actions never cross accounts. */
     private fun providerFor(media: Media): MediaCapabilityProvider? {
         val cloudUri = CloudUri.parse(media.getUri().toString()) ?: return null
