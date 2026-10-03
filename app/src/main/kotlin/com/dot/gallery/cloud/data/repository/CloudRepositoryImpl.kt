@@ -35,7 +35,7 @@ import com.dot.gallery.cloud.core.capabilities.SmartSearchCapableProvider
 import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
 import com.dot.gallery.cloud.core.capabilities.SyncDelta
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
-import com.dot.gallery.cloud.data.dao.readsWebDavCaptureTime
+import com.dot.gallery.cloud.data.dao.supportsCaptureTimeExtraction
 import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.data.dao.SyncStateDao
 import com.dot.gallery.cloud.data.dao.CloudTagDao
@@ -205,7 +205,7 @@ class CloudRepositoryImpl @Inject constructor(
         url: String,
         read: suspend (String) -> Long?
     ): Unit = withContext(Dispatchers.IO) {
-        if (!provider.readsWebDavCaptureTime() || configId <= 0L) return@withContext
+        if (!provider.supportsCaptureTimeExtraction() || configId <= 0L) return@withContext
         try {
             val media = cloudMediaDao.getByRemoteId(remoteId, provider, configId) ?: return@withContext
             if (!media.needsCaptureTimeFrom(url)) return@withContext

@@ -19,11 +19,11 @@ import com.dot.gallery.cloud.data.entity.backupFingerprint
 import com.dot.gallery.cloud.data.entity.canonicalBackupChecksum
 import kotlinx.coroutines.flow.Flow
 
-internal fun ProviderType.readsWebDavCaptureTime(): Boolean =
+internal fun ProviderType.supportsCaptureTimeExtraction(): Boolean =
     this == ProviderType.WEBDAV || this == ProviderType.OWNCLOUD || this == ProviderType.NEXTCLOUD
 
 internal fun CloudMediaEntity.withPreservedCaptureTime(previous: CloudMediaEntity?): CloudMediaEntity {
-    if (!providerType.readsWebDavCaptureTime() || takenTimestamp != null || previous == null) return this
+    if (!providerType.supportsCaptureTimeExtraction() || takenTimestamp != null || previous == null) return this
     // Use size and modification time to detect revisions; cloud index doesn't store ETags.
     return if (size == previous.size &&
         timestamp == previous.timestamp && originalUrl == previous.originalUrl && mimeType == previous.mimeType
@@ -367,7 +367,7 @@ interface CloudMediaDao {
                 val localStates = getLocalStates(configId, remoteIds)
                     .associateBy { it.providerType to it.remoteId }
                 val undatedWebDavIds = chunk.filter {
-                    it.providerType.readsWebDavCaptureTime() && it.takenTimestamp == null
+                    it.providerType.supportsCaptureTimeExtraction() && it.takenTimestamp == null
                 }.map { it.remoteId }
                 val datedMedia = if (undatedWebDavIds.isEmpty()) emptyMap() else {
                     getDatedMedia(configId, undatedWebDavIds).associateBy { it.providerType to it.remoteId }
@@ -408,7 +408,7 @@ interface CloudMediaDao {
 
     @Transaction
     suspend fun insert(item: CloudMediaEntity) {
-        val previous = if (item.providerType.readsWebDavCaptureTime() && item.takenTimestamp == null) {
+        val previous = if (item.providerType.supportsCaptureTimeExtraction() && item.takenTimestamp == null) {
             getByRemoteId(item.remoteId, item.providerType, item.serverConfigId)
         } else null
         insertRaw(item.withPreservedCaptureTime(previous))
