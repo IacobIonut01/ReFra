@@ -22,6 +22,7 @@ import com.dot.gallery.cloud.data.dao.SyncStateDao
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.data.repository.CloudRepositoryImpl
 import com.dot.gallery.cloud.network.ServerUrlResolver
+import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import dagger.Module
 import dagger.Provides
@@ -101,10 +102,11 @@ abstract class CloudModule {
             urlResolver: ServerUrlResolver,
             configDao: CloudServerConfigDao,
             syncStateDao: SyncStateDao,
-            @ApplicationContext context: Context
+            @ApplicationContext context: Context,
+            isolatedMetadataParser: IsolatedMetadataParser
         ): CloudRepository = CloudRepositoryImpl(
             registry, cloudMediaDao, cloudTagDao, urlResolver,
-            configDao, syncStateDao, context
+            configDao, syncStateDao, context, isolatedMetadataParser
         )
     }
 }

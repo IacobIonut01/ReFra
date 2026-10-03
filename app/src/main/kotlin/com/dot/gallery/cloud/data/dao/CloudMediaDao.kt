@@ -19,6 +19,18 @@ import com.dot.gallery.cloud.data.entity.backupFingerprint
 import com.dot.gallery.cloud.data.entity.canonicalBackupChecksum
 import kotlinx.coroutines.flow.Flow
 
+internal fun ProviderType.readsWebDavCaptureTime(): Boolean =
+    this == ProviderType.WEBDAV || this == ProviderType.OWNCLOUD || this == ProviderType.NEXTCLOUD
+
+internal fun CloudMediaEntity.withPreservedCaptureTime(previous: CloudMediaEntity?): CloudMediaEntity {
+    if (!providerType.readsWebDavCaptureTime() || takenTimestamp != null || previous == null) return this
+    // Use size and modification time to detect revisions; cloud index doesn't store ETags.
+    return if (remoteId == previous.remoteId && providerType == previous.providerType &&
+        serverConfigId == previous.serverConfigId && size == previous.size &&
+        timestamp == previous.timestamp && originalUrl == previous.originalUrl && mimeType == previous.mimeType
+    ) copy(takenTimestamp = previous.takenTimestamp) else this
+}
+
 data class CloudMediaLocalState(
     val remoteId: String,
     val providerType: ProviderType,
@@ -211,6 +223,32 @@ interface CloudMediaDao {
         serverConfigId: Long
     ): CloudMediaEntity?
 
+    @Query(
+        """
+        SELECT * FROM cloud_media WHERE serverConfigId = :configId
+            AND remoteId IN (:remoteIds) AND takenTimestamp IS NOT NULL
+        """
+    )
+    suspend fun getDatedMedia(configId: Long, remoteIds: List<String>): List<CloudMediaEntity>
+
+    @Query(
+        """
+        UPDATE cloud_media SET takenTimestamp = :captureTime
+        WHERE remoteId = :remoteId AND providerType = :providerType AND serverConfigId = :configId
+            AND originalUrl = :url AND size = :size AND timestamp = :modifiedTime
+            AND takenTimestamp IS NULL
+        """
+    )
+    suspend fun updateCaptureTime(
+        remoteId: String,
+        providerType: ProviderType,
+        configId: Long,
+        url: String,
+        size: Long,
+        modifiedTime: Long,
+        captureTime: Long
+    ): Int
+
     @Query("SELECT * FROM cloud_media WHERE contentHash = :hash AND serverConfigId = :serverConfigId LIMIT 1")
     suspend fun getByContentHash(hash: String, serverConfigId: Long): CloudMediaEntity?
 
@@ -329,6 +367,12 @@ interface CloudMediaDao {
                 val remoteIds = chunk.map { it.remoteId }
                 val localStates = getLocalStates(configId, remoteIds)
                     .associateBy { it.providerType to it.remoteId }
+                val undatedWebDavIds = chunk.filter {
+                    it.providerType.readsWebDavCaptureTime() && it.takenTimestamp == null
+                }.map { it.remoteId }
+                val datedMedia = if (undatedWebDavIds.isEmpty()) emptyMap() else {
+                    getDatedMedia(configId, undatedWebDavIds).associateBy { it.providerType to it.remoteId }
+                }
                 val incomingByRemoteId = chunk.associateBy { it.remoteId }
                 getBackupRevisions(configId, remoteIds).forEach { revision ->
                     val incoming = incomingByRemoteId[revision.remoteId]
@@ -342,7 +386,10 @@ interface CloudMediaDao {
                     }
                 }
                 insertAllRaw(
-                    chunk.map { item ->
+                    chunk.map { incoming ->
+                        val item = incoming.withPreservedCaptureTime(
+                            datedMedia[incoming.providerType to incoming.remoteId]
+                        )
                         val local = localStates[item.providerType to item.remoteId]
                         if (local == null) item else item.copy(
                             localCopyPath = local.localCopyPath,
@@ -358,7 +405,15 @@ interface CloudMediaDao {
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(item: CloudMediaEntity)
+    suspend fun insertRaw(item: CloudMediaEntity)
+
+    @Transaction
+    suspend fun insert(item: CloudMediaEntity) {
+        val previous = if (item.providerType.readsWebDavCaptureTime() && item.takenTimestamp == null) {
+            getByRemoteId(item.remoteId, item.providerType, item.serverConfigId)
+        } else null
+        insertRaw(item.withPreservedCaptureTime(previous))
+    }
 
     @Update
     suspend fun update(item: CloudMediaEntity)

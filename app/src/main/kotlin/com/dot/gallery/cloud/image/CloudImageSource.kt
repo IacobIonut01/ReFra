@@ -196,6 +196,9 @@ class CloudImageSource private constructor(
                     throw e
                 }
             }
+            CloudFetcherRegistryHolder.repository?.recordCaptureTime(
+                providerType, configId, remoteId, url, target
+            )
         }
 
         private suspend fun downloadToFile(call: Call, target: File) {

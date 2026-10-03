@@ -155,7 +155,16 @@ private fun createCloudDataFetcher(
             parsed.remoteId,
             effectiveSize,
             parsed.typeParam
-        )
+        ),
+        onImageLoaded = { bytes ->
+            if (parsed.typeParam == null) {
+                runBlocking {
+                    CloudFetcherRegistryHolder.repository?.recordCaptureTime(
+                        parsed.providerType, parsed.configId, parsed.remoteId, url, bytes
+                    )
+                }
+            }
+        }
     )
 }
 
@@ -215,7 +224,8 @@ internal class CloudOkHttpFetcher(
     private val authHeaders: Map<String, String>,
     private val offlineKey: String,
     private val logDebug: (String) -> Unit = CloudTrace::d,
-    private val logWarning: (String) -> Unit = { CloudTrace.w(it) }
+    private val logWarning: (String) -> Unit = { CloudTrace.w(it) },
+    private val onImageLoaded: (ByteArray) -> Unit = {}
 ) : DataFetcher<InputStream> {
 
     private var call: Call? = null
@@ -274,6 +284,7 @@ internal class CloudOkHttpFetcher(
                                 )
                                 return
                             }
+                            onImageLoaded(bytes)
                             callback.onDataReady(ByteArrayInputStream(bytes))
                         }
                     } catch (e: Exception) {

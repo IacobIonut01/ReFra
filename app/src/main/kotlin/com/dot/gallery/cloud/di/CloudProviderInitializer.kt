@@ -23,6 +23,7 @@ import com.dot.gallery.cloud.data.entity.CloudMediaTagEntity
 import com.dot.gallery.cloud.data.entity.CloudTagEntity
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.network.ServerUrlResolver
+import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
 import com.dot.gallery.cloud.offline.OfflineModeManager
 import com.dot.gallery.cloud.sync.CloudIndexProgressManager
 import com.dot.gallery.cloud.sync.fetchAllCloudIndexPages
@@ -114,6 +115,10 @@ class CloudProviderInitializer @Inject constructor(
     private val smartScanScheduler: SmartScanScheduler,
     private val pendingCloudFavoriteStore: PendingCloudFavoriteStore
 ) {
+
+    init {
+        CloudFetcherRegistryHolder.repository = cloudRepository
+    }
 
     private val factoriesByType by lazy { providerFactories.associateBy { it.providerType } }
 

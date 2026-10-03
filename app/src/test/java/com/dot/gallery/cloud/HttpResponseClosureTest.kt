@@ -155,6 +155,7 @@ class HttpResponseClosureTest {
         val callbackCompleted = CountDownLatch(1)
         val callbackFailure = AtomicReference<Exception?>()
         val callbackBytes = AtomicReference<ByteArray?>()
+        val metadataBytes = AtomicReference<ByteArray?>()
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 requestStarted.countDown()
@@ -173,7 +174,8 @@ class HttpResponseClosureTest {
             emptyMap(),
             "key",
             logDebug = {},
-            logWarning = {}
+            logWarning = {},
+            onImageLoaded = { metadataBytes.set(it) }
         )
         val executor = Executors.newSingleThreadExecutor()
 
@@ -201,6 +203,8 @@ class HttpResponseClosureTest {
             assertTrue(callbackCompleted.await(5, TimeUnit.SECONDS))
             assertNull(callbackFailure.get())
             assertArrayEquals(responseBytes, callbackBytes.get())
+            assertArrayEquals(responseBytes, metadataBytes.get())
+            assertEquals(1, server.requestCount)
         } finally {
             releaseResponse.countDown()
             fetcher.cancel()
