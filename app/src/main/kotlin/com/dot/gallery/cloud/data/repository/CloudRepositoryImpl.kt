@@ -7,6 +7,7 @@ package com.dot.gallery.cloud.data.repository
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import com.dot.gallery.cloud.core.CloudAlbum
 import com.dot.gallery.cloud.core.CloudMapMarker
 import com.dot.gallery.cloud.core.CloudServerConfig
@@ -34,6 +35,7 @@ import com.dot.gallery.cloud.core.capabilities.SmartSearchCapableProvider
 import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
 import com.dot.gallery.cloud.core.capabilities.SyncDelta
 import com.dot.gallery.cloud.data.dao.CloudMediaDao
+import com.dot.gallery.cloud.data.dao.supportsCaptureTimeExtraction
 import com.dot.gallery.cloud.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.data.dao.SyncStateDao
 import com.dot.gallery.cloud.data.dao.CloudTagDao
@@ -42,6 +44,8 @@ import com.dot.gallery.cloud.data.entity.SyncStateEntity
 import com.dot.gallery.cloud.sync.applyCloudSyncDelta
 import com.dot.gallery.cloud.network.ServerUrlResolver
 import com.dot.gallery.core.Resource
+import com.dot.gallery.core.sandbox.IsolatedMetadataParser
+import com.dot.gallery.core.sandbox.IsolatedMetadataService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.dot.gallery.feature_node.domain.model.Media
 import kotlinx.coroutines.CancellationException
@@ -63,8 +67,15 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+
+// Ensure the original URL is the same to differentiate preview from OG image 
+internal fun CloudMediaEntity.needsCaptureTimeFrom(url: String): Boolean =
+    takenTimestamp == null &&
+        mimeType.startsWith("image/") && url.isNotBlank() && url == originalUrl
 
 internal inline fun <reified T : MediaCapabilityProvider> resolveProviderAccount(
     registry: ProviderRegistry,
@@ -157,7 +168,8 @@ class CloudRepositoryImpl @Inject constructor(
     private val urlResolver: ServerUrlResolver,
     private val configDao: CloudServerConfigDao,
     private val syncStateDao: SyncStateDao,
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val isolatedMetadataParser: IsolatedMetadataParser
 ) : CloudRepository {
 
     private val _connectionStates = MutableStateFlow<Map<ProviderType, ConnectionState>>(emptyMap())
@@ -169,6 +181,51 @@ class CloudRepositoryImpl @Inject constructor(
 
     override val hasConfiguredProviders: Boolean
         get() = registry.getRemoteProviders().any { it.isAvailable }
+
+    override suspend fun recordCaptureTime(
+        provider: ProviderType, configId: Long, remoteId: String, url: String, bytes: ByteArray
+    ): Unit = recordCaptureTime(provider, configId, remoteId, url) { label ->
+        val file = File.createTempFile("cloud-capture-", ".tmp", context.cacheDir)
+        try {
+            file.writeBytes(bytes)
+            captureTime(file, label)
+        } finally {
+            file.delete()
+        }
+    }
+
+    override suspend fun recordCaptureTime(
+        provider: ProviderType, configId: Long, remoteId: String, url: String, file: File
+    ): Unit = recordCaptureTime(provider, configId, remoteId, url) { label -> captureTime(file, label) }
+
+    private suspend fun recordCaptureTime(
+        provider: ProviderType,
+        configId: Long,
+        remoteId: String,
+        url: String,
+        read: suspend (String) -> Long?
+    ): Unit = withContext(Dispatchers.IO) {
+        if (!provider.supportsCaptureTimeExtraction() || configId <= 0L) return@withContext
+        try {
+            val media = cloudMediaDao.getByRemoteId(remoteId, provider, configId) ?: return@withContext
+            if (!media.needsCaptureTimeFrom(url)) return@withContext
+            val timestamp = read(media.label) ?: return@withContext
+            // A rescan or account removal may have happened while the parser was running.
+            cloudMediaDao.updateCaptureTime(remoteId, provider, configId, url, media.size, media.timestamp, timestamp)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            // Metadata failure must not prevent the image from being displayed.
+            CloudTrace.w("Cloud capture time unavailable: ${error.javaClass.simpleName}")
+        }
+    }
+
+    private suspend fun captureTime(file: File, label: String): Long? {
+        val metadata = isolatedMetadataParser.parseImageMetadata(file.toUri(), label) ?: return null
+        return if (metadata.containsKey(IsolatedMetadataService.KEY_CAPTURE_TIMESTAMP_MILLIS)) {
+            metadata.getLong(IsolatedMetadataService.KEY_CAPTURE_TIMESTAMP_MILLIS)
+        } else null
+    }
 
     // === Server Management ===
 

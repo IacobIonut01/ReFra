@@ -23,12 +23,22 @@ import com.dot.gallery.feature_node.domain.model.Media
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.io.File
 
 interface CloudRepository {
 
     val hasConfiguredProviders: Boolean
     val connectionStates: StateFlow<Map<ProviderType, ConnectionState>>
     val peopleInvalidation: SharedFlow<Unit>
+
+    // Extracts a missing capture date from an original already loaded for display.
+    suspend fun recordCaptureTime(
+        provider: ProviderType, configId: Long, remoteId: String, url: String, bytes: ByteArray
+    )
+
+    suspend fun recordCaptureTime(
+        provider: ProviderType, configId: Long, remoteId: String, url: String, file: File
+    )
 
     // Server management
     suspend fun testConnection(type: ProviderType, config: CloudServerConfig): Result<CloudServerInfo>

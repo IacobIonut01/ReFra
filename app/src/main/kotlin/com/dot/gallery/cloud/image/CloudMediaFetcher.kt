@@ -13,6 +13,7 @@ import com.dot.gallery.cloud.core.ThumbnailSize
 import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.resolveRemote
 import com.dot.gallery.cloud.offline.CloudMediaCache
+import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.github.panpf.sketch.ComponentRegistry
 import com.github.panpf.sketch.fetch.FetchResult
 import com.github.panpf.sketch.fetch.Fetcher
@@ -111,6 +112,10 @@ class CloudMediaFetcher private constructor(
                     return@withContext Result.failure(Exception("Empty response body"))
                 }
 
+                CloudFetcherRegistryHolder.repository?.recordCaptureTime(
+                    providerType, configId, remoteId, url, bytes
+                )
+
                 val mimeType = it.header("Content-Type")
                 CloudTrace.d("Sketch.fetch[$providerType] $sizeParam '$remoteId' <- ${CloudTrace.bytes(bytes.size.toLong())} ($mimeType)")
 
@@ -194,6 +199,9 @@ object CloudFetcherRegistryHolder {
 
     @Volatile
     var okHttpClient: OkHttpClient? = null
+
+    @Volatile
+    var repository: CloudRepository? = null
 }
 
 /**

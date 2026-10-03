@@ -7,6 +7,8 @@ package com.dot.gallery.cloud
 
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.data.DataFetcher
+import com.dot.gallery.cloud.core.CloudUri
+import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
 import com.dot.gallery.cloud.image.CloudOkHttpFetcher
 import com.dot.gallery.cloud.image.isClearlyTruncatedJpeg
@@ -14,13 +16,18 @@ import com.dot.gallery.cloud.webdav.shouldReconcileWebDavScan
 import com.dot.gallery.cloud.webdav.data.api.OcsApiClient
 import com.dot.gallery.cloud.webdav.data.api.WebDavClient
 import com.dot.gallery.cloud.webdav.data.api.WebDavException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import java.io.InputStream
+import java.lang.reflect.Proxy
 import java.nio.file.Files
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -41,6 +48,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
 
 class HttpResponseClosureTest {
     private lateinit var server: MockWebServer
@@ -146,15 +154,25 @@ class HttpResponseClosureTest {
     }
 
     @Test
-    fun glideCloudFetchReturnsBeforeTheNetworkResponseCompletes() {
+    fun glideCloudFetchReturnsBeforeTheNetworkResponseCompletes() = checkGlideFetch(cancelBeforeDelivery = false)
+
+    @Test
+    fun cancelledGlideFetchDoesNotRecordMetadataOrDeliverImage() = checkGlideFetch(cancelBeforeDelivery = true)
+
+    private fun checkGlideFetch(cancelBeforeDelivery: Boolean) {
         val responseBytes = byteArrayOf(
             0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xD9.toByte()
         )
         val requestStarted = CountDownLatch(1)
         val releaseResponse = CountDownLatch(1)
-        val callbackCompleted = CountDownLatch(1)
-        val callbackFailure = AtomicReference<Exception?>()
-        val callbackBytes = AtomicReference<ByteArray?>()
+        val callbackResult = CompletableFuture<ByteArray?>()
+        var metadataBytes: ByteArray? = null
+        val deliveries = LinkedBlockingQueue<Runnable>()
+        val scope = CoroutineScope(SupervisorJob() + object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                deliveries.add(block)
+            }
+        })
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 requestStarted.countDown()
@@ -167,11 +185,21 @@ class HttpResponseClosureTest {
             }
         }
         val previousClient = CloudFetcherRegistryHolder.okHttpClient
+        val previousRepository = CloudFetcherRegistryHolder.repository
         CloudFetcherRegistryHolder.okHttpClient = OkHttpClient()
+        CloudFetcherRegistryHolder.repository = Proxy.newProxyInstance(
+            CloudRepository::class.java.classLoader, arrayOf(CloudRepository::class.java)
+        ) { _, method, args ->
+            check(method.name == "recordCaptureTime")
+            metadataBytes = args!![4] as ByteArray
+            Unit
+        } as CloudRepository
         val fetcher = CloudOkHttpFetcher(
             server.url("/image.jpg").toString(),
             emptyMap(),
             "key",
+            CloudUri.parse("cloud://WEBDAV/image.jpg?cfg=1")!!,
+            scope,
             logDebug = {},
             logWarning = {}
         )
@@ -181,31 +209,41 @@ class HttpResponseClosureTest {
             val load = executor.submit {
                 fetcher.loadData(Priority.NORMAL, object : DataFetcher.DataCallback<InputStream> {
                     override fun onDataReady(data: InputStream?) {
-                        callbackBytes.set(data?.readBytes())
-                        callbackCompleted.countDown()
+                        callbackResult.complete(data?.readBytes())
                     }
 
                     override fun onLoadFailed(e: Exception) {
-                        callbackFailure.set(e)
-                        callbackCompleted.countDown()
+                        callbackResult.completeExceptionally(e)
                     }
                 })
             }
 
             load.get(5, TimeUnit.SECONDS)
             assertTrue(
-                "request did not start; callback=${callbackFailure.get()}",
+                "request did not start; callback=$callbackResult",
                 requestStarted.await(5, TimeUnit.SECONDS)
             )
             releaseResponse.countDown()
-            assertTrue(callbackCompleted.await(5, TimeUnit.SECONDS))
-            assertNull(callbackFailure.get())
-            assertArrayEquals(responseBytes, callbackBytes.get())
+            val delivery = deliveries.poll(5, TimeUnit.SECONDS)
+            assertTrue("image delivery was not scheduled", delivery != null)
+            assertNull(metadataBytes)
+            assertFalse(callbackResult.isDone)
+            if (cancelBeforeDelivery) fetcher.cancel()
+            delivery!!.run()
+            if (cancelBeforeDelivery) {
+                assertNull(metadataBytes)
+                assertFalse(callbackResult.isDone)
+            } else {
+                assertArrayEquals(responseBytes, callbackResult.get(5, TimeUnit.SECONDS))
+                assertArrayEquals(responseBytes, metadataBytes)
+            }
+            assertEquals(1, server.requestCount)
         } finally {
             releaseResponse.countDown()
             fetcher.cancel()
             executor.shutdownNow()
             CloudFetcherRegistryHolder.okHttpClient = previousClient
+            CloudFetcherRegistryHolder.repository = previousRepository
         }
     }
 
