@@ -25,6 +25,7 @@ import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.resolveRemote
 import com.dot.gallery.cloud.offline.CloudMediaCache
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -127,7 +128,8 @@ internal suspend fun awaitInitializedRemoteProvider(
 private fun createCloudDataFetcher(
     provider: RemoteMediaProvider,
     parsed: CloudUri,
-    effectiveSize: String
+    effectiveSize: String,
+    scope: CoroutineScope
 ): DataFetcher<InputStream>? {
     val url = when (parsed.typeParam) {
         "person" -> (provider as? PeopleCapableProvider)?.getPersonThumbnailUrl(parsed.remoteId)
@@ -156,15 +158,8 @@ private fun createCloudDataFetcher(
             effectiveSize,
             parsed.typeParam
         ),
-        onImageLoaded = { bytes ->
-            if (parsed.typeParam == null) {
-                runBlocking {
-                    CloudFetcherRegistryHolder.repository?.recordCaptureTime(
-                        parsed.providerType, parsed.configId, parsed.remoteId, url, bytes
-                    )
-                }
-            }
-        }
+        parsed = parsed,
+        scope = scope
     )
 }
 
@@ -191,7 +186,7 @@ private class CloudProviderResolvingFetcher(
                 )
                 return@launch
             }
-            val fetcher = createCloudDataFetcher(provider, parsed, effectiveSize)
+            val fetcher = createCloudDataFetcher(provider, parsed, effectiveSize, scope)
             if (fetcher == null) {
                 if (isActive) callback.onLoadFailed(NoPreviewAvailableException(parsed.remoteId))
                 return@launch
@@ -223,9 +218,10 @@ internal class CloudOkHttpFetcher(
     private val url: String,
     private val authHeaders: Map<String, String>,
     private val offlineKey: String,
+    private val parsed: CloudUri,
+    private val scope: CoroutineScope,
     private val logDebug: (String) -> Unit = CloudTrace::d,
-    private val logWarning: (String) -> Unit = { CloudTrace.w(it) },
-    private val onImageLoaded: (ByteArray) -> Unit = {}
+    private val logWarning: (String) -> Unit = { CloudTrace.w(it) }
 ) : DataFetcher<InputStream> {
 
     private var call: Call? = null
@@ -284,8 +280,21 @@ internal class CloudOkHttpFetcher(
                                 )
                                 return
                             }
-                            onImageLoaded(bytes)
-                            callback.onDataReady(ByteArrayInputStream(bytes))
+                            // Read capture metadata without blocking the HTTP callback thread.
+                            scope.launch {
+                                try {
+                                    if (parsed.typeParam == null) {
+                                        CloudFetcherRegistryHolder.repository?.recordCaptureTime(
+                                            parsed.providerType, parsed.configId, parsed.remoteId, url, bytes
+                                        )
+                                    }
+                                    if (isActive) callback.onDataReady(ByteArrayInputStream(bytes))
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (e: Exception) {
+                                    if (isActive) callback.onLoadFailed(e)
+                                }
+                            }
                         }
                     } catch (e: Exception) {
                         callback.onLoadFailed(e)
@@ -297,8 +306,11 @@ internal class CloudOkHttpFetcher(
         }
     }
 
-    override fun cleanup() {}
-    override fun cancel() { call?.cancel() }
+    override fun cleanup() { scope.cancel() }
+    override fun cancel() {
+        scope.cancel()
+        call?.cancel()
+    }
     override fun getDataClass(): Class<InputStream> = InputStream::class.java
     override fun getDataSource(): DataSource = DataSource.REMOTE
 }

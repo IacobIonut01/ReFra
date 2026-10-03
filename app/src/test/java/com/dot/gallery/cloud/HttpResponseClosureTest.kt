@@ -7,6 +7,8 @@ package com.dot.gallery.cloud
 
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.data.DataFetcher
+import com.dot.gallery.cloud.core.CloudUri
+import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.image.CloudFetcherRegistryHolder
 import com.dot.gallery.cloud.image.CloudOkHttpFetcher
 import com.dot.gallery.cloud.image.isClearlyTruncatedJpeg
@@ -14,10 +16,15 @@ import com.dot.gallery.cloud.webdav.shouldReconcileWebDavScan
 import com.dot.gallery.cloud.webdav.data.api.OcsApiClient
 import com.dot.gallery.cloud.webdav.data.api.WebDavClient
 import com.dot.gallery.cloud.webdav.data.api.WebDavException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import java.io.InputStream
+import java.lang.reflect.Proxy
 import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -41,6 +48,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
 
 class HttpResponseClosureTest {
     private lateinit var server: MockWebServer
@@ -146,7 +154,12 @@ class HttpResponseClosureTest {
     }
 
     @Test
-    fun glideCloudFetchReturnsBeforeTheNetworkResponseCompletes() {
+    fun glideCloudFetchReturnsBeforeTheNetworkResponseCompletes() = checkGlideFetch(cancelBeforeDelivery = false)
+
+    @Test
+    fun cancelledGlideFetchDoesNotRecordMetadataOrDeliverImage() = checkGlideFetch(cancelBeforeDelivery = true)
+
+    private fun checkGlideFetch(cancelBeforeDelivery: Boolean) {
         val responseBytes = byteArrayOf(
             0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xD9.toByte()
         )
@@ -156,6 +169,12 @@ class HttpResponseClosureTest {
         val callbackFailure = AtomicReference<Exception?>()
         val callbackBytes = AtomicReference<ByteArray?>()
         val metadataBytes = AtomicReference<ByteArray?>()
+        val deliveries = LinkedBlockingQueue<Runnable>()
+        val scope = CoroutineScope(SupervisorJob() + object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                deliveries.add(block)
+            }
+        })
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 requestStarted.countDown()
@@ -168,14 +187,23 @@ class HttpResponseClosureTest {
             }
         }
         val previousClient = CloudFetcherRegistryHolder.okHttpClient
+        val previousRepository = CloudFetcherRegistryHolder.repository
         CloudFetcherRegistryHolder.okHttpClient = OkHttpClient()
+        CloudFetcherRegistryHolder.repository = Proxy.newProxyInstance(
+            CloudRepository::class.java.classLoader, arrayOf(CloudRepository::class.java)
+        ) { _, method, args ->
+            check(method.name == "recordCaptureTime")
+            metadataBytes.set(args!![4] as ByteArray)
+            Unit
+        } as CloudRepository
         val fetcher = CloudOkHttpFetcher(
             server.url("/image.jpg").toString(),
             emptyMap(),
             "key",
+            CloudUri.parse("cloud://WEBDAV/image.jpg?cfg=1")!!,
+            scope,
             logDebug = {},
-            logWarning = {},
-            onImageLoaded = { metadataBytes.set(it) }
+            logWarning = {}
         )
         val executor = Executors.newSingleThreadExecutor()
 
@@ -200,16 +228,29 @@ class HttpResponseClosureTest {
                 requestStarted.await(5, TimeUnit.SECONDS)
             )
             releaseResponse.countDown()
-            assertTrue(callbackCompleted.await(5, TimeUnit.SECONDS))
+            val delivery = deliveries.poll(5, TimeUnit.SECONDS)
+            assertTrue("image delivery was not scheduled", delivery != null)
+            assertNull(metadataBytes.get())
+            assertEquals(1L, callbackCompleted.count)
+            if (cancelBeforeDelivery) fetcher.cancel()
+            delivery!!.run()
             assertNull(callbackFailure.get())
-            assertArrayEquals(responseBytes, callbackBytes.get())
-            assertArrayEquals(responseBytes, metadataBytes.get())
+            if (cancelBeforeDelivery) {
+                assertNull(metadataBytes.get())
+                assertNull(callbackBytes.get())
+                assertEquals(1L, callbackCompleted.count)
+            } else {
+                assertTrue(callbackCompleted.await(5, TimeUnit.SECONDS))
+                assertArrayEquals(responseBytes, callbackBytes.get())
+                assertArrayEquals(responseBytes, metadataBytes.get())
+            }
             assertEquals(1, server.requestCount)
         } finally {
             releaseResponse.countDown()
             fetcher.cancel()
             executor.shutdownNow()
             CloudFetcherRegistryHolder.okHttpClient = previousClient
+            CloudFetcherRegistryHolder.repository = previousRepository
         }
     }
 
