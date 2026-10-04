@@ -50,7 +50,7 @@ runs:
 
     - name: Cache prebuilt libheif (decode)
       id: heif-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: app/src/main/cpp/heif
         key: heif-${{ runner.os }}-ndk-${{ steps.toolchain.outputs.ndk_version }}-${{ inputs.arch }}-${{ hashFiles('scripts/native/build-heif.sh') }}
@@ -62,7 +62,7 @@ runs:
 
     - name: Cache prebuilt imgcodec (JPEG/PNG encode)
       id: imgcodec-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: app/src/main/cpp/imgcodec
         key: imgcodec-${{ runner.os }}-ndk-${{ steps.toolchain.outputs.ndk_version }}-${{ inputs.arch }}-${{ hashFiles('scripts/native/build-imgcodec.sh') }}
@@ -74,7 +74,7 @@ runs:
 
     - name: Cache prebuilt heifenc (HEIC/AVIF encode)
       id: heifenc-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: app/src/main/cpp/heifenc
         key: heifenc-${{ runner.os }}-ndk-${{ steps.toolchain.outputs.ndk_version }}-${{ inputs.arch }}-${{ hashFiles('scripts/native/build-heif-encode.sh') }}
@@ -86,7 +86,7 @@ runs:
 
     - name: Cache prebuilt rawcodec (RAW decode + TIFF export)
       id: rawcodec-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: app/src/main/cpp/rawcodec
         key: rawcodec-${{ runner.os }}-ndk-${{ steps.toolchain.outputs.ndk_version }}-${{ inputs.arch }}-${{ hashFiles('scripts/native/build-libraw.sh') }}
