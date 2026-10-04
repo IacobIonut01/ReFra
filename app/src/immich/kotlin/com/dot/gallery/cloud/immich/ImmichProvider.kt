@@ -519,8 +519,17 @@ class ImmichProvider @Inject constructor(
             val configId = requireConfigId()
             val response = requireApi().getAlbumById(albumId)
             if (response.isSuccessful) {
-                val entities = response.body()?.assets?.map { it.toCloudMediaEntity(configId, baseUrl) } ?: emptyList()
-                emit(Resource.Success(entities))
+                val album = response.body()
+                // Immich v3 dropped the embedded `assets` array from the album
+                // response — `assetCount` is all that remains — so members must be
+                // paged out of metadata search instead. Older servers still embed
+                // them; `assets == null` is the version gate, not `assetCount`.
+                val assets = album?.assets ?: if ((album?.assetCount ?: 0) > 0) {
+                    fetchAlbumMemberAssets(albumId)
+                } else {
+                    emptyList()
+                }
+                emit(Resource.Success(assets.map { it.toCloudMediaEntity(configId, baseUrl) }))
             } else {
                 emit(Resource.Error("Failed to fetch album media: ${response.code()}"))
             }
@@ -529,6 +538,35 @@ class ImmichProvider @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Unknown error"))
         }
+    }
+
+    /**
+     * Immich v3 album members via `POST /api/search/metadata` filtered by
+     * `albumIds`. Paged like [getTagAssetIds]: `nextPage` is the page to request
+     * next, null ends the listing.
+     */
+    private suspend fun fetchAlbumMemberAssets(albumId: String): List<ImmichAssetDto> {
+        val assets = mutableListOf<ImmichAssetDto>()
+        var page = 1
+        while (true) {
+            val body = mapOf<String, Any>(
+                "albumIds" to listOf(albumId),
+                "page" to page,
+                "size" to IMMICH_DELTA_PAGE_SIZE,
+                "withExif" to true
+            )
+            val response = requireApi().searchAssets(body)
+            if (!response.isSuccessful) {
+                throw IOException("Album member search failed: ${response.code()}")
+            }
+            val pageAssets = response.body()?.assets
+            val items = pageAssets?.items.orEmpty()
+            assets += items
+            val next = pageAssets?.nextPage?.toIntOrNull()
+            if (next == null || items.isEmpty()) break
+            page = next
+        }
+        return assets
     }
 
     override suspend fun createAlbum(name: String): Result<CloudAlbum> {

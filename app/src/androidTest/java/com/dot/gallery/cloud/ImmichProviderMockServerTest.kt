@@ -271,6 +271,76 @@ class ImmichProviderMockServerTest {
     }
 
     @Test
+    fun getRemoteAlbumMediaFallsBackToAlbumIdsSearchWhenAssetsOmitted() = runBlocking {
+        // Immich v3 album detail drops the embedded `assets` array entirely —
+        // `assetCount` is all that remains — so members must be paged out of the
+        // metadata search `albumIds` filter.
+        val albumJson = """{ "id": "album-1", "albumName": "Trip", "assetCount": 3 }"""
+        val page1 = """
+            { "assets": { "total": 2, "count": 2, "nextPage": "2", "items": [
+                { "id": "a1", "type": "IMAGE", "originalFileName": "a.jpg" },
+                { "id": "a2", "type": "IMAGE", "originalFileName": "b.jpg", "isTrashed": true }
+            ] } }
+        """.trimIndent()
+        val page2 = """
+            { "assets": { "total": 1, "count": 1, "items": [
+                { "id": "a3", "type": "IMAGE", "originalFileName": "c.jpg", "isArchived": true }
+            ] } }
+        """.trimIndent()
+        server.dispatcher = dispatcher { req ->
+            when {
+                req.path == "/api/albums/album-1" -> json(albumJson)
+                req.path?.endsWith("/api/search/metadata") == true -> {
+                    val requestJson = JsonParser.parseString(req.body.readUtf8()).asJsonObject
+                    assertEquals(
+                        "album-1",
+                        requestJson["albumIds"].asJsonArray.single().asString
+                    )
+                    json(if (requestJson["page"].asInt == 1) page1 else page2)
+                }
+                else -> null
+            }
+        }
+        provider.configure(
+            CloudServerConfig(id = 7, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        val resource = provider.getRemoteAlbumMedia("album-1").first()
+
+        val members = (resource as Resource.Success).data!!
+        assertEquals(listOf("a1", "a2", "a3"), members.map { it.remoteId })
+        assertTrue(members.single { it.remoteId == "a2" }.trashed)
+        assertTrue(members.single { it.remoteId == "a3" }.archived)
+    }
+
+    @Test
+    fun getRemoteAlbumMediaWithoutAssetsAndZeroCountSkipsSearch() = runBlocking {
+        // An empty album on a v3 server has no `assets` key and assetCount 0 —
+        // no membership search may be issued for it.
+        val albumJson = """{ "id": "album-1", "albumName": "Trip", "assetCount": 0 }"""
+        val searchCalled = AtomicBoolean(false)
+        server.dispatcher = dispatcher { req ->
+            when {
+                req.path == "/api/albums/album-1" -> json(albumJson)
+                req.path?.endsWith("/api/search/metadata") == true -> {
+                    searchCalled.set(true)
+                    null
+                }
+                else -> null
+            }
+        }
+        provider.configure(
+            CloudServerConfig(id = 7, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        val resource = provider.getRemoteAlbumMedia("album-1").first()
+
+        assertTrue(resource is Resource.Success)
+        assertEquals(0, (resource as Resource.Success).data!!.size)
+        assertTrue("empty album must not trigger a membership search", !searchCalled.get())
+    }
+
+    @Test
     fun removeFromAlbumFailsOnPerItemDiscard() = runBlocking {
         // Immich answers 200 even when individual ids are discarded — the only
         // trace is the per-item {id, success, error} verdict.
