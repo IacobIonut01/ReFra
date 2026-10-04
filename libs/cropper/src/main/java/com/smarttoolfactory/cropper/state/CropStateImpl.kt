@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -105,6 +106,17 @@ abstract class CropState internal constructor(
         // overlay gets updated so updates draw area as well
         animateTransformationToOverlayBounds(overlayRect, animate = true)
         initialized = true
+    }
+
+    /**
+     * Suspend until [init] has run and every pan/zoom/rotation/overlay animation has
+     * settled, so [cropRect] reflects the final geometry instead of a transitional
+     * or not-yet-initialised draw area.
+     */
+    internal suspend fun awaitSettled() {
+        while (!initialized || isAnimationRunning || animatableRectOverlay.isRunning) {
+            withFrameNanos { }
+        }
     }
 
     /**
@@ -328,6 +340,11 @@ abstract class CropState internal constructor(
             snapPanYto(newPanY)
             snapZoomTo(newZoom)
         }
+
+        // newDrawAreaRect assigned above is the logical bound the image must cover —
+        // once the transform is applied, replace it with the rect the image is actually
+        // drawn into so cropRect and bounds checks map against the real draw area
+        drawAreaRect = updateImageDrawRectFromTransformation()
 
         resetTracking()
     }

@@ -43,6 +43,7 @@ import com.smarttoolfactory.cropper.settings.CropDefaults
 import com.smarttoolfactory.cropper.settings.CropProperties
 import com.smarttoolfactory.cropper.settings.CropStyle
 import com.smarttoolfactory.cropper.settings.CropType
+import com.smarttoolfactory.cropper.state.CropState
 import com.smarttoolfactory.cropper.state.DynamicCropState
 import com.smarttoolfactory.cropper.state.rememberCropState
 import kotlinx.coroutines.Dispatchers
@@ -161,7 +162,7 @@ fun ImageCropper(
         Crop(
             crop,
             scaledImageBitmap,
-            cropState.cropRect,
+            cropState,
             cropOutline,
             onCropStart,
             onCropSuccess,
@@ -328,7 +329,7 @@ private fun ImageCropperImpl(
 private fun Crop(
     crop: Boolean,
     scaledImageBitmap: ImageBitmap,
-    cropRect: Rect,
+    cropState: CropState,
     cropOutline: CropOutline,
     onCropStart: () -> Unit,
     onCropSuccess: (ImageBitmap) -> Unit,
@@ -347,7 +348,7 @@ private fun Crop(
                 emit(
                     cropAgent.crop(
                         scaledImageBitmap,
-                        cropRect,
+                        cropState.cropRect,
                         cropOutline,
                         layoutDirection,
                         density
@@ -357,7 +358,11 @@ private fun Crop(
                 .flowOn(Dispatchers.Default)
                 .onStart {
                     onCropStart()
-                    onCropRect?.invoke(cropRect)
+                    // Deliver the settled crop rect, not the possibly mid-animation or
+                    // pre-init one — a commit here is user intent and must not capture
+                    // transitional geometry (e.g. right after an aspect-ratio swap).
+                    cropState.awaitSettled()
+                    onCropRect?.invoke(cropState.cropRect)
                     delay(400)
                 }
                 .onEach {

@@ -1280,7 +1280,9 @@ class EditViewModel @Inject constructor(
     }
 
     fun applyAdjustment(adjustment: Adjustment) {
-        if (_isProcessing.value) return
+        // Every caller is one-shot user intent (crop, rotate, flip, filter commit on
+        // scrubber dispose) — serialize through the mutex instead of dropping the commit
+        // while another operation is in flight.
         _isProcessing.value = true
         viewModelScope.launch(Dispatchers.IO) {
             mutex.withLock {
@@ -1343,6 +1345,7 @@ class EditViewModel @Inject constructor(
             // when this is the only filter, the base falls back to the already-filtered
             // bitmap. Falling back to adjustmentsWithout removes the filter entirely.
             if (newBitmap.sameAs(baseBitmap)) {
+                printDebug("edit.commit", "No-op adjustment dropped: ${adjustment.name}")
                 if (newBitmap !== baseBitmap && !newBitmap.isRecycled) newBitmap.recycle()
                 _appliedAdjustments.value = adjustmentsWithout
                 withContext(Dispatchers.Main) {

@@ -347,7 +347,7 @@ fun ImageViewer(
                         strokeWidth = 1.dp
                     ),
                     cropProperties = props,
-                    crop = cropState.isCropping,
+                    crop = cropState.isCropping && targetRatio == cropAspectRatio,
                     onCropStart = onCropStart,
                     onCropSuccess = { },
                     onCropRect = onCropRect,
