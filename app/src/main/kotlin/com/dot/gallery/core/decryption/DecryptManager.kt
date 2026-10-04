@@ -31,7 +31,7 @@ class DecryptManager @Inject constructor(
     private val lru = object : LruCache<String, DecryptResult>(32) {
         override fun sizeOf(key: String, value: DecryptResult): Int = value.bytes.size
     }
-    private val inFlight = ConcurrentHashMap<String, MutableList<(DecryptResult) -> Unit>>()
+    private val inFlight = ConcurrentHashMap<String, MutableList<(DecryptResult?, Throwable?) -> Unit>>()
     private val keychainHolder by lazy { KeychainHolder(context) }
 
     fun decrypt(file: File): DecryptResult {
@@ -45,33 +45,45 @@ class DecryptManager @Inject constructor(
         val callbacks = inFlight.computeIfAbsent(key) { mutableListOf() }
         if (callbacks.isNotEmpty()) {
             var result: DecryptResult? = null
+            var failure: Throwable? = null
             val latch = java.util.concurrent.CountDownLatch(1)
             synchronized(callbacks) {
-                callbacks += {
-                    result = it
+                callbacks += { r, e ->
+                    result = r
+                    failure = e
                     latch.countDown()
                 }
             }
             metrics.incDecryptWaiters(1)
             latch.await()
+            failure?.let { throw it }
             return result!!
         }
         // We are first owner
         var result: DecryptResult? = null
+        var failure: Throwable? = null
         try {
             metrics.incDecryptInvocation()
             val decrypted = keychainHolder.decryptVaultMedia(file)
-            result = DecryptResult(decrypted.readBytes(), decrypted.mimeType)
-            decrypted.cleanup()
+            try {
+                result = DecryptResult(decrypted.readBytes(), decrypted.mimeType)
+            } finally {
+                decrypted.cleanup()
+            }
             // Only cache small results (< 2MB) to keep memory bounded
             if (result.bytes.size <= 2 * 1024 * 1024) {
                 lru.put(key, result)
             }
             return result
+        } catch (t: Throwable) {
+            failure = t
+            throw t
         } finally {
             val list = inFlight.remove(key)
-            if (list != null && result != null) {
-                list.forEach { cb -> cb(result) }
+            if (list != null) {
+                val r = result
+                val f = failure
+                list.forEach { cb -> cb(r, f) }
             }
         }
     }

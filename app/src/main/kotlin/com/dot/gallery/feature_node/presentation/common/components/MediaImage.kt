@@ -172,18 +172,23 @@ fun <T : Media> MediaImage(
                     if (selectionState) {
                         onItemSelect(media)
                     } else {
-                        context.sketch.enqueue(
-                            ImageRequest(context, media.getUri().toString()) {
-                                resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
-                                setExtra("realMimeType", media.mimeType)
-                                // Match the viewer's cache key so this prefetch stays valid
-                                // and busts when the file changes (#1004).
-                                setExtra(key = "mediaVersion", value = "${media.timestamp}:${media.size}")
-                                if (media.isEncrypted) {
-                                    setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
+                        // Encrypted videos are played by the vault player, not the image
+                        // pipeline — prefetching would only pay a full decrypt for nothing
+                        // it can use (#1282).
+                        if (!(media.isEncrypted && media.isVideo)) {
+                            context.sketch.enqueue(
+                                ImageRequest(context, media.getUri().toString()) {
+                                    resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
+                                    setExtra("realMimeType", media.mimeType)
+                                    // Match the viewer's cache key so this prefetch stays valid
+                                    // and busts when the file changes (#1004).
+                                    setExtra(key = "mediaVersion", value = "${media.timestamp}:${media.size}")
+                                    if (media.isEncrypted) {
+                                        setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                         onMediaClick(media)
                     }
                 },

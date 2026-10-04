@@ -19,6 +19,7 @@ import com.dot.gallery.core.util.Query
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.and
 import com.dot.gallery.core.util.eq
+import com.dot.gallery.core.util.inValues
 import com.dot.gallery.core.util.ext.mapEachRow
 import com.dot.gallery.core.util.ext.queryFlow
 import com.dot.gallery.core.util.ext.tryGetLong
@@ -88,11 +89,19 @@ class MediaUriFlow(
             MediaStore.Files.FileColumns.MIME_TYPE eq Query.ARG
         }
 
+        // #1282: scope the scan to the requested media IDs instead of walking the whole
+        // MediaStore table and filtering in memory — the full scan could return nothing
+        // usable on large libraries, silently producing an empty add-to-vault batch.
+        val idFilter = if (onlyMatchingUris && candidateIds.isNotEmpty()) {
+            MediaStore.Files.FileColumns._ID inValues candidateIds
+        } else null
+
         // Join all the non-null queries
         val selection = listOfNotNull(
             imageOrVideo,
             albumFilter,
             mimeTypeQuery,
+            idFilter,
         ).join(Query::and)
 
         val selectionArgs = listOfNotNull(
@@ -133,6 +142,13 @@ class MediaUriFlow(
             projection,
             queryArgs,
         )
+    }
+
+    // Derive candidate media IDs from provided URIs. These may be either
+    // MediaStore content:// URIs or file:// URIs that represent encrypted
+    // vault files whose filenames follow the pattern <originalId>.enc
+    private val candidateIds: List<Long> by lazy {
+        uris.mapNotNull { uri -> parseCandidateId(uri) }.distinct()
     }
 
     override fun flowData() =
@@ -189,12 +205,7 @@ class MediaUriFlow(
                 mimeType = mimeType
             )
         }.let { flow ->
-            // Derive candidate media IDs from provided URIs. These may be either
-            // MediaStore content:// URIs or file:// URIs that represent encrypted
-            // vault files whose filenames follow the pattern <originalId>.enc
-            val ids: List<Long> = uris.mapNotNull { uri ->
-                parseCandidateId(uri)
-            }.distinct()
+            val ids = candidateIds
             if (onlyMatchingUris) {
                 flow.map { mediaList ->
                     mediaList.filter { media -> ids.contains(media.id) && !media.isTrashed }

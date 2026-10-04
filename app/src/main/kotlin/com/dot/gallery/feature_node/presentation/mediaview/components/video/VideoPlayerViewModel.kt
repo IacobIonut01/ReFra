@@ -5,6 +5,7 @@ package com.dot.gallery.feature_node.presentation.mediaview.components.video
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import androidx.core.net.toFile
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
+import com.dot.gallery.core.decryption.VaultDecryptCache
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.feature_node.domain.model.SubtitleTrack
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
@@ -97,7 +100,9 @@ class VideoPlayerViewModel @AssistedInject constructor(
 
     private val keychainHolder = KeychainHolder(appContext)
 
-    private var decryptedFile: File? = null
+    /** Borrowed canonical decrypted file — released in onCleared, never deleted directly (#1282). */
+    private var decryptedHandle: VaultDecryptCache.Handle? = null
+    private val decryptedFile: File? get() = decryptedHandle?.file
     private var initialSeekApplied = false
     private var progressJob: Job? = null
     private var loadTimeoutJob: Job? = null
@@ -256,23 +261,31 @@ class VideoPlayerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun decryptAndPrepare() {
+    private fun decryptAndPrepare(ignoreCooldown: Boolean = false) {
         viewModelScope.launch {
             _state.update { it.copy(isDecrypting = true, decryptFailed = false) }
-            decryptedFile = withContext(Dispatchers.IO) {
+            val handle = withContext(Dispatchers.IO) {
                 try {
-                    createDecryptedVideoFile(keychainHolder, media)
+                    VaultDecryptStore.acquire(
+                        keychainHolder,
+                        media.getUri().toFile(),
+                        ignoreCooldown = ignoreCooldown
+                    )
                 } catch (t: Throwable) {
                     printWarning("Decrypt failed: ${t.message}")
                     null
                 }
             }
-            if (decryptedFile == null) {
+            if (handle == null) {
                 _state.update { it.copy(isDecrypting = false, decryptFailed = true) }
                 return@launch
             }
+            // Release the previous handle before swapping — the old copy stays in the store
+            // for other consumers but is no longer pinned by the player.
+            decryptedHandle?.release()
+            decryptedHandle = handle
             _state.update { it.copy(isDecrypting = false, decryptFailed = false) }
-            setAndPrepare(Uri.fromFile(decryptedFile!!), media.mimeType)
+            setAndPrepare(Uri.fromFile(handle.file), media.mimeType)
             retrieveFrameRate(encrypted = true)
         }
     }
@@ -403,16 +416,14 @@ class VideoPlayerViewModel @AssistedInject constructor(
 
     fun retryDecryption() {
         if (!_state.value.decryptFailed) return
-        decryptAndPrepare()
+        decryptAndPrepare(ignoreCooldown = true)
     }
 
     fun retryPlayback() {
         if (!_state.value.playbackFailed) return
-        if (media.isEncrypted && decryptedFile != null) {
-            setAndPrepare(Uri.fromFile(decryptedFile!!), media.mimeType)
-        } else {
-            setAndPrepare(media.getUri(), media.mimeType)
-        }
+        decryptedFile?.let {
+            setAndPrepare(Uri.fromFile(it), media.mimeType)
+        } ?: setAndPrepare(media.getUri(), media.mimeType)
     }
 
     @UnstableApi
@@ -467,8 +478,8 @@ class VideoPlayerViewModel @AssistedInject constructor(
             }
         } catch (_: Throwable) {
         }
-        decryptedFile?.delete()
-        decryptedFile = null
+        decryptedHandle?.release()
+        decryptedHandle = null
         super.onCleared()
     }
 

@@ -9,7 +9,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
-import android.os.Build
+import com.dot.gallery.core.decryption.VaultDecryptCache
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.presentation.util.printError
 import com.dot.gallery.libs.panoramaviewer.PanoramaImageLoader
@@ -51,7 +52,7 @@ class EncryptedPanoramaImageLoader(
 ) : PanoramaImageLoader {
 
     private var decoder: BitmapRegionDecoder? = null
-    private var decryptedBytes: ByteArray? = null
+    private var decryptedHandle: VaultDecryptCache.Handle? = null
 
     override var imageWidth: Int = 0
         private set
@@ -61,22 +62,20 @@ class EncryptedPanoramaImageLoader(
     override fun initialize(): Boolean {
         PanoramaLog.d("EncryptedPanoramaImageLoader.initialize() file=${encryptedFile.name}")
 
-        // Decrypt the file to get raw image bytes
-        val bytes = try {
-            val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
-            val data = decrypted.readBytes()
-            decrypted.cleanup()
-            data
+        // Borrow the shared canonical decrypted file (#1282)
+        val handle = try {
+            VaultDecryptStore.acquire(keychainHolder, encryptedFile)
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.initialize() decryption failed", e)
             printError("decode.panorama", "vault panorama decryption failed", e)
             return false
         }
-        decryptedBytes = bytes
+        decryptedHandle = handle
+        val path = handle.file.absolutePath
 
         // Read dimensions
         val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+        BitmapFactory.decodeFile(path, opts)
         imageWidth = opts.outWidth
         imageHeight = opts.outHeight
         PanoramaLog.d("EncryptedPanoramaImageLoader.initialize() size=${imageWidth}x${imageHeight}")
@@ -89,12 +88,8 @@ class EncryptedPanoramaImageLoader(
 
         // Create region decoder
         decoder = try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                BitmapRegionDecoder.newInstance(bytes, 0, bytes.size)
-            } else {
-                @Suppress("DEPRECATION")
-                BitmapRegionDecoder.newInstance(bytes, 0, bytes.size, false)
-            }
+            @Suppress("DEPRECATION")
+            BitmapRegionDecoder.newInstance(path, false)
         } catch (e: Exception) {
             PanoramaLog.e("EncryptedPanoramaImageLoader.initialize() BitmapRegionDecoder failed", e)
             printError("decode.panorama", "vault panorama region decoder failed", e)
@@ -107,8 +102,8 @@ class EncryptedPanoramaImageLoader(
 
     override fun loadBase(maxDimension: Int): Bitmap? {
         val d = decoder ?: run {
-            // Fallback: decode full image from bytes
-            val bytes = decryptedBytes ?: return null
+            // Fallback: decode full image from the decrypted file
+            val path = decryptedHandle?.file?.absolutePath ?: return null
             var sampleSize = 1
             while (imageWidth / sampleSize > maxDimension || imageHeight / sampleSize > maxDimension) {
                 sampleSize *= 2
@@ -118,7 +113,7 @@ class EncryptedPanoramaImageLoader(
                 inPreferredConfig = Bitmap.Config.ARGB_8888
             }
             return try {
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+                BitmapFactory.decodeFile(path, opts)
             } catch (e: Exception) {
                 PanoramaLog.e("EncryptedPanoramaImageLoader.loadBase() fallback failed", e)
                 printError("decode.panorama", "vault panorama base fallback decode failed", e)
@@ -183,6 +178,7 @@ class EncryptedPanoramaImageLoader(
         PanoramaLog.d("EncryptedPanoramaImageLoader.close()")
         decoder?.recycle()
         decoder = null
-        decryptedBytes = null
+        decryptedHandle?.release()
+        decryptedHandle = null
     }
 }

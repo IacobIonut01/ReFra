@@ -6,19 +6,25 @@ import android.media.MediaMetadataRetriever
 import com.dot.gallery.core.decryption.DecryptManagerEntryPoint
 import com.dot.gallery.core.decryption.DecryptResult
 import com.dot.gallery.core.decryption.MediaMetadataCacheEntry
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.core.memory.AdaptiveDecryptConfigEntryPoint
 import com.dot.gallery.core.metrics.MetricsCollectorEntryPoint
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.dot.gallery.feature_node.presentation.util.printError
 import dagger.hilt.android.EntryPointAccessors
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Streaming representation of an encrypted media file.
  * Provides a lambda to open a fresh decrypted InputStream on demand (for Glide rewinds or retries).
+ *
+ * Large files are backed by the canonical decrypted file in [VaultDecryptStore] (shared,
+ * refcounted, budget-evicted) — callers must invoke [release] when done so the store can
+ * reclaim the entry (#1282).
  */
 data class EncryptedMediaSource(
     val file: File,
@@ -26,51 +32,45 @@ data class EncryptedMediaSource(
     val isVideo: Boolean,
     val sizeBytes: Long,
     private val smallBytes: ByteArray?,
-    /** Public so streaming decoders can reuse without re-spilling. May be null if content is small. */
+    /** Decrypted backing file (canonical, shared via VaultDecryptStore). Never delete directly. */
     val tempFile: File?,
-    private val decryptOnceRef: AtomicReference<Boolean>,
+    private val releaseAction: (() -> Unit)?,
     private val contextRef: Context
 ) {
-    /** Returns an InputStream over decrypted content (bytes array or temp file). */
+    private val released = AtomicBoolean(false)
+
+    /** Release this source's claim on shared decrypted content. Idempotent. */
+    fun release() {
+        if (released.compareAndSet(false, true)) releaseAction?.invoke()
+    }
+
+    /** Returns an InputStream over decrypted content (bytes array or canonical file). */
     fun openStream(): InputStream {
         smallBytes?.let { return it.inputStream() }
         tempFile?.let { return it.inputStream() }
-        // Fallback: decrypt on demand (should rarely happen if created correctly)
-        val result = try {
-            val ep = EntryPointAccessors.fromApplication(
-                contextRef.applicationContext,
-                DecryptManagerEntryPoint::class.java
-            )
-            ep.decryptManager().decrypt(file)
-        } catch (e: Throwable) {
-            printError("vault.decrypt", "primary decrypt failed; falling back to keychain", e)
-            val keychainHolder = KeychainHolder(contextRef)
-            val d = keychainHolder.decryptVaultMedia(file)
-            val r = DecryptResult(d.readBytes(), d.mimeType)
-            d.cleanup()
-            r
+        // Fallback: borrow the canonical decrypted file; released when the stream closes.
+        val handle = VaultDecryptStore.acquire(KeychainHolder(contextRef), file)
+        return object : FileInputStream(handle.file) {
+            override fun close() {
+                try {
+                    super.close()
+                } finally {
+                    handle.release()
+                }
+            }
         }
-        return result.bytes.inputStream()
     }
 
     /** Materialize as EncryptedMediaStream (byte array) for decoders that still require bytes. */
     fun asMediaStream(): EncryptedMediaStream {
         val bytes = smallBytes ?: tempFile?.readBytes() ?: run {
-            val result = try {
-                val ep = EntryPointAccessors.fromApplication(
-                    contextRef.applicationContext,
-                    DecryptManagerEntryPoint::class.java
-                )
-                ep.decryptManager().decrypt(file)
-            } catch (e: Throwable) {
-                printError("vault.decrypt", "primary decrypt failed; falling back to keychain", e)
-                val keychainHolder = KeychainHolder(contextRef)
-                val d = keychainHolder.decryptVaultMedia(file)
-                val r = DecryptResult(d.readBytes(), d.mimeType)
-                d.cleanup()
-                r
+            VaultDecryptStore.acquire(KeychainHolder(contextRef), file).let { handle ->
+                try {
+                    handle.file.readBytes()
+                } finally {
+                    handle.release()
+                }
             }
-            result.bytes
         }
         return EncryptedMediaStream(bytes, mimeType, isVideo)
     }
@@ -79,112 +79,150 @@ data class EncryptedMediaSource(
 private const val FALLBACK_SMALL_DECRYPT_THRESHOLD = 2 * 1024 * 1024 // 2MB fallback if adaptive not available
 
 internal fun createEncryptedMediaSource(context: Context, file: File): EncryptedMediaSource {
-    // Obtain decrypt manager via Hilt entry point if available, else fallback to direct decrypt.
+    val adaptiveThreshold = runCatching {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            AdaptiveDecryptConfigEntryPoint::class.java
+        ).adaptiveConfig().threshold()
+    }.getOrElse { FALLBACK_SMALL_DECRYPT_THRESHOLD }
+
+    // Large files: one canonical decrypted copy shared via VaultDecryptStore — refcounted,
+    // budget-evicted, reused by every consumer instead of a private copy per request (#1282).
+    if (file.length() > adaptiveThreshold) {
+        val handle = VaultDecryptStore.acquire(KeychainHolder(context), file)
+        try {
+            val mime = handle.mimeType
+            val isVideo = mime.startsWith("video")
+            writeMetadataSidecar(context, file, mime, isVideo, bytes = null, decryptedFile = handle.file)
+            return EncryptedMediaSource(
+                file = file,
+                mimeType = mime,
+                isVideo = isVideo,
+                sizeBytes = handle.file.length(),
+                smallBytes = null,
+                tempFile = handle.file,
+                releaseAction = { handle.release() },
+                contextRef = context.applicationContext
+            )
+        } catch (t: Throwable) {
+            handle.release()
+            throw t
+        }
+    }
+
+    // Small files: single in-memory decrypt, coalesced + LRU-cached by DecryptManager.
     val decryptResult = try {
-        val ep = EntryPointAccessors.fromApplication(
+        EntryPointAccessors.fromApplication(
             context.applicationContext,
             DecryptManagerEntryPoint::class.java
-        )
-        ep.decryptManager().decrypt(file)
+        ).decryptManager().decrypt(file)
     } catch (t: Throwable) {
-        val keychainHolder = KeychainHolder(context)
-        val d = keychainHolder.decryptVaultMedia(file)
-        val r = DecryptResult(d.readBytes(), d.mimeType)
-        d.cleanup()
-        r
+        val d = KeychainHolder(context).decryptVaultMedia(file)
+        try {
+            DecryptResult(d.readBytes(), d.mimeType)
+        } finally {
+            d.cleanup()
+        }
     }
     val mime = decryptResult.mimeType
     val isVideo = mime.startsWith("video")
-    val bytes = decryptResult.bytes
-    val size = bytes.size.toLong()
-    // Extract lightweight metadata (width/height and duration for video) and write to sidecar cache (best-effort)
+    writeMetadataSidecar(context, file, mime, isVideo, bytes = decryptResult.bytes, decryptedFile = null)
+    return EncryptedMediaSource(
+        file = file,
+        mimeType = mime,
+        isVideo = isVideo,
+        sizeBytes = decryptResult.bytes.size.toLong(),
+        smallBytes = decryptResult.bytes,
+        tempFile = null,
+        releaseAction = null,
+        contextRef = context.applicationContext
+    )
+}
+
+/**
+ * Best-effort width/height/duration sidecar so viewers can size vault media without decrypting.
+ * Reads from the decrypted bytes (small path) or the canonical decrypted file (large path);
+ * never writes an all-null entry — a failed extraction must not suppress future retries.
+ */
+private fun writeMetadataSidecar(
+    context: Context,
+    file: File,
+    mime: String,
+    isVideo: Boolean,
+    bytes: ByteArray?,
+    decryptedFile: File?
+) {
     runCatching {
-        val ep = EntryPointAccessors.fromApplication(
+        val sidecar = EntryPointAccessors.fromApplication(
             context.applicationContext,
             DecryptManagerEntryPoint::class.java
-        )
-        val sidecar = ep.sidecar()
+        ).sidecar()
         val metrics = runCatching {
             EntryPointAccessors.fromApplication(
                 context.applicationContext,
                 MetricsCollectorEntryPoint::class.java
             ).metrics()
         }.getOrNull()
-        val existing = sidecar.read(sidecar.keyForFile(file))
-        if (existing == null) {
-            var width: Int? = null
-            var height: Int? = null
-            var duration: Long? = null
-            if (isVideo) {
-                MediaMetadataRetriever().apply {
-                    try {
-                        // Need a file: if large we'll spill soon anyway; for now create a temp or reuse below.
-                        val tmpForMeta = if (size <= FALLBACK_SMALL_DECRYPT_THRESHOLD) {
-                            val tmp = File.createTempFile("vault_meta_vid_", ".tmp", context.cacheDir)
-                            FileOutputStream(tmp).use { it.write(bytes) }
-                            tmp
-                        } else null // For large we will create tmp below; defer reading after spill.
-                        val path = tmpForMeta?.absolutePath
-                        if (path != null) setDataSource(path)
-                        duration = extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
-                        width = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull()
-                        height = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull()
-                    } catch (e: Throwable) {
-                        printError("vault.decrypt", "encrypted metadata extract failed", e)
-                    }
-                    finally {
+        if (sidecar.read(sidecar.keyForFile(file)) != null) {
+            metrics?.incSidecarRead()
+            return@runCatching
+        }
+        var width: Int? = null
+        var height: Int? = null
+        var duration: Long? = null
+        if (isVideo) {
+            var tmpForMeta: File? = null
+            try {
+                val path = decryptedFile?.absolutePath ?: bytes?.let { b ->
+                    File.createTempFile("vault_meta_vid_", ".tmp", context.cacheDir)
+                        .also { tmp ->
+                            tmpForMeta = tmp
+                            FileOutputStream(tmp).use { it.write(b) }
+                        }.absolutePath
+                }
+                if (path != null) {
+                    MediaMetadataRetriever().apply {
                         try {
-                            release()
+                            setDataSource(path)
+                            duration = extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+                            width = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull()
+                            height = extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull()
                         } catch (e: Throwable) {
-                            printError("vault.decrypt", "encrypted metadata retriever release failed", e)
+                            printError("vault.decrypt", "encrypted metadata extract failed", e)
+                        } finally {
+                            try {
+                                release()
+                            } catch (e: Throwable) {
+                                printError("vault.decrypt", "encrypted metadata retriever release failed", e)
+                            }
                         }
                     }
                 }
-            } else {
-                // Image: parse dimensions via BitmapFactory decode bounds to avoid full decode
-                val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
-                if (opts.outWidth > 0 && opts.outHeight > 0) {
-                    width = opts.outWidth
-                    height = opts.outHeight
-                }
+            } finally {
+                tmpForMeta?.delete()
             }
-            sidecar.write(
-                MediaMetadataCacheEntry(
-                    path = file.path,
-                    mimeType = mime,
-                    width = width,
-                    height = height,
-                    durationMs = duration
-                )
-            )
-            metrics?.incSidecarWrite()
         } else {
-            metrics?.incSidecarRead()
+            // Image: parse dimensions via decode-bounds only
+            val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            when {
+                bytes != null -> BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+                decryptedFile != null -> BitmapFactory.decodeFile(decryptedFile.absolutePath, opts)
+            }
+            if (opts.outWidth > 0 && opts.outHeight > 0) {
+                width = opts.outWidth
+                height = opts.outHeight
+            }
         }
-    }
-    val adaptiveThreshold = runCatching {
-        val ep = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            AdaptiveDecryptConfigEntryPoint::class.java
+        if (width == null && height == null && duration == null) return@runCatching
+        sidecar.write(
+            MediaMetadataCacheEntry(
+                path = file.path,
+                mimeType = mime,
+                width = width,
+                height = height,
+                durationMs = duration
+            )
         )
-        ep.adaptiveConfig().threshold()
-    }.getOrElse { FALLBACK_SMALL_DECRYPT_THRESHOLD }
-    val (smallArray, tempFile) = if (size <= adaptiveThreshold) {
-        bytes to null
-    } else {
-        val tmp = File.createTempFile("vault_stream_", ".tmp", context.cacheDir)
-        FileOutputStream(tmp).use { it.write(bytes) }
-        null to tmp
+        metrics?.incSidecarWrite()
     }
-    return EncryptedMediaSource(
-        file = file,
-        mimeType = mime,
-        isVideo = isVideo,
-        sizeBytes = size,
-        smallBytes = smallArray,
-        tempFile = tempFile,
-        decryptOnceRef = AtomicReference(true),
-        contextRef = context.applicationContext
-    )
 }

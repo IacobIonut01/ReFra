@@ -15,6 +15,7 @@ import com.dot.gallery.R
 import com.dot.gallery.core.Resource
 import com.dot.gallery.feature_node.data.data_source.InternalDatabase
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.core.workers.VaultOperationWorker
 import com.dot.gallery.core.workers.enqueueVaultOperation
 import com.dot.gallery.core.workers.enqueueVaultOperationWithId
@@ -114,6 +115,14 @@ open class VaultViewModel @Inject constructor(
         AlbumState()
     )
 
+    override fun onCleared() {
+        // Free decrypted vault temps when leaving the vault (#1282) — the periodic worker
+        // covers stragglers, but there's no reason to keep plaintext alive while the user
+        // browses the plain library.
+        Thread { VaultDecryptStore.sweep(appContext) }.start()
+        super.onCleared()
+    }
+
     fun createMediaState(vault: Vault?) = repository.getEncryptedMedia(vault)
         .debounce(300)
         .mapMedia(
@@ -191,8 +200,14 @@ open class VaultViewModel @Inject constructor(
                 .first()
             when (info?.state) {
                 WorkInfo.State.SUCCEEDED -> {
+                    val succeeded = info.outputData.getInt(
+                        VaultOperationWorker.KEY_SUCCEEDED_COUNT, uris.size
+                    )
                     _userMessage.emit(
-                        appContext.getString(R.string.vault_items_encrypted, uris.size)
+                        appContext.getString(
+                            if (succeeded > 0) R.string.vault_items_encrypted else R.string.vault_encrypt_failed,
+                            if (succeeded > 0) succeeded else uris.size
+                        )
                     )
                 }
                 WorkInfo.State.FAILED -> {
@@ -243,8 +258,17 @@ open class VaultViewModel @Inject constructor(
                     if (leftovers.isNotEmpty()) {
                         _pendingDeletions.emit(leftovers)
                     }
+                    // Report the count that actually landed in the vault (#1282) — the worker
+                    // records per-item results; fall back to the requested count for older data.
+                    val succeeded = info.outputData.getInt(
+                        VaultOperationWorker.KEY_SUCCEEDED_COUNT,
+                        itemCount.coerceAtLeast(leftovers.size)
+                    )
                     _userMessage.emit(
-                        appContext.getString(R.string.vault_items_encrypted, itemCount.coerceAtLeast(leftovers.size))
+                        appContext.getString(
+                            if (succeeded > 0) R.string.vault_items_encrypted else R.string.vault_encrypt_failed,
+                            if (succeeded > 0) succeeded else itemCount
+                        )
                     )
                 }
                 WorkInfo.State.FAILED -> {

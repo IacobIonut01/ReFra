@@ -43,52 +43,61 @@ class StreamingEncryptedVideoFrameDecoder(
     ): Resource<Bitmap>? {
         GlideTrace.beginSection("StreamingEncryptedVideoFrameDecoder.decode")
         try {
+            val ownsBacking = source.tempFile == null
             val backingFile: File = source.tempFile ?: run {
                 val tmp = File.createTempFile("vault_vid_stream_", ".tmp", tempDirProvider())
-                source.openStream().use { input ->
-                    FileOutputStream(tmp).use { out ->
-                        val pool = runCatching {
-                            dagger.hilt.android.EntryPointAccessors.fromApplication(
-                                appContext,
-                                com.dot.gallery.core.memory.ByteArrayPoolEntryPoint::class.java
-                            ).pool()
-                        }.getOrNull()
-                        val buf = pool?.borrow(32 * 1024) ?: ByteArray(32 * 1024)
-                        try {
-                            while (true) {
-                                val r = input.read(buf)
-                                if (r <= 0) break
-                                out.write(buf, 0, r)
-                            }
-                            out.flush()
-                        } finally { pool?.recycle(buf) }
+                try {
+                    source.openStream().use { input ->
+                        FileOutputStream(tmp).use { out ->
+                            val pool = runCatching {
+                                dagger.hilt.android.EntryPointAccessors.fromApplication(
+                                    appContext,
+                                    com.dot.gallery.core.memory.ByteArrayPoolEntryPoint::class.java
+                                ).pool()
+                            }.getOrNull()
+                            val buf = pool?.borrow(32 * 1024) ?: ByteArray(32 * 1024)
+                            try {
+                                while (true) {
+                                    val r = input.read(buf)
+                                    if (r <= 0) break
+                                    out.write(buf, 0, r)
+                                }
+                                out.flush()
+                            } finally { pool?.recycle(buf) }
+                        }
                     }
+                } catch (t: Throwable) {
+                    tmp.delete()
+                    throw t
                 }
                 tmp
             }
-            val retriever = MediaMetadataRetriever()
-            val bmp = try {
-                retriever.setDataSource(backingFile.absolutePath)
-                val frameTimeUs = options.get(FRAME_TIME_US).takeIf { it != null && it >= 0 } ?: run {
-                    val percent = options.get(FRAME_PERCENT).takeIf { it != null && it in 0f..1f }
-                    if (percent != null) {
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                            ?.toLongOrNull()?.let { (it * 1000L * percent).toLong() }
-                    } else null
-                }
-                val frameOpt = options.get(FRAME_OPTION) ?: MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-                if (frameTimeUs != null) {
-                    retriever.getFrameAtTime(frameTimeUs, frameOpt)
-                } else {
-                    retriever.frameAtTime
-                }
+            try {
+                val retriever = MediaMetadataRetriever()
+                val bmp = try {
+                    retriever.setDataSource(backingFile.absolutePath)
+                    val frameTimeUs = options.get(FRAME_TIME_US).takeIf { it != null && it >= 0 } ?: run {
+                        val percent = options.get(FRAME_PERCENT).takeIf { it != null && it in 0f..1f }
+                        if (percent != null) {
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                ?.toLongOrNull()?.let { (it * 1000L * percent).toLong() }
+                        } else null
+                    }
+                    val frameOpt = options.get(FRAME_OPTION) ?: MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                    if (frameTimeUs != null) {
+                        retriever.getFrameAtTime(frameTimeUs, frameOpt)
+                    } else {
+                        retriever.frameAtTime
+                    }
+                } finally {
+                    retriever.release()
+                } ?: return null
+                return BitmapResource.obtain(bmp, bitmapPool)
             } finally {
-                retriever.release()
-            } ?: return null
-            // Only delete if we created the temp file ourselves (when source.tempFile was null)
-            val resource = BitmapResource.obtain(bmp, bitmapPool)
-            if (source.tempFile == null) backingFile.delete()
-            return resource
+                // Only delete if we created the temp file ourselves — source.tempFile is the
+                // shared canonical file managed by VaultDecryptStore (#1282).
+                if (ownsBacking) backingFile.delete()
+            }
         } finally {
             GlideTrace.endSection()
         }

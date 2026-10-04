@@ -124,7 +124,22 @@ class GlideModule: AppGlideModule() {
             PersistentThumbnailModelLoader.Factory(context)
         )
 
-        // New streaming model loaders (File/Uri -> EncryptedMediaSource -> InputStream) placed first.
+        // Legacy byte-array path, kept as fallback for format-specific decoders.
+        // #1282: registered BEFORE the streaming loaders — prepend order means the streaming
+        // EncryptedMediaSource loaders are checked first, so vault media no longer takes the
+        // whole-file readBytes() path (a 1.4 GB vault video OOMed the grid fetcher).
+        registry.prepend(
+            File::class.java,
+            EncryptedMediaStream::class.java,
+            EncryptedFileModelLoader.Factory(context)
+        )
+        registry.prepend(
+            Uri::class.java,
+            EncryptedMediaStream::class.java,
+            EncryptedUriModelLoader.Factory(context)
+        )
+
+        // Streaming model loaders (File/Uri -> EncryptedMediaSource -> InputStream) — checked first.
         registry.prepend(
             File::class.java,
             EncryptedMediaSource::class.java,
@@ -139,19 +154,6 @@ class GlideModule: AppGlideModule() {
             EncryptedMediaSource::class.java,
             java.io.InputStream::class.java,
             EncryptedSourceToStreamLoader.Factory()
-        )
-
-        // Legacy byte-array path (will still catch cases needing format-specific decoders).
-        // ModelLoaders: intercept both File and Uri BEFORE defaults.
-        registry.prepend(
-            File::class.java,
-            EncryptedMediaStream::class.java,
-            EncryptedFileModelLoader.Factory(context)
-        )
-        registry.prepend(
-            Uri::class.java,
-            EncryptedMediaStream::class.java,
-            EncryptedUriModelLoader.Factory(context)
         )
 
         registry.prepend(

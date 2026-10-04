@@ -78,6 +78,7 @@ class VaultOperationWorker @AssistedInject constructor(
         setForeground(createForegroundInfo(progress = 0f, operation = op))
 
         val processed = mutableListOf<Uri>()
+        var failedCount = 0
         val result = when (op) {
             OP_ENCRYPT, OP_HIDE -> {
                 val vaultJson =
@@ -90,33 +91,51 @@ class VaultOperationWorker @AssistedInject constructor(
                 if (mediaList.isEmpty()) return@withContext Result.success()
                 mediaList.forEachIndexed { index, media ->
                     if (!currentCoroutineContext().isActive || isStopped) return@withContext Result.success()
-                    repository.addMedia(vault, media)
-                    processed += media.getUri()
+                    // #1282: honor the per-item result — previously a false return still counted
+                    // as encrypted, and with deleteOriginals the original could be removed while
+                    // the vault copy never existed.
+                    val ok = try {
+                        repository.addMedia(vault, media)
+                    } catch (e: Throwable) {
+                        com.dot.gallery.feature_node.presentation.util.printError(
+                            "worker.vault-op", "encrypt failed for media ${media.id}", e
+                        )
+                        false
+                    }
+                    if (ok) processed += media.getUri() else failedCount++
                     updateProgress(completed = index + 1, total = total, operation = op)
                 }
-                Result.success()
+                if (processed.isEmpty() && failedCount > 0) Result.failure() else Result.success()
             }
 
             OP_DECRYPT -> {
                 val vaultJson =
                     inputData.getString(KEY_VAULT) ?: return@withContext Result.failure()
                 val vault = Json.decodeFromString<Vault>(vaultJson)
-                
-                val allVaultMedia = repository.getEncryptedMedia(vault).firstOrNull()?.data 
+
+                val allVaultMedia = repository.getEncryptedMedia(vault).firstOrNull()?.data
                     ?: return@withContext Result.failure()
-                
-                val mediaList = allVaultMedia.filter { media -> 
+
+                val mediaList = allVaultMedia.filter { media ->
                     mediaUris.contains(media.uri)
                 }
-                
+
                 val total = mediaList.size.coerceAtLeast(1)
                 if (mediaList.isEmpty()) return@withContext Result.success()
                 mediaList.forEachIndexed { index, media ->
                     if (!currentCoroutineContext().isActive || isStopped) return@withContext Result.success()
-                    repository.restoreMedia(vault, media)
+                    val ok = try {
+                        repository.restoreMedia(vault, media)
+                    } catch (e: Throwable) {
+                        com.dot.gallery.feature_node.presentation.util.printError(
+                            "worker.vault-op", "restore failed for media ${media.id}", e
+                        )
+                        false
+                    }
+                    if (ok) processed += media.getUri() else failedCount++
                     updateProgress(completed = index + 1, total = total, operation = op)
                 }
-                Result.success()
+                if (processed.isEmpty() && failedCount > 0) Result.failure() else Result.success()
             }
 
             OP_MIGRATE -> {
@@ -132,7 +151,17 @@ class VaultOperationWorker @AssistedInject constructor(
             // Provide processed URI list as JSON in output so caller can trigger permission flow exactly once.
             return@withContext Result.success(
                 workDataOf(
-                    KEY_LEFTOVER_URIS to Json.encodeToString(processed.map { it.toString() })
+                    KEY_LEFTOVER_URIS to Json.encodeToString(processed.map { it.toString() }),
+                    KEY_SUCCEEDED_COUNT to processed.size,
+                    KEY_FAILED_COUNT to failedCount
+                )
+            )
+        }
+        if (result == Result.success()) {
+            return@withContext Result.success(
+                workDataOf(
+                    KEY_SUCCEEDED_COUNT to processed.size,
+                    KEY_FAILED_COUNT to failedCount
                 )
             )
         }
@@ -209,6 +238,8 @@ class VaultOperationWorker @AssistedInject constructor(
         const val KEY_PROGRESS = "progress"
         const val KEY_DELETE_ORIGINALS = "deleteOriginals"
         const val KEY_LEFTOVER_URIS = "leftoverUris"
+        const val KEY_SUCCEEDED_COUNT = "succeededCount"
+        const val KEY_FAILED_COUNT = "failedCount"
         const val OP_ENCRYPT = "encrypt"
         const val OP_DECRYPT = "decrypt"
         const val OP_HIDE = "hide"

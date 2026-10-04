@@ -8,6 +8,7 @@ sealed interface Node {
         is Or -> "(${lhs.build()}) OR (${rhs.build()})"
         is And -> "(${lhs.build()}) AND (${rhs.build()})"
         is Like -> "${lhs.build()} LIKE ${rhs.build()}"
+        is In -> "${lhs.build()} IN ${rhs.build()}"
         is Literal<*> -> "$`val`"
     }
 }
@@ -16,6 +17,7 @@ private class Eq(val lhs: Node, val rhs: Node) : Node
 private class Or(val lhs: Node, val rhs: Node) : Node
 private class And(val lhs: Node, val rhs: Node) : Node
 private class Like(val lhs: Node, val rhs: Node) : Node
+private class In(val lhs: Node, val rhs: Node) : Node
 private class Literal<T>(val `val`: T) : Node
 
 class Query(val root: Node) {
@@ -38,6 +40,14 @@ infix fun <T> Column.eq(other: T) = Query(Literal(this)) eq Query(Literal(other)
  */
 infix fun Column.like(pattern: String) =
     Query(Like(Literal(this), Literal("'$pattern'")))
+
+/**
+ * Builds a `column IN (<v1>,<v2>,…)` clause. Values are emitted as inline literals (not bound
+ * `?` arguments — query-bundle APIs cap argument count), so only numeric types are accepted;
+ * they cannot carry SQL injection.
+ */
+infix fun Column.inValues(values: Collection<Long>) =
+    Query(In(Literal(this), Literal(values.joinToString(",", "(", ")"))))
 
 fun Iterable<Query>.join(
     func: Query.(other: Query) -> Query,

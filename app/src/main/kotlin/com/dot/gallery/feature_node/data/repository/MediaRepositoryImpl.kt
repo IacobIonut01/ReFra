@@ -1173,8 +1173,14 @@ class MediaRepositoryImpl(
                 keychainHolder.checkVaultFolder(vault)
                 // Skip duplicate: if this media ID already exists in this vault, treat as success
                 if (database.getVaultDao().mediaExistsInVault(vault.uuid, media.id)) {
-                    printInfo("Skipping duplicate: ${media.label} already in vault ${vault.name}")
-                    return@withContext true
+                    if (vault.mediaFile(media.id).exists()) {
+                        printInfo("Skipping duplicate: ${media.label} already in vault ${vault.name}")
+                        return@withContext true
+                    }
+                    // Stale row: DB says it's vaulted but the .enc file is gone (#1282). Drop
+                    // the row and fall through so the media actually gets encrypted.
+                    printWarning("Vault row for ${media.id} has no backing file; re-encrypting")
+                    database.getVaultDao().deleteMediaFromVault(vault.uuid, media.id)
                 }
                 val output = vault.mediaFile(media.id).apply { if (exists()) delete() }
                 // Ensure vault uses portable format for streaming encryption

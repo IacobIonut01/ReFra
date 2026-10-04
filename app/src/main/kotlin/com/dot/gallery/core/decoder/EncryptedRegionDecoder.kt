@@ -4,8 +4,9 @@ import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import androidx.core.net.toFile
+import com.dot.gallery.core.decryption.VaultDecryptCache
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.github.panpf.zoomimage.subsampling.BitmapTileImage
 import com.github.panpf.zoomimage.subsampling.ContentImageSource
@@ -24,6 +25,7 @@ class EncryptedRegionDecoder(
 ) : RegionDecoder {
 
     private var bitmapRegionDecoder: BitmapRegionDecoder? = null
+    private var decryptHandle: VaultDecryptCache.Handle? = null
 
     private val exifOrientationHelper: ExifOrientationHelper by lazy {
         val exifOrientation = imageSource.readEncryptedExifOrientation(keychainHolder)
@@ -36,6 +38,9 @@ class EncryptedRegionDecoder(
 
     override fun close() {
         bitmapRegionDecoder?.recycle()
+        bitmapRegionDecoder = null
+        decryptHandle?.release()
+        decryptHandle = null
     }
 
     override fun copy(): RegionDecoder {
@@ -62,24 +67,21 @@ class EncryptedRegionDecoder(
     override fun prepare() {
         if (bitmapRegionDecoder != null) return
 
-        val decrypted = keychainHolder.decryptVaultMedia(
+        // Decode regions straight from the shared canonical decrypted file (#1282).
+        val handle = VaultDecryptStore.acquire(
+            keychainHolder,
             (imageSource as ContentImageSource).uri.toFile()
         )
-        val bytes = decrypted.readBytes()
-        decrypted.cleanup()
-
         bitmapRegionDecoder = kotlin.runCatching {
-            if (VERSION.SDK_INT >= VERSION_CODES.S) {
-                BitmapRegionDecoder.newInstance(bytes, 0, bytes.size)
-            } else {
-                @Suppress("DEPRECATION")
-                BitmapRegionDecoder.newInstance(bytes, 0, bytes.size, false)
-            }
+            @Suppress("DEPRECATION")
+            BitmapRegionDecoder.newInstance(handle.file.absolutePath, false)
         }.apply {
             if (isFailure) {
+                handle.release()
                 throw exceptionOrNull()!!
             }
         }.getOrThrow()
+        decryptHandle = handle
     }
 
     override fun equals(other: Any?): Boolean {

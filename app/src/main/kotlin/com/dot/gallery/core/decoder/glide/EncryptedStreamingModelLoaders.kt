@@ -94,12 +94,15 @@ private class EncryptedSourceFetcher(
             val src = createEncryptedMediaSource(context, file)
             data = src
             callback.onDataReady(src)
-        } catch (e: Exception) {
-            callback.onLoadFailed(e)
+        } catch (t: Throwable) {
+            callback.onLoadFailed(t as? Exception ?: RuntimeException(t))
         }
     }
 
-    override fun cleanup() { data = null }
+    override fun cleanup() {
+        data?.release()
+        data = null
+    }
     override fun cancel() { cancelled = true }
     override fun getDataClass(): Class<EncryptedMediaSource> = EncryptedMediaSource::class.java
     override fun getDataSource(): DataSource = DataSource.LOCAL

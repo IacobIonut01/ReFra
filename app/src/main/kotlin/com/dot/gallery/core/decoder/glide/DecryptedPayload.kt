@@ -1,6 +1,7 @@
 package com.dot.gallery.core.decoder.glide
 
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import java.io.File
 
@@ -41,8 +42,10 @@ fun isEncryptedVaultPath(file: File): Boolean =
  * file.decryptKotlin<EncryptedMedia>() from your project (not shown here).
  */
 fun decryptMediaFile(file: File, keychainHolder: KeychainHolder): DecryptedPayload {
-    val decrypted = keychainHolder.decryptVaultMedia(file)
-    val payload = DecryptedPayload(bytes = decrypted.readBytes(), mimeType = decrypted.mimeType)
-    decrypted.cleanup()
-    return payload
+    val handle = VaultDecryptStore.acquire(keychainHolder, file)
+    return try {
+        DecryptedPayload(bytes = handle.file.readBytes(), mimeType = handle.mimeType)
+    } finally {
+        handle.release()
+    }
 }

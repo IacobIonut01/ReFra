@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi
 import com.awxkee.jxlcoder.JxlAnimatedImage
 import com.awxkee.jxlcoder.JxlCoder
 import com.dot.gallery.BuildConfig
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.github.panpf.sketch.asImage
 import com.github.panpf.sketch.decode.DecodeConfig
@@ -70,9 +71,12 @@ class EncryptedRawImageDecoder(
     private fun getDecryptedBytes(): ByteArray {
         if (cachedBytes == null) {
             val encryptedFile = dataSource.getFile()
-            val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
-            cachedBytes = decrypted.readBytes()
-            decrypted.cleanup()
+            val handle = VaultDecryptStore.acquire(keychainHolder, encryptedFile)
+            cachedBytes = try {
+                handle.file.readBytes()
+            } finally {
+                handle.release()
+            }
         }
         return cachedBytes!!
     }

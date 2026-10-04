@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.media.MediaMetadataRetriever
 import android.media.MediaMetadataRetriever.BitmapParams
 import androidx.exifinterface.media.ExifInterface
+import com.dot.gallery.core.decryption.VaultDecryptCache
+import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.feature_node.data.data_source.KeychainHolder
 import com.github.panpf.sketch.Image
 import com.github.panpf.sketch.Sketch
@@ -31,7 +33,6 @@ import com.github.panpf.sketch.util.Rect
 import com.github.panpf.sketch.util.Size
 import com.github.panpf.sketch.util.div
 import java.io.File
-import java.io.FileOutputStream
 
 class EncryptedVideoFrameDecoder(
     private val requestContext: RequestContext,
@@ -101,11 +102,22 @@ private class EncryptedVideoFrameDecodeHelper(
     override suspend fun isSupportRegion(): Boolean = false
 
     private val keychainHolder = KeychainHolder(request.context)
-    private val tempFile by lazy {
-        dataSource.getFileOrNull(sketch)?.toFile()?.let { createDecryptedVideoFile(it) }
-    }
-    private val mediaMetadataRetriever by lazy {
-        MediaMetadataRetriever().apply {
+
+    // Not lazy-backed properties: close() must not trigger a decrypt on an unused helper (#1282).
+    private var decryptedHandle: VaultDecryptCache.Handle? = null
+    private var decryptedFileResolved = false
+    private val tempFile: File?
+        get() {
+            if (!decryptedFileResolved) {
+                decryptedFileResolved = true
+                decryptedHandle = dataSource.getFileOrNull(sketch)?.toFile()
+                    ?.let { VaultDecryptStore.acquire(keychainHolder, it) }
+            }
+            return decryptedHandle?.file
+        }
+    private var _mediaMetadataRetriever: MediaMetadataRetriever? = null
+    private val mediaMetadataRetriever: MediaMetadataRetriever
+        get() = _mediaMetadataRetriever ?: MediaMetadataRetriever().apply {
             if (dataSource is ContentDataSource) {
                 setDataSource(request.context, dataSource.contentUri)
             } else {
@@ -113,26 +125,9 @@ private class EncryptedVideoFrameDecodeHelper(
                     setDataSource(it.path)
                 } ?: throw Exception("Unsupported DataSource: ${dataSource::class}")
             }
-        }
-    }
+        }.also { _mediaMetadataRetriever = it }
     private val exifOrientation: Int by lazy { readExifOrientation() }
     private val exifOrientationHelper by lazy { ExifOrientationHelper(exifOrientation) }
-
-    private fun createDecryptedVideoFile(file: File): File {
-        // Create a temporary file
-        val tempFile = File.createTempFile("${file.name}.temp", null)
-        val decrypted = keychainHolder.decryptVaultMedia(file)
-
-        // Write decrypted content to the temporary file (streaming for large files)
-        decrypted.openStream().use { input ->
-            FileOutputStream(tempFile).use { output ->
-                input.copyTo(output)
-            }
-        }
-        decrypted.cleanup()
-
-        return tempFile
-    }
 
     override suspend fun decode(sampleSize: Int): Image {
         val frameMicros = request.videoFrameMicros
@@ -212,7 +207,9 @@ private class EncryptedVideoFrameDecodeHelper(
     }
 
     override fun close() {
-        mediaMetadataRetriever.close()
-        tempFile?.delete()
+        _mediaMetadataRetriever?.let { runCatching { it.close() } }
+        _mediaMetadataRetriever = null
+        decryptedHandle?.release()
+        decryptedHandle = null
     }
 }
