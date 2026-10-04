@@ -1,0 +1,33 @@
+What's new in 5.2.2:
+
+• Editable Library sections — long-press a section to hide or show it
+• Hidden people stay reachable, and people can be deleted for good
+• Photo widgets: black & white and icon/emoji styles
+• Tapping a widget opens that photo in the viewer
+• HDR video playback: Dolby Vision, HDR10 and HLG
+• Choose device / cloud / both when deleting backed-up items
+• Optional "Sync when app opens" for cloud accounts
+• Manage Immich albums remotely: rename, share, delete, members
+• Hidden developer menu with anonymized session logs
+
+Improvements:
+
+• Cloud media sorts by capture date (WebDAV, Nextcloud, SMB, NFS…)
+• Heavy-format thumbnails (JXL, RAW, HEIF…) cached persistently
+• Viewer animations fully honor "Animate media items"
+• Frosted bars no longer render transparent on empty screens
+
+Bug fixes:
+
+• Vault no longer leaks gigabytes of decrypted temp files
+• Trash works on mixed local + cloud selections
+• Preset crop ratios no longer leave Save Copy disabled
+• Video details recovered on Android 12
+• Redacted GPS no longer shows a bogus 0.000, 0.000 location
+• Trash/delete/favorite fixed on GrapheneOS & Android 17
+• Immich downloads land in proper folders, no more store tree
+• Immich v3 albums and shared albums open fully populated
+• Deleting an album cover photo falls back to the newest media
+• Person merges commit; rescans keep people names
+• Shortcut editing stays reachable when all tiles are hidden
+• 12-bit AVIF/HEIF files render correctly via software decode

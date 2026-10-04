@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Draw
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.Edit
@@ -47,6 +48,7 @@ import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.VideoSettings
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material.icons.outlined.ZoomIn
 import com.dot.gallery.R
 import com.dot.gallery.feature_node.presentation.util.Screen
@@ -222,7 +224,7 @@ object HelpRepository {
             pages = listOf(TutorialPage(title = R.string.help_tip_personalize_blur_p1_title, description = R.string.help_tip_personalize_blur_p1_desc, steps = listOf(R.string.help_tip_personalize_blur_p1_s1, R.string.help_tip_personalize_blur_p1_s2, R.string.help_tip_personalize_blur_p1_s3))), sinceVersion = "4.0.0"),
         HelpTip(id = "personalize_shared_elements", title = R.string.help_tip_personalize_shared_elements_title, subtitle = R.string.help_tip_personalize_shared_elements_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Palette), category = HelpCategory.GET_STARTED_PERSONALIZATION,
-            deepLink = Screen.SettingsAppearanceScreen(),
+            deepLink = Screen.ColorPaletteScreen(),
             pages = listOf(TutorialPage(title = R.string.help_tip_personalize_shared_elements_p1_title, description = R.string.help_tip_personalize_shared_elements_p1_desc, steps = listOf(R.string.help_tip_personalize_shared_elements_p1_s1, R.string.help_tip_personalize_shared_elements_p1_s2, R.string.help_tip_personalize_shared_elements_p1_s3))), sinceVersion = "4.0.0"),
         HelpTip(id = "personalize_app_name", title = R.string.help_tip_personalize_app_name_title, subtitle = R.string.help_tip_personalize_app_name_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Palette), category = HelpCategory.GET_STARTED_PERSONALIZATION,
@@ -233,7 +235,12 @@ object HelpRepository {
             deepLink = Screen.SettingsGeneralScreen(),
             pages = listOf(
                 TutorialPage(title = R.string.help_tip_personalize_app_logo_p1_title, description = R.string.help_tip_personalize_app_logo_p1_desc, steps = listOf(R.string.help_tip_personalize_app_logo_p1_s1, R.string.help_tip_personalize_app_logo_p1_s2, R.string.help_tip_personalize_app_logo_p1_s3, R.string.help_tip_personalize_app_logo_p1_s4), previewType = PreviewType.THEME_PICKER)
-            ), sinceVersion = "5.2.1")
+            ), sinceVersion = "5.2.1"),
+        HelpTip(id = "widget_styles", title = R.string.help_tip_widget_styles_title, subtitle = R.string.help_tip_widget_styles_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.Widgets), category = HelpCategory.GET_STARTED_PERSONALIZATION,
+            pages = listOf(
+                TutorialPage(title = R.string.help_tip_widget_styles_p1_title, description = R.string.help_tip_widget_styles_p1_desc, steps = listOf(R.string.help_tip_widget_styles_p1_s1, R.string.help_tip_widget_styles_p1_s2, R.string.help_tip_widget_styles_p1_s3, R.string.help_tip_widget_styles_p1_s4))
+            ), sinceVersion = "5.2.2")
     )
     // endregion
 
@@ -315,7 +322,13 @@ object HelpRepository {
             deepLink = Screen.SettingsTimelineAlbumsScreen(),
             pages = listOf(
                 TutorialPage(title = R.string.help_tip_media_type_albums_p1_title, description = R.string.help_tip_media_type_albums_p1_desc, steps = listOf(R.string.help_tip_media_type_albums_p1_s1, R.string.help_tip_media_type_albums_p1_s2, R.string.help_tip_media_type_albums_p1_s3), previewType = PreviewType.ALBUM_GRID)
-            ), sinceVersion = "5.1.0")
+            ), sinceVersion = "5.1.0"),
+        HelpTip(id = "library_sections_edit", title = R.string.help_tip_library_sections_edit_title, subtitle = R.string.help_tip_library_sections_edit_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.Tune), category = HelpCategory.TIMELINE_ALBUMS,
+            deepLink = Screen.LibraryScreen(),
+            pages = listOf(
+                TutorialPage(title = R.string.help_tip_library_sections_edit_p1_title, description = R.string.help_tip_library_sections_edit_p1_desc, steps = listOf(R.string.help_tip_library_sections_edit_p1_s1, R.string.help_tip_library_sections_edit_p1_s2, R.string.help_tip_library_sections_edit_p1_s3, R.string.help_tip_library_sections_edit_p1_s4))
+            ), sinceVersion = "5.2.2")
     )
     // endregion
 
@@ -395,7 +408,13 @@ object HelpRepository {
             deepLink = Screen.SlideshowSettingsScreen(),
             pages = listOf(
                 TutorialPage(title = R.string.help_tip_slideshow_play_p1_title, description = R.string.help_tip_slideshow_play_p1_desc, steps = listOf(R.string.help_tip_slideshow_play_p1_s1, R.string.help_tip_slideshow_play_p1_s2, R.string.help_tip_slideshow_play_p1_s3), previewType = PreviewType.SLIDESHOW)
-            ), sinceVersion = "5.1.0")
+            ), sinceVersion = "5.1.0"),
+        HelpTip(id = "view_hdr_video", title = R.string.help_tip_view_hdr_video_title, subtitle = R.string.help_tip_view_hdr_video_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.Movie), category = HelpCategory.VIEWING,
+            deepLink = Screen.SettingsMediaViewerScreen(),
+            pages = listOf(
+                TutorialPage(title = R.string.help_tip_view_hdr_video_p1_title, description = R.string.help_tip_view_hdr_video_p1_desc, steps = listOf(R.string.help_tip_view_hdr_video_p1_s1, R.string.help_tip_view_hdr_video_p1_s2, R.string.help_tip_view_hdr_video_p1_s3, R.string.help_tip_view_hdr_video_p1_s4), previewType = PreviewType.VIDEO_CONTROLS)
+            ), sinceVersion = "5.2.2")
     )
     // endregion
 
@@ -636,7 +655,13 @@ object HelpRepository {
             deepLink = Screen.PeopleListScreen(),
             pages = listOf(
                 TutorialPage(title = R.string.help_tip_people_fix_faces_p1_title, description = R.string.help_tip_people_fix_faces_p1_desc, steps = listOf(R.string.help_tip_people_fix_faces_p1_s1, R.string.help_tip_people_fix_faces_p1_s2, R.string.help_tip_people_fix_faces_p1_s3, R.string.help_tip_people_fix_faces_p1_s4), previewType = PreviewType.AI_CATEGORIES)
-            ), sinceVersion = "5.2.0")
+            ), sinceVersion = "5.2.0"),
+        HelpTip(id = "people_manage", title = R.string.help_tip_people_manage_title, subtitle = R.string.help_tip_people_manage_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.Face), category = HelpCategory.AI_FEATURES,
+            deepLink = Screen.PeopleListScreen(),
+            pages = listOf(
+                TutorialPage(title = R.string.help_tip_people_manage_p1_title, description = R.string.help_tip_people_manage_p1_desc, steps = listOf(R.string.help_tip_people_manage_p1_s1, R.string.help_tip_people_manage_p1_s2, R.string.help_tip_people_manage_p1_s3, R.string.help_tip_people_manage_p1_s4), previewType = PreviewType.AI_CATEGORIES)
+            ), sinceVersion = "5.2.2")
     )
     // endregion
 
@@ -822,7 +847,19 @@ object HelpRepository {
             deepLink = Screen.FreeUpSpaceScreen(),
             pages = listOf(
                 TutorialPage(title = R.string.help_tip_cloud_free_up_space_auto_p1_title, description = R.string.help_tip_cloud_free_up_space_auto_p1_desc, steps = listOf(R.string.help_tip_cloud_free_up_space_auto_p1_s1, R.string.help_tip_cloud_free_up_space_auto_p1_s2, R.string.help_tip_cloud_free_up_space_auto_p1_s3, R.string.help_tip_cloud_free_up_space_auto_p1_s4))
-            ), sinceVersion = "5.2.1")
+            ), sinceVersion = "5.2.1"),
+        HelpTip(id = "cloud_delete_scope", title = R.string.help_tip_cloud_delete_scope_title, subtitle = R.string.help_tip_cloud_delete_scope_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.Delete), category = HelpCategory.CLOUD_SYNC,
+            deepLink = Screen.SettingsGeneralScreen(),
+            pages = listOf(
+                TutorialPage(title = R.string.help_tip_cloud_delete_scope_p1_title, description = R.string.help_tip_cloud_delete_scope_p1_desc, steps = listOf(R.string.help_tip_cloud_delete_scope_p1_s1, R.string.help_tip_cloud_delete_scope_p1_s2, R.string.help_tip_cloud_delete_scope_p1_s3, R.string.help_tip_cloud_delete_scope_p1_s4))
+            ), sinceVersion = "5.2.2"),
+        HelpTip(id = "cloud_albums_manage", title = R.string.help_tip_cloud_albums_manage_title, subtitle = R.string.help_tip_cloud_albums_manage_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.Cloud), category = HelpCategory.CLOUD_SYNC,
+            deepLink = Screen.AlbumsScreen(),
+            pages = listOf(
+                TutorialPage(title = R.string.help_tip_cloud_albums_manage_p1_title, description = R.string.help_tip_cloud_albums_manage_p1_desc, steps = listOf(R.string.help_tip_cloud_albums_manage_p1_s1, R.string.help_tip_cloud_albums_manage_p1_s2, R.string.help_tip_cloud_albums_manage_p1_s3, R.string.help_tip_cloud_albums_manage_p1_s4), previewType = PreviewType.ALBUM_GRID)
+            ), sinceVersion = "5.2.2")
     )
     // endregion
 
@@ -1081,7 +1118,13 @@ object HelpRepository {
             deepLink = Screen.SettingsScreen(),
             pages = listOf(
                 TutorialPage(title = R.string.help_tip_accessibility_remote_settings_p1_title, description = R.string.help_tip_accessibility_remote_settings_p1_desc, steps = listOf(R.string.help_tip_accessibility_remote_settings_p1_s1, R.string.help_tip_accessibility_remote_settings_p1_s2, R.string.help_tip_accessibility_remote_settings_p1_s3, R.string.help_tip_accessibility_remote_settings_p1_s4), previewType = PreviewType.SETTINGS_GENERAL)
-            ), sinceVersion = "5.1.1")
+            ), sinceVersion = "5.1.1"),
+        HelpTip(id = "advanced_developer", title = R.string.help_tip_advanced_developer_title, subtitle = R.string.help_tip_advanced_developer_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.BugReport), category = HelpCategory.ACCESSIBILITY,
+            deepLink = Screen.DeveloperScreen(),
+            pages = listOf(
+                TutorialPage(title = R.string.help_tip_advanced_developer_p1_title, description = R.string.help_tip_advanced_developer_p1_desc, steps = listOf(R.string.help_tip_advanced_developer_p1_s1, R.string.help_tip_advanced_developer_p1_s2, R.string.help_tip_advanced_developer_p1_s3, R.string.help_tip_advanced_developer_p1_s4), previewType = PreviewType.SETTINGS_GENERAL)
+            ), sinceVersion = "5.2.2")
     )
     // endregion
 
