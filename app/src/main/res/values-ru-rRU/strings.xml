@@ -1143,7 +1143,7 @@
     <string name="editor_lighting">Освещение</string>
     <string name="editor_colour">Цвет</string>
     <string name="editor_effects">Эффекты</string>
-    <string name="editor_smart">Умно</string>
+    <string name="editor_smart">ИИ</string>
     <string name="editor_more">Еще</string>
     <string name="editor_done">Готово</string>
     <string name="editor_save_subtitle">Вы всегда можете отменить эти изменения</string>
