@@ -15,7 +15,7 @@
     <string name="fav_position_bottom_start">Vlevo dole</string>
     <string name="fav_position_top_end">Vpravo nahoře</string>
     <string name="fav_position_top_start">Vlevo nahoře</string>
-    <string name="show_favorite_button">Tlačítko oblíbených v prohlížeči</string>
+    <string name="show_favorite_button">Tlačítko pro oblíbení v prohlížeči</string>
     <string name="show_favorite_button_summary">Zobrazit tlačítko pro označení oblíbených v prohlížeči médií</string>
     <string name="default_image_editor">Výchozí editor obrázků</string>
     <string name="default_image_editor_builtin">Výchozí editor</string>
