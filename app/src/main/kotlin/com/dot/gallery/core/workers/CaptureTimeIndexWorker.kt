@@ -18,6 +18,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.cloud.core.ProviderRegistry
+import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.resolveRemote
 import com.dot.gallery.cloud.data.entity.CloudMediaEntity
 import com.dot.gallery.cloud.offline.OfflineModeManager
@@ -229,9 +230,13 @@ class CaptureTimeIndexWorker @AssistedInject constructor(
         val isImage = media.mimeType.startsWith("image/")
         if (!isImage && !isVideo) return media.fallbackCaptureTime()
 
-        // A provider-reported capture time (Immich localDateTime, WebDAV
-        // creationdate) is already embedded-derived upstream — nothing to fetch.
-        if (entity.takenTimestamp != null) return media.fallbackCaptureTime()
+        // Immich supplies the photo's capture time through localDateTime, so reuse it.
+        // WebDAV creationdate can instead be the upload date, even though it is also
+        // stored in takenTimestamp. Continue parsing embedded metadata for those
+        // items so it can override the server date; keep that creationdate as the fallback.
+        if (entity.providerType == ProviderType.IMMICH && entity.takenTimestamp != null) {
+            return media.fallbackCaptureTime()
+        }
 
         // A synced/uploaded local copy is free to open and needs no network, and
         // carries the same bytes as the remote — a definitive parse result here
