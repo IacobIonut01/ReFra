@@ -94,9 +94,9 @@
     <string name="carto_basemap_key_field">Klíč API</string>
     <string name="carto_basemap_key_configured">Nastaven</string>
     <string name="carto_basemap_key_not_configured">Nenastaven</string>
-    <string name="map_cluster_title">Fotografie v této lokalitě</string>
-    <string name="map_cluster_count">Fotografie %1$d</string>
-    <string name="map_marker_photo">Foto na mapě</string>
+    <string name="map_cluster_title">Fotografie z tohoto místa</string>
+    <string name="map_cluster_count">%1$d fotografií</string>
+    <string name="map_marker_photo">Fotografie na mapě</string>
     <string name="app_dev">od %s</string>
     <string name="app_dev_name">IacobIonut01</string>
     <string name="donate">Přispět</string>
@@ -163,7 +163,7 @@
     <string name="amoled_mode_requires_dark">K dispozici pouze tehdy, když aplikace používá tmavý režim</string>
     <string name="use_system_font_title">Použít systémový font</string>
     <string name="use_system_font_summary">Použít systémový font namísto integrovaného</string>
-    <string name="use_system_font_description">Po zapnutí bude aplikace používat systémové písmo vašeho zařízení namísto integrovaného písma Google Sans. To může zlepšit čitelnost, pokud používáte vlastní systémový písmo.</string>
+    <string name="use_system_font_description">Po zapnutí bude aplikace používat systémové písmo vašeho zařízení namísto integrovaného písma Google Sans. To může zlepšit čitelnost, pokud používáte vlastní systémové písmo.</string>
     <string name="color_palette_preview_description">Ikony, text a další prvky se barevně přizpůsobí vaší tapetě</string>
     <string name="color_palette_wallpaper_colors">Barvy tapety</string>
     <string name="color_palette_other_colors">Ostatní barvy</string>
