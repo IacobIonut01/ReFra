@@ -7,8 +7,8 @@
     <string name="smart_scan_notification_stage_progress">%1$s · %2$d z %3$d · %4$d %% celkově</string>
     <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d z %3$d · %4$d%% celkově · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Příprava</string>
-    <string name="change_app_name">Jméno aplikace</string>
-    <string name="change_app_name_summary">Změňte jméno aplikace ve spouštěči</string>
+    <string name="change_app_name">Název aplikace</string>
+    <string name="change_app_name_summary">Změňte název aplikace zobrazený ve spouštěči</string>
     <string name="favorite_icon_on_thumbnails">Ikona oblíbených na miniaturách</string>
     <string name="fav_position_disabled">Skryté</string>
     <string name="fav_position_bottom_end">Vpravo dole</string>
