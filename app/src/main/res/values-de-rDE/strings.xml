@@ -83,7 +83,7 @@
     <string name="no_map_app">Keine App zum Anzeigen des Standorts verfügbar</string>
     <string name="map_appearance_header">Karte</string>
     <string name="map_appearance_title">Kartendarstellung</string>
-    <string name="map_appearance_description">Wählen Sie, ob Karten dem Aussehen von ReFra folgen oder immer helle oder dunkle Kartenfarben verwenden.</string>
+    <string name="map_appearance_description">Wähle, ob Karten dem Aussehen von ReFra folgen oder immer helle oder dunkle Kartenfarben verwenden.</string>
     <string name="map_appearance_system">App-Aussehen folgen</string>
     <string name="map_appearance_light">Hell</string>
     <string name="map_appearance_dark">Dunkel</string>
@@ -237,8 +237,8 @@
     <string name="fancy_blur_summary">Unschärfe-Effekt für den Hintergrund in der Medienansicht verwenden</string>
     <string name="fancy_blur_requires_android_12">Erfordert Android 12 oder höher</string>
     <string name="liquid_glass">Liquid Glass</string>
-    <string name="liquid_glass_summary">Refracting glass style for bars and sheets</string>
-    <string name="liquid_glass_requires_blur">Requires Fancy Blur to be enabled</string>
+    <string name="liquid_glass_summary">Lichtbrechungseffekt auf Balken und Flächen</string>
+    <string name="liquid_glass_requires_blur">Unschärfe-Effekt muss aktiviert sein</string>
     <string name="auto_contrast">Auto-Kontrast (Beta)</string>
     <string name="auto_contrast_summary">Den Kontrast der Knöpfe an die Bildhelligkeit anpassen</string>
     <string name="auto_contrast_description">Analysiert fortlaufend den Bildschirm, um die Bildhelligkeit zu erkennen und passt die Farben der Bedienoberfläche in der Medienansicht entsprechend an. Über dunklen Bereichen erscheinen Schaltflächen und Symbole in Weiß mit einem dunklen Hintergrund. Über hellen Bereichen wechseln sie zu Schwarz mit einem hellen Hintergrund. Funktioniert sowohl bei hellem als auch bei dunklem Design. Auch die Symbole der Statusleiste passen sich der Bildhelligkeit dahinter an. Die Aktualisierung erfolgt in Echtzeit, während du vergrößerst, den Ausschnitt verschiebst oder zwischen den Medien wechselst.</string>
@@ -285,7 +285,7 @@
     <string name="override">Überschreiben</string>
     <string name="save_copy">Kopie speichern</string>
     <string name="edit_override_permission_denied">Zugriff verweigert. Vollständigen Medienzugriff gewähren, um das Original zu überschreiben, oder stattdessen eine Kopie speichern.</string>
-    <string name="edit_override_failed">Das Original konnte nicht überschrieben werden. Versuchen Sie stattdessen, eine Kopie zu speichern.</string>
+    <string name="edit_override_failed">Das Original konnte nicht überschrieben werden. Versuche stattdessen, eine Kopie zu speichern.</string>
     <string name="edit_save_copy_failed">Die bearbeitete Kopie konnte nicht gespeichert werden.</string>
     <string name="editor_unsaved_title">Änderungen verwerfen?</string>
     <string name="editor_unsaved_message">Speichere vor dem Verlassen eine Kopie oder verwirf deine nicht gespeicherten Änderungen.</string>
@@ -334,8 +334,8 @@
     <string name="raw_export_tiff8">TIFF (8-Bit)</string>
     <string name="raw_export_tiff16">TIFF (16-Bit)</string>
     <string name="raw_export_choose_format">Bearbeitete Kopie speichern</string>
-    <string name="raw_export_choose_format_subtitle">Wählen Sie ein Format für Ihr entwickeltes RAW</string>
-    <string name="raw_export_tiff_unavailable">TIFF behält die volle Bit-Tiefe bei, kann jedoch keinen Zuschnitt, Filter oder Markierungen enthalten – entfernen Sie diese, um TIFF zu exportieren.</string>
+    <string name="raw_export_choose_format_subtitle">Wähle ein Format für dein entwickeltes RAW</string>
+    <string name="raw_export_tiff_unavailable">TIFF behält die volle Bit-Tiefe bei, kann jedoch keinen Zuschnitt, Filter oder Markierungen enthalten – entferne diese, um TIFF zu exportieren.</string>
     <string name="raw_export_in_progress">Exportieren…</string>
     <string name="raw_export_success">Entwickelte Kopie gespeichert</string>
     <string name="raw_export_failed">Export fehlgeschlagen</string>
@@ -371,7 +371,7 @@
     <string name="edit_backups_storage">Benutzter Speicherplatz</string>
     <string name="edit_backups_storage_summary">%1$s verwendet von %2$d Sicherung(en)</string>
     <string name="edit_backups_no_backups">Keine Sicherungskopien der bearbeiteten Dateien</string>
-    <string name="edit_backups_no_backups_summary">Originalbilder werden gesichert, wenn Sie mit einer Änderung überschreiben</string>
+    <string name="edit_backups_no_backups_summary">Die Originalbilder werden gesichert, wenn du eine Bearbeitung überschreibst</string>
     <string name="edit_backups_auto_cleanup">Automatische Bereinigung</string>
     <string name="edit_backups_auto_cleanup_summary">Automatisches Löschen von Backups, die älter als 90 Tage sind</string>
     <string name="edit_backups_delete_all">Alle Sicherungen löschen</string>
@@ -879,7 +879,7 @@
     <string name="video_format_hdr10">HDR10</string>
     <string name="video_format_hlg">HLG</string>
     <string name="fancy_blur_description">Wendet einen Unschärfeeffekt auf den Hintergrund hinter Fotos im Medien-Viewer an. Erfordert Android 12 oder höher.</string>
-    <string name="liquid_glass_description">Replaces the plain blur on frosted bars and sheets with a Liquid Glass-style refraction effect. Requires Fancy Blur to be enabled.</string>
+    <string name="liquid_glass_description">Ersetzt den einfachen Unschärfeeffekt auf mattierten Balken und Flächen durch einen Lichtbrechungseffekt im „Liquid Glass“-Stil. Dazu muss „Unschärfe-Effekt“ aktiviert sein.</string>
     <string name="shared_elements_description">Ermöglicht flüssige Übergänge bei gemeinsamen Elementen zwischen den Raster-Miniaturansichten und dem Vollbild-Medienbetrachter. Dadurch entsteht eine visuelle Verbindung, wenn Elemente vergrößert oder verkleinert werden.</string>
     <string name="old_navbar_description">Wechselt zur klassischen Material-Navigationsleiste mit Textbeschriftungen. Auf größeren Bildschirmen wird stattdessen eine seitliche Navigationsleiste angezeigt.</string>
     <string name="auto_hide_searchbar_description">Die Suchleiste oder die obere Leiste verschwindet aus dem Blickfeld, wenn man nach unten scrollt, wodurch mehr Platz für Inhalte entsteht. Sie wird wieder angezeigt, wenn man nach oben scrollt.</string>
@@ -1658,9 +1658,9 @@
     <string name="cloud_step_networking">Netzwerk</string>
     <string name="cloud_step_sync">Synchronisieren</string>
     <string name="cloud_step_review">Überprüfen</string>
-    <string name="cloud_step_server_desc">Wo ist Ihr Server?</string>
+    <string name="cloud_step_server_desc">Wo ist dein Server?</string>
     <string name="cloud_step_credentials_desc">Melden Sie sich an, damit wir eine Verbindung herstellen können.</string>
-    <string name="cloud_step_networking_desc">Optional eine schnellere URL in Ihrem Heimnetzwerk verwenden.</string>
+    <string name="cloud_step_networking_desc">Optional eine schnellere URL in deinem Heimnetzwerk verwenden.</string>
     <string name="cloud_step_sync_desc">Wählen Sie aus, was gesichert und was importiert werden soll.</string>
     <string name="cloud_step_review_desc">Überprüfen Sie, ob alles korrekt aussieht.</string>
     <string name="cloud_show_secret">Anzeigen</string>
@@ -1690,8 +1690,8 @@
     <string name="cloud_net_local_active">Im lokalen Netzwerk — lokale URL verwenden</string>
     <string name="cloud_net_external_active">Außerhalb des lokalen Netzwerks — externe URL verwenden</string>
     <string name="cloud_help_immich">Geben Sie die URL Ihres Immich-Servers ein (http:// oder https:// einschließen). Melden Sie sich mit Ihrer E-Mail und Ihrem Passwort an oder fügen Sie einen API-Schlüssel aus Kontoeinstellungen → API-Schlüssel ein.</string>
-    <string name="cloud_help_owncloud">Geben Sie die URL Ihres ownCloud-Servers ein (z. B. https://cloud.example.com). Verwenden Sie Ihren Kontobenutzernamen und Ihr Passwort oder ein App-Passwort, wenn die Zwei-Faktor-Authentifizierung aktiviert ist.</string>
-    <string name="cloud_help_nextcloud">Geben Sie die URL Ihres Nextcloud-Servers ein (z. B. https://cloud.example.com). Melden Sie sich sicher in Ihrem Browser an, einschließlich Zwei-Faktor-Authentifizierung, oder verwenden Sie manuell einen Benutzernamen und ein App-Passwort.</string>
+    <string name="cloud_help_owncloud">Gib die URL deines ownCloud-Servers ein (z. B. https://cloud.example.com). Verwende deinen Kontobenutzernamen und dein Passwort oder ein App-Passwort, wenn die Zwei-Faktor-Authentifizierung aktiviert ist.</string>
+    <string name="cloud_help_nextcloud">Gib die URL deines Nextcloud-Servers ein (z. B. https://cloud.example.com). Melde dich sicher in deinem Browser an, einschließlich Zwei-Faktor-Authentifizierung, oder verwende manuell einen Benutzernamen und ein App-Passwort.</string>
     <string name="cloud_nextcloud_sign_in">Mit Nextcloud anmelden</string>
     <string name="cloud_nextcloud_starting">Sicheres Anmelden wird gestartet…</string>
     <string name="cloud_nextcloud_waiting">Warten auf Browserbestätigung…</string>
@@ -1713,8 +1713,8 @@
     <string name="cloud_nextcloud_tls_error">Die sichere Verbindung zu Nextcloud konnte nicht überprüft werden.</string>
     <string name="cloud_nextcloud_invalid_response">Nextcloud hat eine ungültige Anmeldeantwort zurückgegeben.</string>
     <string name="cloud_help_webdav">Geben Sie die vollständige WebDAV-Endpunkt-URL, die von Ihrem Host bereitgestellt wurde, sowie Ihren WebDAV-Benutzernamen und Ihr Passwort ein.</string>
-    <string name="cloud_help_smb">Verwenden Sie smb://host/share/folder. Lassen Sie den Benutzernamen für den Gastzugang leer oder geben Sie Benutzer / DOMAIN\\Benutzer und Ihr Passwort ein. Das Share muss sich im gleichen lokalen Netzwerk wie dieses Gerät befinden. SMB2/3 ist erforderlich (älteres SMB1 wird nicht unterstützt).</string>
-    <string name="cloud_help_nfs">Verwenden Sie nfs://host/export/path, wobei alles nach dem Host der exportierte Pfad ist. Nur NFSv3 (mit AUTH_SYS) wird unterstützt — NFSv2 und NFSv4 nicht. Optional kann eine uid:gid eingestellt werden, auf die der Export Zugriff gewährt. Der Export muss die IP dieses Geräts zulassen, einen NFSv3-Mount anbieten und sich im gleichen lokalen Netzwerk befinden.</string>
+    <string name="cloud_help_smb">Verwende smb://host/share/folder. Lasse den Benutzernamen für den Gastzugang leer oder gib Benutzer / DOMAIN\\Benutzer und dein Passwort ein. Das Share muss sich im gleichen lokalen Netzwerk wie dieses Gerät befinden. SMB2/3 ist erforderlich (älteres SMB1 wird nicht unterstützt).</string>
+    <string name="cloud_help_nfs">Verwende nfs://host/export/path, wobei alles nach dem Host der exportierte Pfad ist. Nur NFSv3 (mit AUTH_SYS) wird unterstützt — NFSv2 und NFSv4 nicht. Optional kann eine uid:gid eingestellt werden, auf die der Export Zugriff gewährt. Der Export muss die IP dieses Geräts zulassen, einen NFSv3-Mount anbieten und sich im gleichen lokalen Netzwerk befinden.</string>
     <string name="cloud_smb_url_hint">smb://host/share/Ordner</string>
     <string name="cloud_nfs_url_hint">nfs://Host/Export/Pfad</string>
     <string name="cloud_smb_username_hint">Benutzer oder DOMAIN\\Benutzer (für Gastzugang leer lassen)</string>
@@ -1816,7 +1816,7 @@
     <string name="cloud_shared_links_edit_custom_url">Benutzerdefinierte URL</string>
     <string name="cloud_shared_links_edit_custom_url_desc">Zugriff auf diesen geteilten Link mit einer benutzerdefinierten URL</string>
     <string name="cloud_shared_links_edit_password">Passwort</string>
-    <string name="cloud_shared_links_edit_password_desc">Für den Zugriff auf diesen geteilten Link ist ein Passwort erforderlich</string>
+    <string name="cloud_shared_links_edit_password_desc">Erfordert ein Passwort, um auf diesen geteilten Link zuzugreifen</string>
     <string name="cloud_shared_links_edit_description">Beschreibung</string>
     <string name="cloud_shared_links_edit_expire">Läuft ab</string>
     <string name="cloud_shared_links_edit_expire_never">Niemals</string>
@@ -2071,7 +2071,7 @@
     <string name="cloud_free_space_every_day">Täglich</string>
     <string name="cloud_free_space_every_3d">alle 3 Tage</string>
     <string name="cloud_free_space_every_week">Wöchentlich</string>
-    <string name="cloud_free_space_auto_removed">Free Up Space removed %1$d backed-up local copies.</string>
+    <string name="cloud_free_space_auto_removed">%1$d gesicherte lokale Kopien entfernt.</string>
     <string name="cloud_free_space_auto_review">%1$d gesicherte lokale Kopien können entfernt werden. Zum Überprüfen tippen.</string>
     <string name="cloud_settings_more_header">Einstellungen</string>
     <!-- Memories -->
@@ -2247,7 +2247,7 @@
     <string name="permission_local_network_title">Direkter Zugriff auf das lokale Netzwerk</string>
     <string name="setup_reason_local_network">Optional. Erteilen Sie diese nur, wenn ReFra direkt mit einem Server in Ihrem aktuellen Netzwerk verbunden wird.</string>
     <string name="local_network_permission_dialog_title">Direkten Zugriff auf das lokale Netzwerk erlauben?</string>
-    <string name="local_network_permission_dialog_message">Dieser Server verweist auf ein Gerät in Ihrem aktuellen lokalen Netzwerk. Android erfordert die Erlaubnis, bevor ReFra direkt darauf zugreifen kann.</string>
+    <string name="local_network_permission_dialog_message">Dieser Server verweist auf ein Gerät in deinem aktuellen lokalen Netzwerk. Android erfordert die Erlaubnis, bevor ReFra direkt darauf zugreifen kann.</string>
     <string name="local_network_permission_not_now">Jetzt nicht</string>
     <!-- Permission reasons (where/why) -->
     <string name="setup_reason_read_images"><![CDATA[Anzeige deiner Fotos in Zeitleiste, in Alben und im Betrachter. Ohne dies bleibt die Galerie leer.]]></string>
