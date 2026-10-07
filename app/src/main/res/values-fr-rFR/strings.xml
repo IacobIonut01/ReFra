@@ -65,8 +65,8 @@
     <string name="album_trash_confirm_summary">Tous les éléments pris en charge dans cet album seront déplacés vers la corbeille et pourront être restaurés plus tard.</string>
     <string name="album_delete_confirm_title">Supprimer l\'album définitivement ?</string>
     <string name="album_delete_confirm_summary">Tous les éléments de cet album seront définitivement supprimés. Cette action est irréversible.</string>
-    <string name="album_shared_badge">Shared</string>
-    <string name="rename_album">Rename album</string>
+    <string name="album_shared_badge">Partagé</string>
+    <string name="rename_album">Renommer l\'album</string>
     <string name="delete_remote_album">Delete remote album</string>
     <string name="delete_remote_album_confirm_title">Delete album on the server?</string>
     <string name="delete_remote_album_confirm_summary">The album will be removed from the server. The media inside it is not deleted.</string>
