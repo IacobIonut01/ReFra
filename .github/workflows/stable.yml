@@ -69,7 +69,7 @@ jobs:
           for apk in app/build/outputs/apk-renamed/*/*/*.apk; do
             scripts/verify-16kb-alignment.sh "$apk"
           done
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: offline-${{ matrix.arch }}
           path: app/build/outputs/apk-renamed/**/*.apk
@@ -117,7 +117,7 @@ jobs:
           for apk in app/build/outputs/apk-renamed/*/*/*.apk; do
             scripts/verify-16kb-alignment.sh "$apk"
           done
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: withml-${{ matrix.arch }}
           path: app/build/outputs/apk-renamed/**/*.apk
@@ -164,7 +164,7 @@ jobs:
           for apk in app/build/outputs/apk-renamed/*/*/*.apk; do
             scripts/verify-16kb-alignment.sh "$apk"
           done
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: maps-${{ matrix.arch }}
           path: app/build/outputs/apk-renamed/**/*.apk
@@ -214,7 +214,7 @@ jobs:
           releaseName: ${{ needs.prepare.outputs.versionName }}-${{ needs.prepare.outputs.versionCode }} Release
           mappingFile: app/build/outputs/mapping/universalWithMLGplay/mapping.txt
           debugSymbols: app/build/intermediates/merged_native_libs/universalWithMLGplay/mergeUniversalWithMLGplayNativeLibs/out/lib
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: ReFra Release (GPlay Bundle)
           path: app/build/outputs/bundle/universalWithMLGplay/*.aab
@@ -232,17 +232,17 @@ jobs:
             .github/RELEASE_BODY.md
             .github/VARIANT_INFO.md
           sparse-checkout-cone-mode: false
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           pattern: offline-*
           path: artifacts/offline
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           pattern: maps-*
           path: artifacts/maps
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           pattern: withml-*
           path: artifacts/withml
