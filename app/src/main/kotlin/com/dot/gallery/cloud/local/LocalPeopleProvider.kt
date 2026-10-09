@@ -5,7 +5,6 @@
 
 package com.dot.gallery.cloud.local
 
-import com.dot.gallery.cloud.core.LOCAL_PEOPLE_CONFIG_ID
 import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderCapability
 import com.dot.gallery.cloud.core.ProviderType
@@ -21,6 +20,7 @@ import com.dot.gallery.cloud.data.entity.FaceLinkEntity
 import com.dot.gallery.cloud.data.entity.FaceLinkKind
 import com.dot.gallery.cloud.data.entity.FaceSuppressionEntity
 import com.dot.gallery.cloud.data.entity.PersonEntity
+import com.dot.gallery.cloud.data.entity.toPersonInfo
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.ml.FaceHelper
 import com.dot.gallery.core.ml.ModelGroup
@@ -77,15 +77,7 @@ class LocalPeopleProvider @Inject constructor(
     override val isAvailable: Boolean
         get() = modelManager.isReady(ModelGroup.FACE_DETECT)
 
-    private fun PersonEntity.toInfo(photoCount: Int) = PersonInfo(
-        id = id,
-        name = name,
-        providerType = ProviderType.LOCAL_PEOPLE,
-        serverConfigId = LOCAL_PEOPLE_CONFIG_ID,
-        thumbnailUrl = thumbnailUrl,
-        assetCount = photoCount,
-        hidden = hidden
-    )
+    private fun PersonEntity.toInfo(photoCount: Int) = toPersonInfo(photoCount)
 
     override fun getPeople(): Flow<Resource<List<PersonInfo>>> = combine(
         personDao.getVisibleByProvider(ProviderType.LOCAL_PEOPLE),
@@ -211,7 +203,7 @@ class LocalPeopleProvider @Inject constructor(
         runCatching { personDao.updateName(personId, name) }
 
     override suspend fun updatePersonBirthDate(personId: String, birthDate: String): Result<Unit> =
-        Result.failure(UnsupportedOperationException("Local people provider does not track birth dates"))
+        runCatching { personDao.updateBirthDate(personId, birthDate) }
 
     /**
      * Reassign every face of [sourceId] to [targetId] and delete the now-empty source

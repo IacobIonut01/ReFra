@@ -693,7 +693,9 @@ class CloudRepositoryImpl @Inject constructor(
             configId = configId,
             capabilityName = "people"
         ).getOrElse { return Result.failure(it) }
-        return provider.updatePersonBirthDate(personId, birthDate)
+        return provider.updatePersonBirthDate(personId, birthDate).also { result ->
+            if (result.isSuccess) _peopleInvalidation.tryEmit(Unit)
+        }
     }
 
     // === Trash Bulk Operations ===

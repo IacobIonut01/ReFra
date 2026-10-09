@@ -115,7 +115,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         CloudTagEntity::class,
         CloudMediaTagEntity::class
     ],
-    version = 52,
+    version = 53,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -172,6 +172,7 @@ import com.dot.gallery.feature_node.domain.util.Converters
         AutoMigration(from = 49, to = 50), // face_exclusions (user "not this person" assertions)
         AutoMigration(from = 50, to = 51), // face_links (face-scoped include/exclude assertions)
         AutoMigration(from = 51, to = 52), // face_suppressions (deleted-person face bans, #1262)
+        AutoMigration(from = 52, to = 53), // people.birthDate (on-device person birthday)
     ]
 )
 @TypeConverters(Converters::class, CloudConverters::class, SmartScanConverters::class)
