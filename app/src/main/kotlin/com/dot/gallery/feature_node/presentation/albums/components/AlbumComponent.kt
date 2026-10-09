@@ -435,6 +435,11 @@ fun AlbumOptionSheet(
             mediaType = "image/*"
         )
     ) { uriList ->
+        isSelectingThumbnail = nextAlbumCoverPickerState(
+            currentlySelecting = isSelectingThumbnail,
+            sheetVisible = appBottomSheetState.isVisible,
+            pickerFinished = true
+        )
         scope.launch {
             if (uriList.isNotEmpty()) {
                 val newThumbnailUri = uriList.map { it.toUri() }.firstOrNull()
@@ -664,6 +669,13 @@ fun AlbumOptionSheet(
                 )
             )
         }
+    }
+
+    LaunchedEffect(appBottomSheetState.isVisible) {
+        isSelectingThumbnail = nextAlbumCoverPickerState(
+            currentlySelecting = isSelectingThumbnail,
+            sheetVisible = appBottomSheetState.isVisible
+        )
     }
 
     val options = remember(isSelectingThumbnail, optionList) {

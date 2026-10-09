@@ -22,4 +22,29 @@ class AlbumThumbnailPresentationTest {
         assertEquals(AlbumThumbnailPresentation.MEDIA, presentation)
         assertTrue(presentation.allowsMediaRequest)
     }
+
+    @Test
+    fun coverPickerStaysWhileSheetIsOpen() {
+        assertTrue(
+            nextAlbumCoverPickerState(currentlySelecting = true, sheetVisible = true)
+        )
+    }
+
+    @Test
+    fun dismissingSheetLeavesCoverPicker() {
+        assertFalse(
+            nextAlbumCoverPickerState(currentlySelecting = true, sheetVisible = false)
+        )
+    }
+
+    @Test
+    fun finishingSystemPickerLeavesCoverPicker() {
+        assertFalse(
+            nextAlbumCoverPickerState(
+                currentlySelecting = true,
+                sheetVisible = true,
+                pickerFinished = true
+            )
+        )
+    }
 }
