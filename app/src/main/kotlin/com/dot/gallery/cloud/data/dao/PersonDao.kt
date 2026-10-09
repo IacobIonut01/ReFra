@@ -53,6 +53,9 @@ interface PersonDao {
     @Query("UPDATE people SET hidden = :hidden WHERE id = :id")
     suspend fun setHidden(id: String, hidden: Boolean)
 
+    @Query("UPDATE people SET birthDate = :birthDate WHERE id = :id")
+    suspend fun updateBirthDate(id: String, birthDate: String)
+
     @Query("UPDATE people SET thumbnailMediaId = :mediaId, thumbnailUrl = :thumbnailUrl WHERE id = :id")
     suspend fun updateThumbnail(id: String, mediaId: Long?, thumbnailUrl: String?)
 
