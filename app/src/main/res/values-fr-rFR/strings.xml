@@ -7,7 +7,7 @@
     <string name="smart_scan_notification_stage_progress">%1$s · %2$d sur %3$d · %4$d%% au total</string>
     <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d sur %3$d · %4$d%% au total · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Préparation</string>
-    <string name="change_app_name">Nom de l\'app</string>
+    <string name="change_app_name">Nom de l\'application</string>
     <string name="change_app_name_summary">Changer le nom de l\'application affiché dans votre lanceur</string>
     <string name="favorite_icon_on_thumbnails">Icône Favoris sur les miniatures</string>
     <string name="fav_position_disabled">Caché</string>
@@ -102,7 +102,7 @@
     <string name="donate">Faire un don</string>
     <string name="github">Github</string>
     <string name="donate_button_cd">Bouton de donation</string>
-    <string name="github_button_cd">Bouton Github</string>
+    <string name="github_button_cd">Bouton GitHub</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
     <string name="dismiss_banner">Fermer la bannière</string>
     <string name="dismiss_banner_title">Déplacer la bannière ?</string>
