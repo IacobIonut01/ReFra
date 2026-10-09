@@ -18,6 +18,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.dot.gallery.cloud.core.ProviderRegistry
+import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.resolveRemote
 import com.dot.gallery.cloud.data.entity.CloudMediaEntity
 import com.dot.gallery.cloud.offline.OfflineModeManager
@@ -66,6 +67,18 @@ internal fun remoteCaptureFetchAllowed(
     unmetered: Boolean,
     accountWifiOnly: Boolean
 ): Boolean = !effectiveOffline && (!accountWifiOnly || unmetered)
+
+/**
+ * Immich reports EXIF-derived capture time as `localDateTime`, so a populated
+ * [CloudMediaEntity.takenTimestamp] from Immich is already the embedded date.
+ * Path-based providers (WebDAV, Nextcloud, ownCloud, SMB, NFS) only have
+ * filesystem timestamps (`creationdate` / mtime); those stay a fallback and
+ * must not skip the DateTimeOriginal probe. Internal for tests.
+ */
+internal fun skipEmbeddedCaptureProbe(
+    providerType: ProviderType,
+    takenTimestamp: Long?
+): Boolean = takenTimestamp != null && providerType == ProviderType.IMMICH
 
 /** Bounded parallelism for the remote fetch+parse tier (network reads dominate). */
 private const val CLOUD_FETCH_CONCURRENCY = 4
@@ -229,9 +242,12 @@ class CaptureTimeIndexWorker @AssistedInject constructor(
         val isImage = media.mimeType.startsWith("image/")
         if (!isImage && !isVideo) return media.fallbackCaptureTime()
 
-        // A provider-reported capture time (Immich localDateTime, WebDAV
-        // creationdate) is already embedded-derived upstream — nothing to fetch.
-        if (entity.takenTimestamp != null) return media.fallbackCaptureTime()
+        // Immich localDateTime is already EXIF-derived. WebDAV `creationdate`
+        // (and other path-provider filesystem times) is only a fallback — still
+        // probe DateTimeOriginal so Recheck capture dates can replace it.
+        if (skipEmbeddedCaptureProbe(entity.providerType, entity.takenTimestamp)) {
+            return media.fallbackCaptureTime()
+        }
 
         // A synced/uploaded local copy is free to open and needs no network, and
         // carries the same bytes as the remote — a definitive parse result here
