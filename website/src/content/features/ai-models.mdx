@@ -19,25 +19,41 @@ order: 6
 
 | Group | Size | What it unlocks |
 | --- | --- | --- |
-| **Search & Categories** | ~147 MB | Descriptive text search and automatic categories. |
+| **Search engine (pick one)** | ~150–320 MB | Descriptive text search, visual similarity search, and automatic categories. Two engines are available; see below. |
 | **Subject Cutout** | ~44 MB | Isolating a subject in the media viewer's cutout. |
 | **Face Detection** | ~1.3 MB | The editor's automatic "Blur faces" action. |
 | **Face Recognition (People)** | ~130 MB | Grouping the same person across photos in the Library. Requires Face Detection too. |
 
 Each group lists its model files and the source the models came from (the project repository or the model's public home), so you can see exactly what is downloaded.
 
+## Choosing a search engine
+
+Smart Search and Categories run on one of two engines. In the manager's *Smart Search & Categories* section, the engine with the selected radio button is in use and its status line reads "In use". You can install both and switch at any time by selecting the other one. **Compare engines** opens a side-by-side sheet covering what each understands, result quality, indexing speed, languages, download size, and embedding size.
+
+| | CLIP | EmbeddingGemma 2 |
+| --- | --- | --- |
+| Embedding size | 512 | 768 |
+| Understands | Text &amp; images | Text, images &amp; videos |
+| Download size | ~150 MB | ~320 MB |
+| Indexing speed | Fast | Slower (larger model) |
+| Result quality | Good | Higher |
+| Languages | Mostly English | 100+ languages |
+
+CLIP is the default and the lighter option; EmbeddingGemma 2 is more accurate, multilingual, and can index video content as well as images. Switching engines re-indexes your library on the next smart scan, which can take a while on large libraries.
+
 ## Install, download, remove
 
-- On a build that can download: each group offers **Download AI Models** with its size. A download in progress can be stopped with **Cancel AI Model Download**.
-- On a build that bundles the models: the action reads **Install AI Models** and restores the bundled copies, no download needed; "Preparing AI Models" shows while they are set up.
-- **Delete AI Models** removes a group's files after a confirmation. On offline builds with bundled models, deletion is refused with "Bundled models cannot be deleted from this offline build."
-- An offline build *without* bundled models shows **AI Models Unavailable**: "This offline build cannot download missing models." An offline build *with* bundled models can still install them; only downloading is unavailable.
+- Every model is one row: what it does, then its status, for example "Not installed · ~44.0 MB download". On a build that can download, the row's download button starts it; while it runs the row shows progress, size, speed and time left, and the button around the progress ring cancels it.
+- Tap a row for its details sheet: status, the model's source, and once installed each file's size and SHA-256 check. The sheet also holds the main action: **Download**, **Cancel download**, **Use for Smart Search** for an installed engine, or **Delete model**.
+- On a build that bundles the models: the action reads **Install AI Models** and restores the bundled copies, no download needed; "Bundled models are being prepared for use" shows while they are set up.
+- **Delete model** removes that model's files after a confirmation. On offline builds with bundled models, deletion is refused with "Bundled models cannot be deleted from this offline build."
+- On an offline build *without* bundled models, missing models have no download button and their status reads "This offline build cannot download missing models." An offline build *with* bundled models can still install them; only downloading is unavailable.
 
-When a group is ready, its summary line says so, for example "AI-powered search and classification are available" or "Subject cutout is available in the media viewer".
+When a model is ready, its status line reads "Installed" with its size on disk.
 
 ## What each feature needs
 
-- Descriptive [search](/ReFra/features/search) and [categories](/ReFra/features/categories): the **Search & Categories** group.
+- Descriptive [search](/ReFra/features/search), visual similarity search, and [categories](/ReFra/features/categories): whichever search engine is installed and selected (CLIP or EmbeddingGemma 2). Video content is only searchable under EmbeddingGemma 2.
 - [People](/ReFra/features/people) grouping: **Face Detection** plus **Face Recognition (People)**.
 - [Subject cutout](/ReFra/features/subject-cutout) in the viewer: **Subject Cutout**.
 - The editor's **Blur faces**: **Face Detection** alone.
@@ -47,8 +63,8 @@ After installing new models, run a refresh under **Smart Features data** so exis
 ## Example: people grouping without the big search pack
 
 1. Open **Settings › Smart Features › AI Models Manager**.
-2. Download **Face Detection** (~1.3 MB), then **Face Recognition (People)** (~130 MB).
-3. Skip **Search & Categories** if descriptive search is not needed.
+2. Under *Faces & subject cutout*, download **Face Detection** (~1.3 MB), then **Face Recognition (People)** (~130 MB).
+3. Skip both search engines if descriptive search is not needed.
 4. Open **Smart Features data** and refresh persons; the Library's People section starts filling in.
 
 ## If a download fails or is absent

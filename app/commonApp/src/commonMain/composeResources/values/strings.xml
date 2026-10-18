@@ -574,7 +574,7 @@
     <!-- AI Model Management -->
 <string name="ai_models_manager">AI Models Manager</string>
     <string name="ai_models_download">Download AI Models</string>
-    <string name="ai_models_download_summary">Download AI models for image search and classification (~147 MB)</string>
+    <string name="ai_models_download_summary">Download AI models for image search and classification (~150 MB)</string>
     <string name="ai_models_downloading">Downloading AI Models…</string>
     <string name="ai_models_cancel_download">Cancel AI Model Download</string>
     <string name="ai_models_preparing">Preparing AI Models…</string>
@@ -592,10 +592,10 @@
     <string name="ai_models_delete_confirm_bundled">Are you sure you want to delete the AI models? They are bundled with the app and can be restored at any time.</string>
     <string name="ai_models_size">Model size: %s</string>
     <string name="ai_models_unavailable">Unavailable — Requires AI Models Feature</string>
-    <string name="ai_models_description">AI models enable intelligent image search, automatic media classification, and interactive subject cutout extraction. The app uses CLIP (Contrastive Language-Image Pretraining) and MobileSAM (Segment Anything) models in ONNX format to understand the content of your photos and segment subjects.</string>
+    <string name="ai_models_description">AI models enable intelligent image search, automatic media classification, and interactive subject cutout extraction. The app uses EmbeddingGemma 2 and MobileSAM (Segment Anything) models in ONNX format to understand the content of your photos and segment subjects.</string>
     <string name="ai_models_privacy_description">All AI processing is performed entirely on your device. No images, search queries, or classification data ever leave your phone. The models run locally using ONNX Runtime and do not require an internet connection once downloaded. Your media remains fully private.</string>
     <string name="ai_models_source">Source</string>
-    <string name="ai_models_source_url">github.com/IacobIonut01/ReFra</string>
+    <string name="ai_models_source_url">huggingface.co/onnx-community/embeddinggemma-2-ONNX</string>
     <string name="ai_models_files">Model Files</string>
     <string name="ai_models_feature_search">Search by Description</string>
     <string name="ai_models_feature_categories">Automatic Categories</string>
@@ -604,8 +604,8 @@
 
     <!-- Per-feature model groups -->
     <string name="ai_models_group_search_title">Search &amp; Categories</string>
-    <string name="ai_models_group_search_desc">CLIP models that power smart search and automatic categories.</string>
-    <string name="ai_models_group_search_download_summary">Download the CLIP models (~147 MB)</string>
+    <string name="ai_models_group_search_desc">EmbeddingGemma 2 multimodal model that powers smart search across text, images and videos, plus automatic categories.</string>
+    <string name="ai_models_group_search_download_summary">Download the EmbeddingGemma 2 model (~310 MB)</string>
     <string name="ai_models_group_cutout_title">Subject Cutout</string>
     <string name="ai_models_group_cutout_desc">MobileSAM models that isolate subjects in the media viewer.</string>
     <string name="ai_models_group_cutout_download_summary">Download the MobileSAM models (~44 MB)</string>

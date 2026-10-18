@@ -19,6 +19,7 @@ import com.dot.gallery.data.migration.MIGRATION_43_44
 import com.dot.gallery.data.migration.MIGRATION_44_45
 import com.dot.gallery.data.migration.MIGRATION_45_46
 import com.dot.gallery.data.migration.MIGRATION_46_47
+import com.dot.gallery.data.migration.MIGRATION_53_54
 import kotlinx.coroutines.Dispatchers
 
 val DATABASE_MIGRATIONS: List<Migration> = listOf(
@@ -34,6 +35,7 @@ val DATABASE_MIGRATIONS: List<Migration> = listOf(
     MIGRATION_44_45,
     MIGRATION_45_46,
     MIGRATION_46_47,
+    MIGRATION_53_54,
 )
 
 /**

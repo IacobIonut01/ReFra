@@ -180,7 +180,7 @@ fun SetupAiModelsContent(
                         )
                     }
                     else -> {
-                        DownloadRow(onClick = { actions.onDownload(ModelGroup.SEARCH) })
+                        DownloadRow(onClick = { actions.onDownload(state.searchGroup) })
                     }
                 }
             }

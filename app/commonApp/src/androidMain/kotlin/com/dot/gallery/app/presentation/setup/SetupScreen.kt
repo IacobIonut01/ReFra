@@ -280,8 +280,9 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
     var aiModelsActions = SetupAiModelsActions()
     if (SetupPage.AI_MODELS in pages) {
         val smartViewModel = injectViewModel<SmartFeaturesViewModel> {smartFeaturesViewModel}
-        val searchStatus by smartViewModel.modelStatus(ModelGroup.SEARCH).collectAsStateWithLifecycle()
-        val searchProgress by smartViewModel.downloadProgress(ModelGroup.SEARCH).collectAsStateWithLifecycle()
+        val searchModel by smartViewModel.activeSearchModel.collectAsStateWithLifecycle()
+        val searchStatus by smartViewModel.modelStatus(searchModel.group).collectAsStateWithLifecycle()
+        val searchProgress by smartViewModel.downloadProgress(searchModel.group).collectAsStateWithLifecycle()
         val cutoutStatus by smartViewModel.modelStatus(ModelGroup.CUTOUT).collectAsStateWithLifecycle()
         val cutoutProgress by smartViewModel.downloadProgress(ModelGroup.CUTOUT).collectAsStateWithLifecycle()
         val faceDetectStatus by smartViewModel.modelStatus(ModelGroup.FACE_DETECT).collectAsStateWithLifecycle()
@@ -291,6 +292,7 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
         aiModelsState = SetupAiModelsState(
             isBundled = BuildConfig.ML_MODELS_BUNDLED,
             hasInternet = smartViewModel.hasInternetPermission,
+            searchGroup = searchModel.group,
             search = SetupModelUi(status = searchStatus, progress = searchProgress),
             cutout = SetupModelUi(status = cutoutStatus, progress = cutoutProgress),
             faceDetect = SetupModelUi(status = faceDetectStatus, progress = faceDetectProgress),

@@ -25,6 +25,7 @@ import com.dot.gallery.feature.settings.subsettings.SmartFeaturesViewModel
 fun AIModelsManagerScreen(
     viewModel: SmartFeaturesViewModel = injectViewModel { smartFeaturesViewModel }
 ) {
+    val activeSearchModel by viewModel.activeSearchModel.collectAsStateWithLifecycle()
     val groups = ModelGroup.entries.map { group ->
         val status by viewModel.modelStatus(group).collectAsStateWithLifecycle()
         val progress by viewModel.downloadProgress(group).collectAsStateWithLifecycle()
@@ -44,12 +45,14 @@ fun AIModelsManagerScreen(
         state = AiModelsManagerState(
             isBundled = BuildConfig.ML_MODELS_BUNDLED,
             canInstallModels = viewModel.canInstallModels,
+            activeSearchModel = activeSearchModel,
             groups = groups,
         ),
         actions = AiModelsManagerActions(
             onDownload = viewModel::downloadModels,
             onCancelDownload = viewModel::cancelDownload,
             onDelete = viewModel::deleteModels,
+            onSelectSearchModel = viewModel::selectSearchModel,
             loadFileInfos = viewModel::getFileInfos,
         ),
     )

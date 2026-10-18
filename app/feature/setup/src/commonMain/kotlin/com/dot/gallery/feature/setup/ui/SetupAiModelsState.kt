@@ -5,6 +5,8 @@
 
 package com.dot.gallery.feature.setup.ui
 
+import com.dot.gallery.core.ml.ModelGroup
+
 /**
  * Display state for the AI models page.
  *
@@ -15,6 +17,8 @@ package com.dot.gallery.feature.setup.ui
 data class SetupAiModelsState(
     val isBundled: Boolean = false,
     val hasInternet: Boolean = true,
+    /** Which engine [search] reports on — the currently selected search model. */
+    val searchGroup: ModelGroup = ModelGroup.SEARCH_CLIP,
     val search: SetupModelUi = SetupModelUi(),
     val cutout: SetupModelUi = SetupModelUi(),
     val faceDetect: SetupModelUi = SetupModelUi(),

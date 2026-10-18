@@ -63,6 +63,7 @@ import com.dot.gallery.core.util.ext.updateMedia
 import com.dot.gallery.core.util.ext.updateMediaExif
 import com.dot.gallery.core.security.AdvancedProtectionMonitor
 import com.dot.gallery.data.dao.CategoryWithMediaCount
+import com.dot.gallery.data.dao.ImageEmbeddingHeader
 import com.dot.gallery.data.InternalDatabase
 import com.dot.gallery.data.entity.SmartScanFeature
 import com.dot.gallery.data.mediastore.MediaQuery
@@ -1855,6 +1856,12 @@ class MediaRepositoryImpl(
     override fun getImageEmbeddings(): Flow<List<ImageEmbedding>> {
         return database.getImageEmbeddingDao().getRecords()
     }
+
+    override suspend fun getImageEmbeddings(ids: List<Long>): List<ImageEmbedding> =
+        database.getImageEmbeddingDao().getRecords(ids)
+
+    override fun getImageEmbeddingHeaders(): Flow<List<ImageEmbeddingHeader>> =
+        database.getImageEmbeddingDao().getHeaderFlow()
 
     // ============ Album Groups ============
 

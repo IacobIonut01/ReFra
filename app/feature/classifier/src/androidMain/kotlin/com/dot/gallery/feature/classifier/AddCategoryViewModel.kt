@@ -7,7 +7,7 @@ package com.dot.gallery.feature.classifier
 
 import com.dot.gallery.domain.util.dot
 
-import ai.onnxruntime.OrtSession
+import com.dot.gallery.app.presentation.search.helpers.SearchVisionHelper.SearchSessions
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -89,7 +89,7 @@ class AddCategoryViewModel @Inject constructor(
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess.asStateFlow()
 
-    private var textSession: OrtSession? = null
+    private var textSession: SearchSessions? = null
     private var searchJob: Job? = null
 
     // Image embeddings cache

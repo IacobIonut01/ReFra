@@ -7,7 +7,7 @@ package com.dot.gallery.feature.classifier
 
 import com.dot.gallery.domain.util.dot
 
-import ai.onnxruntime.OrtSession
+import com.dot.gallery.app.presentation.search.helpers.SearchVisionHelper.SearchSessions
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -124,7 +124,7 @@ class CategoryEditorViewModel @Inject constructor(
 
     // ============ Internal ============
 
-    private var textSession: OrtSession? = null
+    private var textSession: SearchSessions? = null
     private var searchJob: Job? = null
     private var imageEmbeddings: List<ImageEmbedding> = emptyList()
 

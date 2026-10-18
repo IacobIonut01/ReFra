@@ -7,11 +7,14 @@ package com.dot.gallery.feature.settings.ui
 
 import com.dot.gallery.core.ml.ModelFileInfo
 import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.SearchModel
 
 data class AiModelsManagerActions(
     val onDownload: (ModelGroup) -> Unit = {},
     val onCancelDownload: (ModelGroup) -> Unit = {},
     val onDelete: (ModelGroup) -> Unit = {},
+    /** Switches the engine powering Smart Search & Categories (schedules re-index). */
+    val onSelectSearchModel: (SearchModel) -> Unit = {},
     /**
      * Loads per-file details (name, size, SHA-256) for an installed group. Runs
      * off-thread in the app shell — SHA-256 hashing ~130 MB files is too slow

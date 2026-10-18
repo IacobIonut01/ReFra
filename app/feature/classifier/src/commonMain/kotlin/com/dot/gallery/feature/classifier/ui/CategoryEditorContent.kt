@@ -601,10 +601,10 @@ private enum class SensitivityPreset(
     val labelRes: StringResource,
     val descRes: StringResource
 ) {
-    BROAD(Category.MIN_THRESHOLD, Res.string.sensitivity_broad, Res.string.sensitivity_broad_desc),
+    BROAD(0.05f, Res.string.sensitivity_broad, Res.string.sensitivity_broad_desc),
     BALANCED(Category.DEFAULT_THRESHOLD, Res.string.sensitivity_balanced, Res.string.sensitivity_balanced_desc),
-    STRICT(0.30f, Res.string.sensitivity_strict, Res.string.sensitivity_strict_desc),
-    EXACT(0.50f, Res.string.sensitivity_exact, Res.string.sensitivity_exact_desc);
+    STRICT(0.5f, Res.string.sensitivity_strict, Res.string.sensitivity_strict_desc),
+    EXACT(0.75f, Res.string.sensitivity_exact, Res.string.sensitivity_exact_desc);
 
     companion object {
         fun fromThreshold(threshold: Float): SensitivityPreset? {

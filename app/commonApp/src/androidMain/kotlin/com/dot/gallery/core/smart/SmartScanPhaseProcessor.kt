@@ -203,8 +203,10 @@ abstract class MediaPhaseProcessor(
     }
 
     protected companion object {
-        const val ITEM_LEASE_MILLIS = 90_000L
+        const val ITEM_LEASE_MILLIS = 240_000L
         const val ITEM_TIMEOUT_MILLIS = 60_000L
+        /** Multi-frame video embeds run several vision passes per item. */
+        const val VIDEO_ITEM_TIMEOUT_MILLIS = 180_000L
         const val RETRY_DELAY_MILLIS = 6 * 60 * 60 * 1000L
     }
 }
@@ -417,7 +419,7 @@ class MetadataPhaseProcessor @Inject constructor(
 
 private const val MEDIA_DELETE_BATCH_SIZE = 500
 private const val PREPARATION_BATCH_SIZE = 500
-private const val SEARCH_EMBEDDING_DIMENSION = 512
+
 private const val FACE_EMBEDDING_DIMENSION = 512
 private const val FACE_OWNER_MATCH_IOU = 0.5f
 
@@ -439,25 +441,33 @@ internal fun isValidEmbeddingVector(values: FloatArray, expectedSize: Int): Bool
 internal fun canAdoptExistingSearchEmbedding(
     embedding: ImageEmbedding?,
     timestamp: Long,
-    revision: String
+    revision: String,
+    dimension: Int,
 ): Boolean = embedding != null && embedding.date == timestamp &&
     (embedding.resultRevision.isBlank() || embedding.resultRevision == revision) &&
-    isValidEmbeddingVector(embedding.embedding, SEARCH_EMBEDDING_DIMENSION)
+    isValidEmbeddingVector(embedding.embedding, dimension)
 
 class SearchIndexPhaseProcessor @Inject constructor(
     repository: MediaRepository,
     database: InternalDatabase,
     private val modelManager: ModelManager,
     private val thumbnailLoader: SmartThumbnailLoader,
+    private val videoFrameSampler: VideoFrameSampler,
     private val appContext: Context
 ) : MediaPhaseProcessor(repository, database) {
     override val phase = SmartScanPhase.SEARCH_INDEX
+
+    /** The engine this scan embeds with — revision/dimension/thresholds all key off it. */
+    private val searchModel get() = modelManager.activeSearchModel
+
     override val revision: String
-        get() = "clip-v2:${modelManager.processorRevision(ModelGroup.SEARCH)}"
+        get() = "${searchModel.indexRevisionTag}:${modelManager.processorRevision(searchModel)}"
 
     override suspend fun process(context: SmartScanPhaseContext): SmartScanPhaseResult {
         if (!BuildConfig.ENABLE_INDEXING) return SmartScanPhaseResult.Blocked("indexing_disabled")
-        if (!modelManager.isReady(ModelGroup.SEARCH)) return SmartScanPhaseResult.Blocked("search_model_unavailable")
+        if (!modelManager.isReady(searchModel)) return SmartScanPhaseResult.Blocked("search_model_unavailable")
+        val dimension = searchModel.embeddingDimension
+        val thumbnailSize = searchModel.indexDecodeSize
         val scanDao = database.getSmartScanDao()
         val imageEmbeddingDao = database.getImageEmbeddingDao()
         imageEmbeddingDao.deleteOrphans()
@@ -469,14 +479,16 @@ class SearchIndexPhaseProcessor @Inject constructor(
         val candidates = mutableListOf<UriMedia>()
         val indexableProviders =
             Settings.SmartFeatures.indexOnDeviceProviders(appContext).first()
-        val searchMedia = media().filter { it.mimeType.startsWith("image/") }
-            .filter { cloudIndexingAllowed(it.uri.toString(), indexableProviders) }
+        val searchMedia = media().filter {
+            it.mimeType.startsWith("image/") ||
+                (searchModel.supportsVideo && it.mimeType.startsWith("video/"))
+        }.filter { cloudIndexingAllowed(it.uri.toString(), indexableProviders) }
         searchMedia.chunked(PREPARATION_BATCH_SIZE).forEach { batch ->
             val adoptionIds = if (context.fullRefresh) emptyList() else batch.mapNotNull { item ->
                 val source = sourceRevision(item)
                 val state = states[item.id]
                 val header = headers[item.id]
-                val outputPresent = header?.embeddingBytes == SEARCH_EMBEDDING_DIMENSION * Float.SIZE_BYTES
+                val outputPresent = header?.embeddingBytes == dimension * Float.SIZE_BYTES
                 val activeLease = state?.status == MediaFeatureStatus.PROCESSING &&
                     state.leaseExpiresAt?.let { it > now } == true
                 val current = outputPresent && header.date == item.timestamp &&
@@ -492,13 +504,13 @@ class SearchIndexPhaseProcessor @Inject constructor(
                 val header = headers[item.id]
                 val activeLease = state?.status == MediaFeatureStatus.PROCESSING &&
                     state.leaseExpiresAt?.let { it > now } == true
-                val outputPresent = header?.embeddingBytes == SEARCH_EMBEDDING_DIMENSION * Float.SIZE_BYTES
+                val outputPresent = header?.embeddingBytes == dimension * Float.SIZE_BYTES
                 val current = !context.fullRefresh && outputPresent && header.date == item.timestamp &&
                     header.resultRevision == revision && state?.status == MediaFeatureStatus.SUCCEEDED &&
                     state.sourceRevision == source && state.resultRevision == revision
                 if (activeLease || current) return@forEach
                 if (!context.fullRefresh && header?.date == item.timestamp &&
-                    canAdoptExistingSearchEmbedding(adoptionRecords[item.id], item.timestamp, revision)
+                    canAdoptExistingSearchEmbedding(adoptionRecords[item.id], item.timestamp, revision, dimension)
                 ) {
                     adoptedIds += item.id
                     statesToPersist += state?.copy(
@@ -551,6 +563,8 @@ class SearchIndexPhaseProcessor @Inject constructor(
             candidates.forEachIndexed { index, item ->
                 currentCoroutineContext().ensureActive()
                 val owner = "${context.owner}:embedding:${item.id}"
+                val isVideo = item.mimeType.startsWith("video/")
+                val itemTimeout = if (isVideo) VIDEO_ITEM_TIMEOUT_MILLIS else ITEM_TIMEOUT_MILLIS
                 val attemptAt = System.currentTimeMillis()
                 if (scanDao.claimFeatureLease(
                         item.id,
@@ -566,22 +580,44 @@ class SearchIndexPhaseProcessor @Inject constructor(
                     return@forEachIndexed
                 }
                 val result = runCatching {
-                    withTimeout(ITEM_TIMEOUT_MILLIS) {
-                    val bitmap = thumbnailLoader.load(item, 224) ?: error("decode_failed")
-                    try {
-                        val embedding = helper.getImageEmbedding(session, bitmap)
-                        check(isValidEmbeddingVector(embedding, SEARCH_EMBEDDING_DIMENSION))
-                        repository.addImageEmbedding(
-                            ImageEmbedding(
-                                item.id,
-                                item.timestamp,
-                                embedding,
-                                resultRevision = revision
-                            )
-                        )
-                    } finally {
-                        bitmap.recycle()
+                    withTimeout(itemTimeout) {
+                    val embedding = if (isVideo && searchModel.supportsVideo) {
+                        val frames = videoFrameSampler.sampleFrames(item.uri)
+                        if (frames.isNotEmpty()) {
+                            try {
+                                helper.getVideoEmbedding(session, frames)
+                            } finally {
+                                frames.forEach { it.recycle() }
+                            }
+                        } else {
+                            // Undecodable video track (e.g. remote stream): fall back to a
+                            // poster-frame image embed rather than leaving it unindexed.
+                            val bitmap = thumbnailLoader.load(item, thumbnailSize)
+                                ?: error("decode_failed")
+                            try {
+                                helper.getImageEmbedding(session, bitmap)
+                            } finally {
+                                bitmap.recycle()
+                            }
+                        }
+                    } else {
+                        val bitmap = thumbnailLoader.load(item, thumbnailSize)
+                            ?: error("decode_failed")
+                        try {
+                            helper.getImageEmbedding(session, bitmap)
+                        } finally {
+                            bitmap.recycle()
+                        }
                     }
+                    check(isValidEmbeddingVector(embedding, dimension))
+                    repository.addImageEmbedding(
+                        ImageEmbedding(
+                            item.id,
+                            item.timestamp,
+                            embedding,
+                            resultRevision = revision
+                        )
+                    )
                     scanDao.finishFeature(
                         item.id,
                         MediaFeature.SEARCH_EMBEDDING,
@@ -636,12 +672,16 @@ class CategoryClassificationPhaseProcessor @Inject constructor(
     private val modelManager: ModelManager
 ) : MediaPhaseProcessor(repository, database) {
     override val phase = SmartScanPhase.CATEGORY_CLASSIFICATION
+
+    private val searchModel get() = modelManager.activeSearchModel
+
     override val revision: String
-        get() = "categories-v2:${modelManager.processorRevision(ModelGroup.SEARCH)}"
+        get() = "${searchModel.categoriesRevisionTag}:${modelManager.processorRevision(searchModel)}"
 
     override suspend fun process(context: SmartScanPhaseContext): SmartScanPhaseResult {
         if (!BuildConfig.ENABLE_INDEXING) return SmartScanPhaseResult.Blocked("indexing_disabled")
-        if (!modelManager.isReady(ModelGroup.SEARCH)) return SmartScanPhaseResult.Blocked("search_model_unavailable")
+        if (!modelManager.isReady(searchModel)) return SmartScanPhaseResult.Blocked("search_model_unavailable")
+        val dimension = searchModel.embeddingDimension
         val categoryDao = database.getCategoryDao()
         categoryDao.cleanupCategoriesForDeletedMedia()
         var categories = categoryDao.getAllCategoriesAsync()
@@ -713,7 +753,10 @@ class CategoryClassificationPhaseProcessor @Inject constructor(
         }
         if (statesToPersist.isNotEmpty()) scanDao.upsertFeatureStates(statesToPersist)
         if (categories.isEmpty()) return SmartScanPhaseResult.Completed(SmartScanProgress.EMPTY)
+        // Rows written by the other search engine have a different dimension — skip
+        // them; scoring against a mismatched vector would crash the dot product.
         val embeddings = repository.getImageEmbeddings().firstOrNull().orEmpty()
+            .filter { it.embedding.size == dimension }
         if (embeddings.isEmpty()) return SmartScanPhaseResult.Blocked("embeddings_unavailable")
         val embeddingById = embeddings.associateBy { it.id }
         val helper = SearchVisionHelper(modelManager)
@@ -742,7 +785,7 @@ class CategoryClassificationPhaseProcessor @Inject constructor(
                 val result = runCatching {
                     val cachedEmbedding = category.embedding?.takeIf {
                         states[category.id]?.resultRevision == revision &&
-                            isValidEmbeddingVector(it, SEARCH_EMBEDDING_DIMENSION)
+                            isValidEmbeddingVector(it, dimension)
                     }
                     val categoryEmbedding = cachedEmbedding ?: if (category.searchTerms.isNotBlank()) {
                         helper.getTextEmbedding(session, category.searchTerms).also {
@@ -763,11 +806,14 @@ class CategoryClassificationPhaseProcessor @Inject constructor(
                         skipped++
                         return@runCatching
                     }
+                    // category.threshold is a normalized sensitivity — map it onto the
+                    // active engine's cosine band before comparing scores.
+                    val threshold = searchModel.thresholdFromSensitivity(category.threshold)
                     val matches = embeddings.mapNotNull { image ->
                         val textScore = categoryEmbedding?.let { image.embedding dot it } ?: Float.NEGATIVE_INFINITY
                         val referenceScore = referenceEmbeddings.maxOfOrNull { image.embedding dot it.embedding }
                             ?: Float.NEGATIVE_INFINITY
-                        maxOf(textScore, referenceScore).takeIf { it >= category.threshold }?.let { score ->
+                        maxOf(textScore, referenceScore).takeIf { it >= threshold }?.let { score ->
                             MediaCategory(image.id, category.id, score, resultRevision = revision)
                         }
                     }

@@ -58,7 +58,7 @@ class ModelDownloadWorker @Inject constructor(
                 // Which feature's models this worker instance is responsible for.
                 val group = input.getString(KEY_GROUP)
                     ?.let { runCatching { ModelGroup.valueOf(it) }.getOrNull() }
-                    ?: ModelGroup.SEARCH
+                    ?: ModelGroup.SEARCH_CLIP
                 try {
                     reportProgress(0f, "Starting download...")
                     modelManager.updateDownloadProgress(group, 0f)
@@ -66,9 +66,10 @@ class ModelDownloadWorker @Inject constructor(
                     // Check available storage
                     val statFs = StatFs(appContext.filesDir.path)
                     val availableBytes = statFs.availableBytes
-                    if (availableBytes < MINIMUM_REQUIRED_BYTES) {
+                    val requiredBytes = requiredBytesFor(group)
+                    if (availableBytes < requiredBytes) {
                         val availableMb = availableBytes / (1024 * 1024)
-                        val requiredMb = MINIMUM_REQUIRED_BYTES / (1024 * 1024)
+                        val requiredMb = requiredBytes / (1024 * 1024)
                         val error =
                             "Not enough storage (need ${requiredMb} MB, ${availableMb} MB available)"
                         modelManager.onDownloadFailed(group, error)
@@ -173,9 +174,14 @@ class ModelDownloadWorker @Inject constructor(
                         return@withContext failure(group, "Downloaded model checksum validation failed")
                     }
                     when (group) {
-                        ModelGroup.SEARCH -> smartScanScheduler.automatic(
-                            SmartScanFeature.EMBEDDINGS.bit or SmartScanFeature.CATEGORIES.bit
-                        )
+                        // Only a completed download of the *active* engine can feed a
+                        // scan — the inactive engine just sits on disk.
+                        ModelGroup.SEARCH_CLIP, ModelGroup.SEARCH_EG2 ->
+                            if (group == modelManager.activeSearchModel.group) {
+                                smartScanScheduler.automatic(
+                                    SmartScanFeature.EMBEDDINGS.bit or SmartScanFeature.CATEGORIES.bit
+                                )
+                            }
 
                         ModelGroup.FACE_DETECT, ModelGroup.FACE_RECOGNITION ->
                             smartScanScheduler.automatic(SmartScanFeature.PERSONS.bit)
@@ -289,7 +295,17 @@ class ModelDownloadWorker @Inject constructor(
     }
 
     /** Resolve the canonical download URL for a model [fileName]. */
-    private fun modelUrlFor(fileName: String): String = when (fileName) {
+    private fun modelUrlFor(fileName: String): String = when {
+        // EmbeddingGemma 2 backbone + encoders live under onnx/, tokenizer at repo root.
+        fileName == "model_q4.onnx" || fileName == "model_q4.onnx_data" ||
+            fileName == "vision_encoder_q4.onnx" || fileName == "vision_encoder_q4.onnx_data" ->
+            "$EMBEDDING_GEMMA_BASE/onnx/$fileName"
+        fileName == "tokenizer.json" || fileName == "tokenizer_config.json" ->
+            "$EMBEDDING_GEMMA_BASE/$fileName"
+        else -> legacyModelUrlFor(fileName)
+    }
+
+    private fun legacyModelUrlFor(fileName: String): String = when (fileName) {
         "mobile_sam_image_encoder.onnx" -> "https://huggingface.co/Acly/MobileSAM/resolve/main/mobile_sam_image_encoder.onnx"
         "sam_mask_decoder_single.onnx" -> "https://huggingface.co/Acly/MobileSAM/resolve/main/sam_mask_decoder_single.onnx"
         // UltraFace RFB-320 lightweight face detector (ONNX Model Zoo, ~1.2 MB).
@@ -318,8 +334,26 @@ class ModelDownloadWorker @Inject constructor(
         /** Unique work name per group so each feature's download runs and is tracked independently. */
         fun workName(group: ModelGroup) = "${WORK_NAME}_${group.name}"
 
-        // ~150 MB to be safe (models are ~80 MB but we need temp space)
+        const val EMBEDDING_GEMMA_BASE =
+            "https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/main"
+
+        /** ~150 MB for the small groups (models are ≤ ~140 MB but we need temp space). */
         const val MINIMUM_REQUIRED_BYTES = 150L * 1024 * 1024
+
+        /**
+         * EmbeddingGemma 2 is ~320 MB on disk — require headroom for the download plus
+         * the in-flight temp file.
+         */
+        const val SEARCH_EG2_REQUIRED_BYTES = 700L * 1024 * 1024
+
+        /** CLIP is ~155 MB on disk — temp-file headroom included. */
+        const val SEARCH_CLIP_REQUIRED_BYTES = 350L * 1024 * 1024
+
+        fun requiredBytesFor(group: ModelGroup): Long = when (group) {
+            ModelGroup.SEARCH_EG2 -> SEARCH_EG2_REQUIRED_BYTES
+            ModelGroup.SEARCH_CLIP -> SEARCH_CLIP_REQUIRED_BYTES
+            else -> MINIMUM_REQUIRED_BYTES
+        }
     }
 }
 

@@ -13,6 +13,7 @@ import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
 import com.dot.gallery.data.dao.CategoryWithMediaCount
+import com.dot.gallery.data.dao.ImageEmbeddingHeader
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.AlbumGroup
 import com.dot.gallery.domain.model.AlbumGroupMember
@@ -297,6 +298,14 @@ interface CoreMediaRepository {
     suspend fun getRecord(id: Long): ImageEmbedding?
 
     fun getImageEmbeddings(): Flow<List<ImageEmbedding>>
+
+    suspend fun getImageEmbeddings(ids: List<Long>): List<ImageEmbedding>
+
+    /**
+     * Lightweight change feed over [getImageEmbeddings] — headers only, no vector
+     * decode. Consumers diff it and fetch just the changed rows.
+     */
+    fun getImageEmbeddingHeaders(): Flow<List<ImageEmbeddingHeader>>
 
     // ============ Album Groups ============
 

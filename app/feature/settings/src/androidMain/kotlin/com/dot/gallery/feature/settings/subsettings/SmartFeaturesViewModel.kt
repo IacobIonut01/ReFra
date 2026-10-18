@@ -16,6 +16,7 @@ import com.dot.gallery.core.ml.DownloadInfo
 import com.dot.gallery.core.ml.ModelFileInfo
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelStatus
+import com.dot.gallery.core.ml.SearchModel
 import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.data.dao.SmartScanDao
 import com.dot.gallery.data.entity.SmartScanFeature
@@ -50,12 +51,34 @@ class SmartFeaturesViewModel @Inject constructor(
     private val context: Context
 ) : ViewModel() {
 
-    // Per-group observable state. UI screens pass the relevant [ModelGroup] (SEARCH for smart
-    // search + categories, CUTOUT for subject cutout) so each feature is managed independently.
+    // Per-group observable state. UI screens pass the relevant [ModelGroup] (a SEARCH_*
+    // engine for smart search + categories, CUTOUT for subject cutout, etc.) so each
+    // feature is managed independently.
     fun modelStatus(group: ModelGroup): StateFlow<ModelStatus> = modelManager.status(group)
     fun downloadProgress(group: ModelGroup): StateFlow<Float> = modelManager.downloadProgress(group)
     fun errorMessage(group: ModelGroup): StateFlow<String?> = modelManager.errorMessage(group)
     fun downloadInfo(group: ModelGroup): StateFlow<DownloadInfo> = modelManager.downloadInfo(group)
+
+    /** The search engine selected in the AI Models manager. */
+    val activeSearchModel: StateFlow<SearchModel> = modelManager.activeSearchModelFlow
+
+    /** Status of whichever search engine is currently selected. */
+    fun activeSearchModelStatus(): StateFlow<ModelStatus> =
+        modelManager.activeSearchModelStatus().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = modelManager.status(modelManager.activeSearchModel).value
+        )
+
+    /** Switch engines — the next Smart Scan re-embeds the library under the new model. */
+    fun selectSearchModel(model: SearchModel) {
+        viewModelScope.launch {
+            modelManager.setActiveSearchModel(model)
+            smartScanScheduler.automatic(
+                SmartScanFeature.EMBEDDINGS.bit or SmartScanFeature.CATEGORIES.bit
+            )
+        }
+    }
 
     fun installedSize(group: ModelGroup): Long = modelManager.getInstalledSize(group)
 
@@ -162,6 +185,16 @@ class SmartFeaturesViewModel @Inject constructor(
         modelDownloadRuntime.cancelModelDownload(group)
         viewModelScope.launch {
             modelManager.deleteModels(group)
+            // Deleting the active search engine would leave search pointed at missing
+            // files — fall back to the other engine when it is installed.
+            SearchModel.entries
+                .firstOrNull { it.group == group && it == modelManager.activeSearchModel }
+                ?.let { active ->
+                    val fallback = SearchModel.entries.first { it != active }
+                    if (modelManager.isReady(fallback.group)) {
+                        modelManager.setActiveSearchModel(fallback)
+                    }
+                }
         }
     }
 

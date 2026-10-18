@@ -28,6 +28,13 @@ interface ImageEmbeddingDao {
     @Query("SELECT id, date, resultRevision, length(embedding) AS embeddingBytes FROM image_embeddings")
     suspend fun getHeaders(): List<ImageEmbeddingHeader>
 
+    /**
+     * Change feed without blob payloads — `length(embedding)` never decodes the
+     * vector, so each emission stays cheap even at index scale.
+     */
+    @Query("SELECT id, date, resultRevision, length(embedding) AS embeddingBytes FROM image_embeddings")
+    fun getHeaderFlow(): Flow<List<ImageEmbeddingHeader>>
+
     @Query("SELECT id FROM image_embeddings")
     suspend fun getIds(): List<Long>
 

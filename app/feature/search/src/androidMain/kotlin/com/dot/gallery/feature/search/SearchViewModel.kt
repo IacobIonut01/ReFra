@@ -3,7 +3,7 @@ package com.dot.gallery.feature.search
 import android.content.Context
 import com.github.panpf.sketch.asBitmapOrNull
 import com.github.panpf.sketch.request.ImageRequest
-import com.github.panpf.sketch.resize.Scale
+import com.dot.gallery.core.smart.VideoFrameSampler
 import com.github.panpf.sketch.sketch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -35,6 +35,8 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,7 +93,8 @@ import org.jetbrains.compose.resources.getString
 
 
 
-private const val VISUAL_SEARCH_INPUT_SIZE = 224
+/** Typing debounce before running a text embedding for each keystroke burst. */
+private const val TEXT_EMBED_DEBOUNCE_MS = 350L
 
 fun <T, K> reconcileSearchResults(
     previousResults: List<T>,
@@ -142,18 +145,19 @@ class SearchViewModel @Inject constructor(
     smartScanDao: SmartScanDao,
     private val searchHelper: SearchHelper,
     repository: MediaRepository,
-    modelManager: ModelManager,
+    private val modelManager: ModelManager,
     private val cloudRepository: CloudRepository,
     private val offlineModeManager: OfflineModeManager,
+    private val videoFrameSampler: VideoFrameSampler,
     private val context: Context
 ) : ViewModel() {
 
-    val isModelAvailable: StateFlow<Boolean> = modelManager.status(ModelGroup.SEARCH)
+    val isModelAvailable: StateFlow<Boolean> = modelManager.activeSearchModelStatus()
         .map { it == ModelStatus.READY }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = modelManager.isReady(ModelGroup.SEARCH)
+            initialValue = modelManager.isReady(modelManager.activeSearchModel)
         )
 
     private val imageRecords = mediaDistributor.imageEmbeddingsFlow
@@ -550,16 +554,32 @@ class SearchViewModel @Inject constructor(
                     return@launch
                 }
                 val localHits = if (searchHelper.isAvailable) {
-                    val request = ImageRequest(
-                        context.applicationContext, uri.toString()
-                    ) {
-                        size(VISUAL_SEARCH_INPUT_SIZE, VISUAL_SEARCH_INPUT_SIZE)
-                        scale(Scale.CENTER_CROP)
-                    }
-                    val bitmap = context.sketch.execute(request).image?.asBitmapOrNull()
-                        ?: throw IllegalStateException("Sketch returned no bitmap for $uri")
                     searchHelper.setupVisionSession().use { session ->
-                        val imageEmbedding = searchHelper.getImageEmbedding(session, bitmap)
+                        // Bound to the engine that opened the session — a model switch
+                        // mid-flight can't leave this path inconsistent.
+                        val searchModel = session.model
+                        val mediaEmbedding = if (media.mimeType.startsWith("video/") && searchModel.supportsVideo) {
+                            // Videos get a real multi-frame embedding; fall back to a
+                            // poster-frame image embed when frames can't be decoded.
+                            val frames = videoFrameSampler.sampleFrames(uri)
+                            if (frames.isNotEmpty()) {
+                                try {
+                                    searchHelper.getVideoEmbedding(session, frames)
+                                } finally {
+                                    frames.forEach { it.recycle() }
+                                }
+                            } else null
+                        } else null
+                        val imageEmbedding = mediaEmbedding ?: run {
+                            val request = ImageRequest(
+                                context.applicationContext, uri.toString()
+                            ) {
+                                size(searchModel.visualSearchInputSize, searchModel.visualSearchInputSize)
+                            }
+                            val bitmap = context.sketch.execute(request).image?.asBitmapOrNull()
+                                ?: throw IllegalStateException("Sketch returned no bitmap for $uri")
+                            searchHelper.getImageEmbedding(session, bitmap)
+                        }
                         val searchResultsPair = searchHelper.sortByCosineDistance(
                             searchEmbedding = imageEmbedding,
                             imageEmbeddingsList = imageRecords.value.map { it.embedding },
@@ -931,6 +951,11 @@ class SearchViewModel @Inject constructor(
                 )
             }
             if (searchHelper.isAvailable) {
+                // One backbone inference takes ~1s+ — far longer than a keystroke
+                // interval. Let typing settle first; a cancelled job skips the run
+                // entirely instead of queueing wasted inferences on the warm session.
+                delay(TEXT_EMBED_DEBOUNCE_MS)
+                ensureActive()
                 searchHelper.setupTextSession().use { session ->
                     val textEmbedding = searchHelper.getTextEmbedding(session, query)
                     val searchResultsPair = searchHelper.sortByCosineDistance(

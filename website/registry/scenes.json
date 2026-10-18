@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-10T06:09:03.641Z",
-  "capturedAtMs": 1791536890027,
+  "generatedAt": "2026-10-18T14:31:53.973Z",
+  "capturedAtMs": 1792333890383,
   "sources": [
     "../docs-out",
     "../app/docs/showcase/src/commonMain/kotlin/com/dot/gallery/docs/SceneRegistry.kt"
@@ -5665,24 +5665,40 @@
         },
         "phone": {
           "downloading": {
-            "src": "captures/settings-ai-models/phone-downloading.webp",
+            "src": "captures/settings-ai-models/light/phone-downloading.webp",
             "type": "image",
-            "file": "settings-ai-models/phone-downloading.webp"
+            "file": "settings-ai-models/light/phone-downloading.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "not-installed": {
-            "src": "captures/settings-ai-models/phone-not-installed.webp",
+            "src": "captures/settings-ai-models/light/phone-not-installed.webp",
             "type": "image",
-            "file": "settings-ai-models/phone-not-installed.webp"
+            "file": "settings-ai-models/light/phone-not-installed.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "ready": {
-            "src": "captures/settings-ai-models/phone-ready.webp",
+            "src": "captures/settings-ai-models/light/phone-ready.webp",
             "type": "image",
-            "file": "settings-ai-models/phone-ready.webp"
+            "file": "settings-ai-models/light/phone-ready.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "default": {
-            "src": "captures/settings-ai-models/phone-not-installed.webp",
+            "src": "captures/settings-ai-models/light/phone-not-installed.webp",
             "type": "image",
-            "file": "settings-ai-models/phone-not-installed.webp"
+            "file": "settings-ai-models/light/phone-not-installed.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -5709,6 +5725,46 @@
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "downloading": {
+              "src": "captures/settings-ai-models/dark/phone-downloading.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/phone-downloading.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "not-installed": {
+              "src": "captures/settings-ai-models/dark/phone-not-installed.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/phone-not-installed.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "ready": {
+              "src": "captures/settings-ai-models/dark/phone-ready.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/phone-ready.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/settings-ai-models/dark/phone-not-installed.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/phone-not-installed.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "foldable": {
             "downloading": {
@@ -5734,24 +5790,40 @@
           },
           "phone": {
             "downloading": {
-              "src": "captures/settings-ai-models/phone-downloading.webp",
+              "src": "captures/settings-ai-models/light/phone-downloading.webp",
               "type": "image",
-              "file": "settings-ai-models/phone-downloading.webp"
+              "file": "settings-ai-models/light/phone-downloading.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "not-installed": {
-              "src": "captures/settings-ai-models/phone-not-installed.webp",
+              "src": "captures/settings-ai-models/light/phone-not-installed.webp",
               "type": "image",
-              "file": "settings-ai-models/phone-not-installed.webp"
+              "file": "settings-ai-models/light/phone-not-installed.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "ready": {
-              "src": "captures/settings-ai-models/phone-ready.webp",
+              "src": "captures/settings-ai-models/light/phone-ready.webp",
               "type": "image",
-              "file": "settings-ai-models/phone-ready.webp"
+              "file": "settings-ai-models/light/phone-ready.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-ai-models/phone-not-installed.webp",
+              "src": "captures/settings-ai-models/light/phone-not-installed.webp",
               "type": "image",
-              "file": "settings-ai-models/phone-not-installed.webp"
+              "file": "settings-ai-models/light/phone-not-installed.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {

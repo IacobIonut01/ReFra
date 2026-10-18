@@ -43,7 +43,7 @@ fun SettingsSmartFeaturesScreen(
 ) {
     val handler = LocalEventHandler.current
     val aiAvailable = viewModel.areAiFeaturesAvailable
-    val modelStatus by viewModel.modelStatus(ModelGroup.SEARCH).collectAsStateWithLifecycle()
+    val modelStatus by viewModel.activeSearchModelStatus().collectAsStateWithLifecycle()
     val activeSmartScan by viewModel.activeSmartScan.collectAsStateWithLifecycle()
     val activeSmartScanPhases by viewModel.activeSmartScanPhases.collectAsStateWithLifecycle()
     val latestSmartScan by viewModel.latestSmartScan.collectAsStateWithLifecycle()

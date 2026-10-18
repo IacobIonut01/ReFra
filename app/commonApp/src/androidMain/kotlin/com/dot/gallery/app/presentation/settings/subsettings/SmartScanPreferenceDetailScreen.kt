@@ -20,7 +20,7 @@ import com.dot.gallery.feature.settings.subsettings.SmartFeaturesViewModel
 fun SmartScanPreferenceDetailScreen(
     viewModel: SmartFeaturesViewModel = injectViewModel { smartFeaturesViewModel }
 ) {
-    val searchStatus by viewModel.modelStatus(ModelGroup.SEARCH).collectAsStateWithLifecycle()
+    val searchStatus by viewModel.activeSearchModelStatus().collectAsStateWithLifecycle()
     val faceDetectStatus by viewModel.modelStatus(ModelGroup.FACE_DETECT).collectAsStateWithLifecycle()
     val faceRecognitionStatus by viewModel.modelStatus(ModelGroup.FACE_RECOGNITION).collectAsStateWithLifecycle()
     val activeScan by viewModel.activeSmartScan.collectAsStateWithLifecycle()

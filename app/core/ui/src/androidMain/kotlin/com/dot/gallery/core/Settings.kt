@@ -41,6 +41,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.SearchModel
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.domain.date.SystemDateFormatField
 import com.dot.gallery.core.presentation.util.systemDateTimePattern
@@ -373,6 +374,23 @@ object Settings {
             context.activeDataStore.edit { it[PROVIDER_SMART_SEARCH] = enabled }
         }
 
+        private val SEARCH_MODEL = stringPreferencesKey("smart_features_search_model")
+
+        /**
+         * The search engine powering Smart Search + Categories. Defaults to CLIP (the
+         * historical engine); switching re-indexes the library on the next Smart Scan.
+         */
+        fun searchModel(context: Context): Flow<SearchModel> =
+            context.activeDataStore.data.map { prefs ->
+                prefs[SEARCH_MODEL]
+                    ?.let { runCatching { SearchModel.valueOf(it) }.getOrNull() }
+                    ?: SearchModel.DEFAULT
+            }
+
+        suspend fun setSearchModel(context: Context, model: SearchModel) {
+            context.activeDataStore.edit { it[SEARCH_MODEL] = model.name }
+        }
+
         private val REMOVED_MODEL_GROUPS = stringSetPreferencesKey("smart_features_removed_model_groups")
 
         /**
@@ -382,8 +400,15 @@ object Settings {
         fun removedModelGroups(context: Context): Flow<Set<ModelGroup>> =
             context.activeDataStore.data.map { prefs ->
                 prefs[REMOVED_MODEL_GROUPS].orEmpty()
-                    .mapNotNullTo(LinkedHashSet()) { name ->
-                        runCatching { ModelGroup.valueOf(name) }.getOrNull()
+                    .flatMapTo(LinkedHashSet()) { name ->
+                        // "SEARCH" was the single search-model group before CLIP and
+                        // EmbeddingGemma 2 became selectable engines — honor the removal
+                        // intent for every search engine, not just its enum successor.
+                        if (name == "SEARCH") {
+                            listOf(ModelGroup.SEARCH_CLIP, ModelGroup.SEARCH_EG2)
+                        } else {
+                            listOfNotNull(runCatching { ModelGroup.valueOf(name) }.getOrNull())
+                        }
                     }
             }
 

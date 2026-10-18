@@ -256,6 +256,13 @@ tasks.matching { it.name == "mergeAndroidDeviceTestAssets" }.configureEach {
     dependsOn(syncDeviceTestSchemaAssets)
 }
 
+// CMP's copyAndroidDeviceTestComposeResourcesToAndroidAssets writes into the shared
+// build/generated/assets tree that mergeAndroidMainAssets consumes; Gradle 9 rejects
+// the implicit dependency, so the ordering must be declared explicitly.
+tasks.matching { it.name == "mergeAndroidMainAssets" }.configureEach {
+    mustRunAfter("copyAndroidDeviceTestComposeResourcesToAndroidAssets")
+}
+
 // kotlin-inject graph codegen + Glide @GlideModule codegen on the Android target
 dependencies {
     add("kspAndroid", libs.kotlin.inject.compiler.ksp)

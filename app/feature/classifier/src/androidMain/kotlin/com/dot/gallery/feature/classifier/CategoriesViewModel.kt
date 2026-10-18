@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.core.MediaDistributor
-import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.domain.util.getUri
@@ -60,7 +59,8 @@ class CategoriesViewModel @Inject constructor(
     private val smartScanDao: SmartScanDao,
 ) : ViewModel() {
 
-    val modelStatus: StateFlow<ModelStatus> = modelManager.status(ModelGroup.SEARCH)
+    val modelStatus: StateFlow<ModelStatus> = modelManager.activeSearchModelStatus()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ModelStatus.NOT_INSTALLED)
 
     // ============ Locations ============
     

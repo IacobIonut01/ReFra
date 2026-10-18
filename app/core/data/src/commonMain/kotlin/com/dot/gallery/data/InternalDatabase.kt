@@ -143,7 +143,7 @@ import com.dot.gallery.data.Converters
         CloudTagEntity::class,
         CloudMediaTagEntity::class
     ],
-    version = 53,
+    version = 54,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -201,6 +201,8 @@ import com.dot.gallery.data.Converters
         AutoMigration(from = 50, to = 51), // face_links (face-scoped include/exclude assertions)
         AutoMigration(from = 51, to = 52), // face_suppressions (deleted-person face bans, #1262)
         AutoMigration(from = 52, to = 53), // people.birthDate (on-device person birthday)
+        // Migration 53 to 54 is handled manually in EmbeddingGemma2Migration.kt
+        // (selectable search engines: purge foreign-dimension embeddings, normalize thresholds)
     ]
 )
 @ColumnTypeConverters(Converters::class, CloudConverters::class, SmartScanConverters::class)

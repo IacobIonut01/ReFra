@@ -36,6 +36,7 @@ import com.dot.gallery.domain.model.Vault
 import com.dot.gallery.domain.model.VaultState
 import com.dot.gallery.domain.model.ScannedMedia
 import com.dot.gallery.domain.model.shouldIgnore
+import com.dot.gallery.data.dao.ImageEmbeddingHeader
 import com.dot.gallery.data.dao.MediaCaptureTimeDao
 import com.dot.gallery.data.dao.ScannedMediaDao
 import com.dot.gallery.core.smart.SmartScanPlan
@@ -1700,8 +1701,44 @@ class MediaDistributorImpl @Inject constructor(
     /**
      * Search
      */
+    /**
+     * Incrementally materialised embedding index. `SELECT *` on every table write
+     * (the plain Room flow) re-decodes every 3 KB vector per insert — quadratic
+     * during a Smart Scan over thousands of items. Headers carry no blob, so each
+     * emission costs a light query plus a fetch of only the new/changed rows.
+     */
+    private val embeddingRowCache = HashMap<Long, Pair<ImageEmbeddingHeader, ImageEmbedding>>()
+
+    private companion object {
+        /** Rows fetched per `IN (:ids)` query — well under SQLite's 999 bind limit. */
+        const val EMBEDDING_FETCH_BATCH = 500
+    }
+
+    private suspend fun embeddingSnapshotFor(headers: List<ImageEmbeddingHeader>): List<ImageEmbedding> {
+        val headerById = headers.associateBy { it.id }
+        val staleIds = synchronized(embeddingRowCache) {
+            embeddingRowCache.keys.retainAll(headerById.keys)
+            headers.filter { embeddingRowCache[it.id]?.first != it }.map { it.id }
+        }
+        if (staleIds.isNotEmpty()) {
+            val fresh = staleIds.chunked(EMBEDDING_FETCH_BATCH)
+                .flatMap { repository.getImageEmbeddings(it) }
+                .associateBy { it.id }
+            synchronized(embeddingRowCache) {
+                fresh.forEach { (id, embedding) ->
+                    embeddingRowCache[id] = headerById.getValue(id) to embedding
+                }
+            }
+        }
+        return synchronized(embeddingRowCache) {
+            headers.map { embeddingRowCache.getValue(it.id).second }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val imageEmbeddingsFlow: StateFlow<List<ImageEmbedding>> =
-        repository.getImageEmbeddings()
+        repository.getImageEmbeddingHeaders()
+            .mapLatest(::embeddingSnapshotFor)
             .stateIn(
                 scope = appScope,
                 started = sharingMethod,
