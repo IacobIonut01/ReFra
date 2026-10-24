@@ -493,7 +493,7 @@ fun <T : Media> ZoomablePagerImage(
     val fullPainter = rememberAsyncImagePainter(
         request = ComposableImageRequest(mediaUri) {
             if (isEncrypted || isAnimated || isAnimatedRaster) {
-                crossfade(durationMillis = if (animationsEnabled) 200 else 0)
+                transitionFactory(viewerCrossfadeTransition(animationsEnabled))
             }
             // Animated raster (GIF/animated WebP/APNG) can't be subsampled, so decode the base frame
             // at native resolution (capped) instead of the default layout/screen size — otherwise a
