@@ -41,6 +41,12 @@ class MediaViewerVisualPolicyTest {
     }
 
     @Test
+    fun viewerClosesOnlyAfterItsLastItemIsRemoved() {
+        assertTrue(shouldDismissViewerAfterRemoval(remainingCount = 0))
+        assertFalse(shouldDismissViewerAfterRemoval(remainingCount = 1))
+    }
+
+    @Test
     fun completedViewerDismissesInsteadOfShowingRandomMediaWhenTargetIsMissing() {
         assertTrue(
             shouldDismissMissingMediaTarget(

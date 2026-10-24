@@ -590,6 +590,13 @@ internal fun shouldDismissMissingMediaTarget(
     isStandalone: Boolean,
 ): Boolean = !isLoading && !isPartial && !targetFound && hasMedia && !isStandalone
 
+/**
+ * Whether the viewer should close once the viewed item was trashed or deleted.
+ * Applies to the standalone viewer too: a camera hand-off usually holds a single
+ * item, and keeping the viewer open would leave an empty black pager.
+ */
+internal fun shouldDismissViewerAfterRemoval(remainingCount: Int): Boolean = remainingCount <= 0
+
 internal fun shouldExitEmptySlideshow(
     isActive: Boolean,
     isLoading: Boolean,
@@ -3376,7 +3383,7 @@ fun <T : Media> MediaViewScreen(
                                                             state.pagerMedia.ifEmpty { state.media }
                                                         val remaining =
                                                             allItems.count { it.id !in newPending }
-                                                        if (remaining <= 0 && !isStandalone) {
+                                                        if (shouldDismissViewerAfterRemoval(remaining)) {
                                                             windowInsetsController.toggleSystemBars(show = true)
                                                             dismissViewer()
                                                         } else {
