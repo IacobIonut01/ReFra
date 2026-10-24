@@ -666,6 +666,23 @@ internal fun canAdoptExistingCategoryResults(
         (it.resultRevision.isBlank() || it.resultRevision == revision)
 }
 
+/**
+ * Old automatic memberships may be stamped as the current result only when they were produced
+ * for this source. A changed description, threshold, reference image or embedding set is a
+ * different source, and adopting the old rows would record that source as done without
+ * classifying it.
+ */
+internal fun shouldAdoptExistingCategoryResults(
+    fullRefresh: Boolean,
+    storedSourceRevision: String?,
+    source: String,
+    mappings: List<MediaCategory>,
+    validMediaIds: Set<Long>,
+    revision: String
+): Boolean = !fullRefresh &&
+    storedSourceRevision == source &&
+    canAdoptExistingCategoryResults(mappings, validMediaIds, revision)
+
 class CategoryClassificationPhaseProcessor @Inject constructor(
     repository: MediaRepository,
     database: InternalDatabase,
@@ -711,7 +728,15 @@ class CategoryClassificationPhaseProcessor @Inject constructor(
             if (activeLease || current) {
                 false
             } else {
-                if (!context.fullRefresh && canAdoptExistingCategoryResults(mappings, embeddingIds, revision)) {
+                if (shouldAdoptExistingCategoryResults(
+                        context.fullRefresh,
+                        state?.sourceRevision,
+                        source,
+                        mappings,
+                        embeddingIds,
+                        revision
+                    )
+                ) {
                     database.withWriteTransaction {
                         check(categoryDao.updateAutomaticResultRevision(category.id, revision) == mappings.size)
                         scanDao.upsertFeatureState(

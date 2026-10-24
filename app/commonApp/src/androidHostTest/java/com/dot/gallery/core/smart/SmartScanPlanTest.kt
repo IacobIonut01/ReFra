@@ -520,6 +520,63 @@ class SmartScanPlanTest {
     }
 
     @Test
+    fun categoryResultsForADifferentSourceAreNotAdopted() {
+        val mappings = listOf(
+            MediaCategory(
+                mediaId = 7L,
+                categoryId = 2L,
+                similarityScore = 0.8f,
+                resultRevision = "categories-v2"
+            )
+        )
+
+        assertEquals(
+            false,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = false,
+                storedSourceRevision = "embeddings:1:old-terms:0.2:",
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L, 8L),
+                revision = "categories-v2"
+            )
+        )
+        assertEquals(
+            false,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = false,
+                storedSourceRevision = null,
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L),
+                revision = "categories-v2"
+            )
+        )
+        assertEquals(
+            false,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = true,
+                storedSourceRevision = "embeddings:1:beaches:0.2:",
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L),
+                revision = "categories-v2"
+            )
+        )
+        assertEquals(
+            true,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = false,
+                storedSourceRevision = "embeddings:1:beaches:0.2:",
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L),
+                revision = "categories-v2"
+            )
+        )
+    }
+
+    @Test
     fun validExistingFaceResultsCanBeAdopted() {
         val faceEmbedding = FloatArray(512) { 1f / sqrt(512f) }
         val faceBytes = ByteBuffer.allocate(faceEmbedding.size * Float.SIZE_BYTES).apply {
