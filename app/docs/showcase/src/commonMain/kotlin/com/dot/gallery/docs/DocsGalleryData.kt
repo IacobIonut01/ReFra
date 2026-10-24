@@ -9,6 +9,7 @@ import com.dot.gallery.domain.date.DateGrouper
 import com.dot.gallery.domain.date.epochSecToLocalDate
 import com.dot.gallery.domain.date.formatEpochSec
 import com.dot.gallery.domain.date.getDate
+import com.dot.gallery.domain.date.isRelativeDateLabel
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.Collection
 import com.dot.gallery.domain.model.CollectionWithCount
@@ -196,7 +197,7 @@ object DocsGalleryData {
             // Big month header once a group lands a week or more back (same rule as
             // mapMediaToItem's default path).
             val firstTimestamp = group.first().timestamp
-            val month = if (dateGrouper.daysUntilToday(firstTimestamp) >= 7) {
+            val month = if (!isRelativeDateLabel(dateGrouper.daysUntilToday(firstTimestamp))) {
                 if (firstTimestamp.epochSecToLocalDate().year == dateGrouper.currentYear) {
                     firstTimestamp.formatEpochSec("MMMM")
                 } else {

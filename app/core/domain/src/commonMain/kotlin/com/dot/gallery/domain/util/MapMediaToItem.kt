@@ -13,6 +13,7 @@ import com.dot.gallery.domain.date.getDateExt
 import com.dot.gallery.domain.date.getDateHeader
 import com.dot.gallery.domain.date.getMonth
 import com.dot.gallery.domain.date.getYear
+import com.dot.gallery.domain.date.isRelativeDateLabel
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.MediaItem
 import com.dot.gallery.domain.model.MediaState
@@ -121,7 +122,7 @@ suspend fun <T : Media> mapMediaToItem(
             // The group key is a localized date string only for items a week or
             // older — Today/Yesterday/weekday label keys get no big month header.
             val firstTimestamp = data.first().timestampFor(dateSource)
-            val month = if (dateGrouper != null && dateGrouper.daysUntilToday(firstTimestamp) >= 7) {
+            val month = if (dateGrouper != null && !isRelativeDateLabel(dateGrouper.daysUntilToday(firstTimestamp))) {
                 if (firstTimestamp.epochSecToLocalDate().year == dateGrouper.currentYear) {
                     firstTimestamp.formatEpochSec("MMMM")
                 } else {

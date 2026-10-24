@@ -196,6 +196,7 @@ kotlin {
                 implementation(libs.junit)
                 implementation(libs.mockwebserver)
                 implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotlinx.datetime)
             }
         }
 
