@@ -178,6 +178,38 @@ class CategoryIntegrityDaoTest {
     }
 
     @Test
+    fun userCreatedCategory_withNoMembers_staysListed() = runBlocking {
+        categoryDao.insertCategory(
+            Category(name = "Trips", searchTerms = "beach", isUserCreated = true)
+        )
+        categoryDao.insertCategory(
+            Category(name = "Nature", searchTerms = "trees", isUserCreated = false)
+        )
+
+        val listed = categoryDao.getCategoriesWithMediaCount().first()
+
+        assertEquals(listOf("Trips"), listed.map { it.name })
+        assertEquals(0, listed.single().mediaCount)
+        assertNull(listed.single().thumbnailMediaId)
+    }
+
+    @Test
+    fun userCreatedCategory_staysListedAfterItsMembersLeaveTheMirror() = runBlocking {
+        val categoryId = categoryDao.insertCategory(
+            Category(name = "Trips", searchTerms = "beach", isUserCreated = true)
+        )
+        categoryDao.insertMediaCategory(membership(10, categoryId, 0.9f))
+        mirror(10)
+        assertEquals(1, categoryDao.getCategoriesWithMediaCount().first().single().mediaCount)
+
+        mirror()
+        val listed = categoryDao.getCategoriesWithMediaCount().first()
+        assertEquals(listOf("Trips"), listed.map { it.name })
+        assertEquals(0, listed.single().mediaCount)
+        assertNull(listed.single().thumbnailMediaId)
+    }
+
+    @Test
     fun deletingLastMirroredMedia_dropsCategoryFromPopulatedList() = runBlocking {
         val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = ""))
         categoryDao.insertMediaCategory(membership(10, categoryId, 0.9f))

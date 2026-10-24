@@ -297,6 +297,8 @@ interface CategoryDao {
     // valid_media excludes vaulted ids (encrypted_media) — memberships survive vaulting for
     // restore, but must not count or surface while vaulted (#1106). UNION (not UNION ALL)
     // dedups ids present in both `media` and `cloud_media` so a synced item counts once.
+    // A user-created category with no displayable member stays listed at count zero.
+    // A generated category with none stays off the list.
     @Query("""
         WITH valid_media AS (
             SELECT id FROM media
@@ -306,16 +308,16 @@ interface CategoryDao {
             WHERE trashed = 0 AND archived = 0
               AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = cloud_media.globalMediaId)
         )
-        SELECT c.*, COUNT(mc.mediaId) as mediaCount,
+        SELECT c.*, COUNT(vm.id) as mediaCount,
                (SELECT mc2.mediaId FROM media_category mc2
                 INNER JOIN valid_media vm2 ON vm2.id = mc2.mediaId
                 WHERE mc2.categoryId = c.id
                 ORDER BY mc2.similarityScore DESC LIMIT 1) as thumbnailMediaId
         FROM categories c
-        INNER JOIN media_category mc ON c.id = mc.categoryId
-        INNER JOIN valid_media vm ON vm.id = mc.mediaId
+        LEFT JOIN media_category mc ON c.id = mc.categoryId
+        LEFT JOIN valid_media vm ON vm.id = mc.mediaId
         GROUP BY c.id
-        HAVING mediaCount > 0
+        HAVING mediaCount > 0 OR c.isUserCreated = 1
         ORDER BY c.isPinned DESC, c.name ASC
     """)
     fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>>
