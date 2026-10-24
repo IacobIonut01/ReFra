@@ -131,7 +131,7 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
 
     @UnstableApi
     private fun createExoPlayer(): ExoPlayer {
-        return ExoPlayer.Builder(appContext)
+        return ExoPlayer.Builder(appContext, ViewerRenderersFactory(appContext))
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
             .build().apply {
             setSeekParameters(SeekParameters.EXACT)

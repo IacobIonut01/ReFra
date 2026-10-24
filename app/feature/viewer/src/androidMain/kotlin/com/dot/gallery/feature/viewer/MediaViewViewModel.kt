@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.dot.gallery.feature.viewer.components.video.ViewerRenderersFactory
 import com.dot.gallery.core.metadata.MediaContainerFormat
 import com.dot.gallery.core.metadata.MetadataRemovalMode
 import com.dot.gallery.core.metadata.MetadataSaveMode
@@ -283,7 +284,7 @@ class MediaViewViewModel @Inject constructor(
 
         _motionPlayback.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            val exo = ExoPlayer.Builder(context).build().apply {
+            val exo = ExoPlayer.Builder(context, ViewerRenderersFactory(context)).build().apply {
                 repeatMode = Player.REPEAT_MODE_ONE
                 setMediaItem(
                     MediaItem.Builder()
