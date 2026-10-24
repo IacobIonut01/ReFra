@@ -102,6 +102,7 @@ import com.dot.gallery.core.decoder.RawDevelopStore
 import com.dot.gallery.core.decoder.RawRegionDecoder
 import com.dot.gallery.core.decoder.format.ImageFormatSniffer
 import com.dot.gallery.core.decoder.format.TiffImageDecoder
+import com.dot.gallery.core.decoder.isAnimatedAvif
 import com.dot.gallery.core.decoder.isAnimatedWebp
 import com.dot.gallery.core.ml.CutoutHelper
 import com.dot.gallery.core.presentation.components.util.LocalBatteryStatus
@@ -301,6 +302,28 @@ fun resolveUsePixelPerfect(
     isAnimatedRaster: Boolean,
 ): Boolean = disableSmoothing && !isAnimatedRaster && (isJxl || !isAnimated)
 
+/**
+ * A still AVIF and an AVIF sequence share `image/avif`. Only `image/avis` or a sniffed
+ * `avis` brand is a sequence, and the platform animates those on API 31+. APNG and JXL
+ * stay animated on every API, matching the painters that already play them.
+ */
+fun viewerMarksAnimated(
+    isApng: Boolean,
+    isJxl: Boolean,
+    isAvisMime: Boolean,
+    sniffedAnimatedAvif: Boolean,
+    isHeifSequenceMime: Boolean,
+    apiAtLeast31: Boolean,
+): Boolean = isApng || isJxl ||
+    ((isAvisMime || sniffedAnimatedAvif || isHeifSequenceMime) && apiAtLeast31)
+
+/**
+ * Still HEIC/HEIF and still AVIF share one region decoder. A sequence must stay on the
+ * base painter: tiling it would freeze a high-resolution layer over the animation.
+ */
+fun viewerUsesHeifTiles(isHeif: Boolean, isAvif: Boolean, isAnimated: Boolean): Boolean =
+    (isHeif || isAvif) && !isAnimated
+
 @Stable
 @Composable
 fun <T : Media> ZoomablePagerImage(
@@ -376,10 +399,34 @@ fun <T : Media> ZoomablePagerImage(
     // so the feature can never work for them and running it just wastes work (and, for large 16-bit
     // TIFFs, greedily reads metadata → OOM). Disable it for those formats.
     val cutoutSupported = remember(media) { !(media.isTiff || media.isPsd || media.isJp2) }
-    val isAnimated = remember(media) {
-        media.isApng || media.isJxl || (media.isAvif && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ||
-                (media.isHeif && media.mimeType.endsWith("-sequence") &&
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    // image/avif covers stills and sequences. Sniff the ftyp brand the way animated WebP
+    // does; cloud and encrypted files stay on the mime type, because sniffing would mean
+    // a download or a decrypt. image/avis is a sequence without a sniff.
+    var sniffedAnimatedAvif by remember(media) { mutableStateOf(false) }
+    LaunchedEffect(media) {
+        if (!media.isAvif || media.mimeType == "image/avis" || media.isEncrypted || media.isCloud) {
+            sniffedAnimatedAvif = false
+            return@LaunchedEffect
+        }
+        sniffedAnimatedAvif = withContext(Dispatchers.IO) {
+            runCatching {
+                context.contentResolver.openInputStream(media.getUri())?.use { ins ->
+                    val head = ByteArray(256)
+                    val n = ins.read(head)
+                    n > 0 && isAnimatedAvif(head.copyOf(n))
+                } ?: false
+            }.getOrDefault(false)
+        }
+    }
+    val isAnimated = remember(media, sniffedAnimatedAvif) {
+        viewerMarksAnimated(
+            isApng = media.isApng,
+            isJxl = media.isJxl,
+            isAvisMime = media.mimeType == "image/avis",
+            sniffedAnimatedAvif = sniffedAnimatedAvif,
+            isHeifSequenceMime = media.isHeif && media.mimeType.endsWith("-sequence"),
+            apiAtLeast31 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+        )
     }
     // Frame-animated raster formats that CANNOT be tiled/subsampled: GIF, animated WebP, APNG.
     // BitmapRegionDecoder can't decode GIF, and tiling a moving image would freeze a hi-res layer
@@ -569,7 +616,8 @@ fun <T : Media> ZoomablePagerImage(
             isHeif = media.isHeif,
             isSpecialFormat = mightBeSpecial,
             isAnimated = isAnimated,
-            isAnimatedRaster = isAnimatedRaster
+            isAnimatedRaster = isAnimatedRaster,
+            isAvif = media.isAvif,
         )
     }
 
@@ -580,11 +628,20 @@ fun <T : Media> ZoomablePagerImage(
     LaunchedEffect(media) {
         HeifDebug.d(
             "viewer media='${media.label}' mime='${media.mimeType}' isHeif=${media.isHeif} " +
-                "isJxl=$isJxl isAnimated=$isAnimated isAnimatedRaster=$isAnimatedRaster " +
+                "isAvif=${media.isAvif} isJxl=$isJxl isAnimated=$isAnimated " +
+                "isAnimatedRaster=$isAnimatedRaster " +
                 "customRegion=${customRegionFactory != null} " +
                 "encrypted=$isEncrypted cloud=$isCloudMedia usePixelPerfect=$usePixelPerfect " +
                 "isFullImageLoaded=$isFullImageLoaded"
         )
+    }
+    // A local image/avif file can still be an `avis` sequence. The sniff starts false, so
+    // the still path attaches tiles, then flips. Drop those tiles once the brand is known.
+    // image/avis never enters that path, and cloud/encrypted files are not sniffed.
+    LaunchedEffect(media.id, sniffedAnimatedAvif) {
+        if (sniffedAnimatedAvif) {
+            zoomState.setSubsamplingImage(null as SubsamplingImage?)
+        }
     }
     if (isEncrypted) {
         val keychainHolder = remember { KeychainHolder(context) }
@@ -663,11 +720,11 @@ fun <T : Media> ZoomablePagerImage(
         LaunchedEffect(zoomState.subsampling, media) {
             zoomState.subsampling.setRegionDecoders(listOf(customRegionFactory))
         }
-    } else if (media.isHeif && !isAnimated) {
-        // HEIC/HEIF: dedicated hardware-first (platform BitmapRegionDecoder) / software-fallback
-        // (libheif full-decode-then-crop) region decoder so zoom stays sharp. The generic branch
-        // below relies on the platform decoder alone with no fallback, which fails on HDR/10-bit/
-        // grid HEICs and devices without HEIF region support.
+    } else if (viewerUsesHeifTiles(media.isHeif, media.isAvif, isAnimated)) {
+        // HEIC/HEIF and still AVIF share one container. Hardware BitmapRegionDecoder, then
+        // libheif full-decode-then-crop, keeps zoom at the file's pixel size. The generic
+        // branch has no software fallback and fails on HDR, 10-bit, and grid HEICs.
+        // Sequences stay on the base painter.
         LaunchedEffect(media, isFullImageLoaded, zoomState.subsampling) {
             HeifDebug.d("HEIF branch: setSubsamplingImage for '${media.label}' (isFullImageLoaded=$isFullImageLoaded)")
             zoomState.setSubsamplingImage(media.asSubsamplingImage(context))
