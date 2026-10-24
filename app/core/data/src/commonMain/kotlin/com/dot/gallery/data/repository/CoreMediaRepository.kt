@@ -391,6 +391,8 @@ interface CoreMediaRepository {
 
     fun getAlbumIdsInCollection(collectionId: Long): Flow<List<Long>>
 
+    fun getExcludedMediaIdsInCollection(collectionId: Long): Flow<List<Long>>
+
     // ============ Album Sections ============
 
     suspend fun insertAlbumSection(section: AlbumSection): Long

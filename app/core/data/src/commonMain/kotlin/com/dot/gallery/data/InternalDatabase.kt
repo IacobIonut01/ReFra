@@ -49,6 +49,7 @@ import com.dot.gallery.domain.model.AlbumThumbnail
 import com.dot.gallery.domain.model.Category
 import com.dot.gallery.domain.model.Collection
 import com.dot.gallery.domain.model.CollectionAlbum
+import com.dot.gallery.domain.model.CollectionExcludedMedia
 import com.dot.gallery.domain.model.CollectionMedia
 import com.dot.gallery.domain.model.EditedMedia
 import com.dot.gallery.domain.model.IgnoredAlbum
@@ -118,6 +119,7 @@ import com.dot.gallery.data.Converters
         Collection::class,
         CollectionMedia::class,
         CollectionAlbum::class,
+        CollectionExcludedMedia::class,
         ScannedMedia::class,
         CloudMediaEntity::class,
         CloudBackupRevisionEntity::class,
@@ -143,7 +145,7 @@ import com.dot.gallery.data.Converters
         CloudTagEntity::class,
         CloudMediaTagEntity::class
     ],
-    version = 54,
+    version = 55,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -203,6 +205,7 @@ import com.dot.gallery.data.Converters
         AutoMigration(from = 52, to = 53), // people.birthDate (on-device person birthday)
         // Migration 53 to 54 is handled manually in EmbeddingGemma2Migration.kt
         // (selectable search engines: purge foreign-dimension embeddings, normalize thresholds)
+        AutoMigration(from = 54, to = 55), // collection_excluded_media
     ]
 )
 @ColumnTypeConverters(Converters::class, CloudConverters::class, SmartScanConverters::class)

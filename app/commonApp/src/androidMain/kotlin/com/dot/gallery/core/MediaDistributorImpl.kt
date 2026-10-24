@@ -53,6 +53,7 @@ import com.dot.gallery.data.entity.CloudMediaSnapshotMapper
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.data.repository.MediaRepository
 import com.dot.gallery.domain.util.EventHandler
+import com.dot.gallery.domain.util.isCollectionMember
 import com.dot.gallery.domain.util.MediaOrder
 import com.dot.gallery.domain.util.OrderType
 import com.dot.gallery.domain.util.MediaGroupType
@@ -1687,6 +1688,8 @@ class MediaDistributorImpl @Inject constructor(
     override fun collectionMediaFlow(collectionId: Long): StateFlow<MediaState<UriMedia>> =
         combine(
             repository.getMediaIdsInCollection(collectionId),
+            repository.getAlbumIdsInCollection(collectionId),
+            repository.getExcludedMediaIdsInCollection(collectionId),
             repository.getCompleteMedia(),
             settingsFlow,
             dateFormatsFlow,
@@ -1696,19 +1699,33 @@ class MediaDistributorImpl @Inject constructor(
         ) { values ->
             @Suppress("UNCHECKED_CAST")
             val mediaIds = values[0] as List<Long>
-            val allMediaResult = values[1] as Resource<List<UriMedia>>
-            val settings = values[2] as TimelineSettings?
             @Suppress("UNCHECKED_CAST")
-            val dateFormats = values[3] as Triple<String, String, String>
-            val albumSort = values[4] as Settings.Album.LastSort
-            val shouldGroupSimilar = values[5] as Boolean
+            val albumIds = values[1] as List<Long>
             @Suppress("UNCHECKED_CAST")
-            val groupTypes = values[6] as Set<MediaGroupType>
+            val excludedIds = values[2] as List<Long>
+            val allMediaResult = values[3] as Resource<List<UriMedia>>
+            val settings = values[4] as TimelineSettings?
+            @Suppress("UNCHECKED_CAST")
+            val dateFormats = values[5] as Triple<String, String, String>
+            val albumSort = values[6] as Settings.Album.LastSort
+            val shouldGroupSimilar = values[7] as Boolean
+            @Suppress("UNCHECKED_CAST")
+            val groupTypes = values[8] as Set<MediaGroupType>
 
             val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
             val allMedia = allMediaResult.data ?: emptyList()
-            val mediaIdSet = mediaIds.toHashSet()
-            val collectionMedia = allMedia.filter { it.id in mediaIdSet }
+            val explicitMediaIds = mediaIds.toHashSet()
+            val memberAlbumIds = albumIds.toHashSet()
+            val excludedMediaIds = excludedIds.toHashSet()
+            val collectionMedia = allMedia.filter { media ->
+                isCollectionMember(
+                    mediaId = media.id,
+                    albumId = media.albumID,
+                    explicitMediaIds = explicitMediaIds,
+                    memberAlbumIds = memberAlbumIds,
+                    excludedMediaIds = excludedMediaIds,
+                )
+            }
 
             val sorter = albumSort.toMediaOrder()
 

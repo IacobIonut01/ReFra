@@ -76,6 +76,7 @@ import com.dot.gallery.domain.model.AlbumGroupMember
 import com.dot.gallery.domain.model.AlbumSection
 import com.dot.gallery.domain.model.AlbumSectionMember
 import com.dot.gallery.domain.model.Collection
+import com.dot.gallery.domain.model.CollectionExcludedMedia
 import com.dot.gallery.domain.model.CollectionMedia
 import com.dot.gallery.domain.model.CollectionWithCount
 import com.dot.gallery.domain.model.AlbumThumbnail
@@ -1951,16 +1952,29 @@ class MediaRepositoryImpl(
     override suspend fun updateCollectionCover(collectionId: Long, mediaId: Long?) =
         collectionDao.updateCollectionCover(collectionId, mediaId)
 
-    override suspend fun addMediaToCollection(collectionId: Long, mediaId: Long) =
-        collectionDao.addMediaToCollection(CollectionMedia(collectionId, mediaId))
+    override suspend fun addMediaToCollection(collectionId: Long, mediaId: Long) {
+        database.withWriteTransaction {
+            collectionDao.addMediaToCollection(CollectionMedia(collectionId, mediaId))
+            collectionDao.clearExcludedMedia(collectionId, listOf(mediaId))
+        }
+    }
 
-    override suspend fun addMediaListToCollection(collectionId: Long, mediaIds: List<Long>) =
-        collectionDao.addMediaListToCollection(
-            mediaIds.map { CollectionMedia(collectionId, it) }
-        )
+    override suspend fun addMediaListToCollection(collectionId: Long, mediaIds: List<Long>) {
+        if (mediaIds.isEmpty()) return
+        database.withWriteTransaction {
+            collectionDao.addMediaListToCollection(
+                mediaIds.map { CollectionMedia(collectionId, it) }
+            )
+            collectionDao.clearExcludedMedia(collectionId, mediaIds)
+        }
+    }
 
-    override suspend fun removeMediaFromCollection(collectionId: Long, mediaId: Long) =
-        collectionDao.removeMediaFromCollection(collectionId, mediaId)
+    override suspend fun removeMediaFromCollection(collectionId: Long, mediaId: Long) {
+        database.withWriteTransaction {
+            collectionDao.removeMediaFromCollection(collectionId, mediaId)
+            collectionDao.excludeMedia(CollectionExcludedMedia(collectionId, mediaId))
+        }
+    }
 
     override fun getMediaIdsInCollection(collectionId: Long): Flow<List<Long>> =
         collectionDao.getMediaIdsInCollection(collectionId)
@@ -1994,6 +2008,9 @@ class MediaRepositoryImpl(
 
     override fun getAlbumIdsInCollection(collectionId: Long): Flow<List<Long>> =
         collectionDao.getAlbumIdsInCollection(collectionId)
+
+    override fun getExcludedMediaIdsInCollection(collectionId: Long): Flow<List<Long>> =
+        collectionDao.getExcludedMediaIds(collectionId)
 
     // ============ Album Sections ============
 

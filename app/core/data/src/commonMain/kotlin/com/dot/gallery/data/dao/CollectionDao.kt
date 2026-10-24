@@ -14,6 +14,7 @@ import androidx.room3.Transaction
 import androidx.room3.Update
 import com.dot.gallery.domain.model.Collection
 import com.dot.gallery.domain.model.CollectionAlbum
+import com.dot.gallery.domain.model.CollectionExcludedMedia
 import com.dot.gallery.domain.model.CollectionMedia
 import kotlinx.coroutines.flow.Flow
 
@@ -79,10 +80,10 @@ interface CollectionDao {
     @Query("SELECT mediaId FROM collection_media WHERE collectionId = :collectionId ORDER BY addedAt DESC")
     suspend fun getMediaIdsInCollectionAsync(collectionId: Long): List<Long>
 
-    @Query("SELECT COUNT(*) FROM collection_media WHERE collectionId = :collectionId")
+    @Query(COLLECTION_MEMBER_COUNT)
     fun getMediaCountInCollection(collectionId: Long): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM collection_media WHERE collectionId = :collectionId")
+    @Query(COLLECTION_MEMBER_COUNT)
     suspend fun getMediaCountInCollectionAsync(collectionId: Long): Int
 
     @Query("SELECT EXISTS(SELECT 1 FROM collection_media WHERE collectionId = :collectionId AND mediaId = :mediaId)")
@@ -139,24 +140,91 @@ interface CollectionDao {
     @Query("SELECT albumId FROM collection_albums WHERE collectionId = :collectionId")
     fun getAlbumIdsInCollection(collectionId: Long): Flow<List<Long>>
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun excludeMedia(excluded: CollectionExcludedMedia)
+
+    @Query(
+        "DELETE FROM collection_excluded_media " +
+            "WHERE collectionId = :collectionId AND mediaId IN (:mediaIds)"
+    )
+    suspend fun clearExcludedMedia(collectionId: Long, mediaIds: List<Long>)
+
+    @Query(
+        "SELECT mediaId FROM collection_excluded_media WHERE collectionId = :collectionId"
+    )
+    fun getExcludedMediaIds(collectionId: Long): Flow<List<Long>>
+
     // Collections with count for UI display
-    @Query("""
-        SELECT c.*, COUNT(cm.mediaId) as mediaCount,
-               COALESCE(
-                   c.coverMediaId,
-                   (SELECT cm2.mediaId FROM collection_media cm2 WHERE cm2.collectionId = c.id ORDER BY cm2.addedAt DESC LIMIT 1)
-               ) as thumbnailMediaId,
-               COALESCE(
-                   (SELECT SUM(m.size) FROM collection_media cm3 INNER JOIN media m ON cm3.mediaId = m.id WHERE cm3.collectionId = c.id),
-                   0
-               ) as totalSize
-        FROM collections c
-        LEFT JOIN collection_media cm ON c.id = cm.collectionId
-        GROUP BY c.id
-        ORDER BY c.isPinned DESC, c.sortOrder ASC, c.updatedAt DESC
-    """)
+    @Query(COLLECTIONS_WITH_COUNT)
     fun getCollectionsWithCount(): Flow<List<CollectionWithMediaCount>>
 }
+
+private const val COLLECTION_MEMBER_IDS = """
+    SELECT members.id FROM (
+        SELECT cm.mediaId AS id FROM collection_media cm WHERE cm.collectionId = :collectionId
+        UNION
+        SELECT m.id AS id FROM media m
+        INNER JOIN collection_albums ca
+            ON ca.collectionId = :collectionId AND m.albumID = ca.albumId
+    ) AS members
+    WHERE members.id NOT IN (
+        SELECT e.mediaId FROM collection_excluded_media e WHERE e.collectionId = :collectionId
+    )
+"""
+
+private const val COLLECTION_MEMBER_COUNT = """
+    SELECT COUNT(*) FROM (
+        $COLLECTION_MEMBER_IDS
+    )
+"""
+
+private const val COLLECTIONS_WITH_COUNT = """
+    SELECT c.*,
+           (
+               SELECT COUNT(*) FROM (
+                   SELECT members.id FROM (
+                       SELECT cm.mediaId AS id FROM collection_media cm WHERE cm.collectionId = c.id
+                       UNION
+                       SELECT m.id AS id FROM media m
+                       INNER JOIN collection_albums ca
+                           ON ca.collectionId = c.id AND m.albumID = ca.albumId
+                   ) AS members
+                   WHERE members.id NOT IN (
+                       SELECT e.mediaId FROM collection_excluded_media e
+                       WHERE e.collectionId = c.id
+                   )
+               )
+           ) AS mediaCount,
+           COALESCE(
+               c.coverMediaId,
+               (
+                   SELECT cm2.mediaId FROM collection_media cm2
+                   WHERE cm2.collectionId = c.id ORDER BY cm2.addedAt DESC LIMIT 1
+               )
+           ) AS thumbnailMediaId,
+           COALESCE(
+               (
+                   SELECT SUM(sized.size) FROM media sized
+                   WHERE sized.id IN (
+                       SELECT members.id FROM (
+                           SELECT cm3.mediaId AS id FROM collection_media cm3
+                           WHERE cm3.collectionId = c.id
+                           UNION
+                           SELECT m2.id AS id FROM media m2
+                           INNER JOIN collection_albums ca2
+                               ON ca2.collectionId = c.id AND m2.albumID = ca2.albumId
+                       ) AS members
+                       WHERE members.id NOT IN (
+                           SELECT e2.mediaId FROM collection_excluded_media e2
+                           WHERE e2.collectionId = c.id
+                       )
+                   )
+               ),
+               0
+           ) AS totalSize
+    FROM collections c
+    ORDER BY c.isPinned DESC, c.sortOrder ASC, c.updatedAt DESC
+"""
 
 /**
  * Helper class for queries that return collection with media count
