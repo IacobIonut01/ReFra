@@ -35,7 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.cloud.core.CloudAlbum
 import com.dot.gallery.core.LocalMediaDistributor
+import com.dot.gallery.core.presentation.components.MediaTypeAlbum
 import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.ui.components.SettingsItem
@@ -195,8 +197,23 @@ fun CollectionAlbumSelectorContent(
 }
 
 /**
- * Only real (local, non-negative) album ids are selectable collection members;
- * cloud album ids live in a separate negative namespace. Public so the app's
- * unit test can cover the same predicate the screen applies.
+ * Local MediaStore bucket ids are 32-bit and often negative. Cloud album ids
+ * are [CloudAlbum.CLOUD_ALBUM_ID_BASE] minus a 63-bit hash, so they fall
+ * outside that range. Synthetic albums keep the small negative ids.
+ * Public so the app's unit test can cover the same predicate the screen applies.
  */
-fun isSelectableCollectionAlbumId(albumId: Long): Boolean = albumId >= 0L
+fun isSelectableCollectionAlbumId(albumId: Long): Boolean {
+    if (albumId !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) return false
+    if (MediaTypeAlbum.isMediaTypeAlbumId(albumId)) return false
+    return albumId !in NON_BUCKET_ALBUM_IDS
+}
+
+/** Timeline, read-uri sentinel, new album, private folder, cloud placeholder, cloud base. */
+private val NON_BUCKET_ALBUM_IDS = longArrayOf(
+    -1L,
+    -99L,
+    -200L,
+    -300L,
+    -500L,
+    CloudAlbum.CLOUD_ALBUM_ID_BASE,
+)
