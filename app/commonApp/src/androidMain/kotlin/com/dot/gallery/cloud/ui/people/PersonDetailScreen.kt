@@ -308,14 +308,14 @@ fun PersonDetailScreen(
     // Birthday date picker dialog
     if (showBirthdayPicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = parseBirthDateMillis(state.person?.birthDate)
+            initialSelectedDateMillis = state.person?.birthDate?.let(::pickerMillisFromBirthDate)
         )
         DatePickerDialog(
             onDismissRequest = { showBirthdayPicker = false },
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val formatted = formatBirthDate(millis)
+                        val formatted = birthDateFromPickerMillis(millis)
                         viewModel.updateBirthDate(formatted)
                     }
                     showBirthdayPicker = false
@@ -536,17 +536,6 @@ fun PersonDetailScreen(
             }
         }
     }
-}
-
-private fun parseBirthDateMillis(birthDate: String?): Long? {
-    if (birthDate.isNullOrBlank()) return null
-    return try {
-        java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).parse(birthDate)?.time
-    } catch (_: Exception) { null }
-}
-
-private fun formatBirthDate(millis: Long): String {
-    return java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(millis))
 }
 
 private fun formatBirthDateDisplay(birthDate: String): String {
