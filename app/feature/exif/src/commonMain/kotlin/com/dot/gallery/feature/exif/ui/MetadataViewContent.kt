@@ -54,6 +54,7 @@ import com.dot.gallery.feature.exif.generated.resources.no_metadata_found
 @Composable
 fun MetadataViewContent(
     state: MetadataViewState,
+    onBack: (() -> Unit)? = null,
 ) {
     val expandedDirs = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -73,7 +74,7 @@ fun MetadataViewContent(
         topBar = {
             LargeTopAppBar(
                 title = { Text(stringResource(Res.string.all_metadata)) },
-                navigationIcon = { NavigationBackButton() },
+                navigationIcon = { NavigationBackButton(forcedAction = onBack) },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     scrolledContainerColor = MaterialTheme.colorScheme.surface

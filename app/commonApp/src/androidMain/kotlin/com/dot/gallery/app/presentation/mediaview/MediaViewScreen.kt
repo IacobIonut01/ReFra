@@ -852,7 +852,18 @@ fun <T : Media> MediaViewScreen(
     quickActionsContent: (@Composable RowScope.(T?, Boolean, Boolean, Boolean) -> Unit)? = null,
     detailsContent: (@Composable (T?) -> Unit)? = null,
     initialInfoExpanded: Boolean = false,
-) = CompositionLocalProvider(
+) {
+    // "View all metadata" used to leave the viewer, so closing that screen landed on the
+    // grid. Keep the photo composed and draw the metadata list over it instead.
+    var metadataCover by remember { mutableStateOf<MetadataCoverRequest?>(null) }
+    val exitNavigate = rememberViewerExitNavigate(onDismissRequest)
+    val viewerNavigate = remember(exitNavigate, isStandalone) {
+        { route: String ->
+            val request = metadataCoverOverMedia(route, isStandalone)
+            if (request != null) metadataCover = request else exitNavigate(route)
+        }
+    }
+    CompositionLocalProvider(
     // Viewer-owned backdrop. The activity haze state also carries gallery sources for as
     // long as the overlay is up; remembering this state here (not on chrome or page keys)
     // keeps media sources and every viewer consumer on one backdrop across hide/show.
@@ -864,7 +875,7 @@ fun <T : Media> MediaViewScreen(
         // blur, zoom/rotation tweens) resolve instantly instead of animating.
         animationsEnabled = Settings.Misc.rememberSharedElements().value
     ),
-    LocalMediaViewerNavigate provides rememberViewerExitNavigate(onDismissRequest)
+    LocalMediaViewerNavigate provides viewerNavigate
 ) {
     ProvideInsets {
         val eventHandler = LocalEventHandler.current
@@ -1413,7 +1424,7 @@ fun <T : Media> MediaViewScreen(
             if (!initialUiVisible && !showUI) windowInsetsController.toggleSystemBars(show = false)
         }
 
-        BackHandler(!showUI && !slideshowActive) {
+        BackHandler(!showUI && !slideshowActive && metadataCover == null) {
             windowInsetsController.toggleSystemBars(show = true)
             requestViewerDismiss()
         }
@@ -1426,7 +1437,7 @@ fun <T : Media> MediaViewScreen(
             showUI = true
             windowInsetsController.toggleSystemBars(show = true)
         }
-        BackHandler(slideshowActive) { exitSlideshow() }
+        BackHandler(slideshowActive && metadataCover == null) { exitSlideshow() }
 
         LaunchedEffect(slideshowActive, mediaState.value.isLoading, pagerItems.isEmpty()) {
             if (shouldExitEmptySlideshow(
@@ -1579,13 +1590,14 @@ fun <T : Media> MediaViewScreen(
         // swipe would trigger another navigateUp and pop past the gallery, exiting the app.
         var isDismissing by remember { mutableStateOf(false) }
         // Override back button/gesture when locked
-        BackHandler(enabled = isLocked) { }
+        BackHandler(enabled = isLocked && metadataCover == null) { }
         // Overlay viewer: predictive back scrubs the return flight toward the source cell — the
         // same manual morph a committed swipe-dismiss runs — while scrim/chrome fade with gesture
         // progress. Without a mapped cell the gesture still resolves as a plain dismiss.
         if (overlayMode) {
             PredictiveBackHandler(
-                enabled = showUI && !slideshowActive && !isLocked && !isDismissing
+                enabled = showUI && !slideshowActive && !isLocked && !isDismissing &&
+                    metadataCover == null
             ) { events ->
                 viewerDismissState.onPredictiveBack(
                     events = events,
@@ -1600,7 +1612,7 @@ fun <T : Media> MediaViewScreen(
                 }
             }
         } else {
-            BackHandler(enabled = showUI && !slideshowActive && !isLocked) {
+            BackHandler(enabled = showUI && !slideshowActive && !isLocked && metadataCover == null) {
                 windowInsetsController.toggleSystemBars(show = true)
                 requestViewerDismiss()
             }
@@ -2118,6 +2130,7 @@ fun <T : Media> MediaViewScreen(
             }
 
             val dismissGestureEnabled = overlayMode &&
+                    metadataCover == null &&
                     !isLocked &&
                     !isImageZoomed &&
                     !isVideoZoomed &&
@@ -2128,6 +2141,7 @@ fun <T : Media> MediaViewScreen(
             // Reuses every dismiss guard, so a zoomed, cut-out, locked or slideshow page never
             // arms the trash gesture either.
             val trashGestureEnabled = trashGestureAllowed &&
+                    metadataCover == null &&
                     !isLocked &&
                     !isImageZoomed &&
                     !isVideoZoomed &&
@@ -3225,7 +3239,7 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
                 // Back handler for group multi-select mode
-                BackHandler(groupMultiSelectMode) {
+                BackHandler(groupMultiSelectMode && metadataCover == null) {
                     groupMultiSelectMode = false
                     groupMultiSelectedIds = emptySet()
                 }
@@ -3238,7 +3252,7 @@ fun <T : Media> MediaViewScreen(
                         sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
                     }
                 }
-                BackHandler(sheetState.currentDetent == FullyExpanded) {
+                BackHandler(sheetState.currentDetent == FullyExpanded && metadataCover == null) {
                     scope.launch {
                         sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
                     }
@@ -3507,7 +3521,16 @@ fun <T : Media> MediaViewScreen(
                         onExit = { exitSlideshow() }
                     )
                 }
+                metadataCover?.let { request ->
+                    BackHandler { metadataCover = null }
+                    MetadataCoverLayer(
+                        request = request,
+                        onBack = { metadataCover = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         }
     }
+}
 }
