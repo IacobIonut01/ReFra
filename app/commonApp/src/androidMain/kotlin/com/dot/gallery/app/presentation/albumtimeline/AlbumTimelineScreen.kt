@@ -100,6 +100,7 @@ import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.Media
+import com.dot.gallery.domain.model.MediaItem
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
@@ -343,7 +344,11 @@ fun AlbumTimelineScreen(
                 val mappedData by remember(mediaState, albumsGroupMethod, albumGroupByDate) {
                     derivedStateOf {
                         if (!albumGroupByDate) {
-                            mediaState.value.mappedMedia
+                            // Date headers are off, so this grid follows the sorted media
+                            // list. That is the same order the viewer pager uses.
+                            mediaState.value.media.distinctBy { it.id }.map { media ->
+                                MediaItem.MediaViewItem(key = "media_${media.id}", media = media)
+                            }
                         } else {
                             when (albumsGroupMethod) {
                                 Settings.Misc.GROUP_MONTHLY -> mediaState.value.mappedMediaWithMonthly

@@ -23,6 +23,19 @@ import com.dot.gallery.domain.model.timestampFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Viewer page order.
+ *
+ * [groupedIds] is the date-header walk (stacked siblings stay behind their
+ * representative). With date headers off, the grid lists [sourceIds] in the
+ * active sort, and the pager has to follow that same list.
+ */
+fun pagerIdsForOpenGrid(
+    sourceIds: List<Long>,
+    groupedIds: List<Long>,
+    dateHeadersEnabled: Boolean,
+): List<Long> = if (dateHeadersEnabled) groupedIds else sourceIds.distinct()
+
 suspend fun <T : Media> mapMediaToItem(
     data: List<T>,
     error: String,
@@ -31,6 +44,7 @@ suspend fun <T : Media> mapMediaToItem(
     groupByYear: Boolean = false,
     withMonthHeader: Boolean = true,
     groupSimilarMedia: Boolean = false,
+    dateHeadersEnabled: Boolean = true,
     enabledGroupTypes: Set<MediaGroupType> = MediaGroupType.entries.toSet(),
     cloudGroupKeyOverrides: Map<Long, String> = emptyMap(),
     cloudBackups: Map<Long, List<UriMedia>> = emptyMap(),
@@ -174,7 +188,17 @@ suspend fun <T : Media> mapMediaToItem(
         isLoading = false,
         error = error,
         media = data,
-        pagerMedia = (if (groupSimilarMedia) pagerMediaList else data).distinctBy { it.id },
+        pagerMedia = run {
+            val groupedPager = (if (groupSimilarMedia) pagerMediaList else data).distinctBy { it.id }
+            val ids = pagerIdsForOpenGrid(
+                sourceIds = data.map { it.id },
+                groupedIds = groupedPager.map { it.id },
+                dateHeadersEnabled = dateHeadersEnabled,
+            )
+            val byId = LinkedHashMap<Long, T>(data.size)
+            for (item in data) byId.putIfAbsent(item.id, item)
+            ids.mapNotNull { byId[it] }
+        },
         mediaGroups = mediaGroupsMap,
         headers = headers,
         mappedMedia = mappedData,

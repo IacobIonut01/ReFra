@@ -3,6 +3,7 @@ package com.dot.gallery.core
 import android.content.Context
 import android.net.Uri
 import android.media.MediaScannerConnection
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.dot.gallery.core.work.isFinished
 import dev.brewkits.kmpworkmanager.background.domain.TaskEventBus
 import com.dot.gallery.core.presentation.components.FilterKind
@@ -421,6 +422,29 @@ class MediaDistributorImpl @Inject constructor(
 
     override val groupSimilarMedia: StateFlow<Boolean> =
         repository.getSetting(Settings.Misc.GROUP_SIMILAR_MEDIA, true)
+            .distinctUntilChanged()
+            .stateIn(appScope, prioritySharingMethod, true)
+
+    private val albumDateHeadersKey = booleanPreferencesKey("album_group_by_date")
+    private val hideTimelineOnAlbumKey = booleanPreferencesKey("hide_timeline_on_album")
+    private val timelineDateHeadersKey = booleanPreferencesKey("timeline_group_by_date")
+
+    /** Same rule as [Settings.Album.rememberAlbumGroupByDate]. */
+    private val albumDateHeaders: StateFlow<Boolean> =
+        context.activeDataStore.data
+            .map { prefs ->
+                Settings.Album.resolveAlbumGroupByDate(
+                    storedValue = prefs[albumDateHeadersKey],
+                    legacyHideTimeline = prefs[hideTimelineOnAlbumKey] ?: false,
+                )
+            }
+            .distinctUntilChanged()
+            .stateIn(appScope, prioritySharingMethod, true)
+
+    /** Same default as [SettingsKeys.timelineGroupByDate]. */
+    private val timelineDateHeaders: StateFlow<Boolean> =
+        context.activeDataStore.data
+            .map { prefs -> prefs[timelineDateHeadersKey] ?: true }
             .distinctUntilChanged()
             .stateIn(appScope, prioritySharingMethod, true)
 
@@ -1226,7 +1250,8 @@ class MediaDistributorImpl @Inject constructor(
                     dateFormatsFlow,
                     albumMediaSortFlow,
                     groupSimilarMedia,
-                    enabledGroupTypes
+                    enabledGroupTypes,
+                    albumDateHeaders,
                 ) { values ->
                     val mediaResult = values[0] as Resource<List<UriMedia>>
                     val settings = values[1] as TimelineSettings?
@@ -1241,6 +1266,7 @@ class MediaDistributorImpl @Inject constructor(
                     val shouldGroupSimilar = values[5] as Boolean
                     @Suppress("UNCHECKED_CAST")
                     val groupTypes = values[6] as Set<MediaGroupType>
+                    val dateHeadersEnabled = values[7] as Boolean
 
                     val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
 
@@ -1256,6 +1282,7 @@ class MediaDistributorImpl @Inject constructor(
                         groupByMonth = settings.groupTimelineByMonth == true,
                         groupByYear = settings.groupTimelineByYear == true,
                         groupSimilarMedia = shouldGroupSimilar,
+                        dateHeadersEnabled = dateHeadersEnabled,
                         enabledGroupTypes = groupTypes,
                         defaultDateFormat = defaultDateFormat,
                         extendedDateFormat = extendedDateFormat,
@@ -1320,7 +1347,8 @@ class MediaDistributorImpl @Inject constructor(
             cloudMediaSource
                 .onEach { StartupTracer.begin("$tag.dep.cloudMedia(${it.size})").also { s -> StartupTracer.end(s) } },
             _cloudAlbumsFlow,
-            _cloudAlbumMembers
+            _cloudAlbumMembers,
+            timelineDateHeaders,
         ) { values ->
             combineEmissionCount++
             val combineSpan = StartupTracer.begin("$tag.combine_body(#$combineEmissionCount)")
@@ -1345,6 +1373,7 @@ class MediaDistributorImpl @Inject constructor(
             val cloudMedia = values[9] as List<UriMedia>
             @Suppress("UNCHECKED_CAST")
             val cloudAlbums = values[10] as List<CloudAlbum>
+            val timelineDateHeadersEnabled = values[12] as Boolean
             @Suppress("UNCHECKED_CAST")
             val cloudAlbumMembers = values[11] as Map<CloudAlbumMemberId, Set<CloudAlbumMemberId>>
             
@@ -1419,6 +1448,7 @@ class MediaDistributorImpl @Inject constructor(
                 groupByMonth = settings.groupTimelineByMonth == true,
                 groupByYear = settings.groupTimelineByYear == true,
                 groupSimilarMedia = shouldGroupSimilar,
+                dateHeadersEnabled = if (isMainTimeline) timelineDateHeadersEnabled else true,
                 enabledGroupTypes = groupTypes,
                 cloudBackups = cloudBackups,
                 defaultDateFormat = defaultDateFormat,
