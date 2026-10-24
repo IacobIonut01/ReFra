@@ -39,7 +39,6 @@ import com.github.panpf.sketch.request.ImageRequest
 import com.github.panpf.sketch.request.ImageResult
 import com.github.panpf.sketch.request.Listener
 import com.github.panpf.sketch.request.disallowAnimatedImage
-import com.github.panpf.sketch.resize.Precision
 import com.github.panpf.sketch.sketch
 import com.github.panpf.sketch.state.IntColorDrawableStateImage
 import com.dot.gallery.domain.util.getUri
@@ -50,11 +49,10 @@ import com.dot.gallery.domain.util.EventHandler
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.core.image.thumbnail.LocalThumbnailMotion
-import com.dot.gallery.domain.util.isEncrypted
 import com.dot.gallery.domain.util.isGif
-import com.dot.gallery.domain.model.idLessKey
 import com.dot.gallery.core.presentation.components.MediaPrefetcher
 import com.dot.gallery.feature.viewer.LocalViewerRuntime
+import com.dot.gallery.feature.viewer.components.media.mediaPreviewOptions
 import com.dot.gallery.injection.ComponentOwner
 
 
@@ -284,18 +282,15 @@ val SketchMediaImageRenderer = object : MediaImageRenderer {
 
 
 /**
- * Sketch-backed [MediaPrefetcher]: warms the full-size cache before the viewer opens.
- * Cache key extras match the viewer's request so the prefetch stays valid (#1004).
+ * Sketch-backed [MediaPrefetcher]: warms the viewer's low-res preview cache before the viewer
+ * opens. The request comes from the same builder the viewer uses ([mediaPreviewOptions]), so the
+ * prefetched entry is a cache hit for the shared-element thumbnail *and* the blurred backdrop
+ * that the viewer derives from it (#1004).
  */
 private fun sketchMediaPrefetcher(context: Context) = MediaPrefetcher { media ->
     context.sketch.enqueue(
         ImageRequest(context, media.getUri().toString()) {
-            resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
-            setExtra("realMimeType", media.mimeType)
-            setExtra(key = "mediaVersion", value = "${media.timestamp}:${media.size}")
-            if (media.isEncrypted) {
-                setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
-            }
+            mediaPreviewOptions(media)
         }
     )
 }

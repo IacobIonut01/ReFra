@@ -2524,15 +2524,16 @@ fun <T : Media> MediaViewScreen(
                                 val displayMedia = media ?: return@AnimatedVisibility
                                 MediaPreviewComponent(
                                     isSelected = index == currentPage,
-                                    // Skip the fullscreen `.blur(100.dp)` backdrop while the
-                                    // shared-element open/close transition is animating — it's
-                                    // invisible during the animation but a heavy per-frame render pass
-                                    // that stutters the transition. It fades in once the page settles.
-                                    // Also skip it during a slideshow cross-fade: two stacked blurred
-                                    // backdrops would blend into a "phantom" ghost image behind the
-                                    // current page.
-                                    renderBackground = !animatedContentScope.transition.isRunning &&
-                                            !fadeEnabled,
+                                    // The blurred backdrop is a pre-blurred, media-width bitmap
+                                    // (see BlurredMediaBackground), so it can stay on screen for
+                                    // the whole shared-element open/close transition: it used to
+                                    // be a fullscreen `.blur(100.dp)` RenderEffect that had to be
+                                    // dropped while the transition re-measured the box every
+                                    // frame, which is what made the blur show up only after the
+                                    // photo was already there. It is still skipped during a
+                                    // slideshow cross-fade: two stacked backdrops would blend
+                                    // into a "phantom" ghost image behind the current page.
+                                    renderBackground = !fadeEnabled,
                                     backdropGestureAlpha = backdropAlpha,
                                     swipeToDismissEnabled = !overlayMode,
                                     modifier = Modifier.fillMaxSize(),

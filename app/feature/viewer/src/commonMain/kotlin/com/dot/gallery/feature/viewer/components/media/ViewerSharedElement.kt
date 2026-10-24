@@ -24,19 +24,16 @@ import com.dot.gallery.core.ViewerDismissFlight
 import com.dot.gallery.core.ViewerExitVisual
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
-import com.github.panpf.sketch.resize.Precision
 import kotlin.math.roundToInt
 import com.dot.gallery.cloud.core.matches
-import com.dot.gallery.domain.util.isEncrypted
-import com.dot.gallery.domain.model.idLessKey
 
 
 /**
  * Content of the viewer's shared element. The shared element node must exist from the first
  * transition frame for sharedBounds to animate cell↔viewer bounds, but the real viewer media
  * (ZoomablePagerImage/VideoPlayer) is gated behind content-readiness and load state. This layer
- * renders the same low-res preview request the grid prefetches on tap (resize 600, LESS_PIXELS,
- * mediaVersion, mediaKeyPreviewEnc), so it resolves from Sketch's memory cache instantly and
+ * renders the same low-res preview request the grid prefetches on tap ([mediaPreviewOptions]),
+ * so it resolves from Sketch's memory cache instantly and
  * morphs live inside the animated bounds until the full viewer fades in on top of it.
  */
 @Composable
@@ -45,16 +42,10 @@ fun <T : Media> ViewerSharedElementThumbnail(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
 ) {
-    val mediaVersion = remember(media) { "${media.timestamp}:${media.size}" }
     AsyncImage(
         request = ComposableImageRequest(media.getUri().toString()) {
-            resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
+            mediaPreviewOptions(media)
             crossfade(false)
-            setExtra("realMimeType", media.mimeType)
-            setExtra(key = "mediaVersion", value = mediaVersion)
-            if (media.isEncrypted) {
-                setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
-            }
         },
         contentScale = contentScale,
         contentDescription = null,

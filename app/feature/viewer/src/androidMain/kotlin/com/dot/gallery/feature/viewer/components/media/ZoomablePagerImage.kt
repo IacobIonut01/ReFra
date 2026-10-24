@@ -11,6 +11,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -22,6 +23,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -59,7 +61,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
@@ -154,7 +155,6 @@ import com.dot.gallery.core.presentation.util.add
 import com.dot.gallery.core.presentation.util.clear
 import com.dot.gallery.core.presentation.util.remove
 import com.dot.gallery.data.data_source.KeychainHolder
-import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.domain.util.isApng
 import com.dot.gallery.domain.util.isCloud
@@ -249,43 +249,41 @@ fun <T : Media> BlurredMediaBackground(
         val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
         val isPowerSavingMode = LocalBatteryStatus.current.isPowerSavingMode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && allowBlur && !isPowerSavingMode) {
-            val isEncrypted = remember(media) {
-                media.isEncrypted
+            // Derived once from the preview the grid already prefetched, blurred on the CPU and
+            // down to a few dozen pixels: the backdrop is one stretched textured quad, not a
+            // fullscreen `.blur(100.dp)` RenderEffect pass per frame. That is what lets it stay
+            // on screen while the shared-element open transition re-measures this box every
+            // frame — the pass it replaces used to be skipped for the whole transition, which
+            // made the blur fade in only after the photo was already there.
+            val backdrop = rememberMediaBackdrop(media)
+            // Already available on the first composition (the common case): start at full alpha
+            // so the backdrop arrives together with the media, no fade. A backdrop that lands a
+            // frame or two late — a cold preview, or cloud media still being fetched — fades in.
+            val backdropAlpha = remember(media.id) {
+                Animatable(if (backdrop != null) BACKDROP_ALPHA else 0f)
             }
-            var backgroundVisible by remember(media.id) { mutableStateOf(false) }
-            LaunchedEffect(media.id) {
-                backgroundVisible = true
-            }
-            val blurAlpha by animateFloatAsState(
+            LaunchedEffect(uiEnabled, backdrop) {
+                val target = if (uiEnabled) BACKDROP_ALPHA else 0f
                 // "Animate media items" off — the backdrop fades in/out instantly.
-                animationSpec = if (animationsEnabled) {
-                    tween(DEFAULT_TOP_BAR_ANIMATION_DURATION)
+                if (animationsEnabled) {
+                    backdropAlpha.animateTo(target, tween(BACKDROP_FADE_MILLIS))
                 } else {
-                    snap()
-                },
-                targetValue = if (uiEnabled && backgroundVisible) 0.7f else 0f,
-                label = "blurAlpha"
-            )
-            AsyncImage(
-                request = ComposableImageRequest(media.getUri().toString()) {
-                    resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
-                    crossfade(false)
-                    if (!media.isVideo) setExtra("realMimeType", media.mimeType)
-                    // Bust the cache when the underlying file changes (#1004).
-                    setExtra(key = "mediaVersion", value = "${media.timestamp}:${media.size}")
-                    if (isEncrypted) {
-                        setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = blurAlpha * gestureAlpha
-                    }
-                    .blur(100.dp),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-            )
+                    backdropAlpha.snapTo(target)
+                }
+            }
+            if (backdrop != null) {
+                Image(
+                    bitmap = backdrop,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.Low,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            alpha = backdropAlpha.value * gestureAlpha
+                        },
+                )
+            }
         }
     }
 }
