@@ -6,6 +6,7 @@
 package com.dot.gallery.app.presentation.timeline.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -50,9 +51,12 @@ import org.jetbrains.compose.resources.stringResource
 
 const val TimelineMenuTag = "Timeline.Menu"
 
-/** Overflow menu of the main tabs. */
+/**
+ * Overflow menu of the main tabs. [extraItems] adds screen-specific entries at the top of the
+ * menu; it receives a callback that closes the menu.
+ */
 @Composable
-fun TimelineNavActions() {
+fun TimelineNavActions(extraItems: (@Composable ColumnScope.(dismiss: () -> Unit) -> Unit)? = null) {
     val eventHandler = LocalEventHandler.current
     val showFavoriteButton by rememberShowSearchBarFavoriteButton()
     var lastSeenVersion by rememberLastSeenVersion()
@@ -79,6 +83,7 @@ fun TimelineNavActions() {
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            extraItems?.invoke(this) { expanded = false }
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.search_media)) },
                 leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },

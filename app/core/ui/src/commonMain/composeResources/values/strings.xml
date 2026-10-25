@@ -77,6 +77,7 @@
     <string name="media_type_gifs">GIFs</string>
     <string name="media_type_raw">Raw</string>
     <string name="toggle_view_type">Toggle view type</string>
+    <string name="arrange_albums">Arrange albums</string>
     <string name="filter_type_date">Date</string>
     <string name="filter_type_name">Name</string>
     <string name="header_today">Today</string>

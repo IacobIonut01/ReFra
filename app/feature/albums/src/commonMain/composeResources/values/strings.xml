@@ -2,6 +2,14 @@
 <resources>
     <string name="pinned_albums_title">Pinned Albums</string>
     <string name="media_type_albums_section">Media types</string>
+    <string name="albums_others_section">Others</string>
+    <string name="arrange_albums_title">Arrange albums</string>
+    <string name="arrange_albums_hint">Touch and hold an album, then drag it into place. New albums appear under Others.</string>
+    <string name="arrange_albums_cancel">Cancel arranging</string>
+    <string name="arrange_albums_reset">Reset</string>
+    <string name="arrange_albums_done">Done</string>
+    <string name="arrange_albums_move_earlier">Move earlier</string>
+    <string name="arrange_albums_move_later">Move later</string>
     <string name="images_videos"><![CDATA[%1$s Images & Videos]]></string>
     <string name="n_albums">%1$d albums</string>
     <string name="album_shared_badge">Shared</string>

@@ -89,6 +89,7 @@ object PortableBackupSettings {
     private val stringNames = setOf(
         "album_last_sort_obj",
         "album_last_view_obj",
+        "album_custom_order",
         "album_media_sort_obj",
         "slideshow_transition",
         "library_shortcuts_layout",

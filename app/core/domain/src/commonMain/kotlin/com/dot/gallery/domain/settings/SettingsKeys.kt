@@ -13,6 +13,7 @@ import com.dot.gallery.domain.model.SlideshowTransition
 import com.dot.gallery.domain.model.StoryCardsConfig
 import com.dot.gallery.domain.util.OrderType
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 
 /**
  * Key table shared between the app and shared modules. Names must stay in sync
@@ -66,6 +67,10 @@ object SettingsKeys {
     )
     val albumViewType = PrefKey.serializable(
         "album_last_view_obj", AlbumViewType.GRID, AlbumViewType.serializer()
+    )
+    /** Album ids in the order the user arranged them; empty means the sort applies to every album. */
+    val albumCustomOrder = PrefKey.serializable(
+        "album_custom_order", emptyList<Long>(), ListSerializer(Long.serializer())
     )
     // Selection sheet
     val selectionTitles = PrefKey.bool("selection_titles", default = true)

@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
@@ -97,6 +98,7 @@ fun MainScreenTopBar(
     isScrolling: MutableState<Boolean>,
     filter: (@Composable () -> Unit)? = null,
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
+    menuItems: (@Composable ColumnScope.(dismiss: () -> Unit) -> Unit)? = null,
 ) {
     val eventHandler = LocalEventHandler.current
     val autoHide by rememberPreference(SettingsKeys.autoHideSearchBar)
@@ -138,7 +140,7 @@ fun MainScreenTopBar(
             revealState = revealState,
             onBrandClick = { eventHandler.navigate(Screen.SettingsScreen()) },
             onOpenBackupDetails = { eventHandler.navigate(Screen.UploadDetailsScreen()) },
-            menu = { TimelineNavActions() },
+            menu = { TimelineNavActions(extraItems = menuItems) },
             filter = filter,
             statusBarInsets = statusBarInsets,
         )

@@ -35,7 +35,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
@@ -93,6 +95,7 @@ import com.dot.gallery.feature.albums.ui.components.AlbumSectionHeader
 import com.dot.gallery.feature.albums.ui.components.CarouselPinnedAlbums
 import com.dot.gallery.feature.albums.ui.components.CloudAlbumSectionHeader
 import com.dot.gallery.feature.albums.ui.components.ProviderIconSlot
+import com.dot.gallery.feature.albums.ui.util.AlbumArrangement
 import com.dot.gallery.feature.albums.ui.util.albumScreenHorizontalInsets
 import com.dot.gallery.feature.albums.ui.util.rememberBottomBarInset
 import dev.chrisbanes.haze.hazeSource
@@ -101,6 +104,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.albums.generated.resources.Res
+import com.dot.gallery.feature.albums.generated.resources.albums_others_section
 import com.dot.gallery.feature.albums.generated.resources.images_videos
 import com.dot.gallery.feature.albums.generated.resources.media_type_albums_section
 import com.dot.gallery.feature.albums.generated.resources.pinned_albums_title
@@ -109,7 +113,8 @@ import com.dot.gallery.feature.albums.generated.resources.pinned_albums_title
  * Pure-Compose port of the Albums tab.
  *
  * Platform seams:
- * - [topBar] supplies the app search bar slot (MainSearchBar + nav actions).
+ * - [topBar] supplies the app search bar slot (MainSearchBar + nav actions). It receives the
+ *   callback that opens album arranging, or null while arranging is unavailable.
  * - [scrollToTopRoute] keys [ScrollToTopHandler] against the app's route name.
  * - [startupGate] defers the media-type card data flow until first content.
  * - [startupReadyEffect] lets the app hook its `StartupContentEffect` tracker.
@@ -131,7 +136,7 @@ fun AlbumsContent(
     isScrolling: MutableState<Boolean>,
     gridSizeIndex: MutableState<Int>,
     scrollToTopRoute: String,
-    topBar: @Composable () -> Unit,
+    topBar: @Composable (onArrange: (() -> Unit)?) -> Unit,
     onAlbumClick: (Album) -> Unit,
     onAlbumLongClick: (Album) -> Unit,
     onMoveAlbumToTrash: (Album) -> Unit,
@@ -247,6 +252,18 @@ fun AlbumsContent(
         )
     }
 
+    // Manual arrangement (#1112): arranged albums keep the stored order, the rest fall under
+    // "Others" and follow the active sort.
+    var customOrder by rememberPreference(SettingsKeys.albumCustomOrder)
+    val arrangement = remember(albumsState.value.albumsUnpinned, customOrder) {
+        AlbumArrangement.split(albumsState.value.albumsUnpinned, customOrder)
+    }
+    val showOthersHeader = arrangement.hasArrangement && arrangement.others.isNotEmpty()
+    val canArrange = albumsState.value.albumSections.isEmpty() &&
+            albumsState.value.albumsUnpinned.size > 1
+    var arranging by rememberSaveable { mutableStateOf(false) }
+    if (arranging && !canArrange) arranging = false
+
     // Re-tapping the Albums tab scrolls the active view back to the top (#1039).
     ScrollToTopHandler(scrollToTopRoute) {
         when (viewType) {
@@ -263,7 +280,7 @@ fun AlbumsContent(
         modifier = Modifier
             .padding(horizontalInsets)
             .consumeWindowInsets(horizontalInsets),
-        topBar = topBar
+        topBar = { topBar(if (canArrange && !arranging) ({ arranging = true }) else null) }
     ) { innerPaddingValues ->
         // hazeSource stays attached in every content state so the search bar keeps its
         // frosted effect when the grid is empty/loading/error (#areas.isEmpty = no draw).
@@ -290,7 +307,30 @@ fun AlbumsContent(
             label = "topBarScrimZone"
         )
         Box(modifier = Modifier.fillMaxSize()) {
-        when (viewType) {
+        if (arranging) {
+            AlbumsArrangeContent(
+                albums = arrangement.arranged + arrangement.others,
+                viewType = viewType,
+                gridCells = pinchState.currentCells,
+                contentPadding = PaddingValues(
+                    top = innerPaddingValues.calculateTopPadding(),
+                    bottom = rememberBottomBarInset(innerPaddingValues) + 16.dp + 64.dp
+                ),
+                hasArrangement = arrangement.hasArrangement,
+                mergedSubfolderIds = mergedSubfolderIds,
+                subGalleryIds = subGalleryIds,
+                providerIcon = providerIcon,
+                onCancel = { arranging = false },
+                onReset = {
+                    customOrder = emptyList()
+                    arranging = false
+                },
+                onDone = { draft, changed ->
+                    if (changed) customOrder = AlbumArrangement.mergeOrder(customOrder, draft)
+                    arranging = false
+                },
+            )
+        } else when (viewType) {
             AlbumViewType.GRID -> {
                 with(sharedTransitionScope) {
                     GridPinchZoomLayout(
@@ -465,9 +505,58 @@ fun AlbumsContent(
                                     }
                                 }
                             }
-                            // Unpinned albums (flat list, when sections are disabled)
+                            // Unpinned albums (flat list, when sections are disabled): the
+                            // arranged block first, then the unarranged ones under "Others".
                             items(
-                                items = albumsState.value.albumsUnpinned,
+                                items = arrangement.arranged,
+                                key = { item -> "album_${item.id}" }
+                            ) { item ->
+                                AlbumComponent(
+                                    modifier = Modifier
+                                        .pinchItem(key = "album_${item.id}")
+                                        .animateItem(),
+                                    thumbnailModifier = Modifier
+                                        .mediaSharedElement(
+                                            album = item,
+                                            animatedVisibilityScope = animatedContentScope
+                                        ),
+                                    album = item,
+                                    onItemClick = onAlbumClick,
+                                    onTogglePinClick = onAlbumLongClick,
+                                    onMoveAlbumToTrash = onMoveAlbumToTrash,
+                                    onToggleIgnoreClick = onIgnoreAlbum,
+                                    onToggleLockClick = onLockAlbum,
+                                    onAddToGroup = onAddToGroup,
+                                    onMoveToSection = onMoveToSection,
+                                    onToggleMergeSubfolders = onToggleMergeSubfolders,
+                                    onMergeParentSubfolders = onMergeParentSubfolders,
+                                    onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+                                    isMergedSubfolder = item.id in mergedSubfolderIds,
+                                    isSubGallery = item.id in subGalleryIds,
+                                    supportsTrash = supportsTrash,
+                                    thumbnailActions = thumbnailActions,
+                                    providerIcon = providerIcon,
+                                )
+                            }
+                            if (showOthersHeader) {
+                                item(
+                                    span = { GridItemSpan(maxLineSpan) },
+                                    key = "othersHeader"
+                                ) {
+                                    Text(
+                                        modifier = Modifier
+                                            .pinchItem(key = "othersHeader")
+                                            .animateItem()
+                                            .padding(horizontal = 8.dp)
+                                            .padding(vertical = 24.dp),
+                                        text = stringResource(Res.string.albums_others_section),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            items(
+                                items = arrangement.others,
                                 key = { item -> "album_${item.id}" }
                             ) { item ->
                                 AlbumComponent(
@@ -819,9 +908,54 @@ fun AlbumsContent(
                             }
                         }
 
-                        // Unpinned albums (flat list, when sections are disabled) - LIST view
+                        // Unpinned albums (flat list, when sections are disabled) - LIST view:
+                        // the arranged block first, then the unarranged ones under "Others".
                         items(
-                            items = albumsState.value.albumsUnpinned,
+                            items = arrangement.arranged,
+                            key = { "album_list_${it.id}" }
+                        ) { item ->
+                            AlbumRowComponent(
+                                modifier = Modifier
+                                    .animateItem(),
+                                thumbnailModifier = Modifier
+                                    .mediaSharedElement(
+                                        album = item,
+                                        animatedVisibilityScope = animatedContentScope
+                                    ),
+                                album = item,
+                                onItemClick = onAlbumClick,
+                                onTogglePinClick = onAlbumLongClick,
+                                onMoveAlbumToTrash = onMoveAlbumToTrash,
+                                onToggleIgnoreClick = onIgnoreAlbum,
+                                onToggleLockClick = onLockAlbum,
+                                onAddToGroup = onAddToGroup,
+                                onMoveToSection = onMoveToSection,
+                                onToggleMergeSubfolders = onToggleMergeSubfolders,
+                                onMergeParentSubfolders = onMergeParentSubfolders,
+                                onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+                                isMergedSubfolder = item.id in mergedSubfolderIds,
+                                isSubGallery = item.id in subGalleryIds,
+                                supportsTrash = supportsTrash,
+                                thumbnailActions = thumbnailActions,
+                                providerIcon = providerIcon,
+                            )
+                        }
+
+                        if (showOthersHeader) {
+                            item(key = "othersHeader_list") {
+                                Text(
+                                    modifier = Modifier
+                                        .animateItem()
+                                        .padding(horizontal = 8.dp)
+                                        .padding(vertical = 24.dp),
+                                    text = stringResource(Res.string.albums_others_section),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                        items(
+                            items = arrangement.others,
                             key = { "album_list_${it.id}" }
                         ) { item ->
                             AlbumRowComponent(
