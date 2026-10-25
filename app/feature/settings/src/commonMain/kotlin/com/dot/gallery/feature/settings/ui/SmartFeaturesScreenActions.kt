@@ -15,4 +15,5 @@ class SmartFeaturesScreenActions(
     val onOpenCloudIndexing: () -> Unit = {},
     val onOpenScanManager: () -> Unit = {},
     val onOpenEditBackups: () -> Unit = {},
+    val onOpenHandover: () -> Unit = {},
 )

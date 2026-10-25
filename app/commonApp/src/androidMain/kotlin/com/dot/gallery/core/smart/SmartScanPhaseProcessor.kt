@@ -55,6 +55,12 @@ import com.dot.gallery.core.presentation.util.add
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.presentation.util.mediaStoreVersion
 import com.dot.gallery.domain.uri.path
+import com.dot.gallery.handover.HandoverClient
+import com.dot.gallery.handover.HandoverConfig
+import com.dot.gallery.handover.HandoverException
+import com.dot.gallery.handover.HandoverIndexMirror
+import com.dot.gallery.handover.HandoverIndexRunner
+import com.dot.gallery.handover.resolveHandoverEngine
 import com.dot.gallery.BuildConfig
 
 
@@ -258,7 +264,8 @@ internal fun smartSourceSnapshot(
 class SourceSyncProcessor @Inject constructor(
     repository: MediaRepository,
     database: InternalDatabase,
-    private val appContext: Context
+    private val appContext: Context,
+    private val indexMirror: HandoverIndexMirror,
 ) : MediaPhaseProcessor(repository, database) {
     override val phase = SmartScanPhase.SOURCE_SYNC
     override val revision = "source-v2"
@@ -293,6 +300,9 @@ class SourceSyncProcessor @Inject constructor(
             removedIds.chunked(MEDIA_DELETE_BATCH_SIZE).forEach { mediaDao.deleteMediaByIds(it) }
             mediaDao.setMediaVersion(MediaVersion(mediaStoreVersion))
         }
+        // Media removed from the pool must also leave the remote index — the
+        // mirror persists the ids first so an unreachable server retries later.
+        indexMirror.onMediaDeleted(removedIds)
         val snapshot = smartSourceSnapshot(mediaStoreVersion, media, cloud)
         val summary = progress(context, total, total, total, 0, 0)
         return SmartScanPhaseResult.Completed(summary, snapshot)
@@ -453,6 +463,9 @@ class SearchIndexPhaseProcessor @Inject constructor(
     private val modelManager: ModelManager,
     private val thumbnailLoader: SmartThumbnailLoader,
     private val videoFrameSampler: VideoFrameSampler,
+    private val handoverClient: HandoverClient,
+    private val indexRunner: HandoverIndexRunner,
+    private val indexMirror: HandoverIndexMirror,
     private val appContext: Context
 ) : MediaPhaseProcessor(repository, database) {
     override val phase = SmartScanPhase.SEARCH_INDEX
@@ -465,7 +478,13 @@ class SearchIndexPhaseProcessor @Inject constructor(
 
     override suspend fun process(context: SmartScanPhaseContext): SmartScanPhaseResult {
         if (!BuildConfig.ENABLE_INDEXING) return SmartScanPhaseResult.Blocked("indexing_disabled")
-        if (!modelManager.isReady(searchModel)) return SmartScanPhaseResult.Blocked("search_model_unavailable")
+        val handover = handoverClient.config()
+        // Remote mode gets its inference from the handover server — the local
+        // ONNX files only gate the on-device path.
+        if (handover == null && !modelManager.isReady(searchModel)) {
+            return SmartScanPhaseResult.Blocked("search_model_unavailable")
+        }
+        val remoteMode = handover != null
         val dimension = searchModel.embeddingDimension
         val thumbnailSize = searchModel.indexDecodeSize
         val scanDao = database.getSmartScanDao()
@@ -488,10 +507,14 @@ class SearchIndexPhaseProcessor @Inject constructor(
                 val source = sourceRevision(item)
                 val state = states[item.id]
                 val header = headers[item.id]
-                val outputPresent = header?.embeddingBytes == dimension * Float.SIZE_BYTES
+                // Remote sink=server stores a marker row (empty vector) — any row
+                // with a matching date means the item is indexed remotely.
+                val outputPresent = if (remoteMode) header?.date == item.timestamp
+                    else header?.embeddingBytes == dimension * Float.SIZE_BYTES
                 val activeLease = state?.status == MediaFeatureStatus.PROCESSING &&
                     state.leaseExpiresAt?.let { it > now } == true
-                val current = outputPresent && header.date == item.timestamp &&
+                val current = outputPresent && header != null &&
+                    header.date == item.timestamp &&
                     header.resultRevision == revision && state?.status == MediaFeatureStatus.SUCCEEDED &&
                     state.sourceRevision == source && state.resultRevision == revision
                 item.id.takeIf { !activeLease && !current && header?.date == item.timestamp }
@@ -504,8 +527,10 @@ class SearchIndexPhaseProcessor @Inject constructor(
                 val header = headers[item.id]
                 val activeLease = state?.status == MediaFeatureStatus.PROCESSING &&
                     state.leaseExpiresAt?.let { it > now } == true
-                val outputPresent = header?.embeddingBytes == dimension * Float.SIZE_BYTES
-                val current = !context.fullRefresh && outputPresent && header.date == item.timestamp &&
+                val outputPresent = if (remoteMode) header?.date == item.timestamp
+                    else header?.embeddingBytes == dimension * Float.SIZE_BYTES
+                val current = !context.fullRefresh && outputPresent && header != null &&
+                    header.date == item.timestamp &&
                     header.resultRevision == revision && state?.status == MediaFeatureStatus.SUCCEEDED &&
                     state.sourceRevision == source && state.resultRevision == revision
                 if (activeLease || current) return@forEach
@@ -558,6 +583,7 @@ class SearchIndexPhaseProcessor @Inject constructor(
         var failed = 0
         progress(context, candidates.size, 0, 0, 0, 0)
         if (candidates.isEmpty()) return SmartScanPhaseResult.Completed(SmartScanProgress.EMPTY)
+        if (remoteMode) return processRemote(context, handover, candidates)
         val helper = SearchVisionHelper(modelManager)
         helper.setupVisionSession().use { session ->
             candidates.forEachIndexed { index, item ->
@@ -654,6 +680,172 @@ class SearchIndexPhaseProcessor @Inject constructor(
             failed > 0 -> SmartScanPhaseResult.Partial("search_index_partially_failed", summary)
             else -> SmartScanPhaseResult.Completed(summary)
         }
+    }
+
+    /**
+     * Remote SEARCH_INDEX — prepared media is JPEG-encoded into HPKG envelopes and
+     * inferred by the handover server. Per the configured sink the server returns the
+     * vectors ("client"/"both" → stored locally too) and/or keeps them in the caller's
+     * server-side index namespace ("server"/"both" → a zero-length marker row records
+     * the item as indexed so later scans skip it).
+     */
+    private suspend fun processRemote(
+        context: SmartScanPhaseContext,
+        config: HandoverConfig,
+        candidates: List<UriMedia>,
+    ): SmartScanPhaseResult {
+        val dimension = searchModel.embeddingDimension
+        val scanDao = database.getSmartScanDao()
+        val info = try {
+            handoverClient.info(config)
+        } catch (e: HandoverException) {
+            return if (e.retryable) SmartScanPhaseResult.Blocked("handover_unreachable")
+            else SmartScanPhaseResult.Failed("handover_${e.code}", retryable = false)
+        }
+        val engine = resolveHandoverEngine(info, searchModel, config.engine)
+            ?: return SmartScanPhaseResult.Blocked("handover_engine_missing")
+        if (!engine.loaded || engine.embeddingDim != dimension) {
+            return SmartScanPhaseResult.Blocked("handover_engine_mismatch")
+        }
+        // Piggyback pending index deletes on the same connection.
+        indexMirror.flush(config)
+
+        var succeeded = 0
+        var skipped = 0
+        var failed = 0
+        val claimed = mutableListOf<Pair<HandoverIndexRunner.PreparedItem, String>>()
+        candidates.forEachIndexed { index, item ->
+            currentCoroutineContext().ensureActive()
+            val owner = "${context.owner}:remote:${item.id}"
+            val attemptAt = System.currentTimeMillis()
+            if (scanDao.claimFeatureLease(
+                    item.id,
+                    MediaFeature.SEARCH_EMBEDDING,
+                    context.runId,
+                    owner,
+                    attemptAt,
+                    attemptAt + REMOTE_ITEM_LEASE_MILLIS
+                ) != 1
+            ) {
+                skipped++
+                progress(context, candidates.size, index + 1, succeeded, skipped, failed)
+                return@forEachIndexed
+            }
+            try {
+                claimed += indexRunner.prepareItem(item, searchModel) to owner
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                scanDao.finishFeature(
+                    item.id,
+                    MediaFeature.SEARCH_EMBEDDING,
+                    owner,
+                    MediaFeatureStatus.FAILED,
+                    revision,
+                    System.currentTimeMillis(),
+                    nextRetryAt = System.currentTimeMillis() + RETRY_DELAY_MILLIS,
+                    lastErrorCode = "decode_failed"
+                )
+                failed++
+            }
+            progress(context, candidates.size, index + 1, succeeded, skipped, failed)
+        }
+        if (claimed.isEmpty()) {
+            val summary = SmartScanProgress(
+                candidates.size, candidates.size, succeeded, skipped, failed)
+            return if (failed > 0) SmartScanPhaseResult.Partial(
+                "search_index_partially_failed", summary)
+            else SmartScanPhaseResult.Completed(summary)
+        }
+        val reported = HashSet<String>()
+        var aborted: HandoverException? = null
+        try {
+            indexRunner.submit(
+                handoverClient,
+                config,
+                info.limits,
+                claimed.map { it.first },
+                onItem = { item, vector, errorCode ->
+                    val owner = claimed.first { it.first.wire.id == item.wire.id }.second
+                    if (errorCode == null) {
+                        // sink=server yields no vector — a marker row still proves the
+                        // item was indexed so the `current` check skips it next run.
+                        repository.addImageEmbedding(
+                            ImageEmbedding(
+                                item.media.id,
+                                item.media.timestamp,
+                                vector ?: FloatArray(0),
+                                resultRevision = revision
+                            )
+                        )
+                        scanDao.finishFeature(
+                            item.media.id,
+                            MediaFeature.SEARCH_EMBEDDING,
+                            owner,
+                            MediaFeatureStatus.SUCCEEDED,
+                            revision,
+                            System.currentTimeMillis()
+                        )
+                        succeeded++
+                    } else {
+                        scanDao.finishFeature(
+                            item.media.id,
+                            MediaFeature.SEARCH_EMBEDDING,
+                            owner,
+                            MediaFeatureStatus.FAILED,
+                            revision,
+                            System.currentTimeMillis(),
+                            nextRetryAt = System.currentTimeMillis() + RETRY_DELAY_MILLIS,
+                            lastErrorCode = errorCode
+                        )
+                        failed++
+                    }
+                    reported += item.wire.id
+                    progress(
+                        context, candidates.size,
+                        claimed.size - (claimed.size - reported.size),
+                        succeeded, skipped, failed
+                    )
+                },
+                onProgress = { },
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: HandoverException) {
+            aborted = e
+        }
+        // Unreported items — the run aborted mid-flight or the server dropped them.
+        claimed.forEach { (item, owner) ->
+            if (item.wire.id !in reported) {
+                scanDao.finishFeature(
+                    item.media.id,
+                    MediaFeature.SEARCH_EMBEDDING,
+                    owner,
+                    MediaFeatureStatus.FAILED,
+                    revision,
+                    System.currentTimeMillis(),
+                    nextRetryAt = System.currentTimeMillis() + RETRY_DELAY_MILLIS,
+                    lastErrorCode = aborted?.code ?: "no_result"
+                )
+                failed++
+            }
+        }
+        val summary = SmartScanProgress(
+            candidates.size, candidates.size, succeeded, skipped, failed)
+        return when {
+            aborted != null -> SmartScanPhaseResult.Failed(
+                "handover_${aborted.code}", retryable = aborted.retryable, summary)
+            failed == candidates.size && candidates.isNotEmpty() ->
+                SmartScanPhaseResult.Failed("search_index_failed", retryable = true, summary)
+            failed > 0 -> SmartScanPhaseResult.Partial("search_index_partially_failed", summary)
+            else -> SmartScanPhaseResult.Completed(summary)
+        }
+    }
+
+    private companion object {
+        /** Remote items ride multi-minute server jobs — a longer lease avoids
+         *  another run re-claiming them while a job is in flight. */
+        const val REMOTE_ITEM_LEASE_MILLIS = 30 * 60 * 1000L
     }
 }
 

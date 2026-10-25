@@ -43,6 +43,7 @@ import com.dot.gallery.core.presentation.util.remove
 import com.dot.gallery.core.smart.SmartScanProcessorRegistry
 import me.tatarka.inject.annotations.Inject
 import com.dot.gallery.core.logging.printError
+import com.dot.gallery.core.logging.printWarn
 
 
 class SmartScanWorker @Inject constructor(
@@ -165,6 +166,13 @@ class SmartScanWorker @Inject constructor(
             throw cancelled
         } catch (error: Throwable) {
             val code = error.javaClass.simpleName.ifBlank { "phase_failed" }
+            printError(
+                tag = "SmartScanWorker",
+                message = "Phase threw: ${phase.name}",
+                throwable = error,
+                ctx = mapOf("run" to runId.take(8), "phase" to phase.name, "code" to code),
+                scope = "smart-scan",
+            )
             withContext(NonCancellable) {
                 dao.finishPhaseOwned(runId, phase, owner, SmartScanStatus.FAILED, System.currentTimeMillis(), code)
                 publishAggregate()
@@ -227,12 +235,33 @@ class SmartScanWorker @Inject constructor(
                 }
                 dao.finishPhaseOwned(runId, phase, owner, SmartScanStatus.SUCCEEDED, now)
             }
-            is SmartScanPhaseResult.Partial ->
+            is SmartScanPhaseResult.Partial -> {
+                printWarn(
+                    tag = "SmartScanWorker",
+                    message = "Phase partial: ${phase.name} (${result.errorCode})",
+                    ctx = mapOf("run" to runId.take(8), "phase" to phase.name, "code" to result.errorCode),
+                    scope = "smart-scan",
+                )
                 dao.finishPhaseOwned(runId, phase, owner, SmartScanStatus.PARTIAL, now, result.errorCode)
-            is SmartScanPhaseResult.Blocked ->
+            }
+            is SmartScanPhaseResult.Blocked -> {
+                printWarn(
+                    tag = "SmartScanWorker",
+                    message = "Phase blocked: ${phase.name} (${result.errorCode})",
+                    ctx = mapOf("run" to runId.take(8), "phase" to phase.name, "code" to result.errorCode),
+                    scope = "smart-scan",
+                )
                 dao.finishPhaseOwned(runId, phase, owner, SmartScanStatus.BLOCKED, now, result.errorCode)
-            is SmartScanPhaseResult.Failed ->
+            }
+            is SmartScanPhaseResult.Failed -> {
+                printWarn(
+                    tag = "SmartScanWorker",
+                    message = "Phase failed: ${phase.name} (${result.errorCode})",
+                    ctx = mapOf("run" to runId.take(8), "phase" to phase.name, "code" to result.errorCode),
+                    scope = "smart-scan",
+                )
                 dao.finishPhaseOwned(runId, phase, owner, SmartScanStatus.FAILED, now, result.errorCode)
+            }
         }
         publishAggregate()
     }

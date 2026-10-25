@@ -27,6 +27,7 @@ import com.dot.gallery.core.ui.components.settings
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.settings.generated.resources.Res
 import com.dot.gallery.feature.settings.generated.resources.ai_category
+import com.dot.gallery.feature.settings.generated.resources.handover_title
 import com.dot.gallery.feature.settings.generated.resources.ai_models_manager
 import com.dot.gallery.feature.settings.generated.resources.categories
 import com.dot.gallery.feature.settings.generated.resources.database
@@ -81,6 +82,7 @@ fun SmartFeaturesScreenContent(
         val editBackupsSummary = stringResource(Res.string.edit_backups_summary)
         val cloudIndexingTitle = stringResource(Res.string.smart_features_cloud_section)
         val cloudIndexingSummary = stringResource(Res.string.smart_features_cloud_indexing_summary)
+        val handoverTitle = stringResource(Res.string.handover_title)
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -124,6 +126,12 @@ fun SmartFeaturesScreenContent(
                         onClick = actions.onOpenCloudIndexing
                     )
                 }
+
+                Preference(
+                    title = handoverTitle,
+                    summary = state.handoverSummary,
+                    onClick = actions.onOpenHandover
+                )
 
                 Header(databaseHeader)
 

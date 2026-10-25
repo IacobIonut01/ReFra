@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-18T14:31:53.973Z",
-  "capturedAtMs": 1792333890383,
+  "generatedAt": "2026-10-18T22:27:58.143Z",
+  "capturedAtMs": 1792362102859,
   "sources": [
     "../docs-out",
     "../app/docs/showcase/src/commonMain/kotlin/com/dot/gallery/docs/SceneRegistry.kt"
   ],
-  "sceneCount": 100,
+  "sceneCount": 102,
   "scenes": {
     "album-transfer": {
       "id": "album-transfer",
@@ -7683,6 +7683,88 @@
         }
       }
     },
+    "settings-remote-inference": {
+      "id": "settings-remote-inference",
+      "title": "Remote inference",
+      "path": [
+        "Settings",
+        "Smart Features",
+        "Remote inference"
+      ],
+      "states": [
+        "configured",
+        "blank"
+      ],
+      "presentation": "screen",
+      "widthDp": 412,
+      "heightDp": 915,
+      "live": false,
+      "fidelity": "capture",
+      "assets": {
+        "phone": {
+          "blank": {
+            "src": "captures/settings-remote-inference/light/phone-blank.webp",
+            "type": "image",
+            "file": "settings-remote-inference/light/phone-blank.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "configured": {
+            "src": "captures/settings-remote-inference/light/phone-configured.webp",
+            "type": "image",
+            "file": "settings-remote-inference/light/phone-configured.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "default": {
+            "src": "captures/settings-remote-inference/light/phone-configured.webp",
+            "type": "image",
+            "file": "settings-remote-inference/light/phone-configured.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
+          }
+        }
+      },
+      "themes": {
+        "light": {
+          "phone": {
+            "blank": {
+              "src": "captures/settings-remote-inference/light/phone-blank.webp",
+              "type": "image",
+              "file": "settings-remote-inference/light/phone-blank.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "configured": {
+              "src": "captures/settings-remote-inference/light/phone-configured.webp",
+              "type": "image",
+              "file": "settings-remote-inference/light/phone-configured.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/settings-remote-inference/light/phone-configured.webp",
+              "type": "image",
+              "file": "settings-remote-inference/light/phone-configured.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        }
+      }
+    },
     "settings-security": {
       "id": "settings-security",
       "title": "Security settings",
@@ -8844,6 +8926,174 @@
         }
       }
     },
+    "stories-carousel": {
+      "id": "stories-carousel",
+      "title": "Story highlights carousel",
+      "path": [
+        "Timeline",
+        "Story cards"
+      ],
+      "states": [
+        "one",
+        "two",
+        "many",
+        "loading"
+      ],
+      "presentation": "component",
+      "widthDp": 412,
+      "heightDp": 236,
+      "live": false,
+      "fidelity": "capture",
+      "assets": {
+        "phone": {
+          "loading": {
+            "src": "captures/stories-carousel/light/phone-loading.webp",
+            "type": "image",
+            "file": "stories-carousel/light/phone-loading.webp",
+            "width": 1236,
+            "height": 708,
+            "widthDp": 412,
+            "heightDp": 236
+          },
+          "many": {
+            "src": "captures/stories-carousel/light/phone-many.webp",
+            "type": "image",
+            "file": "stories-carousel/light/phone-many.webp",
+            "width": 1236,
+            "height": 708,
+            "widthDp": 412,
+            "heightDp": 236
+          },
+          "one": {
+            "src": "captures/stories-carousel/light/phone-one.webp",
+            "type": "image",
+            "file": "stories-carousel/light/phone-one.webp",
+            "width": 1236,
+            "height": 708,
+            "widthDp": 412,
+            "heightDp": 236
+          },
+          "two": {
+            "src": "captures/stories-carousel/light/phone-two.webp",
+            "type": "image",
+            "file": "stories-carousel/light/phone-two.webp",
+            "width": 1236,
+            "height": 708,
+            "widthDp": 412,
+            "heightDp": 236
+          },
+          "default": {
+            "src": "captures/stories-carousel/light/phone-one.webp",
+            "type": "image",
+            "file": "stories-carousel/light/phone-one.webp",
+            "width": 1236,
+            "height": 708,
+            "widthDp": 412,
+            "heightDp": 236
+          }
+        }
+      },
+      "themes": {
+        "dark": {
+          "phone": {
+            "loading": {
+              "src": "captures/stories-carousel/dark/phone-loading.webp",
+              "type": "image",
+              "file": "stories-carousel/dark/phone-loading.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "many": {
+              "src": "captures/stories-carousel/dark/phone-many.webp",
+              "type": "image",
+              "file": "stories-carousel/dark/phone-many.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "one": {
+              "src": "captures/stories-carousel/dark/phone-one.webp",
+              "type": "image",
+              "file": "stories-carousel/dark/phone-one.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "two": {
+              "src": "captures/stories-carousel/dark/phone-two.webp",
+              "type": "image",
+              "file": "stories-carousel/dark/phone-two.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "default": {
+              "src": "captures/stories-carousel/dark/phone-one.webp",
+              "type": "image",
+              "file": "stories-carousel/dark/phone-one.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            }
+          }
+        },
+        "light": {
+          "phone": {
+            "loading": {
+              "src": "captures/stories-carousel/light/phone-loading.webp",
+              "type": "image",
+              "file": "stories-carousel/light/phone-loading.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "many": {
+              "src": "captures/stories-carousel/light/phone-many.webp",
+              "type": "image",
+              "file": "stories-carousel/light/phone-many.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "one": {
+              "src": "captures/stories-carousel/light/phone-one.webp",
+              "type": "image",
+              "file": "stories-carousel/light/phone-one.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "two": {
+              "src": "captures/stories-carousel/light/phone-two.webp",
+              "type": "image",
+              "file": "stories-carousel/light/phone-two.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            },
+            "default": {
+              "src": "captures/stories-carousel/light/phone-one.webp",
+              "type": "image",
+              "file": "stories-carousel/light/phone-one.webp",
+              "width": 1236,
+              "height": 708,
+              "widthDp": 412,
+              "heightDp": 236
+            }
+          }
+        }
+      }
+    },
     "subject-cutout": {
       "id": "subject-cutout",
       "title": "Subject cutout",
@@ -8910,9 +9160,13 @@
         },
         "phone": {
           "default": {
-            "src": "captures/timeline-date-headers/phone.webp",
+            "src": "captures/timeline-date-headers/light/phone-default.webp",
             "type": "image",
-            "file": "timeline-date-headers/phone.webp"
+            "file": "timeline-date-headers/light/phone-default.webp",
+            "width": 1236,
+            "height": 2745,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -8924,6 +9178,19 @@
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "default": {
+              "src": "captures/timeline-date-headers/dark/phone-default.webp",
+              "type": "image",
+              "file": "timeline-date-headers/dark/phone-default.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "foldable": {
             "default": {
@@ -8934,9 +9201,13 @@
           },
           "phone": {
             "default": {
-              "src": "captures/timeline-date-headers/phone.webp",
+              "src": "captures/timeline-date-headers/light/phone-default.webp",
               "type": "image",
-              "file": "timeline-date-headers/phone.webp"
+              "file": "timeline-date-headers/light/phone-default.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {

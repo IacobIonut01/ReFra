@@ -49,6 +49,7 @@ import com.dot.gallery.domain.util.isCloud
 import com.dot.gallery.domain.uri.path
 import com.dot.gallery.core.logging.printError
 import com.dot.gallery.core.logging.printWarn
+import com.dot.gallery.handover.HandoverIndexMirror
 
 class MediaHandlerImpl @Inject constructor(
     private val repository: MediaRepository,
@@ -56,7 +57,8 @@ class MediaHandlerImpl @Inject constructor(
     private val scheduler: BackgroundTaskScheduler,
     private val providerRegistry: ProviderRegistry,
     private val cloudMediaDao: CloudMediaDao,
-    private val cloudServerConfigDao: CloudServerConfigDao
+    private val cloudServerConfigDao: CloudServerConfigDao,
+    private val indexMirror: HandoverIndexMirror,
 ) : MediaHandler {
 
     private fun <T : Media> extractCloudInfo(media: T): Triple<String, String, Long>? {
@@ -156,7 +158,13 @@ class MediaHandlerImpl @Inject constructor(
         }
 
         if (localMedia.isNotEmpty()) {
-            repository.trashMedia(result, localMedia, trash)
+            repository.trashMedia(result, localMedia, trash).also { result_ ->
+                // Trashed media leaves the feature pool — drop it from the
+                // remote index too (restores re-index via the next scan).
+                if (trash && result_ == MediaMutationResult.COMPLETED) {
+                    indexMirror.onMediaDeleted(localMedia.map { it.id })
+                }
+            }
         } else {
             MediaMutationResult.COMPLETED
         }
@@ -189,6 +197,7 @@ class MediaHandlerImpl @Inject constructor(
         mediaList: List<T>
     ): MediaMutationResult = withLogScope("media-ops") {
         val (cloudMedia, localMedia) = mediaList.partition { it.isCloud }
+        val deletedCloudIds = mutableListOf<Long>()
         val cloudDeleted = withContext(Dispatchers.IO) {
             cloudMedia.map { media ->
                 val (providerName, remoteId, configId) = extractCloudInfo(media)
@@ -204,7 +213,10 @@ class MediaHandlerImpl @Inject constructor(
                         ctx = mapOf("provider" to providerName),
                     )
                 }.isSuccess.also { deleted ->
-                    if (deleted) cloudMediaDao.delete(remoteId, providerType, configId)
+                    if (deleted) {
+                        cloudMediaDao.delete(remoteId, providerType, configId)
+                        deletedCloudIds += media.id
+                    }
                 }
             }.all { it }
         }
@@ -213,6 +225,10 @@ class MediaHandlerImpl @Inject constructor(
         } else {
             MediaMutationResult.COMPLETED
         }
+        val deletedIds = deletedCloudIds +
+            if (localResult == MediaMutationResult.COMPLETED) localMedia.map { it.id }
+            else emptyList()
+        indexMirror.onMediaDeleted(deletedIds)
         if (cloudDeleted) localResult else MediaMutationResult.FAILED
     }
 

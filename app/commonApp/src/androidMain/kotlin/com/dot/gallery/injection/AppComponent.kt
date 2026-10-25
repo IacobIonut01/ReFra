@@ -70,8 +70,12 @@ import com.dot.gallery.data.repository.CoreMediaRepository
 import com.dot.gallery.data.repository.MediaRepositoryImpl
 import com.dot.gallery.data.repository.MediaRepository
 import com.dot.gallery.data.repository.MediaRepositoryRuntime
+import com.dot.gallery.feature.classifier.ui.search.RemoteSearchProvider
 import com.dot.gallery.feature.classifier.ui.search.SearchHelper
 import com.dot.gallery.app.presentation.search.SearchHelperImpl
+import com.dot.gallery.handover.HandoverClient
+import com.dot.gallery.handover.HandoverIndexMirror
+import com.dot.gallery.handover.HandoverSearchProvider
 import me.tatarka.inject.annotations.Component
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
@@ -160,6 +164,7 @@ import com.dot.gallery.feature.picker.PickerViewModel
 import com.dot.gallery.feature.vault.privatefolder.PrivateFolderMoveViewModel
 import com.dot.gallery.feature.vault.privatefolder.PrivateFolderViewModel
 import com.dot.gallery.feature.search.SearchViewModel
+import com.dot.gallery.app.presentation.settings.subsettings.HandoverSettingsViewModel
 import com.dot.gallery.feature.settings.subsettings.BackupRestoreViewModel
 import com.dot.gallery.feature.settings.subsettings.DeveloperViewModel
 import com.dot.gallery.feature.settings.subsettings.EditBackupsRuntime
@@ -350,10 +355,11 @@ abstract class AppComponent(
         providerRegistry: ProviderRegistry,
         cloudMediaDao: CloudMediaDao,
         cloudServerConfigDao: CloudServerConfigDao,
+        indexMirror: HandoverIndexMirror,
     ): MediaHandler = StartupTracer.trace("AppComponent.provideMediaHandler") {
         MediaHandlerImpl(
             mediaRepository, application, scheduler, providerRegistry, cloudMediaDao,
-            cloudServerConfigDao
+            cloudServerConfigDao, indexMirror
         )
     }
 
@@ -417,6 +423,13 @@ abstract class AppComponent(
     @Singleton
     fun provideSearchHelper(modelManager: ModelManager): SearchHelper =
         StartupTracer.trace("AppComponent.provideSearchHelper") { SearchHelperImpl(modelManager) }
+
+    @Provides
+    @Singleton
+    fun provideRemoteSearchProvider(handoverClient: HandoverClient): RemoteSearchProvider =
+        StartupTracer.trace("AppComponent.provideRemoteSearchProvider") {
+            HandoverSearchProvider(handoverClient)
+        }
 
     @Provides
     @Singleton
@@ -580,6 +593,7 @@ abstract class AppComponent(
     abstract val mediaRepository: MediaRepository
     abstract override val modelManager: ModelManager
     abstract val searchHelper: SearchHelper
+    abstract val remoteSearchProvider: RemoteSearchProvider
     abstract val geocoder: Geocoder?
     abstract val decryptManager: DecryptManager
     abstract val mediaMetadataSidecarCache: MediaMetadataSidecarCache
@@ -651,6 +665,7 @@ abstract class AppComponent(
     abstract val collectionViewModel: CollectionViewModel
     abstract val developerViewModel: DeveloperViewModel
     abstract val editBackupsViewModel: EditBackupsViewModel
+    abstract val handoverSettingsViewModel: HandoverSettingsViewModel
     abstract val editCategoryViewModel: EditCategoryViewModel
     abstract val editViewModel: EditViewModel
     abstract val fCastViewModel: FCastViewModel

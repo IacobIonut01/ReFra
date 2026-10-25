@@ -421,6 +421,124 @@ object Settings {
         }
     }
 
+    /**
+     * ReFra Handover — self-hosted remote inference / search-provider server.
+     * See HANDOVER_MEGAPLAN.md; wire protocol is HPKG v1 (docs/protocol.md).
+     */
+    object Handover {
+        private val ENABLED = booleanPreferencesKey("handover_enabled")
+        private val REMOTE_URL = stringPreferencesKey("handover_remote_url")
+        private val LOCAL_URL = stringPreferencesKey("handover_local_url")
+        private val LOCAL_WIFI_SSID = stringPreferencesKey("handover_local_wifi_ssid")
+        private val AUTO_URL_SWITCH = booleanPreferencesKey("handover_auto_url_switch")
+        private val ENGINE = stringPreferencesKey("handover_engine")
+        private val SINK = stringPreferencesKey("handover_sink")
+        private val ENCRYPTED_SECRET = stringPreferencesKey("handover_secret")
+        private val AUTH_MODE = stringPreferencesKey("handover_auth_mode")
+        private val PREFER_REMOTE_QUERIES = booleanPreferencesKey("handover_prefer_remote_queries")
+        private val PENDING_INDEX_DELETES = stringSetPreferencesKey("handover_pending_index_deletes")
+
+        fun enabled(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[ENABLED] ?: false }
+
+        suspend fun setEnabled(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[ENABLED] = enabled }
+        }
+
+        /** Externally reachable base URL of the handover server. */
+        fun remoteUrl(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[REMOTE_URL] ?: "" }
+
+        suspend fun setRemoteUrl(context: Context, url: String) {
+            context.activeDataStore.edit { it[REMOTE_URL] = url.trimEnd('/') }
+        }
+
+        /** LAN base URL used while on [localWifiSsid] when [autoUrlSwitch] is on. */
+        fun localUrl(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[LOCAL_URL] ?: "" }
+
+        suspend fun setLocalUrl(context: Context, url: String) {
+            context.activeDataStore.edit { it[LOCAL_URL] = url.trimEnd('/') }
+        }
+
+        fun localWifiSsid(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[LOCAL_WIFI_SSID] ?: "" }
+
+        suspend fun setLocalWifiSsid(context: Context, ssid: String) {
+            context.activeDataStore.edit { it[LOCAL_WIFI_SSID] = ssid }
+        }
+
+        fun autoUrlSwitch(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[AUTO_URL_SWITCH] ?: true }
+
+        suspend fun setAutoUrlSwitch(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[AUTO_URL_SWITCH] = enabled }
+        }
+
+        /** Engine id override; empty = server default. */
+        fun engine(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[ENGINE] ?: "" }
+
+        suspend fun setEngine(context: Context, engine: String) {
+            context.activeDataStore.edit { it[ENGINE] = engine }
+        }
+
+        /** Where computed embeddings land: "client" | "server" | "both". */
+        fun sink(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[SINK] ?: "both" }
+
+        suspend fun setSink(context: Context, sink: String) {
+            context.activeDataStore.edit { it[SINK] = sink }
+        }
+
+        /** Bearer secret, AES-256-GCM encrypted via CredentialEncryptor. */
+        fun encryptedSecret(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[ENCRYPTED_SECRET] ?: "" }
+
+        suspend fun setEncryptedSecret(context: Context, encrypted: String) {
+            context.activeDataStore.edit { it[ENCRYPTED_SECRET] = encrypted }
+        }
+
+        /** "bearer" (default) | "hmac" — must match the server's HANDOVER_AUTH_MODE. */
+        fun authMode(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[AUTH_MODE] ?: "bearer" }
+
+        suspend fun setAuthMode(context: Context, mode: String) {
+            context.activeDataStore.edit { it[AUTH_MODE] = mode }
+        }
+
+        /** Route text search through the server-side index (POST /api/v1/query). */
+        fun preferRemoteQueries(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[PREFER_REMOTE_QUERIES] ?: true }
+
+        suspend fun setPreferRemoteQueries(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[PREFER_REMOTE_QUERIES] = enabled }
+        }
+
+        /**
+         * Media ids queued for POST /api/v1/index/delete — persisted so deletes
+         * made while offline/unconfigured flush on the next successful call.
+         */
+        fun pendingIndexDeletes(context: Context): Flow<Set<String>> =
+            context.activeDataStore.data.map { it[PENDING_INDEX_DELETES] ?: emptySet() }
+
+        suspend fun addPendingIndexDeletes(context: Context, ids: Collection<String>) {
+            if (ids.isEmpty()) return
+            context.activeDataStore.edit { prefs ->
+                prefs[PENDING_INDEX_DELETES] =
+                    (prefs[PENDING_INDEX_DELETES] ?: emptySet()) + ids.toSet()
+            }
+        }
+
+        suspend fun removePendingIndexDeletes(context: Context, ids: Collection<String>) {
+            if (ids.isEmpty()) return
+            context.activeDataStore.edit { prefs ->
+                prefs[PENDING_INDEX_DELETES] =
+                    (prefs[PENDING_INDEX_DELETES] ?: emptySet()) - ids.toSet()
+            }
+        }
+    }
+
     object Search {
         val HISTORY_V2 = stringPreferencesKey("search_history_v2")
 

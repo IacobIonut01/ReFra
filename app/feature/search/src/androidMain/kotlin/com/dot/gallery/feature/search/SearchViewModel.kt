@@ -60,6 +60,7 @@ import com.dot.gallery.core.presentation.util.clear
 import com.dot.gallery.core.presentation.util.selectedMedia
 import com.dot.gallery.cloud.offline.OfflineModeManager
 import com.dot.gallery.core.ml.ModelManager
+import com.dot.gallery.feature.classifier.ui.search.RemoteSearchProvider
 import com.dot.gallery.feature.classifier.ui.search.SearchHelper
 import com.dot.gallery.feature.classifier.ui.search.SearchIndexerState
 import com.dot.gallery.feature.classifier.ui.search.SearchMediaItem
@@ -149,6 +150,7 @@ class SearchViewModel @Inject constructor(
     private val cloudRepository: CloudRepository,
     private val offlineModeManager: OfflineModeManager,
     private val videoFrameSampler: VideoFrameSampler,
+    private val remoteSearchProvider: RemoteSearchProvider,
     private val context: Context
 ) : ViewModel() {
 
@@ -541,8 +543,13 @@ class SearchViewModel @Inject constructor(
                             ?.mapNotNull { it as? UriMedia }
                             ?.filterNot { it.id == media.id }
                     }
+                // Handover "more like this" — the item must already be in the
+                // server index (indexed via sink=server|both during Smart Scan).
+                val handoverHits = if (allowRemoteSearch) {
+                    remoteSearchProvider.similarTo(media.id.toString())
+                } else null
 
-                if (remoteHits == null && !searchHelper.isAvailable) {
+                if (remoteHits == null && handoverHits == null && !searchHelper.isAvailable) {
                     _searchResultsState.tryEmit(
                         SearchResultsState(
                             hasSearched = true,
@@ -597,6 +604,15 @@ class SearchViewModel @Inject constructor(
                 results.mergeWithHighestScore(localHits)
                 val resolvedRemote = remoteHits?.let { resolveRemoteHits(it, allMedia.value.media) }
                 resolvedRemote?.let { results.mergeWithHighestScore(rankedRemoteHits(it)) }
+                handoverHits?.let { hits ->
+                    val pool = allMedia.value.media
+                    results.mergeWithHighestScore(
+                        hits.mapNotNull { (id, score) ->
+                            if (id == media.id.toString()) return@mapNotNull null
+                            pool.find { it.id.toString() == id }?.let { score to it }
+                        }
+                    )
+                }
                 val remoteById = resolvedRemote?.associateBy { it.id }.orEmpty()
                 val (mediaState, dateMediaState) = mapRelevanceResults(
                     currentlySearchable(results.map { it.second }, remoteById)
@@ -934,6 +950,10 @@ class SearchViewModel @Inject constructor(
             val remoteSearch = if (allowRemoteSearch) {
                 async { cloudRepository.smartSearch(query) }
             } else null
+            // Handover server-side index — text embedding + cosine run remotely.
+            val handoverSearch = if (allowRemoteSearch) {
+                async { remoteSearchProvider.search(query) }
+            } else null
             val metadataMatchIds = metadata.value.metadata
                 .filter { it.searchableText.contains(query, ignoreCase = true) }
                 .mapTo(HashSet()) { it.mediaId }
@@ -991,6 +1011,14 @@ class SearchViewModel @Inject constructor(
                 .orEmpty()
             val resolvedRemoteHits = resolveRemoteHits(remoteHits, allMedia)
             results.mergeWithHighestScore(rankedRemoteHits(resolvedRemoteHits))
+            val handoverHits = handoverSearch?.await().orEmpty()
+            if (handoverHits.isNotEmpty()) {
+                results.mergeWithHighestScore(
+                    handoverHits.mapNotNull { (id, score) ->
+                        allMedia.find { it.id.toString() == id }?.let { score to it }
+                    }
+                )
+            }
             val remoteById = resolvedRemoteHits.associateBy { it.id }
             val mergedMedia = currentlySearchable(results.map { it.second }, remoteById)
             val (mediaState, dateMediaState) = mapRelevanceResults(mergedMedia)

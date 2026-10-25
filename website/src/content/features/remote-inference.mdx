@@ -1,0 +1,73 @@
+---
+title: Remote inference
+summary: Offload Smart Search indexing and search to a self-hosted ReFra Handover server.
+area: discover
+path:
+  - Settings
+  - Smart Features
+  - Remote inference
+related: [smart-features, ai-models, smart-scan, search, cloud-networking]
+scenes: [settings-remote-inference]
+order: 9
+---
+
+**Remote inference** lets the app send prepared media to a **ReFra Handover** server you host yourself, and pull the resulting embeddings back. It can also act as the library's search provider: embeddings stay on the server and the app queries it for ranked results. Smart Search, Categories, and visual similarity work the same as with on-device [AI models](/ReFra/features/ai-models); the heavy indexing runs on whatever hardware the server has, which suits large libraries or low-power phones.
+
+Handover never sees your originals. The app sends the same prepared media it would feed the on-device engine (resized JPEG thumbnails for images and uniformly sampled frames for video), and the server answers with embedding vectors only. Media is processed in memory, job results live in a short-lived store, and every request requires the secret generated when the server was installed.
+
+## Deploy a Handover server
+
+The one-line installer covers Debian, Fedora, Arch, and macOS, and a PowerShell script covers Windows:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/IacobIonut01/ReFra-Handover/main/scripts/install.sh | bash
+```
+
+The installer detects the host's hardware (CPU, GPU, and NPU across Intel, AMD, NVIDIA, Qualcomm, and Apple Silicon, on amd64 and arm64), installs the matching ONNX Runtime flavor, offers to download the default model, registers a service, and prints the server's address, dashboard link, and generated secret.
+
+The reference Docker deployment is Compose, with image flavors for CPU, NVIDIA CUDA, AMD ROCm, and Intel OpenVINO:
+
+```sh
+git clone https://github.com/IacobIonut01/ReFra-Handover
+cd ReFra-Handover
+cp .env.example .env
+printf 'HANDOVER_SECRET=%s\n' "$(openssl rand -hex 32)" >> .env
+docker compose up -d
+```
+
+A release tarball covers minimal or air-gapped hosts. The full options are in the repository's `docs/deployment.md`.
+
+## Dashboard
+
+Every server runs a local dashboard at `http://<host>:<port>/dashboard/`. Sign in with the same secret the app uses to see detected hardware and active execution providers, pull or remove models (including custom ONNX manifests), watch live indexing and download activity, and check per-user index sizes. On a fresh server the dashboard's first run prompts to download the recommended model.
+
+## Multiple users, one server
+
+Several people can share one Handover box. The operator gives each user a named secret; every user gets their own job queue visibility and vector index, while admins can also manage models and see all activity. Each person enters their own secret in the app; nothing else changes.
+
+## Connect the app
+
+1. Open **Settings › Smart Features › Remote inference** and turn on **Enable remote inference**.
+2. Enter the server's **Server URL**. Use `https://` when the server sits behind a reverse proxy or Cloudflare Tunnel; plain `http://` is accepted too and the app shows a warning that traffic travels unencrypted. For a home server without a certificate you can also put its plain address in **Local URL** instead.
+3. Enter the **Access secret** generated at install time and tap **Test connection**. A pass proves the address, the secret, and the server's advertised engines in one step. If the server runs with `HANDOVER_AUTH_MODE=hmac`, also switch **Request signing** to *HMAC signature* so requests are signed with the secret instead of sent as a token.
+4. Optionally turn on **Use local URL on home Wi-Fi**, then set the **Home Wi-Fi** name and a **Local URL**. On that network the app calls the fast local address; off it, the server URL. That is the same switching as [automatic URL switching](/ReFra/features/cloud-networking) for cloud accounts. A plain `http://` local URL is accepted with an on-screen warning, on a network you trust.
+5. Under **Indexing & search**, leave **Search engine** on *Server default* or pin one of the advertised engines, choose where results live under **Store results** (*On this device only*, *On the server only*, or *Device and server*), and decide whether **Search through the server index** answers text and similar-media queries remotely.
+
+The next Smart Scan hands prepared media to the server instead of the on-device model. Turn remote inference off at any time and indexing simply falls back to the local engine.
+
+## Which engine the server uses
+
+The server ships engines matching the app's search engines (CLIP ViT-B/32 and EmbeddingGemma 2) and reports them on the Remote inference screen. *Server default* picks the engine that advertises the app's active search model; results are recorded under the app's normal index generation, so switching between local and remote never re-indexes the library.
+
+Uploads are chunked so each envelope stays under 48 MB, comfortably inside Cloudflare's free-tier 100 MB request limit, and indexing runs as background jobs: the app submits a batch, polls its progress, and downloads results in pages. A scan that loses the server mid-run marks the outstanding items failed and they resume through the normal Smart Scan retry.
+
+## Privacy in one paragraph
+
+The server learns thumbnails and sampled frames, not full-resolution photos, RAW files, or video streams, plus the search text you type when remote queries are enabled. It is your infrastructure: there is no third-party service in the path beyond whatever tunnel or proxy you deploy yourself. The secret authenticates every request (as a Bearer token by default, or as an HMAC signature when the server runs in `hmac` mode), each user's index is isolated, and the app warns whenever either URL uses plain `http://` — https is strongly recommended for a Server URL reachable over the internet.
+
+## If the connection fails
+
+- **Unauthorized**: the secret in the app does not match a principal secret on the server.
+- **Unreachable**: check the address, that the container or service is running, and that the port is open; for remote URLs verify the proxy forwards to port 8084.
+- **Server URL must start with http:// or https://**: add the scheme to the address; for a home server without a certificate the `http://` form works — the warning row is expected.
+- **No engine loaded**: the server is up but has no model installed, or the advertised engine does not match the app's active search model. Install the matching model from the dashboard or pick another engine on the Remote inference screen.

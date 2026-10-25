@@ -111,6 +111,7 @@ import com.dot.gallery.app.presentation.settings.subsettings.SettingsTimelineAlb
 import com.dot.gallery.app.presentation.settings.subsettings.EditBackupsViewerScreen
 import com.dot.gallery.app.presentation.settings.subsettings.AIModelsManagerScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsCloudIndexingScreen
+import com.dot.gallery.app.presentation.settings.subsettings.SettingsHandoverScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsSecurityScreen
 import com.dot.gallery.feature.settings.ui.SettingsBackupScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsBackupExportScreen
@@ -1337,6 +1338,9 @@ fun NavigationComp(
             }
             composable(Screen.SettingsCloudIndexingScreen()) {
                 SettingsCloudIndexingScreen()
+            }
+            composable(Screen.SettingsHandoverScreen()) {
+                SettingsHandoverScreen()
             }
             composable(Screen.SmartScanPreferenceDetailScreen()) {
                 SmartScanPreferenceDetailScreen()

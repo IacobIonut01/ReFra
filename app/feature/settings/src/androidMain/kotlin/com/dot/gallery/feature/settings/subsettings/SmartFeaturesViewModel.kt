@@ -121,6 +121,14 @@ class SmartFeaturesViewModel @Inject constructor(
             initialValue = true
         )
 
+    /** Whether ReFra Handover remote inference is enabled (Settings › Remote inference). */
+    val handoverEnabled: StateFlow<Boolean> =
+        Settings.Handover.enabled(context).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     /** Capabilities advertised by the registered provider for [type], if any instance exists. */
     fun capabilitiesOf(type: ProviderType): Set<ProviderCapability> =
         providerRegistry.get(type)?.capabilities ?: emptySet()

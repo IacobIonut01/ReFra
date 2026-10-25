@@ -43,6 +43,8 @@ import com.dot.gallery.app.presentation.frameextract.FramePickerScreen
 import com.dot.gallery.app.presentation.frameextract.FramePickerUiState
 import com.dot.gallery.app.presentation.frameextract.FrameIdentity
 import com.dot.gallery.app.presentation.frameextract.FramePreview
+import com.dot.gallery.app.presentation.settings.subsettings.HandoverSettingsContent
+import com.dot.gallery.app.presentation.settings.subsettings.HandoverSettingsState
 import com.dot.gallery.app.presentation.frameextract.FrameSelectionReducer
 import com.dot.gallery.app.presentation.frameextract.FrameVideoMetadata
 import com.dot.gallery.app.presentation.frameextract.SelectionChange
@@ -78,6 +80,9 @@ import com.dot.gallery.feature.viewer.components.media.CutoutController
 import com.dot.gallery.feature.viewer.components.media.CutoutControlsBar
 import com.dot.gallery.feature.viewer.components.media.CutoutState
 import com.dot.gallery.feature.viewer.components.media.ZoomablePagerImagePointTool
+import com.dot.gallery.handover.EngineInfo
+import com.dot.gallery.handover.HandoverEnvelope
+import com.dot.gallery.handover.HandoverInfo
 import java.io.File
 import kotlinx.coroutines.runBlocking
 
@@ -156,6 +161,12 @@ actual fun platformScenes(): List<DocsScene> = listOf(
         pathTrace = listOf("Library", "Trash"),
         states = listOf("filled", "empty"),
     ) { state -> DocsTrashScene(state) },
+    DocsScene(
+        id = "settings-remote-inference",
+        title = "Remote inference",
+        pathTrace = listOf("Settings", "Smart Features", "Remote inference"),
+        states = listOf("configured", "blank"),
+    ) { state -> DocsRemoteInferenceScene(state) },
 ) + cloudSetupScenes + cloudSettingsScenes + cloudUseScenes + viewerScenes + exploreScenes
 
 // ── Bundled-asset fixtures ────────────────────────────────────────────────
@@ -752,4 +763,40 @@ private fun DocsTrashScene(state: String?) {
             animatedContentScope = acs,
         )
     }
+}
+
+/** Remote inference settings over the real [HandoverSettingsContent]. */
+@Composable
+private fun DocsRemoteInferenceScene(state: String?) {
+    val configured = state != "blank"
+    HandoverSettingsContent(
+        state = HandoverSettingsState(
+            enabled = configured,
+            remoteUrl = if (configured) "https://handover.example.com" else "",
+            localUrl = if (configured) "http://192.168.1.10:8610" else "",
+            wifiSsid = if (configured) "HomeNet" else "",
+            autoSwitch = configured,
+            engine = "",
+            sink = HandoverEnvelope.SINK_BOTH,
+            preferRemoteQueries = true,
+            secretSet = configured,
+            status = if (configured) HandoverInfo(
+                server = "refra-handover",
+                version = "0.1.0",
+                protocol = 1,
+                principal = "alice",
+                engines = listOf(
+                    EngineInfo(
+                        id = "eg2-q4",
+                        displayName = "EmbeddingGemma 2 (q4)",
+                        engine = "eg2",
+                        appEngine = "EMBEDDING_GEMMA_2",
+                        modalities = listOf("text", "image", "video"),
+                        embeddingDim = 768,
+                        loaded = true,
+                    ),
+                ),
+            ) else null,
+        ),
+    )
 }

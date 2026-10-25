@@ -665,4 +665,5 @@
     <string name="media_info">Media Info</string>
     <string name="reset">Reset</string>
     <string name="weekly_date">Weekly Date</string>
+    <string name="handover_title">Remote inference</string>
 </resources>
