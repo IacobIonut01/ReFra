@@ -8,10 +8,7 @@ package com.dot.gallery.app.presentation.timeline
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -20,7 +17,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,7 +27,6 @@ import dev.brewkits.kmpworkmanager.background.domain.TaskState
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
-import com.dot.gallery.core.Settings.Misc.rememberLastSeenVersion
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.SelectionSheet
@@ -41,11 +36,9 @@ import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.feature.timeline.TimelineContent
-import com.dot.gallery.feature.help.ui.WhatsNewHeroCard
-import com.dot.gallery.app.presentation.search.MainSearchBar
 import com.dot.gallery.feature.timeline.storycards.StoryCardsViewModel
 import com.dot.gallery.app.presentation.storycards.components.StoryCardsRow
-import com.dot.gallery.app.presentation.timeline.components.TimelineNavActions
+import com.dot.gallery.app.presentation.main.MainScreenTopBar
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.presentation.util.rememberBottomBarInset
 import kotlinx.coroutines.flow.emitAll
@@ -54,7 +47,6 @@ import kotlinx.coroutines.launch
 import com.dot.gallery.core.workers.CAPTURE_TIME_INDEX_PROGRESS
 import com.dot.gallery.core.workers.CAPTURE_TIME_INDEX_WORK
 import com.dot.gallery.core.workers.CaptureTimeIndexWorker
-import com.dot.gallery.BuildConfig
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -96,53 +88,22 @@ fun TimelineScreen(
         route = Screen.TimelineScreen(),
         ready = !mediaState.value.isLoading
     )
-    var lastSeenVersion by rememberLastSeenVersion()
-    val showWhatsNew = remember(lastSeenVersion) { lastSeenVersion != BuildConfig.VERSION_NAME }
-
     val storyCards = if (storyCardsViewModel != null) {
         storyCardsViewModel.allCards.collectAsStateWithLifecycle().value
     } else {
         emptyList()
     }
 
-    val hasStoryCards = storyCards?.isNotEmpty() == true
-    val aboveGridContent: @Composable (() -> Unit)? = if (showWhatsNew || hasStoryCards) {
+    val aboveGridContent: @Composable (() -> Unit)? = if (storyCards == null || storyCards.isNotEmpty()) {
         {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (showWhatsNew) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        WhatsNewHeroCard(
-                            versionName = BuildConfig.VERSION_NAME,
-                            onClick = {
-                                lastSeenVersion = BuildConfig.VERSION_NAME
-                                eventHandler.navigate(Screen.WhatsNewScreen())
-                            },
-                            onDismiss = {
-                                lastSeenVersion = BuildConfig.VERSION_NAME
-                            }
-                        )
-                    }
-                }
-                if (hasStoryCards) {
-                    StoryCardsRow(
-                        cards = storyCards.orEmpty(),
-                        onCardClick = { card ->
-                            storyCardsViewModel?.prepareViewer(card.id)
-                        },
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedContentScope,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-                        contentPadding = PaddingValues(horizontal = 32.dp)
-                    )
-                }
-            }
+            StoryCardsRow(
+                cards = storyCards,
+                onCardClick = { card -> storyCardsViewModel?.prepareViewer(card.id) },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedContentScope,
+                modifier = Modifier.padding(vertical = 8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+            )
         }
     } else null
 
@@ -182,12 +143,9 @@ fun TimelineScreen(
             )
         },
         topBar = { trailingIcon ->
-            MainSearchBar(
+            MainScreenTopBar(
                 isScrolling = isScrolling,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                menuItems = { TimelineNavActions() },
-                searchBarTrailingIcon = trailingIcon,
+                filter = trailingIcon,
             )
         },
     )

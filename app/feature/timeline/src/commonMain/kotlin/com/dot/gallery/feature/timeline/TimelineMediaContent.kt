@@ -42,6 +42,8 @@ import com.dot.gallery.core.animateOrJumpToTop
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.core.presentation.components.FloatingTopBarScrim
+import com.dot.gallery.core.presentation.components.TopBarScrimScrollFade
+import com.dot.gallery.core.presentation.components.topScrimVisibility
 import com.dot.gallery.core.presentation.components.GridPinchZoomLayout
 import com.dot.gallery.core.presentation.components.MediaGridView
 import com.dot.gallery.core.presentation.components.MosaicPinchZoomLayout
@@ -116,12 +118,11 @@ fun TimelineMediaContent(
         ScrollToTopHandler(scrollToTopRoute) { pinchState.gridState.animateOrJumpToTop() }
     }
 
-    val contentPadding = remember(scaffoldPadding, bottomPadding) {
-        PaddingValues(
-            top = scaffoldPadding.calculateTopPadding(),
-            bottom = bottomPadding,
-        )
-    }
+    // Scaffold updates its PaddingValues in place when the backup header expands.
+    val contentPadding = PaddingValues(
+        top = scaffoldPadding.calculateTopPadding(),
+        bottom = bottomPadding,
+    )
 
     if (!isMosaicLayout) {
         GridPinchZoomLayout(
@@ -178,7 +179,10 @@ fun TimelineMediaContent(
     val searchBarPadding by animateDpAsState(
         targetValue = when {
             !showSearchBar -> scaffoldPadding.calculateTopPadding()
-            !isScrolling.value || !hideSearchBarSetting -> SearchBarDefaults.InputFieldHeight + screenTopPadding + 8.dp
+            !isScrolling.value || !hideSearchBarSetting -> maxOf(
+                SearchBarDefaults.InputFieldHeight + screenTopPadding + 8.dp,
+                scaffoldPadding.calculateTopPadding(),
+            )
             else -> screenTopPadding
         },
         label = "sharedTimelineHeaderPadding",
@@ -206,7 +210,7 @@ fun TimelineMediaContent(
                 val darkTheme = isDarkTheme()
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.titleMedium.let { style ->
+                    style = MaterialTheme.typography.labelLarge.let { style ->
                         if (!darkTheme) style.copy(
                             shadow = Shadow(Color.White, Offset.Zero, 10f),
                         ) else style
@@ -222,7 +226,7 @@ fun TimelineMediaContent(
                             )
                         )
                         .padding(horizontal = 16.dp)
-                        .padding(top = 24.dp + searchBarPadding, bottom = 24.dp)
+                        .padding(top = 20.dp + searchBarPadding, bottom = 20.dp)
                         .fillMaxWidth(),
                 )
             }
@@ -273,7 +277,16 @@ fun TimelineMediaContent(
             }
         }
         if (showSearchBar) {
-            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
+            FloatingTopBarScrim(
+                barZoneHeight = searchBarPadding,
+                visibility = {
+                    topScrimVisibility(
+                        mosaicGridState.firstVisibleItemIndex,
+                        mosaicGridState.firstVisibleItemScrollOffset,
+                        TopBarScrimScrollFade.toPx(),
+                    )
+                },
+            )
         }
     }
 }

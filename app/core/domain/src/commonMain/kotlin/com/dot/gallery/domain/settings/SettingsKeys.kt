@@ -178,6 +178,12 @@ object SettingsKeys {
     val forcedLastScreen = PrefKey.bool("forced_last_screen", default = false)
     val oldNavbar = PrefKey.bool("old_navbar", default = false)
     val autoHideSearchBar = PrefKey.bool("auto_hide_searchbar", default = true)
+    /** Large windows keep the gallery beside the viewer instead of opening it fullscreen. */
+    val galleryDualPane = PrefKey.bool("gallery_dual_pane", default = true)
+    /** Share of the window width given to the gallery pane while the viewer is beside it. */
+    val galleryPaneFraction = PrefKey.float("gallery_pane_fraction", default = 0.45f)
+    /** Width in dp of the settings list kept beside an open settings page. */
+    val settingsPaneWidth = PrefKey.float("settings_pane_width", default = 360f)
     val autoOpenSearchKeyboard = PrefKey.bool("auto_open_search_keyboard", default = true)
     val autoHideNavBar = PrefKey.bool("auto_hide_navigationbar", default = true)
 

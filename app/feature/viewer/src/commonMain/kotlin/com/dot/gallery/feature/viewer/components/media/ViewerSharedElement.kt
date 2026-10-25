@@ -9,12 +9,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.util.lerp
 import com.dot.gallery.domain.model.Media
@@ -64,6 +68,10 @@ fun <T : Media> ViewerSharedElementThumbnail(
  */
 @Composable
 fun ViewerDismissFlightLayer(bridge: ViewerDismissBridge) {
+    // Flight bounds are root coordinates; hosts inset inside a pane must not shift them.
+    val origin = remember { mutableStateOf(Offset.Zero) }
+    // A zero-size marker at the host's top-start reports where the host sits in the root.
+    Box(Modifier.onPlaced { origin.value = it.positionInRoot() })
     bridge.flight?.let { flight ->
         val flightScale = remember(flight) { FlightContentScale(flight) }
         Box(
@@ -73,8 +81,8 @@ fun ViewerDismissFlightLayer(bridge: ViewerDismissBridge) {
                 val placeable = measurable.measure(Constraints.fixed(w, h))
                 layout(placeable.width, placeable.height) {
                     placeable.place(
-                        flight.bounds.left.roundToInt(),
-                        flight.bounds.top.roundToInt(),
+                        (flight.bounds.left - origin.value.x).roundToInt(),
+                        (flight.bounds.top - origin.value.y).roundToInt(),
                     )
                 }
             }

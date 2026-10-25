@@ -310,7 +310,16 @@ fun <T: Media> MediaScreen(
                             )
                         }
                     }
-                    FloatingTopBarScrim(barZoneHeight = topBarScrimZone)
+                    FloatingTopBarScrim(
+                        barZoneHeight = topBarScrimZone,
+                        visibility = {
+                            topScrimVisibility(
+                                mosaicGridState.firstVisibleItemIndex,
+                                mosaicGridState.firstVisibleItemScrollOffset,
+                                TopBarScrimScrollFade.toPx(),
+                            )
+                        },
+                    )
                 } else {
                     GridPinchZoomLayout(
                         state = pinchState,

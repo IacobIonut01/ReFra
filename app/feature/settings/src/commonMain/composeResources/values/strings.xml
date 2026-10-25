@@ -274,6 +274,9 @@
     <string name="old_navbar">Use Material Navigation</string>
     <string name="old_navbar_description">Switches to the classic Material navigation bar with text labels. On larger screens, this shows a navigation rail on the side instead.</string>
     <string name="old_navbar_summary">Show the old navigation bar UI (with rails for bigger screens)</string>
+    <string name="gallery_dual_pane">Gallery beside viewer</string>
+    <string name="gallery_dual_pane_summary">On large screens, keep the gallery open next to the photo</string>
+    <string name="gallery_dual_pane_description">On tablets, foldables and other large windows, opening a photo from the Timeline keeps the gallery visible beside the viewer. Drag the divider between them to resize the panes, or double-tap it to restore the default size. Turn this off to always open photos fullscreen.</string>
     <string name="auto_hide_searchbar">Hide search bar on scroll</string>
     <string name="auto_hide_searchbar_description">The search bar or top bar slides out of view when you scroll down, giving more space for content. It reappears when you scroll back up.</string>
     <string name="auto_hide_searchbar_summary">Automatically hide the search bar or the top bar of the screen while scrolling</string>

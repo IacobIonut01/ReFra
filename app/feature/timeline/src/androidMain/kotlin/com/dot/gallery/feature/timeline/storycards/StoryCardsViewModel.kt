@@ -19,6 +19,7 @@ import com.dot.gallery.data.entity.MediaMetadata
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.StoryCard
 import com.dot.gallery.domain.model.StoryCardType
+import com.dot.gallery.feature.timeline.mergeReadyStoryCards
 import com.dot.gallery.data.repository.MediaRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -124,13 +125,16 @@ class StoryCardsViewModel @Inject constructor(
         .afterFirstContent()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val storyCards: StateFlow<List<StoryCard>> = combine(
+    val storyCards: StateFlow<List<StoryCard>?> = combine(
         configFlow,
-        timelineMedia,
+        timelineMediaState,
         albumsState,
         favoritesMedia,
         metadataFlow,
-    ) { config, media, albums, favorites, metadata ->
+    ) { config, mediaState, albums, favorites, metadata ->
+        if (mediaState.isLoading) return@combine null
+        if (albums.isLoading && StoryCardType.ALBUMS in config.activeTypes) return@combine null
+        val media = mediaState.media
         if (!config.enabled || media.isEmpty()) return@combine emptyList()
 
         val cards = mutableListOf<StoryCard>()
@@ -159,7 +163,7 @@ class StoryCardsViewModel @Inject constructor(
             }
         }
         cards
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _cloudMemoryCards = MutableStateFlow<List<StoryCard>>(emptyList())
 
@@ -262,19 +266,14 @@ class StoryCardsViewModel @Inject constructor(
         _cloudMemoryCards,
         timelineMediaState
     ) { config, cards, catCards, cloudCards, mediaState ->
-        // null = still loading (timeline hasn't loaded yet)
-        if (mediaState.isLoading) return@combine null
-        if (!config.enabled || mediaState.media.isEmpty()) return@combine emptyList()
-        val merged = mutableListOf<StoryCard>()
-        val orderedTypes = config.activeTypes
-        for (type in orderedTypes) {
-            when (type) {
-                StoryCardType.CATEGORIES -> merged.addAll(catCards)
-                StoryCardType.CLOUD_MEMORIES -> merged.addAll(cloudCards)
-                else -> merged.addAll(cards.filter { it.type == type })
-            }
-        }
-        merged
+        mergeReadyStoryCards(
+            config = config,
+            isTimelineLoading = mediaState.isLoading,
+            hasMedia = mediaState.media.isNotEmpty(),
+            localCards = cards,
+            categoryCards = catCards,
+            cloudCards = cloudCards,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _viewerSnapshot = MutableStateFlow<StoryViewerSnapshot?>(null)

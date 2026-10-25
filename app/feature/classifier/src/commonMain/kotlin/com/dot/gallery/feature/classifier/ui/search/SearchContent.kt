@@ -5,6 +5,7 @@
 
 package com.dot.gallery.feature.classifier.ui.search
 
+import com.dot.gallery.core.presentation.components.NavigationBackButton
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -36,7 +37,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -94,6 +94,7 @@ import com.dot.gallery.core.presentation.components.rememberMosaicMonthSegments
 import com.dot.gallery.core.presentation.components.rememberMosaicPinchZoomState
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.selectedMedia
+import com.dot.gallery.core.presentation.util.sharedSearchBounds
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.core.ui.util.rememberedDerivedState
 import com.dot.gallery.data.entity.SmartScanStatus
@@ -113,7 +114,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.classifier.generated.resources.Res
-import com.dot.gallery.feature.classifier.generated.resources.back_cd
 import com.dot.gallery.feature.classifier.generated.resources.browse_categories
 import com.dot.gallery.feature.classifier.generated.resources.camera_models
 import com.dot.gallery.feature.classifier.generated.resources.find_similar
@@ -243,10 +243,7 @@ fun SearchContent(
         tipsContent?.invoke()
     }
     Scaffold(
-        modifier = Modifier.sharedBounds(
-            sharedContentState = rememberSharedContentState(key = "search_screen_bounds"),
-            animatedVisibilityScope = animatedContentScope
-        ),
+        modifier = Modifier.sharedSearchBounds(sharedTransitionScope, animatedContentScope),
         topBar = {
             Box(
                 modifier = Modifier.statusBarsPadding()
@@ -257,27 +254,16 @@ fun SearchContent(
                             .padding(start = 4.dp, top = 4.dp, bottom = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceContainer,
-                                    shape = CircleShape
-                                ),
-                            onClick = {
+                        // Moves into the wide-window rail like every other screen's back button.
+                        NavigationBackButton(
+                            forcedAction = {
                                 if (shouldClearOnBack) {
                                     actions.onClearQuery()
                                 } else {
                                     actions.onBack()
                                 }
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(Res.string.back_cd),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                        )
                         val outlineColor = Color.Transparent
                         OutlinedTextField(
                             modifier = Modifier

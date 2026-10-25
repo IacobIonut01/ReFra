@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.app.presentation.edit.EditScreen2
+import com.dot.gallery.app.presentation.storycards.components.StoryCardsRow
 import com.dot.gallery.app.presentation.trashed.components.TrashFooterContent
 import com.dot.gallery.app.presentation.frameextract.FrameExportFormat
 import com.dot.gallery.app.presentation.frameextract.FrameExportWorker
@@ -58,6 +59,9 @@ import com.dot.gallery.docs.scenes.DocsSharedScopes
 import com.dot.gallery.docs.showcase.generated.resources.Res
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.UriMedia
+import com.dot.gallery.domain.model.StoryCard
+import com.dot.gallery.domain.model.StoryCardType
+import com.dot.gallery.domain.uri.parseUri
 import com.dot.gallery.domain.model.editor.DevelopCategory
 import com.dot.gallery.domain.model.editor.DrawMode
 import com.dot.gallery.domain.model.editor.DrawType
@@ -85,6 +89,15 @@ import kotlinx.coroutines.runBlocking
  * live catalog never lists a scene it cannot host.
  */
 actual fun platformScenes(): List<DocsScene> = listOf(
+    DocsScene(
+        id = "stories-carousel",
+        title = "Story highlights carousel",
+        pathTrace = listOf("Timeline", "Story cards"),
+        states = listOf("one", "two", "many", "loading"),
+        presentation = "component",
+        widthDp = 412,
+        heightDp = 236,
+    ) { state -> DocsStoryCardsScene(state) },
     DocsScene(
         id = "editor-photo",
         title = "Photo editor",
@@ -170,6 +183,45 @@ private fun rememberDocsAssetFile(path: String, fileName: String): File {
             }
         }
     }
+}
+
+@Composable
+private fun DocsStoryCardsScene(state: String?) {
+    if (state == "loading") {
+        StoryCardsRow(cards = null, onCardClick = {}, modifier = Modifier.padding(vertical = 8.dp))
+        return
+    }
+    val lake = rememberDocsAssetFile("drawable/docs_lake.jpg", "stories-lake.jpg")
+    val earth = rememberDocsAssetFile("drawable/docs_earth.jpg", "stories-earth.jpg")
+    val flower = rememberDocsAssetFile("drawable/docs_flower.jpg", "stories-flower.jpg")
+    val detail = rememberDocsAssetFile("drawable/docs_flower_detail.jpg", "stories-detail.jpg")
+    val cards = remember(lake, earth, flower, detail) {
+        val files = listOf(lake, earth, flower, detail)
+        val media = DocsGalleryData.mediaItems().take(4).mapIndexed { index, item ->
+            item.copy(uri = parseUri("file://${files[index].absolutePath}"), path = files[index].absolutePath)
+        }
+        val types = listOf(StoryCardType.MEMORIES, StoryCardType.LOCATIONS, StoryCardType.FAVORITES, StoryCardType.ALBUMS)
+        val titles = listOf("On this day", "At the coast", "Favorites", "Camera")
+        (0..7).map { index ->
+            StoryCard(
+                id = index.toLong(),
+                type = types[index % types.size],
+                title = titles[index % titles.size],
+                subtitle = "4 highlights",
+                thumbnailMedia = media[index % media.size],
+                mediaList = media,
+            )
+        }
+    }
+    StoryCardsRow(
+        cards = when (state) {
+            "one" -> cards.take(1)
+            "two" -> cards.take(2)
+            else -> cards
+        },
+        onCardClick = {},
+        modifier = Modifier.padding(vertical = 8.dp),
+    )
 }
 
 /** Keeps the tagged root dark (editor chrome is dark) while a scene has no bitmap. */

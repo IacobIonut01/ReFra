@@ -141,16 +141,14 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
 
     val hideSearchBarSetting by rememberPreference(SettingsKeys.autoHideSearchBar)
     val searchBarPadding by animateDpAsState(
-        targetValue = remember(
-            isScrolling.value,
-            showSearchBar,
-            searchBarPaddingTop,
-            hideSearchBarSetting
-        ) {
-            if (showSearchBar && (!isScrolling.value || !hideSearchBarSetting)) {
-                SearchBarDefaults.InputFieldHeight + searchBarPaddingTop + 8.dp
-            } else if (showSearchBar && isScrolling.value) searchBarPaddingTop else 0.dp
-        },
+        // Read padding during composition: Scaffold mutates its PaddingValues in place, so the
+        // object identity cannot key a cache when the header grows or shrinks.
+        targetValue = if (showSearchBar && (!isScrolling.value || !hideSearchBarSetting)) {
+            maxOf(
+                SearchBarDefaults.InputFieldHeight + searchBarPaddingTop + 8.dp,
+                paddingValues.calculateTopPadding(),
+            )
+        } else if (showSearchBar && isScrolling.value) searchBarPaddingTop else 0.dp,
         label = "searchBarPadding"
     )
 
@@ -187,7 +185,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                     val darkTheme = isDarkTheme()
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.titleMedium.let { style ->
+                        style = MaterialTheme.typography.labelLarge.let { style ->
                             if (!darkTheme) style.copy(
                                 shadow = Shadow(
                                     color = Color.White,
@@ -210,7 +208,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                                 )
                             )
                             .padding(horizontal = 16.dp)
-                            .padding(top = 24.dp + searchBarPadding, bottom = 24.dp)
+                            .padding(top = 20.dp + searchBarPadding, bottom = 20.dp)
                             .fillMaxWidth()
                     )
                 }
@@ -236,7 +234,16 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 allowSharedElements = allowSharedElements,
                 onRetry = onRetry,
             )
-            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
+            FloatingTopBarScrim(
+                barZoneHeight = searchBarPadding,
+                visibility = {
+                    topScrimVisibility(
+                        gridState.firstVisibleItemIndex,
+                        gridState.firstVisibleItemScrollOffset,
+                        TopBarScrimScrollFade.toPx(),
+                    )
+                },
+            )
         }
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -260,7 +267,16 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 allowSharedElements = allowSharedElements,
                 onRetry = onRetry,
             )
-            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
+            FloatingTopBarScrim(
+                barZoneHeight = searchBarPadding,
+                visibility = {
+                    topScrimVisibility(
+                        gridState.firstVisibleItemIndex,
+                        gridState.firstVisibleItemScrollOffset,
+                        TopBarScrimScrollFade.toPx(),
+                    )
+                },
+            )
         }
     }
 

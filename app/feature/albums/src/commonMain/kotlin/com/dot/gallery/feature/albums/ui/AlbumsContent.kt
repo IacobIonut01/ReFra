@@ -57,6 +57,8 @@ import com.dot.gallery.core.presentation.components.FilterButton
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.FilterOption
 import com.dot.gallery.core.presentation.components.FloatingTopBarScrim
+import com.dot.gallery.core.presentation.components.TopBarScrimScrollFade
+import com.dot.gallery.core.presentation.components.topScrimVisibility
 import com.dot.gallery.core.presentation.components.GridPinchZoomLayout
 import com.dot.gallery.core.presentation.components.LoadingAlbumContent
 import com.dot.gallery.core.presentation.components.MediaContentState
@@ -987,7 +989,16 @@ fun AlbumsContent(
                 }
             }
         }
-        FloatingTopBarScrim(barZoneHeight = topBarScrimZone)
+        FloatingTopBarScrim(
+            barZoneHeight = topBarScrimZone,
+            visibility = {
+                topScrimVisibility(
+                    listState.firstVisibleItemIndex,
+                    listState.firstVisibleItemScrollOffset,
+                    TopBarScrimScrollFade.toPx(),
+                )
+            },
+        )
         }
     }
         }

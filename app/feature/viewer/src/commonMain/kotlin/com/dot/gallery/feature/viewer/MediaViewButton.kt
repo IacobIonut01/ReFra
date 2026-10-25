@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
+import com.dot.gallery.core.presentation.components.LocalActionSegmentSize
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.domain.model.Media
@@ -75,10 +77,12 @@ fun <T : Media> MediaViewButton(
         },
         state = tooltipState
     ) {
+        // Inside a segmented group the whole segment is the target; elsewhere a 48 dp circle.
+        val segmentSize = LocalActionSegmentSize.current
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
+                .size(segmentSize ?: 48.dp)
+                .clip(if (segmentSize != null) RectangleShape else CircleShape)
                 .combinedClickable(
                     enabled = enabled,
                     onClick = {

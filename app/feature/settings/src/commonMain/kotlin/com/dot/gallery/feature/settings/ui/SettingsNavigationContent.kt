@@ -77,6 +77,9 @@ import com.dot.gallery.feature.settings.generated.resources.launch_screen_descri
 import com.dot.gallery.feature.settings.generated.resources.library
 import com.dot.gallery.feature.settings.generated.resources.navigation
 import com.dot.gallery.feature.settings.generated.resources.old_navbar
+import com.dot.gallery.feature.settings.generated.resources.gallery_dual_pane
+import com.dot.gallery.feature.settings.generated.resources.gallery_dual_pane_description
+import com.dot.gallery.feature.settings.generated.resources.gallery_dual_pane_summary
 import com.dot.gallery.feature.settings.generated.resources.old_navbar_description
 import com.dot.gallery.feature.settings.generated.resources.old_navbar_summary
 import com.dot.gallery.feature.settings.generated.resources.selection_actions
@@ -97,6 +100,7 @@ private const val DETAIL_HIDE_SEARCH = "hide_search"
 private const val DETAIL_OPEN_KEYBOARD = "open_keyboard"
 private const val DETAIL_HIDE_NAV = "hide_nav"
 private const val DETAIL_SELECTION_TITLES = "selection_titles"
+private const val DETAIL_DUAL_PANE = "dual_pane"
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -113,6 +117,7 @@ fun SettingsNavigationContent(
     var autoOpenKeyboard by rememberPreference(SettingsKeys.autoOpenSearchKeyboard)
     var autoHideNavBar by rememberPreference(SettingsKeys.autoHideNavBar)
     var showSelectionTitles by rememberPreference(SettingsKeys.selectionTitles)
+    var dualPane by rememberPreference(SettingsKeys.galleryDualPane)
 
     when (detailKey) {
         DETAIL_LAUNCH_SCREEN -> {
@@ -211,6 +216,15 @@ fun SettingsNavigationContent(
                 description = stringResource(Res.string.auto_hide_navigationbar_description),
             )
         }
+        DETAIL_DUAL_PANE -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.gallery_dual_pane),
+                isChecked = dualPane,
+                onCheckedChange = { dualPane = it },
+                description = stringResource(Res.string.gallery_dual_pane_description),
+            )
+        }
         DETAIL_SELECTION_TITLES -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -239,6 +253,8 @@ fun SettingsNavigationContent(
                 onAutoOpenKeyboardChange = { autoOpenKeyboard = it },
                 autoHideNavBar = autoHideNavBar,
                 onAutoHideNavChange = { autoHideNavBar = it },
+                dualPane = dualPane,
+                onDualPaneChange = { dualPane = it },
                 showSelectionTitles = showSelectionTitles,
                 onSelectionTitlesChange = { showSelectionTitles = it },
                 onDetailClick = { detailKey = it },
@@ -460,6 +476,8 @@ private fun NavigationListScreen(
     onAutoOpenKeyboardChange: (Boolean) -> Unit,
     autoHideNavBar: Boolean,
     onAutoHideNavChange: (Boolean) -> Unit,
+    dualPane: Boolean,
+    onDualPaneChange: (Boolean) -> Unit,
     showSelectionTitles: Boolean,
     onSelectionTitlesChange: (Boolean) -> Unit,
     onDetailClick: (String) -> Unit,
@@ -552,6 +570,16 @@ private fun NavigationListScreen(
         isChecked = autoHideNavBar,
         onCheck = onAutoHideNavChange,
         onClick = { onDetailClick(DETAIL_HIDE_NAV) },
+        screenPosition = Position.Middle
+    )
+
+    val dualPanePref = rememberSwitchPreference(
+        dualPane,
+        title = stringResource(Res.string.gallery_dual_pane),
+        summary = stringResource(Res.string.gallery_dual_pane_summary),
+        isChecked = dualPane,
+        onCheck = onDualPaneChange,
+        onClick = { onDetailClick(DETAIL_DUAL_PANE) },
         screenPosition = Position.Bottom
     )
 
@@ -579,7 +607,7 @@ private fun NavigationListScreen(
 
     val settingsList: SnapshotStateList<SettingsEntity> = remember(
         launchHeader, forcedLastScreenPref, barsHeader, showOldNavbarPref,
-        autoHideSearchPref, autoOpenKeyboardPref, autoHideNavBarPref,
+        autoHideSearchPref, autoOpenKeyboardPref, autoHideNavBarPref, dualPanePref,
         interfaceHeader, showSelectionTitlesPref, selectionActionsPref
     ) {
         mutableStateListOf(
@@ -590,6 +618,7 @@ private fun NavigationListScreen(
             autoHideSearchPref,
             autoOpenKeyboardPref,
             autoHideNavBarPref,
+            dualPanePref,
             interfaceHeader,
             showSelectionTitlesPref,
             selectionActionsPref

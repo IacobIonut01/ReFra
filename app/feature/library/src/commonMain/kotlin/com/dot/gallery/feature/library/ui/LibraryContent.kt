@@ -91,6 +91,8 @@ import com.dot.gallery.core.ScrollToTopHandler
 import com.dot.gallery.core.animateOrJumpToTop
 import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.core.presentation.components.FloatingTopBarScrim
+import com.dot.gallery.core.presentation.components.TopBarScrimScrollFade
+import com.dot.gallery.core.presentation.components.topScrimVisibility
 import com.dot.gallery.core.presentation.components.GridPinchZoomLayout
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
 import com.dot.gallery.core.presentation.components.rememberGridPinchZoomState
@@ -912,7 +914,16 @@ fun LibraryContent(
                 }
             }
         }
-        FloatingTopBarScrim(barZoneHeight = topBarScrimZone)
+        FloatingTopBarScrim(
+            barZoneHeight = topBarScrimZone,
+            visibility = {
+                topScrimVisibility(
+                    gridState.firstVisibleItemIndex,
+                    gridState.firstVisibleItemScrollOffset,
+                    TopBarScrimScrollFade.toPx(),
+                )
+            },
+        )
         }
     }
 

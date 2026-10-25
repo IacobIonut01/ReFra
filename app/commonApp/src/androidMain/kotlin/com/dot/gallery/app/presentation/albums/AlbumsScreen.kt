@@ -36,8 +36,7 @@ import com.dot.gallery.feature.albums.ui.AlbumThumbnailActions
 import com.dot.gallery.feature.albums.ui.AlbumsContent
 import com.dot.gallery.feature.albums.ui.collections.CollectionThumbnailModel
 import com.dot.gallery.app.presentation.picker.PickerActivityContract
-import com.dot.gallery.app.presentation.search.MainSearchBar
-import com.dot.gallery.app.presentation.timeline.components.TimelineNavActions
+import com.dot.gallery.app.presentation.main.MainScreenTopBar
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.ui.util.rememberActivityResult
 import kotlinx.coroutines.launch
@@ -90,11 +89,8 @@ fun AlbumsScreen(
         gridSizeIndex = rememberAlbumGridSize(),
         scrollToTopRoute = Screen.AlbumsScreen.route,
         topBar = {
-            MainSearchBar(
+            MainScreenTopBar(
                 isScrolling = isScrolling,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                menuItems = { TimelineNavActions() },
             )
         },
         onAlbumClick = onAlbumClick,

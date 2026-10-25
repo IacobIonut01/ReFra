@@ -60,6 +60,7 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
+import com.dot.gallery.core.presentation.components.GallerySegmentedActionGroup
 import com.dot.gallery.core.ui.util.rememberedDerivedState
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.util.isVideo
@@ -190,19 +191,20 @@ fun MediaViewAppBar(
                 )
 
                 CompositionLocalProvider(LocalContentColor provides contentColor) {
-                Row(
+                val groupSurface = Modifier
+                    .then(backgroundModifier)
+                    .hazeEffectScaled(
+                        state = LocalHazeState.current,
+                        style = HazeMaterials.ultraThin(
+                            containerColor = surfaceContainer
+                        )
+                    )
+                GallerySegmentedActionGroup(
                     modifier = modifier
                         .align(Alignment.CenterStart)
-                        .padding(horizontal = 8.dp)
-                        .clip(CircleShape)
-                        .then(backgroundModifier)
-                        .hazeEffectScaled(
-                            state = LocalHazeState.current,
-                            style = HazeMaterials.ultraThin(
-                                containerColor = surfaceContainer
-                            )
-                        ),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(horizontal = 8.dp),
+                    surfaceModifier = groupSurface,
+                    segmentSize = 48.dp,
                 ) {
                     IconButton(onClick = onGoBack) {
                         Icon(
@@ -212,16 +214,7 @@ fun MediaViewAppBar(
                             modifier = Modifier.height(48.dp)
                         )
                     }
-                    if (visualSearchButton != null) {
-                        // Hairline divider so the widened pill still reads as two targets.
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .height(24.dp)
-                                .background(contentColor.copy(alpha = 0.2f))
-                        )
-                        visualSearchButton(followTheme)
-                    }
+                    visualSearchButton?.invoke(followTheme)
                 }
 
                 this@Column.AnimatedVisibility(
@@ -263,19 +256,12 @@ fun MediaViewAppBar(
                     }
                 }
 
-                Row(
+                GallerySegmentedActionGroup(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .padding(horizontal = 8.dp)
-                        .clip(CircleShape)
-                        .then(backgroundModifier)
-                        .hazeEffectScaled(
-                            state = LocalHazeState.current,
-                            style = HazeMaterials.ultraThin(
-                                containerColor = surfaceContainer
-                            )
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 8.dp),
+                    surfaceModifier = groupSurface,
+                    segmentSize = 48.dp,
                 ) {
                     castButton?.invoke(followTheme)
 

@@ -21,8 +21,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Photo
-import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -44,7 +48,7 @@ import com.dot.gallery.core.navigation.Routes
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.FilterOption
 import com.dot.gallery.core.presentation.components.GalleryNavigationBarContent
-import com.dot.gallery.core.presentation.components.MainSearchBar
+import com.dot.gallery.core.presentation.components.GalleryHomeTopBar
 import com.dot.gallery.core.presentation.util.NavigationItem
 import com.dot.gallery.core.ui.generated.resources.filter_type_date
 import com.dot.gallery.core.ui.generated.resources.filter_type_name
@@ -59,10 +63,28 @@ import com.dot.gallery.feature.library.ui.LibrarySnapshot
 import com.dot.gallery.feature.library.ui.LibraryState
 import com.dot.gallery.feature.library.ui.LibraryCategoryPreview
 import com.dot.gallery.feature.timeline.TimelineContent
-import com.dot.gallery.ui.core.icons.Albums
 
 /** Bottom chrome height the real app reserves (bar + floating padding). */
 private val NAV_BAR_INSET = 112.dp
+
+@Composable
+private fun DocsHomeTopBar(
+    statusBarInsets: WindowInsets,
+    filter: (@Composable () -> Unit)? = null,
+) {
+    val navigator = LocalDocsNavigator.current
+    GalleryHomeTopBar(
+        onBrandClick = { navigator?.navigateTo("settings-hub") },
+        brandDescription = "Settings",
+        filter = filter,
+        menu = {
+            IconButton(onClick = { navigator?.navigateTo("settings-hub") }) {
+                Icon(Icons.Rounded.MoreVert, contentDescription = "More options")
+            }
+        },
+        statusBarInsets = statusBarInsets,
+    )
+}
 
 enum class DocsGalleryPage(val route: String) {
     TIMELINE(Routes.TIMELINE),
@@ -89,8 +111,8 @@ private fun docsGalleryPadding(): PaddingValues {
 
 private fun docsNavigationItems(): List<NavigationItem> = listOf(
     NavigationItem(name = "Timeline", route = Routes.TIMELINE, icon = Icons.Outlined.Photo),
-    NavigationItem(name = "Albums", route = Routes.ALBUMS, icon = com.dot.gallery.ui.core.Icons.Albums),
-    NavigationItem(name = "Library", route = Routes.LIBRARY, icon = Icons.Outlined.PhotoLibrary),
+    NavigationItem(name = "Albums", route = Routes.ALBUMS, icon = Icons.Outlined.FolderOpen),
+    NavigationItem(name = "Library", route = Routes.LIBRARY, icon = Icons.AutoMirrored.Outlined.LibraryBooks),
 )
 
 /**
@@ -131,7 +153,6 @@ fun DocsGalleryHost(
                             isScrolling = isScrolling,
                             sharedTransitionScope = this@SharedTransitionLayout,
                             animatedContentScope = this@AnimatedContent,
-                            onSearchClick = { navigator?.navigateTo("search-library") },
                         )
 
                         DocsGalleryPage.ALBUMS -> DocsAlbumsPage(
@@ -168,6 +189,7 @@ fun DocsGalleryHost(
                         page = target
                     }
                 },
+                onSearchClick = { navigator?.navigateTo("search-library") },
             )
         }
     }
@@ -179,9 +201,9 @@ private fun DocsTimelinePage(
     isScrolling: MutableState<Boolean>,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
-    onSearchClick: () -> Unit,
 ) {
     val session = LocalDocsGallerySession.current!!
+    val navigator = LocalDocsNavigator.current
     val distributor = session.distributor
     val mediaState = distributor.timelineMediaFlow.collectAsState()
     val metadataState = distributor.metadataFlow.collectAsState(
@@ -192,7 +214,7 @@ private fun DocsTimelinePage(
     val groupSimilar by distributor.groupSimilarMedia.collectAsState()
     val enabledGroups by distributor.enabledGroupTypes.collectAsState()
     val lastCellIndex = rememberSaveable {
-        mutableIntStateOf(Constants.cellsList.indexOf(GridCells.Fixed(3)))
+        mutableIntStateOf(Constants.cellsList.indexOf(GridCells.Fixed(4)))
     }
     val lastMosaicCellIndex = rememberSaveable {
         mutableIntStateOf(Constants.mosaicColumnsList.indexOf(4).coerceAtLeast(0))
@@ -223,12 +245,8 @@ private fun DocsTimelinePage(
         onMediaClick = {},
         selectionOverlay = { _, _ -> },
         topBar = { trailing ->
-            MainSearchBar(
-                isScrolling = isScrolling,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                onSearchClick = onSearchClick,
-                searchBarTrailingIcon = trailing,
+            DocsHomeTopBar(
+                filter = trailing,
                 statusBarInsets = WindowInsets(top = padding.calculateTopPadding()),
             )
         },
@@ -278,11 +296,7 @@ private fun DocsAlbumsPage(
         gridSizeIndex = gridSizeIndex,
         scrollToTopRoute = Routes.ALBUMS,
         topBar = {
-            MainSearchBar(
-                isScrolling = isScrolling,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                onSearchClick = { navigator?.navigateTo("search-library") },
+            DocsHomeTopBar(
                 statusBarInsets = WindowInsets(top = padding.calculateTopPadding()),
             )
         },
@@ -373,13 +387,8 @@ private fun DocsLibraryPage(
         isScrolling = isScrolling,
         sharedTransitionScope = sharedTransitionScope,
         animatedContentScope = animatedContentScope,
-        searchBar = { insets, menuItems ->
-            MainSearchBar(
-                isScrolling = isScrolling,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                onSearchClick = { navigator?.navigateTo("search-library") },
-                menuItems = menuItems,
+        searchBar = { insets, _ ->
+            DocsHomeTopBar(
                 statusBarInsets = insets.add(
                     WindowInsets(top = LocalDocsContentPadding.current.calculateTopPadding()),
                 ),

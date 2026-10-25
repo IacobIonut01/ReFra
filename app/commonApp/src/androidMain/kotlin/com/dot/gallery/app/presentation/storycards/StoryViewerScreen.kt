@@ -5,6 +5,9 @@
 
 package com.dot.gallery.app.presentation.storycards
 
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import com.dot.gallery.core.presentation.components.GallerySegmentedActionGroup
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.PredictiveBackHandler
@@ -565,6 +568,8 @@ private fun StoryCardViewer(
         modifier = Modifier
             .fillMaxSize()
             .onSizeChanged { dismissState.updateSize(it) }
+            // Root position too: beside the gallery the viewer does not start at the window origin.
+            .onGloballyPositioned { dismissState.updateOrigin(it.positionInRoot()) }
             // The dismiss gesture lives on this outermost, never-transformed box: the drag
             // offset lands on the shared-element card inside, so pointer positions here always
             // arrive in untranslated screen space. A handler inside the offset card would see
@@ -875,13 +880,8 @@ private fun StoryCardViewer(
                 } else {
                     Modifier.background(fallbackContainerColor, RoundedCornerShape(100))
                 }
-                Row(
-                    modifier = Modifier
-                        .then(actionBgModifier)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                // Same connected segments as the media viewer's action bar.
+                GallerySegmentedActionGroup(surfaceModifier = actionBgModifier) {
                     val storyScope = rememberCoroutineScope()
                     val storyHandler = LocalMediaHandler.current
                     val storyDistributor = LocalMediaDistributor.current

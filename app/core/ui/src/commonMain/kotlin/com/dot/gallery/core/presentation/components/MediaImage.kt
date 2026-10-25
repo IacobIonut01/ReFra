@@ -61,6 +61,7 @@ import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.LocalMediaViewerOverlayController
 import com.dot.gallery.core.presentation.components.util.advancedShadow
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.data.model.MediaMetadataState
@@ -102,6 +103,9 @@ fun <T : Media> MediaImage(
     val isSelected by rememberedDerivedState(selectionState, selectedMedia, media) {
         selectionState && media.id in selectedMedia
     }
+    val viewer = LocalMediaViewerOverlayController.current
+    val isPreviewed = LocalGalleryDetailPane.current &&
+        viewer?.visible == true && viewer.currentMediaId == media.id
     val metadata by rememberedDerivedState(metadataState.value) {
         metadataState.value.metadataMap[media.id]
     }
@@ -140,14 +144,18 @@ fun <T : Media> MediaImage(
         strokeSize = 0.dp
         strokeColor = Color.Transparent
     }
-    val roundedShape = remember(selectedShapeSize) {
-        RoundedCornerShape(selectedShapeSize)
+    val roundedShape = remember(selectedShapeSize, isPreviewed) {
+        RoundedCornerShape(if (isPreviewed) 24.dp else selectedShapeSize)
     }
     val prefetcher = LocalMediaPrefetcher.current
 
     Box(
         modifier = Modifier
             .clip(roundedShape)
+            .then(
+                if (isPreviewed) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, roundedShape)
+                else Modifier
+            )
             .combinedClickable(
                 enabled = canClick(),
                 onClick = {

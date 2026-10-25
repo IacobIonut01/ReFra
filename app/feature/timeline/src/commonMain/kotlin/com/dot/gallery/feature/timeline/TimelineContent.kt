@@ -39,6 +39,11 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.LocalScrollToTop
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.FilterKind
+import com.dot.gallery.core.presentation.components.LocalGalleryHeaderReveal
+import com.dot.gallery.core.presentation.components.LocalGalleryPaneChrome
+import com.dot.gallery.core.presentation.components.rememberGalleryHeaderRevealState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.dot.gallery.core.presentation.util.selectedMedia
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
@@ -95,6 +100,8 @@ fun TimelineContent(
 ) {
     val scrollToTop = LocalScrollToTop.current
     val refreshScope = rememberCoroutineScope()
+    val paneChrome = LocalGalleryPaneChrome.current
+    val headerReveal = rememberGalleryHeaderRevealState()
 
     var timelineFilter by remember { mutableStateOf(TimelineFilter()) }
     var timelineSort by rememberPreference(SettingsKeys.timelineSort)
@@ -138,74 +145,81 @@ fun TimelineContent(
                 end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
             )
     ) {
-        Scaffold(
-            topBar = {
-                val showFilterButton by rememberPreference(SettingsKeys.showFilterButton)
-                topBar(
-                    if (showFilterButton) {
-                        {
-                            Box {
-                                IconButton(
-                                    onClick = {
-                                        refreshScope.launch { filterSheetState.show() }
+        CompositionLocalProvider(LocalGalleryHeaderReveal provides headerReveal) {
+            Scaffold(
+                containerColor = if (paneChrome) MaterialTheme.colorScheme.surfaceContainerLow
+                    else MaterialTheme.colorScheme.background,
+                topBar = {
+                    val showFilterButton by rememberPreference(SettingsKeys.showFilterButton)
+                    topBar(
+                        if (showFilterButton) {
+                            {
+                                Box {
+                                    IconButton(
+                                        onClick = {
+                                            refreshScope.launch { filterSheetState.show() }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.FilterList,
+                                            contentDescription = stringResource(Res.string.sort_and_filter),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.FilterList,
-                                        contentDescription = stringResource(Res.string.sort_and_filter),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                if (timelineFilter.isActive || timelineSort.kind != FilterKind.DATE ||
-                                    timelineSort.orderType != OrderType.Descending
-                                ) {
-                                    Badge(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .padding(4.dp),
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary
-                                    )
+                                    if (timelineFilter.isActive || timelineSort.kind != FilterKind.DATE ||
+                                        timelineSort.orderType != OrderType.Descending
+                                    ) {
+                                        Badge(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(4.dp),
+                                            containerColor = MaterialTheme.colorScheme.primary,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    } else null,
-                )
-            }
-        ) { scaffoldPadding ->
-            val ptrState = rememberPullToRefreshState()
-            PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = { refreshScope.launch { onRefresh() } },
-                state = ptrState,
-                indicator = {
-                    PullToRefreshDefaults.Indicator(
-                        state = ptrState,
-                        isRefreshing = isRefreshing,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = scaffoldPadding.calculateTopPadding())
+                        } else null,
                     )
-                },
-            ) {
-                TimelineMediaContent(
-                    mediaState = filteredMediaState,
-                    metadataState = metadataState,
-                    scaffoldPadding = scaffoldPadding,
-                    bottomPadding = bottomBarInset + 128.dp,
-                    screenTopPadding = paddingValues.calculateTopPadding(),
-                    showSearchBar = true,
-                    aboveGridContent = aboveGridContent,
-                    isScrolling = isScrolling,
-                    lastCellIndex = lastCellIndex,
-                    lastMosaicCellIndex = lastMosaicCellIndex,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope,
-                    onMediaClick = onMediaClick,
-                    emptyContent = emptyContent,
-                    onRetry = { refreshScope.launch { onRefresh() } },
-                    scrollToTopRoute = scrollToTopRoute,
-                )
+                }
+            ) { scaffoldPadding ->
+                val ptrState = rememberPullToRefreshState()
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = { refreshScope.launch { onRefresh() } },
+                    state = ptrState,
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            state = ptrState,
+                            isRefreshing = isRefreshing,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = scaffoldPadding.calculateTopPadding())
+                        )
+                    },
+                ) {
+                    // Inside pull-to-refresh, so a pull at the top opens backup progress first.
+                    Box(Modifier.nestedScroll(headerReveal.nestedScrollConnection)) {
+                        TimelineMediaContent(
+                            mediaState = filteredMediaState,
+                            metadataState = metadataState,
+                            scaffoldPadding = scaffoldPadding,
+                            bottomPadding = bottomBarInset + 128.dp,
+                            screenTopPadding = if (paneChrome) 0.dp else paddingValues.calculateTopPadding(),
+                            showSearchBar = true,
+                            aboveGridContent = aboveGridContent,
+                            isScrolling = isScrolling,
+                            lastCellIndex = lastCellIndex,
+                            lastMosaicCellIndex = lastMosaicCellIndex,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedContentScope = animatedContentScope,
+                            onMediaClick = onMediaClick,
+                            emptyContent = emptyContent,
+                            onRetry = { refreshScope.launch { onRefresh() } },
+                            scrollToTopRoute = scrollToTopRoute,
+                        )
+                    }
+                }
             }
         }
         val selectedMediaList by selectedMedia(

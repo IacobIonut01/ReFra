@@ -5,6 +5,7 @@
 
 package com.dot.gallery.cloud.ui
 
+import com.dot.gallery.core.presentation.components.NavigationBackButton
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -30,7 +31,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.AlertDialog
@@ -162,9 +162,8 @@ fun CloudUploadSettingsScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
-                    }
+                    // Moves into the wide-window rail like every other screen's back button.
+                    NavigationBackButton(forcedAction = navigateUp)
                 },
                 scrollBehavior = scrollBehavior
             )

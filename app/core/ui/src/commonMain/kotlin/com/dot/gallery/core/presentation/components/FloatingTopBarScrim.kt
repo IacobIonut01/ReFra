@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -29,6 +31,8 @@ private val TopBarScrimFade = 72.dp
  * Must be emitted as a sibling *after* the scrolling content inside a Box so it
  * paints over the grid but stays under the Scaffold's topBar slot.
  *
+ * @param visibility read while drawing; pass a scroll-driven value (see [topScrimVisibility])
+ * so the scrim only appears once content actually scrolls under the bar.
  * @param barZoneHeight the animated height of the floating bar zone
  * (search bar + insets). The scrim extends [TopBarScrimFade] below it, matching
  * the sticky header scrim's falloff. Pass 0.dp to hide.
@@ -37,11 +41,14 @@ private val TopBarScrimFade = 72.dp
 fun FloatingTopBarScrim(
     barZoneHeight: Dp,
     modifier: Modifier = Modifier,
+    visibility: Density.() -> Float = { 1f },
 ) {
     if (barZoneHeight <= 0.dp) return
     Box(
         modifier = modifier
             .fillMaxWidth()
+            // Read while drawing so scrolling never recomposes the scrim.
+            .graphicsLayer { alpha = visibility() }
             .height(barZoneHeight + TopBarScrimFade)
             .background(
                 Brush.verticalGradient(
@@ -53,3 +60,13 @@ fun FloatingTopBarScrim(
             )
     )
 }
+
+/** Distance over which the top scrim fades in once content starts scrolling under the bar. */
+val TopBarScrimScrollFade = 48.dp
+
+/**
+ * 0 at the very top of a lazy container, 1 once its first item has scrolled [fadePx] under the
+ * bar or any later item leads. Pass the container's first visible index and its offset.
+ */
+fun topScrimVisibility(firstVisibleIndex: Int, firstVisibleOffset: Int, fadePx: Float): Float =
+    if (firstVisibleIndex > 0) 1f else (firstVisibleOffset / fadePx).coerceIn(0f, 1f)

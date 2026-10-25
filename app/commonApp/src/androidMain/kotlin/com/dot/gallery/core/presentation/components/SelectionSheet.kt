@@ -5,6 +5,9 @@
 
 package com.dot.gallery.core.presentation.components
 
+import com.dot.gallery.ui.theme.GalleryChrome
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.DisposableEffect
 import android.app.Activity
 import android.content.ContentUris
 import android.content.Intent
@@ -434,9 +437,350 @@ fun <T : Media> BoxScope.SelectionSheet(
     fun logSelectionAction(name: String) =
         logEvent("selection.$name", selectionActionCtx, scope = "media-ops")
 
+    // Shared by the bottom bar and the wide-window rail panel, so both offer identical actions.
+    val bottomActionItems: @Composable RowScope.() -> Unit = {
+        extraBottomActions?.invoke(this)
+        if (isCloudSelection) {
+            if (albumsState.value.albums.isNotEmpty() && cloudActionCapabilities.copyOrMove) {
+                SelectionBarColumn(
+                    imageVector = SelectionAction.COPY.icon,
+                    title = resStringResource(SelectionAction.COPY.labelRes)
+                ) {
+                    logSelectionAction("copy")
+                    scope.launch { copySheetState.show() }
+                }
+                if (!cloudSelectionReadOnly) {
+                    SelectionBarColumn(
+                        imageVector = SelectionAction.MOVE.icon,
+                        title = resStringResource(SelectionAction.MOVE.labelRes)
+                    ) {
+                        logSelectionAction("move")
+                        scope.launch { moveSheetState.show() }
+                    }
+                }
+            }
+            // Share — resolveShareableUri downloads/caches the full-size original,
+            // then shares it via a FileProvider content URI.
+            if (cloudActionCapabilities.share) {
+                SelectionBarColumn(
+                    imageVector = SelectionAction.SHARE.icon,
+                    title = resStringResource(SelectionAction.SHARE.labelRes)
+                ) {
+                    logSelectionAction("share")
+                    scope.launch {
+                        context.shareMediaWithVaultSupport(selectedMedia)
+                    }
+                }
+            }
+            // Favorite — only when every selected item's provider supports server favorites.
+            if (cloudActionCapabilities.favorite && showFavoriteButton) {
+                SelectionBarColumn(
+                    imageVector = SelectionAction.FAVORITE.icon,
+                    title = resStringResource(SelectionAction.FAVORITE.labelRes)
+                ) {
+                    logSelectionAction("favorite")
+                    scope.launch {
+                        val targets = selectedMedia.toList()
+                        targets.forEach {
+                            distributor.setFavoriteOverride(it.id, it.favorite == 0)
+                        }
+                        cloudSelectionViewModel.toggleFavorite(result, targets)
+                    }
+                }
+            }
+            // Download to device.
+            run {
+                val downloadingText = context.getString(Res.string.downloading)
+                val completeText = context.getString(Res.string.download_complete)
+                val failedText = context.getString(Res.string.download_failed)
+                SelectionBarColumn(
+                    imageVector = SelectionAction.DOWNLOAD.icon,
+                    title = resStringResource(SelectionAction.DOWNLOAD.labelRes)
+                ) {
+                    logSelectionAction("download")
+                    scope.launch {
+                        Toast.makeText(context, downloadingText, Toast.LENGTH_SHORT).show()
+                        val dl = cloudSelectionViewModel.download(selectedMedia)
+                        val count = dl.getOrDefault(0)
+                        Toast.makeText(
+                            context,
+                            if (count > 0) completeText else failedText,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        selector.clearSelection()
+                    }
+                }
+            }
+            // Trash — recoverable, only when the provider has a real bin (e.g. Immich).
+            if (cloudActionCapabilities.trash && cloudSupportsTrash) {
+                SelectionBarColumn(
+                    imageVector = SelectionAction.TRASH.icon,
+                    title = stringResource(Res.string.trash)
+                ) {
+                    logSelectionAction("trash")
+                    scope.launch { cloudTrashConfirmState.show() }
+                }
+            }
+            // Delete — permanent hard delete on the server, unless cloud read-only is active.
+            if (cloudActionCapabilities.trash) {
+                SelectionBarColumn(
+                    imageVector = Icons.Outlined.DeleteForever,
+                    title = stringResource(Res.string.cloud_delete)
+                ) {
+                    logSelectionAction("delete_permanent")
+                    scope.launch { cloudDeleteConfirmState.show() }
+                }
+            }
+        } else sanitizedConfig.bottomActions.forEach { action ->
+            val isVisible = isActionVisible(action, collectionId, showFavoriteButton, isInVault)
+            if (isVisible) {
+                when (action) {
+                    SelectionAction.SHARE -> {
+                        SelectionBarColumn(
+                            imageVector = action.icon,
+                            title = resStringResource(action.labelRes)
+                        ) {
+                            logSelectionAction("share")
+                            scope.launch {
+                                context.shareMediaWithVaultSupport(selectedMedia, currentVault = currentVault)
+                            }
+                        }
+                    }
+                    SelectionAction.FAVORITE -> {
+                        SelectionBarColumn(
+                            imageVector = action.icon,
+                            title = resStringResource(action.labelRes)
+                        ) {
+                            logSelectionAction("favorite")
+                            scope.launch {
+                                val targets = selectedMedia.toList()
+                                // Instant feedback: pin the toggled state over the
+                                // flows until MediaStore/the provider lands it.
+                                targets.forEach {
+                                    distributor.setFavoriteOverride(
+                                        it.id,
+                                        it.favorite == 0
+                                    )
+                                }
+                                pendingFavoriteIds =
+                                    targets.mapTo(HashSet()) { it.id }
+                                handler.toggleFavorite(result = result, targets)
+                            }
+                        }
+                    }
+
+                    SelectionAction.COPY -> {
+                        SelectionBarColumn(
+                            imageVector = action.icon,
+                            title = resStringResource(action.labelRes)
+                        ) {
+                            logSelectionAction("copy")
+                            if (isInVault) {
+                                vaultSheetAction = "copy"
+                                scope.launch { vaultSheetState.show() }
+                            } else {
+                                scope.launch { copySheetState.show() }
+                            }
+                        }
+                    }
+                    SelectionAction.MOVE -> {
+                        SelectionBarColumn(
+                            imageVector = action.icon,
+                            title = resStringResource(
+                                if (isInPrivateFolder) ResCoreUi.string.private_folder_move_out
+                                else action.labelRes
+                            )
+                        ) {
+                            logSelectionAction("move")
+                            if (isInPrivateFolder) {
+                                scope.launch { privateFolderMoveOutConfirmState.show() }
+                            } else if (isInVault) {
+                                vaultSheetAction = "move"
+                                scope.launch { vaultSheetState.show() }
+                            } else {
+                                scope.launch { moveSheetState.show() }
+                            }
+                        }
+                    }
+
+                    SelectionAction.TRASH -> {
+                        if (isInPrivateFolder) {
+                            SelectionBarColumn(
+                                imageVector = action.icon,
+                                title = stringResource(Res.string.action_delete)
+                            ) {
+                                logSelectionAction("delete_permanent")
+                                scope.launch { privateFolderDeleteConfirmState.show() }
+                            }
+                        } else if (isInVault) {
+                            SelectionBarColumn(
+                                imageVector = action.icon,
+                                title = stringResource(Res.string.action_delete)
+                            ) {
+                                logSelectionAction("delete_permanent")
+                                scope.launch { vaultDeleteConfirmState.show() }
+                            }
+                        } else {
+                            val trashEnabledRes = if (trashEnabled && SdkCompat.supportsTrash) {
+                                Res.string.trash
+                            } else {
+                                Res.string.action_delete
+                            }
+                            SelectionBarColumn(
+                                imageVector = action.icon,
+                                title = stringResource(trashEnabledRes),
+                                onItemLongClick = {
+                                    logSelectionAction("delete_permanent")
+                                    scope.launch {
+                                        shouldMoveToTrash = false
+                                        trashSheetState.show()
+                                    }
+                                },
+                                onItemClick = {
+                                    logSelectionAction("trash")
+                                    scope.launch {
+                                        shouldMoveToTrash = true
+                                        trashSheetState.show()
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    SelectionAction.ADD_TO_VAULT -> {
+                        SelectionBarColumn(
+                            imageVector = if (isInVault) Icons.Outlined.Restore else action.icon,
+                            title = resStringResource(
+                                if (isInVault) ResCoreUi.string.restore else action.labelRes
+                            )
+                        ) {
+                            logSelectionAction(if (isInVault) "vault_restore" else "vault_hide")
+                            if (isInVault) {
+                                scope.launch { vaultRestoreConfirmState.show() }
+                            } else {
+                                vaultSheetAction = "hide"
+                                scope.launch { vaultSheetState.show() }
+                            }
+                        }
+                    }
+                    SelectionAction.MOVE_TO_PRIVATE_FOLDER -> {
+                        if (privateFolderConfigured) {
+                            SelectionBarColumn(
+                                imageVector = action.icon,
+                                title = resStringResource(action.labelRes)
+                            ) {
+                                logSelectionAction("move_to_private_folder")
+                                scope.launch { privateFolderMoveConfirmState.show() }
+                            }
+                        }
+                    }
+                    SelectionAction.EDIT -> {
+                        SelectionBarColumn(
+                            imageVector = action.icon,
+                            title = resStringResource(action.labelRes)
+                        ) {
+                            selectedMedia.firstOrNull()?.let { media ->
+                                logSelectionAction("edit")
+                                scope.launch { context.launchEditIntent(media) }
+                            }
+                        }
+                    }
+                    SelectionAction.ROTATE -> {
+                        SelectionBarColumn(
+                            imageVector = action.icon,
+                            title = resStringResource(action.labelRes)
+                        ) {
+                            logSelectionAction("rotate")
+                            val (encodable, nonEncodable) = selectedMedia.partition {
+                                ImageReencoder.isReencodable(it.mimeType, it.label)
+                            }
+                            encodable.forEach { media ->
+                                scope.launch { handler.rotateImage(media, 90, false) }
+                            }
+                            if (nonEncodable.isNotEmpty()) {
+                                // Ask before rotating formats that can't overwrite in place.
+                                rotateFallbackList = nonEncodable
+                            } else {
+                                selector.clearSelection()
+                            }
+                        }
+                    }
+                    SelectionAction.DOWNLOAD -> {
+                        val cloudItems = selectedMedia.filter { it.isCloud }
+                        if (cloudItems.isNotEmpty()) {
+                            SelectionBarColumn(
+                                imageVector = action.icon,
+                                title = resStringResource(action.labelRes)
+                            ) {
+                                logSelectionAction("download")
+                                scope.launch {
+                                    Toast.makeText(context, downloadingText, Toast.LENGTH_SHORT).show()
+                                    val result = handler.downloadCloudMedia(cloudItems)
+                                    val count = result.getOrDefault(0)
+                                    if (count > 0) {
+                                        Toast.makeText(context, downloadCompleteText, Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, downloadFailedText, Toast.LENGTH_SHORT).show()
+                                    }
+                                    selector.clearSelection()
+                                }
+                            }
+                        }
+                    }
+                    SelectionAction.SET_AS_ALBUM_COVER -> {
+                        val single = selectedMedia.singleOrNull()
+                        // Local, real-album items only; the cloud branch above already
+                        // handles full-cloud selections.
+                        if (single != null && !single.isCloud && single.albumID > 0 &&
+                            !isInVault && !isInPrivateFolder
+                        ) {
+                            val coverSetText = stringResource(Res.string.album_cover_updated)
+                            SelectionBarColumn(
+                                imageVector = action.icon,
+                                title = resStringResource(action.labelRes)
+                            ) {
+                                logSelectionAction("album_cover")
+                                scope.launch {
+                                    handler.updateAlbumThumbnail(single.albumID, single.getUri())
+                                    Toast.makeText(context, coverSetText, Toast.LENGTH_SHORT).show()
+                                    selector.clearSelection()
+                                }
+                            }
+                        }
+                    }
+                    else -> {} // Top-zone actions don't appear in bottom bar
+                }
+            }
+        }
+    }
+
+    // Wide windows keep their rail during selection; the bar moves into it instead.
+    val railSelectionHost = LocalGalleryRailSelectionHost.current
+    if (railSelectionHost != null) {
+        val panel = rememberUpdatedState<@Composable () -> Unit> {
+            RailSelectionPanel(
+                allMedia = allMedia,
+                selectedCount = selectedMedia.size,
+                showSelectAll = SelectionAction.SELECT_ALL in sanitizedConfig.topActions,
+                showInfo = SelectionAction.INFO in sanitizedConfig.topActions && selectedMedia.size == 1,
+                onClose = { scope.launch { selector.clearSelection() } },
+                onInfo = {
+                    logSelectionAction("info")
+                    showInfoSheet = true
+                },
+                actions = bottomActionItems,
+            )
+        }
+        val owner = remember { Any() }
+        DisposableEffect(railSelectionHost, isSelectionActive) {
+            if (isSelectionActive) railSelectionHost.publish(owner) { panel.value() }
+            else railSelectionHost.withdraw(owner)
+            onDispose { railSelectionHost.withdraw(owner) }
+        }
+    }
+
     AnimatedVisibility(
         modifier = modifier,
-        visible = isSelectionActive,
+        visible = isSelectionActive && railSelectionHost == null,
         enter = slideInVertically { it * 2 },
         exit = slideOutVertically { it * 2 }
     ) {
@@ -644,318 +988,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                extraBottomActions?.invoke(this)
-                if (isCloudSelection) {
-                    if (albumsState.value.albums.isNotEmpty() && cloudActionCapabilities.copyOrMove) {
-                        SelectionBarColumn(
-                            imageVector = SelectionAction.COPY.icon,
-                            title = resStringResource(SelectionAction.COPY.labelRes)
-                        ) {
-                            logSelectionAction("copy")
-                            scope.launch { copySheetState.show() }
-                        }
-                        if (!cloudSelectionReadOnly) {
-                            SelectionBarColumn(
-                                imageVector = SelectionAction.MOVE.icon,
-                                title = resStringResource(SelectionAction.MOVE.labelRes)
-                            ) {
-                                logSelectionAction("move")
-                                scope.launch { moveSheetState.show() }
-                            }
-                        }
-                    }
-                    // Share — resolveShareableUri downloads/caches the full-size original,
-                    // then shares it via a FileProvider content URI.
-                    if (cloudActionCapabilities.share) {
-                        SelectionBarColumn(
-                            imageVector = SelectionAction.SHARE.icon,
-                            title = resStringResource(SelectionAction.SHARE.labelRes)
-                        ) {
-                            logSelectionAction("share")
-                            scope.launch {
-                                context.shareMediaWithVaultSupport(selectedMedia)
-                            }
-                        }
-                    }
-                    // Favorite — only when every selected item's provider supports server favorites.
-                    if (cloudActionCapabilities.favorite && showFavoriteButton) {
-                        SelectionBarColumn(
-                            imageVector = SelectionAction.FAVORITE.icon,
-                            title = resStringResource(SelectionAction.FAVORITE.labelRes)
-                        ) {
-                            logSelectionAction("favorite")
-                            scope.launch {
-                                val targets = selectedMedia.toList()
-                                targets.forEach {
-                                    distributor.setFavoriteOverride(it.id, it.favorite == 0)
-                                }
-                                cloudSelectionViewModel.toggleFavorite(result, targets)
-                            }
-                        }
-                    }
-                    // Download to device.
-                    run {
-                        val downloadingText = context.getString(Res.string.downloading)
-                        val completeText = context.getString(Res.string.download_complete)
-                        val failedText = context.getString(Res.string.download_failed)
-                        SelectionBarColumn(
-                            imageVector = SelectionAction.DOWNLOAD.icon,
-                            title = resStringResource(SelectionAction.DOWNLOAD.labelRes)
-                        ) {
-                            logSelectionAction("download")
-                            scope.launch {
-                                Toast.makeText(context, downloadingText, Toast.LENGTH_SHORT).show()
-                                val dl = cloudSelectionViewModel.download(selectedMedia)
-                                val count = dl.getOrDefault(0)
-                                Toast.makeText(
-                                    context,
-                                    if (count > 0) completeText else failedText,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                selector.clearSelection()
-                            }
-                        }
-                    }
-                    // Trash — recoverable, only when the provider has a real bin (e.g. Immich).
-                    if (cloudActionCapabilities.trash && cloudSupportsTrash) {
-                        SelectionBarColumn(
-                            imageVector = SelectionAction.TRASH.icon,
-                            title = stringResource(Res.string.trash)
-                        ) {
-                            logSelectionAction("trash")
-                            scope.launch { cloudTrashConfirmState.show() }
-                        }
-                    }
-                    // Delete — permanent hard delete on the server, unless cloud read-only is active.
-                    if (cloudActionCapabilities.trash) {
-                        SelectionBarColumn(
-                            imageVector = Icons.Outlined.DeleteForever,
-                            title = stringResource(Res.string.cloud_delete)
-                        ) {
-                            logSelectionAction("delete_permanent")
-                            scope.launch { cloudDeleteConfirmState.show() }
-                        }
-                    }
-                } else sanitizedConfig.bottomActions.forEach { action ->
-                    val isVisible = isActionVisible(action, collectionId, showFavoriteButton, isInVault)
-                    if (isVisible) {
-                        when (action) {
-                            SelectionAction.SHARE -> {
-                                SelectionBarColumn(
-                                    imageVector = action.icon,
-                                    title = resStringResource(action.labelRes)
-                                ) {
-                                    logSelectionAction("share")
-                                    scope.launch {
-                                        context.shareMediaWithVaultSupport(selectedMedia, currentVault = currentVault)
-                                    }
-                                }
-                            }
-                            SelectionAction.FAVORITE -> {
-                                SelectionBarColumn(
-                                    imageVector = action.icon,
-                                    title = resStringResource(action.labelRes)
-                                ) {
-                                    logSelectionAction("favorite")
-                                    scope.launch {
-                                        val targets = selectedMedia.toList()
-                                        // Instant feedback: pin the toggled state over the
-                                        // flows until MediaStore/the provider lands it.
-                                        targets.forEach {
-                                            distributor.setFavoriteOverride(
-                                                it.id,
-                                                it.favorite == 0
-                                            )
-                                        }
-                                        pendingFavoriteIds =
-                                            targets.mapTo(HashSet()) { it.id }
-                                        handler.toggleFavorite(result = result, targets)
-                                    }
-                                }
-                            }
-                            
-                            SelectionAction.COPY -> {
-                                SelectionBarColumn(
-                                    imageVector = action.icon,
-                                    title = resStringResource(action.labelRes)
-                                ) {
-                                    logSelectionAction("copy")
-                                    if (isInVault) {
-                                        vaultSheetAction = "copy"
-                                        scope.launch { vaultSheetState.show() }
-                                    } else {
-                                        scope.launch { copySheetState.show() }
-                                    }
-                                }
-                            }
-                            SelectionAction.MOVE -> {
-                                SelectionBarColumn(
-                                    imageVector = action.icon,
-                                    title = resStringResource(
-                                        if (isInPrivateFolder) ResCoreUi.string.private_folder_move_out
-                                        else action.labelRes
-                                    )
-                                ) {
-                                    logSelectionAction("move")
-                                    if (isInPrivateFolder) {
-                                        scope.launch { privateFolderMoveOutConfirmState.show() }
-                                    } else if (isInVault) {
-                                        vaultSheetAction = "move"
-                                        scope.launch { vaultSheetState.show() }
-                                    } else {
-                                        scope.launch { moveSheetState.show() }
-                                    }
-                                }
-                            }
-                            
-                            SelectionAction.TRASH -> {
-                                if (isInPrivateFolder) {
-                                    SelectionBarColumn(
-                                        imageVector = action.icon,
-                                        title = stringResource(Res.string.action_delete)
-                                    ) {
-                                        logSelectionAction("delete_permanent")
-                                        scope.launch { privateFolderDeleteConfirmState.show() }
-                                    }
-                                } else if (isInVault) {
-                                    SelectionBarColumn(
-                                        imageVector = action.icon,
-                                        title = stringResource(Res.string.action_delete)
-                                    ) {
-                                        logSelectionAction("delete_permanent")
-                                        scope.launch { vaultDeleteConfirmState.show() }
-                                    }
-                                } else {
-                                    val trashEnabledRes = if (trashEnabled && SdkCompat.supportsTrash) {
-                                        Res.string.trash
-                                    } else {
-                                        Res.string.action_delete
-                                    }
-                                    SelectionBarColumn(
-                                        imageVector = action.icon,
-                                        title = stringResource(trashEnabledRes),
-                                        onItemLongClick = {
-                                            logSelectionAction("delete_permanent")
-                                            scope.launch {
-                                                shouldMoveToTrash = false
-                                                trashSheetState.show()
-                                            }
-                                        },
-                                        onItemClick = {
-                                            logSelectionAction("trash")
-                                            scope.launch {
-                                                shouldMoveToTrash = true
-                                                trashSheetState.show()
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                            SelectionAction.ADD_TO_VAULT -> {
-                                SelectionBarColumn(
-                                    imageVector = if (isInVault) Icons.Outlined.Restore else action.icon,
-                                    title = resStringResource(
-                                        if (isInVault) ResCoreUi.string.restore else action.labelRes
-                                    )
-                                ) {
-                                    logSelectionAction(if (isInVault) "vault_restore" else "vault_hide")
-                                    if (isInVault) {
-                                        scope.launch { vaultRestoreConfirmState.show() }
-                                    } else {
-                                        vaultSheetAction = "hide"
-                                        scope.launch { vaultSheetState.show() }
-                                    }
-                                }
-                            }
-                            SelectionAction.MOVE_TO_PRIVATE_FOLDER -> {
-                                if (privateFolderConfigured) {
-                                    SelectionBarColumn(
-                                        imageVector = action.icon,
-                                        title = resStringResource(action.labelRes)
-                                    ) {
-                                        logSelectionAction("move_to_private_folder")
-                                        scope.launch { privateFolderMoveConfirmState.show() }
-                                    }
-                                }
-                            }
-                            SelectionAction.EDIT -> {
-                                SelectionBarColumn(
-                                    imageVector = action.icon,
-                                    title = resStringResource(action.labelRes)
-                                ) {
-                                    selectedMedia.firstOrNull()?.let { media ->
-                                        logSelectionAction("edit")
-                                        scope.launch { context.launchEditIntent(media) }
-                                    }
-                                }
-                            }
-                            SelectionAction.ROTATE -> {
-                                SelectionBarColumn(
-                                    imageVector = action.icon,
-                                    title = resStringResource(action.labelRes)
-                                ) {
-                                    logSelectionAction("rotate")
-                                    val (encodable, nonEncodable) = selectedMedia.partition {
-                                        ImageReencoder.isReencodable(it.mimeType, it.label)
-                                    }
-                                    encodable.forEach { media ->
-                                        scope.launch { handler.rotateImage(media, 90, false) }
-                                    }
-                                    if (nonEncodable.isNotEmpty()) {
-                                        // Ask before rotating formats that can't overwrite in place.
-                                        rotateFallbackList = nonEncodable
-                                    } else {
-                                        selector.clearSelection()
-                                    }
-                                }
-                            }
-                            SelectionAction.DOWNLOAD -> {
-                                val cloudItems = selectedMedia.filter { it.isCloud }
-                                if (cloudItems.isNotEmpty()) {
-                                    SelectionBarColumn(
-                                        imageVector = action.icon,
-                                        title = resStringResource(action.labelRes)
-                                    ) {
-                                        logSelectionAction("download")
-                                        scope.launch {
-                                            Toast.makeText(context, downloadingText, Toast.LENGTH_SHORT).show()
-                                            val result = handler.downloadCloudMedia(cloudItems)
-                                            val count = result.getOrDefault(0)
-                                            if (count > 0) {
-                                                Toast.makeText(context, downloadCompleteText, Toast.LENGTH_SHORT).show()
-                                            } else {
-                                                Toast.makeText(context, downloadFailedText, Toast.LENGTH_SHORT).show()
-                                            }
-                                            selector.clearSelection()
-                                        }
-                                    }
-                                }
-                            }
-                            SelectionAction.SET_AS_ALBUM_COVER -> {
-                                val single = selectedMedia.singleOrNull()
-                                // Local, real-album items only; the cloud branch above already
-                                // handles full-cloud selections.
-                                if (single != null && !single.isCloud && single.albumID > 0 &&
-                                    !isInVault && !isInPrivateFolder
-                                ) {
-                                    val coverSetText = stringResource(Res.string.album_cover_updated)
-                                    SelectionBarColumn(
-                                        imageVector = action.icon,
-                                        title = resStringResource(action.labelRes)
-                                    ) {
-                                        logSelectionAction("album_cover")
-                                        scope.launch {
-                                            handler.updateAlbumThumbnail(single.albumID, single.getUri())
-                                            Toast.makeText(context, coverSetText, Toast.LENGTH_SHORT).show()
-                                            selector.clearSelection()
-                                        }
-                                    }
-                                }
-                            }
-                            else -> {} // Top-zone actions don't appear in bottom bar
-                        }
-                    }
-                }
+                bottomActionItems()
             }
         }
     }
@@ -1590,11 +1623,17 @@ fun RowScope.SelectionBarColumn(
     onItemLongClick: (() -> Unit)? = null,
     onItemClick: () -> Unit,
 ) {
-    val showTitles by rememberShowSelectionTitles()
+    val showTitlesPreference by rememberShowSelectionTitles()
+    // Inside the rail panel actions are icon-only segments; titles stay as descriptions.
+    val compact = LocalSelectionBarCompact.current
+    val showTitles = showTitlesPreference && !compact
     val tintColor = MaterialTheme.colorScheme.onSurface
-    val minHeightSizeModifier = remember(showTitles) {
-        if (showTitles) Modifier.defaultMinSize(minHeight = 80.dp)
-        else Modifier.defaultMinSize(minHeight = 64.dp)
+    val minHeightSizeModifier = remember(showTitles, compact) {
+        when {
+            compact -> Modifier.size(GalleryChrome.RailItemWidth)
+            showTitles -> Modifier.defaultMinSize(minHeight = 80.dp)
+            else -> Modifier.defaultMinSize(minHeight = 64.dp)
+        }
     }
     // The bottom bar scrolls horizontally once items overflow, so items keep a
     // minimum width instead of weighting to an equal share — when everything fits,
@@ -1603,6 +1642,7 @@ fun RowScope.SelectionBarColumn(
     // viewport instead, squeezing long labels rather than scrolling.
     val selectionSheetConfig by rememberSelectionSheetConfig()
     val minWidthSizeModifier = when {
+        compact -> Modifier
         selectionSheetConfig.fillActionBar -> Modifier.weight(1f)
         showTitles -> Modifier.defaultMinSize(minWidth = 80.dp)
         else -> Modifier.defaultMinSize(minWidth = 64.dp)
@@ -1616,7 +1656,7 @@ fun RowScope.SelectionBarColumn(
                 onClick = onItemClick,
                 onLongClick = onItemLongClick
             )
-            .padding(top = 12.dp, bottom = 16.dp),
+            .then(if (compact) Modifier else Modifier.padding(top = 12.dp, bottom = 16.dp)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -1625,7 +1665,7 @@ fun RowScope.SelectionBarColumn(
             colorFilter = ColorFilter.tint(tintColor),
             contentDescription = title,
             modifier = Modifier
-                .height(32.dp)
+                .height(if (compact) 24.dp else 32.dp)
         )
         if (showTitles) {
             Spacer(modifier = Modifier.size(4.dp))

@@ -29,7 +29,7 @@ import com.dot.gallery.feature.library.ui.LibraryActions
 import com.dot.gallery.feature.library.ui.LibraryContent
 import com.dot.gallery.feature.library.ui.LibraryRoutes
 import com.dot.gallery.feature.library.ui.LibraryState
-import com.dot.gallery.app.presentation.search.MainSearchBar
+import com.dot.gallery.app.presentation.main.MainScreenTopBar
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.app.presentation.util.StaticMapPreview
 import com.dot.gallery.core.presentation.util.rememberBottomBarInset
@@ -149,13 +149,10 @@ fun LibraryScreen(
         isScrolling = isScrolling,
         sharedTransitionScope = sharedTransitionScope,
         animatedContentScope = animatedContentScope,
-        searchBar = { statusBarInsets, menuItems ->
-            MainSearchBar(
+        searchBar = { statusBarInsets, _ ->
+            MainScreenTopBar(
                 isScrolling = isScrolling,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
                 statusBarInsets = statusBarInsets,
-                menuItems = menuItems,
             )
         },
         mapContent = if (BuildConfig.MAPS_ENABLED) {

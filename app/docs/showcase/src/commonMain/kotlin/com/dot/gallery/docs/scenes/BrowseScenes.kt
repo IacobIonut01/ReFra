@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +67,7 @@ import com.dot.gallery.docs.DocsGalleryHost
 import com.dot.gallery.docs.DocsGalleryPage
 import com.dot.gallery.core.ui.settings.LocalSettingsStore
 import com.dot.gallery.docs.LocalDocsGallerySession
+import com.dot.gallery.docs.LocalDocsNavigator
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.ui.core.icons.Albums
 
@@ -168,6 +171,7 @@ fun DocsFavoritesScene(state: String?) {
  */
 @Composable
 fun DocsNavigationBarScene(state: String?) {
+    val navigator = LocalDocsNavigator.current
     var selected by rememberSaveable { mutableStateOf(com.dot.gallery.core.navigation.Routes.TIMELINE) }
     val items = remember {
         listOf(
@@ -179,12 +183,12 @@ fun DocsNavigationBarScene(state: String?) {
             com.dot.gallery.core.presentation.util.NavigationItem(
                 name = "Albums",
                 route = com.dot.gallery.core.navigation.Routes.ALBUMS,
-                icon = com.dot.gallery.ui.core.Icons.Albums,
+                icon = androidx.compose.material.icons.Icons.Outlined.FolderOpen,
             ),
             com.dot.gallery.core.presentation.util.NavigationItem(
                 name = "Library",
                 route = com.dot.gallery.core.navigation.Routes.LIBRARY,
-                icon = androidx.compose.material.icons.Icons.Outlined.PhotoLibrary,
+                icon = androidx.compose.material.icons.Icons.AutoMirrored.Outlined.LibraryBooks,
             ),
         )
     }
@@ -201,6 +205,7 @@ fun DocsNavigationBarScene(state: String?) {
                 selectedRoute = selected,
                 navigationItems = items,
                 onClick = { selected = it },
+                onSearchClick = { navigator?.navigateTo("search-library") },
             )
         }
     }

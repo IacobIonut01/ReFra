@@ -133,6 +133,11 @@ fun LazyListScope.SettingsOptionLayout(
                     .animateItem(),
                 enableDismissFromStartToEnd = false,
                 backgroundContent = {
+                    // Rows are width-capped on large screens while this background spans the
+                    // list, so it is drawn only while a swipe is actually revealing it.
+                    if (swipeToDismissBoxState.dismissDirection == SwipeToDismissBoxValue.Settled) {
+                        return@SwipeToDismissBox
+                    }
                     val shape by rememberedDerivedState(position) {
                         when (position) {
                             Position.Alone -> RoundedCornerShape(24.dp)
