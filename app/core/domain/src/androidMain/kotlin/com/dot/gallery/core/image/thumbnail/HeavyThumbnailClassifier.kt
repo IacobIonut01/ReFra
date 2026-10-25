@@ -24,8 +24,12 @@ import com.dot.gallery.domain.util.isPsd
  */
 object HeavyThumbnailClassifier {
 
-    /** Head bytes covering every magic-byte check (JXL box, 8BPS, JP2 box/codestream, TIFF, ftyp). */
-    private const val SNIFF_BYTES = 64
+    /**
+     * Head bytes covering every magic-byte check (JXL box, 8BPS, JP2 box/codestream, TIFF, ftyp).
+     * Matches `HeifUriProbe`'s brand-sniff window so this classification alone is authoritative
+     * for HEIF-family heads — callers no longer re-probe after it.
+     */
+    private const val SNIFF_BYTES = 512
 
     private val JXL_MIMES = setOf("image/jxl", "image/x-jxl")
 

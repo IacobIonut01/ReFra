@@ -13,7 +13,6 @@ import android.provider.MediaStore
 import android.util.LruCache
 import android.util.Size as AndroidSize
 import androidx.exifinterface.media.ExifInterface
-import com.dot.gallery.core.decoder.glide.HeifUriProbe
 import com.dot.gallery.core.image.thumbnail.HeavyThumbFormat
 import com.dot.gallery.core.image.thumbnail.HeavyThumbnailClassifier
 import com.dot.gallery.core.image.thumbnail.HeavyThumbnailDecoder
@@ -152,7 +151,8 @@ private class MediaStoreThumbnailDecoder(
                             )
                         } ?: false
                     }
-                    else -> HeifUriProbe.needsSoftwareDecode(resolver, uri, mime)
+                    // >10-bit HEIF/AVIF is already classified HEIF_SW above; no second probe.
+                    else -> false
                 }
             }.getOrDefault(false)
             bypassCache.put(key, shouldBypass)

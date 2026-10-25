@@ -11,19 +11,21 @@ import com.dot.gallery.core.decoder.format.HeifBitstreamProbe
 import com.dot.gallery.core.logging.printDebug
 import com.radzivon.bartoshyk.avif.coder.HeifCoder
 import com.radzivon.bartoshyk.avif.coder.PreferredColorConfig
+import android.system.Os
+import android.system.OsConstants
+import com.dot.gallery.core.logging.printWarn
+import java.io.ByteArrayInputStream
 import java.io.FileInputStream
+import java.io.SequenceInputStream
 import java.io.InputStream
 
 /** Head bytes read for the ISO-BMFF `ftyp` brand sniff (matches HeifSniffer's window). */
 internal const val HEIF_SNIFF_BYTES = 512
 
-/** Bounded head window for the av1C/pixi depth probe (HEIF-branded sources only). */
-internal const val HEIF_PROBE_BYTES = 256 * 1024
-
 /**
  * #1244: two-stage ">10-bit HEIF" check for markable streams. Stage one sniffs the `ftyp`
- * brand on a small window so non-HEIF streams exit cheaply; stage two reads the bounded head
- * for the bitstream probe. The stream position is restored before returning.
+ * brand on a small window so non-HEIF streams exit cheaply; stage two streams box headers up to
+ * `meta` for the bitstream probe. The stream position is restored before returning.
  */
 internal fun InputStream.sniffsDeepHeif(): Boolean {
     mark(HEIF_SNIFF_BYTES)
@@ -32,41 +34,51 @@ internal fun InputStream.sniffsDeepHeif(): Boolean {
     reset()
     if (sniffed <= 0 || HeifSniffer.findBrand(sniff, sniffed) == null) return false
 
-    mark(HEIF_PROBE_BYTES)
-    val head = ByteArray(HEIF_PROBE_BYTES)
-    var read = 0
-    while (read < HEIF_PROBE_BYTES) {
-        val n = read(head, read, HEIF_PROBE_BYTES - read)
-        if (n <= 0) break
-        read += n
-    }
+    // readMetaBox never consumes more than HEADER_PROBE_LIMIT bytes, so the mark stays valid.
+    mark(HeifBitstreamProbe.HEADER_PROBE_LIMIT)
+    val meta = HeifBitstreamProbe.readMetaBox(this)
     reset()
-    return read > 0 && HeifBitstreamProbe.needsSoftwareDecode(head.copyOf(read))
+    return meta != null && HeifBitstreamProbe.needsSoftwareDecode(meta)
 }
 
-/** Same check for a file descriptor: duplicates it so the caller's position is preserved. */
+/**
+ * Same check for a file descriptor. A dup shares the file offset with [this], so the offset is
+ * saved and restored around the probe — the decoder that follows reads from where it started.
+ */
 internal fun ParcelFileDescriptor.sniffsDeepHeif(): Boolean {
     val dup = try {
         ParcelFileDescriptor.dup(fileDescriptor)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        printWarn(TAG_PROBE, "pfd dup failed", ctx = mapOf("error" to e.toString()))
         return false
     }
     return try {
-        val head = ByteArray(HEIF_PROBE_BYTES)
-        var read = 0
-        FileInputStream(dup.fileDescriptor).use { stream ->
-            while (read < HEIF_PROBE_BYTES) {
-                val n = stream.read(head, read, HEIF_PROBE_BYTES - read)
+        val offset = Os.lseek(dup.fileDescriptor, 0, OsConstants.SEEK_CUR)
+        try {
+            val stream = FileInputStream(dup.fileDescriptor)
+            val head = ByteArray(HEIF_SNIFF_BYTES)
+            var read = 0
+            while (read < HEIF_SNIFF_BYTES) {
+                val n = stream.read(head, read, HEIF_SNIFF_BYTES - read)
                 if (n <= 0) break
                 read += n
             }
+            read > 0 && HeifSniffer.findBrand(head, read) != null &&
+                    HeifBitstreamProbe.readMetaBox(
+                        SequenceInputStream(ByteArrayInputStream(head, 0, read), stream)
+                    )?.let(HeifBitstreamProbe::needsSoftwareDecode) == true
+        } finally {
+            Os.lseek(dup.fileDescriptor, offset, OsConstants.SEEK_SET)
         }
-        read > 0 && HeifSniffer.findBrand(head, read) != null &&
-                HeifBitstreamProbe.needsSoftwareDecode(head.copyOf(read))
+    } catch (e: Exception) {
+        printWarn(TAG_PROBE, "pfd depth probe failed", ctx = mapOf("error" to e.toString()))
+        false
     } finally {
         dup.close()
     }
 }
+
+private const val TAG_PROBE = "decode.heif"
 
 /**
  * Decodes >10-bit HEIF/AVIF from an InputStream (already decrypted if using

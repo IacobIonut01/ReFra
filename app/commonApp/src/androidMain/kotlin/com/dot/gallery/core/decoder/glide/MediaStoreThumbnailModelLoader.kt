@@ -102,12 +102,9 @@ class MediaStoreThumbnailModelLoader(
                         )
                     } ?: false
                 }
-                else -> {
-                    // The platform thumbnailer corrupts >10-bit AVIF exactly like ImageDecoder.
-                    // A confident >10-bit probe on a bounded head chunk bypasses to the app's own
-                    // HEIF decoders; anything less keeps the fast platform path.
-                    HeifUriProbe.needsSoftwareDecode(contentResolver, uri, mime)
-                }
+                // >10-bit HEIF/AVIF (which the platform thumbnailer corrupts) is already
+                // classified HEIF_SW above — re-probing here doubled the header read per file.
+                else -> false
             }
         }.getOrDefault(false)
         bypassCache.put(key, shouldBypass)

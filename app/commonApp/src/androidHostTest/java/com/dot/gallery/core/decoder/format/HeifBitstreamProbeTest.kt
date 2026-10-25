@@ -2,9 +2,13 @@ package com.dot.gallery.core.decoder.format
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.FilterInputStream
+import java.io.InputStream
 
 
 
@@ -72,6 +76,91 @@ class HeifBitstreamProbeTest {
         assertFalse(HeifBitstreamProbe.needsSoftwareDecode(avifFile(av1c = av1c(0x24, 0x40))))
         assertTrue(HeifBitstreamProbe.needsSoftwareDecode(avifFile(av1c = av1c(0x44, 0x60))))
         assertFalse(HeifBitstreamProbe.needsSoftwareDecode(ByteArray(0)))
+    }
+
+    @Test
+    fun readMetaBoxSkipsMdatInsteadOfReadingIt() {
+        // SD-card regression: the probe used to read a fixed 256 KB head per file. Only box
+        // headers and the meta payload may be read; mdat must be skipped.
+        val meta = metaBox(av1c(0x44, 0x60), pixi(12, 12, 12))
+        val file = concat(ftyp(), box("mdat", ByteArray(200_000) { 0x55 }), meta)
+        val stream = CountingStream(ByteArrayInputStream(file))
+
+        val box = HeifBitstreamProbe.readMetaBox(stream)
+
+        assertTrue(box!!.contentEquals(meta))
+        assertEquals(12, HeifBitstreamProbe.maxBitDepth(box))
+        assertTrue("read ${stream.bytesRead} bytes", stream.bytesRead < 1024)
+    }
+
+    @Test
+    fun readMetaBoxStopsAtMetaForTypicalLayout() {
+        val file = avifFile(av1c = av1c(0x44, 0x60)) + ByteArray(300_000)
+        val stream = CountingStream(ByteArrayInputStream(file))
+
+        assertTrue(HeifBitstreamProbe.needsSoftwareDecode(HeifBitstreamProbe.readMetaBox(stream)!!))
+        assertTrue("read ${stream.bytesRead} bytes", stream.bytesRead < 1024)
+    }
+
+    @Test
+    fun readMetaBoxMatchesFixedPrefixProbe() {
+        val limit = HeifBitstreamProbe.HEADER_PROBE_LIMIT
+        val meta = metaBox(av1c(0x44, 0x60), pixi(12, 12, 12))
+        val cases = listOf(
+            avifFile(av1c = av1c(0x44, 0x60)),
+            avifFile(av1c = av1c(0x24, 0x40)),
+            concat(ftyp(), box("mdat", ByteArray(64)), meta),
+            // meta beyond the head window: unknown in both implementations.
+            concat(ftyp(), box("mdat", ByteArray(limit)), meta),
+            // meta straddling the head window.
+            concat(ftyp(), box("mdat", ByteArray(limit - 40)), meta),
+            // size==0 meta runs to end of file.
+            concat(ftyp(), u32(0) + "meta".toByteArray() + meta.copyOfRange(8, meta.size)),
+            // size==0 non-meta box swallows the rest of the file.
+            concat(ftyp(), u32(0) + "mdat".toByteArray() + ByteArray(16), meta),
+            // 64-bit size on the first box.
+            concat(u32(1) + "ftyp".toByteArray() + ByteArray(4) + u32(24) + ByteArray(8), meta),
+            // size smaller than the box header.
+            concat(ftyp(), u32(4) + "free".toByteArray(), meta),
+            ByteArray(0),
+            ByteArray(4096) { 0x7E },
+        )
+        for ((index, file) in cases.withIndex()) {
+            val expected = HeifBitstreamProbe.maxBitDepth(file.copyOf(minOf(file.size, limit)))
+            val actual = HeifBitstreamProbe.readMetaBox(ByteArrayInputStream(file))
+                ?.let(HeifBitstreamProbe::maxBitDepth) ?: 0
+            assertEquals("case $index", expected, actual)
+        }
+    }
+
+    @Test
+    fun readMetaBoxToleratesStreamsThatRefuseToSkip() {
+        val meta = metaBox(pixi(12, 12, 12))
+        val file = concat(ftyp(), box("mdat", ByteArray(5_000)), meta)
+        val noSkip = object : FilterInputStream(ByteArrayInputStream(file)) {
+            override fun skip(n: Long): Long = 0
+        }
+        assertTrue(HeifBitstreamProbe.readMetaBox(noSkip)!!.contentEquals(meta))
+    }
+
+    @Test
+    fun readMetaBoxReturnsNullForTruncatedStreams() {
+        val valid = avifFile(av1c = av1c(0x44, 0x60))
+        val metaEnd = ftyp().size + metaBox(box("ispe", ByteArray(12)), av1c(0x44, 0x60)).size
+        for (cut in 0 until metaEnd) {
+            assertNull("cut $cut", HeifBitstreamProbe.readMetaBox(ByteArrayInputStream(valid.copyOf(cut))))
+        }
+    }
+
+    /** Counts bytes actually read (not skipped) from the wrapped stream. */
+    private class CountingStream(source: InputStream) : FilterInputStream(source) {
+        var bytesRead = 0L
+            private set
+
+        override fun read(): Int = super.read().also { if (it >= 0) bytesRead++ }
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int =
+            super.read(b, off, len).also { if (it > 0) bytesRead += it }
     }
 
     // --- Minimal ISO-BMFF fixture builders -------------------------------------------------
