@@ -43,6 +43,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.ModelStatus
+import com.dot.gallery.feature.settings.subsettings.SmartFeaturesViewModel
+import com.dot.gallery.injection.injectViewModel
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -104,8 +109,11 @@ import com.dot.gallery.generated.resources.image_sample_2
  * [SettingsMediaViewerContent] in `:feature:settings`.
  */
 @Composable
-fun SettingsMediaViewerScreen() {
+fun SettingsMediaViewerScreen(
+    smartFeatures: SmartFeaturesViewModel = injectViewModel { smartFeaturesViewModel }
+) {
     val context = LocalContext.current
+    val cutoutStatus by smartFeatures.modelStatus(ModelGroup.CUTOUT).collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val eventHandler = LocalEventHandler.current
 
@@ -139,7 +147,7 @@ fun SettingsMediaViewerScreen() {
     }
 
     SettingsMediaViewerContent(
-        state = state,
+        state = state.copy(cutoutModelAvailable = cutoutStatus == ModelStatus.READY),
         previews = previews,
         actions = SettingsMediaViewerActions(
             onOpenSlideshow = { eventHandler.navigate(Screen.SlideshowSettingsScreen()) },

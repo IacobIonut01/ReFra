@@ -115,6 +115,7 @@ object PortableBackupSettings {
         "map_appearance",
         "timeline_layout_type",
         "default_image_editor",
+        "long_press_action",
         "story_cards_config",
         "story_viewer_duration_seconds",
         "metadata_isolation_mode",

@@ -66,6 +66,7 @@ data class PreferenceOption<T>(
     val label: String,
     val isSelected: Boolean,
     val description: String? = null,
+    val enabled: Boolean = true,
 )
 
 /**
@@ -443,12 +444,14 @@ fun <T> ChooserPreferenceDetailScreen(
                             title = option.label,
                             summary = option.description,
                             onClick = { onOptionSelected?.invoke(option.value) },
-                            screenPosition = optionPosition
+                            screenPosition = optionPosition,
+                            enabled = option.enabled,
                         ),
                         customTrailingContent = {
                             RadioButton(
                                 selected = option.isSelected,
-                                onClick = { onOptionSelected?.invoke(option.value) }
+                                onClick = { onOptionSelected?.invoke(option.value) },
+                                enabled = option.enabled,
                             )
                         }
                     )

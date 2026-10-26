@@ -110,6 +110,8 @@ import com.dot.gallery.core.presentation.components.util.LocalBatteryStatus
 import com.dot.gallery.core.presentation.components.util.ProvideBatteryStatus
 import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.domain.model.Media
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
 import com.dot.gallery.domain.util.asSubsamplingImage
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.feature.viewer.LocalMediaViewerVisualPolicy
@@ -805,9 +807,8 @@ fun <T : Media> ZoomablePagerImage(
 
     // --- Subject cutout (on-device MobileSAM) ---
     val modelManager = remember { viewerRuntime.modelManager }
-    // When true, long-press starts a cutout session and Rotate is offered as an on-screen pill.
-    // When false (default), long-press rotates the image.
-    val longPressStartsCutout by Settings.Misc.rememberLongPressCutout()
+    // User-chosen long-press action. When it is cutout, Rotate is offered as an on-screen pill.
+    val longPressAction = Settings.Misc.rememberLongPressAction()
 
     // Pulsing glow for the cutout contour. The infinite animation is only created while it's
     // actually needed (a cutout is active). An unconditional rememberInfiniteTransition would run a
@@ -944,8 +945,12 @@ fun <T : Media> ZoomablePagerImage(
     // (e.g. during a slideshow).
     val onImageLongPress: (Offset) -> Unit = { offset ->
         if (cutoutEnabled) {
-            // Cut-out can't run on TIFF/PSD/JP2 (BitmapFactory can't decode them); rotate instead.
-            if (longPressStartsCutout && cutoutSupported) startCutoutAt(offset) else rotateImage()
+            when (longPressAction) {
+                // Cut-out can't run on TIFF/PSD/JP2 (BitmapFactory can't decode them); rotate instead.
+                LONG_PRESS_ACTION_CUTOUT -> if (cutoutSupported) startCutoutAt(offset) else rotateImage()
+                LONG_PRESS_ACTION_ROTATE -> rotateImage()
+                else -> Unit
+            }
         }
     }
 
@@ -1076,7 +1081,7 @@ fun <T : Media> ZoomablePagerImage(
 
         val chromeVisible = isSelected && uiVisible && !cutoutState.isActive && !cutoutState.isProcessing
 
-        if (longPressStartsCutout) {
+        if (longPressAction == LONG_PRESS_ACTION_CUTOUT) {
             // Long-press does cutout → offer Rotate as a pill.
             AnimatedVisibility(
                 visible = chromeVisible && !rotationDisabled,

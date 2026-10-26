@@ -50,6 +50,7 @@ import com.dot.gallery.core.security.AdvancedProtectionMonitor
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.domain.model.SearchHistory
 import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.domain.settings.resolveLongPressAction
 import com.dot.gallery.domain.model.SlideshowTransition
 import com.dot.gallery.feature.viewer.SlideshowConfig
 import com.dot.gallery.domain.util.OrderType
@@ -873,11 +874,14 @@ object Settings {
         fun rememberDisableSmoothing() =
             rememberPreference(SettingsKeys.disableSmoothing)
 
-        // false (default): long-press rotates the image, cut-out is offered as an on-screen pill.
-        // true: long-press starts a subject cut-out, rotate is offered as an on-screen pill.
+        // One of LONG_PRESS_ACTION_ROTATE (default), _CUTOUT or _NONE. Falls back to the legacy
+        // long_press_cutout switch until the user picks an action.
         @Composable
-        fun rememberLongPressCutout() =
-            rememberPreference(SettingsKeys.longPressCutout)
+        fun rememberLongPressAction(): String {
+            val legacyCutout by rememberPreference(SettingsKeys.longPressCutout)
+            val storedAction by rememberPreference(SettingsKeys.longPressAction)
+            return resolveLongPressAction(storedAction, legacyCutout)
+        }
 
         // ==== Re-encode / save quality (format-preserving overwrite) ====
         // Mode: "auto" (JXL lossless where supported, else high quality) or "manual" (use sliders).

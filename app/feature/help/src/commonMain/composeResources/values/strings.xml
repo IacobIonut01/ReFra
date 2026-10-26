@@ -1610,7 +1610,7 @@
     <string name="group_method_title">Media grouping</string>
     <string name="cloud_free_space_auto">Run automatically</string>
     <string name="change_app_logo">App logo</string>
-    <string name="long_press_cutout_title">Long-press to cut out</string>
+    <string name="long_press_action_title">Long-press action</string>
     <string name="slideshow_interval">Interval</string>
     <string name="slideshow_random">Shuffle</string>
     <string name="slideshow_reverse">Reverse order</string>

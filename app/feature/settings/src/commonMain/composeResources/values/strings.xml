@@ -493,9 +493,12 @@
     <string name="hdr_video_playback">HDR video playback</string>
     <string name="hdr_video_playback_description">Switches the screen into HDR mode while a Dolby Vision, HDR10 or HLG video is playing. Requires an HDR-capable display; has no effect on unsupported hardware.</string>
     <string name="hdr_video_playback_summary">Play Dolby Vision, HDR10 and HLG videos in HDR on a compatible display</string>
-    <string name="long_press_cutout_description">Choose what a long-press on an image does in the viewer. When enabled, long-pressing starts an on-device subject cut-out and the rotate action moves to an on-screen button. When disabled (default), long-pressing rotates the image. You can always cut out a subject from the built-in editor's Cutout tool.</string>
-    <string name="long_press_cutout_summary">Long-press isolates a subject; rotate becomes a button</string>
-    <string name="long_press_cutout_title">Long-press to cut out</string>
+    <string name="long_press_action_cutout">Cut out subject</string>
+    <string name="long_press_action_cutout_unavailable">Download the Subject Cutout model from AI models to use this</string>
+    <string name="long_press_action_description">Choose what a long-press on an image does in the viewer. Rotate turns the image 90° for viewing; you can save the rotation from the button that appears. Cut out subject starts an on-device subject cut-out. None does nothing. When long-press cuts out a subject, a Rotate button is shown on screen instead. You can always cut out a subject from the built-in editor's Cutout tool.</string>
+    <string name="long_press_action_none">None</string>
+    <string name="long_press_action_rotate">Rotate</string>
+    <string name="long_press_action_title">Long-press action</string>
     <string name="media_view">Media View</string>
     <string name="reencode_quality_jxl_effort">JXL effort</string>
     <string name="reencode_quality_lossy">Lossy quality</string>

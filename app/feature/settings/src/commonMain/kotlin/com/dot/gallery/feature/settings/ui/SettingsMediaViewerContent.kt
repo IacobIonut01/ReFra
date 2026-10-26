@@ -63,6 +63,9 @@ import com.dot.gallery.core.ui.mediaview.resolveVisualSearchTarget
 import com.dot.gallery.core.ui.mediaview.icon
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.EDITOR_BUILTIN
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_NONE
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
 import com.dot.gallery.domain.settings.REENCODE_MODE_AUTO
 import com.dot.gallery.domain.settings.REENCODE_MODE_MANUAL
 import com.dot.gallery.domain.settings.SettingsKeys
@@ -75,6 +78,7 @@ import com.dot.gallery.domain.settings.VISUAL_SEARCH_FORMAT_WEBP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_BOTTOM
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_TOP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_PROVIDER_AUTO
+import com.dot.gallery.domain.settings.resolveLongPressAction
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 import com.dot.gallery.ui.core.icons.VisualSearch
 import kotlin.math.roundToInt
@@ -102,9 +106,12 @@ import com.dot.gallery.feature.settings.generated.resources.full_brightness_view
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback_description
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback_summary
-import com.dot.gallery.feature.settings.generated.resources.long_press_cutout_description
-import com.dot.gallery.feature.settings.generated.resources.long_press_cutout_summary
-import com.dot.gallery.feature.settings.generated.resources.long_press_cutout_title
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_cutout
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_cutout_unavailable
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_description
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_none
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_rotate
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_title
 import com.dot.gallery.feature.settings.generated.resources.media_view
 import com.dot.gallery.feature.settings.generated.resources.reencode_quality_jxl_effort
 import com.dot.gallery.feature.settings.generated.resources.reencode_quality_lossy
@@ -175,7 +182,7 @@ private const val DETAIL_SURFACE_REBIND = "surface_rebind"
 private const val DETAIL_HDR_VIDEO = "hdr_video"
 private const val DETAIL_DISABLE_SMOOTHING = "disable_smoothing"
 private const val DETAIL_DARK_BACKGROUND = "dark_background"
-private const val DETAIL_LONG_PRESS_CUTOUT = "long_press_cutout"
+private const val DETAIL_LONG_PRESS_ACTION = "long_press_action"
 private const val DETAIL_VISUAL_SEARCH = "visual_search"
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -202,7 +209,9 @@ fun SettingsMediaViewerContent(
     var hdrVideoPlayback by rememberPreference(SettingsKeys.videoHdrPlayback)
     var disableSmoothing by rememberPreference(SettingsKeys.disableSmoothing)
     var darkMediaViewer by rememberPreference(SettingsKeys.darkMediaViewer)
-    var longPressCutout by rememberPreference(SettingsKeys.longPressCutout)
+    val legacyLongPressCutout by rememberPreference(SettingsKeys.longPressCutout)
+    var storedLongPressAction by rememberPreference(SettingsKeys.longPressAction)
+    val longPressAction = resolveLongPressAction(storedLongPressAction, legacyLongPressCutout)
     var reencodeMode by rememberPreference(SettingsKeys.reencodeQualityMode)
     var reencodeLossyQuality by rememberPreference(SettingsKeys.reencodeLossyQuality)
     var reencodeJxlEffort by rememberPreference(SettingsKeys.reencodeJxlEffort)
@@ -310,13 +319,27 @@ fun SettingsMediaViewerContent(
                 description = stringResource(Res.string.dark_media_viewer_description),
             )
         }
-        DETAIL_LONG_PRESS_CUTOUT -> {
+        DETAIL_LONG_PRESS_ACTION -> {
             BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.long_press_cutout_title),
-                isChecked = longPressCutout,
-                onCheckedChange = { longPressCutout = it },
-                description = stringResource(Res.string.long_press_cutout_description),
+            val labels = longPressActionLabels()
+            val cutoutUnavailableSummary = stringResource(Res.string.long_press_action_cutout_unavailable)
+            val options = remember(longPressAction, labels, state.cutoutModelAvailable) {
+                labels.map { (value, label) ->
+                    val unavailable = value == LONG_PRESS_ACTION_CUTOUT && !state.cutoutModelAvailable
+                    PreferenceOption(
+                        value = value,
+                        label = label,
+                        isSelected = longPressAction == value,
+                        description = if (unavailable) cutoutUnavailableSummary else null,
+                        enabled = !unavailable,
+                    )
+                }
+            }
+            ChooserPreferenceDetailScreen(
+                title = stringResource(Res.string.long_press_action_title),
+                description = stringResource(Res.string.long_press_action_description),
+                options = options,
+                onOptionSelected = { storedLongPressAction = it },
             )
         }
         DETAIL_AUTO_HIDE_VIDEO -> {
@@ -409,8 +432,7 @@ fun SettingsMediaViewerContent(
                 onDisableSmoothingChange = { disableSmoothing = it },
                 darkMediaViewer = darkMediaViewer,
                 onDarkMediaViewerChange = { darkMediaViewer = it },
-                longPressCutout = longPressCutout,
-                onLongPressCutoutChange = { longPressCutout = it },
+                longPressAction = longPressAction,
                 autoHideOnVideoPlay = autoHideOnVideoPlay,
                 onAutoHideChange = { autoHideOnVideoPlay = it },
                 autoPlayVideo = autoPlayVideo,
@@ -463,8 +485,7 @@ private fun MediaViewerListContent(
     onDisableSmoothingChange: (Boolean) -> Unit,
     darkMediaViewer: Boolean,
     onDarkMediaViewerChange: (Boolean) -> Unit,
-    longPressCutout: Boolean,
-    onLongPressCutoutChange: (Boolean) -> Unit,
+    longPressAction: String,
     autoHideOnVideoPlay: Boolean,
     onAutoHideChange: (Boolean) -> Unit,
     autoPlayVideo: Boolean,
@@ -582,13 +603,13 @@ private fun MediaViewerListContent(
             screenPosition = Position.Middle
         )
 
-        val longPressCutoutPref = rememberSwitchPreference(
-            longPressCutout,
-            title = stringResource(Res.string.long_press_cutout_title),
-            summary = stringResource(Res.string.long_press_cutout_summary),
-            isChecked = longPressCutout,
-            onCheck = onLongPressCutoutChange,
-            onClick = { onDetailClick(DETAIL_LONG_PRESS_CUTOUT) },
+        val longPressActionSummary = longPressActionLabels()
+            .firstOrNull { it.first == longPressAction }?.second.orEmpty()
+        val longPressActionPref = rememberPreference(
+            longPressAction,
+            title = stringResource(Res.string.long_press_action_title),
+            summary = longPressActionSummary,
+            onClick = { onDetailClick(DETAIL_LONG_PRESS_ACTION) },
             screenPosition = Position.Middle
         )
 
@@ -706,7 +727,7 @@ private fun MediaViewerListContent(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
             swipeUpToTrashPref,
             showFavoriteButtonPref, defaultEditorPref, disableSmoothingPref, darkMediaViewerPref,
-            longPressCutoutPref,
+            longPressActionPref,
             visualSearchPref, slideshowPref,
             saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
             videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref,
@@ -724,7 +745,7 @@ private fun MediaViewerListContent(
                 add(defaultEditorPref)
                 add(disableSmoothingPref)
                 add(darkMediaViewerPref)
-                add(longPressCutoutPref)
+                add(longPressActionPref)
                 add(visualSearchPref)
                 add(slideshowPref)
 
@@ -752,6 +773,13 @@ private fun MediaViewerListContent(
         searchSink = searchSink,
     )
 }
+
+@Composable
+private fun longPressActionLabels(): List<Pair<String, String>> = listOf(
+    LONG_PRESS_ACTION_ROTATE to stringResource(Res.string.long_press_action_rotate),
+    LONG_PRESS_ACTION_CUTOUT to stringResource(Res.string.long_press_action_cutout),
+    LONG_PRESS_ACTION_NONE to stringResource(Res.string.long_press_action_none),
+)
 
 @Composable
 fun FullBrightnessPreview(isChecked: Boolean) {

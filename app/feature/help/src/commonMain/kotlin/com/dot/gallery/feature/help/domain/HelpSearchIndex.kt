@@ -55,7 +55,7 @@ import com.dot.gallery.feature.help.generated.resources.help_cat_timeline_albums
 import com.dot.gallery.feature.help.generated.resources.help_cat_viewer_settings
 import com.dot.gallery.feature.help.generated.resources.help_search_section_settings
 import com.dot.gallery.feature.help.generated.resources.location_categories_title
-import com.dot.gallery.feature.help.generated.resources.long_press_cutout_title
+import com.dot.gallery.feature.help.generated.resources.long_press_action_title
 import com.dot.gallery.feature.help.generated.resources.map_appearance_title
 import com.dot.gallery.feature.help.generated.resources.media_type_albums_setting_title
 import com.dot.gallery.feature.help.generated.resources.merge_albums_by_name
@@ -237,7 +237,7 @@ object HelpSearchIndex {
             Toggle(Res.string.show_favorite_button, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.default_image_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.disable_smoothing_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
-            Toggle(Res.string.long_press_cutout_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.long_press_action_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.auto_hide_on_video_play, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.auto_play_video, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.video_surface_rebind, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),

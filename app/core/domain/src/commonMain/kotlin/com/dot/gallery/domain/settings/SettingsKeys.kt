@@ -86,7 +86,10 @@ object SettingsKeys {
     val defaultImageEditor = PrefKey.string("default_image_editor", default = EDITOR_BUILTIN)
     val darkMediaViewer = PrefKey.bool("dark_media_viewer", default = true)
     val disableSmoothing = PrefKey.bool("disable_smoothing", default = false)
+    /** Legacy boolean superseded by [longPressAction]; still read to derive its default. */
     val longPressCutout = PrefKey.bool("long_press_cutout", default = false)
+    /** Empty means unset — resolve through [resolveLongPressAction] with [longPressCutout]. */
+    val longPressAction = PrefKey.string("long_press_action", default = "")
     val reencodeQualityMode = PrefKey.string("reencode_quality_mode", default = REENCODE_MODE_AUTO)
     val reencodeLossyQuality = PrefKey.int("reencode_lossy_quality", default = 90)
     val reencodeJxlEffort = PrefKey.int("reencode_jxl_effort", default = 7)
@@ -273,6 +276,21 @@ const val VISUAL_SEARCH_FORMAT_WEBP = "webp"
 /** Re-encode quality modes — mirror `Settings.Misc.REENCODE_MODE_*`. */
 const val REENCODE_MODE_AUTO = "auto"
 const val REENCODE_MODE_MANUAL = "manual"
+
+/** Viewer long-press actions stored in [SettingsKeys.longPressAction]. */
+const val LONG_PRESS_ACTION_ROTATE = "rotate"
+const val LONG_PRESS_ACTION_CUTOUT = "cutout"
+const val LONG_PRESS_ACTION_NONE = "none"
+
+/**
+ * Effective viewer long-press action. A missing or unknown stored value falls back to the legacy
+ * `long_press_cutout` switch so users who enabled cut-out before the chooser existed keep it.
+ */
+fun resolveLongPressAction(storedValue: String?, legacyCutout: Boolean): String =
+    when (storedValue) {
+        LONG_PRESS_ACTION_ROTATE, LONG_PRESS_ACTION_CUTOUT, LONG_PRESS_ACTION_NONE -> storedValue
+        else -> if (legacyCutout) LONG_PRESS_ACTION_CUTOUT else LONG_PRESS_ACTION_ROTATE
+    }
 
 /** Built-in editor sentinel — mirror `Settings.Misc.EDITOR_BUILTIN`. */
 const val EDITOR_BUILTIN = "builtin"
