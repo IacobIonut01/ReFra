@@ -6,7 +6,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.runtime.compositionLocalOf
 import androidx.activity.result.IntentSenderRequest
 import com.dot.gallery.core.decoder.format.ImageReencoder
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
@@ -70,7 +70,7 @@ interface MediaHandler {
 
     suspend fun sanitizeMediaMetadata(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
     ): SanitizationResult
 

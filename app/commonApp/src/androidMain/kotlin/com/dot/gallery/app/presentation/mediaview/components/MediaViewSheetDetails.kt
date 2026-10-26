@@ -46,7 +46,7 @@ import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.cloud.ui.people.PersonAvatar
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationResult
 import com.dot.gallery.core.presentation.components.ConfirmationSheet
@@ -132,7 +132,7 @@ fun <T : Media> MediaViewSheetDetails(
     metadataSanitizationState: MediaViewViewModel.MetadataSanitizationUiState =
         MediaViewViewModel.MetadataSanitizationUiState.Idle,
     probeMetadataSanitization: (Media) -> Unit = {},
-    sanitizeMetadata: (Media, MetadataRemovalMode, MetadataSaveMode) -> Unit = { _, _, _ -> },
+    sanitizeMetadata: (Media, Set<MetadataCategory>, MetadataSaveMode) -> Unit = { _, _, _ -> },
     resetMetadataSanitization: () -> Unit = {},
 ) {
     val metadata by rememberedDerivedState(metadataState.value, currentMedia) {
@@ -278,7 +278,7 @@ fun <T : Media> MediaViewSheetDetails(
         moveSheetState = moveSheetState,
         sanitizationPhase = sanitizationPhase,
         probeMetadataSanitization = { media -> probeMetadataSanitization(media) },
-        sanitizeMetadata = { media, mode, saveMode -> sanitizeMetadata(media, mode, saveMode) },
+        sanitizeMetadata = { media, categories, saveMode -> sanitizeMetadata(media, categories, saveMode) },
         onSanitizationComplete = { _ ->
             val result = (metadataSanitizationState as?
                 MediaViewViewModel.MetadataSanitizationUiState.Complete)?.result

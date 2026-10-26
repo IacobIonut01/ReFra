@@ -11,7 +11,7 @@ import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.PendingRemovalScope
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.metadata.MediaContainerFormat
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
@@ -173,7 +173,7 @@ class MockedMediaHandler: MediaHandler {
 
     override suspend fun sanitizeMediaMetadata(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
     ): SanitizationResult = SanitizationResult.Unsupported(MediaContainerFormat.UNKNOWN, "Unavailable in preview")
 

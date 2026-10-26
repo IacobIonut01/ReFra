@@ -14,7 +14,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.feature.viewer.components.video.ViewerRenderersFactory
 import com.dot.gallery.core.metadata.MediaContainerFormat
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
@@ -108,7 +108,7 @@ class MediaViewViewModel @Inject constructor(
         data class Ready(val mediaId: Long, val capability: SanitizationCapability) : MetadataSanitizationUiState
         data class Running(
             val mediaId: Long,
-            val mode: MetadataRemovalMode,
+            val categories: Set<MetadataCategory>,
             val saveMode: MetadataSaveMode
         ) : MetadataSanitizationUiState
         data class Complete(val mediaId: Long, val result: SanitizationResult) : MetadataSanitizationUiState
@@ -143,15 +143,16 @@ class MediaViewViewModel @Inject constructor(
         }
     }
 
-    fun sanitizeMetadata(media: Media, mode: MetadataRemovalMode, saveMode: MetadataSaveMode) {
+    fun sanitizeMetadata(media: Media, categories: Set<MetadataCategory>, saveMode: MetadataSaveMode) {
         if (metadataSanitizationJob?.isActive == true) return
-        _metadataSanitizationState.value = MetadataSanitizationUiState.Running(media.id, mode, saveMode)
+        _metadataSanitizationState.value = MetadataSanitizationUiState.Running(media.id, categories, saveMode)
         metadataSanitizationJob = viewModelScope.launch(Dispatchers.IO) {
             val result = try {
-                repository.sanitizeMediaMetadata(media, mode, saveMode)
+                repository.sanitizeMediaMetadata(media, categories, saveMode)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
+                printError("media-ops.metadata", "metadata removal failed", error)
                 SanitizationResult.CommitFailed(error.message ?: error.javaClass.simpleName, false)
             }
             _metadataSanitizationState.value = MetadataSanitizationUiState.Complete(media.id, result)

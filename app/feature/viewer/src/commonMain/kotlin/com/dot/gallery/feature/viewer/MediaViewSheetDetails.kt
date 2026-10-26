@@ -46,7 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.presentation.components.DragHandle
@@ -108,7 +108,7 @@ fun <T : Media> MediaViewSheetDetails(
     // Metadata sanitization — the phase is mapped from the app ViewModel state.
     sanitizationPhase: MetadataSanitizationUiPhase = MetadataSanitizationUiPhase.Idle,
     probeMetadataSanitization: (T) -> Unit = {},
-    sanitizeMetadata: (T, MetadataRemovalMode, MetadataSaveMode) -> Unit = { _, _, _ -> },
+    sanitizeMetadata: (T, Set<MetadataCategory>, MetadataSaveMode) -> Unit = { _, _, _ -> },
     // Fired when a sanitize completes for the viewed item — app toasts/launches the
     // trash request, then calls [onResetSanitization]; the sheet hides on Idle.
     onSanitizationComplete: (T) -> Unit = {},
@@ -520,8 +520,8 @@ fun <T : Media> MediaViewSheetDetails(
                         capability = sanitizationCapability,
                         isBusy = metadataRemovalBusy,
                         canReplaceOriginal = canReplaceOriginal,
-                        onConfirm = { mode, saveMode ->
-                            sanitizeMetadata(currentMedia, mode, saveMode)
+                        onConfirm = { categories, saveMode ->
+                            sanitizeMetadata(currentMedia, categories, saveMode)
                         },
                         onDismissed = onResetSanitization
                     )

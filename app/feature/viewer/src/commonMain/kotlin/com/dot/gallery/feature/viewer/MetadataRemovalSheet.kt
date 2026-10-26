@@ -1,22 +1,32 @@
 package com.dot.gallery.feature.viewer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.LayersClear
+import androidx.compose.material.icons.outlined.LocationOff
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,39 +38,48 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.Position
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
+import com.dot.gallery.core.metadata.MetadataPolicy
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.SetupButton
-import com.dot.gallery.core.ui.components.RadioSettingsItem
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.viewer.generated.resources.Res
-import com.dot.gallery.feature.viewer.generated.resources.action_cancel
-import com.dot.gallery.feature.viewer.generated.resources.metadata_mode_everything
-import com.dot.gallery.feature.viewer.generated.resources.metadata_mode_everything_description
-import com.dot.gallery.feature.viewer.generated.resources.metadata_mode_location
-import com.dot.gallery.feature.viewer.generated.resources.metadata_mode_location_description
-import com.dot.gallery.feature.viewer.generated.resources.metadata_mode_privacy
-import com.dot.gallery.feature.viewer.generated.resources.metadata_mode_privacy_description
-import com.dot.gallery.feature.viewer.generated.resources.metadata_preserved_description
-import com.dot.gallery.feature.viewer.generated.resources.metadata_preserved_title
+import com.dot.gallery.feature.viewer.generated.resources.metadata_advanced
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_capture
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_description
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_device
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_edits
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_location
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_people
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_provenance
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_thumbnail
+import com.dot.gallery.feature.viewer.generated.resources.metadata_category_timestamps
+import com.dot.gallery.feature.viewer.generated.resources.metadata_found
+import com.dot.gallery.feature.viewer.generated.resources.metadata_none_found
+import com.dot.gallery.feature.viewer.generated.resources.metadata_other_found
+import com.dot.gallery.feature.viewer.generated.resources.metadata_preserved_line
+import com.dot.gallery.feature.viewer.generated.resources.metadata_preset_all
+import com.dot.gallery.feature.viewer.generated.resources.metadata_preset_all_description
+import com.dot.gallery.feature.viewer.generated.resources.metadata_preset_location
+import com.dot.gallery.feature.viewer.generated.resources.metadata_preset_location_description
 import com.dot.gallery.feature.viewer.generated.resources.metadata_replace_original
 import com.dot.gallery.feature.viewer.generated.resources.metadata_replace_original_action
 import com.dot.gallery.feature.viewer.generated.resources.metadata_replace_original_description
 import com.dot.gallery.feature.viewer.generated.resources.metadata_save_copy
 import com.dot.gallery.feature.viewer.generated.resources.metadata_save_copy_action
 import com.dot.gallery.feature.viewer.generated.resources.metadata_save_copy_description
-import com.dot.gallery.feature.viewer.generated.resources.metadata_save_destination_title
 import com.dot.gallery.feature.viewer.generated.resources.remove_metadata
 import com.dot.gallery.feature.viewer.generated.resources.remove_metadata_running
-import com.dot.gallery.feature.viewer.generated.resources.remove_metadata_warning
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,21 +88,31 @@ fun MetadataRemovalSheet(
     capability: SanitizationCapability?,
     isBusy: Boolean,
     canReplaceOriginal: Boolean,
-    onConfirm: (MetadataRemovalMode, MetadataSaveMode) -> Unit,
+    onConfirm: (Set<MetadataCategory>, MetadataSaveMode) -> Unit,
     onDismissed: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
-    var selectedMode by remember { mutableStateOf(MetadataRemovalMode.LOCATION) }
-    var selectedSaveMode by remember { mutableStateOf(MetadataSaveMode.SAVE_COPY) }
+    var selection by remember { mutableStateOf(MetadataPolicy.ALL) }
+    var saveMode by remember { mutableStateOf(MetadataSaveMode.SAVE_COPY) }
+    var advancedExpanded by remember { mutableStateOf(false) }
     if (!state.isVisible) return
 
-    val limitation = capability?.limitation
-    val supported = capability?.supports(selectedMode) == true
+    val removable = capability?.removableCategories.orEmpty()
+    val present = capability?.removablePresentCategories.orEmpty()
+    val hasLocation = MetadataCategory.LOCATION in present
+    val allSelected = selection == removable
+    val locationSelected = selection == MetadataPolicy.LOCATION
     LaunchedEffect(capability) {
-        if (capability != null && !capability.supports(selectedMode)) {
-            selectedMode = MetadataRemovalMode.entries.firstOrNull(capability::supports) ?: selectedMode
-        }
+        if (capability != null) selection = capability.removableCategories
+        saveMode = MetadataSaveMode.SAVE_COPY
+        advancedExpanded = false
     }
+    // Replace can be unavailable for this media even if it was picked for a previous one.
+    val mode = if (canReplaceOriginal) saveMode else MetadataSaveMode.SAVE_COPY
+    val removesSomething = capability != null && capability.supports(selection) && (
+        present.any { it in selection } || (allSelected && capability.hasOtherMetadata)
+    )
+
     ModalBottomSheet(
         sheetState = state.sheetState,
         onDismissRequest = {
@@ -102,166 +131,251 @@ fun MetadataRemovalSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .imePadding()
                 .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 24.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(Res.string.remove_metadata),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = stringResource(Res.string.remove_metadata_warning),
-                    textAlign = TextAlign.Center,
+                    text = stringResource(Res.string.remove_metadata),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = summaryLine(capability, present),
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
-            Column(modifier = Modifier.fillMaxWidth()) {
-                MetadataRemovalMode.entries.forEachIndexed { index, mode ->
-                    val modeSupported = capability?.supports(mode) == true
-                    val position = when (index) {
-                        0 -> Position.Top
-                        MetadataRemovalMode.entries.lastIndex -> Position.Bottom
-                        else -> Position.Middle
-                    }
-                    RadioSettingsItem(
-                        title = mode.title(),
-                        summary = mode.description(),
-                        selected = selectedMode == mode,
-                        enabled = modeSupported && !isBusy,
-                        screenPosition = position,
-                        applyPaddings = false,
-                        onClick = { selectedMode = mode },
-                    )
-                }
-            }
-            Text(
-                text = stringResource(Res.string.metadata_save_destination_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Column(modifier = Modifier.fillMaxWidth()) {
-                MetadataSaveMode.entries.forEachIndexed { index, saveMode ->
-                    RadioSettingsItem(
-                        title = saveMode.title(),
-                        summary = saveMode.description(),
-                        selected = selectedSaveMode == saveMode,
-                        enabled = !isBusy && (
-                            saveMode != MetadataSaveMode.REPLACE_ORIGINAL || canReplaceOriginal
-                        ),
-                        screenPosition = if (index == 0) Position.Top else Position.Bottom,
-                        applyPaddings = false,
-                        onClick = { selectedSaveMode = saveMode },
-                    )
-                }
-            }
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(Icons.Outlined.Info, contentDescription = null)
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = stringResource(Res.string.metadata_preserved_title),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Text(
-                            text = stringResource(Res.string.metadata_preserved_description),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
+
+            val limitation = capability?.limitation
             if (!limitation.isNullOrBlank()) {
-                Surface(
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = limitation,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(16.dp),
+                Text(
+                    text = limitation,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (capability.isSupported) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                )
+            }
+
+            if (capability?.isSupported == true) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PresetCard(
+                        icon = Icons.Outlined.LayersClear,
+                        title = stringResource(Res.string.metadata_preset_all),
+                        description = stringResource(Res.string.metadata_preset_all_description),
+                        selected = allSelected,
+                        enabled = !isBusy && capability.hasRemovableMetadata,
+                        onClick = { selection = removable },
+                        modifier = Modifier.weight(1f),
+                    )
+                    PresetCard(
+                        icon = Icons.Outlined.LocationOff,
+                        title = stringResource(Res.string.metadata_preset_location),
+                        description = stringResource(Res.string.metadata_preset_location_description),
+                        selected = locationSelected,
+                        enabled = !isBusy && hasLocation,
+                        onClick = { selection = MetadataPolicy.LOCATION },
+                        modifier = Modifier.weight(1f),
                     )
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                SetupButton(
-                    onClick = { scope.launch { state.hide() } },
-                    enabled = !isBusy,
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    modifier = Modifier.weight(1f),
-                    text = stringResource(Res.string.action_cancel)
+
+                if (present.isNotEmpty()) {
+                    AdvancedSection(
+                        expanded = advancedExpanded,
+                        onToggleExpanded = { advancedExpanded = !advancedExpanded },
+                        categories = present,
+                        previews = capability.previews,
+                        selection = selection,
+                        enabled = !isBusy,
+                        onToggle = { category, checked ->
+                            selection = if (checked) selection + category else selection - category
+                        },
+                    )
+                }
+
+                Text(
+                    text = stringResource(Res.string.metadata_preserved_line),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                SetupButton(
-                    onClick = { onConfirm(selectedMode, selectedSaveMode) },
-                    enabled = supported && !isBusy,
-                    containerColor = if (selectedSaveMode == MetadataSaveMode.REPLACE_ORIGINAL) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
-                    contentColor = if (selectedSaveMode == MetadataSaveMode.REPLACE_ORIGINAL) {
-                        MaterialTheme.colorScheme.onError
-                    } else {
-                        MaterialTheme.colorScheme.onPrimary
-                    },
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    modifier = Modifier.weight(1f),
-                    text = if (isBusy) {
-                        stringResource(Res.string.remove_metadata_running)
-                    } else {
-                        selectedSaveMode.actionTitle()
+
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    MetadataSaveMode.entries.forEachIndexed { index, entry ->
+                        SegmentedButton(
+                            selected = mode == entry,
+                            onClick = { saveMode = entry },
+                            enabled = !isBusy && (entry != MetadataSaveMode.REPLACE_ORIGINAL || canReplaceOriginal),
+                            shape = SegmentedButtonDefaults.itemShape(index, MetadataSaveMode.entries.size),
+                        ) {
+                            Text(entry.title())
+                        }
                     }
+                }
+                Text(
+                    text = mode.description(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+
+            val replacing = mode == MetadataSaveMode.REPLACE_ORIGINAL
+            SetupButton(
+                onClick = { onConfirm(selection, mode) },
+                enabled = removesSomething && !isBusy,
+                containerColor = if (replacing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                contentColor = if (replacing) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary,
+                applyHorizontalPadding = false,
+                applyBottomPadding = false,
+                applyInsets = false,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp),
+                text = if (isBusy) stringResource(Res.string.remove_metadata_running) else mode.actionTitle()
+            )
         }
     }
 }
 
 @Composable
-private fun MetadataRemovalMode.title(): String = when (this) {
-    MetadataRemovalMode.LOCATION -> stringResource(Res.string.metadata_mode_location)
-    MetadataRemovalMode.PRIVACY -> stringResource(Res.string.metadata_mode_privacy)
-    MetadataRemovalMode.EVERYTHING -> stringResource(Res.string.metadata_mode_everything)
+private fun summaryLine(capability: SanitizationCapability?, present: List<MetadataCategory>): String {
+    val format = capability?.format?.name?.replace('_', ' ') ?: return ""
+    val labels = present.map { stringResource(it.label()) }
+    return when {
+        labels.isNotEmpty() -> stringResource(
+            Res.string.metadata_found,
+            format,
+            labels.joinToString(", ").lowercase()
+        )
+        capability.isSupported && capability.hasOtherMetadata -> stringResource(Res.string.metadata_other_found, format)
+        else -> stringResource(Res.string.metadata_none_found, format)
+    }
 }
 
 @Composable
-private fun MetadataRemovalMode.description(): String = when (this) {
-    MetadataRemovalMode.LOCATION -> stringResource(Res.string.metadata_mode_location_description)
-    MetadataRemovalMode.PRIVACY -> stringResource(Res.string.metadata_mode_privacy_description)
-    MetadataRemovalMode.EVERYTHING -> stringResource(Res.string.metadata_mode_everything_description)
+private fun PresetCard(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(20.dp),
+        color = if (selected && enabled) colors.secondaryContainer else colors.surfaceContainer,
+        contentColor = if (selected && enabled) colors.onSecondaryContainer else colors.onSurface,
+        border = if (selected && enabled) BorderStroke(2.dp, colors.secondary) else null,
+        modifier = modifier,
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(22.dp))
+            Text(text = title, style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (selected && enabled) colors.onSecondaryContainer else colors.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AdvancedSection(
+    expanded: Boolean,
+    onToggleExpanded: () -> Unit,
+    categories: List<MetadataCategory>,
+    previews: Map<MetadataCategory, String>,
+    selection: Set<MetadataCategory>,
+    enabled: Boolean,
+    onToggle: (MetadataCategory, Boolean) -> Unit,
+) {
+    val rotation by animateFloatAsState(if (expanded) 180f else 0f)
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onToggleExpanded)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(Res.string.metadata_advanced),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "${categories.count { it in selection }}/${categories.size}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Icon(
+                    Icons.Outlined.ExpandMore,
+                    contentDescription = null,
+                    modifier = Modifier.padding(start = 8.dp).rotate(rotation),
+                )
+            }
+            AnimatedVisibility(visible = expanded) {
+                Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                    categories.forEach { category ->
+                        val checked = category in selection
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(enabled = enabled, role = Role.Checkbox) { onToggle(category, !checked) }
+                                .padding(start = 16.dp, end = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
+                                Text(stringResource(category.label()), style = MaterialTheme.typography.bodyLarge)
+                                previews[category]?.let { preview ->
+                                    Text(
+                                        text = preview,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                            Checkbox(checked = checked, onCheckedChange = null, enabled = enabled, modifier = Modifier.padding(12.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun MetadataCategory.label(): StringResource = when (this) {
+    MetadataCategory.LOCATION -> Res.string.metadata_category_location
+    MetadataCategory.TIMESTAMPS -> Res.string.metadata_category_timestamps
+    MetadataCategory.IDENTITY_DEVICE -> Res.string.metadata_category_device
+    MetadataCategory.PEOPLE -> Res.string.metadata_category_people
+    MetadataCategory.DESCRIPTION_AUTHORSHIP -> Res.string.metadata_category_description
+    MetadataCategory.CAPTURE_SETTINGS -> Res.string.metadata_category_capture
+    MetadataCategory.EDIT_HISTORY -> Res.string.metadata_category_edits
+    MetadataCategory.PROVENANCE -> Res.string.metadata_category_provenance
+    MetadataCategory.THUMBNAIL_PREVIEW -> Res.string.metadata_category_thumbnail
+    // Never removable, so never listed.
+    MetadataCategory.COLOR_HDR, MetadataCategory.STRUCTURAL_FUNCTIONAL -> Res.string.metadata_category_description
 }
 
 @Composable

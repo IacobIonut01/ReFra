@@ -161,7 +161,7 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberSwipeUpToTrash
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.core.decoder.format.ImageReencoder
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.navigateUp
@@ -847,7 +847,7 @@ fun <T : Media> MediaViewScreen(
         MediaViewViewModel.MetadataSanitizationUiState.Idle
     ),
     probeMetadataSanitization: (Media) -> Unit = {},
-    sanitizeMetadata: (Media, MetadataRemovalMode, MetadataSaveMode) -> Unit = { _, _, _ -> },
+    sanitizeMetadata: (Media, Set<MetadataCategory>, MetadataSaveMode) -> Unit = { _, _, _ -> },
     resetMetadataSanitization: () -> Unit = {},
     motionPhotoStateFactory: @Composable (Media?) -> MotionPhotoState = { remember { MotionPhotoState() } },
     // Optional host seams — docs captures inject a local cast surface and swap the

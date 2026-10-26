@@ -846,15 +846,15 @@
         "scene": "metadata-removal",
         "state": "location-supported",
         "title": "Remove metadata",
-        "caption": "Only the removal modes this format supports are enabled.",
-        "section": "what-location-only-removes"
+        "caption": "A JPEG with location, dates, device and camera settings, ready to clean.",
+        "section": "choose-what-to-remove"
       },
       {
         "scene": "metadata-removal",
         "state": "unsupported-format",
         "title": "Unsupported format",
-        "caption": "A format with no removable metadata disables every mode.",
-        "section": "what-location-only-removes"
+        "caption": "An unsupported video container shows why it can't be cleaned.",
+        "section": "choose-what-to-remove"
       }
     ],
     "cloud-overview": [

@@ -20,7 +20,7 @@ import com.dot.gallery.data.dao.CloudMediaDao
 import com.dot.gallery.data.dao.CloudServerConfigDao
 import com.dot.gallery.cloud.sync.CloudMediaStoreWriter
 import com.dot.gallery.core.decoder.format.ImageReencoder
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
@@ -259,9 +259,9 @@ class MediaHandlerImpl @Inject constructor(
 
     override suspend fun sanitizeMediaMetadata(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
-    ): SanitizationResult = repository.sanitizeMediaMetadata(media, mode, saveMode)
+    ): SanitizationResult = repository.sanitizeMediaMetadata(media, categories, saveMode)
 
     override suspend fun probeCaptureDateEdit(media: Media): CaptureDateEditCapability =
         repository.probeCaptureDateEdit(media)

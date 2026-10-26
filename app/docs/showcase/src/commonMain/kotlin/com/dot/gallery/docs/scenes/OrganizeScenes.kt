@@ -43,7 +43,8 @@ import com.dot.gallery.domain.uri.parseUri
 import com.dot.gallery.data.entity.MediaMetadata
 import com.dot.gallery.core.metadata.MediaContainerFormat
 import com.dot.gallery.core.metadata.MetadataDirectory
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
+import com.dot.gallery.core.metadata.MetadataPolicy
 import com.dot.gallery.core.metadata.MetadataTag
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
@@ -420,9 +421,9 @@ fun DocsCaptureDateScene(state: String?) {
 }
 
 /**
- * The real metadata-removal sheet. `location-supported` shows the JPEG
- * capability (location only, other modes disabled by policy);
- * `unsupported-format` shows a video container where no mode applies.
+ * The real metadata-removal sheet. `location-supported` shows a JPEG with
+ * location, dates, device and camera metadata found; `unsupported-format`
+ * shows a container that cannot be cleaned.
  */
 @Composable
 fun DocsMetadataRemovalScene(state: String?) {
@@ -434,13 +435,25 @@ fun DocsMetadataRemovalScene(state: String?) {
         capability = if (state == "unsupported-format") {
             SanitizationCapability(
                 format = MediaContainerFormat.MP4,
-                supportedModes = emptySet(),
-                limitation = "Metadata editing is not supported for this video format.",
+                removableCategories = emptySet(),
+                limitation = "This video container is not supported.",
             )
         } else {
             SanitizationCapability(
                 format = MediaContainerFormat.JPEG,
-                supportedModes = setOf(MetadataRemovalMode.LOCATION),
+                removableCategories = MetadataPolicy.ALL,
+                presentCategories = setOf(
+                    MetadataCategory.LOCATION,
+                    MetadataCategory.TIMESTAMPS,
+                    MetadataCategory.IDENTITY_DEVICE,
+                    MetadataCategory.CAPTURE_SETTINGS,
+                ),
+                previews = mapOf(
+                    MetadataCategory.LOCATION to "44.4268, 26.1025",
+                    MetadataCategory.TIMESTAMPS to "2026:05:14 18:32:07",
+                    MetadataCategory.IDENTITY_DEVICE to "Google Pixel 6",
+                    MetadataCategory.CAPTURE_SETTINGS to "f/1.9 · 1/120 s · ISO 64",
+                ),
             )
         },
         isBusy = false,
