@@ -1073,7 +1073,7 @@
     <string name="frame_picker_preparing">Preparing source…</string>
     <string name="frame_picker_preparing_progress">Preparing source… %1$d%%</string>
     <string name="frame_picker_preview_description">Selected video frame</string>
-    <string name="frame_picker_previous_frame">Previous frame</string>
+    <string name="frame_picker_previous_frame">Fotogramma precedente</string>
     <string name="frame_picker_next_frame">Next frame</string>
     <string name="frame_picker_play">Play preview</string>
     <string name="frame_picker_pause">Pause preview</string>
@@ -1301,8 +1301,8 @@
     <string name="help_cat_selection_actions">Selection &amp; batch actions</string>
     <string name="help_cat_accessibility">Accessibility &amp; advanced</string>
     <!-- FCast -->
-    <string name="cancel">Cancel</string>
-    <string name="cast_connect">Cast</string>
+    <string name="cancel">Annulla</string>
+    <string name="cast_connect">Trasmetti</string>
     <string name="cast_disconnect">Disconnect</string>
     <string name="cast_select_device">Select a device</string>
     <string name="cast_connected_to">Connected to %1$s</string>
@@ -1347,7 +1347,7 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_issue_invalid_setting">Invalid setting value</string>
+    <string name="backup_issue_invalid_setting">Valore dell\'impostazione non valido</string>
     <string name="backup_issue_unsupported_provider">Unsupported provider %1$s</string>
     <string name="backup_issue_config_not_inserted">Configuration was not inserted</string>
     <string name="backup_issue_config_import_failed">Configuration import failed</string>
@@ -1512,7 +1512,7 @@
     <string name="story_viewer_settings_title">Story viewer</string>
     <string name="story_viewer_auto_advance">Auto-advance</string>
     <string name="story_viewer_auto_advance_summary">Passa automaticamente alla foto successiva</string>
-    <string name="story_viewer_duration">Duration per photo</string>
+    <string name="story_viewer_duration">Durata per ogni foto</string>
     <string name="story_viewer_duration_summary">Currently %1$s seconds per photo</string>
     <string name="story_no_media">No story media is available</string>
     <string name="story_previous_photo">Previous item</string>
@@ -2036,7 +2036,7 @@
     <string name="cloud_download_remote">Download remote media</string>
     <string name="cloud_download_remote_summary">Automatically download this account’s photos to this device</string>
     <string name="cloud_download_videos">Download videos</string>
-    <string name="cloud_download_videos_summary">Include videos in automatic downloads</string>
+    <string name="cloud_download_videos_summary">Includi i video nei download automatici</string>
     <string name="cloud_download_remote_confirm">This will download every remote-only item from this account (%1$d items, about %2$s). Items already on this device are linked instead of downloaded again.</string>
     <string name="cloud_download_remote_confirm_loading">This will download every remote-only item from this account. Items already on this device are linked instead of downloaded again.</string>
     <string name="cloud_download_low_space_title">Not enough storage</string>
@@ -2147,7 +2147,7 @@
     <!-- Common -->
     <string name="setup_step_progress">Step %1$d of %2$d</string>
     <string name="setup_continue">Continue</string>
-    <string name="setup_finish">Finish</string>
+    <string name="setup_finish">Fine</string>
     <string name="setup_grant_permissions">Grant Permissions</string>
     <string name="setup_open_app_settings">Open app settings</string>
     <!-- Welcome page -->
@@ -2256,7 +2256,7 @@
     <string name="library_section_locations_empty">No locations to show yet</string>
     <string name="library_section_people_unavailable">No people to show yet</string>
     <string name="library_section_categories_unavailable">Smart categories are turned off</string>
-    <string name="library_people_section_title">People</string>
+    <string name="library_people_section_title">Persone</string>
     <string name="library_people_section_summary">Show the People section on the Library page</string>
     <string name="library_categories_section_title">Categories</string>
     <string name="library_categories_section_summary">Show smart categories on the Library page</string>
@@ -2360,7 +2360,7 @@
     <string name="dev_stacktrace">Stack trace</string>
     <string name="dev_breadcrumbs_before">Breadcrumbs</string>
     <string name="dev_copy_entry">Copy</string>
-    <string name="dev_report_error">Report</string>
+    <string name="dev_report_error">Segnalazione</string>
     <string name="dev_filters">Filters</string>
     <string name="dev_pick_range">Pick a date range</string>
     <string name="dev_crash_prompt_title">ReFra crashed last time</string>
@@ -2368,5 +2368,5 @@
     <string name="dev_crash_prompt_later">Not now</string>
     <string name="dev_logs_header">Logs</string>
     <string name="dev_session_logs">Session logs</string>
-    <string name="dev_session_logs_summary">Browse, filter and inspect every captured entry</string>
+    <string name="dev_session_logs_summary">Sfoglia, filtra e controlla ogni voce acquisita</string>
 </resources>
