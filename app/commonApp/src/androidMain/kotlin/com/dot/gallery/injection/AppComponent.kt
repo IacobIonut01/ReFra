@@ -30,7 +30,10 @@ import com.dot.gallery.core.CopyMediaRuntimeImpl
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaDistributorImpl
 import com.dot.gallery.core.MediaHandler
+import com.dot.gallery.core.BulkRotateCoordinator
 import com.dot.gallery.core.MediaHandlerImpl
+import com.dot.gallery.core.presentation.components.FloatingProgressRegistry
+import com.dot.gallery.core.presentation.components.MediaRotationTracker
 import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.MediaSelectorImpl
 import com.dot.gallery.core.decryption.DecryptManager
@@ -291,6 +294,14 @@ abstract class AppComponent(
 
     @Provides
     @Singleton
+    fun provideFloatingProgressRegistry(): FloatingProgressRegistry = FloatingProgressRegistry()
+
+    @Provides
+    @Singleton
+    fun provideMediaRotationTracker(): MediaRotationTracker = MediaRotationTracker()
+
+    @Provides
+    @Singleton
     fun provideDatabase(
         startupGate: StartupWorkGate
     ): InternalDatabase = StartupTracer.trace("AppComponent.provideDatabase") {
@@ -356,10 +367,11 @@ abstract class AppComponent(
         cloudMediaDao: CloudMediaDao,
         cloudServerConfigDao: CloudServerConfigDao,
         indexMirror: HandoverIndexMirror,
+        bulkRotateCoordinator: BulkRotateCoordinator,
     ): MediaHandler = StartupTracer.trace("AppComponent.provideMediaHandler") {
         MediaHandlerImpl(
             mediaRepository, application, scheduler, providerRegistry, cloudMediaDao,
-            cloudServerConfigDao, indexMirror
+            cloudServerConfigDao, indexMirror, bulkRotateCoordinator
         )
     }
 
@@ -721,6 +733,8 @@ abstract class AppComponent(
     abstract val modelDownloadWorker: ModelDownloadWorker
     abstract val redactedLocationRepairWorker: RedactedLocationRepairWorker
     abstract val rotateMediaWorker: RotateMediaWorker
+    abstract val floatingProgressRegistry: FloatingProgressRegistry
+    abstract val mediaRotationTracker: MediaRotationTracker
     abstract val searchIndexerUpdaterWorker: SearchIndexerUpdaterWorker
     abstract val smartScanWorker: SmartScanWorker
     abstract val tempVaultCleanupWorker: TempVaultCleanupWorker

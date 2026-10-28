@@ -59,6 +59,7 @@ class MediaHandlerImpl @Inject constructor(
     private val cloudMediaDao: CloudMediaDao,
     private val cloudServerConfigDao: CloudServerConfigDao,
     private val indexMirror: HandoverIndexMirror,
+    private val bulkRotateCoordinator: BulkRotateCoordinator,
 ) : MediaHandler {
 
     private fun <T : Media> extractCloudInfo(media: T): Triple<String, String, Long>? {
@@ -183,6 +184,9 @@ class MediaHandlerImpl @Inject constructor(
         degrees: Int,
         forceCopy: Boolean
     ) = scheduler.rotateImage(media, degrees, forceCopy)
+
+    override fun <T : Media> rotateImages(items: List<Pair<T, Boolean>>, degrees: Int): String? =
+        bulkRotateCoordinator.rotate(items, degrees)
 
     override suspend fun <T : Media> copyMedia(
         from: T,

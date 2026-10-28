@@ -1022,6 +1022,13 @@
     <string name="rotate_stage_saving">Saving…</string>
     <string name="rotate_stage_uploading">Uploading…</string>
     <string name="rotate_failed">Couldn't rotate image</string>
+    <string name="rotate_batch_running">Rotating</string>
+    <plurals name="rotate_batch_done">
+        <item quantity="one">Rotated %1$d item</item>
+        <item quantity="other">Rotated %1$d items</item>
+    </plurals>
+    <string name="rotate_batch_partial">Rotated %1$d, %2$d failed</string>
+    <string name="rotate_batch_failed">Couldn't rotate items</string>
     <string name="visual_search_title">Visual search</string>
     <string name="visual_search_summary">Search the current image with another app</string>
     <string name="visual_search_description">Shows a button in the media viewer that sends the current image — or the current video frame — to the selected app, the way Google Lens works in other galleries.\n\nThe image leaves this device through the provider you choose.</string>

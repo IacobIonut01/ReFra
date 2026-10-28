@@ -227,6 +227,8 @@ class MockedMediaHandler: MediaHandler {
         degrees: Int,
         forceCopy: Boolean
     ): String = "mock_rotate_$media.id"
+    override fun <T : Media> rotateImages(items: List<Pair<T, Boolean>>, degrees: Int): String? =
+        items.takeIf { it.isNotEmpty() }?.let { "mock_rotate_batch" }
     override suspend fun <T : Media> downloadCloudMedia(mediaList: List<T>): Result<Int> = Result.success(0)
 }
 

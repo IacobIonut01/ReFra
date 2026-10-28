@@ -6,6 +6,26 @@
 package com.dot.gallery.core.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.GraphicsLayerScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -109,6 +129,13 @@ fun <T : Media> MediaImage(
     val metadata by rememberedDerivedState(metadataState.value) {
         metadataState.value.metadataMap[media.id]
     }
+    val rotationTracker = LocalMediaRotationTracker.current
+    // Per-cell view of the shared tracker: only this cell recomposes when its entry changes.
+    val rotationEntry by remember(rotationTracker, media.id) {
+        derivedStateOf { rotationTracker?.entry(media.id) }
+    }
+    val pendingRotation = rotationEntry?.pending
+    val rotationRevision = rotationEntry?.revision ?: 0
 
     val selectedSize: Dp
     val scale: Float
@@ -186,16 +213,26 @@ fun <T : Media> MediaImage(
         // (definedTimestamp/size) and still carries filename/mime for animated-format detection.
         // Excludes volatile presentation fields (favorite/trashed/selection) so toggling them no
         // longer evicts the decoded thumbnail and forces a re-decode flash (#1076).
+        // A completed in-app rotation bumps the revision so the rewritten bytes are re-decoded
+        // even when the file kept its timestamp and size.
         val thumbnailSignature = remember(
             media.id,
             media.definedTimestamp,
             media.size,
             media.mimeType,
             media.label,
-            media.path
+            media.path,
+            rotationRevision
         ) {
-            "${media.id}:${media.definedTimestamp}:${media.size}:${media.mimeType}:${media.label}:${media.path}"
+            val base = "${media.id}:${media.definedTimestamp}:${media.size}:${media.mimeType}:${media.label}:${media.path}"
+            if (rotationRevision > 0) "$base:rot$rotationRevision" else base
         }
+        // Rotation animation state exists only while this cell has a rotation in flight, like
+        // the selection animations above, so idle cells pay nothing for it.
+        val rotation = if (pendingRotation != null) {
+            rememberCellRotation(media.id, pendingRotation, thumbnailSignature, rotationTracker)
+        } else null
+        val rotationDone = pendingRotation?.phase == PendingMediaRotation.Phase.Done
         renderer.RenderImage(
             modifier = Modifier
                 .fillMaxSize()
@@ -208,8 +245,12 @@ fun <T : Media> MediaImage(
                 .graphicsLayer {
                     val insetPx = selectedSize.toPx()
                     val min = size.minDimension
-                    if (min > 0f && insetPx > 0f) {
-                        val s = ((min - insetPx * 2f) / min).coerceIn(0f, 1f)
+                    val s = if (min > 0f && insetPx > 0f) ((min - insetPx * 2f) / min).coerceIn(0f, 1f) else 1f
+                    if (rotation != null) {
+                        // Once done the new bytes are already rotated, so the base layer stays upright.
+                        val angle = if (rotationDone) 0f else rotation.turn.value
+                        applyRotationTurn(angle, rotation.lift.value * s, rotation.cornerFraction() * RotationCorner.toPx())
+                    } else if (s != 1f) {
                         scaleX = s
                         scaleY = s
                     }
@@ -229,6 +270,42 @@ fun <T : Media> MediaImage(
             contentScale = ContentScale.Crop,
             signature = thumbnailSignature
         )
+        if (rotation != null && rotationDone) {
+            renderer.RenderImage(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
+                    .aspectRatio(aspectRatio)
+                    .graphicsLayer {
+                        alpha = rotation.outgoingAlpha.value
+                        applyRotationTurn(rotation.turn.value, 1f, 0f)
+                    },
+                model = media.getUri(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                signature = rotation.outgoingSignature
+            )
+        }
+        if (rotation != null) {
+            AnimatedVisibility(
+                modifier = Modifier.align(Alignment.Center),
+                visible = pendingRotation?.phase == PendingMediaRotation.Phase.Processing,
+                enter = fadeIn() + scaleIn(initialScale = 0.6f),
+                exit = fadeOut() + scaleOut(targetScale = 0.6f),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        strokeWidth = 2.5.dp,
+                    )
+                }
+            }
+        }
 
         if (media.isVideo) {
             VideoDurationHeader(
@@ -388,4 +465,78 @@ fun <T : Media> MediaImage(
             }
         }
     }
+}
+
+private val RotationSpring = spring<Float>(dampingRatio = 0.62f, stiffness = Spring.StiffnessLow)
+private const val RotationLift = 0.86f
+private val RotationCorner = 16.dp
+// Long enough for the re-encoded thumbnail (new cache key, full decode) to land underneath.
+private const val RotationOutgoingHoldMs = 900L
+private const val RotationOutgoingFadeMs = 280
+
+/**
+ * Turns the cell content by [angle] degrees, scaled so the rotated bounds always fit inside the
+ * cell (mosaic cells are not square), with rounded corners while the item is lifted.
+ */
+private fun GraphicsLayerScope.applyRotationTurn(angle: Float, lift: Float, cornerPx: Float) {
+    if (angle == 0f && lift == 1f && cornerPx == 0f) return
+    val w = size.width
+    val h = size.height
+    val radians = angle * (PI.toFloat() / 180f)
+    val c = abs(cos(radians))
+    val sn = abs(sin(radians))
+    val fit = if (w > 0f && h > 0f) min(w / (w * c + h * sn), h / (w * sn + h * c)) else 1f
+    rotationZ = angle
+    scaleX = fit * lift
+    scaleY = fit * lift
+    if (cornerPx > 0f) {
+        shape = RoundedCornerShape(cornerPx)
+        clip = true
+    }
+}
+
+/** Animation state of one cell's in-flight rotation; [outgoingSignature] is the pre-rotation thumbnail. */
+@Stable
+private class CellRotation(val outgoingSignature: String) {
+    val turn = Animatable(0f)
+    val lift = Animatable(1f)
+    val outgoingAlpha = Animatable(1f)
+
+    /** Corner rounding follows the lift, so the card rounds as it rises and squares as it lands. */
+    fun cornerFraction(): Float = ((1f - lift.value) / (1f - RotationLift)).coerceIn(0f, 1f)
+}
+
+@Composable
+private fun rememberCellRotation(
+    mediaId: Long,
+    pending: PendingMediaRotation,
+    signature: String,
+    tracker: MediaRotationTracker?,
+): CellRotation {
+    val rotation = remember(mediaId) { CellRotation(outgoingSignature = signature) }
+    LaunchedEffect(rotation, pending.phase, pending.degrees) {
+        val degrees = pending.degrees.toFloat()
+        when (pending.phase) {
+            PendingMediaRotation.Phase.Queued -> rotation.lift.animateTo(RotationLift, RotationSpring)
+            PendingMediaRotation.Phase.Processing -> coroutineScope {
+                launch { rotation.lift.animateTo(RotationLift, RotationSpring) }
+                rotation.turn.animateTo(degrees, RotationSpring)
+            }
+            PendingMediaRotation.Phase.Done -> coroutineScope {
+                // The rotated file loads underneath while the old thumbnail finishes its turn
+                // on top and fades out, so there is no blank frame and no turn back.
+                launch { rotation.lift.animateTo(1f, RotationSpring) }
+                launch { rotation.turn.animateTo(degrees, RotationSpring) }
+                delay(RotationOutgoingHoldMs)
+                rotation.outgoingAlpha.animateTo(0f, tween(RotationOutgoingFadeMs))
+                tracker?.settle(mediaId)
+            }
+            PendingMediaRotation.Phase.Failed -> coroutineScope {
+                launch { rotation.lift.animateTo(1f, RotationSpring) }
+                rotation.turn.animateTo(0f, RotationSpring)
+                tracker?.settle(mediaId)
+            }
+        }
+    }
+    return rotation
 }

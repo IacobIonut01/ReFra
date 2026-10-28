@@ -115,5 +115,12 @@ interface MediaHandler {
 
     suspend fun <T: Media> rotateImage(media: T, degrees: Int, forceCopy: Boolean = false): String
 
+    /**
+     * Rotates several items in one background batch with floating progress and per-cell
+     * animation. Each pair carries the item's forced-copy flag; returns the run id, or null
+     * when [items] is empty.
+     */
+    fun <T: Media> rotateImages(items: List<Pair<T, Boolean>>, degrees: Int): String?
+
     suspend fun <T: Media> downloadCloudMedia(mediaList: List<T>): Result<Int>
 }

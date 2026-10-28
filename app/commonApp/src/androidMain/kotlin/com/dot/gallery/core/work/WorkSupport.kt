@@ -105,6 +105,10 @@ class WorkInput private constructor(
     fun getIntArray(key: String): IntArray? =
         (json[key] as? JsonArray)?.mapNotNull { it.jsonPrimitive.intOrNull }?.toIntArray()
 
+    /** Array of nested objects (e.g. per-item batch inputs); non-object entries are skipped. */
+    fun getObjectArray(key: String): List<WorkInput>? =
+        (json[key] as? JsonArray)?.mapNotNull { element -> (element as? JsonObject)?.let { WorkInput(it) } }
+
     inline fun <reified T> hasKeyWithValueOfType(key: String): Boolean {
         val element = json[key] ?: return false
         return when (T::class) {

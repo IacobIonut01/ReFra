@@ -93,6 +93,9 @@ import com.dot.gallery.core.presentation.util.NavigationItem
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.presentation.util.rememberBottomBarInset
 import com.dot.gallery.ui.theme.ComponentSize
+import com.dot.gallery.ui.theme.Spacing
+import com.dot.gallery.core.LocalMediaSelector
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.ui.theme.GalleryChrome
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.SettingsKeys
@@ -503,6 +506,26 @@ fun AppBarContainer(
                                 animatedVisibilityScope = this,
                             )
                         }
+                        // Sits above whichever bottom chrome is showing: the floating dock, or the
+                        // selection bar while a selection is active.
+                        val selectionActive by LocalMediaSelector.current.isSelectionActive
+                            .collectAsStateWithLifecycle()
+                        val progressBottom by animateDpAsState(
+                            targetValue = rememberBottomBarInset(paddingValues) + when {
+                                selectionActive -> FloatingProgressSelectionClearance
+                                showMaterialNavbar || showClassicNavbar ->
+                                    ComponentSize.NavigationBarHeight + Spacing.Medium * 2
+                                else -> Spacing.Medium
+                            },
+                            label = "floatingProgressBottom",
+                        )
+                        FloatingProgressHost(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(horizontal = Spacing.ScreenHorizontal)
+                                .padding(bottom = progressBottom)
+                                .then(overlayIsolationModifier),
+                        )
                     },
                     detailContent = {
                         overlayTransition.DeferredAnimatedVisibility(
@@ -527,6 +550,9 @@ fun AppBarContainer(
         }
     }
 }
+
+/** Lift for the floating progress pill while the selection bar owns the bottom edge. */
+private val FloatingProgressSelectionClearance = 112.dp
 
 private fun onNavItemClick(
     navController: NavController,

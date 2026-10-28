@@ -125,7 +125,6 @@ import kotlinx.coroutines.withContext
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.core.util.or
 import com.dot.gallery.feature.editor.util.rotate
-import com.dot.gallery.core.workers.rotateImage
 import com.dot.gallery.core.presentation.components.shape
 import com.dot.gallery.core.presentation.util.clear
 import com.dot.gallery.core.presentation.util.selectedMedia
@@ -218,20 +217,23 @@ fun <T : Media> BoxScope.SelectionSheet(
     val noLocalItemsText = stringResource(Res.string.vault_hide_no_local_items)
     val hideInProgressText = stringResource(Res.string.vault_hide_in_progress)
     val scope = rememberCoroutineScope()
-    // Non-encodable selected items pending a rotate → offered as PNG copies via the fallback sheet.
-    var rotateFallbackList by remember { mutableStateOf<List<T>>(emptyList()) }
-    if (rotateFallbackList.isNotEmpty()) {
+    // A rotate whose selection holds non-encodable items waits here until the fallback sheet
+    // decides whether those become PNG copies; the whole selection then runs as ONE batch.
+    // Each pair is (media, needs forced copy), in selection order.
+    var pendingRotateBatch by remember { mutableStateOf<List<Pair<T, Boolean>>>(emptyList()) }
+    if (pendingRotateBatch.isNotEmpty()) {
         OverwriteFallbackSheet(
             onCreateCopy = {
-                val pending = rotateFallbackList
-                rotateFallbackList = emptyList()
-                scope.launch {
-                    pending.forEach { media -> handler.rotateImage(media, 90, true) }
-                    selector.clearSelection()
-                }
+                val pending = pendingRotateBatch
+                pendingRotateBatch = emptyList()
+                handler.rotateImages(pending, 90)
+                selector.clearSelection()
             },
             onDismiss = {
-                rotateFallbackList = emptyList()
+                val pending = pendingRotateBatch
+                pendingRotateBatch = emptyList()
+                // Declining copies still rotates the items that can be overwritten in place.
+                handler.rotateImages(pending.filterNot { it.second }, 90)
                 selector.clearSelection()
             }
         )
@@ -690,16 +692,14 @@ fun <T : Media> BoxScope.SelectionSheet(
                             title = resStringResource(action.labelRes)
                         ) {
                             logSelectionAction("rotate")
-                            val (encodable, nonEncodable) = selectedMedia.partition {
-                                ImageReencoder.isReencodable(it.mimeType, it.label)
+                            val batch = selectedMedia.map {
+                                it to !ImageReencoder.isReencodable(it.mimeType, it.label)
                             }
-                            encodable.forEach { media ->
-                                scope.launch { handler.rotateImage(media, 90, false) }
-                            }
-                            if (nonEncodable.isNotEmpty()) {
+                            if (batch.any { it.second }) {
                                 // Ask before rotating formats that can't overwrite in place.
-                                rotateFallbackList = nonEncodable
+                                pendingRotateBatch = batch
                             } else {
+                                handler.rotateImages(batch, 90)
                                 selector.clearSelection()
                             }
                         }

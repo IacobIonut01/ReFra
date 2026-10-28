@@ -1,5 +1,7 @@
 package com.dot.gallery.core.util
 
+import com.dot.gallery.core.presentation.components.LocalFloatingProgressRegistry
+import com.dot.gallery.core.presentation.components.LocalMediaRotationTracker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -305,6 +307,7 @@ fun SetupMediaProviders(
     content: @Composable () -> Unit
 ): Unit {
     val context = LocalContext.current
+    val component = (context.applicationContext as ComponentOwner).component
     CompositionLocalProvider(
     LocalEventHandler provides eventHandler,
     LocalMediaDistributor provides mediaDistributor,
@@ -312,7 +315,9 @@ fun SetupMediaProviders(
     LocalMediaSelector provides mediaSelector,
     LocalMediaImageRenderer provides mediaImageRenderer,
         LocalMediaPrefetcher provides sketchMediaPrefetcher(context),
-        LocalViewerRuntime provides (context.applicationContext as ComponentOwner).component,
+        LocalViewerRuntime provides component,
+        LocalFloatingProgressRegistry provides component.floatingProgressRegistry,
+        LocalMediaRotationTracker provides component.mediaRotationTracker,
         content = content
     )
 }
