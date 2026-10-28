@@ -758,11 +758,11 @@
     <string name="add_selected">Add selected</string>
     <!-- Help & Tips Screen -->
     <string name="help_title">Help &amp; tips</string>
-    <string name="help_summary">Tutorials, tips, and what\'s new</string>
-    <string name="help_whats_new">What\'s new</string>
+    <string name="help_summary">Tutorials, tips, and what's new</string>
+    <string name="help_whats_new">What's new</string>
     <string name="help_whats_new_subtitle">Discover the latest Gallery features</string>
-    <string name="help_whats_new_in_version">What\'s new in v%s</string>
-    <string name="help_explore_whats_new">Explore what\'s new</string>
+    <string name="help_whats_new_in_version">What's new in v%s</string>
+    <string name="help_explore_whats_new">Explore what's new</string>
     <string name="help_get_started">Get started</string>
     <string name="help_make_most">Make the most of Gallery</string>
     <string name="help_explore_tips">Explore more tips</string>

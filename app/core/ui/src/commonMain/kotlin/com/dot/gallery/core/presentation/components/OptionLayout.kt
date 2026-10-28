@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,7 +55,7 @@ private val GridItemShape = RoundedCornerShape(20.dp)
 @Composable
 fun OptionLayout(
     modifier: Modifier = Modifier,
-    optionList: SnapshotStateList<OptionItem>,
+    optionList: List<OptionItem>,
     style: OptionLayoutStyle = OptionLayoutStyle.Column
 ) {
     when (style) {
@@ -69,7 +68,7 @@ fun OptionLayout(
 @Composable
 private fun OptionGridLayout(
     modifier: Modifier = Modifier,
-    optionList: SnapshotStateList<OptionItem>
+    optionList: List<OptionItem>
 ) {
     Grid(
         config = {
@@ -93,7 +92,7 @@ private fun OptionGridLayout(
 @Composable
 private fun OptionColumnLayout(
     modifier: Modifier = Modifier,
-    optionList: SnapshotStateList<OptionItem>
+    optionList: List<OptionItem>
 ) {
     Column(
         modifier = modifier
@@ -129,6 +128,7 @@ private fun OptionColumnLayout(
                 },
                 summaryContainer = summary,
                 enabled = item.enabled,
+                attention = item.attention,
                 containerColor = item.containerColor
                     ?: MaterialTheme.colorScheme.surfaceContainerHigh,
                 contentColor = item.contentColor

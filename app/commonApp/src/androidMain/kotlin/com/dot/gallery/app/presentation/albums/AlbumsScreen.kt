@@ -7,10 +7,6 @@ package com.dot.gallery.app.presentation.albums
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DragIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import com.dot.gallery.core.ui.generated.resources.arrange_albums
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.core.ui.generated.resources.Res as UiRes
@@ -33,6 +29,7 @@ import androidx.core.net.toUri
 import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.presentation.components.FilterOption
+import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.startup.LocalStartupWorkGate
 import com.dot.gallery.core.startup.StartupContentEffect
@@ -101,18 +98,14 @@ fun AlbumsScreen(
             MainScreenTopBar(
                 isScrolling = isScrolling,
                 menuItems = onArrange?.let { arrange ->
-                    { dismiss ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(UiRes.string.arrange_albums)) },
-                            leadingIcon = { Icon(Icons.Rounded.DragIndicator, contentDescription = null) },
-                            onClick = {
-                                dismiss()
-                                arrange()
-                            },
-                        )
-                        HorizontalDivider()
-                    }
-                },
+                    listOf(
+                        OptionItem(
+                            icon = Icons.Rounded.DragIndicator,
+                            text = stringResource(UiRes.string.arrange_albums),
+                            onClick = { arrange() },
+                        ),
+                    )
+                } ?: emptyList(),
             )
         },
         onAlbumClick = onAlbumClick,

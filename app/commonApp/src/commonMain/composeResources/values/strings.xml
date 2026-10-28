@@ -152,7 +152,7 @@
     <string name="secure_mode_summary">Hide the app preview when you exit it</string>
     <string name="reset">Reset</string>
     <string name="set_wallpaper">Wallpaper</string>
-    <string name="set_wallpaper_error">Can\'t set wallpaper, no app available!</string>
+    <string name="set_wallpaper_error">Can't set wallpaper, no app available!</string>
     <string name="monthly_timeline_title">Monthly Timeline</string>
     <string name="monthly_timeline_summary">Group the timeline monthly instead of per date (Restarts the app)</string>
     <string name="timeline_layout_type">Timeline layout</string>
@@ -167,8 +167,8 @@
     <string name="amoled_mode_summary">Higher contrast, best suited for Amoled Screens</string>
     <string name="amoled_mode_requires_dark">Available only while the app is using dark mode</string>
     <string name="use_system_font_title">Use system font</string>
-    <string name="use_system_font_summary">Use your device\'s default font instead of the built-in one</string>
-    <string name="use_system_font_description">When enabled, the app uses your device\'s system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
+    <string name="use_system_font_summary">Use your device's default font instead of the built-in one</string>
+    <string name="use_system_font_description">When enabled, the app uses your device's system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
     <string name="color_palette_preview_description">Icons, text, and more match colors in your wallpaper</string>
     <string name="color_palette_wallpaper_colors">Wallpaper colors</string>
     <string name="color_palette_other_colors">Other colors</string>
@@ -218,7 +218,7 @@
     <string name="trash_incompatible_summary">Such items will be deleted permanently instead.</string>
     <string name="error_toast">An error occurred!</string>
     <string name="description">Description</string>
-    <string name="video_description_local_only">Video descriptions are stored locally and won\'t be written to the file</string>
+    <string name="video_description_local_only">Video descriptions are stored locally and won't be written to the file</string>
     <string name="move_to_another_album">Move to another album</string>
     <string name="move">Move</string>
     <string name="some_permissions_are_not_granted">Some permissions are not granted!</string>
@@ -288,13 +288,13 @@
     <string name="override">Overwrite</string>
     <string name="save_copy">Save Copy</string>
     <string name="edit_override_permission_denied">Permission denied. Grant full media access to overwrite the original, or save a copy instead.</string>
-    <string name="edit_override_failed">Couldn\'t overwrite the original. Try saving a copy instead.</string>
+    <string name="edit_override_failed">Couldn't overwrite the original. Try saving a copy instead.</string>
     <string name="edit_save_copy_failed">Failed to save the edited copy.</string>
     <string name="editor_unsaved_title">Discard edits?</string>
     <string name="editor_unsaved_message">Save a copy before leaving, or discard your unsaved edits.</string>
     <string name="action_discard">Discard</string>
-    <string name="edit_load_failed">Couldn\'t open this image in the editor.</string>
-    <string name="edit_load_failed_restore_title">Couldn\'t open image</string>
+    <string name="edit_load_failed">Couldn't open this image in the editor.</string>
+    <string name="edit_load_failed_restore_title">Couldn't open image</string>
     <string name="edit_load_failed_restore_summary">This file may be damaged. A backed-up original is available — restore it?</string>
     <string name="edit_restore_failed">Failed to restore the original.</string>
     
@@ -338,7 +338,7 @@
     <string name="raw_export_tiff16">TIFF (16-bit)</string>
     <string name="raw_export_choose_format">Save developed copy</string>
     <string name="raw_export_choose_format_subtitle">Choose a format for your developed RAW</string>
-    <string name="raw_export_tiff_unavailable">TIFF keeps full bit depth but can\'t include crop, filters or markup — remove them to export TIFF.</string>
+    <string name="raw_export_tiff_unavailable">TIFF keeps full bit depth but can't include crop, filters or markup — remove them to export TIFF.</string>
     <string name="raw_export_in_progress">Exporting…</string>
     <string name="raw_export_success">Saved developed copy</string>
     <string name="raw_export_failed">Export failed</string>
@@ -399,7 +399,7 @@
     <string name="remove_subtitle_track">Remove subtitle track</string>
     <string name="location_new_album">Location: Internal-Storage/%1$s</string>
     <string name="permission_manage_files_title">Manage All Files</string>
-    <string name="permission_manage_files_summary">"Allows the app to create, modify, and delete files and albums that were previously restricted by the system (includes albums outside Pictures and DCIM folders and the ones from the SD Card), and to show extra photo formats the system doesn\'t recognize (such as JPEG XL, JPEG 2000 and Photoshop files)."</string>
+    <string name="permission_manage_files_summary">"Allows the app to create, modify, and delete files and albums that were previously restricted by the system (includes albums outside Pictures and DCIM folders and the ones from the SD Card), and to show extra photo formats the system doesn't recognize (such as JPEG XL, JPEG 2000 and Photoshop files)."</string>
     <string name="vault">Vault</string>
     <string name="cloud">Cloud</string>
     <string name="picker_preparing">Preparing %1$d of %2$d…</string>
@@ -568,7 +568,7 @@
     <string name="no_metadata_found">No metadata found</string>
     <string name="loading_metadata">Loading metadata…</string>
     <string name="categorise_your_media">Categorise your media</string>
-    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device using ONNX Runtime with a pre-trained model available in the app\'s assets.</string>
+    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device using ONNX Runtime with a pre-trained model available in the app's assets.</string>
     <string name="ai_category">Smart Features</string>
     
     <!-- AI Model Management -->
@@ -612,7 +612,7 @@
     <string name="ai_models_group_cutout_ready_summary">Subject cutout is available in the media viewer</string>
     <string name="ai_models_source_cutout_url">huggingface.co/Acly/MobileSAM</string>
     <string name="ai_models_group_face_detect_title">Face Detection</string>
-    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, a lightweight face detector that powers the editor\'s automatic \"Blur faces\" action.</string>
+    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, a lightweight face detector that powers the editor's automatic \"Blur faces\" action.</string>
     <string name="ai_models_group_face_detect_download_summary">Download the UltraFace detector (~1.3 MB)</string>
     <string name="ai_models_group_face_detect_ready_summary">Automatic face blur is available in the photo editor</string>
     <string name="ai_models_source_face_detect_url">github.com/onnx/models · UltraFace</string>
@@ -709,7 +709,7 @@
     <string name="date_format_following_system">Following system format</string>
     <string name="date_format_info_action">Format help</string>
     <string name="date_format_info_title">Format strings</string>
-    <string name="date_format_info_summary">Leave a field empty to follow your device\'s date and time format. To customize, combine the pattern letters below (based on Unicode date patterns).</string>
+    <string name="date_format_info_summary">Leave a field empty to follow your device's date and time format. To customize, combine the pattern letters below (based on Unicode date patterns).</string>
     <string name="date_format_info_time_section">Time</string>
     <string name="date_format_info_date_section">Date components</string>
     <string name="date_format_info_standard_section">Common formats</string>
@@ -775,7 +775,7 @@
     <string name="vault_create_vault">Create Vault</string>
     <string name="verify_identity">Verify your identity</string>
     <string name="vault_hide_in_progress">Hiding media…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">Would you like to set a custom password for this vault?</string>
     <string name="vault_skip_password">Use device security</string>
     <string name="vault_set_password">Set password</string>
@@ -880,7 +880,7 @@
     <string name="trash_enabled_description">When enabled, supported deleted photos and videos are moved to Trash so they can be restored. Android or your media provider controls retention. When disabled, deletion is immediate and irreversible.</string>
     <string name="trash_confirmation_description">Shows a confirmation dialog before moving items to the trash, preventing accidental deletions.</string>
     <string name="trash_confirmation_requires_trash_description">Enable the Trash first. Confirmation applies only when deleted items are moved to Trash.</string>
-    <string name="follow_system_theme_description">When enabled, the app follows your device\'s light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
+    <string name="follow_system_theme_description">When enabled, the app follows your device's light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
     <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when "Follow System Theme" is disabled.</string>
     <string name="amoled_mode_description">Uses a pure black background instead of dark grey, providing higher contrast and saving battery on AMOLED screens.</string>
     <string name="amoled_mode_requires_dark_description">AMOLED mode uses pure black in place of dark surfaces, so it is available only while the app is currently using dark mode.</string>
@@ -909,7 +909,7 @@
     <string name="smart_features_provider_smart_search">Server-side smart search</string>
     <string name="smart_features_provider_smart_search_summary">Ask connected servers with their own AI (e.g. Immich) to answer searches instead of re-indexing cloud media on this device</string>
     <string name="smart_features_index_on_device">Index %1$s on this device</string>
-    <string name="smart_features_index_on_device_summary">Downloads a thumbnail per item and runs on-device AI. Off: this provider\'s media is skipped by Smart Scan.</string>
+    <string name="smart_features_index_on_device_summary">Downloads a thumbnail per item and runs on-device AI. Off: this provider's media is skipped by Smart Scan.</string>
     <string name="smart_features_index_on_device_delegated_summary">Off: %1$s answers searches itself. On: also index locally for offline and cross-library results.</string>
     <string name="smart_features_cloud_indexing_summary">Server-side search and on-device indexing for connected libraries</string>
     <string name="smart_features_cloud_indexing_description">Connected libraries with their own AI can answer searches on the server. On-device indexing downloads a thumbnail per item and runs local AI, which also covers offline and cross-library results.</string>
@@ -963,7 +963,7 @@
     <string name="interface_settings">Interface</string>
     <string name="show_date_header">Show Media Date Header</string>
     <string name="show_date_header_summary">Show the media date in the media view top bar header.</string>
-    <string name="show_selection_titles">Display Selection Item\'s Title</string>
+    <string name="show_selection_titles">Display Selection Item's Title</string>
     <string name="show_selection_titles_summary">Display in the selection sheet a title for each action</string>
     <string name="selection_actions">Selection Actions</string>
     <string name="selection_actions_summary">Customize action bar items and order</string>
@@ -1002,7 +1002,7 @@
     <string name="cloud_delete">Delete</string>
     <string name="cloud_action_desc_delete">Permanently delete the selected items from the server</string>
     <string name="cloud_media_trash_confirm_title">Move to trash?</string>
-    <string name="cloud_media_trash_confirm_summary">The selected items will be moved to the server\'s trash. You can restore them later.</string>
+    <string name="cloud_media_trash_confirm_summary">The selected items will be moved to the server's trash. You can restore them later.</string>
     <string name="cloud_media_delete_confirm_title">Delete permanently?</string>
     <string name="cloud_media_delete_confirm_summary">The selected items will be permanently deleted from the server. This cannot be undone.</string>
     <string name="cloud_media_delete_failed">Couldn’t delete from the server. Check that this account can modify the remote folder.</string>
@@ -1021,7 +1021,7 @@
     <string name="rotate_stage_rotating">Rotating…</string>
     <string name="rotate_stage_saving">Saving…</string>
     <string name="rotate_stage_uploading">Uploading…</string>
-    <string name="rotate_failed">Couldn\'t rotate image</string>
+    <string name="rotate_failed">Couldn't rotate image</string>
     <string name="visual_search_title">Visual search</string>
     <string name="visual_search_summary">Search the current image with another app</string>
     <string name="visual_search_description">Shows a button in the media viewer that sends the current image — or the current video frame — to the selected app, the way Google Lens works in other galleries.\n\nThe image leaves this device through the provider you choose.</string>
@@ -1090,7 +1090,7 @@
     <string name="motion_photo_export_video">Save as video</string>
     <string name="motion_photo_exporting">Saving video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="frame_picker_extract_frames">Extract frames</string>
     <string name="frame_picker_title">Choose frames</string>
     <string name="frame_picker_preparing">Preparing source…</string>
@@ -1165,7 +1165,7 @@
     <string name="editor_develop">Develop</string>
     <string name="editor_done">Done</string>
     <string name="editor_save_subtitle">You can always undo these changes</string>
-    <string name="editor_save_copy_subtitle">Your original won\'t change</string>
+    <string name="editor_save_copy_subtitle">Your original won't change</string>
     <string name="editor_mirror">Mirror image</string>
     <string name="editor_rotate_90">Rotate 90 degrees</string>
     <string name="editor_aspect_ratio">Aspect ratio</string>
@@ -1305,11 +1305,11 @@
 
     <!-- Help & Tips Screen -->
     <string name="help_title">Help &amp; tips</string>
-    <string name="help_summary">Tutorials, tips, and what\'s new</string>
-    <string name="help_whats_new">What\'s new</string>
+    <string name="help_summary">Tutorials, tips, and what's new</string>
+    <string name="help_whats_new">What's new</string>
     <string name="help_whats_new_subtitle">Discover the latest Gallery features</string>
-    <string name="help_whats_new_in_version">What\'s new in v%s</string>
-    <string name="help_explore_whats_new">Explore what\'s new</string>
+    <string name="help_whats_new_in_version">What's new in v%s</string>
+    <string name="help_explore_whats_new">Explore what's new</string>
     <string name="help_get_started">Get started</string>
     <string name="help_make_most">Make the most of Gallery</string>
     <string name="help_explore_tips">Explore more tips</string>
@@ -1398,8 +1398,8 @@
     <string name="backup_issue_favorite_update_failed">Favorite update failed</string>
     <string name="backup_issue_vault_creation_failed">Vault creation failed</string>
     <string name="backup_issue_vault_media_import_failed">Vault media import failed</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
@@ -1426,7 +1426,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -1518,7 +1518,7 @@
     <string name="trash_restore_all">Restore all</string>
     <string name="trash_delete_all">Delete all permanently</string>
     <string name="favorites_info_title">Your Favorites</string>
-    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="favorites_group_by_date">Group by date</string>
     <string name="favorites_group_by_date_on">Grouped by date</string>
     <string name="favorites_group_by_date_off">Showing all</string>
@@ -1633,7 +1633,7 @@
     <string name="cloud_sync_folders_title">Back up local folders</string>
     <string name="cloud_sync_folders_desc">Choose which folders on this device to upload to the server.</string>
     <string name="cloud_sync_albums_title">Sync remote albums</string>
-    <string name="cloud_sync_albums_desc">Choose which of the server\'s albums to pull into your gallery.</string>
+    <string name="cloud_sync_albums_desc">Choose which of the server's albums to pull into your gallery.</string>
     <string name="cloud_sync_no_local">No local folders found on this device.</string>
     <string name="cloud_sync_loading_albums">Loading albums…</string>
     <string name="cloud_sync_no_remote">This server has no albums yet.</string>
@@ -1679,7 +1679,7 @@
     <string name="cloud_nextcloud_invalid_response">Nextcloud returned an invalid sign-in response.</string>
     <string name="cloud_help_webdav">Enter the full WebDAV endpoint URL provided by your host, then your WebDAV username and password.</string>
     <string name="cloud_help_smb">Use smb://host/share/folder. Leave the username blank for guest access, or enter user / DOMAIN\\user and your password. The share must be on the same local network as this device. SMB2/3 is required (legacy SMB1 is not supported).</string>
-    <string name="cloud_help_nfs">Use nfs://host/export/path, where everything after the host is the exported path. Only NFSv3 (with AUTH_SYS) is supported — NFSv2 and NFSv4 are not. Optionally set a uid:gid that the export grants access to. The export must allow this device\'s IP, offer an NFSv3 mount, and be on the same local network.</string>
+    <string name="cloud_help_nfs">Use nfs://host/export/path, where everything after the host is the exported path. Only NFSv3 (with AUTH_SYS) is supported — NFSv2 and NFSv4 are not. Optionally set a uid:gid that the export grants access to. The export must allow this device's IP, offer an NFSv3 mount, and be on the same local network.</string>
     <string name="cloud_smb_url_hint">smb://host/share/folder</string>
     <string name="cloud_nfs_url_hint">nfs://host/export/path</string>
     <string name="cloud_smb_username_hint">user or DOMAIN\\user (leave blank for guest)</string>
@@ -1847,12 +1847,12 @@
     <string name="cloud_offline_mode_header">Offline mode</string>
     <string name="cloud_offline_force">Force offline mode</string>
     <string name="cloud_offline_no_network">No network — already offline</string>
-    <string name="cloud_offline_force_summary">Serve only cached media; don\'t use the network</string>
+    <string name="cloud_offline_force_summary">Serve only cached media; don't use the network</string>
     <string name="cloud_offline_automatic_cache">Automatic cache</string>
     <string name="cloud_offline_cache_browsing">Cache while browsing</string>
     <string name="cloud_offline_cache_browsing_summary">Keep recently viewed cloud media for offline use</string>
     <string name="cloud_offline_wifi_only">Cache on Wi-Fi only</string>
-    <string name="cloud_offline_wifi_only_summary">Don\'t write to the cache on metered connections</string>
+    <string name="cloud_offline_wifi_only_summary">Don't write to the cache on metered connections</string>
     <string name="cloud_offline_cache_limit">Cache size limit</string>
     <string name="cloud_offline_cache_limit_summary">Oldest cached items are removed past this limit</string>
     <string name="cloud_offline_megabytes" translatable="false">%1$d MB</string>
@@ -1949,7 +1949,7 @@
     <string name="cloud_person_merge">Merge</string>
     <string name="cloud_person_set_cover">Set cover</string>
     <string name="cloud_person_blur_everywhere">Blur everywhere</string>
-    <string name="cloud_person_blur_everywhere_summary">Obscure this person\'s face in every photo they appear in and save the results as new copies.</string>
+    <string name="cloud_person_blur_everywhere_summary">Obscure this person's face in every photo they appear in and save the results as new copies.</string>
     <string name="cloud_person_blurring_progress">Blurring %1$d / %2$d…</string>
     <string name="cloud_person_photo_count">%1$d photos</string>
     <string name="cloud_person_remove_media">Remove from person</string>
@@ -2032,7 +2032,7 @@
     <string name="cloud_free_space_removed_count">Removed %1$d local copies.</string>
     <string name="cloud_free_space_remove_failed">Could not remove the local copies.</string>
     <string name="cloud_free_space_auto">Run automatically</string>
-    <string name="cloud_free_space_auto_summary">Periodically verifies backed-up items and removes their local copies in the background. Without All Files Access you\'ll get a notification to review instead.</string>
+    <string name="cloud_free_space_auto_summary">Periodically verifies backed-up items and removes their local copies in the background. Without All Files Access you'll get a notification to review instead.</string>
     <string name="cloud_free_space_auto_frequency">Frequency</string>
     <string name="cloud_free_space_every_day">Every day</string>
     <string name="cloud_free_space_every_3d">Every 3 days</string>
@@ -2228,7 +2228,7 @@
     <string name="setup_reason_internet"><![CDATA[Downloading map tiles for location previews, casting media to nearby devices, downloading optional AI models and syncing with cloud servers. Media never leaves your device unless you set up cloud sync.]]></string>
     <string name="setup_reason_notifications"><![CDATA[Showing progress for background tasks such as backups, encryption and downloads.]]></string>
     <string name="setup_reason_manage_media"><![CDATA[Skipping the extra system confirmation dialog when you favorite, trash or edit several items at once.]]></string>
-    <string name="setup_reason_manage_files"><![CDATA[Creating albums outside the standard Pictures and DCIM folders, managing files anywhere on your storage, and showing extra photo formats the system doesn\'t recognize (such as JPEG XL, JPEG 2000 and Photoshop files).]]></string>
+    <string name="setup_reason_manage_files"><![CDATA[Creating albums outside the standard Pictures and DCIM folders, managing files anywhere on your storage, and showing extra photo formats the system doesn't recognize (such as JPEG XL, JPEG 2000 and Photoshop files).]]></string>
 
     <!-- Looks & Feel page -->
     <string name="setup_looks_title">Looks &amp; Feel</string>
@@ -2267,7 +2267,7 @@
     <string name="setup_ai_download">Download AI models</string>
     <string name="setup_ai_download_size">One-time download · works offline afterwards</string>
     <string name="setup_ai_no_internet">An internet connection is required to download the AI models.</string>
-    <string name="setup_ai_features_title">What you\'ll get</string>
+    <string name="setup_ai_features_title">What you'll get</string>
     <string name="setup_ai_feature_categories_title">Smart categories</string>
     <string name="setup_ai_feature_categories_desc">Photos are automatically sorted into groups like nature, people and food.</string>
     <string name="setup_ai_feature_search_title">Search by description</string>
@@ -2295,8 +2295,8 @@
 
     <!-- Tips &amp; Tricks page -->
     <string name="setup_tips_title">Tips &amp; Tricks</string>
-    <string name="setup_tips_subtitle">You\'re all set!</string>
-    <string name="setup_tips_body">Open the Help page any time from Settings to discover tips and tricks for every feature, read what\'s new in each release and get the most out of the app.</string>
+    <string name="setup_tips_subtitle">You're all set!</string>
+    <string name="setup_tips_body">Open the Help page any time from Settings to discover tips and tricks for every feature, read what's new in each release and get the most out of the app.</string>
 
     <!-- Library shortcuts customization -->
     <string name="library_customize">Customize shortcuts</string>
@@ -2338,7 +2338,7 @@
     
     <string name="long_press_cutout_title">Long-press to cut out</string>
     <string name="long_press_cutout_summary">Long-press isolates a subject; rotate becomes a button</string>
-    <string name="long_press_cutout_description">Choose what a long-press on an image does in the viewer. When enabled, long-pressing starts an on-device subject cut-out and the rotate action moves to an on-screen button. When disabled (default), long-pressing rotates the image. You can always cut out a subject from the built-in editor\'s Cutout tool.</string>
+    <string name="long_press_cutout_description">Choose what a long-press on an image does in the viewer. When enabled, long-pressing starts an on-device subject cut-out and the rotate action moves to an on-screen button. When disabled (default), long-pressing rotates the image. You can always cut out a subject from the built-in editor's Cutout tool.</string>
     <!-- Slideshow -->
     <string name="slideshow">Slideshow</string>
     <string name="slideshow_start">Start slideshow</string>
@@ -2377,7 +2377,7 @@
     <string name="dev_stat_size">Size</string>
     <string name="dev_stat_crashes">Crashes</string>
     <string name="dev_crash_banner_title">The app crashed recently</string>
-    <string name="dev_crash_banner_summary">A crash log from an earlier session hasn\'t been reported yet.</string>
+    <string name="dev_crash_banner_summary">A crash log from an earlier session hasn't been reported yet.</string>
     <string name="dev_mark_reported">Dismiss</string>
     <string name="dev_latest_errors">Latest errors</string>
     <string name="dev_no_errors">No errors recorded</string>
