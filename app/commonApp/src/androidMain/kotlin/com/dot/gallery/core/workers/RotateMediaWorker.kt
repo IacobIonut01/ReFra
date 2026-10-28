@@ -31,7 +31,9 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.decoder.format.ImageReencoderCodecs
 import com.dot.gallery.core.decoder.format.SourceQualityProbe
+import com.dot.gallery.core.util.ext.overrideImageFromEditedCopy
 import com.dot.gallery.core.util.ext.overrideImageStreaming
+import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.core.util.ext.restoreMediaTimestamp
 import com.dot.gallery.core.util.ext.selectedModifiedTimestamp
 import com.dot.gallery.domain.model.Media
@@ -254,6 +256,30 @@ internal fun rotateSingleInputJson(runId: String, degrees: Int, item: RotateItem
         RotateMediaWorker.KEY_SOURCE_DATE_MODIFIED to item.sourceDateModified,
     )
 
+internal fun isJpegMime(mime: String): Boolean =
+    mime.equals("image/jpeg", ignoreCase = true) || mime.equals("image/jpg", ignoreCase = true) ||
+        mime.equals("image/pjpeg", ignoreCase = true)
+
+/**
+ * Turns [file]'s EXIF orientation by [degrees] clockwise, composing with any orientation (or
+ * flip) already set. Returns false when the file is not a JPEG ExifInterface can rewrite.
+ */
+internal fun rotateExifOrientation(file: File, degrees: Int): Boolean = runCatching {
+    val exif = ExifInterface(file.absolutePath)
+    // rotate() leaves an absent (UNDEFINED) orientation untouched, so start from upright.
+    if (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED) ==
+        ExifInterface.ORIENTATION_UNDEFINED
+    ) {
+        exif.setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL.toString())
+    }
+    exif.rotate(degrees)
+    exif.saveAttributes()
+    true
+}.getOrElse { error ->
+    printWarn("worker.rotate", "EXIF orientation not saved", ctx = mapOf("error" to "${error.message}"))
+    false
+}
+
 internal data class CloudRotationTarget(
     val cloudUri: CloudUri,
     val provider: SyncCapableProvider,
@@ -378,6 +404,18 @@ class RotateMediaWorker @Inject constructor(
         )
 
         val isCloud = sourceUri.scheme == CloudUri.SCHEME
+        if (!isCloud && !item.forceCopy && isJpegMime(mime)) {
+            // Lossless: turn the EXIF orientation instead of decoding and re-encoding. Instant at
+            // any resolution, keeps every byte of image data and metadata (dates, GPS, motion
+            // video), and composes with an orientation the camera already set.
+            update(Status.SAVING, "Updating orientation")
+            if (rotateJpegInPlace(sourceUri, degrees, modifiedTimestamp)) return ItemOutcome.Rotated(null)
+            printWarn(
+                tag = "worker.rotate",
+                message = "Lossless JPEG rotation failed; re-encoding instead",
+                ctx = mapOf("mime" to mime),
+            )
+        }
         val cloudTarget = if (isCloud) {
             resolveCloudRotationTarget(registry, uriStr).getOrElse { error ->
                 return ItemOutcome.Failed(error.message ?: "Invalid cloud account")
@@ -494,6 +532,17 @@ class RotateMediaWorker @Inject constructor(
             )
             ItemOutcome.Failed("Error: ${e.message}")
         }
+    }
+
+    private suspend fun rotateJpegInPlace(sourceUri: Uri, degrees: Int, modifiedTimestamp: Long?): Boolean {
+        val stagingFile = File.createTempFile("rotate-exif-", ".jpg", appContext.cacheDir)
+        val saved = cr.overrideImageFromEditedCopy(sourceUri, stagingFile) { staged ->
+            rotateExifOrientation(staged, degrees)
+        }
+        if (saved && modifiedTimestamp != null) {
+            appContext.restoreMediaTimestamp(sourceUri, "image/jpeg", modifiedTimestamp)
+        }
+        return saved
     }
 
     private suspend fun saveRotatedInPlace(
