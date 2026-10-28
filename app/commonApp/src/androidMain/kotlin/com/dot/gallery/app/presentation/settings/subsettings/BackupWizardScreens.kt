@@ -43,6 +43,7 @@ import com.dot.gallery.core.ui.components.settings
 import com.dot.gallery.core.presentation.util.add
 import com.dot.gallery.feature.vault.VaultViewModel
 import com.dot.gallery.feature.settings.ui.BackupProgressContent
+import com.dot.gallery.feature.settings.ui.titleRes
 import com.dot.gallery.feature.settings.ui.BackupStatusContent
 import com.dot.gallery.feature.settings.ui.BackupWizardScaffold
 import com.dot.gallery.feature.settings.ui.ExportEncryptContent
@@ -54,11 +55,9 @@ import com.dot.gallery.feature.settings.ui.ImportPasswordContent
 import com.dot.gallery.feature.settings.ui.ImportPickingContent
 import com.dot.gallery.feature.settings.ui.ImportSelectContent
 import com.dot.gallery.cloud.core.hasAnyRemoteProvider
-import com.dot.gallery.feature.settings.ui.isOn
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.core.logging.printError
 import com.dot.gallery.injection.injectViewModel
-import com.dot.gallery.feature.settings.ui.with
 import com.dot.gallery.feature.settings.subsettings.BackupRestoreViewModel
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.backup_error
@@ -96,6 +95,15 @@ private val ALL_SECTIONS: List<BackupSection> = buildList {
     add(BackupSection.CLOUD_FAVORITES)
     if (ProviderType.hasAnyRemoteProvider()) add(BackupSection.CLOUD_CONFIGS)
     add(BackupSection.VAULTS)
+    add(BackupSection.ALBUMS)
+    add(BackupSection.COLLECTIONS)
+    add(BackupSection.CATEGORIES)
+    add(BackupSection.METADATA)
+    add(BackupSection.SEARCH_HISTORY)
+    add(BackupSection.PEOPLE)
+    if (ProviderType.hasAnyRemoteProvider()) add(BackupSection.CLOUD_PREFS)
+    add(BackupSection.EDIT_BACKUPS)
+    add(BackupSection.DEVICE_UI)
 }
 
 // =================================================================================================
@@ -141,7 +149,17 @@ fun SettingsBackupExportScreen(navigateUp: () -> Unit) {
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/octet-stream")
-    ) { uri: Uri? -> uri?.let { viewModel.startExport(it, pendingPassword) } }
+    ) { uri: Uri? ->
+        uri?.let {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
+            viewModel.startExport(it, pendingPassword)
+        }
+    }
 
     fun launchSaf() {
         val ext = if (pendingPassword != null) "rfbk" else "zip"
@@ -302,14 +320,34 @@ fun SettingsBackupExportScreen(navigateUp: () -> Unit) {
                     padding = padding,
                     success = true,
                     title = stringResource(Res.string.backup_result_exported),
-                    rows = listOf(
-                        stringResource(Res.string.backup_include_settings) to "${r.settingsCount}",
-                        stringResource(Res.string.backup_stat_favorites) to
-                            "${r.localFavoritesCount + r.cloudFavoritesCount}",
-                        stringResource(Res.string.backup_include_cloud_configs) to "${r.cloudConfigsCount}",
-                        stringResource(Res.string.backup_include_vaults) to
-                            stringResource(Res.string.backup_vaults_value, r.vaultCount, r.vaultMediaCount)
-                    ),
+                    rows = buildList {
+                        add(stringResource(Res.string.backup_include_settings) to "${r.settingsCount}")
+                        add(
+                            stringResource(Res.string.backup_stat_favorites) to
+                                "${r.localFavoritesCount + r.cloudFavoritesCount}"
+                        )
+                        add(stringResource(Res.string.backup_include_cloud_configs) to "${r.cloudConfigsCount}")
+                        add(
+                            stringResource(Res.string.backup_include_vaults) to
+                                stringResource(Res.string.backup_vaults_value, r.vaultCount, r.vaultMediaCount)
+                        )
+                        listOf(
+                            BackupSection.ALBUMS,
+                            BackupSection.COLLECTIONS,
+                            BackupSection.CATEGORIES,
+                            BackupSection.METADATA,
+                            BackupSection.SEARCH_HISTORY,
+                            BackupSection.PEOPLE,
+                            BackupSection.CLOUD_PREFS,
+                            BackupSection.EDIT_BACKUPS,
+                            BackupSection.DEVICE_UI
+                        ).forEach { section ->
+                            val count = r.sectionCounts[section] ?: 0
+                            if (count > 0) {
+                                add(stringResource(section.titleRes()) to "$count")
+                            }
+                        }
+                    },
                     note = null,
                     onDone = navigateUp
                 )
@@ -451,7 +489,17 @@ fun SettingsBackupImportScreen(navigateUp: () -> Unit) {
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
-        if (uri != null) viewModel.onImportFilePicked(uri) else navigateUp()
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            viewModel.onImportFilePicked(uri)
+        } else {
+            navigateUp()
+        }
     }
 
     fun pickFile() {
@@ -535,16 +583,46 @@ fun SettingsBackupImportScreen(navigateUp: () -> Unit) {
                     padding = padding,
                     success = r.issues.isEmpty(),
                     title = stringResource(Res.string.backup_result_imported),
-                    rows = listOf(
-                        stringResource(Res.string.backup_include_settings) to
-                            restoredValue(r.settingsRestored, r.settingsSkipped),
-                        stringResource(Res.string.backup_include_cloud_favorites) to
-                            restoredValue(r.cloudFavoritesRestored, r.cloudFavoritesSkipped),
-                        stringResource(Res.string.backup_include_cloud_configs) to
-                            restoredValue(r.cloudConfigsRestored, r.cloudConfigsSkipped),
-                        stringResource(Res.string.backup_include_vaults) to
-                            stringResource(Res.string.backup_vaults_value, r.vaultsRestored, r.vaultMediaRestored)
-                    ),
+                    rows = buildList {
+                        add(
+                            stringResource(Res.string.backup_include_settings) to
+                                restoredValue(r.settingsRestored, r.settingsSkipped)
+                        )
+                        add(
+                            stringResource(Res.string.backup_include_cloud_favorites) to
+                                restoredValue(r.cloudFavoritesRestored, r.cloudFavoritesSkipped)
+                        )
+                        add(
+                            stringResource(Res.string.backup_include_cloud_configs) to
+                                restoredValue(r.cloudConfigsRestored, r.cloudConfigsSkipped)
+                        )
+                        add(
+                            stringResource(Res.string.backup_include_vaults) to
+                                stringResource(
+                                    Res.string.backup_vaults_value,
+                                    r.vaultsRestored,
+                                    r.vaultMediaRestored
+                                )
+                        )
+                        listOf(
+                            BackupSection.ALBUMS,
+                            BackupSection.COLLECTIONS,
+                            BackupSection.CATEGORIES,
+                            BackupSection.METADATA,
+                            BackupSection.SEARCH_HISTORY,
+                            BackupSection.PEOPLE,
+                            BackupSection.CLOUD_PREFS,
+                            BackupSection.EDIT_BACKUPS,
+                            BackupSection.DEVICE_UI
+                        ).forEach { section ->
+                            r.sectionResults[section]?.let { result ->
+                                add(
+                                    stringResource(section.titleRes()) to
+                                        restoredValue(result.restored + result.merged, result.skipped)
+                                )
+                            }
+                        }
+                    },
                     note = listOfNotNull(pendingFavoritesNote, authenticationNote, issueNote)
                         .joinToString("\n")
                         .ifEmpty { null },

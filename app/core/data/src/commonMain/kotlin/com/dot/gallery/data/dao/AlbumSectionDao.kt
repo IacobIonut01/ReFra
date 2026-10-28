@@ -69,6 +69,9 @@ interface AlbumSectionDao {
     @Query("SELECT * FROM album_section_members")
     fun getAllSectionMembers(): Flow<List<AlbumSectionMember>>
 
+    @Query("SELECT * FROM album_section_members")
+    suspend fun getAllSectionMembersAsync(): List<AlbumSectionMember>
+
     @Query("SELECT sectionId FROM album_section_members WHERE albumId = :albumId LIMIT 1")
     suspend fun getSectionIdForAlbum(albumId: Long): Long?
 

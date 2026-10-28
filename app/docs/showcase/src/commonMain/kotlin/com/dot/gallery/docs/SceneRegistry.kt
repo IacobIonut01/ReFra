@@ -220,7 +220,15 @@ val sceneRegistry: List<DocsScene> = listOf(
         title = "Backup & restore",
         pathTrace = listOf("Settings", "Backup & restore"),
     ) {
-        SettingsBackupScreen(onExport = {}, onImport = {})
+        SettingsBackupScreen(
+            state = com.dot.gallery.feature.settings.ui.BackupHubState(),
+            actions = com.dot.gallery.feature.settings.ui.BackupHubActions(
+                onExport = {},
+                onImport = {},
+                onCleanNow = {},
+                onAutoCleanChange = {}
+            )
+        )
     },
     DocsScene(
         id = "settings-slideshow",

@@ -1390,7 +1390,7 @@
     <string name="backup_include_cloud_configs_summary">Server configurations (may require re-authentication after import)</string>
     <string name="backup_include_vaults">Vaults</string>
     <string name="backup_include_vaults_summary">Full vault contents, decrypted into the backup</string>
-    <string name="backup_warning">The backup may contain decrypted vault media and account credentials. Store it somewhere safe.</string>
+    <string name="backup_warning">The backup may contain decrypted vault media. Store it somewhere safe.</string>
     <string name="backup_export">Export backup</string>
     <string name="backup_import">Import backup</string>
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>

@@ -1075,17 +1075,17 @@
 
     <!-- SETTINGS: BACKUP &amp; RESTORE WIZARD (5.0.0) -->
     <string name="help_tip_settings_backup_restore_title">Back up &amp; restore app data</string>
-    <string name="help_tip_settings_backup_restore_subtitle">Export and import settings, favorites, cloud configs, and vaults</string>
+    <string name="help_tip_settings_backup_restore_subtitle">Back up settings, library data, cloud accounts, and vaults</string>
     <string name="help_tip_settings_backup_restore_p1_title">Back up your setup</string>
-    <string name="help_tip_settings_backup_restore_p1_desc">The backup &amp; restore wizard lets you export your settings, favorites, cloud server configs, and vaults into a single archive you can move to a new device or keep safe. You can optionally protect the whole archive with a password. Vault backup is off by default and requires your vault credential before any vault is included.</string>
+    <string name="help_tip_settings_backup_restore_p1_desc">Backup &amp; restore exports your settings, favorites, cloud accounts, albums and collections, categories and classifications, metadata, search history, people corrections, cloud preferences, edit-backup originals, and vaults into one archive. Derived data such as thumbnails and embeddings is rebuilt instead of copied. You can optionally protect the whole archive with a password; vault lock credentials are included only when you do. Vault backup is off by default and requires your vault credential before any vault is included.</string>
     <string name="help_tip_settings_backup_restore_p2_title">Export a backup</string>
-    <string name="help_tip_settings_backup_restore_p2_desc">Choose exactly what to include. If you enable vaults, you select which ones, and each is authenticated with its own credential at export time so nothing leaves your device unlocked by accident.</string>
+    <string name="help_tip_settings_backup_restore_p2_desc">Choose exactly what to include. If you enable vaults, you select which ones, and each is authenticated with its own credential at export time so nothing leaves your device unlocked by accident. The export runs in the background, so you can leave the screen.</string>
     <string name="help_tip_settings_backup_restore_p2_s1">Go to Settings &gt; Backup &amp; restore</string>
     <string name="help_tip_settings_backup_restore_p2_s2">Choose Export and pick what to include</string>
     <string name="help_tip_settings_backup_restore_p2_s3">Optionally set an archive password</string>
     <string name="help_tip_settings_backup_restore_p2_s4">Save the backup file to a safe place</string>
     <string name="help_tip_settings_backup_restore_p3_title">Restore from a backup</string>
-    <string name="help_tip_settings_backup_restore_p3_desc">Importing lets you pick which parts of the archive to restore. Select the backup file, enter the password if one was set, then choose the data and vaults to bring back.</string>
+    <string name="help_tip_settings_backup_restore_p3_desc">Restoring previews the archive first, asking for a password only when the file is actually encrypted. Pick the sections and vaults to bring back; existing data is kept and conflicts are reported. The restore runs in the background and resumes if the app restarts.</string>
     <string name="help_tip_settings_backup_restore_p3_s1">Choose Import and select your backup file</string>
     <string name="help_tip_settings_backup_restore_p3_s2">Enter the password if the archive is encrypted</string>
     <string name="help_tip_settings_backup_restore_p3_s3">Pick the data and vaults to restore</string>

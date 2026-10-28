@@ -77,6 +77,9 @@ interface MediaDao {
     @Query("SELECT * FROM timeline_settings LIMIT 1")
     fun getTimelineSettings(): Flow<TimelineSettings?>
 
+    @Query("SELECT * FROM timeline_settings LIMIT 1")
+    suspend fun getTimelineSettingsOnce(): TimelineSettings?
+
     @Upsert(entity = TimelineSettings::class)
     suspend fun setTimelineSettings(settings: TimelineSettings)
 

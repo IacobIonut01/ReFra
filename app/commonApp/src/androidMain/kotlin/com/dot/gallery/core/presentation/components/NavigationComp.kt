@@ -113,7 +113,6 @@ import com.dot.gallery.app.presentation.settings.subsettings.AIModelsManagerScre
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsCloudIndexingScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsHandoverScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsSecurityScreen
-import com.dot.gallery.feature.settings.ui.SettingsBackupScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsBackupExportScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsBackupImportScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsSmartFeaturesScreen
@@ -1364,7 +1363,7 @@ fun NavigationComp(
                 SettingsSecurityScreen()
             }
             composable(Screen.SettingsBackupScreen()) {
-                SettingsBackupScreen(
+                com.dot.gallery.app.presentation.settings.subsettings.SettingsBackupHubScreen(
                     onExport = { navController.navigate(Screen.SettingsBackupExportScreen()) },
                     onImport = { navController.navigate(Screen.SettingsBackupImportScreen()) }
                 )

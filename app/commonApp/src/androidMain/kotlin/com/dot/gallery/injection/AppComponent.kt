@@ -330,6 +330,18 @@ abstract class AppComponent(
 
     @Provides
     @Singleton
+    fun provideBackupJobController(
+        runtime: com.dot.gallery.core.backup.BackupJobRuntime
+    ): com.dot.gallery.core.backup.BackupJobController = runtime
+
+    @Provides
+    @Singleton
+    fun provideDataHealthController(
+        impl: com.dot.gallery.core.workers.DataHealthControllerImpl
+    ): com.dot.gallery.core.backup.DataHealthController = impl
+
+    @Provides
+    @Singleton
     fun provideEventHandler(repository: MediaRepository): EventHandler =
         DefaultEventHandler(updateDatabase = repository::updateInternalDatabase)
 
@@ -664,6 +676,7 @@ abstract class AppComponent(
     abstract val addCategoryViewModel: AddCategoryViewModel
     abstract val albumsViewModel: AlbumsViewModel
     abstract val backupRestoreViewModel: BackupRestoreViewModel
+    abstract val backupHubViewModel: com.dot.gallery.app.presentation.settings.subsettings.BackupHubViewModel
     abstract val categoriesViewModel: CategoriesViewModel
     abstract val categoryEditorViewModel: CategoryEditorViewModel
     abstract val categoryViewModel: CategoryViewModel
@@ -714,6 +727,14 @@ abstract class AppComponent(
     abstract val locationsViewModel: (gpsLocationNameCity: String, gpsLocationNameCountry: String, latitude: Double?, longitude: Double?) -> LocationsViewModel
 
     // ── workers — resolved fresh per task by the @Worker adapters via WorkComponentHolder
+
+    abstract val backupExportWorker: com.dot.gallery.core.backup.BackupExportWorker
+    abstract val backupRestoreWorker: com.dot.gallery.core.backup.BackupRestoreWorker
+    abstract val backupJobRuntime: com.dot.gallery.core.backup.BackupJobRuntime
+    abstract val backupJobStore: com.dot.gallery.core.backup.BackupJobStore
+    abstract val dataHealthWorker: com.dot.gallery.core.workers.DataHealthWorker
+    abstract val dataHealthStore: com.dot.gallery.core.workers.DataHealthStore
+    abstract val dataHealthControllerImpl: com.dot.gallery.core.workers.DataHealthControllerImpl
 
     abstract val cloudAlbumCopyWorker: CloudAlbumCopyWorker
     abstract val cloudDownloadWorker: CloudDownloadWorker

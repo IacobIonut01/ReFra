@@ -5,7 +5,9 @@
 
 package com.dot.gallery.core.backup
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 
 /**
  * Explicit allowlist for preferences that represent portable user choices.
@@ -55,7 +57,6 @@ object PortableBackupSettings {
         "auto_hide_navigationbar",
         "full_brightness_view",
         "tap_sides_to_navigate",
-        "swipe_up_to_trash",
         "auto_hide_on_video_play",
         "no_classification",
         "categories_exclude_videos",
@@ -76,7 +77,17 @@ object PortableBackupSettings {
         "story_viewer_auto_advance",
         "sandboxed_decode",
         "cloud_offline_cache_on_view",
-        "cloud_offline_cache_wifi_only"
+        "cloud_offline_cache_wifi_only",
+        // Portable user choices added with the full-data backup allowlist review.
+        "allow_glass",
+        "dark_media_viewer",
+        "video_hdr_playback",
+        "use_media_manager",
+        "cloud_sync_on_app_open",
+        "library_show_location_categories",
+        "gallery_dual_pane",
+        "visual_search_enabled",
+        "visual_search_allow_vault"
     )
 
     private val intNames = setOf(
@@ -103,6 +114,7 @@ object PortableBackupSettings {
         "default_date_format",
         "weekly_date_format",
         "selection_sheet_config",
+        "viewer_action_bar_config",
         "app_name_alias",
         "app_logo_alias",
         "favorite_icon_position",
@@ -119,13 +131,28 @@ object PortableBackupSettings {
         "story_cards_config",
         "story_viewer_duration_seconds",
         "metadata_isolation_mode",
-        "vault_encrypt_behavior"
+        "vault_encrypt_behavior",
+        "cloud_delete_scope",
+        "visual_search_provider",
+        "visual_search_position",
+        "visual_search_convert",
+        "visual_search_convert_format"
     )
+
+    private val stringSetNames = setOf(
+        "library_hidden_sections",
+        "smart_features_index_on_device_providers",
+        "smart_features_removed_model_groups"
+    )
+
+    private val json = Json { ignoreUnknownKeys = true }
+    private val stringListSerializer = ListSerializer(String.serializer())
 
     private val allowedTypes: Map<String, PortableSettingType> = buildMap {
         booleanNames.forEach { put(it, PortableSettingType.BOOLEAN) }
         intNames.forEach { put(it, PortableSettingType.INT) }
         stringNames.forEach { put(it, PortableSettingType.STRING) }
+        stringSetNames.forEach { put(it, PortableSettingType.STRING_SET) }
     }
 
     fun typeFor(name: String): PortableSettingType? = allowedTypes[name]
@@ -139,7 +166,12 @@ object PortableBackupSettings {
         PortableSettingType.DOUBLE -> (value as? Double)?.takeIf { it.isFinite() }
             ?.let { SettingValue("d", it.toString()) }
         PortableSettingType.STRING -> (value as? String)?.let { SettingValue("s", it) }
-        PortableSettingType.STRING_SET -> null
+        PortableSettingType.STRING_SET -> (value as? Set<*>)?.let { raw ->
+            SettingValue(
+                PortableSettingType.STRING_SET.code,
+                json.encodeToString(stringListSerializer, raw.mapNotNull { it as? String })
+            )
+        }
         null -> null
     }
 
@@ -159,7 +191,9 @@ object PortableBackupSettings {
             PortableSettingType.DOUBLE -> setting.value.toDoubleOrNull()?.takeIf { it.isFinite() }
                 ?: return null
             PortableSettingType.STRING -> setting.value
-            PortableSettingType.STRING_SET -> return null
+            PortableSettingType.STRING_SET ->
+                runCatching { json.decodeFromString(stringListSerializer, setting.value).toSet() }
+                    .getOrNull() ?: return null
         }
         return DecodedPortableSetting(expectedType, decoded)
     }

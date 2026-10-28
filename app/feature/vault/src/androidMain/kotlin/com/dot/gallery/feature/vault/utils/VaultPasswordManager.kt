@@ -129,6 +129,30 @@ object VaultPasswordManager {
         context.activeDataStore.edit { prefs -> prefs.remove(key) }
     }
 
+    /** Raw stored credential (`TYPE:pbkdf2:<salt>:<hash>`), or null when none is set. */
+    suspend fun getStoredCredential(context: Context, vaultUuid: Uuid): String? {
+        val key = keyFor(vaultUuid)
+        return context.activeDataStore.data.map { prefs -> prefs[key] }.first()
+    }
+
+    /**
+     * Restores a credential verbatim. Used only by backup restore, where the archive already holds
+     * the salted hash; never use this for a user-typed secret (use [setPassword]).
+     */
+    suspend fun setStoredCredential(context: Context, vaultUuid: Uuid, credential: String) {
+        val key = keyFor(vaultUuid)
+        context.activeDataStore.edit { prefs -> prefs[key] = credential }
+    }
+
+    /** Removes the credential and any lockout state for [vaultUuid]. */
+    suspend fun clearVaultSecrets(context: Context, vaultUuid: Uuid) {
+        context.activeDataStore.edit { prefs ->
+            prefs.remove(keyFor(vaultUuid))
+            prefs.remove(attemptsKeyFor(vaultUuid))
+            prefs.remove(lockoutKeyFor(vaultUuid))
+        }
+    }
+
     /** Returns remaining lockout time in ms, or 0 if not locked out. */
     suspend fun getRemainingLockout(context: Context, vaultUuid: Uuid): Long {
         val lockoutUntil = context.activeDataStore.data.map { prefs ->

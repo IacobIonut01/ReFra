@@ -85,6 +85,29 @@ import com.dot.gallery.feature.settings.generated.resources.backup_include_setti
 import com.dot.gallery.feature.settings.generated.resources.backup_include_settings_summary
 import com.dot.gallery.feature.settings.generated.resources.backup_include_vaults
 import com.dot.gallery.feature.settings.generated.resources.backup_include_vaults_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_albums
+import com.dot.gallery.feature.settings.generated.resources.backup_include_albums_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_collections
+import com.dot.gallery.feature.settings.generated.resources.backup_include_collections_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_categories
+import com.dot.gallery.feature.settings.generated.resources.backup_include_categories_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_metadata
+import com.dot.gallery.feature.settings.generated.resources.backup_include_metadata_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_search_history
+import com.dot.gallery.feature.settings.generated.resources.backup_include_search_history_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_people
+import com.dot.gallery.feature.settings.generated.resources.backup_include_people_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_prefs
+import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_prefs_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_edit_backups
+import com.dot.gallery.feature.settings.generated.resources.backup_include_edit_backups_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_device_ui
+import com.dot.gallery.feature.settings.generated.resources.backup_include_device_ui_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_preview_encrypted
+import com.dot.gallery.feature.settings.generated.resources.backup_preview_plain
+import com.dot.gallery.feature.settings.generated.resources.backup_preview_credentials
+import com.dot.gallery.feature.settings.generated.resources.backup_preview_no_credentials
+import com.dot.gallery.feature.settings.generated.resources.backup_confirm_merge_note
 import com.dot.gallery.feature.settings.generated.resources.backup_items_count
 import com.dot.gallery.feature.settings.generated.resources.backup_made_with_version
 import com.dot.gallery.feature.settings.generated.resources.backup_password
@@ -499,6 +522,32 @@ fun ImportSelectContent(
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
+        Text(
+            text = stringResource(
+                if (contents.encrypted) Res.string.backup_preview_encrypted
+                else Res.string.backup_preview_plain
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+        if (contents.has(BackupSection.VAULTS)) {
+            Text(
+                text = stringResource(
+                    if (contents.credentialIncluded) Res.string.backup_preview_credentials
+                    else Res.string.backup_preview_no_credentials
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
+        Text(
+            text = stringResource(Res.string.backup_confirm_merge_note),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
         if (sections.isEmpty()) {
             Text(
                 text = stringResource(Res.string.backup_empty),
@@ -543,28 +592,21 @@ fun ImportSelectContent(
 
 // ----- Section helpers --------------------------------------------------------------------------
 
-fun BackupSelection.isOn(section: BackupSection): Boolean = when (section) {
-    BackupSection.SETTINGS -> settings
-    BackupSection.LOCAL_FAVORITES -> localFavorites
-    BackupSection.CLOUD_FAVORITES -> cloudFavorites
-    BackupSection.CLOUD_CONFIGS -> cloudConfigs
-    BackupSection.VAULTS -> vaults
-}
-
-fun BackupSelection.with(section: BackupSection, value: Boolean): BackupSelection = when (section) {
-    BackupSection.SETTINGS -> copy(settings = value)
-    BackupSection.LOCAL_FAVORITES -> copy(localFavorites = value)
-    BackupSection.CLOUD_FAVORITES -> copy(cloudFavorites = value)
-    BackupSection.CLOUD_CONFIGS -> copy(cloudConfigs = value)
-    BackupSection.VAULTS -> copy(vaults = value)
-}
-
 fun BackupSection.titleRes(): StringResource = when (this) {
     BackupSection.SETTINGS -> Res.string.backup_include_settings
     BackupSection.LOCAL_FAVORITES -> Res.string.backup_include_local_favorites
     BackupSection.CLOUD_FAVORITES -> Res.string.backup_include_cloud_favorites
     BackupSection.CLOUD_CONFIGS -> Res.string.backup_include_cloud_configs
     BackupSection.VAULTS -> Res.string.backup_include_vaults
+    BackupSection.ALBUMS -> Res.string.backup_include_albums
+    BackupSection.COLLECTIONS -> Res.string.backup_include_collections
+    BackupSection.CATEGORIES -> Res.string.backup_include_categories
+    BackupSection.METADATA -> Res.string.backup_include_metadata
+    BackupSection.SEARCH_HISTORY -> Res.string.backup_include_search_history
+    BackupSection.PEOPLE -> Res.string.backup_include_people
+    BackupSection.CLOUD_PREFS -> Res.string.backup_include_cloud_prefs
+    BackupSection.EDIT_BACKUPS -> Res.string.backup_include_edit_backups
+    BackupSection.DEVICE_UI -> Res.string.backup_include_device_ui
 }
 
 fun BackupSection.summaryRes(): StringResource = when (this) {
@@ -573,13 +615,19 @@ fun BackupSection.summaryRes(): StringResource = when (this) {
     BackupSection.CLOUD_FAVORITES -> Res.string.backup_include_cloud_favorites_summary
     BackupSection.CLOUD_CONFIGS -> Res.string.backup_include_cloud_configs_summary
     BackupSection.VAULTS -> Res.string.backup_include_vaults_summary
+    BackupSection.ALBUMS -> Res.string.backup_include_albums_summary
+    BackupSection.COLLECTIONS -> Res.string.backup_include_collections_summary
+    BackupSection.CATEGORIES -> Res.string.backup_include_categories_summary
+    BackupSection.METADATA -> Res.string.backup_include_metadata_summary
+    BackupSection.SEARCH_HISTORY -> Res.string.backup_include_search_history_summary
+    BackupSection.PEOPLE -> Res.string.backup_include_people_summary
+    BackupSection.CLOUD_PREFS -> Res.string.backup_include_cloud_prefs_summary
+    BackupSection.EDIT_BACKUPS -> Res.string.backup_include_edit_backups_summary
+    BackupSection.DEVICE_UI -> Res.string.backup_include_device_ui_summary
 }
 
 @Composable
 fun BackupContents.countLabel(section: BackupSection): String = when (section) {
     BackupSection.VAULTS -> stringResource(Res.string.backup_vaults_value, vaultCount, vaultMediaCount)
-    BackupSection.SETTINGS -> stringResource(Res.string.backup_items_count, settingsCount)
-    BackupSection.LOCAL_FAVORITES -> stringResource(Res.string.backup_items_count, localFavoritesCount)
-    BackupSection.CLOUD_FAVORITES -> stringResource(Res.string.backup_items_count, cloudFavoritesCount)
-    BackupSection.CLOUD_CONFIGS -> stringResource(Res.string.backup_items_count, cloudConfigsCount)
+    else -> stringResource(Res.string.backup_items_count, count(section))
 }

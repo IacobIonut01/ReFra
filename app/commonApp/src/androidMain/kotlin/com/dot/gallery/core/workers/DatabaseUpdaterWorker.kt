@@ -112,6 +112,8 @@ class DatabaseUpdaterWorker @Inject constructor(
                         // their assignments when restored; category queries filter against this mirror.
                     }
                 }
+                runCatching { com.dot.gallery.core.work.workScheduler().runDataHealthAfterSync() }
+                    .onFailure { printDebug("Could not schedule data health: ${it.message}") }
 
                 return@runCatching WorkerResult.Success()
             }.getOrElse { exception ->

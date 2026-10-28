@@ -86,6 +86,9 @@ interface CategoryDao {
     @Upsert
     suspend fun insertMediaCategory(mediaCategory: MediaCategory)
 
+    @Query("SELECT * FROM media_category WHERE mediaId = :mediaId AND categoryId = :categoryId LIMIT 1")
+    suspend fun getMediaCategory(mediaId: Long, categoryId: Long): MediaCategory?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMediaCategories(mediaCategories: List<MediaCategory>)
 
@@ -106,6 +109,9 @@ interface CategoryDao {
 
     @Query("SELECT * FROM media_category WHERE isManuallyAdded = 0")
     suspend fun getAllAutomaticMediaCategories(): List<MediaCategory>
+
+    @Query("SELECT * FROM media_category")
+    suspend fun getAllMediaCategories(): List<MediaCategory>
 
     @Query("UPDATE media_category SET resultRevision = :revision WHERE categoryId = :categoryId AND isManuallyAdded = 0")
     suspend fun updateAutomaticResultRevision(categoryId: Long, revision: String): Int

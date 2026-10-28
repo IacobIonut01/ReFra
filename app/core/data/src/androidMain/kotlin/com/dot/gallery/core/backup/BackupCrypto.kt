@@ -16,33 +16,46 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
-import com.dot.gallery.core.util.or
-import com.dot.gallery.domain.util.isEncrypted
 
 
 /**
  * Optional password-based encryption for the whole backup archive.
  *
- * Layout: MAGIC(6) | SALT(16) | BASE_NONCE(12) | CHUNK_SIZE(4) | [LEN(4) + GCM_CHUNK]*
+ * Layout: MAGIC | SALT(16) | BASE_NONCE(12) | CHUNK_SIZE(4) | [LEN(4) + GCM_CHUNK]*
  *
  * The plaintext (a ZIP archive) is split into [CHUNK_SIZE] blocks, each independently
  * encrypted with AES-256-GCM using a per-chunk nonce derived from [BASE_NONCE] + index,
  * so memory stays bounded regardless of backup size. The key is derived from the user
  * password with PBKDF2-HMAC-SHA256.
+ *
+ * Two magic values exist:
+ *  - `RFBKP1` for legacy (schema v1/v2) whole-archive encryption.
+ *  - `RFBKP2E` for the payload of a schema-v3 archive (which is preceded by a plaintext
+ *    preview header starting with `RFBKP2`).
  */
 object BackupCrypto {
 
-    private val MAGIC = "RFBKP1".toByteArray() // 6 bytes
+    private val MAGIC_V1 = "RFBKP1".toByteArray()
+    private val MAGIC_V2 = "RFBKP2E".toByteArray()
+
+    /** Public copy for archive probing. */
+    val MAGIC_V2_BYTES: ByteArray get() = MAGIC_V2.copyOf()
     const val MAGIC_SIZE = 6
+    const val MAGIC_V2_SIZE = 7
     private const val SALT_LEN = 16
     private const val NONCE_LEN = 12
     private const val CHUNK_SIZE = 1 * 1024 * 1024 // 1 MiB
     private const val PBKDF2_ITERATIONS = 120_000
     private const val PBKDF2_KEY_LENGTH = 256
 
-    /** Returns true if [header] (the first [MAGIC_SIZE] bytes of a file) marks an encrypted backup. */
-    fun isEncrypted(header: ByteArray): Boolean =
-        header.size >= MAGIC_SIZE && header.copyOf(MAGIC_SIZE).contentEquals(MAGIC)
+    /** Returns true if [header] marks a legacy whole-archive encrypted backup. */
+    fun isEncrypted(header: ByteArray): Boolean = matches(header, MAGIC_V1)
+
+    /** Returns true if [header] marks a schema-v3 encrypted payload. */
+    fun isEncryptedV2(header: ByteArray): Boolean = matches(header, MAGIC_V2)
+
+    private fun matches(header: ByteArray, magic: ByteArray): Boolean =
+        header.size >= magic.size && header.copyOf(magic.size).contentEquals(magic)
 
     /** Reads up to [count] header bytes from [input] without consuming more than needed. */
     fun readHeader(input: InputStream, count: Int = MAGIC_SIZE): ByteArray {
@@ -51,14 +64,65 @@ object BackupCrypto {
         return if (read == count) buf else buf.copyOf(read)
     }
 
-    /** Encrypts the [input] stream into [output] using [password]. Does not close [output]. */
-    fun encrypt(input: InputStream, output: OutputStream, password: String) {
+    /** Legacy (schema v1/v2) encryption. Does not close [output]. */
+    fun encrypt(input: InputStream, output: OutputStream, password: String) =
+        encryptInternal(input, output, password, MAGIC_V1)
+
+    /** Schema-v3 payload encryption. Does not close [output]. */
+    fun encryptV2(input: InputStream, output: OutputStream, password: String) =
+        encryptInternal(input, output, password, MAGIC_V2)
+
+    /** Decrypts a legacy encrypted backup. Throws [BackupPasswordException] on a wrong password. */
+    fun decrypt(input: InputStream, output: OutputStream, password: String) =
+        decryptInternal(input, output, password, MAGIC_V1)
+
+    /** Decrypts a schema-v3 payload. Throws [BackupPasswordException] on a wrong password. */
+    fun decryptV2(input: InputStream, output: OutputStream, password: String) =
+        decryptInternal(input, output, password, MAGIC_V2)
+
+    /**
+     * Verifies [password] by decrypting the first schema-v3 payload chunk. The stream must be
+     * positioned at the payload magic. Returns false for a wrong password or a corrupt header.
+     */
+    fun verifyPassword(input: InputStream, password: String): Boolean = try {
+        val dis = DataInputStream(input)
+        val magic = ByteArray(MAGIC_V2.size)
+        dis.readFully(magic)
+        if (!magic.contentEquals(MAGIC_V2)) return false
+        val salt = ByteArray(SALT_LEN)
+        dis.readFully(salt)
+        val baseNonce = ByteArray(NONCE_LEN)
+        dis.readFully(baseNonce)
+        dis.readInt() // chunk size
+        val key = deriveKey(password, salt)
+        val length = dis.readInt()
+        if (length <= 0 || length > CHUNK_SIZE + 32) return false
+        val ciphertext = ByteArray(length)
+        dis.readFully(ciphertext)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            key,
+            GCMParameterSpec(128, deriveChunkNonce(baseNonce, 0))
+        )
+        cipher.doFinal(ciphertext)
+        true
+    } catch (_: Exception) {
+        false
+    }
+
+    private fun encryptInternal(
+        input: InputStream,
+        output: OutputStream,
+        password: String,
+        magic: ByteArray
+    ) {
         val salt = ByteArray(SALT_LEN).also { SecureRandom().nextBytes(it) }
         val baseNonce = ByteArray(NONCE_LEN).also { SecureRandom().nextBytes(it) }
         val key = deriveKey(password, salt)
 
         val dos = DataOutputStream(output)
-        dos.write(MAGIC)
+        dos.write(magic)
         dos.write(salt)
         dos.write(baseNonce)
         dos.writeInt(CHUNK_SIZE)
@@ -79,16 +143,16 @@ object BackupCrypto {
         dos.flush()
     }
 
-    /**
-     * Decrypts an encrypted backup [input] stream into [output] using [password].
-     * Throws [BackupPasswordException] if the password is wrong (GCM tag mismatch).
-     * Does not close [output].
-     */
-    fun decrypt(input: InputStream, output: OutputStream, password: String) {
+    private fun decryptInternal(
+        input: InputStream,
+        output: OutputStream,
+        password: String,
+        magic: ByteArray
+    ) {
         val dis = DataInputStream(input)
-        val magic = ByteArray(MAGIC_SIZE)
-        dis.readFully(magic)
-        require(magic.contentEquals(MAGIC)) { "Not an encrypted backup" }
+        val header = ByteArray(magic.size)
+        dis.readFully(header)
+        require(header.contentEquals(magic)) { "Not an encrypted backup" }
         val salt = ByteArray(SALT_LEN)
         dis.readFully(salt)
         val baseNonce = ByteArray(NONCE_LEN)

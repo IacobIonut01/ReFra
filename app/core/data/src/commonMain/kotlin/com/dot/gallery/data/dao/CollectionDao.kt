@@ -154,6 +154,27 @@ interface CollectionDao {
     )
     fun getExcludedMediaIds(collectionId: Long): Flow<List<Long>>
 
+    @Query("SELECT mediaId FROM collection_excluded_media WHERE collectionId = :collectionId")
+    suspend fun getExcludedMediaIdsAsync(collectionId: Long): List<Long>
+
+    @Query(
+        """
+        DELETE FROM collection_media
+        WHERE NOT EXISTS (SELECT 1 FROM media WHERE media.id = collection_media.mediaId)
+          AND NOT EXISTS (SELECT 1 FROM cloud_media WHERE cloud_media.globalMediaId = collection_media.mediaId)
+        """
+    )
+    suspend fun cleanupAllOrphanedCollectionMedia(): Int
+
+    @Query(
+        """
+        DELETE FROM collection_excluded_media
+        WHERE NOT EXISTS (SELECT 1 FROM media WHERE media.id = collection_excluded_media.mediaId)
+          AND NOT EXISTS (SELECT 1 FROM cloud_media WHERE cloud_media.globalMediaId = collection_excluded_media.mediaId)
+        """
+    )
+    suspend fun cleanupAllOrphanedExcludedMedia(): Int
+
     // Collections with count for UI display
     @Query(COLLECTIONS_WITH_COUNT)
     fun getCollectionsWithCount(): Flow<List<CollectionWithMediaCount>>

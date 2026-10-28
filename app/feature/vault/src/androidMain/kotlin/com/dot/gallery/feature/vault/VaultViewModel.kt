@@ -161,15 +161,27 @@ open class VaultViewModel @Inject constructor(
 
     fun deleteVault(vault: Vault) {
         viewModelScope.launch(Dispatchers.IO) {
+            var deleted = false
             repository.deleteVault(
                 vault = vault,
                 onSuccess = {
+                    deleted = true
                     currentVault.value = null
                 },
                 onFailed = {
                     printError("Failed to delete vault: $it")
                 }
             )
+            // Deleting a vault must also remove its credential and lockout state; otherwise a
+            // later restore of a backup with the same UUID silently inherits the old password.
+            if (deleted) {
+                runCatching {
+                    com.dot.gallery.feature.vault.utils.VaultPasswordManager
+                        .clearVaultSecrets(appContext, vault.uuid)
+                }.onFailure {
+                    printError("Failed to clear vault credentials: ${it.message}")
+                }
+            }
         }
     }
 

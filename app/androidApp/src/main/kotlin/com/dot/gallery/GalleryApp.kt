@@ -102,6 +102,7 @@ import com.dot.gallery.cloud.sync.CloudSyncScheduler
 import com.dot.gallery.cloud.sync.FreeUpSpaceAutoScheduler
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.smart.SmartScanScheduler
+import com.dot.gallery.core.workers.scheduleDataHealthPeriodic
 import com.dot.gallery.core.startup.StartupWorkGate
 import com.dot.gallery.core.workers.TempVaultCleanupWorker
 import com.dot.gallery.core.presentation.util.StaticMapDefaults
@@ -384,6 +385,12 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
             if (!smartScanScheduler.resumeActiveRun()) {
                 smartScanScheduler.automaticIfNeeded(SmartScanFeature.ALL_MASK)
             }
+            runCatching { component.backupJobRuntime.recoverActiveJob() }
+                .onFailure { if (it is CancellationException) throw it }
+            runCatching {
+                com.dot.gallery.core.work.workScheduler()
+                    .scheduleDataHealthPeriodic()
+            }.onFailure { if (it is CancellationException) throw it }
         }
 
         // Re-resolve auto-switching URLs and renew route-sensitive connections when the network
