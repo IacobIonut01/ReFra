@@ -36,6 +36,7 @@ import dev.brewkits.kmpworkmanager.background.domain.WorkerEnvironment
 import dev.brewkits.kmpworkmanager.background.domain.WorkerResult
 import com.dot.gallery.cloud.core.UploadTargetResolver
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
+import com.dot.gallery.cloud.core.capabilities.RemoteAlbumWriteProvider
 import com.dot.gallery.cloud.core.capabilities.SyncCapableProvider
 import com.dot.gallery.data.dao.CloudDeleteLocalPrefDao
 import com.dot.gallery.data.dao.CloudMediaDao
@@ -111,6 +112,11 @@ class CloudUploadWorker @Inject constructor(
     /** A successfully-uploaded asset, tracked so its album can be synced to the server. */
     private data class UploadedAsset(
         val configId: Long,
+        val albumLabel: String,
+        val remoteId: String
+    )
+
+    private data class AlbumSyncRecord(
         val albumLabel: String,
         val remoteId: String
     )
@@ -415,8 +421,7 @@ class CloudUploadWorker @Inject constructor(
                 postFailureNotification(failedItems, failedFiles)
             }
 
-            // "Sync albums to server": for accounts that opted in, create/match a server album
-            // per local album and add the just-uploaded assets to it.
+            // "Sync albums to server": reconcile enabled local albums with their server albums.
             runAlbumSyncPass(activeConfigs, uploadedAssets)
 
             // Gated local deletion: delete-local is a GLOBAL per-album setting, and an asset is
@@ -516,34 +521,76 @@ class CloudUploadWorker @Inject constructor(
     }
 
     /**
-     * Honours the per-account "Sync albums to server" option. For each account that opted in,
-     * groups the assets uploaded during this run by their local album name, ensures a remote
-     * album with a matching name exists (reusing one if present, otherwise creating it), and
-     * adds the uploaded assets to it. Best-effort: failures are logged and never fail the run.
+     * Honours the per-account "Sync albums to server" option. The local album selection is the
+     * source of truth: already-backed-up media is included via the backup revision cache, so a
+     * local album move is reflected remotely on the next run. Best-effort: failures are logged
+     * and never fail the run.
      */
     private suspend fun runAlbumSyncPass(
         activeConfigs: List<CloudServerConfigEntity>,
         uploaded: List<UploadedAsset>
     ) {
-        if (uploaded.isEmpty()) return
         try {
-            val byConfig = uploaded.groupBy { it.configId }
             for (config in activeConfigs) {
                 if (!config.syncAlbums) continue
-                val records = byConfig[config.id]?.takeIf { it.isNotEmpty() } ?: continue
                 val provider = registry.getByConfigId(config.id) as? RemoteMediaProvider ?: continue
+                val syncProvider = registry.getByConfigId(config.id) as? SyncCapableProvider
+                val enabledPrefs = uploadPrefDao.getEnabledByConfigList(config.id)
+                if (enabledPrefs.isEmpty()) continue
 
-                val remoteAlbums = runCatching { provider.getRemoteAlbums().first().data }
-                    .getOrNull().orEmpty()
+                val revisions = runCatching {
+                    cloudMediaDao.getBackupRevisions(config.id)
+                }.onFailure {
+                    printDebug("CloudUploadWorker: album-sync revision lookup failed for account #${config.id}: ${it.message}")
+                }.getOrNull() ?: continue
+                val records = uploaded.filter { it.configId == config.id }
+                    .map { AlbumSyncRecord(it.albumLabel, it.remoteId) }
+                    .toMutableList()
 
-                for ((albumLabel, items) in records.groupBy { it.albumLabel }) {
-                    if (albumLabel.isBlank()) continue
-                    val assetIds = items.map { it.remoteId }.filter { it.isNotBlank() }.distinct()
-                    if (assetIds.isEmpty()) continue
+                for (pref in enabledPrefs) {
+                    if (pref.albumLabel.isBlank()) continue
+                    val media = runCatching {
+                        repository.getMediaByAlbumId(pref.albumId, skipBatching = true).first().data
+                    }.onFailure {
+                        printDebug("CloudUploadWorker: album-sync media lookup failed for '${pref.albumLabel}': ${it.message}")
+                    }.getOrNull().orEmpty()
+                    media.forEach { item ->
+                        val deterministicId = syncProvider?.deterministicRemoteId(
+                            item,
+                            UploadTargetResolver.resolve(config, pref, item)
+                        )
+                        val revision = revisions.firstOrNull {
+                            it.localUri == backupRevisionLocalUri(item.getUri().toString(), deterministicId)
+                        } ?: revisions.firstOrNull { it.localUri == item.getUri().toString() }
+                        if (revision != null && revision.remoteId.isNotBlank()) {
+                            records += AlbumSyncRecord(pref.albumLabel, revision.remoteId)
+                        }
+                    }
+                }
+
+                val remoteAlbumsResource = runCatching { provider.getRemoteAlbums().first() }
+                    .onFailure {
+                        printDebug("CloudUploadWorker: album-sync listing failed for account #${config.id}: ${it.message}")
+                    }.getOrNull() ?: continue
+                val remoteAlbums = remoteAlbumsResource.data ?: run {
+                    printDebug("CloudUploadWorker: album-sync listing failed for account #${config.id}")
+                    continue
+                }
+                val desiredByAlbum = records
+                    .filter { it.albumLabel.isNotBlank() && it.remoteId.isNotBlank() }
+                    .groupBy { it.albumLabel.lowercase() }
+                    .mapValues { (_, items) -> items.map { it.remoteId }.toSet() }
+                val knownAssetIds = records.map { it.remoteId }.filter { it.isNotBlank() }.toSet()
+                val writableProvider = provider as? RemoteAlbumWriteProvider
+
+                for (albumLabel in enabledPrefs.map { it.albumLabel }
+                    .filter { it.isNotBlank() }
+                    .distinctBy { it.lowercase() }) {
+                    val desiredAssetIds = desiredByAlbum[albumLabel.lowercase()].orEmpty()
 
                     val remoteAlbumId = remoteAlbums
                         .firstOrNull { it.name.equals(albumLabel, ignoreCase = true) }?.remoteId
-                        ?: runCatching {
+                        ?: if (desiredAssetIds.isNotEmpty()) runCatching {
                             provider.createAlbum(albumLabel)
                                 .onFailure {
                                     printWarn(
@@ -557,27 +604,54 @@ class CloudUploadWorker @Inject constructor(
                                 "worker.cloud-upload",
                                 "createAlbum failed for '$albumLabel': $it"
                             )
-                        }.getOrNull()
+                        }.getOrNull() else null
                     if (remoteAlbumId.isNullOrBlank()) {
-                        printDebug("CloudUploadWorker: album-sync could not resolve album '$albumLabel' for account #${config.id}")
+                        if (desiredAssetIds.isNotEmpty()) {
+                            printDebug("CloudUploadWorker: album-sync could not resolve album '$albumLabel' for account #${config.id}")
+                        }
                         continue
                     }
 
-                    runCatching { provider.addToAlbum(remoteAlbumId, assetIds) }
-                        .onSuccess { result ->
-                            result.onSuccess {
-                                printDebug("CloudUploadWorker: album-sync added ${assetIds.size} assets to '$albumLabel' (#${config.id})")
+                    val remoteMembershipResource = runCatching {
+                        provider.getRemoteAlbumMedia(remoteAlbumId).first()
+                    }.onFailure {
+                        printDebug("CloudUploadWorker: album-sync membership lookup failed for '$albumLabel': ${it.message}")
+                    }.getOrNull() ?: continue
+                    val remoteAssetIds = remoteMembershipResource.data ?: run {
+                        printDebug("CloudUploadWorker: album-sync membership lookup failed for '$albumLabel'")
+                        continue
+                    }
+                    val currentAssetIds = remoteAssetIds.map { it.remoteId }.filter { it.isNotBlank() }.toSet()
+                    val diff = albumMembershipDiff(desiredAssetIds, currentAssetIds, knownAssetIds)
+
+                    if (diff.additions.isNotEmpty()) {
+                        runCatching { provider.addToAlbum(remoteAlbumId, diff.additions.toList()) }
+                            .onSuccess { result ->
+                                result.onSuccess {
+                                    printDebug("CloudUploadWorker: album-sync added ${diff.additions.size} assets to '$albumLabel' (#${config.id})")
+                                }
+                                result.onFailure { e ->
+                                    printWarn(
+                                        "worker.cloud-upload",
+                                        "album-sync addToAlbum discarded items for '$albumLabel': ${e.message}"
+                                    )
+                                }
                             }
-                            result.onFailure { e ->
-                                printWarn(
-                                    "worker.cloud-upload",
-                                    "album-sync addToAlbum discarded items for '$albumLabel': ${e.message}"
-                                )
+                            .onFailure { e ->
+                                printDebug("CloudUploadWorker: album-sync addToAlbum failed for '$albumLabel': ${e.message}")
                             }
-                        }
-                        .onFailure { e ->
-                            printDebug("CloudUploadWorker: album-sync addToAlbum failed for '$albumLabel': ${e.message}")
-                        }
+                    }
+                    if (writableProvider != null && diff.removals.isNotEmpty()) {
+                        runCatching { writableProvider.removeFromAlbum(remoteAlbumId, diff.removals.toList()) }
+                            .onSuccess { result ->
+                                result.onFailure { e ->
+                                    printWarn("worker.cloud-upload", "album-sync removeFromAlbum discarded items for '$albumLabel': ${e.message}")
+                                }
+                            }
+                            .onFailure { e ->
+                                printDebug("CloudUploadWorker: album-sync removeFromAlbum failed for '$albumLabel': ${e.message}")
+                            }
+                    }
                 }
             }
         } catch (e: CancellationException) {
@@ -869,6 +943,20 @@ internal class BackupProgressThrottle(
         return true
     }
 }
+
+internal data class AlbumMembershipDiff(
+    val additions: Set<String>,
+    val removals: Set<String>
+)
+
+internal fun albumMembershipDiff(
+    desiredAssetIds: Set<String>,
+    currentAssetIds: Set<String>,
+    scopedAssetIds: Set<String>
+): AlbumMembershipDiff = AlbumMembershipDiff(
+    additions = desiredAssetIds - currentAssetIds,
+    removals = (currentAssetIds intersect scopedAssetIds) - desiredAssetIds
+)
 
 internal fun backupDestinationConfigIds(
     albumId: Long,
