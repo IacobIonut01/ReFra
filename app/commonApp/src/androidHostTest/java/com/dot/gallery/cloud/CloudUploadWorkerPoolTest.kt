@@ -47,6 +47,7 @@ import com.dot.gallery.domain.util.isTrashed
 import com.dot.gallery.cloud.sync.mapWorkerPool
 import com.dot.gallery.cloud.sync.runWorkerPool
 import com.dot.gallery.cloud.sync.freeUpSpaceDeletionBatch
+import com.dot.gallery.cloud.sync.albumMembershipDiff
 
 
 class CloudUploadWorkerPoolTest {
@@ -214,6 +215,25 @@ class CloudUploadWorkerPoolTest {
                 deleteLocalPreferences = mapOf(10L to true, 20L to true)
             )
         )
+    }
+
+    @Test
+    fun albumMembershipDiffMovesAnExistingAssetBetweenEnabledAlbums() {
+        val destinationDiff = albumMembershipDiff(
+            desiredAssetIds = setOf("asset-id"),
+            currentAssetIds = emptySet(),
+            scopedAssetIds = setOf("asset-id")
+        )
+        val sourceDiff = albumMembershipDiff(
+            desiredAssetIds = emptySet(),
+            currentAssetIds = setOf("asset-id"),
+            scopedAssetIds = setOf("asset-id")
+        )
+
+        assertEquals(setOf("asset-id"), destinationDiff.additions)
+        assertEquals(emptySet<String>(), destinationDiff.removals)
+        assertEquals(emptySet<String>(), sourceDiff.additions)
+        assertEquals(setOf("asset-id"), sourceDiff.removals)
     }
 
     @Test
