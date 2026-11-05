@@ -217,6 +217,7 @@ class ImmichProvider @Inject constructor(
         ProviderCapability.REMOTE_ALBUMS,
         ProviderCapability.SYNC,
         ProviderCapability.ALBUM_WRITE,
+        ProviderCapability.ALBUM_MEMBERSHIP,
         ProviderCapability.PEOPLE,
         ProviderCapability.MAP,
         ProviderCapability.SMART_SEARCH,

@@ -20,6 +20,13 @@ enum class ProviderCapability {
     SHARE_MANAGE,
     SYNC,
     ALBUM_WRITE,
+
+    /** Album membership is a server-side list the app can edit (createAlbum +
+     * addToAlbum). Path-based providers (WebDAV/SMB/NFS/ownCloud/Nextcloud) do NOT
+     * declare this: their "albums" are folders, addToAlbum is unsupported, and
+     * createAlbum mkdirs a directory — running the upload album-sync pass on them
+     * would only leave empty folders at the share root (#1371). */
+    ALBUM_MEMBERSHIP,
     REMOTE_ALBUMS,
     REMOTE_ASSETS,
     OCR,

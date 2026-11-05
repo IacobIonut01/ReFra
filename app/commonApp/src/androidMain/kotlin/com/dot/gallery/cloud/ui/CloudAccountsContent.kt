@@ -568,6 +568,7 @@ private fun capabilityLabelRes(capability: ProviderCapability): StringResource? 
     ProviderCapability.REMOTE_ALBUMS -> Res.string.cloud_cap_remote_albums
     ProviderCapability.SYNC -> Res.string.cloud_cap_sync
     ProviderCapability.ALBUM_WRITE -> null
+    ProviderCapability.ALBUM_MEMBERSHIP -> null
     ProviderCapability.SHARE_CREATE -> Res.string.cloud_cap_share_link
     ProviderCapability.SHARE_MANAGE -> null
     ProviderCapability.PEOPLE -> Res.string.cloud_cap_people

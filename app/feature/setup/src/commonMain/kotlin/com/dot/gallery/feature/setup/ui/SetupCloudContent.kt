@@ -262,6 +262,7 @@ private fun capabilityLabel(capability: SetupProviderCapability): StringResource
     SetupProviderCapability.REMOTE_ALBUMS -> Res.string.setup_cap_remote_albums
     SetupProviderCapability.SYNC -> Res.string.setup_cap_sync
     SetupProviderCapability.ALBUM_WRITE -> null
+    SetupProviderCapability.ALBUM_MEMBERSHIP -> null
     SetupProviderCapability.PEOPLE -> Res.string.setup_cap_people
     SetupProviderCapability.MAP -> Res.string.setup_cap_map
     SetupProviderCapability.SMART_SEARCH -> Res.string.setup_cap_smart_search
