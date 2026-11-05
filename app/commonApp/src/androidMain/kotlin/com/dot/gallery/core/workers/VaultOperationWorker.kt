@@ -218,6 +218,50 @@ class VaultOperationWorkerAdapter : GalleryWorkerAdapter(VaultOperationWorker.WO
 }
 
 // Enqueue helpers
+
+/**
+ * Splits [items] into chunks whose joined string form stays under [maxChars] — the
+ * worker input payload shares WorkManager's ~10 KB serialization cap, so a bulk
+ * vault op over a few hundred URIs must arrive as several tasks or the enqueue
+ * itself throws and crashes the caller before a single item is processed (#1240).
+ */
+internal fun chunkStringsForWorkInput(items: List<String>, maxChars: Int = 8 * 1024): List<List<String>> {
+    val chunks = mutableListOf<List<String>>()
+    var current = mutableListOf<String>()
+    var currentSize = 2 // surrounding "[]"
+    for (item in items) {
+        val itemSize = item.length + 3 // quotes + separator
+        if (current.isNotEmpty() && currentSize + itemSize > maxChars) {
+            chunks += current
+            current = mutableListOf()
+            currentSize = 2
+        }
+        current += item
+        currentSize += itemSize
+    }
+    if (current.isNotEmpty()) chunks += current
+    return chunks
+}
+
+private fun vaultOpPairs(
+    operation: String,
+    mediaChunk: List<Uri>,
+    vault: Vault?,
+    deleteOriginals: Boolean
+): Array<Pair<String, Any>> {
+    val pairs = mutableListOf<Pair<String, Any>>(
+        VaultOperationWorker.KEY_OPERATION to operation,
+        VaultOperationWorker.KEY_MEDIA_URIS to Json.encodeToString(mediaChunk.map { it.toString() })
+    )
+    if (vault != null) {
+        pairs += VaultOperationWorker.KEY_VAULT to Json.encodeToString(vault)
+    }
+    if (deleteOriginals) {
+        pairs += VaultOperationWorker.KEY_DELETE_ORIGINALS to true
+    }
+    return pairs.toTypedArray()
+}
+
 suspend fun BackgroundTaskScheduler.enqueueVaultOperation(
     operation: String,
     media: List<Uri>,
@@ -225,54 +269,40 @@ suspend fun BackgroundTaskScheduler.enqueueVaultOperation(
     uniqueKey: String = UUID.randomUUID().toString(),
     deleteOriginals: Boolean = false
 ) {
-    val pairs = mutableListOf<Pair<String, Any>>(
-        VaultOperationWorker.KEY_OPERATION to operation,
-        VaultOperationWorker.KEY_MEDIA_URIS to Json.encodeToString(media.map { it.toString() })
-    )
-    if (vault != null) {
-        pairs += VaultOperationWorker.KEY_VAULT to Json.encodeToString(vault)
+    val chunks = chunkStringsForWorkInput(media.map { it.toString() })
+    chunks.forEachIndexed { index, chunk ->
+        enqueue(
+            id = "VaultOp_${uniqueKey}_$index",
+            trigger = TaskTrigger.OneTime(),
+            workerClassName = VaultOperationWorker.WORKER_NAME,
+            constraints = Constraints(isHeavyTask = true),
+            inputJson = workDataJson(*vaultOpPairs(operation, chunk.map { it.toUri() }, vault, deleteOriginals)),
+            policy = ExistingPolicy.KEEP,
+            tags = setOf("VaultOp"),
+        )
     }
-    if (deleteOriginals) {
-        pairs += VaultOperationWorker.KEY_DELETE_ORIGINALS to true
-    }
-    enqueue(
-        id = "VaultOp_$uniqueKey",
-        trigger = TaskTrigger.OneTime(),
-        workerClassName = VaultOperationWorker.WORKER_NAME,
-        constraints = Constraints(isHeavyTask = true),
-        inputJson = workDataJson(*pairs.toTypedArray()),
-        policy = ExistingPolicy.KEEP,
-        tags = setOf("VaultOp"),
-    )
 }
 
-// Overload returning the task id so callers can observe completion before destructive actions (e.g., deletion).
+// Overload returning the task ids so callers can observe completion before destructive actions (e.g., deletion).
 suspend fun BackgroundTaskScheduler.enqueueVaultOperationWithId(
     operation: String,
     media: List<Uri>,
     vault: Vault?,
     uniqueKey: String = UUID.randomUUID().toString(),
     deleteOriginals: Boolean = false
-): String {
-    val pairs = mutableListOf<Pair<String, Any>>(
-        VaultOperationWorker.KEY_OPERATION to operation,
-        VaultOperationWorker.KEY_MEDIA_URIS to Json.encodeToString(media.map { it.toString() })
-    )
-    if (vault != null) {
-        pairs += VaultOperationWorker.KEY_VAULT to Json.encodeToString(vault)
+): List<String> {
+    val chunks = chunkStringsForWorkInput(media.map { it.toString() })
+    return chunks.mapIndexed { index, chunk ->
+        val id = "VaultOp_${uniqueKey}_$index"
+        enqueue(
+            id = id,
+            trigger = TaskTrigger.OneTime(),
+            workerClassName = VaultOperationWorker.WORKER_NAME,
+            constraints = Constraints(isHeavyTask = true),
+            inputJson = workDataJson(*vaultOpPairs(operation, chunk.map { it.toUri() }, vault, deleteOriginals)),
+            policy = ExistingPolicy.REPLACE,
+            tags = setOf("VaultOp"),
+        )
+        id
     }
-    if (deleteOriginals) {
-        pairs += VaultOperationWorker.KEY_DELETE_ORIGINALS to true
-    }
-    val id = "VaultOp_$uniqueKey"
-    enqueue(
-        id = id,
-        trigger = TaskTrigger.OneTime(),
-        workerClassName = VaultOperationWorker.WORKER_NAME,
-        constraints = Constraints(isHeavyTask = true),
-        inputJson = workDataJson(*pairs.toTypedArray()),
-        policy = ExistingPolicy.REPLACE,
-        tags = setOf("VaultOp"),
-    )
-    return id
 }
