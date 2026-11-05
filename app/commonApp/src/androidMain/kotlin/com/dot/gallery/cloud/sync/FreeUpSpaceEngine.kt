@@ -70,6 +70,32 @@ internal val SCHEDULED_CONFIG_IDS_KEY =
 internal fun <T> freeUpSpaceDeletionBatch(items: List<T>): List<T> =
     items.take(FREE_UP_SPACE_DELETE_BATCH_SIZE)
 
+/**
+ * Candidate remote folders to probe for a local media item, ordered most- to
+ * least-specific: today's resolved upload target, the bare album folder (the
+ * scheme used before uploadBasePath existed), and the provider default.
+ * Verification still requires the remote SHA-1 to match, so extra candidates
+ * cannot produce false positives — they only rescue items uploaded under
+ * legacy path schemes that the resolver can no longer reconstruct (#1301).
+ */
+internal fun targetPathCandidates(
+    config: com.dot.gallery.data.entity.CloudServerConfigEntity?,
+    preference: com.dot.gallery.data.entity.CloudUploadPrefEntity,
+    media: Media
+): List<String?> = targetPathCandidates(
+    config, preference, isVideo = media.mimeType.startsWith("video/")
+)
+
+internal fun targetPathCandidates(
+    config: com.dot.gallery.data.entity.CloudServerConfigEntity?,
+    preference: com.dot.gallery.data.entity.CloudUploadPrefEntity,
+    isVideo: Boolean
+): List<String?> = listOf(
+    UploadTargetResolver.resolve(config, preference, isVideo),
+    UploadTargetResolver.sanitizePath(preference.albumLabel).ifEmpty { null },
+    null
+).distinct()
+
 internal fun verifiedLocalRevisionMatches(
     mediaId: Long,
     currentHash: String?,
@@ -134,10 +160,10 @@ class FreeUpSpaceEngine @Inject constructor(
                     destinations.all { preference ->
                         val provider = registry.getByConfigId(preference.serverConfigId)
                                 as? SyncCapableProvider ?: return@all false
-                        verifyRemoteContent(
+                        verifyRemoteContentAnyPath(
                             provider,
                             media,
-                            UploadTargetResolver.resolve(
+                            targetPathCandidates(
                                 configsById[preference.serverConfigId],
                                 preference,
                                 media
@@ -189,10 +215,10 @@ class FreeUpSpaceEngine @Inject constructor(
                 destinations.isNotEmpty() && destinations.all { preference ->
                     val provider = registry.getByConfigId(preference.serverConfigId)
                             as? SyncCapableProvider ?: return@all false
-                    verifyRemoteContent(
+                    verifyRemoteContentAnyPath(
                         provider,
                         media,
-                        UploadTargetResolver.resolve(
+                        targetPathCandidates(
                             configsById[preference.serverConfigId],
                             preference,
                             media
@@ -242,6 +268,13 @@ class FreeUpSpaceEngine @Inject constructor(
         printError("cloud.free-space", "media fetch failed; aborting scan", e)
         null
     }
+
+    private suspend fun verifyRemoteContentAnyPath(
+        provider: SyncCapableProvider,
+        media: Media,
+        targetPaths: List<String?>,
+        checksum: String
+    ): Boolean = targetPaths.any { verifyRemoteContent(provider, media, it, checksum) }
 
     private suspend fun verifyRemoteContent(
         provider: SyncCapableProvider,
