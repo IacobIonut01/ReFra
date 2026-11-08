@@ -74,7 +74,7 @@ internal val GalleryIndicatorSpring = spring<Float>(
 
 /** Blurred floating surface shared by the dock, its search action and the wide-window rail. */
 @Composable
-internal fun galleryFloatingSurface(shape: Shape = CircleShape): Modifier {
+fun galleryFloatingSurface(shape: Shape = CircleShape): Modifier {
     val allowBlur by rememberPreference(SettingsKeys.allowBlur.withDefault(supportsBlur))
     // A translucent base under the blur (the reference uses an 80% surface plus blur) keeps the
     // controls visible even where the blur has no content behind it to sample.

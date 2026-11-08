@@ -10,8 +10,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import com.dot.gallery.core.injection.Singleton
-import com.dot.gallery.app.presentation.albums.AlbumsScreen
-import com.dot.gallery.app.presentation.library.LibraryScreen
 import com.dot.gallery.app.presentation.timeline.TimelineScreen
 import com.dot.gallery.feature.library.LibraryContentSource
 import com.dot.gallery.core.logging.printWarning
@@ -53,9 +51,7 @@ class StartupPrefill @Inject constructor(
         }
         try {
             withContext(Dispatchers.IO) {
-                if (route == Screen.TimelineScreen() || route == Screen.AlbumsScreen() ||
-                    route == Screen.LibraryScreen()
-                ) {
+                if (route == Screen.TimelineScreen() || route == Screen.LibraryScreen()) {
                     libraryContentSource.restore()
                 }
                 boundedPrefill(
@@ -68,7 +64,7 @@ class StartupPrefill @Inject constructor(
                     }
                 )
                 boundedPrefill(
-                    route = Screen.AlbumsScreen(),
+                    route = Screen.LibraryScreen(),
                     selectedRoute = route,
                     onError = onError,
                     cached = { cache.readAlbums() != null },

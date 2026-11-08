@@ -132,7 +132,6 @@ import com.dot.gallery.core.VaultRuntimeImpl
 import com.dot.gallery.core.vault.VaultRuntime
 import com.dot.gallery.feature.classifier.ClassifierRuntime
 import com.dot.gallery.feature.viewer.MediaViewBackend
-import com.dot.gallery.feature.viewer.ActionsViewModel
 import com.dot.gallery.feature.viewer.ViewerRuntime
 import com.dot.gallery.cloud.image.CloudImageSource
 import com.dot.gallery.cloud.media.CloudDataSource
@@ -143,11 +142,9 @@ import com.dot.gallery.feature.albums.AlbumsViewModel
 import com.dot.gallery.feature.albums.ui.AlbumTimelineViewModel
 import com.dot.gallery.feature.albums.CloudAlbumManageViewModel
 import com.dot.gallery.app.presentation.cast.FCastViewModel
-import com.dot.gallery.feature.classifier.AddCategoryViewModel
 import com.dot.gallery.feature.classifier.CategoriesViewModel
 import com.dot.gallery.feature.classifier.CategoryEditorViewModel
 import com.dot.gallery.feature.classifier.CategoryViewModel
-import com.dot.gallery.feature.classifier.EditCategoryViewModel
 import com.dot.gallery.feature.albums.ui.collections.CollectionViewModel
 import com.dot.gallery.feature.editor.EditRuntime
 import com.dot.gallery.feature.editor.EditViewModel
@@ -157,7 +154,6 @@ import com.dot.gallery.feature.exif.MetadataViewViewModel
 import com.dot.gallery.app.presentation.frameextract.FrameExportWorker
 import com.dot.gallery.app.presentation.frameextract.FramePickerViewModel
 import com.dot.gallery.feature.ignored.ui.IgnoredViewModel
-import com.dot.gallery.feature.ignored.ui.setup.IgnoredOptionsViewModel
 import com.dot.gallery.feature.ignored.ui.setup.IgnoredSetupViewModel
 import com.dot.gallery.feature.library.LibraryViewModel
 import com.dot.gallery.feature.library.location.LocationsViewModel
@@ -176,7 +172,6 @@ import com.dot.gallery.feature.settings.subsettings.EditBackupsViewModel
 import com.dot.gallery.feature.settings.subsettings.SmartFeaturesViewModel
 import com.dot.gallery.feature.viewer.standalone.StandaloneViewModel
 import com.dot.gallery.feature.timeline.storycards.StoryCardsViewModel
-import com.dot.gallery.feature.albums.ui.ThumbnailChangerViewModel
 import com.dot.gallery.feature.vault.VaultViewModel
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.cloud.genericwebdav.di.WebDavProviderComponent
@@ -672,8 +667,6 @@ abstract class AppComponent(
     // ── view model accessors — unscoped, one instance per ViewModelStore
 
     abstract val cloudBackupInfoViewModel: CloudBackupInfoViewModel
-    abstract val actionsViewModel: ActionsViewModel
-    abstract val addCategoryViewModel: AddCategoryViewModel
     abstract val albumsViewModel: AlbumsViewModel
     abstract val backupRestoreViewModel: BackupRestoreViewModel
     abstract val backupHubViewModel: com.dot.gallery.app.presentation.settings.subsettings.BackupHubViewModel
@@ -691,10 +684,8 @@ abstract class AppComponent(
     abstract val developerViewModel: DeveloperViewModel
     abstract val editBackupsViewModel: EditBackupsViewModel
     abstract val handoverSettingsViewModel: HandoverSettingsViewModel
-    abstract val editCategoryViewModel: EditCategoryViewModel
     abstract val editViewModel: EditViewModel
     abstract val fCastViewModel: FCastViewModel
-    abstract val ignoredOptionsViewModel: IgnoredOptionsViewModel
     abstract val ignoredSetupViewModel: IgnoredSetupViewModel
     abstract val ignoredViewModel: IgnoredViewModel
     abstract val libraryViewModel: LibraryViewModel
@@ -712,7 +703,6 @@ abstract class AppComponent(
     abstract val smartFeaturesViewModel: SmartFeaturesViewModel
     abstract val storyCardsViewModel: StoryCardsViewModel
     abstract val syncStatusViewModel: SyncStatusViewModel
-    abstract val thumbnailChangerViewModel: ThumbnailChangerViewModel
     abstract val uploadDetailsViewModel: UploadDetailsViewModel
     abstract val vaultViewModel: VaultViewModel
     abstract val albumTimelineViewModel: (savedStateHandle: SavedStateHandle) -> AlbumTimelineViewModel
@@ -761,4 +751,5 @@ abstract class AppComponent(
     abstract val tempVaultCleanupWorker: TempVaultCleanupWorker
     abstract val vaultOperationWorker: VaultOperationWorker
     abstract val frameExportWorker: FrameExportWorker
+    abstract val editorExportWorker: com.dot.gallery.core.workers.EditorExportWorker
 }

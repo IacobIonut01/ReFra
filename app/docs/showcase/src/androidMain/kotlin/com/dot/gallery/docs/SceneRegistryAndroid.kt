@@ -159,13 +159,14 @@ actual fun platformScenes(): List<DocsScene> = listOf(
         id = "browse-trash",
         title = "Trash",
         pathTrace = listOf("Library", "Trash"),
-        states = listOf("filled", "empty"),
+        states = listOf("filled", "scrolled", "empty"),
     ) { state -> DocsTrashScene(state) },
     DocsScene(
         id = "settings-remote-inference",
         title = "Remote inference",
         pathTrace = listOf("Settings", "Smart Features", "Remote inference"),
-        states = listOf("configured", "blank"),
+        states = listOf("configured", "blank", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { state -> DocsRemoteInferenceScene(state) },
 ) + cloudSetupScenes + cloudSettingsScenes + cloudUseScenes + viewerScenes + exploreScenes
 
@@ -711,8 +712,11 @@ fun DocsWidgetStyleScene(state: String?) {
 @Composable
 private fun DocsTrashScene(state: String?) {
     val session = LocalDocsGallerySession.current!!
-    val trashedMedia = remember {
-        DocsGalleryData.mediaItems().take(2).mapIndexed { index, media ->
+    // "scrolled" trashes the whole demo library twice over so the grid sits part-way down
+    // under the transparent blur bar.
+    val trashedMedia = remember(state) {
+        val source = DocsGalleryData.mediaItems().let { if (state == "scrolled") it + it else it.take(2) }
+        source.mapIndexed { index, media ->
             media.copy(
                 id = 90L + index,
                 trashed = 1,
@@ -761,6 +765,7 @@ private fun DocsTrashScene(state: String?) {
             },
             sharedTransitionScope = sts,
             animatedContentScope = acs,
+            initialFirstVisibleItemIndex = if (state == "scrolled") 4 else 0,
         )
     }
 }

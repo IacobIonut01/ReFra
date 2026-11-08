@@ -52,8 +52,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
-import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -92,6 +90,8 @@ import com.dot.gallery.feature.viewer.components.media.ViewerDismissFlightLayer
 import com.dot.gallery.core.presentation.util.NavigationItem
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.presentation.util.rememberBottomBarInset
+import com.dot.gallery.ui.core.Icons as GalleryIcons
+import com.dot.gallery.ui.core.icons.Library
 import com.dot.gallery.ui.theme.ComponentSize
 import com.dot.gallery.ui.theme.Spacing
 import com.dot.gallery.core.LocalMediaSelector
@@ -182,9 +182,8 @@ private val RailCutoutGap = 6.dp
 @Composable
 fun rememberNavigationItems(): List<NavigationItem> {
     val timelineTitle = stringResource(Res.string.nav_timeline)
-    val albumsTitle = stringResource(Res.string.nav_albums)
     val libraryTitle = stringResource(Res.string.library)
-    return remember(timelineTitle, albumsTitle, libraryTitle) {
+    return remember(timelineTitle, libraryTitle) {
         listOf(
             NavigationItem(
                 name = timelineTitle,
@@ -192,14 +191,9 @@ fun rememberNavigationItems(): List<NavigationItem> {
                 icon = Icons.Outlined.Photo,
             ),
             NavigationItem(
-                name = albumsTitle,
-                route = Screen.AlbumsScreen.route,
-                icon = Icons.Outlined.FolderOpen,
-            ),
-            NavigationItem(
                 name = libraryTitle,
                 route = Screen.LibraryScreen(),
-                icon = Icons.AutoMirrored.Outlined.LibraryBooks
+                icon = GalleryIcons.Library
             )
         )
     }
@@ -355,7 +349,7 @@ fun AppBarContainer(
     // Render the content exactly once. Toggling "use material navigation" must only swap the
     // navigation bars below, not the whole app content. Previously content() was nested inside
     // both the useOldNavbar and !useOldNavbar AnimatedVisibility blocks, so flipping the setting
-    // cross-faded (and recomposed) the entire screen, making it blink (#973).
+    // cross-faded (and recomposed) the entire screen, making it blink.
     SharedTransitionLayout {
         CompositionLocalProvider(LocalViewerDismissBridge provides overlayDismissBridge) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -560,7 +554,7 @@ private fun onNavItemClick(
     scrollToTop: ScrollToTopController,
 ) {
     // Re-tapping the already-selected tab scrolls that screen back to the top
-    // instead of doing nothing (#1039). Otherwise navigate to the tab.
+    // instead of doing nothing. Otherwise navigate to the tab.
     if (route == navController.currentDestination?.route) {
         scrollToTop.requestScrollToTop(route)
     } else {

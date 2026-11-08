@@ -39,6 +39,12 @@
         "title": "Viewer options",
         "caption": "See the photo and video controls described below.",
         "section": "media-view"
+      },
+      {
+        "scene": "long-press-action",
+        "title": "Long-press action",
+        "caption": "Pick what a long-press on an image does in the viewer.",
+        "section": "long-press-action"
       }
     ],
     "security": [
@@ -1135,9 +1141,10 @@
         "interactive": false
       },
       {
-        "scene": "cloud-sync-status",
-        "title": "Sync Status card",
-        "caption": "A sample account's index counts \u2014 cached listings, synced, remote-only and pending-upload items \u2014 plus the Download all remote media and Sync now actions.",
+        "scene": "cloud-backup-dashboard",
+        "state": "overview",
+        "title": "Backup & Sync dashboard",
+        "caption": "The summary card on a sample account, where sync progress and Retry appear.",
         "section": "status",
         "interactive": false
       }

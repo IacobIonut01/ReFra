@@ -411,7 +411,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
         // changes (e.g. moving between local Wi-Fi, mobile data, and a VPN).
         registerNetworkChangeReconfigure()
 
-        // "Sync when app is opened" (#1241): on every foreground transition enqueue
+        // "Sync when app is opened": on every foreground transition enqueue
         // a one-time sync/upload/download pass for sync-enabled accounts so local
         // photo changes and remote changes land immediately. Throttled + gated by
         // the setting inside the scheduler.

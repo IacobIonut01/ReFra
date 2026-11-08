@@ -28,7 +28,8 @@ val organizeScenes: List<DocsScene> = listOf(
         id = "picker-photos",
         title = "Photo picker",
         pathTrace = listOf("System picker", "Select photos"),
-        states = listOf("default", "selected"),
+        states = listOf("default", "selected", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { state -> DocsPickerScene(state) },
     DocsScene(
         id = "transfer-progress",

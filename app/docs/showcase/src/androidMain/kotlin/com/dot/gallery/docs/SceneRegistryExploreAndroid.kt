@@ -156,8 +156,9 @@ val exploreScenes: List<DocsScene> = listOf(
         id = "cloud-archive",
         title = "Cloud archive",
         pathTrace = listOf("Library", "Archive"),
+        states = listOf("filled", "scrolled"),
         settleMillis = 1000L,
-    ) { DocsCloudArchiveScene() },
+    ) { state -> DocsCloudArchiveScene(state) },
     DocsScene(
         id = "album-transfer",
         title = "Copy destination",
@@ -549,7 +550,7 @@ private fun DocsCloudAlbumsScene() {
             LocalMediaDistributor provides session.distributor,
             LocalMediaSelector provides session.selector,
         ) {
-            DocsGalleryHost(DocsGalleryPage.ALBUMS, null) { providerType, tint, modifier ->
+            DocsGalleryHost(DocsGalleryPage.LIBRARY, null) { providerType, tint, modifier ->
                 ProviderBrandIcon(providerType = providerType, modifier = modifier, tint = tint)
             }
         }
@@ -562,11 +563,16 @@ private fun DocsCloudAlbumsScene() {
  * `SelectionSheet` pulls DI-bound services the docs host does not provide.
  */
 @Composable
-private fun DocsCloudArchiveScene() {
+private fun DocsCloudArchiveScene(state: String?) {
     val lake = rememberDocsMediaStoreImage("drawable/docs_lake.jpg", "Docs_lake.jpg")
     val flower = rememberDocsMediaStoreImage("drawable/docs_flower.jpg", "Docs_flower.jpg")
     val earth = rememberDocsMediaStoreImage("drawable/docs_earth.jpg", "Docs_earth.jpg")
-    val media = listOf(lake, flower, earth)
+    // "scrolled" repeats the three photos so the grid is tall enough to sit part-way down
+    // under the transparent blur bar.
+    val media = listOf(lake, flower, earth).let { owned ->
+        if (state != "scrolled") owned
+        else (0 until 16).flatMap { copy -> owned.map { it.copy(id = it.id + copy * 1_000_000L) } }
+    }
     DocsViewerProviders(media) {
         DocsSharedScopes { sts, acs ->
             CloudArchiveScreen(
@@ -577,6 +583,7 @@ private fun DocsCloudArchiveScene() {
                 sharedTransitionScope = sts,
                 animatedContentScope = acs,
                 selectionContent = { _, _ -> },
+                initialFirstVisibleItemIndex = if (state == "scrolled") 9 else 0,
             )
         }
     }

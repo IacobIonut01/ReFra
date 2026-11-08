@@ -41,6 +41,10 @@ interface ImageEmbeddingDao {
     @Query("SELECT COUNT(*) FROM image_embeddings")
     suspend fun count(): Int
 
+    /** Live number of indexed photos, for the Categories "not matched yet" stat. */
+    @Query("SELECT COUNT(*) FROM image_embeddings")
+    fun observeCount(): Flow<Int>
+
     @Query("UPDATE image_embeddings SET resultRevision = :revision WHERE id = :id")
     suspend fun updateResultRevision(id: Long, revision: String): Int
 

@@ -72,19 +72,14 @@ private fun OptionGridLayout(
 ) {
     Grid(
         config = {
-            repeat(2) { column(GridTrackSize.MinMax(min = 0.dp, max = 1.fr)) }
+            repeat(3) { column(GridTrackSize.MinMax(min = 0.dp, max = 1.fr)) }
             columnGap(8.dp)
             rowGap(8.dp)
         },
         modifier = modifier.fillMaxWidth(),
     ) {
-        val isOdd = optionList.size % 2 != 0
-        optionList.forEachIndexed { index, item ->
-            val isLastOdd = isOdd && index == optionList.lastIndex
-            OptionGridItem(
-                item = item,
-                modifier = if (isLastOdd) Modifier.gridItem(columnSpan = 2) else Modifier
-            )
+        optionList.forEach { item ->
+            OptionGridItem(item = item, modifier = Modifier.fillMaxHeight())
         }
     }
 }
@@ -147,55 +142,16 @@ private fun OptionGridItem(
     item: OptionItem,
     modifier: Modifier = Modifier
 ) {
-    val containerColor = item.containerColor
-        ?: MaterialTheme.colorScheme.surfaceContainerHigh
-    val contentColor = item.contentColor
-        ?: MaterialTheme.colorScheme.onSurface
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .defaultMinSize(minHeight = 80.dp)
-            .background(containerColor, GridItemShape)
-            .clip(GridItemShape)
-            .clickable(enabled = item.enabled) { item.onClick(item.summary.toString()) }
-            .alpha(if (item.enabled) 1f else 0.4f)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (item.icon != null) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.height(8.dp))
-        }
-        Text(
-            text = item.text,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Medium
-            ),
-            color = contentColor,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        if (!item.summary.isNullOrBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = item.summary,
-                style = MaterialTheme.typography.labelSmall,
-                color = contentColor.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
+    SheetActionTile(
+        text = item.text,
+        icon = item.icon,
+        summary = item.summary?.takeIf { it.isNotBlank() },
+        enabled = item.enabled,
+        containerColor = item.containerColor ?: MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = item.contentColor ?: MaterialTheme.colorScheme.onSurface,
+        onClick = { item.onClick(item.summary.toString()) },
+        modifier = modifier.fillMaxWidth(),
+    )
 }
 
 @Preview(showBackground = true)

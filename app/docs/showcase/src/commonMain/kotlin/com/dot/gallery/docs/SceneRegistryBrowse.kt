@@ -58,13 +58,13 @@ val browseScenes: List<DocsScene> = listOf(
         id = "browse-favorites",
         title = "Favorites",
         pathTrace = listOf("Library", "Favorites"),
-        states = listOf("filled", "empty"),
+        states = listOf("filled", "scrolled", "empty"),
     ) { state -> DocsFavoritesScene(state) },
     DocsScene(
         id = "collection-grid",
         title = "Collection",
         pathTrace = listOf("Albums", "Collections", "Holiday 2025"),
-        states = listOf("filled", "empty"),
+        states = listOf("filled", "scrolled", "empty"),
     ) { state -> DocsCollectionGridScene(state) },
     DocsScene(
         id = "search-library",
@@ -76,5 +76,7 @@ val browseScenes: List<DocsScene> = listOf(
         id = "help-browser",
         title = "In-app help",
         pathTrace = listOf("Settings", "Help"),
+        states = listOf("default", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { DocsHelpScene(it) },
 )

@@ -99,6 +99,7 @@
     <string name="media_type_raw">Raw</string>
     <string name="toggle_view_type">Toggle view type</string>
     <string name="arrange_albums">Arrange albums</string>
+    <string name="customize_library">Customize library</string>
     <string name="filter_type_date">Date</string>
     <string name="filter_type_name">Name</string>
     <string name="header_today">Today</string>
@@ -108,7 +109,7 @@
     <string name="search">Search</string>
     <string name="search_media">Search media</string>
     <string name="gallery_pane_resize">Resize gallery and viewer panes</string>
-    <string name="gallery_pane_resize_state">Gallery uses %1$d%% of the width</string>
+    <string name="gallery_pane_resize_state">Gallery uses %1$d% of the width</string>
     <string name="gallery_pane_reset">Reset pane sizes</string>
     <string name="action_move_to_trash">Move to Trash</string>
     <string name="action_delete_permanently">Delete permanently</string>

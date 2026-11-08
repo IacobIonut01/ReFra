@@ -656,7 +656,7 @@ class MediaRepositoryImpl(
         }
         // Supported media always goes through the MediaStore request, which
         // performs the mutation itself — direct writes can be denied even when
-        // all-files access is granted (#1263).
+        // all-files access is granted.
         val intentSender = try {
             MediaStore.createTrashRequest(
                 contentResolver,
@@ -717,7 +717,7 @@ class MediaRepositoryImpl(
             return if (allSucceeded) MediaMutationResult.COMPLETED else MediaMutationResult.FAILED
         }
         // Supported media always goes through the MediaStore request — same
-        // rationale as trashMedia (#1263).
+        // rationale as trashMedia.
         return try {
             val intentSender = MediaStore.createDeleteRequest(
                 contentResolver,
@@ -1195,7 +1195,7 @@ class MediaRepositoryImpl(
                         printInfo("Skipping duplicate: ${media.label} already in vault ${vault.name}")
                         return@withContext true
                     }
-                    // Stale row: DB says it's vaulted but the .enc file is gone (#1282). Drop
+                    // Stale row: DB says it's vaulted but the.enc file is gone. Drop
                     // the row and fall through so the media actually gets encrypted.
                     printWarning("Vault row for ${media.id} has no backing file; re-encrypting")
                     database.getVaultDao().deleteMediaFromVault(vault.uuid, media.id)
@@ -1599,6 +1599,9 @@ class MediaRepositoryImpl(
     override fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>> =
         categoryDao.getCategoriesWithMediaCount()
 
+    override fun getImageEmbeddingCount(): Flow<Int> =
+        database.getImageEmbeddingDao().observeCount()
+
     override fun getDistinctClassifiedMediaCount(): Flow<Int> =
         categoryDao.getDistinctClassifiedMediaCount()
 
@@ -1616,6 +1619,9 @@ class MediaRepositoryImpl(
 
     override suspend fun toggleCategoryPinned(categoryId: Long, isPinned: Boolean) =
         categoryDao.updateCategoryPinned(categoryId, isPinned)
+
+    override suspend fun updateCategoryCover(categoryId: Long, mediaId: Long?) =
+        categoryDao.updateCategoryCover(categoryId, mediaId)
 
     override fun getMediaIdsInCategory(categoryId: Long): Flow<List<Long>> =
         categoryDao.getMediaIdsInCategory(categoryId)

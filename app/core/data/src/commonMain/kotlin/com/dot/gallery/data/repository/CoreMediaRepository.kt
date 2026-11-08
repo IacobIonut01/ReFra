@@ -252,6 +252,8 @@ interface CoreMediaRepository {
     suspend fun getAllCategoriesAsync(): List<Category>
     fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>>
     fun getDistinctClassifiedMediaCount(): Flow<Int>
+    /** Live number of photos with a search embedding (the pool categories are matched from). */
+    fun getImageEmbeddingCount(): Flow<Int> = kotlinx.coroutines.flow.flowOf(0)
     fun getCategoryCount(): Flow<Int>
     fun getTopCategories(limit: Int = 10): Flow<List<CategoryWithMediaCount>>
     
@@ -259,6 +261,8 @@ interface CoreMediaRepository {
     suspend fun updateCategoryThreshold(categoryId: Long, threshold: Float)
     suspend fun updateCategoryName(categoryId: Long, name: String)
     suspend fun toggleCategoryPinned(categoryId: Long, isPinned: Boolean)
+    /** Pick [mediaId] as the category cover; null goes back to the best-scored member. */
+    suspend fun updateCategoryCover(categoryId: Long, mediaId: Long?)
     
     // Media-Category associations
     fun getMediaIdsInCategory(categoryId: Long): Flow<List<Long>>
@@ -273,7 +277,7 @@ interface CoreMediaRepository {
     suspend fun initializeDefaultCategories()
     suspend fun resetCategoryData()
 
-    // Video memberships excluded from categorisation (#948)
+    // Video memberships excluded from categorisation
     suspend fun getVideoCategoryMembershipCount(): Int
     suspend fun deleteVideoCategoryMemberships(): Int
 

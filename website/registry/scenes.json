@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-18T22:27:58.143Z",
-  "capturedAtMs": 1792362102859,
+  "generatedAt": "2026-11-07T21:30:58.416Z",
+  "capturedAtMs": 1794087057750,
   "sources": [
     "../docs-out",
     "../app/docs/showcase/src/commonMain/kotlin/com/dot/gallery/docs/SceneRegistry.kt"
@@ -255,6 +255,7 @@
       ],
       "states": [
         "filled",
+        "scrolled",
         "empty"
       ],
       "presentation": "screen",
@@ -268,8 +269,8 @@
             "src": "captures/browse-favorites/light/phone-empty.webp",
             "type": "image",
             "file": "browse-favorites/light/phone-empty.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -277,8 +278,17 @@
             "src": "captures/browse-favorites/light/phone-filled.webp",
             "type": "image",
             "file": "browse-favorites/light/phone-filled.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/browse-favorites/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "browse-favorites/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -286,8 +296,8 @@
             "src": "captures/browse-favorites/light/phone-filled.webp",
             "type": "image",
             "file": "browse-favorites/light/phone-filled.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -296,12 +306,30 @@
       "themes": {
         "dark": {
           "phone": {
+            "empty": {
+              "src": "captures/browse-favorites/dark/phone-empty.webp",
+              "type": "image",
+              "file": "browse-favorites/dark/phone-empty.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
             "filled": {
               "src": "captures/browse-favorites/dark/phone-filled.webp",
               "type": "image",
               "file": "browse-favorites/dark/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/browse-favorites/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "browse-favorites/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -309,8 +337,8 @@
               "src": "captures/browse-favorites/dark/phone-filled.webp",
               "type": "image",
               "file": "browse-favorites/dark/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -322,8 +350,8 @@
               "src": "captures/browse-favorites/light/phone-empty.webp",
               "type": "image",
               "file": "browse-favorites/light/phone-empty.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -331,8 +359,17 @@
               "src": "captures/browse-favorites/light/phone-filled.webp",
               "type": "image",
               "file": "browse-favorites/light/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/browse-favorites/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "browse-favorites/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -340,8 +377,8 @@
               "src": "captures/browse-favorites/light/phone-filled.webp",
               "type": "image",
               "file": "browse-favorites/light/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -608,6 +645,7 @@
       ],
       "states": [
         "filled",
+        "scrolled",
         "empty"
       ],
       "presentation": "screen",
@@ -621,8 +659,8 @@
             "src": "captures/browse-trash/light/phone-empty.webp",
             "type": "image",
             "file": "browse-trash/light/phone-empty.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -630,8 +668,17 @@
             "src": "captures/browse-trash/light/phone-filled.webp",
             "type": "image",
             "file": "browse-trash/light/phone-filled.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/browse-trash/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "browse-trash/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -639,22 +686,62 @@
             "src": "captures/browse-trash/light/phone-filled.webp",
             "type": "image",
             "file": "browse-trash/light/phone-filled.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "empty": {
+              "src": "captures/browse-trash/dark/phone-empty.webp",
+              "type": "image",
+              "file": "browse-trash/dark/phone-empty.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "filled": {
+              "src": "captures/browse-trash/dark/phone-filled.webp",
+              "type": "image",
+              "file": "browse-trash/dark/phone-filled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/browse-trash/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "browse-trash/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/browse-trash/dark/phone-filled.webp",
+              "type": "image",
+              "file": "browse-trash/dark/phone-filled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "empty": {
               "src": "captures/browse-trash/light/phone-empty.webp",
               "type": "image",
               "file": "browse-trash/light/phone-empty.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -662,8 +749,17 @@
               "src": "captures/browse-trash/light/phone-filled.webp",
               "type": "image",
               "file": "browse-trash/light/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/browse-trash/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "browse-trash/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -671,8 +767,8 @@
               "src": "captures/browse-trash/light/phone-filled.webp",
               "type": "image",
               "file": "browse-trash/light/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1005,7 +1101,8 @@
       "states": [
         "overview",
         "syncing",
-        "downloads"
+        "downloads",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -1018,8 +1115,8 @@
             "src": "captures/cloud-account-settings/light/phone-downloads.webp",
             "type": "image",
             "file": "cloud-account-settings/light/phone-downloads.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1027,8 +1124,17 @@
             "src": "captures/cloud-account-settings/light/phone-overview.webp",
             "type": "image",
             "file": "cloud-account-settings/light/phone-overview.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/cloud-account-settings/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "cloud-account-settings/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1036,8 +1142,8 @@
             "src": "captures/cloud-account-settings/light/phone-syncing.webp",
             "type": "image",
             "file": "cloud-account-settings/light/phone-syncing.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1045,8 +1151,8 @@
             "src": "captures/cloud-account-settings/light/phone-overview.webp",
             "type": "image",
             "file": "cloud-account-settings/light/phone-overview.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -1055,12 +1161,39 @@
       "themes": {
         "dark": {
           "phone": {
+            "downloads": {
+              "src": "captures/cloud-account-settings/dark/phone-downloads.webp",
+              "type": "image",
+              "file": "cloud-account-settings/dark/phone-downloads.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
             "overview": {
               "src": "captures/cloud-account-settings/dark/phone-overview.webp",
               "type": "image",
               "file": "cloud-account-settings/dark/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-account-settings/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-account-settings/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "syncing": {
+              "src": "captures/cloud-account-settings/dark/phone-syncing.webp",
+              "type": "image",
+              "file": "cloud-account-settings/dark/phone-syncing.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1068,8 +1201,8 @@
               "src": "captures/cloud-account-settings/dark/phone-overview.webp",
               "type": "image",
               "file": "cloud-account-settings/dark/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1081,8 +1214,8 @@
               "src": "captures/cloud-account-settings/light/phone-downloads.webp",
               "type": "image",
               "file": "cloud-account-settings/light/phone-downloads.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1090,8 +1223,17 @@
               "src": "captures/cloud-account-settings/light/phone-overview.webp",
               "type": "image",
               "file": "cloud-account-settings/light/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-account-settings/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-account-settings/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1099,8 +1241,8 @@
               "src": "captures/cloud-account-settings/light/phone-syncing.webp",
               "type": "image",
               "file": "cloud-account-settings/light/phone-syncing.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1108,8 +1250,8 @@
               "src": "captures/cloud-account-settings/light/phone-overview.webp",
               "type": "image",
               "file": "cloud-account-settings/light/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1127,7 +1269,8 @@
       "states": [
         "empty",
         "connected",
-        "error"
+        "error",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -1140,8 +1283,8 @@
             "src": "captures/cloud-accounts/light/phone-connected.webp",
             "type": "image",
             "file": "cloud-accounts/light/phone-connected.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1149,8 +1292,8 @@
             "src": "captures/cloud-accounts/light/phone-empty.webp",
             "type": "image",
             "file": "cloud-accounts/light/phone-empty.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1158,8 +1301,17 @@
             "src": "captures/cloud-accounts/light/phone-error.webp",
             "type": "image",
             "file": "cloud-accounts/light/phone-error.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/cloud-accounts/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "cloud-accounts/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1167,8 +1319,8 @@
             "src": "captures/cloud-accounts/light/phone-empty.webp",
             "type": "image",
             "file": "cloud-accounts/light/phone-empty.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -1181,17 +1333,44 @@
               "src": "captures/cloud-accounts/dark/phone-connected.webp",
               "type": "image",
               "file": "cloud-accounts/dark/phone-connected.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "empty": {
+              "src": "captures/cloud-accounts/dark/phone-empty.webp",
+              "type": "image",
+              "file": "cloud-accounts/dark/phone-empty.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "error": {
+              "src": "captures/cloud-accounts/dark/phone-error.webp",
+              "type": "image",
+              "file": "cloud-accounts/dark/phone-error.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-accounts/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-accounts/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
             "default": {
-              "src": "captures/cloud-accounts/dark/phone-connected.webp",
+              "src": "captures/cloud-accounts/dark/phone-empty.webp",
               "type": "image",
-              "file": "cloud-accounts/dark/phone-connected.webp",
-              "width": 1236,
-              "height": 2745,
+              "file": "cloud-accounts/dark/phone-empty.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1203,8 +1382,8 @@
               "src": "captures/cloud-accounts/light/phone-connected.webp",
               "type": "image",
               "file": "cloud-accounts/light/phone-connected.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1212,8 +1391,8 @@
               "src": "captures/cloud-accounts/light/phone-empty.webp",
               "type": "image",
               "file": "cloud-accounts/light/phone-empty.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1221,8 +1400,17 @@
               "src": "captures/cloud-accounts/light/phone-error.webp",
               "type": "image",
               "file": "cloud-accounts/light/phone-error.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-accounts/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-accounts/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1230,8 +1418,8 @@
               "src": "captures/cloud-accounts/light/phone-empty.webp",
               "type": "image",
               "file": "cloud-accounts/light/phone-empty.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1263,8 +1451,8 @@
             "src": "captures/cloud-advanced-options/light/phone-normal.webp",
             "type": "image",
             "file": "cloud-advanced-options/light/phone-normal.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1272,8 +1460,8 @@
             "src": "captures/cloud-advanced-options/light/phone-read-only.webp",
             "type": "image",
             "file": "cloud-advanced-options/light/phone-read-only.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1281,22 +1469,53 @@
             "src": "captures/cloud-advanced-options/light/phone-normal.webp",
             "type": "image",
             "file": "cloud-advanced-options/light/phone-normal.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "normal": {
+              "src": "captures/cloud-advanced-options/dark/phone-normal.webp",
+              "type": "image",
+              "file": "cloud-advanced-options/dark/phone-normal.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "read-only": {
+              "src": "captures/cloud-advanced-options/dark/phone-read-only.webp",
+              "type": "image",
+              "file": "cloud-advanced-options/dark/phone-read-only.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-advanced-options/dark/phone-normal.webp",
+              "type": "image",
+              "file": "cloud-advanced-options/dark/phone-normal.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "normal": {
               "src": "captures/cloud-advanced-options/light/phone-normal.webp",
               "type": "image",
               "file": "cloud-advanced-options/light/phone-normal.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1304,8 +1523,8 @@
               "src": "captures/cloud-advanced-options/light/phone-read-only.webp",
               "type": "image",
               "file": "cloud-advanced-options/light/phone-read-only.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1313,8 +1532,8 @@
               "src": "captures/cloud-advanced-options/light/phone-normal.webp",
               "type": "image",
               "file": "cloud-advanced-options/light/phone-normal.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1371,7 +1590,10 @@
         "Library",
         "Archive"
       ],
-      "states": [],
+      "states": [
+        "filled",
+        "scrolled"
+      ],
       "presentation": "screen",
       "widthDp": 412,
       "heightDp": 915,
@@ -1387,10 +1609,59 @@
             "height": 2745,
             "widthDp": 412,
             "heightDp": 915
+          },
+          "filled": {
+            "src": "captures/cloud-archive/light/phone-filled.webp",
+            "type": "image",
+            "file": "cloud-archive/light/phone-filled.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/cloud-archive/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "cloud-archive/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "filled": {
+              "src": "captures/cloud-archive/dark/phone-filled.webp",
+              "type": "image",
+              "file": "cloud-archive/dark/phone-filled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-archive/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-archive/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-archive/dark/phone-filled.webp",
+              "type": "image",
+              "file": "cloud-archive/dark/phone-filled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "default": {
@@ -1399,6 +1670,24 @@
               "file": "cloud-archive/light/phone-default.webp",
               "width": 1236,
               "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "filled": {
+              "src": "captures/cloud-archive/light/phone-filled.webp",
+              "type": "image",
+              "file": "cloud-archive/light/phone-filled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-archive/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-archive/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1416,7 +1705,8 @@
       "states": [
         "overview",
         "uploading",
-        "indexing"
+        "indexing",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -1429,8 +1719,8 @@
             "src": "captures/cloud-backup-dashboard/light/phone-indexing.webp",
             "type": "image",
             "file": "cloud-backup-dashboard/light/phone-indexing.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1438,8 +1728,17 @@
             "src": "captures/cloud-backup-dashboard/light/phone-overview.webp",
             "type": "image",
             "file": "cloud-backup-dashboard/light/phone-overview.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/cloud-backup-dashboard/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "cloud-backup-dashboard/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1447,8 +1746,8 @@
             "src": "captures/cloud-backup-dashboard/light/phone-uploading.webp",
             "type": "image",
             "file": "cloud-backup-dashboard/light/phone-uploading.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1456,8 +1755,8 @@
             "src": "captures/cloud-backup-dashboard/light/phone-overview.webp",
             "type": "image",
             "file": "cloud-backup-dashboard/light/phone-overview.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -1466,12 +1765,39 @@
       "themes": {
         "dark": {
           "phone": {
+            "indexing": {
+              "src": "captures/cloud-backup-dashboard/dark/phone-indexing.webp",
+              "type": "image",
+              "file": "cloud-backup-dashboard/dark/phone-indexing.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
             "overview": {
               "src": "captures/cloud-backup-dashboard/dark/phone-overview.webp",
               "type": "image",
               "file": "cloud-backup-dashboard/dark/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-backup-dashboard/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-backup-dashboard/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "uploading": {
+              "src": "captures/cloud-backup-dashboard/dark/phone-uploading.webp",
+              "type": "image",
+              "file": "cloud-backup-dashboard/dark/phone-uploading.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1479,8 +1805,8 @@
               "src": "captures/cloud-backup-dashboard/dark/phone-overview.webp",
               "type": "image",
               "file": "cloud-backup-dashboard/dark/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1492,8 +1818,8 @@
               "src": "captures/cloud-backup-dashboard/light/phone-indexing.webp",
               "type": "image",
               "file": "cloud-backup-dashboard/light/phone-indexing.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1501,8 +1827,17 @@
               "src": "captures/cloud-backup-dashboard/light/phone-overview.webp",
               "type": "image",
               "file": "cloud-backup-dashboard/light/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-backup-dashboard/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-backup-dashboard/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1510,8 +1845,8 @@
               "src": "captures/cloud-backup-dashboard/light/phone-uploading.webp",
               "type": "image",
               "file": "cloud-backup-dashboard/light/phone-uploading.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1519,8 +1854,8 @@
               "src": "captures/cloud-backup-dashboard/light/phone-overview.webp",
               "type": "image",
               "file": "cloud-backup-dashboard/light/phone-overview.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1551,8 +1886,8 @@
             "src": "captures/cloud-backup-options/light/phone-folders.webp",
             "type": "image",
             "file": "cloud-backup-options/light/phone-folders.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1560,8 +1895,8 @@
             "src": "captures/cloud-backup-options/light/phone-immich.webp",
             "type": "image",
             "file": "cloud-backup-options/light/phone-immich.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1569,22 +1904,53 @@
             "src": "captures/cloud-backup-options/light/phone-immich.webp",
             "type": "image",
             "file": "cloud-backup-options/light/phone-immich.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "folders": {
+              "src": "captures/cloud-backup-options/dark/phone-folders.webp",
+              "type": "image",
+              "file": "cloud-backup-options/dark/phone-folders.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "immich": {
+              "src": "captures/cloud-backup-options/dark/phone-immich.webp",
+              "type": "image",
+              "file": "cloud-backup-options/dark/phone-immich.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-backup-options/dark/phone-immich.webp",
+              "type": "image",
+              "file": "cloud-backup-options/dark/phone-immich.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "folders": {
               "src": "captures/cloud-backup-options/light/phone-folders.webp",
               "type": "image",
               "file": "cloud-backup-options/light/phone-folders.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1592,8 +1958,8 @@
               "src": "captures/cloud-backup-options/light/phone-immich.webp",
               "type": "image",
               "file": "cloud-backup-options/light/phone-immich.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1601,8 +1967,8 @@
               "src": "captures/cloud-backup-options/light/phone-immich.webp",
               "type": "image",
               "file": "cloud-backup-options/light/phone-immich.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1634,8 +2000,8 @@
             "src": "captures/cloud-destinations/light/phone-accounts.webp",
             "type": "image",
             "file": "cloud-destinations/light/phone-accounts.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1643,8 +2009,8 @@
             "src": "captures/cloud-destinations/light/phone-choose-clouds.webp",
             "type": "image",
             "file": "cloud-destinations/light/phone-choose-clouds.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1652,8 +2018,8 @@
             "src": "captures/cloud-destinations/light/phone-single-account.webp",
             "type": "image",
             "file": "cloud-destinations/light/phone-single-account.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1661,22 +2027,62 @@
             "src": "captures/cloud-destinations/light/phone-accounts.webp",
             "type": "image",
             "file": "cloud-destinations/light/phone-accounts.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "accounts": {
+              "src": "captures/cloud-destinations/dark/phone-accounts.webp",
+              "type": "image",
+              "file": "cloud-destinations/dark/phone-accounts.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "choose-clouds": {
+              "src": "captures/cloud-destinations/dark/phone-choose-clouds.webp",
+              "type": "image",
+              "file": "cloud-destinations/dark/phone-choose-clouds.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "single-account": {
+              "src": "captures/cloud-destinations/dark/phone-single-account.webp",
+              "type": "image",
+              "file": "cloud-destinations/dark/phone-single-account.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-destinations/dark/phone-accounts.webp",
+              "type": "image",
+              "file": "cloud-destinations/dark/phone-accounts.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "accounts": {
               "src": "captures/cloud-destinations/light/phone-accounts.webp",
               "type": "image",
               "file": "cloud-destinations/light/phone-accounts.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1684,8 +2090,8 @@
               "src": "captures/cloud-destinations/light/phone-choose-clouds.webp",
               "type": "image",
               "file": "cloud-destinations/light/phone-choose-clouds.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1693,8 +2099,8 @@
               "src": "captures/cloud-destinations/light/phone-single-account.webp",
               "type": "image",
               "file": "cloud-destinations/light/phone-single-account.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1702,8 +2108,8 @@
               "src": "captures/cloud-destinations/light/phone-accounts.webp",
               "type": "image",
               "file": "cloud-destinations/light/phone-accounts.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1824,7 +2230,8 @@
       ],
       "states": [
         "local",
-        "external"
+        "external",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -1837,8 +2244,8 @@
             "src": "captures/cloud-network-options/light/phone-external.webp",
             "type": "image",
             "file": "cloud-network-options/light/phone-external.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1846,8 +2253,17 @@
             "src": "captures/cloud-network-options/light/phone-local.webp",
             "type": "image",
             "file": "cloud-network-options/light/phone-local.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/cloud-network-options/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "cloud-network-options/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -1855,22 +2271,62 @@
             "src": "captures/cloud-network-options/light/phone-local.webp",
             "type": "image",
             "file": "cloud-network-options/light/phone-local.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "external": {
+              "src": "captures/cloud-network-options/dark/phone-external.webp",
+              "type": "image",
+              "file": "cloud-network-options/dark/phone-external.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "local": {
+              "src": "captures/cloud-network-options/dark/phone-local.webp",
+              "type": "image",
+              "file": "cloud-network-options/dark/phone-local.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-network-options/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-network-options/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-network-options/dark/phone-local.webp",
+              "type": "image",
+              "file": "cloud-network-options/dark/phone-local.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "external": {
               "src": "captures/cloud-network-options/light/phone-external.webp",
               "type": "image",
               "file": "cloud-network-options/light/phone-external.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1878,8 +2334,17 @@
               "src": "captures/cloud-network-options/light/phone-local.webp",
               "type": "image",
               "file": "cloud-network-options/light/phone-local.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/cloud-network-options/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-network-options/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -1887,8 +2352,8 @@
               "src": "captures/cloud-network-options/light/phone-local.webp",
               "type": "image",
               "file": "cloud-network-options/light/phone-local.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1905,10 +2370,13 @@
         "Home photos",
         "Notifications"
       ],
-      "states": [],
+      "states": [
+        "default",
+        "scrolled"
+      ],
       "presentation": "component",
       "widthDp": 412,
-      "heightDp": 480,
+      "heightDp": 540,
       "live": false,
       "fidelity": "capture",
       "assets": {
@@ -1917,24 +2385,64 @@
             "src": "captures/cloud-notification-options/light/phone-default.webp",
             "type": "image",
             "file": "cloud-notification-options/light/phone-default.webp",
-            "width": 1236,
-            "height": 1440,
+            "width": 1004,
+            "height": 1316,
             "widthDp": 412,
-            "heightDp": 480
+            "heightDp": 540
+          },
+          "scrolled": {
+            "src": "captures/cloud-notification-options/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "cloud-notification-options/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 1316,
+            "widthDp": 412,
+            "heightDp": 540
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "default": {
+              "src": "captures/cloud-notification-options/dark/phone-default.webp",
+              "type": "image",
+              "file": "cloud-notification-options/dark/phone-default.webp",
+              "width": 1004,
+              "height": 1316,
+              "widthDp": 412,
+              "heightDp": 540
+            },
+            "scrolled": {
+              "src": "captures/cloud-notification-options/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-notification-options/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 1316,
+              "widthDp": 412,
+              "heightDp": 540
+            }
+          }
+        },
         "light": {
           "phone": {
             "default": {
               "src": "captures/cloud-notification-options/light/phone-default.webp",
               "type": "image",
               "file": "cloud-notification-options/light/phone-default.webp",
-              "width": 1236,
-              "height": 1440,
+              "width": 1004,
+              "height": 1316,
               "widthDp": 412,
-              "heightDp": 480
+              "heightDp": 540
+            },
+            "scrolled": {
+              "src": "captures/cloud-notification-options/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-notification-options/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 1316,
+              "widthDp": 412,
+              "heightDp": 540
             }
           }
         }
@@ -2084,8 +2592,8 @@
             "src": "captures/cloud-setup-immich/light/phone-credentials.webp",
             "type": "image",
             "file": "cloud-setup-immich/light/phone-credentials.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2093,8 +2601,8 @@
             "src": "captures/cloud-setup-immich/light/phone-review.webp",
             "type": "image",
             "file": "cloud-setup-immich/light/phone-review.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2102,8 +2610,8 @@
             "src": "captures/cloud-setup-immich/light/phone-server.webp",
             "type": "image",
             "file": "cloud-setup-immich/light/phone-server.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2111,22 +2619,62 @@
             "src": "captures/cloud-setup-immich/light/phone-server.webp",
             "type": "image",
             "file": "cloud-setup-immich/light/phone-server.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "credentials": {
+              "src": "captures/cloud-setup-immich/dark/phone-credentials.webp",
+              "type": "image",
+              "file": "cloud-setup-immich/dark/phone-credentials.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "review": {
+              "src": "captures/cloud-setup-immich/dark/phone-review.webp",
+              "type": "image",
+              "file": "cloud-setup-immich/dark/phone-review.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "server": {
+              "src": "captures/cloud-setup-immich/dark/phone-server.webp",
+              "type": "image",
+              "file": "cloud-setup-immich/dark/phone-server.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-setup-immich/dark/phone-server.webp",
+              "type": "image",
+              "file": "cloud-setup-immich/dark/phone-server.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "credentials": {
               "src": "captures/cloud-setup-immich/light/phone-credentials.webp",
               "type": "image",
               "file": "cloud-setup-immich/light/phone-credentials.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2134,8 +2682,8 @@
               "src": "captures/cloud-setup-immich/light/phone-review.webp",
               "type": "image",
               "file": "cloud-setup-immich/light/phone-review.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2143,8 +2691,8 @@
               "src": "captures/cloud-setup-immich/light/phone-server.webp",
               "type": "image",
               "file": "cloud-setup-immich/light/phone-server.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2152,8 +2700,8 @@
               "src": "captures/cloud-setup-immich/light/phone-server.webp",
               "type": "image",
               "file": "cloud-setup-immich/light/phone-server.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -2770,8 +3318,8 @@
             "src": "captures/cloud-shared-links/light/phone-edit.webp",
             "type": "image",
             "file": "cloud-shared-links/light/phone-edit.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2779,8 +3327,8 @@
             "src": "captures/cloud-shared-links/light/phone-list.webp",
             "type": "image",
             "file": "cloud-shared-links/light/phone-list.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2788,22 +3336,53 @@
             "src": "captures/cloud-shared-links/light/phone-list.webp",
             "type": "image",
             "file": "cloud-shared-links/light/phone-list.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "edit": {
+              "src": "captures/cloud-shared-links/dark/phone-edit.webp",
+              "type": "image",
+              "file": "cloud-shared-links/dark/phone-edit.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "list": {
+              "src": "captures/cloud-shared-links/dark/phone-list.webp",
+              "type": "image",
+              "file": "cloud-shared-links/dark/phone-list.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-shared-links/dark/phone-list.webp",
+              "type": "image",
+              "file": "cloud-shared-links/dark/phone-list.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "edit": {
               "src": "captures/cloud-shared-links/light/phone-edit.webp",
               "type": "image",
               "file": "cloud-shared-links/light/phone-edit.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2811,8 +3390,8 @@
               "src": "captures/cloud-shared-links/light/phone-list.webp",
               "type": "image",
               "file": "cloud-shared-links/light/phone-list.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2820,52 +3399,8 @@
               "src": "captures/cloud-shared-links/light/phone-list.webp",
               "type": "image",
               "file": "cloud-shared-links/light/phone-list.webp",
-              "width": 1236,
-              "height": 2745,
-              "widthDp": 412,
-              "heightDp": 915
-            }
-          }
-        }
-      }
-    },
-    "cloud-sync-status": {
-      "id": "cloud-sync-status",
-      "title": "Cloud sync status",
-      "path": [
-        "Settings",
-        "Cloud accounts",
-        "Home photos",
-        "Sync status"
-      ],
-      "states": [],
-      "presentation": "screen",
-      "widthDp": 412,
-      "heightDp": 915,
-      "live": false,
-      "fidelity": "capture",
-      "assets": {
-        "phone": {
-          "default": {
-            "src": "captures/cloud-sync-status/light/phone-default.webp",
-            "type": "image",
-            "file": "cloud-sync-status/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
-            "widthDp": 412,
-            "heightDp": 915
-          }
-        }
-      },
-      "themes": {
-        "light": {
-          "phone": {
-            "default": {
-              "src": "captures/cloud-sync-status/light/phone-default.webp",
-              "type": "image",
-              "file": "cloud-sync-status/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -2896,8 +3431,8 @@
             "src": "captures/cloud-upload-details/light/phone-queued.webp",
             "type": "image",
             "file": "cloud-upload-details/light/phone-queued.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2905,8 +3440,8 @@
             "src": "captures/cloud-upload-details/light/phone-uploading.webp",
             "type": "image",
             "file": "cloud-upload-details/light/phone-uploading.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2914,22 +3449,53 @@
             "src": "captures/cloud-upload-details/light/phone-queued.webp",
             "type": "image",
             "file": "cloud-upload-details/light/phone-queued.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "queued": {
+              "src": "captures/cloud-upload-details/dark/phone-queued.webp",
+              "type": "image",
+              "file": "cloud-upload-details/dark/phone-queued.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "uploading": {
+              "src": "captures/cloud-upload-details/dark/phone-uploading.webp",
+              "type": "image",
+              "file": "cloud-upload-details/dark/phone-uploading.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/cloud-upload-details/dark/phone-queued.webp",
+              "type": "image",
+              "file": "cloud-upload-details/dark/phone-queued.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "queued": {
               "src": "captures/cloud-upload-details/light/phone-queued.webp",
               "type": "image",
               "file": "cloud-upload-details/light/phone-queued.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2937,8 +3503,8 @@
               "src": "captures/cloud-upload-details/light/phone-uploading.webp",
               "type": "image",
               "file": "cloud-upload-details/light/phone-uploading.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2946,8 +3512,8 @@
               "src": "captures/cloud-upload-details/light/phone-queued.webp",
               "type": "image",
               "file": "cloud-upload-details/light/phone-queued.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -2964,7 +3530,10 @@
         "Home photos",
         "Viewer"
       ],
-      "states": [],
+      "states": [
+        "default",
+        "scrolled"
+      ],
       "presentation": "component",
       "widthDp": 412,
       "heightDp": 320,
@@ -2976,22 +3545,62 @@
             "src": "captures/cloud-viewer-options/light/phone-default.webp",
             "type": "image",
             "file": "cloud-viewer-options/light/phone-default.webp",
-            "width": 1236,
-            "height": 960,
+            "width": 1004,
+            "height": 780,
+            "widthDp": 412,
+            "heightDp": 320
+          },
+          "scrolled": {
+            "src": "captures/cloud-viewer-options/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "cloud-viewer-options/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 780,
             "widthDp": 412,
             "heightDp": 320
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "default": {
+              "src": "captures/cloud-viewer-options/dark/phone-default.webp",
+              "type": "image",
+              "file": "cloud-viewer-options/dark/phone-default.webp",
+              "width": 1004,
+              "height": 780,
+              "widthDp": 412,
+              "heightDp": 320
+            },
+            "scrolled": {
+              "src": "captures/cloud-viewer-options/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-viewer-options/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 780,
+              "widthDp": 412,
+              "heightDp": 320
+            }
+          }
+        },
         "light": {
           "phone": {
             "default": {
               "src": "captures/cloud-viewer-options/light/phone-default.webp",
               "type": "image",
               "file": "cloud-viewer-options/light/phone-default.webp",
-              "width": 1236,
-              "height": 960,
+              "width": 1004,
+              "height": 780,
+              "widthDp": 412,
+              "heightDp": 320
+            },
+            "scrolled": {
+              "src": "captures/cloud-viewer-options/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "cloud-viewer-options/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 780,
               "widthDp": 412,
               "heightDp": 320
             }
@@ -3009,6 +3618,7 @@
       ],
       "states": [
         "filled",
+        "scrolled",
         "empty"
       ],
       "presentation": "screen",
@@ -3022,8 +3632,8 @@
             "src": "captures/collection-grid/light/phone-empty.webp",
             "type": "image",
             "file": "collection-grid/light/phone-empty.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -3031,8 +3641,17 @@
             "src": "captures/collection-grid/light/phone-filled.webp",
             "type": "image",
             "file": "collection-grid/light/phone-filled.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/collection-grid/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "collection-grid/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -3040,8 +3659,8 @@
             "src": "captures/collection-grid/light/phone-filled.webp",
             "type": "image",
             "file": "collection-grid/light/phone-filled.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -3054,8 +3673,8 @@
               "src": "captures/collection-grid/dark/phone-empty.webp",
               "type": "image",
               "file": "collection-grid/dark/phone-empty.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -3063,8 +3682,17 @@
               "src": "captures/collection-grid/dark/phone-filled.webp",
               "type": "image",
               "file": "collection-grid/dark/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/collection-grid/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "collection-grid/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -3072,8 +3700,8 @@
               "src": "captures/collection-grid/dark/phone-filled.webp",
               "type": "image",
               "file": "collection-grid/dark/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -3085,8 +3713,8 @@
               "src": "captures/collection-grid/light/phone-empty.webp",
               "type": "image",
               "file": "collection-grid/light/phone-empty.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -3094,8 +3722,17 @@
               "src": "captures/collection-grid/light/phone-filled.webp",
               "type": "image",
               "file": "collection-grid/light/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/collection-grid/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "collection-grid/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -3103,8 +3740,8 @@
               "src": "captures/collection-grid/light/phone-filled.webp",
               "type": "image",
               "file": "collection-grid/light/phone-filled.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -3975,7 +4612,10 @@
         "Settings",
         "Help"
       ],
-      "states": [],
+      "states": [
+        "default",
+        "scrolled"
+      ],
       "presentation": "screen",
       "widthDp": 412,
       "heightDp": 915,
@@ -3987,8 +4627,17 @@
             "src": "captures/help-browser/light/phone-default.webp",
             "type": "image",
             "file": "help-browser/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/help-browser/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "help-browser/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -4001,8 +4650,17 @@
               "src": "captures/help-browser/dark/phone-default.webp",
               "type": "image",
               "file": "help-browser/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/help-browser/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "help-browser/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -4014,8 +4672,17 @@
               "src": "captures/help-browser/light/phone-default.webp",
               "type": "image",
               "file": "help-browser/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/help-browser/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "help-browser/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -4042,8 +4709,8 @@
             "src": "captures/ignored-rules/light/phone-default.webp",
             "type": "image",
             "file": "ignored-rules/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -4056,8 +4723,8 @@
               "src": "captures/ignored-rules/dark/phone-default.webp",
               "type": "image",
               "file": "ignored-rules/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -4069,8 +4736,8 @@
               "src": "captures/ignored-rules/light/phone-default.webp",
               "type": "image",
               "file": "ignored-rules/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -4390,6 +5057,119 @@
         }
       }
     },
+    "long-press-action": {
+      "id": "long-press-action",
+      "title": "Long-press action",
+      "path": [
+        "Settings",
+        "Media viewer",
+        "Long-press action"
+      ],
+      "states": [
+        "rotate",
+        "cutout-unavailable"
+      ],
+      "presentation": "screen",
+      "widthDp": 412,
+      "heightDp": 915,
+      "live": false,
+      "fidelity": "capture",
+      "assets": {
+        "phone": {
+          "cutout-unavailable": {
+            "src": "captures/long-press-action/light/phone-cutout-unavailable.webp",
+            "type": "image",
+            "file": "long-press-action/light/phone-cutout-unavailable.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "rotate": {
+            "src": "captures/long-press-action/light/phone-rotate.webp",
+            "type": "image",
+            "file": "long-press-action/light/phone-rotate.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "default": {
+            "src": "captures/long-press-action/light/phone-rotate.webp",
+            "type": "image",
+            "file": "long-press-action/light/phone-rotate.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          }
+        }
+      },
+      "themes": {
+        "dark": {
+          "phone": {
+            "cutout-unavailable": {
+              "src": "captures/long-press-action/dark/phone-cutout-unavailable.webp",
+              "type": "image",
+              "file": "long-press-action/dark/phone-cutout-unavailable.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "rotate": {
+              "src": "captures/long-press-action/dark/phone-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/dark/phone-rotate.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/long-press-action/dark/phone-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/dark/phone-rotate.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
+        "light": {
+          "phone": {
+            "cutout-unavailable": {
+              "src": "captures/long-press-action/light/phone-cutout-unavailable.webp",
+              "type": "image",
+              "file": "long-press-action/light/phone-cutout-unavailable.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "rotate": {
+              "src": "captures/long-press-action/light/phone-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/light/phone-rotate.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/long-press-action/light/phone-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/light/phone-rotate.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        }
+      }
+    },
     "map-locations": {
       "id": "map-locations",
       "title": "Map locations",
@@ -4409,22 +5189,35 @@
             "src": "captures/map-locations/light/phone-default.webp",
             "type": "image",
             "file": "map-locations/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "default": {
+              "src": "captures/map-locations/dark/phone-default.webp",
+              "type": "image",
+              "file": "map-locations/dark/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "default": {
               "src": "captures/map-locations/light/phone-default.webp",
               "type": "image",
               "file": "map-locations/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -5004,8 +5797,8 @@
             "src": "captures/people-browser/light/phone-hidden.webp",
             "type": "image",
             "file": "people-browser/light/phone-hidden.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5013,8 +5806,8 @@
             "src": "captures/people-browser/light/phone-named.webp",
             "type": "image",
             "file": "people-browser/light/phone-named.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5022,8 +5815,8 @@
             "src": "captures/people-browser/light/phone-new.webp",
             "type": "image",
             "file": "people-browser/light/phone-new.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5031,8 +5824,8 @@
             "src": "captures/people-browser/light/phone-scanning.webp",
             "type": "image",
             "file": "people-browser/light/phone-scanning.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5040,8 +5833,8 @@
             "src": "captures/people-browser/light/phone-named.webp",
             "type": "image",
             "file": "people-browser/light/phone-named.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -5050,12 +5843,39 @@
       "themes": {
         "dark": {
           "phone": {
+            "hidden": {
+              "src": "captures/people-browser/dark/phone-hidden.webp",
+              "type": "image",
+              "file": "people-browser/dark/phone-hidden.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
             "named": {
               "src": "captures/people-browser/dark/phone-named.webp",
               "type": "image",
               "file": "people-browser/dark/phone-named.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "new": {
+              "src": "captures/people-browser/dark/phone-new.webp",
+              "type": "image",
+              "file": "people-browser/dark/phone-new.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scanning": {
+              "src": "captures/people-browser/dark/phone-scanning.webp",
+              "type": "image",
+              "file": "people-browser/dark/phone-scanning.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5063,8 +5883,8 @@
               "src": "captures/people-browser/dark/phone-named.webp",
               "type": "image",
               "file": "people-browser/dark/phone-named.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -5076,8 +5896,8 @@
               "src": "captures/people-browser/light/phone-hidden.webp",
               "type": "image",
               "file": "people-browser/light/phone-hidden.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5085,8 +5905,8 @@
               "src": "captures/people-browser/light/phone-named.webp",
               "type": "image",
               "file": "people-browser/light/phone-named.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5094,8 +5914,8 @@
               "src": "captures/people-browser/light/phone-new.webp",
               "type": "image",
               "file": "people-browser/light/phone-new.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5103,8 +5923,8 @@
               "src": "captures/people-browser/light/phone-scanning.webp",
               "type": "image",
               "file": "people-browser/light/phone-scanning.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5112,8 +5932,8 @@
               "src": "captures/people-browser/light/phone-named.webp",
               "type": "image",
               "file": "people-browser/light/phone-named.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -5216,7 +6036,8 @@
       ],
       "states": [
         "default",
-        "selected"
+        "selected",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -5229,8 +6050,17 @@
             "src": "captures/picker-photos/light/phone-default.webp",
             "type": "image",
             "file": "picker-photos/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/picker-photos/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "picker-photos/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5238,8 +6068,8 @@
             "src": "captures/picker-photos/light/phone-selected.webp",
             "type": "image",
             "file": "picker-photos/light/phone-selected.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -5252,8 +6082,17 @@
               "src": "captures/picker-photos/dark/phone-default.webp",
               "type": "image",
               "file": "picker-photos/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/picker-photos/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "picker-photos/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5261,8 +6100,8 @@
               "src": "captures/picker-photos/dark/phone-selected.webp",
               "type": "image",
               "file": "picker-photos/dark/phone-selected.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -5274,8 +6113,17 @@
               "src": "captures/picker-photos/light/phone-default.webp",
               "type": "image",
               "file": "picker-photos/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/picker-photos/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "picker-photos/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5283,8 +6131,8 @@
               "src": "captures/picker-photos/light/phone-selected.webp",
               "type": "image",
               "file": "picker-photos/light/phone-selected.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -5668,8 +6516,8 @@
             "src": "captures/settings-ai-models/light/phone-downloading.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-downloading.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5677,8 +6525,8 @@
             "src": "captures/settings-ai-models/light/phone-not-installed.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-not-installed.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5686,8 +6534,8 @@
             "src": "captures/settings-ai-models/light/phone-ready.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-ready.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5695,8 +6543,8 @@
             "src": "captures/settings-ai-models/light/phone-not-installed.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-not-installed.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -5731,8 +6579,8 @@
               "src": "captures/settings-ai-models/dark/phone-downloading.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-downloading.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5740,8 +6588,8 @@
               "src": "captures/settings-ai-models/dark/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-not-installed.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5749,8 +6597,8 @@
               "src": "captures/settings-ai-models/dark/phone-ready.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-ready.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5758,8 +6606,8 @@
               "src": "captures/settings-ai-models/dark/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-not-installed.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -5793,8 +6641,8 @@
               "src": "captures/settings-ai-models/light/phone-downloading.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-downloading.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5802,8 +6650,8 @@
               "src": "captures/settings-ai-models/light/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-not-installed.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5811,8 +6659,8 @@
               "src": "captures/settings-ai-models/light/phone-ready.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-ready.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5820,8 +6668,8 @@
               "src": "captures/settings-ai-models/light/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-not-installed.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -6076,7 +6924,11 @@
         "Settings",
         "Backup & restore"
       ],
-      "states": [],
+      "states": [
+        "hub",
+        "never",
+        "scrolled"
+      ],
       "presentation": "screen",
       "widthDp": 412,
       "heightDp": 915,
@@ -6095,6 +6947,33 @@
             "src": "captures/settings-backup/phone.webp",
             "type": "image",
             "file": "settings-backup/phone.webp"
+          },
+          "hub": {
+            "src": "captures/settings-backup/light/phone-hub.webp",
+            "type": "image",
+            "file": "settings-backup/light/phone-hub.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "never": {
+            "src": "captures/settings-backup/light/phone-never.webp",
+            "type": "image",
+            "file": "settings-backup/light/phone-never.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/settings-backup/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "settings-backup/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -6116,6 +6995,33 @@
               "height": 2745,
               "widthDp": 412,
               "heightDp": 915
+            },
+            "hub": {
+              "src": "captures/settings-backup/dark/phone-hub.webp",
+              "type": "image",
+              "file": "settings-backup/dark/phone-hub.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "never": {
+              "src": "captures/settings-backup/dark/phone-never.webp",
+              "type": "image",
+              "file": "settings-backup/dark/phone-never.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-backup/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-backup/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           }
         },
@@ -6132,6 +7038,33 @@
               "src": "captures/settings-backup/phone.webp",
               "type": "image",
               "file": "settings-backup/phone.webp"
+            },
+            "hub": {
+              "src": "captures/settings-backup/light/phone-hub.webp",
+              "type": "image",
+              "file": "settings-backup/light/phone-hub.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "never": {
+              "src": "captures/settings-backup/light/phone-never.webp",
+              "type": "image",
+              "file": "settings-backup/light/phone-never.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-backup/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-backup/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -6146,16 +7079,20 @@
     },
     "settings-backup-wizard": {
       "id": "settings-backup-wizard",
-      "title": "Backup import (select)",
+      "title": "Backup wizards",
       "path": [
         "Settings",
         "Backup & restore",
-        "Import"
+        "Create backup"
       ],
       "states": [
-        "full",
-        "partial",
-        "empty"
+        "include",
+        "encrypt",
+        "save",
+        "choose-file",
+        "password",
+        "review",
+        "review-empty"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -6163,139 +7100,231 @@
       "live": true,
       "fidelity": "live",
       "assets": {
-        "foldable": {
-          "empty": {
-            "src": "captures/settings-backup-wizard/foldable-empty.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/foldable-empty.webp"
-          },
-          "full": {
-            "src": "captures/settings-backup-wizard/foldable-full.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/foldable-full.webp"
-          },
-          "partial": {
-            "src": "captures/settings-backup-wizard/foldable-partial.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/foldable-partial.webp"
-          },
-          "default": {
-            "src": "captures/settings-backup-wizard/foldable-full.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/foldable-full.webp"
-          }
-        },
         "phone": {
-          "empty": {
-            "src": "captures/settings-backup-wizard/phone-empty.webp",
+          "choose-file": {
+            "src": "captures/settings-backup-wizard/light/phone-choose-file.webp",
             "type": "image",
-            "file": "settings-backup-wizard/phone-empty.webp"
+            "file": "settings-backup-wizard/light/phone-choose-file.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
-          "full": {
-            "src": "captures/settings-backup-wizard/phone-full.webp",
+          "encrypt": {
+            "src": "captures/settings-backup-wizard/light/phone-encrypt.webp",
             "type": "image",
-            "file": "settings-backup-wizard/phone-full.webp"
+            "file": "settings-backup-wizard/light/phone-encrypt.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
-          "partial": {
-            "src": "captures/settings-backup-wizard/phone-partial.webp",
+          "include": {
+            "src": "captures/settings-backup-wizard/light/phone-include.webp",
             "type": "image",
-            "file": "settings-backup-wizard/phone-partial.webp"
+            "file": "settings-backup-wizard/light/phone-include.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "password": {
+            "src": "captures/settings-backup-wizard/light/phone-password.webp",
+            "type": "image",
+            "file": "settings-backup-wizard/light/phone-password.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "review": {
+            "src": "captures/settings-backup-wizard/light/phone-review.webp",
+            "type": "image",
+            "file": "settings-backup-wizard/light/phone-review.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "review-empty": {
+            "src": "captures/settings-backup-wizard/light/phone-review-empty.webp",
+            "type": "image",
+            "file": "settings-backup-wizard/light/phone-review-empty.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "save": {
+            "src": "captures/settings-backup-wizard/light/phone-save.webp",
+            "type": "image",
+            "file": "settings-backup-wizard/light/phone-save.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "default": {
-            "src": "captures/settings-backup-wizard/phone-full.webp",
+            "src": "captures/settings-backup-wizard/light/phone-include.webp",
             "type": "image",
-            "file": "settings-backup-wizard/phone-full.webp"
-          }
-        },
-        "tablet": {
-          "empty": {
-            "src": "captures/settings-backup-wizard/tablet-empty.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/tablet-empty.webp"
-          },
-          "full": {
-            "src": "captures/settings-backup-wizard/tablet-full.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/tablet-full.webp"
-          },
-          "partial": {
-            "src": "captures/settings-backup-wizard/tablet-partial.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/tablet-partial.webp"
-          },
-          "default": {
-            "src": "captures/settings-backup-wizard/tablet-full.webp",
-            "type": "image",
-            "file": "settings-backup-wizard/tablet-full.webp"
+            "file": "settings-backup-wizard/light/phone-include.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         }
       },
       "themes": {
-        "light": {
-          "foldable": {
-            "empty": {
-              "src": "captures/settings-backup-wizard/foldable-empty.webp",
-              "type": "image",
-              "file": "settings-backup-wizard/foldable-empty.webp"
-            },
-            "full": {
-              "src": "captures/settings-backup-wizard/foldable-full.webp",
-              "type": "image",
-              "file": "settings-backup-wizard/foldable-full.webp"
-            },
-            "partial": {
-              "src": "captures/settings-backup-wizard/foldable-partial.webp",
-              "type": "image",
-              "file": "settings-backup-wizard/foldable-partial.webp"
-            },
-            "default": {
-              "src": "captures/settings-backup-wizard/foldable-full.webp",
-              "type": "image",
-              "file": "settings-backup-wizard/foldable-full.webp"
-            }
-          },
+        "dark": {
           "phone": {
-            "empty": {
-              "src": "captures/settings-backup-wizard/phone-empty.webp",
+            "choose-file": {
+              "src": "captures/settings-backup-wizard/dark/phone-choose-file.webp",
               "type": "image",
-              "file": "settings-backup-wizard/phone-empty.webp"
+              "file": "settings-backup-wizard/dark/phone-choose-file.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
-            "full": {
-              "src": "captures/settings-backup-wizard/phone-full.webp",
+            "encrypt": {
+              "src": "captures/settings-backup-wizard/dark/phone-encrypt.webp",
               "type": "image",
-              "file": "settings-backup-wizard/phone-full.webp"
+              "file": "settings-backup-wizard/dark/phone-encrypt.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
-            "partial": {
-              "src": "captures/settings-backup-wizard/phone-partial.webp",
+            "include": {
+              "src": "captures/settings-backup-wizard/dark/phone-include.webp",
               "type": "image",
-              "file": "settings-backup-wizard/phone-partial.webp"
+              "file": "settings-backup-wizard/dark/phone-include.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "password": {
+              "src": "captures/settings-backup-wizard/dark/phone-password.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/dark/phone-password.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "review": {
+              "src": "captures/settings-backup-wizard/dark/phone-review.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/dark/phone-review.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "review-empty": {
+              "src": "captures/settings-backup-wizard/dark/phone-review-empty.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/dark/phone-review-empty.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "save": {
+              "src": "captures/settings-backup-wizard/dark/phone-save.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/dark/phone-save.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-backup-wizard/phone-full.webp",
+              "src": "captures/settings-backup-wizard/dark/phone-include.webp",
               "type": "image",
-              "file": "settings-backup-wizard/phone-full.webp"
+              "file": "settings-backup-wizard/dark/phone-include.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
-          },
-          "tablet": {
-            "empty": {
-              "src": "captures/settings-backup-wizard/tablet-empty.webp",
+          }
+        },
+        "light": {
+          "phone": {
+            "choose-file": {
+              "src": "captures/settings-backup-wizard/light/phone-choose-file.webp",
               "type": "image",
-              "file": "settings-backup-wizard/tablet-empty.webp"
+              "file": "settings-backup-wizard/light/phone-choose-file.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
-            "full": {
-              "src": "captures/settings-backup-wizard/tablet-full.webp",
+            "encrypt": {
+              "src": "captures/settings-backup-wizard/light/phone-encrypt.webp",
               "type": "image",
-              "file": "settings-backup-wizard/tablet-full.webp"
+              "file": "settings-backup-wizard/light/phone-encrypt.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
-            "partial": {
-              "src": "captures/settings-backup-wizard/tablet-partial.webp",
+            "include": {
+              "src": "captures/settings-backup-wizard/light/phone-include.webp",
               "type": "image",
-              "file": "settings-backup-wizard/tablet-partial.webp"
+              "file": "settings-backup-wizard/light/phone-include.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "password": {
+              "src": "captures/settings-backup-wizard/light/phone-password.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/light/phone-password.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "review": {
+              "src": "captures/settings-backup-wizard/light/phone-review.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/light/phone-review.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "review-empty": {
+              "src": "captures/settings-backup-wizard/light/phone-review-empty.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/light/phone-review-empty.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "save": {
+              "src": "captures/settings-backup-wizard/light/phone-save.webp",
+              "type": "image",
+              "file": "settings-backup-wizard/light/phone-save.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-backup-wizard/tablet-full.webp",
+              "src": "captures/settings-backup-wizard/light/phone-include.webp",
               "type": "image",
-              "file": "settings-backup-wizard/tablet-full.webp"
+              "file": "settings-backup-wizard/light/phone-include.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           }
         }
@@ -6338,19 +7367,31 @@
         },
         "phone": {
           "idle": {
-            "src": "captures/settings-categories/phone-idle.webp",
+            "src": "captures/settings-categories/light/phone-idle.webp",
             "type": "image",
-            "file": "settings-categories/phone-idle.webp"
+            "file": "settings-categories/light/phone-idle.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "scanning": {
-            "src": "captures/settings-categories/phone-scanning.webp",
+            "src": "captures/settings-categories/light/phone-scanning.webp",
             "type": "image",
-            "file": "settings-categories/phone-scanning.webp"
+            "file": "settings-categories/light/phone-scanning.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "default": {
-            "src": "captures/settings-categories/phone-idle.webp",
+            "src": "captures/settings-categories/light/phone-idle.webp",
             "type": "image",
-            "file": "settings-categories/phone-idle.webp"
+            "file": "settings-categories/light/phone-idle.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -6378,8 +7419,8 @@
               "src": "captures/settings-categories/dark/phone-idle.webp",
               "type": "image",
               "file": "settings-categories/dark/phone-idle.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6387,8 +7428,8 @@
               "src": "captures/settings-categories/dark/phone-scanning.webp",
               "type": "image",
               "file": "settings-categories/dark/phone-scanning.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6396,8 +7437,8 @@
               "src": "captures/settings-categories/dark/phone-idle.webp",
               "type": "image",
               "file": "settings-categories/dark/phone-idle.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -6423,19 +7464,31 @@
           },
           "phone": {
             "idle": {
-              "src": "captures/settings-categories/phone-idle.webp",
+              "src": "captures/settings-categories/light/phone-idle.webp",
               "type": "image",
-              "file": "settings-categories/phone-idle.webp"
+              "file": "settings-categories/light/phone-idle.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "scanning": {
-              "src": "captures/settings-categories/phone-scanning.webp",
+              "src": "captures/settings-categories/light/phone-scanning.webp",
               "type": "image",
-              "file": "settings-categories/phone-scanning.webp"
+              "file": "settings-categories/light/phone-scanning.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-categories/phone-idle.webp",
+              "src": "captures/settings-categories/light/phone-idle.webp",
               "type": "image",
-              "file": "settings-categories/phone-idle.webp"
+              "file": "settings-categories/light/phone-idle.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -6663,7 +7716,10 @@
         "Timeline",
         "Date formats"
       ],
-      "states": [],
+      "states": [
+        "default",
+        "scrolled"
+      ],
       "presentation": "screen",
       "widthDp": 412,
       "heightDp": 915,
@@ -6675,8 +7731,17 @@
             "src": "captures/settings-date-formats/light/phone-default.webp",
             "type": "image",
             "file": "settings-date-formats/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/settings-date-formats/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "settings-date-formats/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -6689,8 +7754,17 @@
               "src": "captures/settings-date-formats/dark/phone-default.webp",
               "type": "image",
               "file": "settings-date-formats/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-date-formats/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-date-formats/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -6702,8 +7776,17 @@
               "src": "captures/settings-date-formats/light/phone-default.webp",
               "type": "image",
               "file": "settings-date-formats/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-date-formats/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-date-formats/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -6829,9 +7912,13 @@
         },
         "phone": {
           "default": {
-            "src": "captures/settings-general/phone.webp",
+            "src": "captures/settings-general/light/phone-default.webp",
             "type": "image",
-            "file": "settings-general/phone.webp"
+            "file": "settings-general/light/phone-default.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -6849,8 +7936,8 @@
               "src": "captures/settings-general/dark/phone-default.webp",
               "type": "image",
               "file": "settings-general/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -6866,9 +7953,13 @@
           },
           "phone": {
             "default": {
-              "src": "captures/settings-general/phone.webp",
+              "src": "captures/settings-general/light/phone-default.webp",
               "type": "image",
-              "file": "settings-general/phone.webp"
+              "file": "settings-general/light/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -6890,7 +7981,8 @@
       "states": [
         "banner",
         "banner-dismissed",
-        "developer"
+        "developer",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -6922,24 +8014,49 @@
         },
         "phone": {
           "banner": {
-            "src": "captures/settings-hub/phone-banner.webp",
+            "src": "captures/settings-hub/light/phone-banner.webp",
             "type": "image",
-            "file": "settings-hub/phone-banner.webp"
+            "file": "settings-hub/light/phone-banner.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "banner-dismissed": {
-            "src": "captures/settings-hub/phone-banner-dismissed.webp",
+            "src": "captures/settings-hub/light/phone-banner-dismissed.webp",
             "type": "image",
-            "file": "settings-hub/phone-banner-dismissed.webp"
+            "file": "settings-hub/light/phone-banner-dismissed.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "developer": {
-            "src": "captures/settings-hub/phone-developer.webp",
+            "src": "captures/settings-hub/light/phone-developer.webp",
             "type": "image",
-            "file": "settings-hub/phone-developer.webp"
+            "file": "settings-hub/light/phone-developer.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/settings-hub/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "settings-hub/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "default": {
-            "src": "captures/settings-hub/phone-banner.webp",
+            "src": "captures/settings-hub/light/phone-banner.webp",
             "type": "image",
-            "file": "settings-hub/phone-banner.webp"
+            "file": "settings-hub/light/phone-banner.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -6972,8 +8089,8 @@
               "src": "captures/settings-hub/dark/phone-banner.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-banner.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6981,8 +8098,8 @@
               "src": "captures/settings-hub/dark/phone-banner-dismissed.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-banner-dismissed.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6990,8 +8107,17 @@
               "src": "captures/settings-hub/dark/phone-developer.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-developer.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-hub/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-hub/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6999,8 +8125,8 @@
               "src": "captures/settings-hub/dark/phone-banner.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-banner.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -7031,24 +8157,49 @@
           },
           "phone": {
             "banner": {
-              "src": "captures/settings-hub/phone-banner.webp",
+              "src": "captures/settings-hub/light/phone-banner.webp",
               "type": "image",
-              "file": "settings-hub/phone-banner.webp"
+              "file": "settings-hub/light/phone-banner.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "banner-dismissed": {
-              "src": "captures/settings-hub/phone-banner-dismissed.webp",
+              "src": "captures/settings-hub/light/phone-banner-dismissed.webp",
               "type": "image",
-              "file": "settings-hub/phone-banner-dismissed.webp"
+              "file": "settings-hub/light/phone-banner-dismissed.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "developer": {
-              "src": "captures/settings-hub/phone-developer.webp",
+              "src": "captures/settings-hub/light/phone-developer.webp",
               "type": "image",
-              "file": "settings-hub/phone-developer.webp"
+              "file": "settings-hub/light/phone-developer.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-hub/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-hub/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-hub/phone-banner.webp",
+              "src": "captures/settings-hub/light/phone-banner.webp",
               "type": "image",
-              "file": "settings-hub/phone-banner.webp"
+              "file": "settings-hub/light/phone-banner.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -7325,14 +8476,22 @@
         },
         "phone": {
           "default": {
-            "src": "captures/settings-media-viewer/phone-default.webp",
+            "src": "captures/settings-media-viewer/light/phone-default.webp",
             "type": "image",
-            "file": "settings-media-viewer/phone-default.webp"
+            "file": "settings-media-viewer/light/phone-default.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "no-visual-search": {
-            "src": "captures/settings-media-viewer/phone-no-visual-search.webp",
+            "src": "captures/settings-media-viewer/light/phone-no-visual-search.webp",
             "type": "image",
-            "file": "settings-media-viewer/phone-no-visual-search.webp"
+            "file": "settings-media-viewer/light/phone-no-visual-search.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -7355,8 +8514,8 @@
               "src": "captures/settings-media-viewer/dark/phone-default.webp",
               "type": "image",
               "file": "settings-media-viewer/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -7364,8 +8523,8 @@
               "src": "captures/settings-media-viewer/dark/phone-no-visual-search.webp",
               "type": "image",
               "file": "settings-media-viewer/dark/phone-no-visual-search.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -7386,14 +8545,22 @@
           },
           "phone": {
             "default": {
-              "src": "captures/settings-media-viewer/phone-default.webp",
+              "src": "captures/settings-media-viewer/light/phone-default.webp",
               "type": "image",
-              "file": "settings-media-viewer/phone-default.webp"
+              "file": "settings-media-viewer/light/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "no-visual-search": {
-              "src": "captures/settings-media-viewer/phone-no-visual-search.webp",
+              "src": "captures/settings-media-viewer/light/phone-no-visual-search.webp",
               "type": "image",
-              "file": "settings-media-viewer/phone-no-visual-search.webp"
+              "file": "settings-media-viewer/light/phone-no-visual-search.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -7434,9 +8601,13 @@
         },
         "phone": {
           "default": {
-            "src": "captures/settings-navigation/phone.webp",
+            "src": "captures/settings-navigation/light/phone-default.webp",
             "type": "image",
-            "file": "settings-navigation/phone.webp"
+            "file": "settings-navigation/light/phone-default.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -7454,8 +8625,8 @@
               "src": "captures/settings-navigation/dark/phone-default.webp",
               "type": "image",
               "file": "settings-navigation/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -7471,9 +8642,13 @@
           },
           "phone": {
             "default": {
-              "src": "captures/settings-navigation/phone.webp",
+              "src": "captures/settings-navigation/light/phone-default.webp",
               "type": "image",
-              "file": "settings-navigation/phone.webp"
+              "file": "settings-navigation/light/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -7497,7 +8672,8 @@
       "states": [
         "none",
         "configured",
-        "saf-uri"
+        "saf-uri",
+        "how-it-works"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -7529,24 +8705,49 @@
         },
         "phone": {
           "configured": {
-            "src": "captures/settings-private-folder/phone-configured.webp",
+            "src": "captures/settings-private-folder/light/phone-configured.webp",
             "type": "image",
-            "file": "settings-private-folder/phone-configured.webp"
+            "file": "settings-private-folder/light/phone-configured.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "how-it-works": {
+            "src": "captures/settings-private-folder/light/phone-how-it-works.webp",
+            "type": "image",
+            "file": "settings-private-folder/light/phone-how-it-works.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "none": {
-            "src": "captures/settings-private-folder/phone-none.webp",
+            "src": "captures/settings-private-folder/light/phone-none.webp",
             "type": "image",
-            "file": "settings-private-folder/phone-none.webp"
+            "file": "settings-private-folder/light/phone-none.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "saf-uri": {
-            "src": "captures/settings-private-folder/phone-saf-uri.webp",
+            "src": "captures/settings-private-folder/light/phone-saf-uri.webp",
             "type": "image",
-            "file": "settings-private-folder/phone-saf-uri.webp"
+            "file": "settings-private-folder/light/phone-saf-uri.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "default": {
-            "src": "captures/settings-private-folder/phone-none.webp",
+            "src": "captures/settings-private-folder/light/phone-none.webp",
             "type": "image",
-            "file": "settings-private-folder/phone-none.webp"
+            "file": "settings-private-folder/light/phone-none.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -7579,8 +8780,17 @@
               "src": "captures/settings-private-folder/dark/phone-configured.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-configured.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "how-it-works": {
+              "src": "captures/settings-private-folder/dark/phone-how-it-works.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/phone-how-it-works.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -7588,8 +8798,8 @@
               "src": "captures/settings-private-folder/dark/phone-none.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-none.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -7597,8 +8807,8 @@
               "src": "captures/settings-private-folder/dark/phone-saf-uri.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-saf-uri.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -7606,8 +8816,8 @@
               "src": "captures/settings-private-folder/dark/phone-none.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-none.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -7638,24 +8848,49 @@
           },
           "phone": {
             "configured": {
-              "src": "captures/settings-private-folder/phone-configured.webp",
+              "src": "captures/settings-private-folder/light/phone-configured.webp",
               "type": "image",
-              "file": "settings-private-folder/phone-configured.webp"
+              "file": "settings-private-folder/light/phone-configured.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "how-it-works": {
+              "src": "captures/settings-private-folder/light/phone-how-it-works.webp",
+              "type": "image",
+              "file": "settings-private-folder/light/phone-how-it-works.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "none": {
-              "src": "captures/settings-private-folder/phone-none.webp",
+              "src": "captures/settings-private-folder/light/phone-none.webp",
               "type": "image",
-              "file": "settings-private-folder/phone-none.webp"
+              "file": "settings-private-folder/light/phone-none.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "saf-uri": {
-              "src": "captures/settings-private-folder/phone-saf-uri.webp",
+              "src": "captures/settings-private-folder/light/phone-saf-uri.webp",
               "type": "image",
-              "file": "settings-private-folder/phone-saf-uri.webp"
+              "file": "settings-private-folder/light/phone-saf-uri.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-private-folder/phone-none.webp",
+              "src": "captures/settings-private-folder/light/phone-none.webp",
               "type": "image",
-              "file": "settings-private-folder/phone-none.webp"
+              "file": "settings-private-folder/light/phone-none.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -7693,7 +8928,8 @@
       ],
       "states": [
         "configured",
-        "blank"
+        "blank",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -7706,8 +8942,8 @@
             "src": "captures/settings-remote-inference/light/phone-blank.webp",
             "type": "image",
             "file": "settings-remote-inference/light/phone-blank.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -7715,8 +8951,17 @@
             "src": "captures/settings-remote-inference/light/phone-configured.webp",
             "type": "image",
             "file": "settings-remote-inference/light/phone-configured.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/settings-remote-inference/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "settings-remote-inference/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -7724,22 +8969,62 @@
             "src": "captures/settings-remote-inference/light/phone-configured.webp",
             "type": "image",
             "file": "settings-remote-inference/light/phone-configured.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "blank": {
+              "src": "captures/settings-remote-inference/dark/phone-blank.webp",
+              "type": "image",
+              "file": "settings-remote-inference/dark/phone-blank.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "configured": {
+              "src": "captures/settings-remote-inference/dark/phone-configured.webp",
+              "type": "image",
+              "file": "settings-remote-inference/dark/phone-configured.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-remote-inference/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-remote-inference/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/settings-remote-inference/dark/phone-configured.webp",
+              "type": "image",
+              "file": "settings-remote-inference/dark/phone-configured.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "blank": {
               "src": "captures/settings-remote-inference/light/phone-blank.webp",
               "type": "image",
               "file": "settings-remote-inference/light/phone-blank.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -7747,8 +9032,17 @@
               "src": "captures/settings-remote-inference/light/phone-configured.webp",
               "type": "image",
               "file": "settings-remote-inference/light/phone-configured.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-remote-inference/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-remote-inference/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -7756,8 +9050,8 @@
               "src": "captures/settings-remote-inference/light/phone-configured.webp",
               "type": "image",
               "file": "settings-remote-inference/light/phone-configured.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -7796,14 +9090,22 @@
         },
         "phone": {
           "aapm": {
-            "src": "captures/settings-security/phone-aapm.webp",
+            "src": "captures/settings-security/light/phone-aapm.webp",
             "type": "image",
-            "file": "settings-security/phone-aapm.webp"
+            "file": "settings-security/light/phone-aapm.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "default": {
-            "src": "captures/settings-security/phone-default.webp",
+            "src": "captures/settings-security/light/phone-default.webp",
             "type": "image",
-            "file": "settings-security/phone-default.webp"
+            "file": "settings-security/light/phone-default.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -7826,8 +9128,8 @@
               "src": "captures/settings-security/dark/phone-aapm.webp",
               "type": "image",
               "file": "settings-security/dark/phone-aapm.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -7835,8 +9137,8 @@
               "src": "captures/settings-security/dark/phone-default.webp",
               "type": "image",
               "file": "settings-security/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -7857,14 +9159,22 @@
           },
           "phone": {
             "aapm": {
-              "src": "captures/settings-security/phone-aapm.webp",
+              "src": "captures/settings-security/light/phone-aapm.webp",
               "type": "image",
-              "file": "settings-security/phone-aapm.webp"
+              "file": "settings-security/light/phone-aapm.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-security/phone-default.webp",
+              "src": "captures/settings-security/light/phone-default.webp",
               "type": "image",
-              "file": "settings-security/phone-default.webp"
+              "file": "settings-security/light/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -8165,9 +9475,13 @@
         },
         "phone": {
           "default": {
-            "src": "captures/settings-slideshow/phone.webp",
+            "src": "captures/settings-slideshow/light/phone-default.webp",
             "type": "image",
-            "file": "settings-slideshow/phone.webp"
+            "file": "settings-slideshow/light/phone-default.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -8185,8 +9499,8 @@
               "src": "captures/settings-slideshow/dark/phone-default.webp",
               "type": "image",
               "file": "settings-slideshow/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -8202,9 +9516,13 @@
           },
           "phone": {
             "default": {
-              "src": "captures/settings-slideshow/phone.webp",
+              "src": "captures/settings-slideshow/light/phone-default.webp",
               "type": "image",
-              "file": "settings-slideshow/phone.webp"
+              "file": "settings-slideshow/light/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -8383,7 +9701,9 @@
       ],
       "states": [
         "idle",
-        "running"
+        "running",
+        "partial",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -8410,19 +9730,49 @@
         },
         "phone": {
           "idle": {
-            "src": "captures/settings-smart-scan/phone-idle.webp",
+            "src": "captures/settings-smart-scan/light/phone-idle.webp",
             "type": "image",
-            "file": "settings-smart-scan/phone-idle.webp"
+            "file": "settings-smart-scan/light/phone-idle.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "partial": {
+            "src": "captures/settings-smart-scan/light/phone-partial.webp",
+            "type": "image",
+            "file": "settings-smart-scan/light/phone-partial.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "running": {
-            "src": "captures/settings-smart-scan/phone-running.webp",
+            "src": "captures/settings-smart-scan/light/phone-running.webp",
             "type": "image",
-            "file": "settings-smart-scan/phone-running.webp"
+            "file": "settings-smart-scan/light/phone-running.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/settings-smart-scan/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "settings-smart-scan/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "default": {
-            "src": "captures/settings-smart-scan/phone-idle.webp",
+            "src": "captures/settings-smart-scan/light/phone-idle.webp",
             "type": "image",
-            "file": "settings-smart-scan/phone-idle.webp"
+            "file": "settings-smart-scan/light/phone-idle.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -8450,8 +9800,17 @@
               "src": "captures/settings-smart-scan/dark/phone-idle.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-idle.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "partial": {
+              "src": "captures/settings-smart-scan/dark/phone-partial.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/phone-partial.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8459,8 +9818,17 @@
               "src": "captures/settings-smart-scan/dark/phone-running.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-running.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-smart-scan/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8468,8 +9836,8 @@
               "src": "captures/settings-smart-scan/dark/phone-idle.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-idle.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -8495,19 +9863,49 @@
           },
           "phone": {
             "idle": {
-              "src": "captures/settings-smart-scan/phone-idle.webp",
+              "src": "captures/settings-smart-scan/light/phone-idle.webp",
               "type": "image",
-              "file": "settings-smart-scan/phone-idle.webp"
+              "file": "settings-smart-scan/light/phone-idle.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "partial": {
+              "src": "captures/settings-smart-scan/light/phone-partial.webp",
+              "type": "image",
+              "file": "settings-smart-scan/light/phone-partial.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "running": {
-              "src": "captures/settings-smart-scan/phone-running.webp",
+              "src": "captures/settings-smart-scan/light/phone-running.webp",
               "type": "image",
-              "file": "settings-smart-scan/phone-running.webp"
+              "file": "settings-smart-scan/light/phone-running.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-smart-scan/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-smart-scan/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "default": {
-              "src": "captures/settings-smart-scan/phone-idle.webp",
+              "src": "captures/settings-smart-scan/light/phone-idle.webp",
               "type": "image",
-              "file": "settings-smart-scan/phone-idle.webp"
+              "file": "settings-smart-scan/light/phone-idle.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -8539,7 +9937,8 @@
       ],
       "states": [
         "default",
-        "sections"
+        "sections",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -8561,14 +9960,31 @@
         },
         "phone": {
           "default": {
-            "src": "captures/settings-timeline-albums/phone-default.webp",
+            "src": "captures/settings-timeline-albums/light/phone-default.webp",
             "type": "image",
-            "file": "settings-timeline-albums/phone-default.webp"
+            "file": "settings-timeline-albums/light/phone-default.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/settings-timeline-albums/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "settings-timeline-albums/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           },
           "sections": {
-            "src": "captures/settings-timeline-albums/phone-sections.webp",
+            "src": "captures/settings-timeline-albums/light/phone-sections.webp",
             "type": "image",
-            "file": "settings-timeline-albums/phone-sections.webp"
+            "file": "settings-timeline-albums/light/phone-sections.webp",
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
           }
         },
         "tablet": {
@@ -8591,8 +10007,17 @@
               "src": "captures/settings-timeline-albums/dark/phone-default.webp",
               "type": "image",
               "file": "settings-timeline-albums/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-timeline-albums/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8600,8 +10025,8 @@
               "src": "captures/settings-timeline-albums/dark/phone-sections.webp",
               "type": "image",
               "file": "settings-timeline-albums/dark/phone-sections.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -8622,14 +10047,31 @@
           },
           "phone": {
             "default": {
-              "src": "captures/settings-timeline-albums/phone-default.webp",
+              "src": "captures/settings-timeline-albums/light/phone-default.webp",
               "type": "image",
-              "file": "settings-timeline-albums/phone-default.webp"
+              "file": "settings-timeline-albums/light/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-timeline-albums/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             },
             "sections": {
-              "src": "captures/settings-timeline-albums/phone-sections.webp",
+              "src": "captures/settings-timeline-albums/light/phone-sections.webp",
               "type": "image",
-              "file": "settings-timeline-albums/phone-sections.webp"
+              "file": "settings-timeline-albums/light/phone-sections.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
             }
           },
           "tablet": {
@@ -8673,8 +10115,8 @@
             "src": "captures/setup-wizard/light/phone-appearance.webp",
             "type": "image",
             "file": "setup-wizard/light/phone-appearance.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8682,8 +10124,8 @@
             "src": "captures/setup-wizard/light/phone-cloud.webp",
             "type": "image",
             "file": "setup-wizard/light/phone-cloud.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8691,8 +10133,8 @@
             "src": "captures/setup-wizard/light/phone-models.webp",
             "type": "image",
             "file": "setup-wizard/light/phone-models.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8700,8 +10142,8 @@
             "src": "captures/setup-wizard/light/phone-permissions.webp",
             "type": "image",
             "file": "setup-wizard/light/phone-permissions.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8709,8 +10151,8 @@
             "src": "captures/setup-wizard/light/phone-tips.webp",
             "type": "image",
             "file": "setup-wizard/light/phone-tips.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8718,8 +10160,8 @@
             "src": "captures/setup-wizard/light/phone-welcome.webp",
             "type": "image",
             "file": "setup-wizard/light/phone-welcome.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8727,8 +10169,8 @@
             "src": "captures/setup-wizard/light/phone-welcome.webp",
             "type": "image",
             "file": "setup-wizard/light/phone-welcome.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -8741,8 +10183,8 @@
               "src": "captures/setup-wizard/dark/phone-appearance.webp",
               "type": "image",
               "file": "setup-wizard/dark/phone-appearance.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8750,8 +10192,8 @@
               "src": "captures/setup-wizard/dark/phone-cloud.webp",
               "type": "image",
               "file": "setup-wizard/dark/phone-cloud.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8759,8 +10201,8 @@
               "src": "captures/setup-wizard/dark/phone-models.webp",
               "type": "image",
               "file": "setup-wizard/dark/phone-models.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8768,8 +10210,8 @@
               "src": "captures/setup-wizard/dark/phone-permissions.webp",
               "type": "image",
               "file": "setup-wizard/dark/phone-permissions.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8777,8 +10219,8 @@
               "src": "captures/setup-wizard/dark/phone-tips.webp",
               "type": "image",
               "file": "setup-wizard/dark/phone-tips.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8786,8 +10228,8 @@
               "src": "captures/setup-wizard/dark/phone-welcome.webp",
               "type": "image",
               "file": "setup-wizard/dark/phone-welcome.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8795,8 +10237,8 @@
               "src": "captures/setup-wizard/dark/phone-welcome.webp",
               "type": "image",
               "file": "setup-wizard/dark/phone-welcome.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -8808,8 +10250,8 @@
               "src": "captures/setup-wizard/light/phone-appearance.webp",
               "type": "image",
               "file": "setup-wizard/light/phone-appearance.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8817,8 +10259,8 @@
               "src": "captures/setup-wizard/light/phone-cloud.webp",
               "type": "image",
               "file": "setup-wizard/light/phone-cloud.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8826,8 +10268,8 @@
               "src": "captures/setup-wizard/light/phone-models.webp",
               "type": "image",
               "file": "setup-wizard/light/phone-models.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8835,8 +10277,8 @@
               "src": "captures/setup-wizard/light/phone-permissions.webp",
               "type": "image",
               "file": "setup-wizard/light/phone-permissions.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8844,8 +10286,8 @@
               "src": "captures/setup-wizard/light/phone-tips.webp",
               "type": "image",
               "file": "setup-wizard/light/phone-tips.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8853,8 +10295,8 @@
               "src": "captures/setup-wizard/light/phone-welcome.webp",
               "type": "image",
               "file": "setup-wizard/light/phone-welcome.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8862,8 +10304,8 @@
               "src": "captures/setup-wizard/light/phone-welcome.webp",
               "type": "image",
               "file": "setup-wizard/light/phone-welcome.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -9491,8 +10933,8 @@
             "src": "captures/vault-list/light/phone-default.webp",
             "type": "image",
             "file": "vault-list/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -9505,8 +10947,8 @@
               "src": "captures/vault-list/dark/phone-default.webp",
               "type": "image",
               "file": "vault-list/dark/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -9518,8 +10960,8 @@
               "src": "captures/vault-list/light/phone-default.webp",
               "type": "image",
               "file": "vault-list/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -9711,6 +11153,24 @@
       "themes": {
         "dark": {
           "phone": {
+            "details": {
+              "src": "captures/viewer-photo/dark/phone-details.webp",
+              "type": "image",
+              "file": "viewer-photo/dark/phone-details.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "immersive": {
+              "src": "captures/viewer-photo/dark/phone-immersive.webp",
+              "type": "image",
+              "file": "viewer-photo/dark/phone-immersive.webp",
+              "width": 1236,
+              "height": 2745,
+              "widthDp": 412,
+              "heightDp": 915
+            },
             "photo": {
               "src": "captures/viewer-photo/dark/phone-photo.webp",
               "type": "image",
@@ -9897,7 +11357,8 @@
       ],
       "states": [
         "default",
-        "off"
+        "off",
+        "scrolled"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -9910,8 +11371,8 @@
             "src": "captures/visual-search-options/light/phone-default.webp",
             "type": "image",
             "file": "visual-search-options/light/phone-default.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -9919,22 +11380,62 @@
             "src": "captures/visual-search-options/light/phone-off.webp",
             "type": "image",
             "file": "visual-search-options/light/phone-off.webp",
-            "width": 1236,
-            "height": 2745,
+            "width": 1004,
+            "height": 2230,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/visual-search-options/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "visual-search-options/light/phone-scrolled.webp",
+            "width": 1004,
+            "height": 2230,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "default": {
+              "src": "captures/visual-search-options/dark/phone-default.webp",
+              "type": "image",
+              "file": "visual-search-options/dark/phone-default.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "off": {
+              "src": "captures/visual-search-options/dark/phone-off.webp",
+              "type": "image",
+              "file": "visual-search-options/dark/phone-off.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/visual-search-options/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "visual-search-options/dark/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "default": {
               "src": "captures/visual-search-options/light/phone-default.webp",
               "type": "image",
               "file": "visual-search-options/light/phone-default.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9942,8 +11443,17 @@
               "src": "captures/visual-search-options/light/phone-off.webp",
               "type": "image",
               "file": "visual-search-options/light/phone-off.webp",
-              "width": 1236,
-              "height": 2745,
+              "width": 1004,
+              "height": 2230,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/visual-search-options/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "visual-search-options/light/phone-scrolled.webp",
+              "width": 1004,
+              "height": 2230,
               "widthDp": 412,
               "heightDp": 915
             }

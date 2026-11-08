@@ -90,7 +90,7 @@ fun Modifier.mosaicGridDragHandler(
     contentPadding: PaddingValues,
     orderedGridKeys: List<String>,
     gridKeyToMediaIds: Map<String, List<Long>>
-) = pointerInput(Unit) {
+) = pointerInput(orderedGridKeys, gridKeyToMediaIds) {
     val padL = contentPadding.calculateLeftPadding(layoutDirection).toPx()
 
     var initialIndex: Int? = null
@@ -169,7 +169,7 @@ fun Modifier.photoGridDragHandler(
     layoutDirection: LayoutDirection,
     contentPadding: PaddingValues,
     allKeys: List<String>
-) = pointerInput(Unit) {
+) = pointerInput(allKeys) {
     // pre-compute the corresponding IDs
     val mediaIdsInOrder = allKeys.mapNotNull { it.mediaIdFromKey }
 

@@ -11,14 +11,11 @@ import androidx.room3.Index
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.SyncState
 import com.dot.gallery.cloud.core.cloudMediaId
-import com.dot.gallery.domain.model.CaptureTimeOrigin
-import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.date.getDate
 import com.dot.gallery.domain.date.parseTimestampFromFilename
+import com.dot.gallery.domain.model.CaptureTimeOrigin
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.domain.uri.parseUri
-import com.dot.gallery.domain.uri.path
-import com.dot.gallery.domain.util.isVideo
 
 
 @Entity(
@@ -89,13 +86,8 @@ data class CloudMediaEntity(
     @ColumnInfo(defaultValue = "")
     val fileId: String = ""
 ) {
-    init {
-        require(globalMediaId == cloudMediaId(providerType, serverConfigId, remoteId)) {
-            "globalMediaId must be derived from providerType, serverConfigId, and remoteId"
-        }
-    }
-
     fun toUriMedia(fullDate: String? = null): UriMedia {
+        val effectiveGlobalMediaId = if (globalMediaId != 0L) globalMediaId else cloudMediaId(providerType, serverConfigId, remoteId)
         val base = "cloud://${providerType.name}/$remoteId?size=preview"
         // Thread the server's numeric file id through the URI so the image
         // pipelines (Sketch/Glide) can request server-side video previews,
@@ -118,7 +110,6 @@ data class CloudMediaEntity(
             label.parseTimestampFromFilename()
         } else null
         val resolvedTakenTimestamp = takenTimestamp ?: filenameTakenTimestamp
-        // Use takenTimestamp (millis/1000) for display date if available, else fallback to timestamp seconds
         val displayDateSeconds = resolvedTakenTimestamp?.let { it / 1000L } ?: timestampSeconds
         // Path-based providers (WebDAV/Nextcloud/ownCloud/SMB/NFS) can't report a video's duration,
         // but the item is still a video. `Media.isVideo` requires a non-null duration, so for video
@@ -126,7 +117,7 @@ data class CloudMediaEntity(
         // video would be mis-handled as a still image: no player, and no server poster thumbnail.
         val resolvedDuration = duration ?: if (mimeType.startsWith("video/")) "" else null
         return UriMedia(
-            id = globalMediaId,
+            id = effectiveGlobalMediaId,
             label = label,
             uri = cloudUri,
             path = displayPath,

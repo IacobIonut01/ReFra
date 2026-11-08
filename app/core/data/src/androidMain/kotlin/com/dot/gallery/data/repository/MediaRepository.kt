@@ -12,7 +12,6 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.datastore.preferences.core.Preferences
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.decoder.format.ImageReencoder
-import com.dot.gallery.core.metadata.MetadataRemovalMode
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult

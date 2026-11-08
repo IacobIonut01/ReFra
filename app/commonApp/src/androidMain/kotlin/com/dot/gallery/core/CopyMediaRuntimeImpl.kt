@@ -21,46 +21,15 @@ import dev.brewkits.kmpworkmanager.background.domain.BackgroundTaskScheduler
 import dev.brewkits.kmpworkmanager.background.domain.TaskState
 import javax.inject.Inject
 import com.dot.gallery.core.injection.Singleton
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonPrimitive
 
 @Singleton
 class CopyMediaRuntimeImpl @Inject constructor(
     private val scheduler: BackgroundTaskScheduler,
 ) : CopyMediaRuntime {
-
-    /**
-     * `getWorkInfosByTagFlow("MediaCopyWorker")` equivalent — kmpworkmanager has no tag-observation
-     * stream, so the tagged task list is re-polled while subscribed (this flow is only collected
-     * by the copy UI).
-     */
-    override val mediaCopyWork: Flow<List<LocalCopySnapshot>> = flow {
-        while (currentCoroutineContext().isActive) {
-            val progress = WorkSignals.latestProgress(MediaCopyWorker.PROGRESS_WORK_NAME)
-            val output = WorkSignals.latestOutput(MediaCopyWorker.WORKER_NAME)
-            emit(
-                scheduler.queryTasks(tags = setOf(MediaCopyWorker.WORKER_NAME)).map { task ->
-                    LocalCopySnapshot(
-                        state = task.state.toCopyWorkState(),
-                        progressPercent =
-                            progress?.get("progress")?.jsonPrimitive?.intOrNull,
-                        targetUri =
-                            output?.get(MediaCopyWorker.KEY_TARGET_URI)?.jsonPrimitive?.content
-                                ?: progress?.get(MediaCopyWorker.KEY_TARGET_URI)?.jsonPrimitive?.content,
-                    )
-                }
-            )
-            delay(1_500)
-        }
-    }
 
     override suspend fun <T : Media> enqueueMediaCopy(items: List<Pair<T, String>>): List<String> =
         scheduler.copyMedia(*items.toTypedArray())

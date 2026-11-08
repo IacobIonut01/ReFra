@@ -191,7 +191,7 @@ fun <T : Media> MediaImage(
                     } else {
                         // Encrypted videos are played by the vault player, not the image
                         // pipeline — prefetching would only pay a full decrypt for nothing
-                        // it can use (#1282).
+                        // it can use.
                         if (!(media.isEncrypted && media.isVideo)) {
                             prefetcher?.prefetch(media)
                         }
@@ -212,7 +212,7 @@ fun <T : Media> MediaImage(
         // Stable thumbnail cache signature: invalidates only when the underlying bytes change
         // (definedTimestamp/size) and still carries filename/mime for animated-format detection.
         // Excludes volatile presentation fields (favorite/trashed/selection) so toggling them no
-        // longer evicts the decoded thumbnail and forces a re-decode flash (#1076).
+        // longer evicts the decoded thumbnail and forces a re-decode flash.
         // A completed in-app rotation bumps the revision so the rewritten bytes are re-decoded
         // even when the file kept its timestamp and size.
         val thumbnailSignature = remember(
@@ -307,10 +307,25 @@ fun <T : Media> MediaImage(
             }
         }
 
+        val favIconPosition = cellState?.favoriteIconPosition ?: rememberPreference(SettingsKeys.favoriteIconPosition).value
+        val isBackedUp = cellState?.cloudBackedUpIds?.contains(media.id) == true
+        val hasStatus = (metadata?.isRelevant == true) || media.isCloud || isBackedUp
+        val badges = remember(favIconPosition, media.isFavorite, media.isVideo, stackCount, hasStatus, selectionState) {
+            resolveCellBadgeLayout(
+                favoritePosition = favIconPosition,
+                isFavorite = media.isFavorite,
+                hasVideo = media.isVideo,
+                hasStack = stackCount > 1,
+                hasStatus = hasStatus,
+                selectionActive = selectionState,
+            )
+        }
+        val statusAlignment = (badges.status ?: CellCorner.BottomStart).alignment
+
         if (media.isVideo) {
             VideoDurationHeader(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .align((badges.video ?: CellCorner.TopEnd).alignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale),
                 media = media
@@ -323,7 +338,7 @@ fun <T : Media> MediaImage(
             val badgeShape = RoundedCornerShape(6.dp)
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopStart)
+                    .align((badges.stack ?: CellCorner.TopStart).alignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(6.dp)
@@ -347,17 +362,11 @@ fun <T : Media> MediaImage(
             }
         }
 
-        val favIconPosition = cellState?.favoriteIconPosition ?: rememberPreference(SettingsKeys.favoriteIconPosition).value
-        if (media.isFavorite && favIconPosition != FAV_ICON_DISABLED) {
-            val favAlignment = when (favIconPosition) {
-                FAV_ICON_BOTTOM_START -> Alignment.BottomStart
-                FAV_ICON_TOP_END -> Alignment.TopEnd
-                FAV_ICON_TOP_START -> Alignment.TopStart
-                else -> Alignment.BottomEnd
-            }
+        val favoriteCorner = badges.favorite
+        if (favoriteCorner != null) {
             Icon(
                 modifier = Modifier
-                    .align(favAlignment)
+                    .align(favoriteCorner.alignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
@@ -371,7 +380,7 @@ fun <T : Media> MediaImage(
         if (metadata != null && metadata!!.isRelevant) {
             Icon(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(statusAlignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
@@ -401,7 +410,7 @@ fun <T : Media> MediaImage(
             if (showProgress) {
                 CircularProgressIndicator(
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
+                        .align(statusAlignment)
                         .padding(selectedSize / 1.5f)
                         .scale(scale)
                         .padding(6.dp)
@@ -412,7 +421,7 @@ fun <T : Media> MediaImage(
             } else {
                 Icon(
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
+                        .align(statusAlignment)
                         .padding(selectedSize / 1.5f)
                         .scale(scale)
                         .padding(6.dp)
@@ -427,11 +436,11 @@ fun <T : Media> MediaImage(
                     contentDescription = null
                 )
             }
-        } else if (cellState?.cloudBackedUpIds?.contains(media.id) == true) {
+        } else if (isBackedUp) {
             // Local media that is backed up on at least one cloud provider.
             Icon(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(statusAlignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(6.dp)

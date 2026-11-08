@@ -25,7 +25,10 @@ import com.dot.gallery.core.util.getString
 import com.dot.gallery.domain.settings.MapSettingsStore
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.generated.resources.Res
+import com.dot.gallery.generated.resources.favorites
 import com.dot.gallery.generated.resources.help_whats_new
+import com.dot.gallery.core.util.SdkCompat
+import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -46,9 +49,12 @@ class TimelineNavActionsTest {
         get() = InstrumentationRegistry.getInstrumentation()
             .targetContext.getString(Res.string.help_whats_new)
 
-    private fun showMenu(lastSeenVersion: String) {
+    private fun showMenu(lastSeenVersion: String, showFavoritesPreference: Boolean = true) {
         val store = MapSettingsStore().apply {
-            seed(SettingsKeys.lastSeenVersion to lastSeenVersion)
+            seed(
+                SettingsKeys.lastSeenVersion to lastSeenVersion,
+                SettingsKeys.showSearchBarFavButton to showFavoritesPreference,
+            )
         }
         rule.setContent {
             CompositionLocalProvider(LocalSettingsStore provides store) {
@@ -95,5 +101,19 @@ class TimelineNavActionsTest {
         rule.onNodeWithTag(TimelineMenuSheetTag).assertIsDisplayed()
         rule.onAllNodesWithText(whatsNewLabel).assertCountEquals(0)
         rule.onAllNodesWithTag(OptionAttentionTag, useUnmergedTree = true).assertCountEquals(0)
+    }
+
+    @Test
+    fun favoritesStaysListedAfterItsOldSettingWasTurnedOff() {
+        // The Favourites shortcut setting left with the old search bar, so a stored "off"
+        // must not hide the menu entry with no way left to bring it back.
+        assumeTrue(SdkCompat.supportsFavorites)
+        showMenu(lastSeenVersion = BuildConfig.VERSION_NAME, showFavoritesPreference = false)
+
+        openMenuSheet()
+
+        val favoritesLabel = InstrumentationRegistry.getInstrumentation()
+            .targetContext.getString(Res.string.favorites)
+        rule.onNodeWithText(favoritesLabel).assertExists()
     }
 }

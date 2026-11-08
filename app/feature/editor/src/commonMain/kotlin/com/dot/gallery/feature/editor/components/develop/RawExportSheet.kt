@@ -31,6 +31,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.ColumnScope
+import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.ExpressiveSheetColumn
+import com.dot.gallery.core.presentation.components.ExpressiveSheetShape
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetOptionRow
+import com.dot.gallery.core.presentation.components.SheetRowTrailing
+import com.dot.gallery.core.presentation.components.sheetRowPosition
 import com.dot.gallery.domain.uri.path
 import com.dot.gallery.domain.util.isTiff
 import com.dot.gallery.feature.editor.generated.resources.Res
@@ -52,69 +60,47 @@ fun RawExportSheet(
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = stringResource(Res.string.raw_export_choose_format),
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                text = stringResource(Res.string.raw_export_choose_format_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-
-            val formats = if (allowTiff) {
-                RawSaveFormat.entries
-            } else {
-                RawSaveFormat.entries.filterNot { it.isTiff }
-            }
-            formats.forEach { format ->
-                FormatRow(
-                    label = stringResource(format.labelRes),
-                    icon = iconFor(format),
-                    onClick = { onFormatSelected(format) },
-                )
-            }
-
-            if (!allowTiff) {
-                Text(
-                    text = stringResource(Res.string.raw_export_tiff_unavailable),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { DragHandle(modifier = Modifier.padding(vertical = 5.dp)) },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 0.dp,
+        shape = ExpressiveSheetShape,
+    ) {
+        ExpressiveSheetColumn {
+            RawExportSheetContent(allowTiff = allowTiff, onFormatSelected = onFormatSelected)
         }
     }
 }
 
+/** Stateless body of [RawExportSheet]: one grouped row per format; tapping a row saves. */
 @Composable
-private fun FormatRow(label: String, icon: ImageVector, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 14.dp, horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp),
+fun ColumnScope.RawExportSheetContent(
+    allowTiff: Boolean,
+    onFormatSelected: (RawSaveFormat) -> Unit,
+) {
+    SheetHeader(
+        title = stringResource(Res.string.raw_export_choose_format),
+        body = stringResource(Res.string.raw_export_choose_format_subtitle),
+    )
+    val formats = if (allowTiff) RawSaveFormat.entries else RawSaveFormat.entries.filterNot { it.isTiff }
+    formats.forEachIndexed { index, format ->
+        SheetOptionRow(
+            title = stringResource(format.labelRes),
+            icon = iconFor(format),
+            position = sheetRowPosition(index, formats.size),
+            trailing = SheetRowTrailing.Chevron,
+            onClick = { onFormatSelected(format) },
         )
-        Text(text = label, style = MaterialTheme.typography.bodyLarge)
+    }
+    if (!allowTiff) {
+        Text(
+            text = stringResource(Res.string.raw_export_tiff_unavailable),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 12.dp),
+        )
     }
 }
 

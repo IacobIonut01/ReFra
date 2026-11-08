@@ -643,6 +643,12 @@ object Settings {
             }
         }
 
+        suspend fun clearHistory(context: Context) {
+            context.activeDataStore.edit { preferences ->
+                preferences[HISTORY_V2] = EMPTY_HISTORY
+            }
+        }
+
         @Composable
         fun rememberSearchHistory() = rememberPreference(SettingsKeys.searchHistory)
 
@@ -1058,7 +1064,7 @@ object Settings {
         /**
          * Date/time format preferences store an empty string when the user has
          * not customized them. In that case the effective pattern is derived from
-         * the system locale + 12/24-hour setting at read time (see #953).
+         * the system locale + 12/24-hour setting at read time (see ).
          * Use rememberRaw*Format() in the editor (to distinguish system-follow
          * from a custom value); use remember*Format() everywhere else to obtain
          * the resolved, display-ready pattern.
@@ -1223,10 +1229,8 @@ object Settings {
             if (!permissionGranted || isSetupNeeded(preferences)) {
                 Routes.SETUP
             } else {
-                preferences[LAST_SCREEN].takeIf {
-                    it == Routes.TIMELINE ||
-                        it == Routes.ALBUMS ||
-                        it == Routes.LIBRARY
+                preferences[LAST_SCREEN]?.let(::normalizeLaunchRoute).takeIf {
+                    it == Routes.TIMELINE || it == Routes.LIBRARY
                 } ?: Routes.TIMELINE
             }
 

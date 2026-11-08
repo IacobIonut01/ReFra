@@ -59,6 +59,12 @@ data class DocsScene(
      * top scrims still paint from y0 and only the content reserves the space.
      */
     val handlesContentPadding: Boolean = false,
+    /**
+     * States the capture test reaches by swiping the scene's content up before the screenshot,
+     * for screens that take no initial scroll position: their transparent blur top bar only
+     * shows once content has scrolled under it. The live embed shows these states at rest.
+     */
+    val swipedStates: List<String> = emptyList(),
     val content: @Composable (state: String?) -> Unit,
 ) {
     init {
@@ -70,6 +76,9 @@ data class DocsScene(
         }
         require(recordedStates.all { it in states }) {
             "Scene '$id' recordedStates must be declared in states, got $recordedStates"
+        }
+        require(swipedStates.all { it in states }) {
+            "Scene '$id' swipedStates must be declared in states, got $swipedStates"
         }
     }
 }

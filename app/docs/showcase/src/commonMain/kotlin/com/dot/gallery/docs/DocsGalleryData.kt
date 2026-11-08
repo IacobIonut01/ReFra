@@ -36,6 +36,9 @@ object DocsGalleryData {
     const val ALBUM_DOWNLOAD = 3L
     const val COLLECTION_TRIP = 90L
 
+    /** Docs-only collection holding the whole sample library, tall enough to scroll. */
+    const val COLLECTION_ALL = 91L
+
     /** Drawables bundled under `composeResources/drawable/`. */
     const val DRAWABLE_LAKE = "lake"
     const val DRAWABLE_EARTH = "earth"
@@ -82,7 +85,7 @@ object DocsGalleryData {
             albumID = row.albumID,
             albumLabel = row.albumLabel,
             timestamp = taken,
-            takenTimestamp = taken,
+            takenTimestamp = taken * 1000L,
             fullDate = taken.getDate("EEE, MMM d, yyyy"),
             mimeType = if (row.label.endsWith(".png")) "image/png" else "image/jpeg",
             favorite = if (row.favorite) 1 else 0,

@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
     private var startupContentInstalled = false
 
     /**
-     * Pending home-screen widget tap → photo deep link (#1268). Widget
+     * Pending home-screen widget tap → photo deep link. Widget
      * PendingIntents carry the media id in [WidgetDeepLink.EXTRA_WIDGET_MEDIA_ID];
      * the value is held here until the composition's navigation actions exist.
      */
@@ -381,6 +381,12 @@ class MainActivity : AppCompatActivity() {
                                                         animatedVisibilityScope = animatedVisibilityScope,
                                                         sessionKey = storyViewerOpenCount,
                                                         dismissBridge = dismissBridge,
+                                                        onOpenAllMemories = {
+                                                            storyCardsViewModel.clearViewerSnapshot()
+                                                            navController.navigate(Screen.MemoriesScreen())
+                                                        }.takeUnless {
+                                                            navBackStackEntry?.destination?.route == Screen.MemoriesScreen()
+                                                        },
                                                     )
                                                 }
                                             },
@@ -449,10 +455,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        // Phase 1 (#1076): flush bounded thumbnail telemetry when backgrounding so a scroll/soak
+        // flush bounded thumbnail telemetry when backgrounding so a scroll/soak
         // session's latency + cache-source distribution can be read from logcat (staging/debug only).
         ThumbnailTelemetry.logDump()
-        // #1276: disk-cache occupancy + persistent-thumbnail-store counters alongside the dump.
+        // disk-cache occupancy + persistent-thumbnail-store counters alongside the dump.
         ThumbnailTelemetry.logStorageStats(this)
     }
 

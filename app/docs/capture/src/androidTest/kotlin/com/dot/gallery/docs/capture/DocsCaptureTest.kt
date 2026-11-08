@@ -16,7 +16,10 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.dot.gallery.docs.DOCS_SCENE_ROOT_TAG
@@ -72,13 +75,27 @@ class DocsCaptureTest {
         val themes = args.getString("theme")?.split(',')?.map { it.trim() }
             ?.filter { it.isNotEmpty() } ?: listOf("light")
 
+        val window = hostWindowDp()
         val jobs = mutableListOf<Job>()
+        val skipped = mutableListOf<String>()
         for (scene in DocsSceneRegistry.select(sceneFilter)) {
-            val presets = when {
+            val wanted = when {
                 scene.presentation == "component" -> listOf(CapturePreset.PHONE)
                 else -> CapturePreset.parse(deviceFilter)
             }
-            for (preset in presets) {
+            for (preset in wanted) {
+                // A preset is capturable only when its logical canvas fits the
+                // host window: Modifier.size coerces into the display's
+                // constraints, so an oversized preset would sit at the window
+                // size forever and burn the 10s size gate (ComposeTimeout).
+                val widthDp = if (scene.presentation == "component") scene.widthDp else preset.widthDp
+                val heightDp = if (scene.presentation == "component") scene.heightDp else preset.heightDp
+                val fits = widthDp <= window.widthDp + FIT_SLACK_DP &&
+                    heightDp <= window.heightDp + FIT_SLACK_DP
+                if (!fits) {
+                    skipped += "${scene.id}:${preset.id}"
+                    continue
+                }
                 for (state in DocsSceneRegistry.statesOf(scene, stateFilter)) {
                     for (theme in themes) {
                         jobs += Job(scene, preset, state, theme)
@@ -87,7 +104,17 @@ class DocsCaptureTest {
             }
         }
         check(jobs.isNotEmpty()) {
-            "DocsCaptureTest matched no jobs (scene=$sceneFilter device=$deviceFilter theme=$themes)"
+            val windowText = "${window.widthDp}x${window.heightDp}dp"
+            val presetText = if (sceneFilter.isNullOrBlank()) "every matched scene" else "'$sceneFilter'"
+            val wantedText = CapturePreset.parse(deviceFilter).joinToString { it.id }
+            "DocsCaptureTest matched no capturable presets. The host window is $windowText and " +
+                "scene preset(s) $wantedText of $presetText need a larger display. " +
+                "Run this preset on a matching tablet/foldable emulator, or pass an explicit " +
+                "device filter that fits (e.g. device=phone)."
+        }
+        if (skipped.isNotEmpty()) {
+            Log.w(TAG, "skipped presets larger than the ${window.widthDp}x${window.heightDp}dp " +
+                "host window: $skipped — capture them on a matching emulator")
         }
 
         val context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -136,12 +163,25 @@ class DocsCaptureTest {
         val expectedW = (widthDp * activityRule.density.density).roundToInt()
         val expectedH = (heightDp * activityRule.density.density).roundToInt()
         activityRule.mainClock.autoAdvance = true
-        activityRule.waitUntil(timeoutMillis = SIZE_TIMEOUT_MS) {
-            runCatching {
-                val bounds = node.fetchSemanticsNode().boundsInRoot
-                abs(bounds.width - expectedW) <= SIZE_TOLERANCE_PX &&
-                    abs(bounds.height - expectedH) <= SIZE_TOLERANCE_PX
-            }.getOrDefault(false)
+        try {
+            activityRule.waitUntil(timeoutMillis = SIZE_TIMEOUT_MS) {
+                runCatching {
+                    val bounds = node.fetchSemanticsNode().boundsInRoot
+                    abs(bounds.width - expectedW) <= SIZE_TOLERANCE_PX &&
+                        abs(bounds.height - expectedH) <= SIZE_TOLERANCE_PX
+                }.getOrDefault(false)
+            }
+        } catch (timeout: ComposeTimeoutException) {
+            // Surface the measured vs expected geometry so a size failure reads
+            // as a layout problem in the scene (or an unfit preset), not as a
+            // generic 10s timeout.
+            val measured = runCatching { node.fetchSemanticsNode().boundsInRoot }
+                .getOrNull()?.let { "${it.width.roundToInt()}x${it.height.roundToInt()}px" }
+                ?: "node not found"
+            error(
+                "scene root for $relFile never measured ${expectedW}x${expectedH}px " +
+                    "(measured: $measured within ${SIZE_TIMEOUT_MS}ms)"
+            )
         }
         node.assertIsDisplayed()
         scene.requiredReadyTag?.let { tag ->
@@ -159,6 +199,13 @@ class DocsCaptureTest {
             // return before they land. Let the real clock drive them for the
             // scene's settle budget, then freeze as usual.
             Thread.sleep(scene.settleMillis)
+            activityRule.waitForIdle()
+        }
+        if (state != null && state in scene.swipedStates) {
+            // Scroll the content under the top bar so the capture shows its blurred state.
+            node.performTouchInput {
+                swipeUp(startY = height * 0.75f, endY = height * 0.35f, durationMillis = 400L)
+            }
             activityRule.waitForIdle()
         }
         activityRule.mainClock.autoAdvance = false
@@ -274,5 +321,36 @@ class DocsCaptureTest {
         private const val SIZE_TIMEOUT_MS = 10_000L
         private const val READY_TAG_TIMEOUT_MS = 20_000L
         private const val SIZE_TOLERANCE_PX = 2f
+
+        /**
+         * Slack for the preset-vs-window fit check: a preset is capturable when
+         * its logical size does not exceed the host window by more than this
+         * many dp (the size gate tolerates ±2px, and some displays offer a dp
+         * width a fraction below the preset's, e.g. the Pixel 6's 411.4dp
+         * against the 412dp phone preset).
+         */
+        private const val FIT_SLACK_DP = 8f
+    }
+
+    private data class WindowDp(val widthDp: Float, val heightDp: Float)
+
+    /**
+     * Logical size of the capture activity's window. The host is pinned to
+     * the preset's dp size, but [Modifier.size] coerces into the incoming
+     * constraints, so presets larger than this window can never measure at
+     * their logical size on the current display.
+     */
+    private fun hostWindowDp(): WindowDp {
+        val density = activityRule.density.density
+        val px = IntArray(2)
+        activityRule.activityRule.scenario.onActivity { activity ->
+            val decor = activity.window.decorView
+            px[0] = decor.width
+            px[1] = decor.height
+        }
+        check(px[0] > 0 && px[1] > 0) {
+            "capture window is not laid out (width=${px[0]} height=${px[1]})"
+        }
+        return WindowDp(px[0] / density, px[1] / density)
     }
 }

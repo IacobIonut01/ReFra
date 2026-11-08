@@ -100,7 +100,7 @@ suspend fun <T : Media> mapMediaToItem(
                         pagerMediaList.add(representative)
                         // Store members ordered so the representative (JPG over its RAW/DNG
                         // sibling) is first — keeps the opened stack and multi-file share aligned
-                        // with the grid cover (#995).
+                        // with the grid cover.
                         mediaGroupsMap[representative.id] = group.sortedByRepresentative()
                         return@flatMap listOf(
                             MediaItem.MediaViewItem(
@@ -195,8 +195,9 @@ suspend fun <T : Media> mapMediaToItem(
                 groupedIds = groupedPager.map { it.id },
                 dateHeadersEnabled = dateHeadersEnabled,
             )
+            // `putIfAbsent` is JVM-only; getOrPut keeps the first occurrence, same semantics.
             val byId = LinkedHashMap<Long, T>(data.size)
-            for (item in data) byId.putIfAbsent(item.id, item)
+            for (item in data) byId.getOrPut(item.id) { item }
             ids.mapNotNull { byId[it] }
         },
         mediaGroups = mediaGroupsMap,

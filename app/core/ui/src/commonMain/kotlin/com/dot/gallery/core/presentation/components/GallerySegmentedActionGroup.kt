@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
@@ -63,27 +63,30 @@ fun GallerySegmentedActionGroup(
             .drawWithCache {
                 val inner = CornerRadius(GalleryChrome.ActionSegmentInnerRadius.toPx())
                 val outer = CornerRadius(size.height / 2f)
-                val visible = Path()
-                segments.forEachIndexed { index, rect ->
-                    val first = index == 0
-                    val last = index == segments.lastIndex
-                    visible.addRoundRect(
-                        RoundRect(
-                            rect = rect,
-                            topLeft = if (first) outer else inner,
-                            bottomLeft = if (first) outer else inner,
-                            topRight = if (last) outer else inner,
-                            bottomRight = if (last) outer else inner,
-                        ),
-                    )
-                }
-                val cutout = Path().apply {
-                    addRect(Rect(0f, 0f, size.width, size.height))
-                    op(this, visible, PathOperation.Difference)
-                }
+                val cutout = Path()
                 onDrawWithContent {
                     drawContent()
-                    if (segments.size > 1) {
+                    val current = segments
+                    if (current.size > 1) {
+                        // Bounds plus every segment, filled even-odd: segments never overlap, so
+                        // this is the bounds minus the segments without Path.op, which can spin
+                        // on the UI thread when the segment widths animate.
+                        cutout.reset()
+                        cutout.fillType = PathFillType.EvenOdd
+                        cutout.addRect(Rect(0f, 0f, size.width, size.height))
+                        current.forEachIndexed { index, rect ->
+                            val first = index == 0
+                            val last = index == current.lastIndex
+                            cutout.addRoundRect(
+                                RoundRect(
+                                    rect = rect,
+                                    topLeft = if (first) outer else inner,
+                                    bottomLeft = if (first) outer else inner,
+                                    topRight = if (last) outer else inner,
+                                    bottomRight = if (last) outer else inner,
+                                ),
+                            )
+                        }
                         drawPath(cutout, Color.Black, blendMode = BlendMode.Clear)
                     }
                 }
@@ -101,23 +104,41 @@ fun GallerySegmentedActionGroup(
         val height = maxOf(segmentPx, placeables.maxOfOrNull { it.height } ?: 0)
         val count = segmentWidths.count { it > 0 }
         val width = segmentWidths.sum() + gap * (count - 1).coerceAtLeast(0)
-        val rects = ArrayList<Rect>(count)
         layout(width, height) {
-            var x = 0
+            // Computed afresh in every placement pass: placement can re-run without a new
+            // measure, and a list allocated outside this block then collected every segment
+            // twice. Under the even-odd fill above, a duplicated segment cancels itself out, so
+            // the cut-out became the whole bounds and erased the group (the viewer's
+            // quick-action pill stayed invisible on first open until a scroll re-measured it).
+            val rects = actionSegmentRects(segmentWidths, height, gap)
+            var segment = 0
             placeables.forEachIndexed { index, placeable ->
-                val segmentWidth = segmentWidths[index]
-                if (segmentWidth == 0) {
+                if (segmentWidths[index] == 0) {
                     placeable.placeRelative(0, 0)
                     return@forEachIndexed
                 }
+                val rect = rects[segment++]
                 placeable.placeRelative(
-                    x + (segmentWidth - placeable.width) / 2,
+                    rect.left.toInt() + (rect.width.toInt() - placeable.width) / 2,
                     (height - placeable.height) / 2,
                 )
-                rects += Rect(x.toFloat(), 0f, (x + segmentWidth).toFloat(), height.toFloat())
-                x += segmentWidth + gap
             }
             if (rects != segments) segments = rects
         }
     }
+}
+
+/**
+ * One rect per non-zero width in [segmentWidths], laid out left to right with [gap] between
+ * them, each [height] tall. Zero widths (popup anchors, hidden slots) take no segment.
+ */
+fun actionSegmentRects(segmentWidths: List<Int>, height: Int, gap: Int): List<Rect> {
+    val rects = ArrayList<Rect>(segmentWidths.count { it > 0 })
+    var x = 0
+    segmentWidths.forEach { segmentWidth ->
+        if (segmentWidth == 0) return@forEach
+        rects += Rect(x.toFloat(), 0f, (x + segmentWidth).toFloat(), height.toFloat())
+        x += segmentWidth + gap
+    }
+    return rects
 }

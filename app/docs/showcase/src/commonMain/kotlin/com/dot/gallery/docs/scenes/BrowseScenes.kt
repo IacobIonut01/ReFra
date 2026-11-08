@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
-import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +63,7 @@ import com.dot.gallery.feature.timeline.TimelineFilterSheet
 import com.dot.gallery.docs.DocsGalleryData
 import com.dot.gallery.docs.DocsGalleryHost
 import com.dot.gallery.docs.DocsGalleryPage
+import com.dot.gallery.ui.core.icons.Library
 import com.dot.gallery.core.ui.settings.LocalSettingsStore
 import com.dot.gallery.docs.LocalDocsGallerySession
 import com.dot.gallery.docs.LocalDocsNavigator
@@ -108,7 +107,7 @@ fun DocsTimelineScene(state: String?) {
 
 @Composable
 fun DocsAlbumsScene(state: String?) {
-    DocsGalleryHost(DocsGalleryPage.ALBUMS, state)
+    DocsGalleryHost(DocsGalleryPage.LIBRARY, state)
 }
 
 @Composable
@@ -131,13 +130,23 @@ fun DocsFavoritesScene(state: String?) {
     val distributor = session.distributor
     val favoritesState = distributor.favoritesMediaFlow.collectAsState()
     val emptyState = remember { mutableStateOf(MediaState<UriMedia>(isLoading = false)) }
+    // "scrolled" hearts the whole demo library, twice over, so the grid is tall enough to sit
+    // part-way down under the transparent blur bar.
+    val scrolledState = remember {
+        val all = DocsGalleryData.mediaItems().map { it.copy(favorite = 1) }
+        mutableStateOf(DocsGalleryData.mediaStateFor(all + all.map { it.copy(id = it.id + 100L) }))
+    }
     val metadataState = distributor.metadataFlow.collectAsState(
         initial = com.dot.gallery.data.model.MediaMetadataState()
     )
     DocsSharedScopes { sts, acs ->
         FavoriteContent(
             paddingValues = WindowInsets.systemBars.asPaddingValues(),
-            mediaState = if (state == "empty") emptyState else favoritesState,
+            mediaState = when (state) {
+                "empty" -> emptyState
+                "scrolled" -> scrolledState
+                else -> favoritesState
+            },
             metadataState = metadataState,
             lastCellIndex = rememberSaveable {
                 mutableIntStateOf(Constants.cellsList.indexOf(GridCells.Fixed(3)))
@@ -161,6 +170,7 @@ fun DocsFavoritesScene(state: String?) {
             selectionSheetContent = { _, _ -> },
             sharedTransitionScope = sts,
             animatedContentScope = acs,
+            initialFirstVisibleItemIndex = if (state == "scrolled") 6 else 0,
         )
     }
 }
@@ -181,14 +191,9 @@ fun DocsNavigationBarScene(state: String?) {
                 icon = androidx.compose.material.icons.Icons.Outlined.Photo,
             ),
             com.dot.gallery.core.presentation.util.NavigationItem(
-                name = "Albums",
-                route = com.dot.gallery.core.navigation.Routes.ALBUMS,
-                icon = androidx.compose.material.icons.Icons.Outlined.FolderOpen,
-            ),
-            com.dot.gallery.core.presentation.util.NavigationItem(
                 name = "Library",
                 route = com.dot.gallery.core.navigation.Routes.LIBRARY,
-                icon = androidx.compose.material.icons.Icons.AutoMirrored.Outlined.LibraryBooks,
+                icon = com.dot.gallery.ui.core.Icons.Library,
             ),
         )
     }
@@ -332,7 +337,11 @@ fun DocsCollectionGridScene(state: String?) {
             initial = com.dot.gallery.data.model.MediaMetadataState()
         )
         CollectionViewContent(
-            collectionId = if (state == "empty") -1L else DocsGalleryData.COLLECTION_TRIP,
+            collectionId = when (state) {
+                "empty" -> -1L
+                "scrolled" -> DocsGalleryData.COLLECTION_ALL
+                else -> DocsGalleryData.COLLECTION_TRIP
+            },
             collectionName = if (state == "empty") "New collection" else DocsGalleryData.tripCollection.label,
             paddingValues = PaddingValues(0.dp),
             isScrolling = remember { mutableStateOf(false) },
@@ -345,9 +354,11 @@ fun DocsCollectionGridScene(state: String?) {
             },
             onMediaClick = {},
             onEditAlbums = {},
+            onSlideshow = {},
             selectionSheet = { _, _ -> },
             sharedTransitionScope = sts,
             animatedContentScope = acs,
+            initialFirstVisibleItemIndex = if (state == "scrolled") 5 else 0,
         )
     }
 }
