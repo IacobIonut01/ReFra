@@ -814,7 +814,7 @@ class CloudUploadWorker @Inject constructor(
         }
 
         /**
-         * One upload pass on app open (#1241). Not a manual run: [KEY_MANUAL] is
+         * One upload pass on app open. Not a manual run: [KEY_MANUAL] is
          * left unset so the pass honours per-account sync toggles, the charging
          * requirement, and the cellular-upload policy exactly like the periodic
          * worker — it just scans enabled albums for new/changed media right away.
@@ -1005,7 +1005,7 @@ internal suspend fun <T, R> mapWorkerPool(
  * The upload album-sync pass only makes sense on providers whose remote albums are
  * editable membership lists. Path-based providers (WebDAV/ownCloud/Nextcloud/SMB/NFS)
  * don't support addToAlbum, and their createAlbum mkdirs a folder at the share root —
- * running the pass on them only leaves stray empty directories there (#1371).
+ * running the pass on them only leaves stray empty directories there.
  */
 internal fun albumMembershipSyncSupported(provider: RemoteMediaProvider): Boolean =
     ProviderCapability.ALBUM_MEMBERSHIP in provider.capabilities

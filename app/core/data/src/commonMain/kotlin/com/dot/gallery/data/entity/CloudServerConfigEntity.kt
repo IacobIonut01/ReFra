@@ -32,27 +32,27 @@ data class CloudServerConfigEntity(
     val wifiOnly: Boolean = true,
     val syncIntervalMinutes: Int = 360,
     val syncFolders: String = "",
-    // Backup options (Phase 3)
+    // Backup options
     @ColumnInfo(defaultValue = "0") val cellularPhotos: Boolean = false,
     @ColumnInfo(defaultValue = "0") val cellularVideos: Boolean = false,
     @ColumnInfo(defaultValue = "0") val requireCharging: Boolean = false,
     @ColumnInfo(defaultValue = "0") val syncAlbums: Boolean = false,
-    // Notification settings (Phase 5)
+    // Notification settings
     @ColumnInfo(defaultValue = "1") val showBackupTotalProgress: Boolean = true,
     @ColumnInfo(defaultValue = "0") val showBackupDetailProgress: Boolean = false,
     @ColumnInfo(defaultValue = "1") val notifyBackupFailures: Boolean = true,
-    // Networking (Phase 6)
+    // Networking
     @ColumnInfo(defaultValue = "0") val autoUrlSwitch: Boolean = false,
     @ColumnInfo(defaultValue = "") val localWifiSsid: String = "",
     @ColumnInfo(defaultValue = "") val localServerUrl: String = "",
     @ColumnInfo(defaultValue = "[]") val externalUrls: String = "[]",
-    // Viewer settings (Phase 12)
+    // Viewer settings
     @ColumnInfo(defaultValue = "1") val loadPreviewImage: Boolean = true,
     @ColumnInfo(defaultValue = "0") val loadOriginalImage: Boolean = false,
     @ColumnInfo(defaultValue = "1") val autoPlayVideos: Boolean = true,
     @ColumnInfo(defaultValue = "0") val loopVideos: Boolean = false,
     @ColumnInfo(defaultValue = "0") val forceOriginalVideo: Boolean = false,
-    // Advanced settings (Phase 13)
+    // Advanced settings
     @ColumnInfo(defaultValue = "0") val verboseLogging: Boolean = false,
     @ColumnInfo(defaultValue = "0") val syncRemoteDeletions: Boolean = false,
     @ColumnInfo(defaultValue = "0") val preferRemoteImages: Boolean = false,

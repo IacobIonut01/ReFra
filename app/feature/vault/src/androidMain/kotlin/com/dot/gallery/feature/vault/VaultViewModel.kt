@@ -113,7 +113,7 @@ open class VaultViewModel @Inject constructor(
     )
 
     override fun onCleared() {
-        // Free decrypted vault temps when leaving the vault (#1282) — the periodic worker
+        // Free decrypted vault temps when leaving the vault — the periodic worker
         // covers stragglers, but there's no reason to keep plaintext alive while the user
         // browses the plain library.
         Thread { VaultDecryptStore.sweep(appContext) }.start()
@@ -261,7 +261,7 @@ open class VaultViewModel @Inject constructor(
                 if (outcome.leftoverUris.isNotEmpty()) {
                     _pendingDeletions.emit(outcome.leftoverUris)
                 }
-                // Report the count that actually landed in the vault (#1282) — the worker
+                // Report the count that actually landed in the vault — the worker
                 // records per-item results; fall back to the requested count for older data.
                 val succeeded = outcome.succeededCount
                     ?: itemCount.coerceAtLeast(outcome.leftoverUris.size)

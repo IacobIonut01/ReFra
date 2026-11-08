@@ -36,7 +36,7 @@ import com.dot.gallery.domain.uri.path
 
 
 /**
- * Verifies the #1076 category-integrity contract:
+ * Verifies category-integrity contract:
  *  - counts and covers ignore memberships whose media no longer exists in the internal mirror;
  *  - deleting the current cover promotes the next highest-scored *existing* member;
  *  - deleting every member drops the category from the populated list;
@@ -262,7 +262,7 @@ class CategoryIntegrityDaoTest {
     }
 
     /**
-     * #1106: memberships survive vaulting (so un-vaulting restores categorisation), but a
+     * memberships survive vaulting (so un-vaulting restores categorisation), but a
      * vaulted item must never count toward or surface in a category — even when its `media`
      * mirror row is still present (e.g. mid-sync) or a `cloud_media` row remains.
      */
@@ -310,7 +310,7 @@ class CategoryIntegrityDaoTest {
     fun mediaMirroredInBothTables_countsOnce() = runBlocking {
         val categoryId = categoryDao.insertCategory(Category(name = "Art", searchTerms = ""))
         // A synced item can live in `media` (local copy) and `cloud_media` under the same
-        // globalMediaId — UNION must dedup it or the count doubles (#1106).
+        // globalMediaId — UNION must dedup it or the count doubles.
         val sharedId = com.dot.gallery.cloud.core.cloudMediaId(
             com.dot.gallery.cloud.core.ProviderType.IMMICH, 7L, "remote_shared"
         )
@@ -331,7 +331,7 @@ class CategoryIntegrityDaoTest {
         assertEquals(1, result[0].mediaCount)
     }
 
-    // ============ #948: video exclusion ============
+    // video exclusion
 
     @Test
     fun videoMediaIds_coverLocalAndCloudVideosOnly() = runBlocking {

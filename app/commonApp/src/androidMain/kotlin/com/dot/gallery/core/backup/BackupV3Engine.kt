@@ -568,7 +568,6 @@ internal class BackupV3Engine(
         updatedAtMillis = updatedAtMillis
     )
 
-    // ----- SEARCH HISTORY ------------------------------------------------------------------------
 
     private suspend fun exportSearchHistory(writer: SectionWriter, ctx: ExportContext) {
         val raw = context.activeDataStore.data.first()[SEARCH_HISTORY_KEY] ?: return
@@ -653,7 +652,6 @@ internal class BackupV3Engine(
         }
     }
 
-    // ----- CLOUD PREFS ---------------------------------------------------------------------------
 
     private suspend fun exportCloudPrefs(writer: SectionWriter, ctx: ExportContext) {
         database.getCloudAlbumSyncDao().getAllAsync().forEach { entity ->
@@ -738,7 +736,6 @@ internal class BackupV3Engine(
         }
     }
 
-    // ----- EDIT BACKUPS --------------------------------------------------------------------------
 
     private suspend fun exportEditBackups(writer: SectionWriter, ctx: ExportContext) {
         val backupDir = File(context.filesDir, "edit_backups")
@@ -769,7 +766,6 @@ internal class BackupV3Engine(
         }
     }
 
-    // ----- DEVICE UI -----------------------------------------------------------------------------
 
     private suspend fun exportDeviceUi(writer: SectionWriter) {
         val uiPrefs = context.getSharedPreferences("ui_settings", Context.MODE_PRIVATE)

@@ -197,7 +197,6 @@ data class MediaCaptureTimeRecord(
     val updatedAtMillis: Long
 )
 
-// ── SEARCH HISTORY ─────────────────────────────────────────────────────────────────────────────
 
 @Serializable
 data class SearchHistoryRecord(

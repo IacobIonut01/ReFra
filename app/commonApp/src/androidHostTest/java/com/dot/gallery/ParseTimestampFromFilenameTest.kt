@@ -12,7 +12,7 @@ import com.dot.gallery.feature.editor.adjustments.filters.None
 /**
  * Regression tests for [parseTimestampFromFilename].
  *
- * See bug #920: Facebook export photos (long numeric IDs joined by underscores)
+ * Facebook export photos (long numeric IDs joined by underscores)
  * were being parsed as future dates because the date regex latched onto digits
  * embedded inside the IDs.
  */

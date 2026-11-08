@@ -99,7 +99,7 @@ class VaultOperationWorker @Inject constructor(
                         if (mediaList.isEmpty()) return@withContext WorkerResult.Success()
                         mediaList.forEachIndexed { index, media ->
                             if (!currentCoroutineContext().isActive || env.isCancelled()) return@withContext WorkerResult.Success()
-                            // #1282: honor the per-item result — previously a false return still counted
+                            // honor the per-item result — previously a false return still counted
                             // as encrypted, and with deleteOriginals the original could be removed while
                             // the vault copy never existed.
                             val ok = try {
@@ -223,7 +223,7 @@ class VaultOperationWorkerAdapter : GalleryWorkerAdapter(VaultOperationWorker.WO
  * Splits [items] into chunks whose joined string form stays under [maxChars] — the
  * worker input payload shares WorkManager's ~10 KB serialization cap, so a bulk
  * vault op over a few hundred URIs must arrive as several tasks or the enqueue
- * itself throws and crashes the caller before a single item is processed (#1240).
+ * itself throws and crashes the caller before a single item is processed.
  */
 internal fun chunkStringsForWorkInput(items: List<String>, maxChars: Int = 8 * 1024): List<List<String>> {
     val chunks = mutableListOf<List<String>>()

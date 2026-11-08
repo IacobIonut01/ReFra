@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
 data class MediaMetadata(
     @PrimaryKey val mediaId: Long,
 
-    // Image EXIF/XMP
     val imageDescription: String?,
     val dateTimeOriginal: String?,
     val manufacturerName: String?,
@@ -36,14 +35,12 @@ data class MediaMetadata(
     val imageResolutionY: Double?,    // e.g. 72.0 PPI
     val resolutionUnit: Int?,         // 2=inches, 3=cm
 
-    // Video metadata
     val durationMs: Long?,
     val videoWidth: Int?,
     val videoHeight: Int?,
     val frameRate: Float?,
     val bitRate: Int?,
 
-    // Feature flags
     val isNightMode: Boolean,
     val isPanorama: Boolean,
     val isPhotosphere: Boolean,

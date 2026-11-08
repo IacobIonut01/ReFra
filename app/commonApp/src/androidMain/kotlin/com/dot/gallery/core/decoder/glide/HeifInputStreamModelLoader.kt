@@ -17,7 +17,7 @@ import java.io.IOException
 import java.io.InputStream
 
 /**
- * #1244: supplies the raw file stream for MediaStore image URIs that declare >10-bit depth.
+ * supplies the raw file stream for MediaStore image URIs that declare >10-bit depth.
  *
  * Glide resolves `Uri -> InputStream` through its built-in loaders first: at grid sizes
  * `MediaStoreThumbFetcher` re-encodes the platform thumbnail (which MediaProvider generates by

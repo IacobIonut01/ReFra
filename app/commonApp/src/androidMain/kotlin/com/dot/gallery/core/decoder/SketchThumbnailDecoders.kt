@@ -58,7 +58,7 @@ fun ComponentRegistry.Builder.supportLocalThumbnailDecoders(): ComponentRegistry
 private const val MAX_THUMBNAIL_DIMENSION = 512
 
 /**
- * Platform-thumbnail fast path (#1076 Phase 4), ported from `MediaStoreThumbnailModelLoader`.
+ * Platform-thumbnail fast path, ported from `MediaStoreThumbnailModelLoader`.
  * `ContentResolver.loadThumbnail` is dramatically cheaper than a full decode for large media and
  * covers video poster frames too. Failures fall back to a sampled [BitmapFactory] decode of the
  * fetched source — the same safety net Glide's loader fallthrough provided.
@@ -168,7 +168,7 @@ internal fun shouldBypassPlatformThumbnail(
 ): Boolean = hasEmbeddedThumbnail && lensModel?.contains("front camera", ignoreCase = true) == true
 
 /**
- * Persistent-thumbnail fast path for software-decoded formats (#1276), ported from
+ * Persistent-thumbnail fast path for software-decoded formats, ported from
  * `PersistentThumbnailModelLoader`. Serves a canonical [HeavyThumbnailDecoder.CANONICAL_PX] WebP
  * thumbnail from [LocalThumbnailStore], filling it with a single software decode on miss — one
  * decode per file per install, not one per grid pass.

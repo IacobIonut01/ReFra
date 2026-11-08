@@ -59,11 +59,11 @@ import java.io.InputStream
 class GlideModule: AppGlideModule() {
 
     /**
-     * Phase 5 (#1076): executor + disk-cache tuning to reduce thumbnail starvation.
+     * executor + disk-cache tuning to reduce thumbnail starvation.
      *
      * The default Glide source executor is capped at min(cpuCount, 4) threads. On multi-core
      * devices a few slow tasks (cloud fetch, HEIF/RAW decode) could occupy every source worker
-     * and block visible local thumbnails, producing the contiguous blank runs in #1076. Sizing
+     * and block visible local thumbnails, producing the contiguous blank runs. Sizing
      * the source pool to the core count (bounded to [4,6]) leaves spare workers for fast visible
      * local loads. Kept conservative so it does not steal memory the Sketch full-image viewer
      * needs; memory cache and bitmap pool remain at Glide's memory-class-derived defaults.
@@ -93,7 +93,7 @@ class GlideModule: AppGlideModule() {
             CloudGlideModelLoader.Factory()
         )
 
-        // #1244: raw stream for >10-bit HEIF/AVIF media URIs, prepended ahead of Glide's
+        // raw stream for >10-bit HEIF/AVIF media URIs, prepended ahead of Glide's
         // built-in thumbnail/stream fetchers (MediaStoreThumbFetcher re-encodes a corrupt
         // platform thumbnail; UriLoader feeds raw bytes to platform StreamBitmapDecoder).
         // Deep-bit-depth streams continue to HeifBitmapDecoder below; everything else fails
@@ -104,7 +104,7 @@ class GlideModule: AppGlideModule() {
             HeifInputStreamModelLoader.Factory(context)
         )
 
-        // Phase 4 (#1076): local MediaStore motion-tier fast path. Handles plain
+        // local MediaStore motion-tier fast path. Handles plain
         // content://media image/video URIs at grid sizes via ContentResolver.loadThumbnail
         // (cheap, cancellable) and declines everything else so it falls through to the normal
         // pipeline / custom decoders below.
@@ -114,7 +114,7 @@ class GlideModule: AppGlideModule() {
             MediaStoreThumbnailModelLoader.Factory(context)
         )
 
-        // #1276: persistent canonical-thumbnail store for software-decoded formats
+        // persistent canonical-thumbnail store for software-decoded formats
         // (JXL/PSD/JP2/TIFF/RAW/>10-bit HEIF). Prepended after MediaStoreThumbnailModelLoader so
         // it is checked first: those formats always fail the platform thumbnailer, and a stored
         // 512 px entry survives Glide disk-cache eviction — one decode per file per install.
@@ -125,7 +125,7 @@ class GlideModule: AppGlideModule() {
         )
 
         // Legacy byte-array path, kept as fallback for format-specific decoders.
-        // #1282: registered BEFORE the streaming loaders — prepend order means the streaming
+        // registered BEFORE the streaming loaders — prepend order means the streaming
         // EncryptedMediaSource loaders are checked first, so vault media no longer takes the
         // whole-file readBytes() path (a 1.4 GB vault video OOMed the grid fetcher).
         registry.prepend(
@@ -207,7 +207,7 @@ class GlideModule: AppGlideModule() {
             Bitmap::class.java,
             JxlBitmapDecoder(pool)
         )
-        // #1244: software decode for >10-bit HEIF/AVIF (depth-gated inside handles(), so
+        // software decode for >10-bit HEIF/AVIF (depth-gated inside handles, so
         // <=10-bit streams still reach the platform decoders below). decode(Drawable) requests
         // never consult Bitmap decoders — the Drawable/BitmapDrawable and ParcelFileDescriptor
         // resource paths get their own twins so a platform ImageDecoder can't claim the bytes

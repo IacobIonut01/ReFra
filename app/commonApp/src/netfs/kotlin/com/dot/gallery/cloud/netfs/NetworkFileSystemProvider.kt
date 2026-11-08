@@ -291,7 +291,6 @@ open class NetworkFileSystemProvider(
     override suspend fun getServerVersion(): Result<String> =
         Result.success(backend.displayName)
 
-    // === Remote assets ===
 
     override fun getRemoteAssets(page: Int, pageSize: Int): Flow<Resource<List<CloudMediaEntity>>> = flow {
         try {

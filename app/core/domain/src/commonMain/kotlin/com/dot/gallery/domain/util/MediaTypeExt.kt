@@ -10,8 +10,7 @@ import com.dot.gallery.domain.uri.scheme
  * Common camera-RAW file extensions. Used as a fallback for [Media.isRaw] because MediaStore
  * does not always report a canonical `image/x-*` / `image/vnd.*` mime for RAW files — DNGs in
  * particular are frequently scanned as `image/dng`, `image/tiff`, or with a blank mime, which
- * would otherwise make them read as non-RAW and win the representative tie-break by file size
- * (#995).
+ * would otherwise make them read as non-RAW and win the representative tie-break by file size.
  */
 val RAW_EXTENSIONS = setOf(
     "dng", "arw", "cr2", "cr3", "crw", "nef", "nrw", "orf", "raf", "rw2",

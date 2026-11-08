@@ -183,7 +183,7 @@ private const val EXTENDED_MAX_NATIVE_SCALE = 50f
 
 // Frame-animated raster formats (GIF/animated WebP/APNG) can't be tiled/subsampled, so their base
 // painter is decoded at native resolution for crisp zoom — clamped to this long-edge to bound the
-// per-frame bitmap memory on pathologically large files (#1056).
+// per-frame bitmap memory on pathologically large files.
 private const val ANIMATED_MAX_DIM = 4096
 
 /**
@@ -294,7 +294,7 @@ fun <T : Media> BlurredMediaBackground(
 // (GIF/APNG/animated WebP, which BitmapRegionDecoder genuinely cannot tile), JXL still
 // subsamples through JxlRegionDecoder — which self-rejects animated codestreams — and an
 // animated painter animates under the canvas-drawn pixel-perfect path just like under
-// ZoomImage, because the painter owns its frames, not the renderer (#1311).
+// ZoomImage, because the painter owns its frames, not the renderer.
 fun resolveUsePixelPerfect(
     disableSmoothing: Boolean,
     isJxl: Boolean,
@@ -389,7 +389,7 @@ fun <T : Media> ZoomablePagerImage(
     // disk result caches are tied to the current file bytes. After editing or
     // overwriting an image its URI is unchanged, so without this the viewer kept
     // serving the stale original from cache while the Glide grid (keyed on
-    // media.toString()) had already refreshed (#1004).
+    // media.toString) had already refreshed.
     val mediaVersion = remember(media) { "${media.timestamp}:${media.size}" }
     val isEncrypted = remember(media) {
         media.isEncrypted
@@ -430,7 +430,7 @@ fun <T : Media> ZoomablePagerImage(
     }
     // Frame-animated raster formats that CANNOT be tiled/subsampled: GIF, animated WebP, APNG.
     // BitmapRegionDecoder can't decode GIF, and tiling a moving image would freeze a hi-res layer
-    // over the animation. The fix is a full-resolution (capped) base decode per frame (#1056).
+    // over the animation. The fix is a full-resolution (capped) base decode per frame.
     // Animated WebP shares mime image/webp with static WebP, so it needs a cheap header sniff;
     // cloud/encrypted webp default to false (sniffing would require download/decrypt).
     var isAnimatedWebpState by remember(media) { mutableStateOf(false) }
@@ -455,7 +455,7 @@ fun <T : Media> ZoomablePagerImage(
     // blur. ZoomImage scales via a GPU graphicsLayer (always linearly filtered), so the setting is
     // honored through a dedicated canvas-transform draw path (see PixelPerfectZoomImage) rather than
     // ZoomImage. Animated images keep the default smooth path — except JXL (see
-    // resolveUsePixelPerfect), whose blanket "animated" flag used to hide it forever (#1311).
+    // resolveUsePixelPerfect), whose blanket "animated" flag used to hide it forever.
     val disableSmoothing by Settings.Misc.rememberDisableSmoothing()
     val usePixelPerfect = resolveUsePixelPerfect(
         disableSmoothing = disableSmoothing,
@@ -464,7 +464,7 @@ fun <T : Media> ZoomablePagerImage(
         isAnimatedRaster = isAnimatedRaster,
     )
     val filterQuality = if (disableSmoothing) FilterQuality.None else DrawScope.DefaultFilterQuality
-    // #1054: MediaStore sometimes mislabels a standard JPEG/PNG/WebP/GIF/BMP as RAW/TIFF/PSD/JP2,
+    // MediaStore sometimes mislabels a standard JPEG/PNG/WebP/GIF/BMP as RAW/TIFF/PSD/JP2,
     // so media.isRaw/isTiff/… are true and a custom region decoder would be attached that can't
     // decode the real bytes — leaving zoom stuck on the low-res base ("magnified thumbnail"). Only
     // for those already-special formats, sniff the header once (cached per media) on IO; if the
@@ -544,7 +544,7 @@ fun <T : Media> ZoomablePagerImage(
             }
             // Animated raster (GIF/animated WebP/APNG) can't be subsampled, so decode the base frame
             // at native resolution (capped) instead of the default layout/screen size — otherwise a
-            // hi-res GIF looks blurry when zoomed (#1056). LESS_PIXELS precision never upscales, so
+            // hi-res GIF looks blurry when zoomed. LESS_PIXELS precision never upscales, so
             // small GIFs still decode at native size and only oversized ones are downsampled.
             if (isAnimatedRaster) {
                 resize(width = ANIMATED_MAX_DIM, height = ANIMATED_MAX_DIM, precision = Precision.LESS_PIXELS)
@@ -738,7 +738,7 @@ fun <T : Media> ZoomablePagerImage(
     } else if (!isAnimated && !isAnimatedRaster) {
         // Animated raster (GIF/animated WebP/APNG) is intentionally excluded: BitmapRegionDecoder
         // can't tile a moving image, so subsampling would do nothing but waste work. Their crisp
-        // zoom comes from the native-resolution base decode above (#1056).
+        // zoom comes from the native-resolution base decode above.
         LaunchedEffect(media, isFullImageLoaded, zoomState.subsampling) {
             zoomState.setSubsamplingImage(media.asSubsamplingImage(context))
         }

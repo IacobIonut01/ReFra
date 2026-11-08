@@ -369,7 +369,7 @@ class ModelDownloadWorkerAdapter : GalleryWorkerAdapter(ModelDownloadWorker.WORK
 suspend fun BackgroundTaskScheduler.downloadModels(group: ModelGroup) {
     // REPLACE (not KEEP): a finished task with the same name lingers after a completed
     // download or a cancel. With KEEP that stale record blocks re-enqueue, so tapping
-    // Download again after deleting the models did nothing (issue #1044). REPLACE cancels
+    // Download again after deleting the models did nothing. REPLACE cancels
     // any existing (finished or in-flight) task and always starts a fresh download.
     //
     // Single-step chain so the task can carry HIGH priority (expedited on Android) — a

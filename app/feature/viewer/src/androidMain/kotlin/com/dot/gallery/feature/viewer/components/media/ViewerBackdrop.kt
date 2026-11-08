@@ -78,7 +78,7 @@ fun backdropCacheKey(media: Media): String {
     val version = mediaPreviewVersion(media)
     val source = media.getUri().toString()
     // Encrypted previews decode with a different key, and the same file can exist in the vault
-    // and outside it, so the preview key is part of the identity (#1004).
+    // and outside it, so the preview key is part of the identity.
     return if (media.isEncrypted) "$source:$version:${media.idLessKey}" else "$source:$version"
 }
 

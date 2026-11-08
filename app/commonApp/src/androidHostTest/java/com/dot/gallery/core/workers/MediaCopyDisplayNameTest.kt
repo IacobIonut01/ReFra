@@ -9,7 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Regression test for #1358: copied files were renamed to a short numeric name
+ * Regression test: copied files were renamed to a short numeric name
  * because content:// URIs expose only the MediaStore row id via
  * Uri.getLastPathSegment. The media label from the work input must win over the
  * URI-derived fallback.

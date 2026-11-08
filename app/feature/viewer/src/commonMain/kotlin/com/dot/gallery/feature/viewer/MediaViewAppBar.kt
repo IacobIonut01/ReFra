@@ -92,7 +92,7 @@ fun MediaViewAppBar(
     paddingValues: PaddingValues,
     showRotationHelper: State<Boolean>,
     // 1f = fully visible, 0f = fully hidden. Driven by info-sheet expansion progress so the
-    // extras (rotate, lock, motion pill) fade out gradually and are gone at full expand (#963).
+    // extras (rotate, lock, motion pill) fade out gradually and are gone at full expand.
     topExtrasAlpha: () -> Float = { 1f },
     isMotionPhoto: Boolean = false,
     isMotionPlaying: Boolean = false,

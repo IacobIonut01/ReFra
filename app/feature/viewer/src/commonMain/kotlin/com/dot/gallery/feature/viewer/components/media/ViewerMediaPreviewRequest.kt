@@ -16,7 +16,7 @@ const val MEDIA_PREVIEW_SIZE = 600
 
 /**
  * Cache version extra for the low-res preview: busts the entry when the underlying file is
- * replaced in place (#1004).
+ * replaced in place.
  */
 fun mediaPreviewVersion(media: Media): String = "${media.timestamp}:${media.size}"
 

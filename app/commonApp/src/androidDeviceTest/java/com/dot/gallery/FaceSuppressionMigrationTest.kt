@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 /**
  * Covers the v51 -> v52 AutoMigration that creates the `face_suppressions` table —
  * the durable "never cluster this face into any person" record written when a
- * person is deleted (#1262).
+ * person is deleted.
  */
 @RunWith(AndroidJUnit4::class)
 class FaceSuppressionMigrationTest {

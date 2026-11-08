@@ -71,7 +71,7 @@ class MediaViewerVisualPolicyTest {
     @Test
     fun partialViewerDataDoesNotTriggerMissingTargetDismiss() {
         // A partial state still has batches in flight — the tapped item may simply
-        // not be loaded yet, so it must not dismiss the viewer (#1069 hardening).
+        // not be loaded yet, so it must not dismiss the viewer (hardening).
         assertFalse(
             shouldDismissMissingMediaTarget(
                 isLoading = false,

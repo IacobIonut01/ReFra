@@ -26,7 +26,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Regression test for #1371: the upload album-sync pass must not run on
+ * Regression test: the upload album-sync pass must not run on
  * path-based providers. WebDAV/SMB/NFS declare [ProviderCapability.ALBUM_WRITE]
  * (createAlbum = mkdir at the share root) but their addToAlbum is unsupported,
  * so the pass only ever created stray empty root folders. The pass is now gated

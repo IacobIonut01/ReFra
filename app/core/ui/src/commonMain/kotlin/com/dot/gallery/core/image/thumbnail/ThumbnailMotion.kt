@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 
 /**
- * Phase 3 (#1076): scroll-aware two-stage thumbnail scheduling.
+ * scroll-aware two-stage thumbnail scheduling.
  *
  * A grid publishes a debounced "is the list currently in motion" flag through
  * [LocalThumbnailMotion]. The shared image renderer reads it to decide the request tier:

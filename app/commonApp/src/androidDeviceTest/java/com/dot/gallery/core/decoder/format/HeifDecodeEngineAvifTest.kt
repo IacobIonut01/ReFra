@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 
 
 /**
- * Regression test for 12-bit AVIF support (#1244): the platform AV1 stack silently decodes
+ * Regression test for 12-bit AVIF support: the platform AV1 stack silently decodes
  * 12-bit streams as 8-bit and returns the corrupted bitmap as a success, so the decode engine
  * must route such files to the bundled software decoder instead of trusting the hardware path.
  *

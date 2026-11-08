@@ -59,7 +59,7 @@ class FaceLinkDaoTest {
 
     // The same (mediaId, box) face excluded under both merge sides — e.g. the user
     // marked A-vs-C and B-vs-C "different people", then merged A into B. A plain
-    // UPDATE violated the unique index and crashed the merge (issue #1228).
+    // UPDATE violated the unique index and crashed the merge.
     @Test
     fun reassignCollapsesDuplicateExcludeAssertions() = runBlocking {
         insertPerson("personA")

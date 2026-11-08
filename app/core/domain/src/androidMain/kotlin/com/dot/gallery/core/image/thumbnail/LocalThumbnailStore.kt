@@ -17,7 +17,7 @@ import com.dot.gallery.core.util.or
 
 
 /**
- * #1276: persistent on-disk store for thumbnails of software-decoded formats
+ * persistent on-disk store for thumbnails of software-decoded formats
  * ([HeavyThumbFormat]: JXL, PSD, JP2, TIFF, RAW, >10-bit HEIF).
  *
  * One canonical thumbnail per media file, encoded WebP at

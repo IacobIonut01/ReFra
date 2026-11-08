@@ -231,7 +231,7 @@ open class PickerViewModel @Inject constructor(
                     trashed = 0,
                     size = pm.size,
                     // Placeholder duration so video files register as videos
-                    // (Media.isVideo requires a non-null duration) — #1003.
+                    // (Media.isVideo requires a non-null duration) —.
                     duration = if (pm.isVideo) "" else null
                 ) as Media
             }

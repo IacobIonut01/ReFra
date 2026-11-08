@@ -66,7 +66,7 @@ class EncryptedPanoramaImageLoader(
     override fun initialize(): Boolean {
         PanoramaLog.d("EncryptedPanoramaImageLoader.initialize() file=${encryptedFile.name}")
 
-        // Borrow the shared canonical decrypted file (#1282)
+        // Borrow the shared canonical decrypted file
         val handle = try {
             VaultDecryptStore.acquire(keychainHolder, encryptedFile)
         } catch (e: Exception) {

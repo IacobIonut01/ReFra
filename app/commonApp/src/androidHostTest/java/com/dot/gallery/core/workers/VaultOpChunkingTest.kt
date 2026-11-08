@@ -10,7 +10,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Regression test for #1240: bulk vault ops over a few hundred URIs crashed the
+ * Regression test: bulk vault ops over a few hundred URIs crashed the
  * app because the whole URI list was serialized into a single work-input payload
  * over the ~10 KB cap. chunkStringsForWorkInput must split so every chunk stays
  * under the limit while preserving order and completeness.

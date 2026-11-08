@@ -15,7 +15,7 @@ import org.junit.Test
 /**
  * Regression tests for [dateBucketOf].
  *
- * See bug #1324: media dated in the future (e.g. April 2039) was grouped under
+ * media dated in the future (e.g. April 2039) was grouped under
  * "Today" because every non-positive day distance mapped to the Today label.
  */
 class DateBucketTest {

@@ -11,7 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * #1301: older backups made under legacy path schemes must still verify —
+ * older backups made under legacy path schemes must still verify —
  * candidates include the resolved path, the bare album folder, and the
  * provider default (null).
  */

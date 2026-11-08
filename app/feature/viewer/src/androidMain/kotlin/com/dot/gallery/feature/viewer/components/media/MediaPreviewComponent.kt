@@ -76,7 +76,7 @@ fun <T : Media> MediaPreviewComponent(
     onLoadFailed: () -> Unit = {},
     onVideoEnded: () -> Unit = {},
     // Reports the detected HDR format even when playback fails (the controller lambda is
-    // `ready`-gated and never composes for undecodable tracks) (#1274).
+    // `ready`-gated and never composes for undecodable tracks).
     onVideoHdrChanged: (VideoHdrInfo) -> Unit = {},
     // When false the (expensive, fullscreen `.blur(100.dp)`) blurred backdrop is skipped. Used to
     // keep it off the shared-element open/close transition's critical frames — it's imperceptible

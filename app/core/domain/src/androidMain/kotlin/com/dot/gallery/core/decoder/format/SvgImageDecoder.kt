@@ -67,7 +67,7 @@ object SvgImageDecoder {
      * (e.g. PowerPoint/Office exports) draw their content at native user-coordinates in the top-left
      * of the enlarged viewport, leaving the rest transparent. When rendered as the high-res base for
      * subsampling this makes the raster size disagree with the drawn content, producing a shrunken
-     * duplicate in the top-left over the base painter (#1020). Synthesizing a viewBox from the
+     * duplicate in the top-left over the base painter. Synthesizing a viewBox from the
      * intrinsic width/height lets AndroidSVG scale the content to fill the target raster.
      */
     private fun ensureViewBox(svg: SVG) {

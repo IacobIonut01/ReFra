@@ -15,7 +15,7 @@ import com.dot.gallery.feature.editor.model.Adjustment
  * Interactive editing runs on a memory-safe downscaled proxy, but the *recipe*
  * ([EditViewModel.appliedAdjustments]) is resolution-independent, so the exact same list can be
  * re-applied to the full-resolution original at save time to produce a full-res result with no
- * downsampling. This is the non-tiled bake path; the tiled engine (Phase 3) reuses the same recipe
+ * downsampling. This is the non-tiled bake path; the tiled engine reuses the same recipe
  * but streams it in memory-bounded tiles.
  */
 object EditReplay {

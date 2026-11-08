@@ -19,7 +19,7 @@ import com.dot.gallery.domain.uri.path
 
 
 /**
- * Regression coverage for #1235: media without a usable location must not form
+ * Regression coverage: media without a usable location must not form
  * an "Unknown Location" group (e.g. redacted EXIF without ACCESS_MEDIA_LOCATION
  * yielding 0,0 coordinates).
  */

@@ -178,7 +178,6 @@ class MediaViewViewModel @Inject constructor(
         }
     }
 
-    // ======================== Motion Photo Extraction ========================
 
 
     private val _motionPhotoExtraction = MutableStateFlow(MotionPhotoExtraction())

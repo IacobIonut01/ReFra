@@ -22,8 +22,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CollectionDao {
 
-    // ============ Collection CRUD ============
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCollection(collection: Collection): Long
 
@@ -56,8 +54,6 @@ interface CollectionDao {
 
     @Query("SELECT COUNT(*) FROM collections")
     fun getCollectionCount(): Flow<Int>
-
-    // ============ CollectionMedia operations ============
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addMediaToCollection(collectionMedia: CollectionMedia)
@@ -92,7 +88,7 @@ interface CollectionDao {
     @Query("SELECT collectionId FROM collection_media WHERE mediaId = :mediaId")
     fun getCollectionIdsForMedia(mediaId: Long): Flow<List<Long>>
 
-    // Get the thumbnail media id: use coverMediaId if set, otherwise most recently added media
+    // coverMediaId if set, otherwise the most recently added media
     @Query("""
         SELECT COALESCE(
             c.coverMediaId,
@@ -101,8 +97,6 @@ interface CollectionDao {
         FROM collections c WHERE c.id = :collectionId
     """)
     fun getThumbnailMediaId(collectionId: Long): Flow<Long?>
-
-    // ============ CollectionAlbum operations ============
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addAlbumToCollection(collectionAlbum: CollectionAlbum)
@@ -175,7 +169,6 @@ interface CollectionDao {
     )
     suspend fun cleanupAllOrphanedExcludedMedia(): Int
 
-    // Collections with count for UI display
     @Query(COLLECTIONS_WITH_COUNT)
     fun getCollectionsWithCount(): Flow<List<CollectionWithMediaCount>>
 }

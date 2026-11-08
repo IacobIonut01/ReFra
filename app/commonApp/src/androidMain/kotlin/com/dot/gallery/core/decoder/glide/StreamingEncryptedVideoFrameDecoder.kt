@@ -93,7 +93,7 @@ class StreamingEncryptedVideoFrameDecoder(
                 return BitmapResource.obtain(bmp, bitmapPool)
             } finally {
                 // Only delete if we created the temp file ourselves — source.tempFile is the
-                // shared canonical file managed by VaultDecryptStore (#1282).
+                // shared canonical file managed by VaultDecryptStore.
                 if (ownsBacking) backingFile.delete()
             }
         } finally {

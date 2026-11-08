@@ -14,7 +14,7 @@ import androidx.room3.PrimaryKey
 
 /**
  * "Never cluster this face into any person" — written when a person group is
- * deleted (#1262). Keyed by media + bounding box and matched to live
+ * deleted. Keyed by media + bounding box and matched to live
  * `detected_faces` rows by IoU, exactly like [FaceLinkEntity], so it survives
  * face re-detection and carries no person FK (the person is gone by design).
  */

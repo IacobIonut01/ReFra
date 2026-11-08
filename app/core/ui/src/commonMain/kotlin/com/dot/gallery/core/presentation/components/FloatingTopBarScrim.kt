@@ -24,7 +24,7 @@ private val TopBarScrimFade = 72.dp
  *
  * Screens hosting the floating search bar
  * let grid content scroll underneath the bar; without a scrim the bar actions and
- * status icons lose contrast against arbitrary media (#1182). This overlays the
+ * status icons lose contrast against arbitrary media. This overlays the
  * same surfaceColorAtElevation(3.dp) -> Transparent brush the sticky date header
  * uses so the two blend seamlessly once a header pins.
  *

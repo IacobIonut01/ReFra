@@ -126,7 +126,7 @@ class PersonDetailViewModel @Inject constructor(
     }
 
     /**
-     * Delete the person group entirely (#1262): photos are untouched, and the
+     * Delete the person group entirely: photos are untouched, and the
      * faces are recorded as suppressed so re-grouping can't resurrect it.
      */
     fun deletePerson(onDone: () -> Unit) {
@@ -228,7 +228,7 @@ class PersonDetailViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(isLoading = true)
         // Local people resolve through the provider's own row lookup so hidden
         // people stay openable — getAllPeople() only ever carries visible
-        // persons, which is what stranded hidden people (#1262).
+        // persons, which is what stranded hidden people.
         val local = if (configId == LOCAL_PEOPLE_CONFIG_ID) localProvider() else null
 
         viewModelScope.launch {

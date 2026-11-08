@@ -12,7 +12,7 @@ import androidx.media3.exoplayer.video.VideoRendererEventListener
 
 /**
  * Renderers factory for viewer players. The viewer swaps the video output while a codec is
- * running (SurfaceView/TextureView switches and the #967 inset rebind). The emulator's goldfish
+ * running (SurfaceView/TextureView switches and inset rebind). The emulator's goldfish
  * decoders accept `MediaCodec.setOutputSurface` but then fail every following
  * `queueInputBuffer` with "MediaCodec already in error", so for those codecs the video renderer
  * releases and re-creates the codec on a surface change instead.

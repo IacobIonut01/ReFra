@@ -131,7 +131,7 @@ class MediaHandlerImpl @Inject constructor(
                     val (providerName, remoteId, configId) = extractCloudInfo(media) ?: return@forEach
                     val provider = getCloudProvider(providerName, configId) ?: return@forEach
                     // Never hard-delete under a trash label: providers without a
-                    // real bin implement trashAsset as deleteAsset (#1279). Such
+                    // real bin implement trashAsset as deleteAsset. Such
                     // items must reach deleteMedia through the warned path.
                     if (!remoteTrashPermitted(trash, provider.capabilities)) {
                         printWarn(

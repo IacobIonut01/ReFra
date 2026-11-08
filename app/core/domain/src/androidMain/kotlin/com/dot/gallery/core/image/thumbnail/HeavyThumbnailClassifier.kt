@@ -75,7 +75,7 @@ object HeavyThumbnailClassifier {
     private fun classifyUncached(resolver: ContentResolver, uri: Uri): HeavyThumbFormat? {
         val mime = resolver.getType(uri)
         classifyMime(mime)?.let { return it }
-        // HEIF-family MIME: only >10-bit streams are heavy — the platform corrupts them (#1244).
+        // HEIF-family MIME: only >10-bit streams are heavy — the platform corrupts them.
         if (mime?.lowercase()?.substringBefore(';')?.trim() in HEIF_MIMES) {
             return if (HeifUriProbe.needsSoftwareDecode(resolver, uri, mime)) {
                 HeavyThumbFormat.HEIF_SW

@@ -16,7 +16,7 @@ import com.dot.gallery.domain.model.videoProbeNeeded
 
 
 /**
- * Regression coverage for #1267: on Android 12 the isolated metadata service's
+ * Regression coverage: on Android 12 the isolated metadata service's
  * MediaMetadataRetriever leg takes the whole IPC reply down, so videos must be
  * probed in-process and merged without clobbering whatever the service returned.
  */

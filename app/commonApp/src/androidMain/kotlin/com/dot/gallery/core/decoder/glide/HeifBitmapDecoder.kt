@@ -23,7 +23,7 @@ import java.io.InputStream
 internal const val HEIF_SNIFF_BYTES = 512
 
 /**
- * #1244: two-stage ">10-bit HEIF" check for markable streams. Stage one sniffs the `ftyp`
+ * two-stage ">10-bit HEIF" check for markable streams. Stage one sniffs the `ftyp`
  * brand on a small window so non-HEIF streams exit cheaply; stage two streams box headers up to
  * `meta` for the bitstream probe. The stream position is restored before returning.
  */
@@ -84,7 +84,7 @@ private const val TAG_PROBE = "decode.heif"
  * Decodes >10-bit HEIF/AVIF from an InputStream (already decrypted if using
  * EncryptedFileModelLoader). Relies on HeifCoder (same as SketchHeifDecoder).
  *
- * #1244: handles() is gated on the declared bit depth so only streams the platform decoder
+ * handles is gated on the declared bit depth so only streams the platform decoder
  * corrupts (>10-bit) are claimed; <=10-bit streams continue to the platform path and get a
  * hardware decode instead of paying for HeifCoder.
  */

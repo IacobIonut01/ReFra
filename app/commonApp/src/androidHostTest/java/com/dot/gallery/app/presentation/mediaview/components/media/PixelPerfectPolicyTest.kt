@@ -11,7 +11,7 @@ class PixelPerfectPolicyTest {
 
     @Test
     fun jxlUsesPixelPerfectEvenThoughItIsFlaggedAnimated() {
-        // #1311: media.isJxl was folded into isAnimated, so every JXL stayed on the
+        // media.isJxl was folded into isAnimated, so every JXL stayed on the
         // smoothed path — "Disable smoothing" silently did nothing for the format.
         // JXL is exempt because animation is decided inside SketchAnimatedJxlDecoder:
         // the animated painter plays under the canvas-drawn path, and JxlRegionDecoder
@@ -29,7 +29,7 @@ class PixelPerfectPolicyTest {
     @Test
     fun frameAnimatedRastersKeepTheSmoothPath() {
         // GIF / APNG / animated WebP cannot be tiled and their painter zoom path is
-        // the smooth one — they must stay excluded (#1056).
+        // the smooth one — they must stay excluded.
         listOf(true, false).forEach { isJxl ->
             assertFalse(
                 resolveUsePixelPerfect(

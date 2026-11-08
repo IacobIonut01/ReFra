@@ -118,7 +118,6 @@ class CategoryWorker @Inject constructor(
                     printInfo("CategoryWorker: No image embeddings found, starting search indexer...")
                     env.setProgress(WORK_NAME, workData(KEY_PROGRESS to 0f, KEY_STATUS to "Starting image indexer..."), percent = 0)
 
-                    // Start the search indexer
                     startSearchIndexer()
 
                     // Wait for the search indexer to complete (with timeout)
@@ -165,7 +164,7 @@ class CategoryWorker @Inject constructor(
                     }
                 }
 
-                // Exclude videos from categorisation when the user opted in (#948). Embeddings
+                // Exclude videos from categorisation when the user opted in. Embeddings
                 // carry no mimeType, so video ids are resolved through the media mirrors.
                 val excludeVideos = Settings.Misc.getSetting(
                     appContext, Settings.Misc.CATEGORIES_EXCLUDE_VIDEOS, false

@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.asSharedFlow
  *
  * Re-tapping the currently selected bottom-navigation item (Timeline, Albums,
  * Library) emits the current route here; the matching screen collects the event
- * and scrolls its list/grid back to the top (#1039).
+ * and scrolls its list/grid back to the top.
  */
 @Stable
 class ScrollToTopController {

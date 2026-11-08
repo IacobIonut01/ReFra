@@ -97,7 +97,7 @@ class MediaUriFlow(
             MediaStore.Files.FileColumns.MIME_TYPE eq Query.ARG
         }
 
-        // #1282: scope the scan to the requested media IDs instead of walking the whole
+        // scope the scan to the requested media IDs instead of walking the whole
         // MediaStore table and filtering in memory — the full scan could return nothing
         // usable on large libraries, silently producing an empty add-to-vault batch.
         val idFilter = if (onlyMatchingUris && candidateIds.isNotEmpty()) {

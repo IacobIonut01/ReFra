@@ -16,7 +16,7 @@ class ViewerCrossfadeTransitionTest {
 
     @Test
     fun disabledAnimationsClearTheTransitionInsteadOfZeroDuration() {
-        // Sketch throws "durationMillis must be > 0." for a zero-length cross-fade (#1335).
+        // Sketch throws "durationMillis must be > 0." for a zero-length cross-fade.
         assertNull(viewerCrossfadeTransition(animationsEnabled = false))
     }
 

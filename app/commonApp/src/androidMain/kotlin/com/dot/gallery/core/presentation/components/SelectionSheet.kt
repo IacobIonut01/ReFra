@@ -332,7 +332,7 @@ fun <T : Media> BoxScope.SelectionSheet(
     val privateFolderMoveViewModel = injectViewModel<PrivateFolderMoveViewModel> {privateFolderMoveViewModel}
     val privateFolderMoveConfirmState = rememberAppBottomSheetState()
     // Move-out and permanent-delete confirmations used only inside the private
-    // folder, where items are SAF documents (see #1015).
+    // folder, where items are SAF documents (see ).
     val privateFolderMoveOutConfirmState = rememberAppBottomSheetState()
     val privateFolderDeleteConfirmState = rememberAppBottomSheetState()
     val privateFolderUri by Settings.Security.rememberPrivateFolderUri()
@@ -342,7 +342,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         var base = config.sanitized()
         // Inside the private folder the items are SAF documents, not MediaStore
         // entries, so MediaStore-based actions (copy/move/favorite/trash) crash
-        // (#1015). Force a safe, SAF-only action set: share, move-out (reusing
+        //Force a safe, SAF-only action set: share, move-out (reusing
         // MOVE) and permanent delete (reusing TRASH). Never offer
         // MOVE_TO_PRIVATE_FOLDER here (would copy back in + MediaStore-delete
         // crash).
@@ -410,7 +410,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         )
     )
     // Selected cloud items whose provider has no recoverable bin — under a TRASH
-    // action the TrashDialog warns they will be deleted permanently (#1279).
+    // action the TrashDialog warns they will be deleted permanently.
     // Read-only items are excluded here; they are filtered out of the batch at
     // confirm time instead.
     val untrashableCloudIds = remember(selectedSnapshot, cloudSettingsByConfigId) {
@@ -1136,7 +1136,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         } else {
             PendingRemovalScope.EVERYWHERE
         }
-        // Mixed local+cloud selections (#1279): per-item capability decides the
+        // Mixed local+cloud selections: per-item capability decides the
         // real path. Locals and cloud items whose provider has a real bin go
         // through trash; cloud items without one were warned in the dialog and
         // are deleted permanently; read-only account items are never touched.
@@ -1221,7 +1221,7 @@ fun <T : Media> BoxScope.SelectionSheet(
     )
 
     // Move selected local media into the private folder, then request deletion
-    // of the originals so the operation behaves as a true move (#1015).
+    // of the originals so the operation behaves as a true move.
     val privateFolderMovingText = stringResource(Res.string.private_folder_moving)
     val privateFolderMoveFailedText = stringResource(Res.string.private_folder_move_failed)
     ConfirmationSheet(
@@ -1259,7 +1259,7 @@ fun <T : Media> BoxScope.SelectionSheet(
 
     // Move selected private-folder items back out to the public gallery. These
     // are SAF documents, so the copy-out + SAF delete happen entirely in the
-    // repository — no MediaStore delete request (which crashes here — #1015).
+    // repository — no MediaStore delete request (which crashes here — ).
     val privateFolderMovingOutText = stringResource(Res.string.private_folder_moving_out)
     val privateFolderMoveOutFailedText = stringResource(Res.string.private_folder_move_out_failed)
     ConfirmationSheet(
@@ -1282,7 +1282,7 @@ fun <T : Media> BoxScope.SelectionSheet(
     )
 
     // Permanently delete selected private-folder items via SAF document
-    // deletion (never a MediaStore delete request — #1015).
+    // deletion (never a MediaStore delete request — ).
     val privateFolderDeleteFailedText = stringResource(Res.string.private_folder_delete_failed)
     ConfirmationSheet(
         state = privateFolderDeleteConfirmState,

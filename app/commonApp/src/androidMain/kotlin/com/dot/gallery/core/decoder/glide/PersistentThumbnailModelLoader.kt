@@ -36,7 +36,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 
 /**
- * #1276: persistent-thumbnail fast path for software-decoded formats.
+ * persistent-thumbnail fast path for software-decoded formats.
  *
  * The platform thumbnailer cannot serve JXL/PSD/JP2/TIFF/RAW or >10-bit HEIF, so every Glide
  * disk-cache miss for those files previously meant a full multi-MB software decode — and the

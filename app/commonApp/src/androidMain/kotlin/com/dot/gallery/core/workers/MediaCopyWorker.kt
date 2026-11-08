@@ -275,7 +275,7 @@ class MediaCopyWorker @Inject constructor(
 
 /**
  * Display name for a copied media row. `content://` URIs expose only the MediaStore row
- * id via [Uri.getLastPathSegment] — using it named every copy "123456" (#1358). The
+ * id via [Uri.getLastPathSegment] — using it named every copy "123456". The
  * media's real [Media.label] travels in the work input, so prefer it; fall back to the
  * URI segment only for cloud URIs that arrive without a label.
  */

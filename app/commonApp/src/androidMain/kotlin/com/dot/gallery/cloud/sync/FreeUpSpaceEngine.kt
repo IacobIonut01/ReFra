@@ -76,7 +76,7 @@ internal fun <T> freeUpSpaceDeletionBatch(items: List<T>): List<T> =
  * scheme used before uploadBasePath existed), and the provider default.
  * Verification still requires the remote SHA-1 to match, so extra candidates
  * cannot produce false positives — they only rescue items uploaded under
- * legacy path schemes that the resolver can no longer reconstruct (#1301).
+ * legacy path schemes that the resolver can no longer reconstruct.
  */
 internal fun targetPathCandidates(
     config: com.dot.gallery.data.entity.CloudServerConfigEntity?,

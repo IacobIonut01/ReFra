@@ -188,7 +188,6 @@ fun EditBackupsViewerContent(
     val mediaList = state.mediaList
     val backups = state.backups
 
-    // Pager state
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { mediaList.size }
@@ -237,7 +236,6 @@ fun EditBackupsViewerContent(
     // Delete confirmation dialog
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Action menu
     var showActionMenu by rememberSaveable { mutableStateOf(initialActionMenu) }
 
     // Storage percentage

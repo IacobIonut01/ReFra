@@ -21,7 +21,7 @@ import com.dot.gallery.core.logging.printWarn
 
 
 /**
- * #1276: canonical-size decode dispatch for [HeavyThumbFormat]s, feeding [LocalThumbnailStore].
+ * canonical-size decode dispatch for [HeavyThumbFormat]s, feeding [LocalThumbnailStore].
  * Runs on Glide's source executor (a background thread). All decoders are synchronous; JXL and
  * >10-bit HEIF bridge to the isolated decoder service via runBlocking when the user's sandboxed
  * decode preference is enabled — the same pattern as `SandboxedSketchJxlDecoder`.
@@ -86,7 +86,7 @@ internal object HeavyThumbnailDecoder {
     /**
      * Only >10-bit HEIF/AVIF lands here. Sandboxed decode when enabled; otherwise
      * [HeifDecodeEngine.decodeCapped] — the pure software path, since the hardware
-     * `ImageDecoder` corrupts these streams (#1244).
+     * `ImageDecoder` corrupts these streams.
      */
     private fun decodeHeifSoftware(context: Context, bytes: ByteArray, maxPx: Int): Bitmap? {
         val isolated = SandboxedDecoderHolder.decoder

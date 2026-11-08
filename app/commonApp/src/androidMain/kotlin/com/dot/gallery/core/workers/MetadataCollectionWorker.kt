@@ -93,7 +93,7 @@ class MetadataCollectionWorker @Inject constructor(
             val oldMediaIds = oldMedia.mapTo(HashSet(oldMedia.size)) { it.id }
             // Also re-collect videos that lack complete metadata rows — an earlier
             // parse may have produced nothing (e.g. isolated-service video parse
-            // failing on Android 12, #1267) and this is their only bulk retry.
+            // failing on Android 12) and this is their only bulk retry.
             val completeIds = database.getMetadataDao().getCompleteMetadataIds().toHashSet()
             media.orEmpty().filter { it.id !in oldMediaIds || it.isVideo && it.id !in completeIds }
         } else media

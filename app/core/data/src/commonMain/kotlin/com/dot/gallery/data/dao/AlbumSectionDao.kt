@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AlbumSectionDao {
 
-    // Section CRUD
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSection(section: AlbumSection): Long
 
@@ -53,7 +52,6 @@ interface AlbumSectionDao {
     @Query("SELECT COUNT(*) FROM album_sections")
     suspend fun getSectionCount(): Int
 
-    // Section members (manual overrides)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addAlbumToSection(member: AlbumSectionMember)
 

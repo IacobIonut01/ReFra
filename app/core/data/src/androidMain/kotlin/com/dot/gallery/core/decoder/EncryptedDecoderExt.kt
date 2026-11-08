@@ -37,7 +37,7 @@ fun <T : DataSource> T.getFile(): File {
 }
 
 /**
- * Decode encrypted bitmap using BitmapFactory on the shared decrypted file (#1282).
+ * Decode encrypted bitmap using BitmapFactory on the shared decrypted file.
  */
 @Throws(IOException::class)
 fun DataSource.decodeEncryptedBitmap(

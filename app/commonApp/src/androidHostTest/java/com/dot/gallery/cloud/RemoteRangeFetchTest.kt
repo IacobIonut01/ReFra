@@ -41,7 +41,7 @@ import com.dot.gallery.domain.uri.query
 /**
  * Contract tests for [RemoteMediaProvider.fetchRange] — the ranged-read used by
  * the capture-time index to pull embedded metadata prefixes from remote media
- * (issue #1277). Every provider inherits this implementation, so the behaviour
+ *Every provider inherits this implementation, so the behaviour
  * is pinned here once rather than per provider.
  */
 class RemoteRangeFetchTest {

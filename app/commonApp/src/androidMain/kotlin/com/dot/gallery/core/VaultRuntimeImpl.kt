@@ -77,7 +77,7 @@ class VaultRuntimeImpl @Inject constructor(
         deleteOriginals: Boolean,
     ): VaultOpOutcome {
         // Large batches arrive as multiple tasks — a single WorkManager-sized input
-        // payload can't hold hundreds of URIs (#1240). Await every chunk and merge.
+        // payload can't hold hundreds of URIs. Await every chunk and merge.
         val ids = scheduler.enqueueVaultOperationWithId(
             operation = operation.wireName,
             media = media,

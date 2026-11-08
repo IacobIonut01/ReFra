@@ -359,7 +359,7 @@ class MediaDistributorImpl @Inject constructor(
             // Always clear the refreshing flag, even if the caller's (composition-scoped)
             // coroutine is cancelled mid-refresh by navigating away during the delay.
             // isRefreshing lives in this app-scoped singleton, so a skipped reset would
-            // leave the pull-to-refresh spinner stuck forever, including on return (#958).
+            // leave the pull-to-refresh spinner stuck forever, including on return.
             isRefreshing.value = false
         }
     }

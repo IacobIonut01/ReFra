@@ -25,7 +25,7 @@ enum class ProviderCapability {
      * addToAlbum). Path-based providers (WebDAV/SMB/NFS/ownCloud/Nextcloud) do NOT
      * declare this: their "albums" are folders, addToAlbum is unsupported, and
      * createAlbum mkdirs a directory — running the upload album-sync pass on them
-     * would only leave empty folders at the share root (#1371). */
+     * would only leave empty folders at the share root. */
     ALBUM_MEMBERSHIP,
     REMOTE_ALBUMS,
     REMOTE_ASSETS,
@@ -52,7 +52,7 @@ enum class ProviderCapability {
  * Providers without a real bin implement `trashAsset` as a permanent delete
  * and do not declare [TRASH]; a trash-labelled call must never reach them —
  * their items go through `deleteMedia` under the dialog's permanent-delete
- * warning instead (#1279). Restores are unaffected: a provider without a bin
+ * warning instead. Restores are unaffected: a provider without a bin
  * never holds restorable items.
  */
 fun remoteTrashPermitted(

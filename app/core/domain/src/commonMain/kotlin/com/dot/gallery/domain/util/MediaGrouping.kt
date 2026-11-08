@@ -105,7 +105,7 @@ fun <T : Media> List<T>.selectRepresentative(): T {
 /**
  * Orders a group of related media by the same priority as [selectRepresentative] so the chosen
  * representative (e.g. the developed JPG over its RAW/DNG sibling) comes first. Keeps the stack's
- * opened view and multi-file share consistent with the cover shown in the grid (#995).
+ * opened view and multi-file share consistent with the cover shown in the grid.
  */
 fun <T : Media> List<T>.sortedByRepresentative(): List<T> =
     if (size <= 1) this else sortedWith(representativeComparator())

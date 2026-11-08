@@ -415,7 +415,6 @@ class ImmichProvider @Inject constructor(
         }
     }
 
-    // === Remote Assets ===
 
     override fun getRemoteAssets(page: Int, pageSize: Int): Flow<Resource<List<CloudMediaEntity>>> = flow {
         try {
@@ -931,7 +930,6 @@ class ImmichProvider @Inject constructor(
         }
     }
 
-    // === Smart Search ===
 
     override suspend fun smartSearch(query: String): Result<List<Media>> =
         runSmartSearch(ImmichSearchDto(query = query))
@@ -1020,7 +1018,6 @@ class ImmichProvider @Inject constructor(
         }
     }
 
-    // === Share Link ===
 
     override suspend fun createShareLink(assetIds: List<String>, expiresAt: Long?): Result<String> {
         return try {

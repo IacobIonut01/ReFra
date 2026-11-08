@@ -216,7 +216,6 @@ interface MetadataDao {
         if (existing != null) {
             updateImageDescription(mediaId, description)
         } else {
-            // Create minimal core entry with just the description
             upsertCore(MediaMetadataCore(
                 mediaId = mediaId,
                 imageDescription = description,
