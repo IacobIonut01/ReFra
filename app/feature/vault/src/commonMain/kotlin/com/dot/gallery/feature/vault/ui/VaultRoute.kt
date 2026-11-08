@@ -28,6 +28,9 @@ sealed class VaultRoute {
     data object VaultGateSetup : VaultRoute()
 
     @Serializable
+    data object VaultReady : VaultRoute()
+
+    @Serializable
     data object VaultSelect : VaultRoute()
 
     @Serializable

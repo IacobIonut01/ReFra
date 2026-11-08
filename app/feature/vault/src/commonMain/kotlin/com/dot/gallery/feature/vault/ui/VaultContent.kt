@@ -84,8 +84,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import kotlin.uuid.Uuid
 import com.dot.gallery.feature.vault.generated.resources.Res
 import com.dot.gallery.feature.vault.generated.resources.vault_locked_out
+import com.dot.gallery.feature.vault.generated.resources.vault_unlock_list
+import com.dot.gallery.feature.vault.generated.resources.vault_unlock_named
 import com.dot.gallery.feature.vault.generated.resources.vault_wrong_password_attempts
 
 /**
@@ -114,7 +118,11 @@ import com.dot.gallery.feature.vault.generated.resources.vault_wrong_password_at
  *   flag (`darkTheme || current route is not the media viewer`) so the host can
  *   re-apply edge-to-edge styling.
  * - [vaultDisplay] hosts the app's `VaultDisplay` (delegating to
- *   [VaultDisplayContent]) inside the gate+vault-authenticated destination.
+ *   [VaultDisplayContent]) inside the gate+vault-authenticated destination. Its
+ *   `requestAddMedia` flag is set when the setup's Ready page asks to add photos; the host
+ *   opens its media picker and calls `onAddMediaRequestHandled`.
+ * - [readGateMode] reads the stored vault-list lock for the list summary and Ready page;
+ *   [openSecuritySettings] opens the system screen-lock settings from the setup notice.
  * - [mediaViewer] hosts the app's `MediaViewScreenRoute` — both as the
  *   [VaultRoute.EncryptedMediaViewScreen] destination and inside the deferred
  *   swipe-dismiss overlay driven by [ViewerDismissBridge] (`:core:ui`).
@@ -147,6 +155,8 @@ fun VaultContent(
     writeLockAllVaults: suspend (Boolean) -> Unit,
     onSystemBarStyleChange: (darkIcons: Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    readGateMode: suspend () -> GateMode = { GateMode.NONE },
+    openSecuritySettings: (() -> Unit)? = null,
     vaultDisplay: @Composable (
         sharedTransitionScope: SharedTransitionScope,
         animatedContentScope: AnimatedContentScope,
@@ -154,6 +164,8 @@ fun VaultContent(
         onMediaClick: (Long) -> Unit,
         onVaultDeleted: () -> Unit,
         onAuthenticateVault: (Vault) -> Unit,
+        requestAddMedia: Boolean,
+        onAddMediaRequestHandled: () -> Unit,
     ) -> Unit,
     mediaViewer: @Composable (
         sharedTransitionScope: SharedTransitionScope,
@@ -169,6 +181,11 @@ fun VaultContent(
     val parentEventHandler = LocalEventHandler.current
     val navController = rememberNavController()
     var addNewVault by remember { mutableStateOf(false) }
+    var requestAddMedia by remember { mutableStateOf(false) }
+    // Total wizard pages: name, unlock method, lock entry and Ready, plus the vault-list lock
+    // when the first vault is created.
+    var setupTotalSteps by remember { mutableIntStateOf(4) }
+    var setupIncludedGate by remember { mutableStateOf(false) }
 
     LaunchedEffect(eventHandler) {
         eventHandler.navigateAction = {
@@ -294,6 +311,7 @@ fun VaultContent(
                 false -> {
                     vaultDeviceAuth.consumeOutcome()
                     pendingAuthVault = null
+                    requestAddMedia = false
                 }
 
                 null -> Unit
@@ -402,6 +420,7 @@ fun VaultContent(
                     detectedAuthType = null
                     gateAuthType = null
                     pendingAuthVault = null
+                    requestAddMedia = false
                     if (!isInitialSetupFlow) currentVault.value = null
                     vaultDeviceAuth.cancel()
                     gateDeviceAuth.cancel()
@@ -503,7 +522,22 @@ fun VaultContent(
 
                         composable<VaultRoute.VaultSelect> {
                             if (isGateAuthenticated) {
+                                val vaults = vaultState.value.vaults
+                                var gateMode by remember { mutableStateOf<GateMode?>(null) }
+                                var lockTypes by remember { mutableStateOf<Map<Uuid, VaultAuthType?>>(emptyMap()) }
+                                LaunchedEffect(vaults) {
+                                    gateMode = readGateMode()
+                                    lockTypes = vaults.mapNotNull { vault ->
+                                        when (val status = vaultCredentialStatus(vault)) {
+                                            is VaultCredentialStatus.Valid -> vault.uuid to status.authType
+                                            VaultCredentialStatus.Missing -> vault.uuid to null
+                                            VaultCredentialStatus.Corrupt -> null
+                                        }
+                                    }.toMap()
+                                }
                                 VaultSelectContent(
+                                    gateMode = gateMode,
+                                    lockTypes = lockTypes,
                                     vaultState = vaultState.value,
                                     onVaultSelected = { vault -> authenticateVault(vault) },
                                     onCreateVault = {
@@ -531,10 +565,16 @@ fun VaultContent(
 
                         composable<VaultRoute.VaultSetup> {
                             if (vaultState.value.vaults.isEmpty() || isInitialSetupFlow || isGateAuthenticated) {
+                                LaunchedEffect(Unit) {
+                                    setupIncludedGate = vaultState.value.vaults.isEmpty()
+                                    setupTotalSteps = if (setupIncludedGate) 4 else 3
+                                }
                                 VaultSetupContent(
                                     modifier = Modifier.hazeSource(LocalHazeState.current),
                                     existingVaults = vaultState.value.vaults,
                                     deviceSecurityAvailable = deviceSecurityAvailable,
+                                    totalSteps = if (vaultState.value.vaults.isEmpty()) 4 else 3,
+                                    onOpenSecuritySettings = openSecuritySettings,
                                     onCancel = {
                                         addNewVault = false
                                         if (vaultState.value.vaults.isEmpty()) {
@@ -579,7 +619,7 @@ fun VaultContent(
                                                     launchSingleTop = true
                                                 }
                                             } else {
-                                                navController.navigate(VaultRoute.VaultSelect) {
+                                                navController.navigate(VaultRoute.VaultReady) {
                                                     popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
                                                     launchSingleTop = true
                                                 }
@@ -590,6 +630,20 @@ fun VaultContent(
 
                                 VaultPasswordSetupContent(
                                     modifier = Modifier.hazeSource(LocalHazeState.current),
+                                    vaultName = currentVaultValue?.name.orEmpty(),
+                                    totalSteps = setupTotalSteps,
+                                    onCancel = {
+                                        addNewVault = false
+                                        currentVault.value = null
+                                        if (vaultState.value.vaults.isEmpty()) {
+                                            parentEventHandler.navigateUp()
+                                        } else {
+                                            navController.navigate(VaultRoute.VaultSelect) {
+                                                popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    },
                                     onSkip = { afterPasswordSetup() },
                                     onSecretSet = { type, secret ->
                                         val vault = currentVaultValue
@@ -617,18 +671,30 @@ fun VaultContent(
                                     lockAllVaults = readLockAllVaults()
                                 }
 
+                                // Part of the first-vault wizard (ends on the Ready page) or opened
+                                // from the vault list's security action (returns to the list).
+                                val fromSetup = remember { isInitialSetupFlow }
+                                var storedMode by remember { mutableStateOf<GateMode?>(null) }
+                                LaunchedEffect(Unit) {
+                                    storedMode = if (fromSetup) GateMode.DEVICE else readGateMode()
+                                }
+
                                 fun afterGateSetup() {
                                     isInitialSetupFlow = false
                                     isGateAuthenticated = true
-                                    navController.navigate(VaultRoute.VaultSelect) {
+                                    navController.navigate(if (fromSetup) VaultRoute.VaultReady else VaultRoute.VaultSelect) {
                                         popUpTo(VaultRoute.VaultGateSetup) { inclusive = true }
                                         launchSingleTop = true
                                     }
                                 }
 
-                                VaultGateSetupContent(
+                                val initialMode = storedMode
+                                if (initialMode != null) VaultGateSetupContent(
                                     modifier = Modifier.hazeSource(LocalHazeState.current),
                                     lockAllVaults = lockAllVaults,
+                                    initialMode = initialMode,
+                                    step = if (fromSetup) 4 else null,
+                                    totalSteps = 4,
                                     onBack = if (navController.previousBackStackEntry != null) {
                                         { navController.popBackStack() }
                                     } else null,
@@ -662,6 +728,48 @@ fun VaultContent(
                                 LaunchedEffect(Unit) {
                                     navController.navigate(VaultRoute.VaultGateAuth) {
                                         popUpTo(VaultRoute.VaultGateSetup) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+                        composable<VaultRoute.VaultReady> {
+                            val readyVault by currentVault.collectAsStateWithLifecycle()
+                            val vault = readyVault
+                            if (isGateAuthenticated && vault != null) {
+                                var unlockType by remember { mutableStateOf<VaultAuthType?>(null) }
+                                var gateMode by remember { mutableStateOf<GateMode?>(null) }
+                                var lockAll by remember { mutableStateOf(false) }
+                                LaunchedEffect(vault) {
+                                    unlockType = (vaultCredentialStatus(vault) as? VaultCredentialStatus.Valid)?.authType
+                                    if (setupIncludedGate) gateMode = readGateMode()
+                                    lockAll = readLockAllVaults()
+                                }
+                                fun toList() {
+                                    navController.navigate(VaultRoute.VaultSelect) {
+                                        popUpTo(VaultRoute.VaultReady) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                                BackHandler { toList() }
+                                VaultReadyContent(
+                                    modifier = Modifier.hazeSource(LocalHazeState.current),
+                                    vaultName = vault.name,
+                                    unlockType = unlockType,
+                                    gateMode = gateMode,
+                                    lockAllVaults = lockAll,
+                                    totalSteps = setupTotalSteps,
+                                    onLater = { toList() },
+                                    onAddPhotos = {
+                                        requestAddMedia = true
+                                        toList()
+                                        authenticateVault(vault)
+                                    },
+                                )
+                            } else {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultReady) { inclusive = true }
                                         launchSingleTop = true
                                     }
                                 }
@@ -704,7 +812,9 @@ fun VaultContent(
                                             launchSingleTop = true
                                         }
                                     },
-                                    { vault -> authenticateVault(vault) }
+                                    { vault -> authenticateVault(vault) },
+                                    requestAddMedia,
+                                    { requestAddMedia = false }
                                 )
                             }
                         }
@@ -780,6 +890,7 @@ fun VaultContent(
             showPasswordDialog = false
             passwordError = null
             pendingAuthVault = null
+            requestAddMedia = false
         }
 
         // Gate password/PIN/pattern dialog
@@ -799,6 +910,7 @@ fun VaultContent(
                     )
             ) {
                 VaultPasswordUnlockDialog(
+                    title = stringResource(Res.string.vault_unlock_list),
                     authType = gateAuthType,
                     onDismiss = {
                         showGatePasswordDialog = false
@@ -849,11 +961,13 @@ fun VaultContent(
                     )
             ) {
                 VaultPasswordUnlockDialog(
+                    title = pendingAuthVault?.let { stringResource(Res.string.vault_unlock_named, it.name) },
                     authType = detectedAuthType,
                     onDismiss = {
                         showPasswordDialog = false
                         passwordError = null
                         pendingAuthVault = null
+                        requestAddMedia = false
                     },
                     onSubmit = { secret ->
                         val vault = pendingAuthVault
