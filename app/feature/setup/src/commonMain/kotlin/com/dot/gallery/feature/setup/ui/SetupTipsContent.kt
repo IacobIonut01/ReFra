@@ -5,94 +5,79 @@
 
 package com.dot.gallery.feature.setup.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.TipsAndUpdates
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.SetupButton
-import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.setup.generated.resources.Res
-import com.dot.gallery.feature.setup.generated.resources.setup_finish
-import com.dot.gallery.feature.setup.generated.resources.setup_tips_body
-import com.dot.gallery.feature.setup.generated.resources.setup_tips_subtitle
-import com.dot.gallery.feature.setup.generated.resources.setup_tips_title
+import com.dot.gallery.feature.setup.generated.resources.setup_back
+import com.dot.gallery.feature.setup.generated.resources.setup_done_subtitle
+import com.dot.gallery.feature.setup.generated.resources.setup_done_title
+import com.dot.gallery.feature.setup.generated.resources.setup_start_browsing
+import com.dot.gallery.feature.setup.generated.resources.setup_step_done
+import com.dot.gallery.feature.setup.generated.resources.setup_tip_help
+import com.dot.gallery.feature.setup.generated.resources.setup_tip_help_summary
+import com.dot.gallery.feature.setup.generated.resources.setup_tip_pinch
+import com.dot.gallery.feature.setup.generated.resources.setup_tip_pinch_summary
+import com.dot.gallery.feature.setup.generated.resources.setup_tip_select
+import com.dot.gallery.feature.setup.generated.resources.setup_tip_select_summary
+import org.jetbrains.compose.resources.stringResource
 
-
-/** Closing page of the setup wizard — a pointer to Help and the Finish action. */
+/** Step 5 · All set: the old Tips page, folded into the finish screen with three short tips. */
 @Composable
-fun SetupTipsContent(
+fun SetupAllSetContent(
     stepNumber: Int,
     totalSteps: Int,
     onBack: () -> Unit,
     onFinish: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    SetupWizardScaffold(
+    SetupStepScaffold(
         modifier = modifier,
-        showBack = true,
-        onBack = onBack,
         stepNumber = stepNumber,
         totalSteps = totalSteps,
-        title = stringResource(Res.string.setup_tips_title),
-        subtitle = stringResource(Res.string.setup_tips_subtitle),
+        stepName = stringResource(Res.string.setup_step_done),
+        hero = SetupHero(
+            icon = Icons.Outlined.Celebration,
+            shape = SetupHeroShape.Done.toShape(),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
+        title = stringResource(Res.string.setup_done_title),
+        subtitle = stringResource(Res.string.setup_done_subtitle),
+        onBack = onBack,
         bottomBar = {
-            SetupButton(
-                text = stringResource(Res.string.setup_finish),
-                applyHorizontalPadding = false,
-                applyBottomPadding = false,
-                applyInsets = false,
-                applyNavigationPadding = false,
-                onClick = onFinish
+            SetupBottomActions(
+                primaryLabel = stringResource(Res.string.setup_start_browsing),
+                onPrimary = onFinish,
+                secondaryLabel = stringResource(Res.string.setup_back),
+                onSecondary = onBack,
             )
-        }
+        },
     ) {
-        Spacer(Modifier.height(16.dp))
-        Box(
-            modifier = Modifier
-                .size(96.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.TipsAndUpdates,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(48.dp)
+        SetupGlassPanel {
+            SetupGlassRow(
+                title = stringResource(Res.string.setup_tip_pinch),
+                summary = stringResource(Res.string.setup_tip_pinch_summary),
+                icon = Icons.Outlined.GridView,
+                position = SetupRowPosition.Top,
+            )
+            SetupGlassRow(
+                title = stringResource(Res.string.setup_tip_select),
+                summary = stringResource(Res.string.setup_tip_select_summary),
+                icon = Icons.Outlined.Check,
+                position = SetupRowPosition.Middle,
+            )
+            SetupGlassRow(
+                title = stringResource(Res.string.setup_tip_help),
+                summary = stringResource(Res.string.setup_tip_help_summary),
+                icon = Icons.Outlined.TipsAndUpdates,
+                position = SetupRowPosition.Bottom,
             )
         }
-        Spacer(Modifier.height(24.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = stringResource(Res.string.setup_tips_body),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
-        Spacer(Modifier.height(24.dp))
     }
 }

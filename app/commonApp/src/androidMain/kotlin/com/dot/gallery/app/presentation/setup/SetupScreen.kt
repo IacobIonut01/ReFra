@@ -5,6 +5,15 @@
 
 package com.dot.gallery.app.presentation.setup
 
+import com.dot.gallery.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import com.dot.gallery.generated.resources.cloud_provider_desc_nfs
+import com.dot.gallery.generated.resources.cloud_provider_desc_smb
+import com.dot.gallery.generated.resources.cloud_provider_desc_webdav
+import com.dot.gallery.generated.resources.cloud_provider_desc_owncloud
+import com.dot.gallery.generated.resources.cloud_provider_desc_nextcloud
+import com.dot.gallery.generated.resources.cloud_provider_desc_immich
+import com.dot.gallery.cloud.ui.components.ProviderBadge
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,6 +25,7 @@ import android.provider.Settings as AndroidSettings
 import androidx.activity.compose.LocalActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +46,7 @@ import com.dot.gallery.core.Settings
 import com.dot.gallery.core.Settings.Misc.rememberAppLogoAlias
 import com.dot.gallery.core.Settings.Misc.rememberAppNameAlias
 import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.hasBundledModelAssets
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.util.MediaAccessState
 import com.dot.gallery.feature.setup.ui.SetupActions
@@ -45,6 +56,8 @@ import com.dot.gallery.feature.setup.ui.SetupCloudAccountUi
 import com.dot.gallery.feature.setup.ui.SetupCloudActions
 import com.dot.gallery.feature.setup.ui.SetupCloudState
 import com.dot.gallery.feature.setup.ui.SetupContent
+import com.dot.gallery.feature.setup.ui.LocalSetupReduceMotion
+import com.dot.gallery.feature.help.ui.rememberReduceMotion
 import com.dot.gallery.feature.setup.ui.SetupLooksFeelActions
 import com.dot.gallery.feature.setup.ui.SetupLooksFeelState
 import com.dot.gallery.feature.setup.ui.SetupMediaAccess
@@ -79,7 +92,6 @@ import com.dot.gallery.cloud.core.hasAnyRemoteProvider
 import com.dot.gallery.app.presentation.util.launchManageFiles
 import com.dot.gallery.core.presentation.components.util.mediaAccessState
 import com.dot.gallery.injection.injectViewModel
-import com.dot.gallery.BuildConfig
 import com.dot.gallery.R
 
 
@@ -98,16 +110,16 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
     val appNameAlias by rememberAppNameAlias()
     val appLogoAlias by rememberAppLogoAlias()
 
-    val pages = remember {
-        buildList {
-            add(SetupPage.WELCOME)
-            add(SetupPage.PERMISSIONS)
-            add(SetupPage.LOOKS)
-            if (!BuildConfig.OFFLINE_MODE && ProviderType.hasAnyRemoteProvider()) add(SetupPage.CLOUD)
-            if (!BuildConfig.OFFLINE_MODE || BuildConfig.ML_MODELS_BUNDLED) add(SetupPage.AI_MODELS)
-            add(SetupPage.TIPS)
-        }
+    val variant = remember {
+        SetupVariant(
+            declaredPermissions = context.declaredPermissions(),
+            sdkInt = Build.VERSION.SDK_INT,
+            allowAllFilesAccess = isManageFilesAllowed,
+            hasRemoteProvider = ProviderType.hasAnyRemoteProvider(),
+            modelsBundled = context.hasBundledModelAssets(),
+        )
     }
+    val pages = remember(variant) { variant.pages }
 
     // region Permissions page — runtime grants stay app-side (accompanist + platform intents)
     var mediaAccess by remember { mutableStateOf(context.mediaAccessState()) }
@@ -187,32 +199,19 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
         mediaAccess, locationGranted, locationRequestAttempted,
         localNetworkGranted, notificationsGranted, canManageMedia, isStorageManager
     ) {
-        buildList {
-            add(SetupPermissionUi(SetupPermission.IMAGES, granted = coreGranted))
-            add(SetupPermissionUi(SetupPermission.VIDEO, granted = coreGranted))
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                add(
-                    SetupPermissionUi(
-                        SetupPermission.MEDIA_LOCATION,
-                        granted = locationGranted,
-                        requestAttempted = locationRequestAttempted
-                    )
+        variant.permissions.map { permission ->
+            when (permission) {
+                SetupPermission.IMAGES, SetupPermission.VIDEO -> SetupPermissionUi(permission, granted = coreGranted)
+                SetupPermission.MEDIA_LOCATION -> SetupPermissionUi(
+                    permission,
+                    granted = locationGranted,
+                    requestAttempted = locationRequestAttempted
                 )
-            }
-            if (!BuildConfig.OFFLINE_MODE) {
-                add(SetupPermissionUi(SetupPermission.INTERNET))
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (Build.VERSION.SDK_INT >= 37 && !BuildConfig.OFFLINE_MODE) {
-                    add(SetupPermissionUi(SetupPermission.LOCAL_NETWORK, granted = localNetworkGranted))
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    add(SetupPermissionUi(SetupPermission.NOTIFICATIONS, granted = notificationsGranted))
-                }
-                add(SetupPermissionUi(SetupPermission.MANAGE_MEDIA, granted = canManageMedia))
-                if (isManageFilesAllowed) {
-                    add(SetupPermissionUi(SetupPermission.MANAGE_FILES, granted = isStorageManager))
-                }
+                SetupPermission.INTERNET -> SetupPermissionUi(permission)
+                SetupPermission.LOCAL_NETWORK -> SetupPermissionUi(permission, granted = localNetworkGranted)
+                SetupPermission.NOTIFICATIONS -> SetupPermissionUi(permission, granted = notificationsGranted)
+                SetupPermission.MANAGE_MEDIA -> SetupPermissionUi(permission, granted = canManageMedia)
+                SetupPermission.MANAGE_FILES -> SetupPermissionUi(permission, granted = isStorageManager)
             }
         }
     }
@@ -266,7 +265,9 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
                         live.mapToSetupCapabilities()
                     } else {
                         defaultSetupCapabilities(type)
-                    }
+                    },
+                    description = setupProviderDescription(type),
+                    badge = { ProviderBadge(providerType = type) },
                 )
             }
         )
@@ -275,7 +276,7 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
     }
     // endregion
 
-    // region AI models page — ModelManager flows (skipped entirely in offline builds)
+    // region AI models page — ModelManager flows (skipped in offline builds without bundled models)
     var aiModelsState = SetupAiModelsState()
     var aiModelsActions = SetupAiModelsActions()
     if (SetupPage.AI_MODELS in pages) {
@@ -290,15 +291,20 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
         val faceRecogStatus by smartViewModel.modelStatus(ModelGroup.FACE_RECOGNITION).collectAsStateWithLifecycle()
         val faceRecogProgress by smartViewModel.downloadProgress(ModelGroup.FACE_RECOGNITION).collectAsStateWithLifecycle()
         aiModelsState = SetupAiModelsState(
-            isBundled = BuildConfig.ML_MODELS_BUNDLED,
-            hasInternet = smartViewModel.hasInternetPermission,
+            isBundled = variant.modelsBundled,
+            hasInternet = variant.hasInternet,
             searchGroup = searchModel.group,
             search = SetupModelUi(status = searchStatus, progress = searchProgress),
             cutout = SetupModelUi(status = cutoutStatus, progress = cutoutProgress),
             faceDetect = SetupModelUi(status = faceDetectStatus, progress = faceDetectProgress),
             faceRecognition = SetupModelUi(status = faceRecogStatus, progress = faceRecogProgress),
         )
-        aiModelsActions = SetupAiModelsActions(onDownload = smartViewModel::downloadModels)
+        aiModelsActions = SetupAiModelsActions(
+            onDownload = smartViewModel::downloadModels,
+            onOpenFeature = { name ->
+                handler.navigate(Screen.IntelligenceFeatureScreen.feature(name, offer = true))
+            },
+        )
     }
     // endregion
 
@@ -309,10 +315,10 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
         )
     }
 
+    CompositionLocalProvider(LocalSetupReduceMotion provides rememberReduceMotion()) {
     SetupContent(
         state = SetupState(
             pages = pages,
-            versionName = BuildConfig.VERSION_NAME,
             permissions = SetupPermissionsState(
                 mediaAccess = mediaAccess.toSetupMediaAccess(),
                 permissions = permissionItems
@@ -359,6 +365,7 @@ fun SetupScreen(onComplete: () -> Unit = {}) {
         ),
         logoPainter = logoPainter
     )
+    }
 }
 
 private fun MediaAccessState.toSetupMediaAccess(): SetupMediaAccess = when (this) {
@@ -372,10 +379,23 @@ private fun Set<ProviderCapability>.mapToSetupCapabilities(): Set<SetupProviderC
         runCatching { SetupProviderCapability.valueOf(capability.name) }.getOrNull()
     }
 
-private fun launcherIconFor(logoAlias: String): Int =
+/** Round launcher mipmap for the user's chosen logo alias. */
+internal fun launcherIconFor(logoAlias: String): Int =
     when (logoAlias) {
         Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
         Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
         Settings.Misc.ALIAS_GALLERY_MONO -> R.mipmap.ic_launcher_gallery_mono_round
         else -> R.mipmap.ic_launcher_round
     }
+
+/** The add-account list's one-line description of each provider, reused on the setup Cloud step. */
+@Composable
+private fun setupProviderDescription(type: ProviderType): String = when (type) {
+    ProviderType.IMMICH -> stringResource(Res.string.cloud_provider_desc_immich)
+    ProviderType.NEXTCLOUD -> stringResource(Res.string.cloud_provider_desc_nextcloud)
+    ProviderType.OWNCLOUD -> stringResource(Res.string.cloud_provider_desc_owncloud)
+    ProviderType.WEBDAV -> stringResource(Res.string.cloud_provider_desc_webdav)
+    ProviderType.SMB -> stringResource(Res.string.cloud_provider_desc_smb)
+    ProviderType.NFS -> stringResource(Res.string.cloud_provider_desc_nfs)
+    else -> type.displayName
+}

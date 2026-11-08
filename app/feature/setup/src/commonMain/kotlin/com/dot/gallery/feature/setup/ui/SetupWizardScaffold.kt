@@ -47,11 +47,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.presentation.util.LocalHazeState
+import com.dot.gallery.core.ui.settings.rememberPreference
+import com.dot.gallery.core.ui.util.supportsBlur
+import com.dot.gallery.domain.settings.SettingsKeys
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import com.dot.gallery.core.presentation.util.hazeEffectScaled
+import com.dot.gallery.core.presentation.util.rememberBottomBarBlurStyle
+import com.dot.gallery.ui.theme.GalleryGlass
+import com.dot.gallery.feature.setup.generated.resources.setup_skip
+import com.dot.gallery.feature.setup.generated.resources.setup_step_label
 import com.dot.gallery.feature.setup.generated.resources.Res
 import com.dot.gallery.feature.setup.generated.resources.back_cd
 import com.dot.gallery.feature.setup.generated.resources.setup_step_progress
@@ -130,6 +151,7 @@ fun SetupWizardScaffold(
     // restart the infinite animation and flicker on every page switch).
     val backgroundHandledExternally = LocalSetupSharedTransitionScope.current != null
     val hazeState = remember { HazeState() }
+    val allowBlur by rememberPreference(SettingsKeys.allowBlur.withDefault(supportsBlur))
 
     Box(modifier = modifier.fillMaxSize()) {
         if (!backgroundHandledExternally) {
@@ -140,7 +162,7 @@ fun SetupWizardScaffold(
             LocalHazeState provides hazeState,
             LocalHazeBlurStyle provides HazeMaterials.regular(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            )
+            ).then { blurEnabled(allowBlur) }
         ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Top bar
@@ -270,5 +292,251 @@ private fun StepProgressIndicator(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+// =================================================================================================
+// Setup v2 frame: blobs + frosted glass
+// =================================================================================================
+
+/** The expressive shape heading a setup step. */
+data class SetupHero(
+    val icon: ImageVector,
+    val shape: Shape,
+    val containerColor: Color,
+    val contentColor: Color,
+)
+
+/**
+ * Frame of a setup v2 step: glass back button, step dots and an optional Skip pill on top; an
+ * expressive [hero] shape, "Step n of N · Name", a 32/40 [title] and [subtitle]; the step's
+ * [content] (glass panels); and a transparent [bottomBar] that blurs the backdrop under it. The
+ * blob background and its haze source live in the wizard ([LocalSetupHazeState]).
+ */
+@Composable
+fun SetupStepScaffold(
+    modifier: Modifier = Modifier,
+    stepNumber: Int = 0,
+    totalSteps: Int = 0,
+    stepName: String? = null,
+    hero: SetupHero? = null,
+    title: String? = null,
+    subtitle: String? = null,
+    onBack: (() -> Unit)? = null,
+    onSkip: (() -> Unit)? = null,
+    centered: Boolean = false,
+    bottomBar: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val hazeState = LocalSetupHazeState.current
+    val horizontal = if (centered) Alignment.CenterHorizontally else Alignment.Start
+    val textAlign = if (centered) TextAlign.Center else TextAlign.Start
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .statusBarsPadding()
+                .padding(top = 64.dp)
+                .navigationBarsPadding()
+                .padding(bottom = 112.dp)
+                .fillMaxWidth()
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = 600.dp)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = horizontal,
+        ) {
+            // Entrance order: hero, step label, title, subtitle, then the page's own content.
+            var order = 0
+            if (hero != null) {
+                order++
+                Box(
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 16.dp)
+                        .setupHeroMotion()
+                        .size(96.dp)
+                        .clip(hero.shape)
+                        .background(hero.containerColor),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(hero.icon, contentDescription = null, tint = hero.contentColor, modifier = Modifier.size(40.dp))
+                }
+            }
+            if (stepName != null) {
+                Text(
+                    text = stringResource(Res.string.setup_step_label, stepNumber, totalSteps, stepName),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.setupStaggered(order++),
+                )
+            }
+            if (title != null) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = textAlign,
+                    modifier = Modifier
+                        .setupStaggered(order++)
+                        .padding(top = 4.dp)
+                        .semantics { heading() },
+                )
+            }
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = textAlign,
+                    modifier = Modifier
+                        .setupStaggered(order++)
+                        .padding(top = 8.dp, bottom = 20.dp),
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .setupStaggered(order),
+                horizontalAlignment = horizontal,
+                content = content,
+            )
+        }
+
+        // Top chrome: round glass buttons only, no bar behind them.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(48.dp)) {
+                if (onBack != null) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .setupSharedElement("setup-back-button")
+                            .size(48.dp)
+                            .background(GalleryGlass.chrome, CircleShape),
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.back_cd),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+            }
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                if (totalSteps > 0 && stepNumber > 0) {
+                    SetupStepDots(
+                        modifier = Modifier.setupSharedBounds("setup-progress"),
+                        stepNumber = stepNumber,
+                        totalSteps = totalSteps,
+                    )
+                }
+            }
+            Box(Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp), contentAlignment = Alignment.CenterEnd) {
+                if (onSkip != null) {
+                    TextButton(
+                        onClick = onSkip,
+                        modifier = Modifier
+                            .heightIn(min = 48.dp)
+                            .background(GalleryGlass.chrome, RoundedCornerShape(24.dp)),
+                    ) {
+                        Text(stringResource(Res.string.setup_skip), color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+        }
+
+        // Transparent bottom bar: progressive blur of the backdrop, no tint.
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .then(
+                    if (hazeState != null) Modifier.hazeEffectScaled(hazeState, rememberBottomBarBlurStyle())
+                    else Modifier
+                )
+                .navigationBarsPadding()
+                .setupSharedBounds("setup-bottom-bar")
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = 600.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+        ) {
+            bottomBar()
+        }
+    }
+}
+
+/** Back (or Not now) as a text button on the left, the primary action as a 56 dp pill on the right. */
+@Composable
+fun SetupBottomActions(
+    primaryLabel: String,
+    onPrimary: () -> Unit,
+    modifier: Modifier = Modifier,
+    primaryEnabled: Boolean = true,
+    secondaryLabel: String? = null,
+    onSecondary: (() -> Unit)? = null,
+) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        if (secondaryLabel != null && onSecondary != null) {
+            TextButton(onClick = onSecondary, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(secondaryLabel, style = MaterialTheme.typography.labelLarge)
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        SetupPrimaryButton(label = primaryLabel, onClick = onPrimary, enabled = primaryEnabled)
+    }
+}
+
+/** The 56 dp primary pill of a setup step, with a leading arrow. */
+@Composable
+fun SetupPrimaryButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(28.dp),
+        contentPadding = PaddingValues(horizontal = 24.dp),
+        modifier = modifier.heightIn(min = 56.dp),
+    ) {
+        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+/** Step dots: done and current steps in primary, the current one stretched into a pill. */
+@Composable
+private fun SetupStepDots(stepNumber: Int, totalSteps: Int, modifier: Modifier = Modifier) {
+    val description = stringResource(Res.string.setup_step_progress, stepNumber, totalSteps)
+    Row(
+        modifier = modifier.semantics { contentDescription = description },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        for (index in 1..totalSteps) {
+            val color by animateColorAsState(
+                if (index <= stepNumber) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceContainerHighest,
+                label = "setup-dot-$index",
+            )
+            val width by animateDpAsState(if (index == stepNumber) 24.dp else 8.dp, label = "setup-dot-w-$index")
+            Box(
+                modifier = Modifier
+                    .height(8.dp)
+                    .width(width)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(color)
+            )
+        }
     }
 }

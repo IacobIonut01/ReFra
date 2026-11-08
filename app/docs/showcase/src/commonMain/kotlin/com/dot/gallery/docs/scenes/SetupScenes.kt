@@ -72,7 +72,7 @@ private class DocsLogoPainter(
 
 /** Alias → real launcher artwork, matching the app's mipmap mapping. */
 @Composable
-private fun docsLogoPainter(alias: String): Painter = when (alias) {
+internal fun docsLogoPainter(alias: String): Painter = when (alias) {
     ALIAS_GALLERY -> DocsLogoPainter(Color(0xFFFFFFFF), painterResource(Res.drawable.docs_logo_gallery))
     ALIAS_MONO -> DocsLogoPainter(Color(0xFFFFFFFF), painterResource(Res.drawable.docs_logo_mono))
     ALIAS_GALLERY_MONO -> DocsLogoPainter(Color(0xFFFFFFFF), painterResource(Res.drawable.docs_logo_gallery_mono))
@@ -108,7 +108,6 @@ fun DocsSetupWizardScene(state: String?) {
     SetupContent(
         state = SetupState(
             pages = SetupPage.entries.toList(),
-            versionName = "Preview",
             permissions = SetupPermissionsState(
                 mediaAccess = mediaAccess,
                 permissions = permissions,
@@ -119,6 +118,16 @@ fun DocsSetupWizardScene(state: String?) {
                         type = type,
                         icon = docsProviderIcon(type),
                         capabilities = defaultSetupCapabilities(type),
+                        // Docs copy of the add-account descriptions (the app reads them from commonApp).
+                        description = when (type) {
+                            ProviderType.IMMICH -> "Keeps albums, people and shared links"
+                            ProviderType.NEXTCLOUD -> "Sign in with your browser"
+                            ProviderType.OWNCLOUD -> "Server address, username and app password"
+                            ProviderType.WEBDAV -> "Any server that speaks WebDAV"
+                            ProviderType.SMB -> "Windows shares and most NAS boxes"
+                            ProviderType.NFS -> "Linux and NAS exports"
+                            else -> null
+                        },
                     )
                 },
             ),

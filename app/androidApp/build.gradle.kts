@@ -16,6 +16,7 @@ manifestConfig {
         stripPermissions.set(
             listOf(
                 "android.permission.INTERNET",
+                "android.permission.ACCESS_LOCAL_NETWORK",
                 "android.permission.ACCESS_WIFI_STATE",
                 "android.permission.ACCESS_NETWORK_STATE",
                 "android.permission.CHANGE_WIFI_MULTICAST_STATE",
