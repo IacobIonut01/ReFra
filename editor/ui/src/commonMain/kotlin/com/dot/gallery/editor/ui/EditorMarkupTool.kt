@@ -93,6 +93,7 @@ import com.dot.gallery.editor.ui.generated.resources.editor_retouch_erase
 import com.dot.gallery.editor.ui.generated.resources.editor_retouch_finding_faces
 import com.dot.gallery.editor.ui.generated.resources.editor_retouch_highlighter
 import com.dot.gallery.editor.ui.generated.resources.editor_retouch_mosaic
+import com.dot.gallery.editor.ui.generated.resources.editor_retouch_mosaic_faces
 import com.dot.gallery.editor.ui.generated.resources.editor_retouch_move
 import com.dot.gallery.editor.ui.generated.resources.editor_retouch_no_faces
 import com.dot.gallery.editor.ui.generated.resources.editor_retouch_pen
@@ -164,10 +165,11 @@ internal enum class MarkupMode(val labelRes: StringResource) {
 
 internal enum class MarkupInkMode { Draw, Move, Erase }
 
-/** The stroke a face rectangle becomes, so faces undo and erase like ink. */
-internal fun faceBlurStroke(
+/** The blur/mosaic stroke a face rectangle becomes, so faces undo and erase like ink. */
+internal fun faceObscureStroke(
     face: EditorFaceBox,
     output: PixelSize,
+    type: PhotoMarkupType,
     strength: Float
 ): PhotoMarkupStroke {
     val longEdge = max(output.width, output.height).toFloat()
@@ -178,7 +180,7 @@ internal fun faceBlurStroke(
     val cx = ((face.left + face.right) / 2f).coerceIn(0f, 1f)
     val cy = ((face.top + face.bottom) / 2f).coerceIn(0f, 1f)
     return PhotoMarkupStroke(
-        type = PhotoMarkupType.Blur,
+        type = type,
         points = persistentListOf(NormalizedPoint(cx, cy)),
         size = size,
         strength = strength
@@ -202,8 +204,9 @@ private fun PhotoEdits.withMarkup(markup: PhotoMarkup): PhotoEdits =
 /**
  * Markup: the five connected tabs (the selected tab keeps its label, the rest
  * shrink to icons), then each tab's own settings. Blur and Mosaic carry Size and
- * Strength chips, and Blur adds the Blur faces action when the host can detect
- * faces. Size, strength and colour are tool settings, stamped on each stroke.
+ * Strength chips, plus a faces action — Blur faces or Mosaic faces — when the
+ * host can detect faces. Size, strength and colour are tool settings, stamped on
+ * each stroke.
  */
 @Composable
 internal fun MarkupToolContent(
@@ -317,12 +320,15 @@ internal fun MarkupToolContent(
                         onClick = { toolUi.markupEditingStrength = true }
                     )
                     val detect = host.detectFaces
-                    if (mode == MarkupMode.Blur && detect != null) {
+                    if (detect != null) {
                         val busy = toolUi.markupFindingFaces
                         ColourParamChip(
                             label = stringResource(
-                                if (busy) Res.string.editor_retouch_finding_faces
-                                else Res.string.editor_retouch_blur_faces
+                                when {
+                                    busy -> Res.string.editor_retouch_finding_faces
+                                    mode == MarkupMode.Mosaic -> Res.string.editor_retouch_mosaic_faces
+                                    else -> Res.string.editor_retouch_blur_faces
+                                }
                             ),
                             icon = RetouchSymbols.Face,
                             value = "",
@@ -347,7 +353,12 @@ internal fun MarkupToolContent(
                                         return@launch
                                     }
                                     val added = faces.map {
-                                        faceBlurStroke(it, pixels.size, toolUi.markupStrength)
+                                        faceObscureStroke(
+                                            it,
+                                            pixels.size,
+                                            mode.strokeType ?: PhotoMarkupType.Blur,
+                                            toolUi.markupStrength
+                                        )
                                     }
                                     latestActions.beginToolEdit(toolTitle)
                                     latestActions.applyEdits(

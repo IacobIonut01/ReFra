@@ -61,16 +61,27 @@ class EditorRetouchToolsTest {
     }
 
     @Test
-    fun aFaceBecomesABlurStrokeCoveringIt() {
-        val stroke = faceBlurStroke(
+    fun aFaceBecomesAnObscureStrokeCoveringIt() {
+        val stroke = faceObscureStroke(
             EditorFaceBox(0.4f, 0.4f, 0.6f, 0.6f),
             PixelSize(1000, 1000),
+            PhotoMarkupType.Blur,
             70f
         )
         assertEquals(PhotoMarkupType.Blur, stroke.type)
         assertEquals(NormalizedPoint(0.5f, 0.5f), stroke.points.single())
         // 0.2 of the long edge is beyond the largest brush, so it caps.
         assertEquals(100f, stroke.size)
+
+        val mosaic = faceObscureStroke(
+            EditorFaceBox(0.4f, 0.4f, 0.6f, 0.6f),
+            PixelSize(1000, 1000),
+            PhotoMarkupType.Mosaic,
+            70f
+        )
+        assertEquals(PhotoMarkupType.Mosaic, mosaic.type)
+        assertEquals(stroke.points, mosaic.points)
+        assertEquals(stroke.size, mosaic.size)
     }
 
     @Test

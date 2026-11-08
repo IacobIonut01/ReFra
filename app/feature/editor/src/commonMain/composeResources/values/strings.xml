@@ -60,6 +60,7 @@
     <string name="editor_brush_size">Size</string>
     <string name="editor_brush_strength">Strength</string>
     <string name="editor_blur_faces">Blur faces</string>
+    <string name="editor_mosaic_faces">Mosaic faces</string>
     <string name="editor_type_something">Type something</string>
     <string name="editor_remove">Remove</string>
     <string name="cutout_no_object">No object detected under long-press</string>

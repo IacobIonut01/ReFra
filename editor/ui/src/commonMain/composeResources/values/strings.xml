@@ -760,6 +760,7 @@
     <string name="editor_retouch_remove">Remove</string>
     <string name="editor_retouch_done">Done</string>
     <string name="editor_retouch_blur_faces">Blur faces</string>
+    <string name="editor_retouch_mosaic_faces">Mosaic faces</string>
     <string name="editor_retouch_finding_faces">Finding faces</string>
     <string name="editor_retouch_no_faces">No faces found</string>
     <string name="editor_retouch_clear_markup">Clear markup</string>

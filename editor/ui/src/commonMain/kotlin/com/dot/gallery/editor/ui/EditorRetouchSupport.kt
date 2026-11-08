@@ -76,7 +76,7 @@ class EditorHostTools(
      * the catalogue. The returned session is null when encoding fails.
      */
     val openSegmenter: (suspend (SrgbPixels) -> EditorSegmenterSession?)? = null,
-    /** Finds faces for Blur faces; null hides the action. */
+    /** Finds faces for the blur/mosaic faces actions; null hides them. */
     val detectFaces: (suspend (SrgbPixels) -> List<EditorFaceBox>)? = null,
     /** Puts the transparent subject on the clipboard; true on success. */
     val copySubject: (suspend (SrgbPixels) -> Boolean)? = null,

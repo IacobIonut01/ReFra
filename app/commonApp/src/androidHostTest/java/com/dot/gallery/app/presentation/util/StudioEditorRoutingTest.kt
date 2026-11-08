@@ -1,6 +1,5 @@
 package com.dot.gallery.app.presentation.util
 
-import com.dot.gallery.domain.settings.EDITOR_BUILTIN
 import com.dot.gallery.domain.settings.EDITOR_STUDIO
 import com.dot.gallery.domain.settings.SettingsKeys
 import org.junit.Assert.assertEquals
@@ -10,9 +9,9 @@ import org.junit.Test
 class StudioEditorRoutingTest {
 
     @Test
-    fun videosDefaultToTheNewEditorWhilePhotosKeepTheirDefault() {
+    fun photosAndVideosDefaultToTheNewEditor() {
+        assertEquals(EDITOR_STUDIO, SettingsKeys.defaultImageEditor.default)
         assertEquals(EDITOR_STUDIO, SettingsKeys.defaultVideoEditor.default)
-        assertEquals(EDITOR_BUILTIN, SettingsKeys.defaultImageEditor.default)
     }
 
     @Test

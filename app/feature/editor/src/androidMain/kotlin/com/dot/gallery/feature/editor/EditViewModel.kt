@@ -161,9 +161,9 @@ class EditViewModel @Inject constructor(
     val isDetectingFaces = _isDetectingFaces.asStateFlow()
     private var faceDetectionJob: Job? = null
 
-    /** True when the on-device face detector model is installed (gates the "Blur faces" action). */
+    /** True when the on-device face detector model is installed (gates the auto faces action). */
     val faceDetectAvailable: Boolean
-        get() = modelManager.isReady(com.dot.gallery.core.ml.ModelGroup.FACE_DETECT)
+        get() = modelManager.checkModelsPresent(com.dot.gallery.core.ml.ModelGroup.FACE_DETECT)
 
     /** Run face detection on the current image; results are emitted via [pendingFaceRegions]. */
     fun detectFacesForMarkup() {

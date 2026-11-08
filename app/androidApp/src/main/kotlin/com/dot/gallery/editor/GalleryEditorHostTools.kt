@@ -39,14 +39,17 @@ internal fun galleryEditorHostTools(
     openInExternalEditor: () -> Unit
 ): EditorHostTools {
     val appContext = context.applicationContext
+    // A fresh ModelManager reports every group as NOT_INSTALLED until the suspend
+    // initializeModels() runs on it, so gate on the synchronous disk check instead
+    // and hydrate the status flows inside the lambdas before getModelFile runs.
     val models = ModelManager(appContext)
     return EditorHostTools(
-        openSegmenter = if (models.isReady(ModelGroup.CUTOUT)) {
+        openSegmenter = if (models.checkModelsPresent(ModelGroup.CUTOUT)) {
             { pixels -> openSegmenter(appContext, models, pixels) }
         } else {
             null
         },
-        detectFaces = if (models.isReady(ModelGroup.FACE_DETECT)) {
+        detectFaces = if (models.checkModelsPresent(ModelGroup.FACE_DETECT)) {
             { pixels -> detectFaces(models, pixels) }
         } else {
             null
@@ -65,6 +68,7 @@ private suspend fun openSegmenter(
     models: ModelManager,
     pixels: SrgbPixels
 ): EditorSegmenterSession? = withContext(Dispatchers.Default) {
+    models.initializeModels()
     val session = CutoutHelper.CutoutSession(context, null, models)
     val bitmap = pixels.toArgbBitmap()
     if (!session.initAndRunEncoder(bitmap)) {
@@ -114,6 +118,7 @@ private suspend fun detectFaces(
     models: ModelManager,
     pixels: SrgbPixels
 ): List<EditorFaceBox> = withContext(Dispatchers.Default) {
+    models.initializeModels()
     val helper = FaceHelper(models)
     try {
         helper.detect(pixels.toArgbBitmap()).map {

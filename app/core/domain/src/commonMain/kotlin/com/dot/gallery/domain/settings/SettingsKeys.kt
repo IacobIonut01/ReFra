@@ -81,7 +81,12 @@ object SettingsKeys {
     val tapSidesToNavigate = PrefKey.bool("tap_sides_to_navigate", default = false)
     val tapSidesPromptShown = PrefKey.bool("tap_sides_to_navigate_prompt_shown", default = false)
     val showFavoriteButton = PrefKey.bool("show_favorite_button", default = true)
-    val defaultImageEditor = PrefKey.string("default_image_editor", default = EDITOR_BUILTIN)
+    /**
+     * [EDITOR_STUDIO], [EDITOR_BUILTIN] for the built-in editor, or the package
+     * name of an installed image editor. Types the studio editor cannot open
+     * fall back to the built-in editor.
+     */
+    val defaultImageEditor = PrefKey.string("default_image_editor", default = EDITOR_STUDIO)
     /**
      * [EDITOR_STUDIO], [EDITOR_BUILTIN] for "ask every time" (video has no
      * built-in editor), or the package name of an installed video editor.
