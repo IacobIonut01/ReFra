@@ -6,7 +6,7 @@
     <string name="help_tip_basics_timeline_p1_title">Ваше фотографије, организоване по времену</string>
     <string name="help_tip_basics_timeline_p1_desc">Временска линија је ваш почетни екран — приказује сваку фотографију и видео запис на уређају, сортиране од најновијих ка најстаријим. Заглавља са датумима раздвајају ваше медије по месецима, што олакшава кретање до одређеног временског периода. Ако имате хиљаде фотографија, не брините — Галерија их ефикасно учитава тако да је скроловање глатко.</string>
     <string name="help_tip_basics_timeline_p2_title">Скролујте и истражујте</string>
-    <string name="help_tip_basics_timeline_p2_desc">Скролујте кроз временску линију да бисте прегледали медије. Користите клизач на десној ивици да бисте брзо прескочили на било који месец. Такође можете да \"штипате\" (pinch) да бисте зумирали мрежу — раширите два прста да бисте видели веће сличице или их скупите да бисте сместили више фотографија на екран.</string>
+    <string name="help_tip_basics_timeline_p2_desc">Скролујте кроз временску линију да бисте прегледали медије. Користите клизач на десној ивици да бисте брзо прескочили на било који месец. Такође можете да "штипате" (pinch) да бисте зумирали мрежу — раширите два прста да бисте видели веће сличице или их скупите да бисте сместили више фотографија на екран.</string>
     <string name="help_tip_basics_timeline_p2_s1">Отворите Галерију да бисте видели временску линију</string>
     <string name="help_tip_basics_timeline_p2_s2">Скролујте горе-доле за прегледање</string>
     <string name="help_tip_basics_timeline_p2_s3">Користите клизач на десној ивици за прелазак на месец</string>
@@ -59,22 +59,22 @@
     <string name="help_tip_nav_albums_p1_desc">Албуми приказују ваше фотографије организоване по фасциклама у којима су сачуване — Камера, Снимци екрана, Преузимања, WhatsApp слике и још много тога. Сваки албум приказује сличицу и број ставки у њему. Можете се пребацивати између приказа мреже и листе да бисте брзо пронашли албуме.</string>
     <string name="help_tip_nav_albums_p2_title">Истражите своје албуме</string>
     <string name="help_tip_nav_albums_p2_desc">Тапните на било који албум да бисте видели његов садржај. Дуго притисните албум за више опција: закачите га на врх ради брзог приступа, сакријте га са листе, промените му сличицу или га додајте у групу или колекцију. Савет: закачите своје најчешће коришћене албуме (као што је Камера) тако да буду увек на врху листе.</string>
-    <string name="help_tip_nav_albums_p2_s1">Тапните на \"Албуми\" у доњој траци</string>
+    <string name="help_tip_nav_albums_p2_s1">Тапните на "Албуми" у доњој траци</string>
     <string name="help_tip_nav_albums_p2_s2">Прегледајте своју мрежу албума</string>
     <string name="help_tip_nav_albums_p2_s3">Дуго притисните за опције албума</string>
     <string name="help_tip_nav_albums_p2_s4">Закачите омиљене албуме на врх</string>
     <string name="help_tip_nav_search_title">Пронађите оно што вам треба</string>
     <string name="help_tip_nav_search_subtitle">Претражите своје фотографије по имену или помоћу вештачке интелигенције (AI)</string>
     <string name="help_tip_nav_search_p1_title">Претражите своје медије</string>
-    <string name="help_tip_nav_search_p1_desc">Тапните на траку за претрагу на врху временске линије да бисте пронашли фотографије. Основна претрага се подудара са именима датотека користећи \"fuzzy\" претрагу, тако да не морате памтити тачна имена. Ваше скорашње претраге се чувају ради брзог приступа. Резултати се ажурирају док куцате.</string>
+    <string name="help_tip_nav_search_p1_desc">Тапните на траку за претрагу на врху временске линије да бисте пронашли фотографије. Основна претрага се подудара са именима датотека користећи "fuzzy" претрагу, тако да не морате памтити тачна имена. Ваше скорашње претраге се чувају ради брзог приступа. Резултати се ажурирају док куцате.</string>
     <string name="help_tip_nav_search_p2_title">AI визуелна претрага</string>
-    <string name="help_tip_nav_search_p2_desc">Са инсталираним AI моделима, претрага постаје много моћнија — опишите шта тражите обичним језиком као што је \"залазак сунца на плажи\", \"рођенданска торта\" или \"пас који се игра у снегу\". Галерија користи CLIP моделе који раде директно на уређају да би разумела садржај слике, тако да ваше фотографије никада не напуштају уређај. Да бисте ово омогућили, идите на Подешавања &gt; Паметне функције и инсталирајте AI моделе.</string>
+    <string name="help_tip_nav_search_p2_desc">Са инсталираним AI моделима, претрага постаје много моћнија — опишите шта тражите обичним језиком као што је "залазак сунца на плажи", "рођенданска торта" или "пас који се игра у снегу". Галерија користи CLIP моделе који раде директно на уређају да би разумела садржај слике, тако да ваше фотографије никада не напуштају уређај. Да бисте ово омогућили, идите на Подешавања &gt; Паметне функције и инсталирајте AI моделе.</string>
     <string name="help_tip_nav_old_navbar_title">Класична навигациона трака</string>
     <string name="help_tip_nav_old_navbar_subtitle">Пребацивање између модерног и класичног стила навигације</string>
     <string name="help_tip_nav_old_navbar_p1_title">Стилови навигационе траке</string>
     <string name="help_tip_nav_old_navbar_p1_desc">Галерија нуди два стила навигационе траке. Модеран стил приказује означене иконе за Временску линију, Албуме и Библиотеку. Класични компактни стил користи мање иконе без ознака, дајући вам више простора на екрану за фотографије. Испробајте оба да видите који вам се више свиђа.</string>
     <string name="help_tip_nav_old_navbar_p1_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_nav_old_navbar_p1_s2">Укључите \"Класични стил навигационе траке\"</string>
+    <string name="help_tip_nav_old_navbar_p1_s2">Укључите "Класични стил навигационе траке"</string>
     <string name="help_tip_nav_library_title">Користите библиотеку</string>
     <string name="help_tip_nav_library_subtitle">Брз приступ омиљеним ставкама, отпаду, сефу и још много тога</string>
     <string name="help_tip_nav_library_p1_title">Библиотека</string>
@@ -82,16 +82,16 @@
     <string name="help_tip_nav_launch_screen_title">Подесите подразумевани почетни екран</string>
     <string name="help_tip_nav_launch_screen_subtitle">Изаберите који екран се појављује када отворите Галерију</string>
     <string name="help_tip_nav_launch_screen_p1_title">Подразумевани почетни екран</string>
-    <string name="help_tip_nav_launch_screen_p1_desc">Изаберите који екран ће вас дочекати када отворите Галерију. Временска линија је одлична ако углавном прегледате новије фотографије. Албуми добро раде ако организујете по фасциклама. Библиотека је идеална ако првенствено користите омиљене ставке или категорије. Постоји и опција \"Аутоматски\" која памти последњи екран који сте користили.</string>
+    <string name="help_tip_nav_launch_screen_p1_desc">Изаберите који екран ће вас дочекати када отворите Галерију. Временска линија је одлична ако углавном прегледате новије фотографије. Албуми добро раде ако организујете по фасциклама. Библиотека је идеална ако првенствено користите омиљене ставке или категорије. Постоји и опција "Аутоматски" која памти последњи екран који сте користили.</string>
     <string name="help_tip_nav_launch_screen_p1_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_nav_launch_screen_p1_s2">Тапните на \"Подразумевани почетни екран\"</string>
+    <string name="help_tip_nav_launch_screen_p1_s2">Тапните на "Подразумевани почетни екран"</string>
     <string name="help_tip_nav_launch_screen_p1_s3">Изаберите Аутоматски, Временска линија, Албуми или Библиотека</string>
     <string name="help_tip_nav_auto_hide_bars_title">Аутоматско сакривање трака при скроловању</string>
     <string name="help_tip_nav_auto_hide_bars_subtitle">Сакријте траку за претрагу и навигацију током скроловања</string>
     <string name="help_tip_nav_auto_hide_bars_p1_title">Аутоматско сакривање трака</string>
     <string name="help_tip_nav_auto_hide_bars_p1_desc">За импресивније искуство прегледања, омогућите аутоматско сакривање траке за претрагу и/или навигационе траке. Оне ће се склонити док скролујете надоле кроз фотографије и поново ће се појавити када скролујете нагоре. Ово је посебно корисно на мањим екранима где је сваки пиксел битан. Сваком траком можете управљати независно.</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_nav_auto_hide_bars_p1_s2">Укључите \"Аутоматско сакривање траке за претрагу\" и/или \"Аутоматско сакривање навигационе траке\"</string>
+    <string name="help_tip_nav_auto_hide_bars_p1_s2">Укључите "Аутоматско сакривање траке за претрагу" и/или "Аутоматско сакривање навигационе траке"</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s3">Скролујте надоле да видите како се скривају, скролујте нагоре да их вратите</string>
     <!-- GET STARTED: PERSONALIZATION -->
     <string name="help_tip_personalize_theme_title">Промените тему</string>
@@ -99,10 +99,10 @@
     <string name="help_tip_personalize_theme_p1_title">Изаберите тему</string>
     <string name="help_tip_personalize_theme_p1_desc">Галерија подржава светле и тамне теме и може аутоматски да прати подешавања вашег система. Тема утиче на све екране, дијалоге и меније у целој апликацији. Већина корисника преферира системски подразумевану опцију како би се Галерија ускладила са остатком телефона.</string>
     <string name="help_tip_personalize_theme_p2_title">Опције теме</string>
-    <string name="help_tip_personalize_theme_p2_desc">Системски подразумевана опција прати тренутни режим вашег телефона. Принудни тамни режим држи Галерију у тамном приказу без обзира на системска подешавања — што је одлично за ноћно прегледање. Ако имате OLED екран, омогућите \"AMOLED потпуно црну\" за праве црне позадине које штеде батерију и изгледају сјајно.</string>
+    <string name="help_tip_personalize_theme_p2_desc">Системски подразумевана опција прати тренутни режим вашег телефона. Принудни тамни режим држи Галерију у тамном приказу без обзира на системска подешавања — што је одлично за ноћно прегледање. Ако имате OLED екран, омогућите "AMOLED потпуно црну" за праве црне позадине које штеде батерију и изгледају сјајно.</string>
     <string name="help_tip_personalize_theme_p2_s1">Идите на Подешавања &gt; Изглед</string>
     <string name="help_tip_personalize_theme_p2_s2">Изаберите Систем, Светла или Принудно тамна</string>
-    <string name="help_tip_personalize_theme_p2_s3">За OLED екране, омогућите и \"AMOLED потпуно црна\"</string>
+    <string name="help_tip_personalize_theme_p2_s3">За OLED екране, омогућите и "AMOLED потпуно црна"</string>
     <string name="help_tip_personalize_colors_title">Прилагодите палету боја</string>
     <string name="help_tip_personalize_colors_subtitle">Изаберите било коју боју за тему целе апликације</string>
     <string name="help_tip_personalize_colors_p1_title">Палета боја</string>
@@ -125,7 +125,7 @@
     <string name="help_tip_personalize_amoled_p1_desc">Ако ваш телефон има OLED или AMOLED екран, овај режим користи праве црне пикселе који су заправо искључени — штедећи батерију и стварајући упечатљив визуелни ефекат. Комбинујте са Принудним тамним режимом за најбоље резултате. Напомена: ова поставка ступа на снагу само када је активан тамни режим.</string>
     <string name="help_tip_personalize_amoled_p1_s1">Идите на Подешавања &gt; Изглед</string>
     <string name="help_tip_personalize_amoled_p1_s2">Прво омогућите Принудни тамни режим</string>
-    <string name="help_tip_personalize_amoled_p1_s3">Укључите \"AMOLED потпуно црна\"</string>
+    <string name="help_tip_personalize_amoled_p1_s3">Укључите "AMOLED потпуно црна"</string>
     <string name="help_tip_personalize_amoled_p1_s4">Уживајте у правим црним бојама на свом OLED екрану</string>
     <string name="help_tip_personalize_dark_mode_title">Пребацивање између светлог и тамног режима</string>
     <string name="help_tip_personalize_dark_mode_subtitle">Изаберите режим који највише прија вашим очима</string>
@@ -136,21 +136,21 @@
     <string name="help_tip_personalize_blur_p1_title">Ефекти замућења</string>
     <string name="help_tip_personalize_blur_p1_desc">Омогућите ефекте замућења за модеран изглед матираног стакла на навигационој траци, прекривачима и листу одабира. Ово даје Галерији углађен, слојевит изглед. Захтева Android 12 или новији. Ако приметите било какав утицај на перформансе на старијим уређајима, можете ово онемогућити.</string>
     <string name="help_tip_personalize_blur_p1_s1">Идите на Подешавања &gt; Изглед</string>
-    <string name="help_tip_personalize_blur_p1_s2">Укључите \"Омогући отмено замућење\"</string>
+    <string name="help_tip_personalize_blur_p1_s2">Укључите "Омогући отмено замућење"</string>
     <string name="help_tip_personalize_blur_p1_s3">Напомена: захтева Android 12+</string>
     <string name="help_tip_personalize_shared_elements_title">Прелази дељених елемената</string>
     <string name="help_tip_personalize_shared_elements_subtitle">Глатке анимације приликом отварања фотографија</string>
     <string name="help_tip_personalize_shared_elements_p1_title">Глатки прелази</string>
     <string name="help_tip_personalize_shared_elements_p1_desc">Када је омогућено, тапните на фотографију у мрежи да бисте покренули беспрекорну анимацију где се сличица шири у приказ преко целог екрана, и скупља назад када је затворите. Ово чини навигацију течном и природном. Ако више волите тренутне прелазе или искусите било какве грешке у анимацији, можете ово онемогућити.</string>
     <string name="help_tip_personalize_shared_elements_p1_s1">Идите на Подешавања &gt; Изглед</string>
-    <string name="help_tip_personalize_shared_elements_p1_s2">Укључите \"Прелази дељених елемената\"</string>
+    <string name="help_tip_personalize_shared_elements_p1_s2">Укључите "Прелази дељених елемената"</string>
     <string name="help_tip_personalize_shared_elements_p1_s3">Тапните на било коју фотографију да видите ефекат</string>
     <string name="help_tip_personalize_app_name_title">Промените име апликације</string>
-    <string name="help_tip_personalize_app_name_subtitle">Приказује се као \"Gallery\" или \"Refra\" на почетном екрану</string>
+    <string name="help_tip_personalize_app_name_subtitle">Приказује се као "Gallery" или "Refra" на почетном екрану</string>
     <string name="help_tip_personalize_app_name_p1_title">Име апликације</string>
-    <string name="help_tip_personalize_app_name_p1_desc">Изаберите да ли се апликација приказује као \"Gallery\" или \"Refra\" на вашем почетном екрану и у фиоци апликација. \"Refra\" је алтернативно име апликације. Ово мења само ознаку иконе — сама апликација остаје иста. Можда ћете морати да поново покренете покретач (launcher) или сачекате тренутак да се промена појави на почетном екрану.</string>
+    <string name="help_tip_personalize_app_name_p1_desc">Изаберите да ли се апликација приказује као "Gallery" или "Refra" на вашем почетном екрану и у фиоци апликација. "Refra" је алтернативно име апликације. Ово мења само ознаку иконе — сама апликација остаје иста. Можда ћете морати да поново покренете покретач (launcher) или сачекате тренутак да се промена појави на почетном екрану.</string>
     <string name="help_tip_personalize_app_name_p1_s1">Идите на Подешавања &gt; Опште</string>
-    <string name="help_tip_personalize_app_name_p1_s2">Тапните на \"Име апликације\"</string>
+    <string name="help_tip_personalize_app_name_p1_s2">Тапните на "Име апликације"</string>
     <string name="help_tip_personalize_app_name_p1_s3">Изаберите Gallery или Refra</string>
     <string name="help_tip_personalize_app_name_p1_s4">Ознака иконе на почетном екрану ће се ажурирати</string>
     <!-- TIMELINE &amp; ALBUMS -->
@@ -165,7 +165,7 @@
     <string name="help_tip_timeline_layout_type_p2_title">Промена распореда</string>
     <string name="help_tip_timeline_layout_type_p2_desc">Испробајте оба распореда да видите који вам више одговара. Мрежа најбоље ради са функцијом зумирања штипањем. Мозаик ствара осећај часописа. Напомена: мозаик распоред тренутно не подржава зумирање штипањем, али има своје оптимизовано скроловање.</string>
     <string name="help_tip_timeline_layout_type_p2_s1">Идите на Подешавања &gt; Временска линија и Албуми</string>
-    <string name="help_tip_timeline_layout_type_p2_s2">Тапните на \"Тип распореда\"</string>
+    <string name="help_tip_timeline_layout_type_p2_s2">Тапните на "Тип распореда"</string>
     <string name="help_tip_timeline_layout_type_p2_s3">Изаберите Мрежа или Мозаик</string>
     <string name="help_tip_timeline_layout_type_p2_s4">Прегледајте временску линију да видите разлику</string>
     <string name="help_tip_timeline_group_similar_title">Груписање сличних медија</string>
@@ -183,35 +183,35 @@
     <string name="help_tip_timeline_gif_animation_p1_title">Анимирани GIF-ови</string>
     <string name="help_tip_timeline_gif_animation_p1_desc">Када је омогућено, GIF датотеке репродукују своју анимацију директно у мрежи временске линије као сличице. Ово олакшава визуелно проналажење и прегледање GIF-ова. Ако имате много GIF-ова, онемогућавање ове опције може побољшати перформансе скроловања и смањити потрошњу батерије јер се анимације неће репродуковати док не тапнете да их погледате.</string>
     <string name="help_tip_timeline_gif_animation_p1_s1">Идите на Подешавања &gt; Временска линија и Албуми</string>
-    <string name="help_tip_timeline_gif_animation_p1_s2">Укључите \"Дозволи GIF анимације\"</string>
+    <string name="help_tip_timeline_gif_animation_p1_s2">Укључите "Дозволи GIF анимације"</string>
     <string name="help_tip_timeline_gif_animation_p1_s3">GIF-ови у мрежи ће се анимирати када је опција омогућена</string>
     <string name="help_tip_albums_hide_timeline_title">Сакриј временску линију у албумима</string>
     <string name="help_tip_albums_hide_timeline_subtitle">Уклоните заглавља датума приликом прегледања албума</string>
     <string name="help_tip_albums_hide_timeline_p1_title">Сакривање заглавља временске линије</string>
     <string name="help_tip_albums_hide_timeline_p1_desc">Подразумевано, албуми приказују заглавља датума баш као и временска линија. Ако више волите чистију, континуирану мрежу приликом прегледања албума, омогућите ову опцију да бисте уклонили заглавља груписања по датуму унутар албума. Фотографије ће и даље бити сортиране по датуму, али без визуелних раздвајача. Ово је ствар личног избора — испробајте обоје и видите шта вам више одговара.</string>
     <string name="help_tip_albums_hide_timeline_p1_s1">Идите на Подешавања &gt; Временска линија и Албуми</string>
-    <string name="help_tip_albums_hide_timeline_p1_s2">Укључите \"Сакриј временску линију унутар албума\"</string>
+    <string name="help_tip_albums_hide_timeline_p1_s2">Укључите "Сакриј временску линију унутар албума"</string>
     <string name="help_tip_albums_hide_timeline_p1_s3">Отворите било који албум да видите разлику</string>
     <string name="help_tip_albums_merge_by_name_title">Спајање албума по имену</string>
     <string name="help_tip_albums_merge_by_name_subtitle">Комбинујте албуме са различитих локација складиштења</string>
     <string name="help_tip_albums_merge_by_name_p1_title">Спајање албума</string>
-    <string name="help_tip_albums_merge_by_name_p1_desc">Ако имате албуме са истим именом на различитим локацијама складиштења (као што су интерна меморија и SD картица), Галерија их може спојити у један албум. На пример, ако и интерна фасцикла \"Камера\" и она на SD картици садрже фотографије, појавиће се као један обједињени албум \"Камера\". Ово је посебно корисно ако ваш телефон чува фотографије на различитим локацијама.</string>
+    <string name="help_tip_albums_merge_by_name_p1_desc">Ако имате албуме са истим именом на различитим локацијама складиштења (као што су интерна меморија и SD картица), Галерија их може спојити у један албум. На пример, ако и интерна фасцикла "Камера" и она на SD картици садрже фотографије, појавиће се као један обједињени албум "Камера". Ово је посебно корисно ако ваш телефон чува фотографије на различитим локацијама.</string>
     <string name="help_tip_albums_merge_by_name_p1_s1">Идите на Подешавања &gt; Временска линија и Албуми</string>
-    <string name="help_tip_albums_merge_by_name_p1_s2">Укључите \"Споји албуме са истим именом\"</string>
+    <string name="help_tip_albums_merge_by_name_p1_s2">Укључите "Споји албуме са истим именом"</string>
     <string name="help_tip_albums_merge_by_name_p1_s3">Албуми са истим именима ће се комбиновати</string>
     <string name="help_tip_timeline_date_header_title">Прилагодите заглавље датума</string>
     <string name="help_tip_timeline_date_header_subtitle">Промените формат заглавља датума</string>
     <string name="help_tip_timeline_date_header_p1_title">Формат заглавља датума</string>
     <string name="help_tip_timeline_date_header_p1_desc">Прилагодите како се датуми појављују у заглављима временске линије. Бирајте између различитих формата да бисте одговарали регионалним преференцијама или личном стилу. Формат утиче на сва заглавља датума у временској линији, приказима албума и прегледачу медија.</string>
     <string name="help_tip_timeline_date_header_p1_s1">Идите на Подешавања &gt; Временска линија и Албуми</string>
-    <string name="help_tip_timeline_date_header_p1_s2">Тапните на \"Формат заглавља датума\"</string>
+    <string name="help_tip_timeline_date_header_p1_s2">Тапните на "Формат заглавља датума"</string>
     <string name="help_tip_timeline_date_header_p1_s3">Изаберите жељени стил датума</string>
     <string name="help_tip_timeline_fav_icon_title">Позиција иконе омиљене ставке</string>
     <string name="help_tip_timeline_fav_icon_subtitle">Промените где се икона омиљене ставке појављује на сличицама</string>
     <string name="help_tip_timeline_fav_icon_p1_title">Позиција иконе омиљене ставке</string>
     <string name="help_tip_timeline_fav_icon_p1_desc">Мала икона срца на означеним фотографијама може бити постављена у различитим угловима сличице, или потпуно сакривена ако преферирате чистији изглед. Ако икона прекрива важне делове ваших фотографија, покушајте да је померите у други угао.</string>
     <string name="help_tip_timeline_fav_icon_p1_s1">Идите на Подешавања &gt; Временска линија и Албуми</string>
-    <string name="help_tip_timeline_fav_icon_p1_s2">Тапните на \"Позиција иконе омиљене ставке\"</string>
+    <string name="help_tip_timeline_fav_icon_p1_s2">Тапните на "Позиција иконе омиљене ставке"</string>
     <string name="help_tip_timeline_fav_icon_p1_s3">Изаберите горе-лево, горе-десно или сакривено</string>
     <!-- VIEWING -->
     <string name="help_tip_view_zoom_title">Зумирање и померање фотографија</string>
@@ -219,7 +219,7 @@
     <string name="help_tip_view_zoom_p1_title">Зумирање детаља</string>
     <string name="help_tip_view_zoom_p1_desc">Користите покрет штипања са два прста да бисте зумирали било коју фотографију за детаљнији приказ. Тапните двапут било где на фотографији да бисте тренутно пребацивали између зумираног приказа и оригиналне величине — одлично за брзу проверу фокуса или читање ситног текста на фотографијама.</string>
     <string name="help_tip_view_zoom_p2_title">Померање по слици</string>
-    <string name="help_tip_view_zoom_p2_desc">Док сте зумирани, вуците једним прстом да бисте истражили различите делове фотографије. Галерија подржава зумирање у високој резолуцији тако да можете видети сваки детаљ. Ако случајно превучете на следећу фотографију док сте зумирани, користите функцију \"Закључај слику\" (дуги притисак на заглавље датума) да спречите превлачење.</string>
+    <string name="help_tip_view_zoom_p2_desc">Док сте зумирани, вуците једним прстом да бисте истражили различите делове фотографије. Галерија подржава зумирање у високој резолуцији тако да можете видети сваки детаљ. Ако случајно превучете на следећу фотографију док сте зумирани, користите функцију "Закључај слику" (дуги притисак на заглавље датума) да спречите превлачење.</string>
     <string name="help_tip_view_video_title">Репродукција видео записа</string>
     <string name="help_tip_view_video_subtitle">Гледајте видео записе са пуним контролама репродукције</string>
     <string name="help_tip_view_video_p1_title">Видео плејер</string>
@@ -227,15 +227,15 @@
     <string name="help_tip_view_video_p2_title">Подешавања видеа</string>
     <string name="help_tip_view_video_p2_desc">Прилагодите своје видео искуство. Аутоматска репродукција покреће видео записе чим их отворите. Фокус на звук паузира вашу музику када се видео репродукује. Аутоматско сакривање интерфејса уклања контроле када почне репродукција ради биоскопског доживљаја. Све ово се може подесити према вашим жељама.</string>
     <string name="help_tip_view_video_p2_s1">Идите на Подешавања &gt; Прегледач медија</string>
-    <string name="help_tip_view_video_p2_s2">Укључите \"Аутоматска репродукција видеа\" за аутоматско покретање</string>
-    <string name="help_tip_view_video_p2_s3">Укључите \"Преузми фокус на звук\" да бисте паузирали музику у позадини</string>
-    <string name="help_tip_view_video_p2_s4">Укључите \"Аутоматско сакривање интерфејса током репродукције\" за импресиван приказ</string>
+    <string name="help_tip_view_video_p2_s2">Укључите "Аутоматска репродукција видеа" за аутоматско покретање</string>
+    <string name="help_tip_view_video_p2_s3">Укључите "Преузми фокус на звук" да бисте паузирали музику у позадини</string>
+    <string name="help_tip_view_video_p2_s4">Укључите "Аутоматско сакривање интерфејса током репродукције" за импресиван приказ</string>
     <string name="help_tip_view_details_title">Приказ детаља фотографије</string>
     <string name="help_tip_view_details_subtitle">Погледајте EXIF податке, локацију и метаподатке</string>
     <string name="help_tip_view_details_p1_title">Лист са информацијама о фотографији</string>
     <string name="help_tip_view_details_p1_desc">Превците нагоре на било којој фотографији у прегледачу да бисте открили лист са информацијама. Приказује кључне детаље на први поглед: када је фотографија снимљена, величину датотеке, резолуцију, модел камере и GPS локацију (ако је доступна). Одавде такође можете мењати метаподатке, копирати фотографију, поставити је као позадину или је погледати на мапи.</string>
     <string name="help_tip_view_details_p2_title">Детаљни метаподаци</string>
-    <string name="help_tip_view_details_p2_desc">За фотографе који желе потпуну слику, тапните на \"Прикажи све метаподатке\" да бисте видели сваки EXIF податак: информације о сочиву, отвор бленде, брзину затварача, ISO, баланс беле, блиц и још много тога. Ово је непроцењиво за разумевање подешавања ваше камере и побољшање фотографије.</string>
+    <string name="help_tip_view_details_p2_desc">За фотографе који желе потпуну слику, тапните на "Прикажи све метаподатке" да бисте видели сваки EXIF податак: информације о сочиву, отвор бленде, брзину затварача, ISO, баланс беле, блиц и још много тога. Ово је непроцењиво за разумевање подешавања ваше камере и побољшање фотографије.</string>
     <string name="help_tip_view_swipe_title">Превлачење између фотографија</string>
     <string name="help_tip_view_swipe_subtitle">Крећите се кроз медије покретима превлачења</string>
     <string name="help_tip_view_swipe_p1_title">Навигација превлачењем</string>
@@ -253,7 +253,7 @@
     <string name="help_tip_view_full_brightness_p1_title">Пуна осветљеност</string>
     <string name="help_tip_view_full_brightness_p1_desc">Када је омогућено, Галерија аутоматски појачава ваш екран на максималну осветљеност док прегледате фотографије у пуном екрану. Ово осигурава да видите тачне боје и детаље, што је посебно корисно када гледате фотографије напољу или у светлим окружењима. Осветљеност се враћа на нормални ниво када напустите прегледач.</string>
     <string name="help_tip_view_full_brightness_p1_s1">Идите на Подешавања &gt; Прегледач медија</string>
-    <string name="help_tip_view_full_brightness_p1_s2">Укључите \"Преглед при пуној осветљености\"</string>
+    <string name="help_tip_view_full_brightness_p1_s2">Укључите "Преглед при пуној осветљености"</string>
     <string name="help_tip_view_full_brightness_p1_s3">Осветљеност се појачава само током прегледа, а не у мрежи</string>
     <string name="help_tip_view_group_members_title">Прегледајте груписане медије</string>
     <string name="help_tip_view_group_members_subtitle">Погледајте све чланове групе рафалних или сличних снимака</string>
@@ -295,7 +295,7 @@
     <string name="help_tip_action_hide_vault_p2_desc">Можете сакрити појединачне фотографије из прегледача или изабрати више фотографија у мрежи и сакрити их све одједном преко менија за селекцију. Ако имате више сефова, од вас ће се тражити да изаберете који ћете користити.</string>
     <string name="help_tip_action_hide_vault_p2_s1">Отворите фотографију</string>
     <string name="help_tip_action_hide_vault_p2_s2">Тапните на мени са три тачке</string>
-    <string name="help_tip_action_hide_vault_p2_s3">Изаберите \"Сакриј у сеф\"</string>
+    <string name="help_tip_action_hide_vault_p2_s3">Изаберите "Сакриј у сеф"</string>
     <string name="help_tip_action_hide_vault_p2_s4">Изаберите сеф ако их имате више</string>
     <string name="help_tip_action_copy_to_album_title">Копирај у албум</string>
     <string name="help_tip_action_copy_to_album_subtitle">Копирајте медије у други албум</string>
@@ -303,7 +303,7 @@
     <string name="help_tip_action_copy_to_album_p1_desc">Направите дупликат фотографије или видео записа у другој фасцикли албума. Оригинал остаје тамо где јесте, а нова копија се креира у одредишној фасцикли. Ово је корисно када желите да се иста фотографија појави у више албума без премештања оригинала. Напомена: ово ствара стварну копију датотеке, која заузима додатни простор за складиштење.</string>
     <string name="help_tip_action_copy_to_album_p1_s1">Отворите фотографију</string>
     <string name="help_tip_action_copy_to_album_p1_s2">Тапните на мени са три тачке</string>
-    <string name="help_tip_action_copy_to_album_p1_s3">Изаберите \"Копирај у албум\"</string>
+    <string name="help_tip_action_copy_to_album_p1_s3">Изаберите "Копирај у албум"</string>
     <string name="help_tip_action_copy_to_album_p1_s4">Изаберите или креирајте одредишни албум</string>
     <string name="help_tip_action_add_collection_title">Додај у колекцију</string>
     <string name="help_tip_action_add_collection_subtitle">Организујте медије у куриране колекције</string>
@@ -317,9 +317,9 @@
     <string name="help_tip_viewer_default_editor_title">Подразумевани уређивач слика</string>
     <string name="help_tip_viewer_default_editor_subtitle">Изаберите између уграђеног или екстерног уређивача</string>
     <string name="help_tip_viewer_default_editor_p1_title">Подразумевани уређивач</string>
-    <string name="help_tip_viewer_default_editor_p1_desc">Контролишите шта се дешава када тапнете на дугме за уређивање. Изаберите \"Уграђени\" да бисте увек користили Галеријин уређивач (одлично за брзо исецање, филтере и обележавање). Изаберите \"Екстерни\" да бисте користили уређивач треће стране попут Snapseed-а или Lightroom-а за напредније уређивање. Увек можете да пребацујете између њих.</string>
+    <string name="help_tip_viewer_default_editor_p1_desc">Контролишите шта се дешава када тапнете на дугме за уређивање. Изаберите "Уграђени" да бисте увек користили Галеријин уређивач (одлично за брзо исецање, филтере и обележавање). Изаберите "Екстерни" да бисте користили уређивач треће стране попут Snapseed-а или Lightroom-а за напредније уређивање. Увек можете да пребацујете између њих.</string>
     <string name="help_tip_viewer_default_editor_p1_s1">Идите на Подешавања &gt; Прегледач медија</string>
-    <string name="help_tip_viewer_default_editor_p1_s2">Тапните на \"Подразумевани уређивач слика\"</string>
+    <string name="help_tip_viewer_default_editor_p1_s2">Тапните на "Подразумевани уређивач слика"</string>
     <string name="help_tip_viewer_default_editor_p1_s3">Изаберите уграђени или екстерни</string>
     <string name="help_tip_viewer_default_editor_p2_title">Екстерни уређивачи</string>
     <string name="help_tip_viewer_default_editor_p2_desc">Када је подешено на екстерни, Галерија отвара Android системски бирач који приказује све компатибилне уређиваче фотографија на вашем уређају. Једном изаберите свој омиљени и он постаје подразумевани. Ово је идеално ако више волите наменски уређивач за ствари као што су HDR подешавања, RAW обрада или напредно ретуширање.</string>
@@ -328,27 +328,27 @@
     <string name="help_tip_viewer_auto_play_p1_title">Аутоматска репродукција</string>
     <string name="help_tip_viewer_auto_play_p1_desc">Када је омогућено, видео записи почињу да се репродукују чим превучете до њих или их отворите. Онемогућите ово ако више волите да ручно притиснете дугме за репродукцију, на пример када прегледате садржај на јавном месту или на ограниченом интернет пакету. Видео записи ће и даље приказивати сличицу (thumbnail) када је аутоматска репродукција искључена.</string>
     <string name="help_tip_viewer_auto_play_p1_s1">Идите на Подешавања &gt; Прегледач медија</string>
-    <string name="help_tip_viewer_auto_play_p1_s2">Укључите \"Аутоматска репродукција видео записа\"</string>
+    <string name="help_tip_viewer_auto_play_p1_s2">Укључите "Аутоматска репродукција видео записа"</string>
     <string name="help_tip_viewer_auto_hide_video_title">Аутоматско сакривање интерфејса током репродукције</string>
     <string name="help_tip_viewer_auto_hide_video_subtitle">Сакријте контроле када видео почне да се репродукује</string>
     <string name="help_tip_viewer_auto_hide_video_p1_title">Аутоматско сакривање интерфејса</string>
     <string name="help_tip_viewer_auto_hide_video_p1_desc">Када видео почне да се репродукује, трака са алаткама и контроле аутоматски нестају ради доживљаја гледања без ометања. Тапните било где на екран да бисте вратили контроле. Ово ствара биоскопски осећај, посебно код дужих видео записа. Онемогућите ово ако више волите да контроле увек буду видљиве.</string>
     <string name="help_tip_viewer_auto_hide_video_p1_s1">Идите на Подешавања &gt; Прегледач медија</string>
-    <string name="help_tip_viewer_auto_hide_video_p1_s2">Укључите \"Аутоматско сакривање интерфејса током репродукције\"</string>
+    <string name="help_tip_viewer_auto_hide_video_p1_s2">Укључите "Аутоматско сакривање интерфејса током репродукције"</string>
     <string name="help_tip_viewer_auto_hide_video_p1_s3">Тапните на екран било када да бисте поново приказали контроле</string>
     <string name="help_tip_viewer_date_header_title">Прикажи заглавље датума у прегледачу</string>
     <string name="help_tip_viewer_date_header_subtitle">Прикажите датум приликом превлачења између фотографија</string>
     <string name="help_tip_viewer_date_header_p1_title">Заглавље датума</string>
-    <string name="help_tip_viewer_date_header_p1_desc">Заглавље датума приказује датум снимања на врху прегледача док превлачите фотографије. Помаже вам да останете оријентисани у времену током прегледања. Сакријте га ако више волите чистији изглед прегледача или ако користите лист са информацијама (превлачење нагоре) за проверу датума. Напомена: заглавље датума је такође мета за функцију \"Закључај слику\".</string>
+    <string name="help_tip_viewer_date_header_p1_desc">Заглавље датума приказује датум снимања на врху прегледача док превлачите фотографије. Помаже вам да останете оријентисани у времену током прегледања. Сакријте га ако више волите чистији изглед прегледача или ако користите лист са информацијама (превлачење нагоре) за проверу датума. Напомена: заглавље датума је такође мета за функцију "Закључај слику".</string>
     <string name="help_tip_viewer_date_header_p1_s1">Идите на Подешавања &gt; Прегледач медија</string>
-    <string name="help_tip_viewer_date_header_p1_s2">Укључите \"Прикажи заглавље датума\"</string>
-    <string name="help_tip_viewer_date_header_p1_s3">Заглавље датума такође служи као мета за \"Закључај слику\"</string>
+    <string name="help_tip_viewer_date_header_p1_s2">Укључите "Прикажи заглавље датума"</string>
+    <string name="help_tip_viewer_date_header_p1_s3">Заглавље датума такође служи као мета за "Закључај слику"</string>
     <string name="help_tip_viewer_fav_button_title">Прикажи дугме за омиљене ставке</string>
     <string name="help_tip_viewer_fav_button_subtitle">Укључите дугме за омиљене ставке у прегледачу</string>
     <string name="help_tip_viewer_fav_button_p1_title">Дугме за омиљене ставке</string>
     <string name="help_tip_viewer_fav_button_p1_desc">Дугме срца у траци са алаткама прегледача вам омогућава да брзо означите или уклоните ознаку омиљене фотографије једним додиром. Ако ретко користите омиљене ставке, скривање овог дугмета рашчишћава траку са алаткама. И даље можете означавати фотографије као омиљене преко листа са информацијама (превлачење нагоре) или менија за селекцију.</string>
     <string name="help_tip_viewer_fav_button_p1_s1">Идите на Подешавања &gt; Прегледач медија</string>
-    <string name="help_tip_viewer_fav_button_p1_s2">Укључите \"Прикажи дугме за омиљене ставке\"</string>
+    <string name="help_tip_viewer_fav_button_p1_s2">Укључите "Прикажи дугме за омиљене ставке"</string>
     <string name="help_tip_viewer_fav_button_p1_s3">И даље можете користити омиљене ставке преко листа са информацијама чак и ако је дугме скривено</string>
     <!-- EDITING -->
     <string name="help_tip_edit_crop_title">Исецање и промена величине</string>
@@ -360,7 +360,7 @@
     <string name="help_tip_edit_crop_p3_title">Како исећи</string>
     <string name="help_tip_edit_crop_p3_desc">Алат за исецање је најчешће коришћена функција за уређивање. Савет: користите размеру 1:1 за профилне слике на друштвеним мрежама, 16:9 за позадине и презентације, а слободан облик када само треба да скратите одређену област.</string>
     <string name="help_tip_edit_crop_p3_s1">Отворите фотографију и тапните на дугме за уређивање</string>
-    <string name="help_tip_edit_crop_p3_s2">Изаберите прилагођавање \"Исецање\"</string>
+    <string name="help_tip_edit_crop_p3_s2">Изаберите прилагођавање "Исецање"</string>
     <string name="help_tip_edit_crop_p3_s3">Изаберите размеру или користите слободан облик</string>
     <string name="help_tip_edit_crop_p3_s4">Вуците ручке да бисте подесили исечак</string>
     <string name="help_tip_edit_crop_p3_s5">Тапните на квачицу да бисте применили измене</string>
@@ -370,8 +370,8 @@
     <string name="help_tip_edit_rotate_p1_desc">Ротирајте фотографију за 90° у смеру казаљке на сату једним додиром — тапните више пута да бисте ротирали за 180° или 270°. Преврните хоризонтално да бисте креирали слику у огледалу. Ово су недеструктивне операције — оригинал се аутоматски бекупује.</string>
     <string name="help_tip_edit_rotate_p2_title">Како ротирати</string>
     <string name="help_tip_edit_rotate_p2_desc">Ротација је корисна за исправљање фотографија снимљених у погрешној оријентацији или за креативне ефекте. Алат за превртање је одличан за селфије ако желите да исправите ефекат огледала камере.</string>
-    <string name="help_tip_edit_rotate_p2_s1">Отворите фотографију и тапните на \"Уреди\"</string>
-    <string name="help_tip_edit_rotate_p2_s2">Изаберите \"Ротирај за 90°\" или \"Преврни\"</string>
+    <string name="help_tip_edit_rotate_p2_s1">Отворите фотографију и тапните на "Уреди"</string>
+    <string name="help_tip_edit_rotate_p2_s2">Изаберите "Ротирај за 90°" или "Преврни"</string>
     <string name="help_tip_edit_rotate_p2_s3">Тапните да бисте применили трансформацију</string>
     <string name="help_tip_edit_rotate_p2_s4">Комбинујте са исецањем за прецизно кадрирање</string>
     <string name="help_tip_edit_filters_title">Примена филтера</string>
@@ -380,7 +380,7 @@
     <string name="help_tip_edit_filters_p1_desc">Бирајте између 20 пажљиво направљених унапред подешених филтера који мењају расположење и тон ваших фотографија. Топли филтери (Honey, Desert, Palma) додају златне тонове. Хладни филтери (Isla, Clay) додају плаве или пригушене тонове. Сваки филтер се тренутно приказује тако да можете упоредити ефекат пре примене.</string>
     <string name="help_tip_edit_filters_p2_title">Примена филтера</string>
     <string name="help_tip_edit_filters_p2_desc">Скролујте хоризонтално кроз траку филтера на дну да бисте прегледали опције. Тапните на било који филтер да бисте видели преглед уживо на својој фотографији. Ако вам се резултат не допада, једноставно тапните на други филтер или тапните на оригинал да бисте га уклонили. Филтери се могу комбиновати са финим подешавањима за још већу контролу.</string>
-    <string name="help_tip_edit_filters_p2_s1">Отворите фотографију и тапните на \"Уреди\"</string>
+    <string name="help_tip_edit_filters_p2_s1">Отворите фотографију и тапните на "Уреди"</string>
     <string name="help_tip_edit_filters_p2_s2">Прегледајте траку филтера на дну</string>
     <string name="help_tip_edit_filters_p2_s3">Тапните на филтер за преглед уживо</string>
     <string name="help_tip_edit_filters_p2_s4">Тапните на квачицу да бисте сачували</string>
@@ -398,13 +398,13 @@
     <string name="help_tip_edit_markup_p2_title">Режими цртања</string>
     <string name="help_tip_edit_markup_p2_desc">Бирајте између оловке (пуне линије), маркера (полупровидан, одличан за наглашавање области) и гумице (за исправљање грешака). Изаберите било коју боју користећи HSV бирач боја и подесите величину четкице помоћу клизача. Плутајућа трака са алаткама чини алатке доступним током цртања.</string>
     <string name="help_tip_edit_markup_p3_title">Како цртати</string>
-    <string name="help_tip_edit_markup_p3_desc">Зумирајте област коју желите да обележите за прецизан рад. Цртање је потпуно реверзибилно — користите гумицу за мале исправке или \"поништи\" да бисте потпуно уклонили последњи потез. Оригинална фотографија се увек бекупује пре измена.</string>
-    <string name="help_tip_edit_markup_p3_s1">Отворите фотографију и тапните на \"Уреди\"</string>
-    <string name="help_tip_edit_markup_p3_s2">Изаберите прилагођавање \"Обележавање\"</string>
+    <string name="help_tip_edit_markup_p3_desc">Зумирајте област коју желите да обележите за прецизан рад. Цртање је потпуно реверзибилно — користите гумицу за мале исправке или "поништи" да бисте потпуно уклонили последњи потез. Оригинална фотографија се увек бекупује пре измена.</string>
+    <string name="help_tip_edit_markup_p3_s1">Отворите фотографију и тапните на "Уреди"</string>
+    <string name="help_tip_edit_markup_p3_s2">Изаберите прилагођавање "Обележавање"</string>
     <string name="help_tip_edit_markup_p3_s3">Штипајте да бисте зумирали област по којој желите да цртате</string>
     <string name="help_tip_edit_markup_p3_s4">Изаберите четкицу, боју и величину</string>
     <string name="help_tip_edit_markup_p3_s5">Цртајте по фотографији</string>
-    <string name="help_tip_edit_markup_p3_s6">Користите гумицу или \"поништи\" да бисте исправили грешке</string>
+    <string name="help_tip_edit_markup_p3_s6">Користите гумицу или "поништи" да бисте исправили грешке</string>
     <string name="help_tip_edit_save_title">Формати сачуваних датотека и историја</string>
     <string name="help_tip_edit_save_subtitle">Изаберите формат чувања и погледајте историју измена</string>
     <string name="help_tip_edit_save_p1_title">Формати чувања</string>
@@ -412,7 +412,7 @@
     <string name="help_tip_edit_save_p2_title">Историја измена</string>
     <string name="help_tip_edit_save_p2_desc">Галерија аутоматски прави резервну копију оригинала пре било каквих измена, тако да је увек можете касније вратити. Можете погледати све своје резервне копије у наменском екрану који приказује оригиналну и уређену верзију једну поред друге. Ова сигурносна мрежа значи да можете слободно експериментисати са изменама.</string>
     <string name="help_tip_edit_save_p2_s1">Идите на Подешавања &gt; Паметне функције</string>
-    <string name="help_tip_edit_save_p2_s2">Тапните на \"Прегледач резервних копија измена\"</string>
+    <string name="help_tip_edit_save_p2_s2">Тапните на "Прегледач резервних копија измена"</string>
     <string name="help_tip_edit_save_p2_s3">Погледајте оригиналне заједно са уређеним верзијама</string>
     <string name="help_tip_edit_save_p2_s4">Вратите било који оригинал ако је потребно</string>
     <string name="help_tip_edit_backups_title">Управљање резервним копијама измена</string>
@@ -422,28 +422,28 @@
     <string name="help_tip_edit_backups_p2_title">Управљање резервним копијама</string>
     <string name="help_tip_edit_backups_p2_desc">Прегледач резервних копија приказује све ваше сачуване оригинале. Можете упоредити оригинал са уређеном верзијом, вратити оригинал да бисте заменили уређену фотографију или избрисати старе резервне копије да бисте ослободили простор. Ако сте забринути за простор за складиштење, повремено прегледајте и очистите резервне копије које вам више нису потребне.</string>
     <string name="help_tip_edit_backups_p2_s1">Идите на Подешавања &gt; Паметне функције</string>
-    <string name="help_tip_edit_backups_p2_s2">Тапните на \"Прегледач резервних копија измена\"</string>
+    <string name="help_tip_edit_backups_p2_s2">Тапните на "Прегледач резервних копија измена"</string>
     <string name="help_tip_edit_backups_p2_s3">Прегледајте историју резервних копија</string>
     <string name="help_tip_edit_backups_p2_s4">Вратите оригинале или избришите да бисте ослободили простор</string>
     <!-- SEARCH -->
     <string name="help_tip_search_text_title">Претрага по тексту</string>
-    <string name="help_tip_search_text_subtitle">Пронађите фотографије по називу датотеке уз \"fuzzy\" подударање</string>
+    <string name="help_tip_search_text_subtitle">Пронађите фотографије по називу датотеке уз "fuzzy" подударање</string>
     <string name="help_tip_search_text_p1_title">Текстуална претрага</string>
-    <string name="help_tip_search_text_p1_desc">Укуцајте у траку за претрагу на врху временске линије да бисте пронашли фотографије по имену датотеке. Галерија користи \"fuzzy\" подударање, што значи да не морате да куцате тачан назив — појавиће се и приближна подударања. Ово је одлично за проналажење датотека када се сећате дела имена, али не и тачног правописа.</string>
+    <string name="help_tip_search_text_p1_desc">Укуцајте у траку за претрагу на врху временске линије да бисте пронашли фотографије по имену датотеке. Галерија користи "fuzzy" подударање, што значи да не морате да куцате тачан назив — појавиће се и приближна подударања. Ово је одлично за проналажење датотека када се сећате дела имена, али не и тачног правописа.</string>
     <string name="help_tip_search_text_p2_title">Савети за претрагу</string>
     <string name="help_tip_search_text_p2_desc">Претрага ради кроз све албуме истовремено, тако да ћете пронаћи резултате без обзира где је датотека сачувана. Резултати се ажурирају док куцате за тренутне повратне информације. Ваше недавне претраге се чувају и приказују као предлози када тапнете на траку за претрагу, што омогућава брзо понављање уобичајених претрага.</string>
     <string name="help_tip_search_ai_title">Претрага слика помоћу вештачке интелигенције</string>
     <string name="help_tip_search_ai_subtitle">Опишите шта тражите природним језиком</string>
     <string name="help_tip_search_ai_p1_title">Визуелна претрага</string>
-    <string name="help_tip_search_ai_p1_desc">Претражујте користећи описе природним језиком као што су \"залазак сунца на плажи\", \"рођенданска торта\", \"пас се игра у снегу\" или \"црвени ауто\". Вештачка интелигенција разуме садржај слике, а не само називе датотека, тако да можете пронаћи фотографије на основу онога што се заправо налази на њима. Сва обрада се дешава на вашем уређају — ваше фотографије се никада не шаљу у облак.</string>
+    <string name="help_tip_search_ai_p1_desc">Претражујте користећи описе природним језиком као што су "залазак сунца на плажи", "рођенданска торта", "пас се игра у снегу" или "црвени ауто". Вештачка интелигенција разуме садржај слике, а не само називе датотека, тако да можете пронаћи фотографије на основу онога што се заправо налази на њима. Сва обрада се дешава на вашем уређају — ваше фотографије се никада не шаљу у облак.</string>
     <string name="help_tip_search_ai_p2_title">Како то ради</string>
-    <string name="help_tip_search_ai_p2_desc">Галерија користи CLIP (Contrastive Language-Image Pretraining) моделе који раде у потпуности на вашем телефону. Када је индексирање омогућено, Галерија анализира сваку фотографију у позадини и ствара компактно \"разумевање\" њеног садржаја. Када претражујете, ваш упит се пореди са овим разумевањима како би се пронашле најрелевантније фотографије.</string>
+    <string name="help_tip_search_ai_p2_desc">Галерија користи CLIP (Contrastive Language-Image Pretraining) моделе који раде у потпуности на вашем телефону. Када је индексирање омогућено, Галерија анализира сваку фотографију у позадини и ствара компактно "разумевање" њеног садржаја. Када претражујете, ваш упит се пореди са овим разумевањима како би се пронашле најрелевантније фотографије.</string>
     <string name="help_tip_search_ai_p3_title">Почетак рада</string>
     <string name="help_tip_search_ai_p3_desc">AI претрага захтева да се прво преузму ML модели (око 150 MB). Једном инсталирана, Галерија аутоматски индексира ваше фотографије у позадини када уређај мирује. Почетно индексирање може потрајати у зависности од броја фотографија, али су накнадне исправке брзе.</string>
     <string name="help_tip_search_ai_p3_s1">Идите на Подешавања &gt; Паметне функције</string>
     <string name="help_tip_search_ai_p3_s2">Преузмите AI моделе (~150 MB)</string>
     <string name="help_tip_search_ai_p3_s3">Сачекајте да се индексирање у позадини заврши</string>
-    <string name="help_tip_search_ai_p3_s4">Претражујте са описима као што су \"залазак сунца\" или \"рођендан\"</string>
+    <string name="help_tip_search_ai_p3_s4">Претражујте са описима као што су "залазак сунца" или "рођендан"</string>
     <string name="help_tip_search_history_title">Историја претраге</string>
     <string name="help_tip_search_history_subtitle">Брзо приступите својим недавним претрагама</string>
     <string name="help_tip_search_history_p1_title">Историја претраге</string>
@@ -459,8 +459,8 @@
     <string name="help_tip_ai_categories_p1_desc">Галерија користи AI на уређају за аутоматско сортирање ваших фотографија у значајне категорије као што су Природа, Храна, Људи, Архитектура, Животиње, Возила и још много тога. Ово се дешава у позадини без ручног напора — само прегледајте своју организовану библиотеку. Сва обрада остаје на вашем уређају ради приватности.</string>
     <string name="help_tip_ai_categories_p2_title">Прегледајте категорије</string>
     <string name="help_tip_ai_categories_p2_desc">Пронађите своје категорије у Библиотека &gt; Категорије. Свака категорија приказује сличицу прегледа и број одговарајућих фотографија. Тапните на било коју категорију да бисте видели све фотографије које јој припадају. Категорије су сортиране према броју фотографија које садрже, са вашим закаченим омиљеним ставкама на врху.</string>
-    <string name="help_tip_ai_categories_p2_s1">Тапните на \"Библиотека\" у доњој траци</string>
-    <string name="help_tip_ai_categories_p2_s2">Тапните на \"Категорије\"</string>
+    <string name="help_tip_ai_categories_p2_s1">Тапните на "Библиотека" у доњој траци</string>
+    <string name="help_tip_ai_categories_p2_s2">Тапните на "Категорије"</string>
     <string name="help_tip_ai_categories_p2_s3">Прегледајте аутоматски организоване фотографије</string>
     <string name="help_tip_ai_categories_p2_s4">Тапните на категорију да бисте видели њен садржај</string>
     <string name="help_tip_ai_categories_p3_title">Прилагођавање</string>
@@ -468,7 +468,7 @@
     <string name="help_tip_ai_create_category_title">Креирање прилагођених категорија</string>
     <string name="help_tip_ai_create_category_subtitle">Дефинишите сопствене категорије фотографија</string>
     <string name="help_tip_ai_create_category_p1_title">Прилагођене категорије</string>
-    <string name="help_tip_ai_create_category_p1_desc">Поред уграђених категорија, можете креирати сопствене са прилагођеним називима и критеријумима класификације. На пример, креирајте категорију \"Кућни љубимци\", \"Радни документи\" или било шта специфично за вашу колекцију фотографија. Вештачка интелигенција ће аутоматски сортирати одговарајуће фотографије у ваше прилагођене категорије.</string>
+    <string name="help_tip_ai_create_category_p1_desc">Поред уграђених категорија, можете креирати сопствене са прилагођеним називима и критеријумима класификације. На пример, креирајте категорију "Кућни љубимци", "Радни документи" или било шта специфично за вашу колекцију фотографија. Вештачка интелигенција ће аутоматски сортирати одговарајуће фотографије у ваше прилагођене категорије.</string>
     <string name="help_tip_ai_create_category_p2_title">Како креирати</string>
     <string name="help_tip_ai_create_category_p2_desc">Дајте својој категорији описно име и опционо подесите праг поузданости — већи праг значи стриктније подударање (мање, али тачнији резултати), док је нижи праг попустљивији (више резултата, али неки могу бити мање релевантни). Почните са подразумеваним и прилагодите према резултатима.</string>
     <string name="help_tip_ai_create_category_p2_s1">Идите на Библиотека &gt; Категорије</string>
@@ -484,7 +484,7 @@
     <string name="help_tip_ai_models_p2_desc">Проверите да ли су модели инсталирани, преузмите их ако је потребно или их уклоните да бисте ослободили простор. Након преузимања, Галерија аутоматски почиње индексирање ваших фотографија у позадини. Статус модела можете пратити у било ком тренутку са овог екрана.</string>
     <string name="help_tip_ai_models_p2_s1">Идите на Подешавања &gt; Паметне функције</string>
     <string name="help_tip_ai_models_p2_s2">Проверите статус AI модела</string>
-    <string name="help_tip_ai_models_p2_s3">Тапните на \"Преузми\" ако још нису инсталирани</string>
+    <string name="help_tip_ai_models_p2_s3">Тапните на "Преузми" ако још нису инсталирани</string>
     <string name="help_tip_ai_models_p2_s4">Сачекајте да се индексирање заврши након преузимања</string>
     <string name="help_tip_ai_indexing_title">Како функционише индексирање</string>
     <string name="help_tip_ai_indexing_subtitle">Обрада у позадини за AI функције</string>
@@ -503,28 +503,28 @@
     <string name="help_tip_albums_pin_subtitle">Држите своје најчешће коришћене албуме на врху</string>
     <string name="help_tip_albums_pin_p1_title">Закачи албуме</string>
     <string name="help_tip_albums_pin_p1_desc">Закачени албуми се увек појављују на самом врху мреже албума, без обзира на редослед сортирања. Ово је савршено за албуме које највише користите, као што је Камера или фасцикла за одређени пројекат. Можете закачити више албума — сви ће се појавити у горњем делу. Откачите их било када дугим притиском поново.</string>
-    <string name="help_tip_albums_pin_p1_s1">Идите на \"Албуми\"</string>
+    <string name="help_tip_albums_pin_p1_s1">Идите на "Албуми"</string>
     <string name="help_tip_albums_pin_p1_s2">Дуго притисните албум</string>
-    <string name="help_tip_albums_pin_p1_s3">Тапните на \"Закачи\" да би остао на врху</string>
-    <string name="help_tip_albums_pin_p1_s4">Дуго притисните и \"Откачи\" да бисте уклонили са врха</string>
+    <string name="help_tip_albums_pin_p1_s3">Тапните на "Закачи" да би остао на врху</string>
+    <string name="help_tip_albums_pin_p1_s4">Дуго притисните и "Откачи" да бисте уклонили са врха</string>
     <string name="help_tip_albums_ignore_title">Сакриј албуме</string>
     <string name="help_tip_albums_ignore_subtitle">Игноришите албуме које не желите да видите</string>
     <string name="help_tip_albums_ignore_p1_title">Сакриј албуме</string>
-    <string name="help_tip_albums_ignore_p1_desc">Игнорисање албума га потпуно сакрива — неће се појавити на картици \"Албуми\", а његове фотографије се неће приказати на \"Временској линији\". Ово је корисно за системске фасцикле (попут \".thumbnails\"), фасцикле које генеришу апликације или албуме са медијима које не желите да затрпавају вашу галерију. Датотеке се не бришу, већ су само сакривене из Галерије.</string>
+    <string name="help_tip_albums_ignore_p1_desc">Игнорисање албума га потпуно сакрива — неће се појавити на картици "Албуми", а његове фотографије се неће приказати на "Временској линији". Ово је корисно за системске фасцикле (попут ".thumbnails"), фасцикле које генеришу апликације или албуме са медијима које не желите да затрпавају вашу галерију. Датотеке се не бришу, већ су само сакривене из Галерије.</string>
     <string name="help_tip_albums_ignore_p1_s1">Идите на Подешавања &gt; Игнорисани албуми</string>
     <string name="help_tip_albums_ignore_p1_s2">Изаберите албуме за игнорисање</string>
     <string name="help_tip_albums_ignore_p1_s3">Фотографије игнорисаних албума такође нестају са Временске линије</string>
     <string name="help_tip_albums_ignore_p2_title">Враћање сакривених албума</string>
-    <string name="help_tip_albums_ignore_p2_desc">Променили сте мишљење? Вратите се на Подешавања &gt; Игнорисани албуми у било ком тренутку да видите све своје сакривене албуме и вратите било који од њих. Враћени албуми се одмах поново појављују на картици \"Албуми\", а њихове фотографије се враћају на Временску линију. Подаци се не губе приликом игнорисања или враћања.</string>
+    <string name="help_tip_albums_ignore_p2_desc">Променили сте мишљење? Вратите се на Подешавања &gt; Игнорисани албуми у било ком тренутку да видите све своје сакривене албуме и вратите било који од њих. Враћени албуми се одмах поново појављују на картици "Албуми", а њихове фотографије се враћају на Временску линију. Подаци се не губе приликом игнорисања или враћања.</string>
     <string name="help_tip_albums_groups_title">Организуј албуме у групе</string>
     <string name="help_tip_albums_groups_subtitle">Креирајте групе албума за бољу организацију</string>
     <string name="help_tip_albums_groups_p1_title">Групе албума</string>
     <string name="help_tip_albums_groups_p1_desc">Ако имате много албума, групе вам помажу да их визуелно организујете. На пример, групишите све фасцикле друштвених мрежа заједно или држите пословне албуме одвојене од личних. Групе се појављују као одељци који се могу савити на вашој листи албума, што знатно олакшава проналажење онога што вам треба.</string>
     <string name="help_tip_albums_groups_p2_title">Креирање групе</string>
-    <string name="help_tip_albums_groups_p2_desc">Дуго притисните било који албум и тапните на \"Додај у групу\". Креирајте нови назив групе или је додајте у постојећу. Можете додати више албума у исту групу. Групе се могу савити да бисте уштедели простор када вам нису потребне.</string>
-    <string name="help_tip_albums_groups_p2_s1">Идите на \"Албуми\"</string>
+    <string name="help_tip_albums_groups_p2_desc">Дуго притисните било који албум и тапните на "Додај у групу". Креирајте нови назив групе или је додајте у постојећу. Можете додати више албума у исту групу. Групе се могу савити да бисте уштедели простор када вам нису потребне.</string>
+    <string name="help_tip_albums_groups_p2_s1">Идите на "Албуми"</string>
     <string name="help_tip_albums_groups_p2_s2">Дуго притисните албум</string>
-    <string name="help_tip_albums_groups_p2_s3">Тапните на \"Додај у групу\"</string>
+    <string name="help_tip_albums_groups_p2_s3">Тапните на "Додај у групу"</string>
     <string name="help_tip_albums_groups_p2_s4">Именујте своју групу или изаберите постојећу</string>
     <string name="help_tip_albums_groups_p2_s5">Додајте још албума у исту групу</string>
     <string name="help_tip_albums_collections_title">Креирај колекције</string>
@@ -532,29 +532,29 @@
     <string name="help_tip_albums_collections_p1_title">Колекције</string>
     <string name="help_tip_albums_collections_p1_desc">Колекције су виртуелна груписања која вам омогућавају да окупите фотографије из различитих албума под једном темом — путовање на одмор, пројекат реновирања куће, колекција рецепата или било шта што желите. За разлику од албума (који су везани за фасцикле), колекције обухватају целу вашу библиотеку.</string>
     <string name="help_tip_albums_collections_p2_title">Креирање колекције</string>
-    <string name="help_tip_albums_collections_p2_desc">Започните колекцију из било ког албума или фотографије. Додајте фотографије из било ког извора — не морају бити у истој фасцикли. Иста фотографија може припадати вишеструким колекцијама без креирања копија, тако да нема додатних трошкова складиштења. Прегледајте своје колекције са екрана \"Библиотека\".</string>
+    <string name="help_tip_albums_collections_p2_desc">Започните колекцију из било ког албума или фотографије. Додајте фотографије из било ког извора — не морају бити у истој фасцикли. Иста фотографија може припадати вишеструким колекцијама без креирања копија, тако да нема додатних трошкова складиштења. Прегледајте своје колекције са екрана "Библиотека".</string>
     <string name="help_tip_albums_collections_p2_s1">Дуго притисните албум или изаберите фотографије</string>
-    <string name="help_tip_albums_collections_p2_s2">Тапните на \"Додај у колекцију\"</string>
+    <string name="help_tip_albums_collections_p2_s2">Тапните на "Додај у колекцију"</string>
     <string name="help_tip_albums_collections_p2_s3">Именујте своју колекцију или изаберите постојећу</string>
-    <string name="help_tip_albums_collections_p2_s4">Приступите колекцијама из \"Библиотеке\"</string>
+    <string name="help_tip_albums_collections_p2_s4">Приступите колекцијама из "Библиотеке"</string>
     <string name="help_tip_albums_thumbnails_title">Прилагођене сличице албума</string>
     <string name="help_tip_albums_thumbnails_subtitle">Изаберите одређену фотографију као насловну албума</string>
     <string name="help_tip_albums_thumbnails_p1_title">Прилагођене сличице</string>
     <string name="help_tip_albums_thumbnails_p1_desc">По подразумеваној вредности, албуми приказују своју најновију фотографију као насловну. Ово можете надјачати било којом фотографијом из албума како бисте креирали репрезентативнију или визуелно привлачнију насловну страну. Ово је одлично за чињење да ваша мрежа албума изгледа организовано и лако за скенирање на први поглед.</string>
     <string name="help_tip_albums_thumbnails_p2_title">Како променити</string>
-    <string name="help_tip_albums_thumbnails_p2_desc">Отворите албум, пронађите фотографију коју желите као насловну, дуго је притисните и изаберите \"Постави као сличицу албума\". Мрежа албума ће се одмах ажурирати са вашом изабраном насловном страном. Да бисте ресетовали на подразумевано (најновија фотографија), можете поставити другу сличицу или је обрисати из опција албума.</string>
+    <string name="help_tip_albums_thumbnails_p2_desc">Отворите албум, пронађите фотографију коју желите као насловну, дуго је притисните и изаберите "Постави као сличицу албума". Мрежа албума ће се одмах ажурирати са вашом изабраном насловном страном. Да бисте ресетовали на подразумевано (најновија фотографија), можете поставити другу сличицу или је обрисати из опција албума.</string>
     <string name="help_tip_albums_thumbnails_p2_s1">Отворите албум</string>
     <string name="help_tip_albums_thumbnails_p2_s2">Пронађите жељену насловну фотографију</string>
     <string name="help_tip_albums_thumbnails_p2_s3">Дуго је притисните</string>
-    <string name="help_tip_albums_thumbnails_p2_s4">Тапните на \"Постави као сличицу албума\"</string>
+    <string name="help_tip_albums_thumbnails_p2_s4">Тапните на "Постави као сличицу албума"</string>
     <!-- VAULT -->
     <string name="help_tip_vault_setup_title">Подешавање трезора (Vault)</string>
     <string name="help_tip_vault_setup_subtitle">Шифрујте и заштитите своје приватне фотографије</string>
     <string name="help_tip_vault_setup_p1_title">Ваш приватни трезор</string>
     <string name="help_tip_vault_setup_p1_desc">Трезор је безбедан, шифрован простор за фотографије и видео записе које желите да сачувате као приватне. Датотеке у трезору су шифроване помоћу јаке криптографије и могу им приступити само након биометријске аутентификације (отисак прста или лице) или вашег PIN-а уређаја. Потпуно су сакривене од ваше уобичајене галерије и неће се појавити на временској линији, албумима или било којој другој апликацији.</string>
     <string name="help_tip_vault_setup_p2_title">Подешавање шифровања</string>
-    <string name="help_tip_vault_setup_p2_desc">Подешавање трезора је брзо — само тапните на Библиотека &gt; Трезор и пратите упутства. Можете креирати више трезора за различите сврхе (нпр. \"Лично\" и \"Документи\"). Сваки трезор захтева аутентификацију сваки пут када му приступате.</string>
-    <string name="help_tip_vault_setup_p2_s1">Тапните на \"Библиотека\" &gt; \"Трезор\"</string>
+    <string name="help_tip_vault_setup_p2_desc">Подешавање трезора је брзо — само тапните на Библиотека &gt; Трезор и пратите упутства. Можете креирати више трезора за различите сврхе (нпр. "Лично" и "Документи"). Сваки трезор захтева аутентификацију сваки пут када му приступате.</string>
+    <string name="help_tip_vault_setup_p2_s1">Тапните на "Библиотека" &gt; "Трезор"</string>
     <string name="help_tip_vault_setup_p2_s2">Пратите упутства за подешавање</string>
     <string name="help_tip_vault_setup_p2_s3">Потврдите отиском прста, лицем или PIN-ом</string>
     <string name="help_tip_vault_setup_p2_s4">Можете креирати више трезора</string>
@@ -565,10 +565,10 @@
     <string name="help_tip_vault_add_p1_title">Сакриј фотографије</string>
     <string name="help_tip_vault_add_p1_desc">Премештање фотографије у трезор је шифрује и уклања из ваше видљиве галерије. Шифрована датотека је сачувана у безбедном складишту апликације, неприступачна другим апликацијама или менаџерима датотека. Ово је најсигурнији начин да сачувате приватне фотографије на свом уређају.</string>
     <string name="help_tip_vault_add_p2_title">Како сакрити</string>
-    <string name="help_tip_vault_add_p2_desc">Из прегледача: тапните на мени са три тачке и изаберите \"Сакриј у трезор\". Из мреже: изаберите једну или више фотографија, затим користите опцију \"Сакриј у трезор\" у менију за избор. Можете сакрити фотографије, видео записе или комбинацију оба. Ако имате више трезора, бићете упитани који да користите.</string>
+    <string name="help_tip_vault_add_p2_desc">Из прегледача: тапните на мени са три тачке и изаберите "Сакриј у трезор". Из мреже: изаберите једну или више фотографија, затим користите опцију "Сакриј у трезор" у менију за избор. Можете сакрити фотографије, видео записе или комбинацију оба. Ако имате више трезора, бићете упитани који да користите.</string>
     <string name="help_tip_vault_add_p2_s1">Отворите фотографију или изаберите више њих у мрежи</string>
     <string name="help_tip_vault_add_p2_s2">Тапните на мени или акцију избора</string>
-    <string name="help_tip_vault_add_p2_s3">Изаберите \"Сакриј у трезор\"</string>
+    <string name="help_tip_vault_add_p2_s3">Изаберите "Сакриј у трезор"</string>
     <string name="help_tip_vault_add_p2_s4">Изаберите трезор ако их имате више</string>
     <string name="help_tip_vault_restore_title">Враћање из трезора</string>
     <string name="help_tip_vault_restore_subtitle">Преместите фотографије назад у своју уобичајену галерију</string>
@@ -586,14 +586,14 @@
     <string name="help_tip_fav_browse_title">Прегледај омиљене</string>
     <string name="help_tip_fav_browse_subtitle">Погледајте све своје омиљене фотографије на једном месту</string>
     <string name="help_tip_fav_browse_p1_title">Омиљено</string>
-    <string name="help_tip_fav_browse_p1_desc">Екран \"Омиљено\" у Библиотеци приказује све ваше фотографије и видео записе са звездицом на једном месту, организоване по датуму баш као и на временској линији. Ово је одличан начин за брз приступ вашим најбољим снимцима, важним документима или било којим фотографијама које желите лако поново да пронађете. Позиција иконе срца на сличицама се може прилагодити у Подешавања &gt; Временска линија и албуми.</string>
+    <string name="help_tip_fav_browse_p1_desc">Екран "Омиљено" у Библиотеци приказује све ваше фотографије и видео записе са звездицом на једном месту, организоване по датуму баш као и на временској линији. Ово је одличан начин за брз приступ вашим најбољим снимцима, важним документима или било којим фотографијама које желите лако поново да пронађете. Позиција иконе срца на сличицама се може прилагодити у Подешавања &gt; Временска линија и албуми.</string>
     <string name="help_tip_trash_delete_title">Брисање и враћање фотографија</string>
     <string name="help_tip_trash_delete_subtitle">Обрисане фотографије прво иду у смеће</string>
     <string name="help_tip_trash_delete_p1_title">Корпа за отпатке</string>
     <string name="help_tip_trash_delete_p1_desc">Када обришете фотографије, оне прво одлазе у корпу за отпатке, уместо да буду трајно уклоњене. Ставке остају у корпи 30 дана, пружајући вам сигурносну мрежу за опоравак случајно обрисаних фотографија. Након 30 дана, оне се аутоматски и трајно бришу. Ово понашање имитира Android-ов уграђени систем за корпу за отпатке.</string>
     <string name="help_tip_trash_delete_p2_title">Управљање корпом</string>
     <string name="help_tip_trash_delete_p2_desc">Идите на Библиотека &gt; Корпа за отпатке да видите све обрисане ставке са њиховим преосталим данима до трајног брисања. Одавде можете појединачне ставке вратити на њихову оригиналну локацију, трајно обрисати одређене ставке одмах или испразнити целу корпу одједном. Савет: проверите корпу пре враћања на фабричка подешавања или брисања података апликације.</string>
-    <string name="help_tip_trash_delete_p2_s1">Тапните на \"Библиотека\" &gt; \"Корпа за отпатке\"</string>
+    <string name="help_tip_trash_delete_p2_s1">Тапните на "Библиотека" &gt; "Корпа за отпатке"</string>
     <string name="help_tip_trash_delete_p2_s2">Погледајте ставке и њихове преостале дане</string>
     <string name="help_tip_trash_delete_p2_s3">Изаберите ставке за враћање или трајно брисање</string>
     <string name="help_tip_trash_delete_p2_s4">Враћене ставке се враћају у свој оригинални албум</string>
@@ -602,7 +602,7 @@
     <string name="help_tip_trash_enable_p1_title">Подешавање корпе</string>
     <string name="help_tip_trash_enable_p1_desc">Ако више волите трајно брисање без периода од 30 дана, можете потпуно онемогућити корпу за отпатке. Када је онемогућена, обрисане фотографије се уклањају одмах и не могу се повратити. Ово штеди малу количину простора, али уклања сигурносну мрежу. Препорука: држите корпу омогућену осим ако немате посебан разлог да је онемогућите.</string>
     <string name="help_tip_trash_enable_p1_s1">Идите на Подешавања &gt; Опште</string>
-    <string name="help_tip_trash_enable_p1_s2">Укључите/искључите \"Омогући корпу\"</string>
+    <string name="help_tip_trash_enable_p1_s2">Укључите/искључите "Омогући корпу"</string>
     <string name="help_tip_trash_enable_p1_s3">Када је искључено: брисање је тренутно и трајно</string>
     <string name="help_tip_trash_enable_p1_s4">Када је укључено: обрисане ставке иду у корпу на 30 дана</string>
     <!-- LOCATIONS -->
@@ -622,7 +622,7 @@
     <string name="help_tip_exif_view_p1_title">Метаподаци фотографије</string>
     <string name="help_tip_exif_view_p1_desc">Превуците нагоре преко било које фотографије у прегледачу да бисте на први поглед видели њене метаподатке: датум и време снимања, резолуцију, величину датотеке, модел камере и GPS локацију. Галерија прикупља и кешира ове метаподатке у позадини ради брзог приступа. Ове информације вам помажу да разумете када, где и како је свака фотографија снимљена.</string>
     <string name="help_tip_exif_view_p2_title">Потпуни EXIF приказ</string>
-    <string name="help_tip_exif_view_p2_desc">Тапните на \"Прикажи све метаподатке\" да бисте видели сваки детаљ уграђен у датотеку фотографије: жижну даљину, отвор бленде, брзину затварача, ISO вредност, баланс беле боје, режим мерења светлости, простор боја, верзију софтвера и још много тога. Ово је непроцењиво за фотографе који желе да унапреде своју технику или за проверу аутентичности фотографије.</string>
+    <string name="help_tip_exif_view_p2_desc">Тапните на "Прикажи све метаподатке" да бисте видели сваки детаљ уграђен у датотеку фотографије: жижну даљину, отвор бленде, брзину затварача, ISO вредност, баланс беле боје, режим мерења светлости, простор боја, верзију софтвера и још много тога. Ово је непроцењиво за фотографе који желе да унапреде своју технику или за проверу аутентичности фотографије.</string>
     <string name="help_tip_exif_edit_title">Уређивање EXIF података</string>
     <string name="help_tip_exif_edit_subtitle">Промените датум, локацију и друге метаподатке</string>
     <string name="help_tip_exif_edit_p1_title">Уређивање метаподатака</string>
@@ -639,14 +639,14 @@
     <string name="help_tip_exif_delete_location_p1_desc">Ради приватности, можете уклонити GPS координате са било које фотографије. Ово се препоручује пре јавног дељења фотографија или на друштвеним мрежама ако не желите да откријете где су снимљене. Брисање је трајно — GPS подаци се уклањају из EXIF метаподатака датотеке и не могу се повратити.</string>
     <string name="help_tip_exif_delete_location_p1_s1">Отворите фотографију и превуците нагоре</string>
     <string name="help_tip_exif_delete_location_p1_s2">Тапните на одељак са локацијом</string>
-    <string name="help_tip_exif_delete_location_p1_s3">Тапните на \"Обриши локацију\"</string>
+    <string name="help_tip_exif_delete_location_p1_s3">Тапните на "Обриши локацију"</string>
     <string name="help_tip_exif_delete_location_p1_s4">GPS подаци су трајно уклоњени из датотеке</string>
     <string name="help_tip_exif_refresh_title">Освежи метаподатке</string>
     <string name="help_tip_exif_refresh_subtitle">Поново скенирајте метаподатке за све фотографије</string>
     <string name="help_tip_exif_refresh_p1_title">Освежавање метаподатака</string>
     <string name="help_tip_exif_refresh_p1_desc">Ако се детаљи фотографије чине застарелим или недостају (нпр. након враћања из бекапа или уређивања ван Галерије), покрените потпуно поновно скенирање метаподатака. Ово поново чита све EXIF податке из ваших датотека фотографија и ажурира кеш метаподатака Галерије. Скенирање се покреће у позадини и може потрајати неколико минута за велике библиотеке.</string>
     <string name="help_tip_exif_refresh_p1_s1">Идите на Подешавања &gt; Паметне функције</string>
-    <string name="help_tip_exif_refresh_p1_s2">Тапните на \"Освежи метаподатке\"</string>
+    <string name="help_tip_exif_refresh_p1_s2">Тапните на "Освежи метаподатке"</string>
     <string name="help_tip_exif_refresh_p1_s3">Сачекајте да се скенирање у позадини заврши</string>
     <string name="help_tip_exif_refresh_p1_s4">Детаљи фотографија ће се ажурирати како се буду поново читали</string>
     <!-- SETTINGS: APPEARANCE -->
@@ -664,7 +664,7 @@
     <string name="help_tip_settings_dark_mode_p1_title">Принудни тамни режим</string>
     <string name="help_tip_settings_dark_mode_p1_desc">Надјачајте системску тему да би Галерија увек била у тамном режиму, без обзира на подешавање система на вашем телефону. Ово је корисно ако више волите тамни режим у Галерији чак и када је телефон у светлом режиму. Комбинујте са AMOLED чистом црном за врхунско искуство на OLED екранима.</string>
     <string name="help_tip_settings_dark_mode_p1_s1">Идите на Подешавања &gt; Изглед</string>
-    <string name="help_tip_settings_dark_mode_p1_s2">Укључите \"Принудни тамни режим\"</string>
+    <string name="help_tip_settings_dark_mode_p1_s2">Укључите "Принудни тамни режим"</string>
     <string name="help_tip_settings_dark_mode_p1_s3">Галерија остаје тамна чак и када је ваш телефон у светлом режиму</string>
     <string name="help_tip_settings_amoled_title">AMOLED чиста црна</string>
     <string name="help_tip_settings_amoled_subtitle">Позадине чисте црне боје за OLED екране</string>
@@ -672,7 +672,7 @@
     <string name="help_tip_settings_amoled_p1_desc">На OLED и AMOLED екранима, пиксели праве црне боје су потпуно искључени, штедећи батерију и стварајући запањујући изглед високог контраста. Ово подешавање замењује тамно сиве позадине потпуно црним. Напомена: ступа на снагу само када је активан тамни режим (било системски тамни режим или принудни тамни режим).</string>
     <string name="help_tip_settings_amoled_p1_s1">Идите на Подешавања &gt; Изглед</string>
     <string name="help_tip_settings_amoled_p1_s2">Омогућите тамни режим или принудни тамни режим</string>
-    <string name="help_tip_settings_amoled_p1_s3">Укључите \"AMOLED чиста црна\"</string>
+    <string name="help_tip_settings_amoled_p1_s3">Укључите "AMOLED чиста црна"</string>
     <string name="help_tip_settings_amoled_p1_s4">Најбољи резултати на OLED/AMOLED екранима</string>
     <!-- SETTINGS: GENERAL -->
     <string name="help_tip_settings_trash_toggle_title">Омогући/онемогући корпу</string>
@@ -680,21 +680,21 @@
     <string name="help_tip_settings_trash_toggle_p1_title">Прекидач за корпу</string>
     <string name="help_tip_settings_trash_toggle_p1_desc">Контролише сигурносну мрежу за брисање. Када је омогућено (препоручено), обрисане ставке иду у корпу на 30 дана пре трајног брисања, дајући вам времена да исправите грешке. Када је онемогућено, сва брисања су тренутна и трајна — користите са опрезом.</string>
     <string name="help_tip_settings_trash_toggle_p1_s1">Идите на Подешавања &gt; Опште</string>
-    <string name="help_tip_settings_trash_toggle_p1_s2">Укључите/искључите \"Омогући корпу\"</string>
+    <string name="help_tip_settings_trash_toggle_p1_s2">Укључите/искључите "Омогући корпу"</string>
     <string name="help_tip_settings_trash_toggle_p1_s3">Препоручено: држите омогућено ради сигурности</string>
     <string name="help_tip_settings_trash_confirm_title">Потврда брисања у корпу</string>
     <string name="help_tip_settings_trash_confirm_subtitle">Тражи потврду пре премештања ставки у корпу</string>
     <string name="help_tip_settings_trash_confirm_p1_title">Потврда брисања</string>
     <string name="help_tip_settings_trash_confirm_p1_desc">Додаје додатни дијалог за потврду пре премештања ставки у корпу. Ово спречава случајно брисање, што је посебно корисно ако понекад грешком притиснете дугме за брисање. Када је онемогућено, ставке се одмах премештају у корпу без питања.</string>
     <string name="help_tip_settings_trash_confirm_p1_s1">Идите на Подешавања &gt; Опште</string>
-    <string name="help_tip_settings_trash_confirm_p1_s2">Укључите/искључите \"Потврда брисања\"</string>
+    <string name="help_tip_settings_trash_confirm_p1_s2">Укључите/искључите "Потврда брисања"</string>
     <string name="help_tip_settings_trash_confirm_p1_s3">Препоручено ако често случајно бришете</string>
     <string name="help_tip_settings_secure_mode_title">Безбедни режим</string>
     <string name="help_tip_settings_secure_mode_subtitle">Сакривање из скорашњих апликација и блокирање снимака екрана</string>
     <string name="help_tip_settings_secure_mode_p1_title">Безбедни режим</string>
     <string name="help_tip_settings_secure_mode_p1_desc">Када се активира, Галерија се сакрива са екрана скорашњих апликација (пребацивач задатака приказује празан преглед), а снимање екрана унутар апликације је блокирано. Ово је додатна мера приватности ако не желите да други виде шта сте прегледали када баце поглед на ваше скорашње апликације. Идеално када се комбинује са трезором за максималну приватност.</string>
     <string name="help_tip_settings_secure_mode_p1_s1">Идите на Подешавања &gt; Опште</string>
-    <string name="help_tip_settings_secure_mode_p1_s2">Укључите \"Безбедни режим\"</string>
+    <string name="help_tip_settings_secure_mode_p1_s2">Укључите "Безбедни режим"</string>
     <string name="help_tip_settings_secure_mode_p1_s3">Галерија нестаје из скорашњих апликација</string>
     <string name="help_tip_settings_secure_mode_p1_s4">Снимање екрана је блокирано унутар апликације</string>
     <string name="help_tip_settings_vibrations_title">Дозволи вибрације</string>
@@ -702,7 +702,7 @@
     <string name="help_tip_settings_vibrations_p1_title">Вибрације</string>
     <string name="help_tip_settings_vibrations_p1_desc">Контролише хаптичке повратне информације (суптилна вибрација) за интеракције као што су дуги притисак за избор, укључивање омиљених ставки и друге радње. Хаптичке повратне информације чине да апликација делује брже и тактилније. Онемогућите ако више волите потпуно тихо искуство или ако вам вибрације сметају.</string>
     <string name="help_tip_settings_vibrations_p1_s1">Идите на Подешавања &gt; Опште</string>
-    <string name="help_tip_settings_vibrations_p1_s2">Укључите/искључите \"Дозволи вибрације\"</string>
+    <string name="help_tip_settings_vibrations_p1_s2">Укључите/искључите "Дозволи вибрације"</string>
     <string name="help_tip_settings_vibrations_p1_s3">Утиче на дуги притисак, избор и друге интеракције</string>
     <!-- SETTINGS: NAVIGATION -->
     <string name="help_tip_settings_launch_screen_title">Подразумевани почетни екран</string>
@@ -710,21 +710,21 @@
     <string name="help_tip_settings_launch_screen_p1_title">Почетни екран</string>
     <string name="help_tip_settings_launch_screen_p1_desc">Изаберите који екран вас дочекује када отворите Галерију. Аутоматски памти последњи екран који сте користили. Временска линија је одлична за прегледање скорашњих фотографија. Албуми су идеални ако организујете по фасциклама. Библиотека ради добро ако првенствено приступате омиљеним ставкама, трезору или категоријама.</string>
     <string name="help_tip_settings_launch_screen_p1_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_settings_launch_screen_p1_s2">Тапните на \"Подразумевани почетни екран\"</string>
+    <string name="help_tip_settings_launch_screen_p1_s2">Тапните на "Подразумевани почетни екран"</string>
     <string name="help_tip_settings_launch_screen_p1_s3">Изаберите Аутоматски, Временска линија, Албуми или Библиотека</string>
     <string name="help_tip_settings_old_navbar_title">Класична навигациона трака</string>
     <string name="help_tip_settings_old_navbar_subtitle">Користите компактни стил навигационе траке</string>
     <string name="help_tip_settings_old_navbar_p1_title">Стил навигационе траке</string>
     <string name="help_tip_settings_old_navbar_p1_desc">Модеран стил приказује означене иконе (Временска линија, Албуми, Библиотека) ради јасноће. Класични компактни стил користи мање иконе без ознака, дајући вам више вертикалног простора на екрану за фотографије. Испробајте оба да бисте видели шта вам више одговара за радни процес.</string>
     <string name="help_tip_settings_old_navbar_p1_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_settings_old_navbar_p1_s2">Укључите/искључите \"Класична навигациона трака\"</string>
+    <string name="help_tip_settings_old_navbar_p1_s2">Укључите/искључите "Класична навигациона трака"</string>
     <string name="help_tip_settings_old_navbar_p1_s3">Модеран: иконе са ознакама, Класичан: компактне иконе</string>
     <string name="help_tip_settings_selection_titles_title">Прикажи наслове избора</string>
     <string name="help_tip_settings_selection_titles_subtitle">Прикажите наслове у менију за избор радњи</string>
     <string name="help_tip_settings_selection_titles_p1_title">Наслови избора</string>
     <string name="help_tip_settings_selection_titles_p1_desc">Када изаберете фотографије, доњи мени приказује иконе за доступне радње. Омогућавање наслова додаје текстуалне ознаке испод сваке иконе (Дели, Обриши, Копирај итд.) ради јасноће. Онемогућавање наслова даје чистији, компактнији изглед. Ако већ знате шта свака икона ради, скривање наслова штеди простор.</string>
     <string name="help_tip_settings_selection_titles_p1_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_settings_selection_titles_p1_s2">Укључите/искључите \"Прикажи наслове избора\"</string>
+    <string name="help_tip_settings_selection_titles_p1_s2">Укључите/искључите "Прикажи наслове избора"</string>
     <string name="help_tip_settings_selection_titles_p1_s3">Са насловима: ознаке испод сваке иконе радње</string>
     <string name="help_tip_settings_selection_titles_p1_s4">Без наслова: компактни приказ само са иконама</string>
     <string name="help_tip_settings_selection_actions_title">Прилагоди радње избора</string>
@@ -732,9 +732,9 @@
     <string name="help_tip_settings_selection_actions_p1_title">Радње избора</string>
     <string name="help_tip_settings_selection_actions_p1_desc">Мени за избор радњи се појављује кад год изаберете фотографије. Подразумевано приказује Дели, Обриши, Копирај, Премести, Сакриј у трезор и још много тога. Можете прилагодити које се радње појављују и њихов редослед тако да одговара вашим најчешћим радним процесима.</string>
     <string name="help_tip_settings_selection_actions_p2_title">Прилагођавање</string>
-    <string name="help_tip_settings_selection_actions_p2_desc">Превуците радње горе или доле да бисте их преуредили — ставите најчешће коришћене радње на врх ради брзог приступа. Укључите или искључите радње да бисте их приказали или сакрили. На пример, ако никада не користите \"Копирај у албум\", сакријте је да бисте смањили гужву. Ваше прилагођавање се аутоматски чува.</string>
+    <string name="help_tip_settings_selection_actions_p2_desc">Превуците радње горе или доле да бисте их преуредили — ставите најчешће коришћене радње на врх ради брзог приступа. Укључите или искључите радње да бисте их приказали или сакрили. На пример, ако никада не користите "Копирај у албум", сакријте је да бисте смањили гужву. Ваше прилагођавање се аутоматски чува.</string>
     <string name="help_tip_settings_selection_actions_p2_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_settings_selection_actions_p2_s2">Тапните на \"Прилагоди радње избора\"</string>
+    <string name="help_tip_settings_selection_actions_p2_s2">Тапните на "Прилагоди радње избора"</string>
     <string name="help_tip_settings_selection_actions_p2_s3">Превуците радње да бисте их преуредили према приоритету</string>
     <string name="help_tip_settings_selection_actions_p2_s4">Укључите/искључите радње за приказ/скривање</string>
     <!-- SETTINGS: SMART -->
@@ -745,7 +745,7 @@
     <string name="help_tip_settings_ai_models_p2_title">Управљање моделима</string>
     <string name="help_tip_settings_ai_models_p2_desc">Преузмите моделе да бисте омогућили AI функције, проверили њихов статус или их уклонили да бисте ослободили простор за складиштење. Након преузимања, Галерија аутоматски почиње да индексира ваше фотографије у позадини. Ако су модели већ у пакету са вашом верзијом апликације, биће копирани из средстава при првом покретању.</string>
     <string name="help_tip_settings_ai_models_p2_s1">Идите на Подешавања &gt; Паметне функције</string>
-    <string name="help_tip_settings_ai_models_p2_s2">Тапните на \"Управник AI модела\"</string>
+    <string name="help_tip_settings_ai_models_p2_s2">Тапните на "Управник AI модела"</string>
     <string name="help_tip_settings_ai_models_p2_s3">Преузмите, верификујте или уклоните моделе</string>
     <string name="help_tip_settings_edit_backups_title">Преглед резервних копија измена</string>
     <string name="help_tip_settings_edit_backups_subtitle">Прегледајте и управљајте складиштем резервних копија измена</string>
@@ -754,7 +754,7 @@
     <string name="help_tip_settings_edit_backups_p2_title">Управљање складиштем</string>
     <string name="help_tip_settings_edit_backups_p2_desc">Резервне копије се могу гомилати временом, посебно ако уређујете много фотографија. Периодично прегледајте своје резервне копије и избришите оне које вам више нису потребне да бисте ослободили простор. Можете избрисати појединачне резервне копије или их све обрисати одједном. Враћање резервне копије замењује уређену фотографију оригиналном.</string>
     <string name="help_tip_settings_edit_backups_p2_s1">Идите на Подешавања &gt; Паметне функције</string>
-    <string name="help_tip_settings_edit_backups_p2_s2">Тапните на \"Преглед резервних копија измена\"</string>
+    <string name="help_tip_settings_edit_backups_p2_s2">Тапните на "Преглед резервних копија измена"</string>
     <string name="help_tip_settings_edit_backups_p2_s3">Прегледајте, упоредите, вратите или избришите резервне копије</string>
     <!-- GESTURES -->
     <string name="help_tip_gesture_pinch_grid_title">Притисни прсте за зумирање мреже</string>
@@ -770,7 +770,7 @@
     <string name="help_tip_gesture_long_press_title">Дуго притисните за избор</string>
     <string name="help_tip_gesture_long_press_subtitle">Покрените режим избора дугим притиском</string>
     <string name="help_tip_gesture_long_press_p1_title">Дуго притискање</string>
-    <string name="help_tip_gesture_long_press_p1_desc">Дуго притисните (задржите прст око пола секунде) било коју фотографију да бисте ушли у режим избора. На изабраној ставци се појављује квачица, а затим можете тапнути на додатне фотографије да бисте их додали. Да бисте изашли из режима избора, користите дугме за назад или тапните на \"X\" да бисте поништили сав избор. Ако је омогућена хаптичка повратна информација, осетићете суптилну вибрацију када се избор активира.</string>
+    <string name="help_tip_gesture_long_press_p1_desc">Дуго притисните (задржите прст око пола секунде) било коју фотографију да бисте ушли у режим избора. На изабраној ставци се појављује квачица, а затим можете тапнути на додатне фотографије да бисте их додали. Да бисте изашли из режима избора, користите дугме за назад или тапните на "X" да бисте поништили сав избор. Ако је омогућена хаптичка повратна информација, осетићете суптилну вибрацију када се избор активира.</string>
     <string name="help_tip_gesture_multi_select_title">Превлачење за вишеструки избор</string>
     <string name="help_tip_gesture_multi_select_subtitle">Превуците преко фотографија да бисте изабрали више њих</string>
     <string name="help_tip_gesture_multi_select_p1_title">Избор превлачењем</string>
@@ -783,24 +783,24 @@
     <string name="help_tip_selection_sheet_p2_title">Прилагођавање радњи</string>
     <string name="help_tip_selection_sheet_p2_desc">Мени за радње је потпуно прилагодљив. Преуредите радње како бисте најчешће коришћене ставили на прво место и сакрили оне које никада не користите. Ово чини мени прегледнијим и бржим за употребу. Ваше прилагођавање се трајно чува.</string>
     <string name="help_tip_selection_sheet_p2_s1">Идите на Подешавања &gt; Навигација</string>
-    <string name="help_tip_selection_sheet_p2_s2">Тапните на \"Прилагоди радње избора\"</string>
+    <string name="help_tip_selection_sheet_p2_s2">Тапните на "Прилагоди радње избора"</string>
     <string name="help_tip_selection_sheet_p2_s3">Превуците да преуредите, укључите/искључите за приказ/скривање</string>
     <string name="help_tip_selection_sheet_p2_s4">Најчешће коришћене радње треба да буду на врху</string>
     <string name="help_tip_selection_batch_share_title">Групно дељење</string>
     <string name="help_tip_selection_batch_share_subtitle">Делите више фотографија одједном</string>
     <string name="help_tip_selection_batch_share_p1_title">Групно дељење</string>
-    <string name="help_tip_selection_batch_share_p1_desc">Изаберите више фотографија у мрежи, а затим тапните на радњу \"Дели\" да бисте их све одједном послали у било коју апликацију. Ово је савршено за дељење групе фотографија са путовања, слање више докумената или отпремање групе у облак. Све изабране ставке се деле као један пакет.</string>
+    <string name="help_tip_selection_batch_share_p1_desc">Изаберите више фотографија у мрежи, а затим тапните на радњу "Дели" да бисте их све одједном послали у било коју апликацију. Ово је савршено за дељење групе фотографија са путовања, слање више докумената или отпремање групе у облак. Све изабране ставке се деле као један пакет.</string>
     <string name="help_tip_selection_batch_share_p1_s1">Дуго притисните да покренете избор</string>
     <string name="help_tip_selection_batch_share_p1_s2">Тапните на додатне фотографије да их додате</string>
-    <string name="help_tip_selection_batch_share_p1_s3">Тапните на радњу \"Дели\" у менију</string>
+    <string name="help_tip_selection_batch_share_p1_s3">Тапните на радњу "Дели" у менију</string>
     <string name="help_tip_selection_batch_share_p1_s4">Изаберите апликацију са којом делите</string>
     <string name="help_tip_selection_batch_delete_title">Групно брисање</string>
     <string name="help_tip_selection_batch_delete_subtitle">Обришите више фотографија одједном</string>
     <string name="help_tip_selection_batch_delete_p1_title">Групно брисање</string>
-    <string name="help_tip_selection_batch_delete_p1_desc">Изаберите више фотографија, а затим тапните на \"Обриши\" да бисте их све одједном преместили у корпу за отпатке. Ако је омогућена потврда брисања, бићете упитани за потврду. Ако је корпа омогућена, ставке се могу повратити у року од 30 дана из Библиотека &gt; Корпа за отпатке. Ово је најбржи начин да очистите нежељене фотографије са одређеног догађаја или дупликате.</string>
+    <string name="help_tip_selection_batch_delete_p1_desc">Изаберите више фотографија, а затим тапните на "Обриши" да бисте их све одједном преместили у корпу за отпатке. Ако је омогућена потврда брисања, бићете упитани за потврду. Ако је корпа омогућена, ставке се могу повратити у року од 30 дана из Библиотека &gt; Корпа за отпатке. Ово је најбржи начин да очистите нежељене фотографије са одређеног догађаја или дупликате.</string>
     <string name="help_tip_selection_batch_delete_p1_s1">Дуго притисните да покренете избор</string>
     <string name="help_tip_selection_batch_delete_p1_s2">Тапните на фотографије да их додате у избор</string>
-    <string name="help_tip_selection_batch_delete_p1_s3">Тапните на радњу \"Обриши\" у менију</string>
+    <string name="help_tip_selection_batch_delete_p1_s3">Тапните на радњу "Обриши" у менију</string>
     <string name="help_tip_selection_batch_delete_p1_s4">Ставке иду у корпу (могу се вратити у року од 30 дана)</string>
     <!-- ACCESSIBILITY -->
     <string name="help_tip_accessibility_font_title">Системско скалирање фонта</string>
@@ -821,7 +821,7 @@
     <string name="help_tip_advanced_wallpaper_p1_desc">Отворите било коју фотографију и користите мени за радње да је поставите као позадину уређаја. Можете изабрати да је поставите за почетни екран, закључани екран или оба. Галерија отвара интерфејс за исецање тако да можете да позиционирате и промените величину фотографије како би савршено одговарала вашем екрану пре постављања.</string>
     <string name="help_tip_advanced_wallpaper_p1_s1">Отворите фотографију у прегледачу</string>
     <string name="help_tip_advanced_wallpaper_p1_s2">Тапните на мени са три тачке</string>
-    <string name="help_tip_advanced_wallpaper_p1_s3">Изаберите \"Постави као позадину\"</string>
+    <string name="help_tip_advanced_wallpaper_p1_s3">Изаберите "Постави као позадину"</string>
     <string name="help_tip_advanced_wallpaper_p1_s4">Исеците и позиционирајте фотографију</string>
     <string name="help_tip_advanced_wallpaper_p1_s5">Изаберите почетни екран, закључани екран или оба</string>
     <!-- ACTION LABELS -->
@@ -843,7 +843,7 @@
     <string name="help_tip_viewer_auto_contrast_p1_title">Паметно прилагођавање контраста</string>
     <string name="help_tip_viewer_auto_contrast_p1_desc">Када је омогућено, Галерија у реалном времену анализира осветљеност сваке фотографије и аутоматски прилагођава контраст екрана како бисте лакше видели тамне слике, а светле учинили живописнијим. Прилагођавање је суптилно и дешава се тренутно док превлачите између фотографија. Ово утиче само на то како слике изгледају на екрану — ваше оригиналне датотеке се никада не мењају. Ова функција је тренутно у Бета фази.</string>
     <string name="help_tip_viewer_auto_contrast_p1_s1">Идите на Подешавања &gt; Изглед</string>
-    <string name="help_tip_viewer_auto_contrast_p1_s2">Укључите \"Аутоматски контраст\"</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s2">Укључите "Аутоматски контраст"</string>
     <string name="help_tip_viewer_auto_contrast_p1_s3">Прелазите између фотографија да видите прилагођавања у реалном времену</string>
     <!-- SELECTION: Right-Align Actions -->
     <string name="help_tip_selection_right_align_title">Десно поравнање горњих радњи</string>
@@ -851,7 +851,7 @@
     <string name="help_tip_selection_right_align_p1_title">Десно поравнате радње</string>
     <string name="help_tip_selection_right_align_p1_desc">Када је омогућено, горња дугмад за радње у траци за избор (Изабери све, Детаљи) померају се на десну ивицу екрана, док дугме за затварање остаје на левој страни. Ово чини радње лакшим за дохват једном руком, посебно на већим телефонима. Дугмад су постављена у ред који се може померати како би се спречило преклапање.</string>
     <string name="help_tip_selection_right_align_p1_s1">Идите на Подешавања &gt; Навигација &gt; Радње избора</string>
-    <string name="help_tip_selection_right_align_p1_s2">Укључите \"Десно поравнање горњих радњи\"</string>
+    <string name="help_tip_selection_right_align_p1_s2">Укључите "Десно поравнање горњих радњи"</string>
     <string name="help_tip_selection_right_align_p1_s3">Изаберите ставке да видите нови распоред</string>
     <!-- VAULT: Overhaul -->
     <string name="help_tip_vault_overhaul_title">Редизајнирана безбедност трезора</string>
@@ -860,7 +860,7 @@
     <string name="help_tip_vault_overhaul_p1_desc">Додајте додатни слој безбедности пре екрана за избор трезора. Изаберите између опције без заштите, безбедности уређаја (биометрија или закључавање екрана) или прилагођене лозинке. Када је активна, морате се аутентиковати пре него што уопште можете да видите листу доступних трезора — чиме спречавате друге да знају који трезори постоје на вашем уређају.</string>
     <string name="help_tip_vault_overhaul_p1_s1">Отворите трезор из Библиотеке</string>
     <string name="help_tip_vault_overhaul_p1_s2">Тапните на дугме за безбедносна подешавања</string>
-    <string name="help_tip_vault_overhaul_p1_s3">Изаберите \"Ништа\", \"Безбедност уређаја\" или \"Прилагођена лозинка\"</string>
+    <string name="help_tip_vault_overhaul_p1_s3">Изаберите "Ништа", "Безбедност уређаја" или "Прилагођена лозинка"</string>
     <string name="help_tip_vault_overhaul_p2_title">Прилагођене лозинке и безбедност по трезору</string>
     <string name="help_tip_vault_overhaul_p2_desc">Сваки трезор сада подржава сопствену аутентификацију — биометрију, ПИН или прилагођену лозинку — тако да можете имати различите нивое безбедности за различите трезоре. Ток креирања трезора је поједностављен: креирајте трезор, поставите његову лозинку, а затим конфигуришите глобални улаз. Брисање трезора вас сада враћа на бирач уз захтев за поновну аутентификацију, а брисање последњег трезора вас враћа у библиотеку.</string>
     <string name="help_tip_vault_overhaul_p2_s1">Креирајте или отворите трезор</string>
@@ -869,7 +869,7 @@
     <!-- SECURITY SETTINGS -->
     <string name="help_tip_security_sandbox_title">Заштита унутар песочника апликације (sandbox)</string>
     <string name="help_tip_security_sandbox_subtitle">Изолујте обраду непоузданих датотека у сигурним процесима песочника</string>
-    <string name="help_tip_security_sandbox_p1_title">Шта је \"песочник\" (sandboxing)?</string>
+    <string name="help_tip_security_sandbox_p1_title">Шта је "песочник" (sandboxing)?</string>
     <string name="help_tip_security_sandbox_p1_desc">Песочник штити апликацију тако што обрађује непоуздане датотеке — као што су HEIF, AVIF и JXL слике — у изолованим системским процесима. Ако злонамерна датотека искористи рањивост декодера, штета остаје садржана унутар песочника и не може допрети до главне апликације или ваших података.</string>
     <string name="help_tip_security_sandbox_p2_title">Конфигурисање заштите песочника</string>
     <string name="help_tip_security_sandbox_p2_desc">Можете контролисати колико агресивно се датотеке стављају у песочник. Изолација метаподатака одређује да ли се EXIF парсирање дешава у заједничком процесу, процесу по датотеци или хибриду оба. Декодирање слика у песочнику усмерава HEIF/AVIF/JXL кроз изоловани сервис за декодирање користећи дељену меморију.</string>
@@ -883,7 +883,7 @@
     <string name="help_tip_security_encrypted_storage_p2_title">Омогућавање шифрованог складишта</string>
     <string name="help_tip_security_encrypted_storage_p2_desc">Шифровање је опциона функција. Омогућавање покреће једнократну миграцију која шифрује ваше постојеће податке. Ово се извршава у позадини и потребно је да се деси само једном.</string>
     <string name="help_tip_security_encrypted_storage_p2_s1">Идите на Подешавања → Безбедност</string>
-    <string name="help_tip_security_encrypted_storage_p2_s2">Укључите \"Шифрована подешавања\"</string>
+    <string name="help_tip_security_encrypted_storage_p2_s2">Укључите "Шифрована подешавања"</string>
     <string name="help_tip_security_encrypted_storage_p2_s3">Апликација ће аутоматски мигрирати ваше податке</string>
     <string name="help_tip_security_private_folder_title">Приватна фасцикла</string>
     <string name="help_tip_security_private_folder_subtitle">Чувајте осетљиве датотеке скривеним и заштићеним путем Android-овог Storage Access Framework-а</string>
@@ -892,7 +892,7 @@
     <string name="help_tip_security_private_folder_p2_title">Подешавање приватне фасцикле</string>
     <string name="help_tip_security_private_folder_p2_desc">Изаберите било коју фасциклу на свом уређају као приватну фасциклу. Апликација узима трајну дозволу за приступ тако да она опстаје након поновног покретања. Можете прегледати, приказивати и управљати приватним датотекама баш као и обичним медијима.</string>
     <string name="help_tip_security_private_folder_p2_s1">Идите на Подешавања → Безбедност</string>
-    <string name="help_tip_security_private_folder_p2_s2">Тапните на \"Приватна фасцикла\" и изаберите директоријум</string>
+    <string name="help_tip_security_private_folder_p2_s2">Тапните на "Приватна фасцикла" и изаберите директоријум</string>
     <string name="help_tip_security_private_folder_p2_s3">Приступајте својим приватним датотекама из Библиотеке</string>
     <!-- Timeline Filter (4.2.3) -->
     <string name="help_tip_timeline_filter_title">Филтер временске линије</string>
@@ -911,7 +911,7 @@
     <string name="help_tip_animated_formats_p1_title">Анимирани формати</string>
     <string name="help_tip_animated_formats_p1_desc">Галерија сада подржава анимиране AVIF, анимиране JXL и APNG формате слика. Ови модерни анимирани формати слика нуде бољу компресију и квалитет у поређењу са GIF-ом. Анимиране слике се аутоматски репродукују у прегледачу медија, баш као и GIF-ови.</string>
     <string name="help_tip_animated_formats_p2_title">Подржани формати</string>
-    <string name="help_tip_animated_formats_p2_desc">Следећи анимирани формати су подржани поред традиционалног GIF-а: анимирани AVIF (анимација заснована на AV1), анимирани JXL (анимација JPEG XL) и APNG (анимирани PNG). Анимација сличица у мрежи се може контролисати из подешавања \"Временска линија и албуми\".</string>
+    <string name="help_tip_animated_formats_p2_desc">Следећи анимирани формати су подржани поред традиционалног GIF-а: анимирани AVIF (анимација заснована на AV1), анимирани JXL (анимација JPEG XL) и APNG (анимирани PNG). Анимација сличица у мрежи се може контролисати из подешавања "Временска линија и албуми".</string>
     <!-- Video Subtitles (4.2.3) -->
     <string name="help_tip_video_subtitles_title">Титлови за видео записе</string>
     <string name="help_tip_video_subtitles_subtitle">Изаберите уграђене или спољне титлове за видео записе</string>
@@ -921,7 +921,7 @@
     <string name="help_tip_video_subtitles_p2_desc">Тапните на дугме за титлове током репродукције видеа да бисте отворили бирач титлова. Можете да пребацујете између доступних записа, учитате спољну датотеку са титловима или потпуно онемогућите титлове. Спољне датотеке са титловима такође можете обрисати из доњег менија.</string>
     <string name="help_tip_video_subtitles_p2_s1">Тапните на икону за титлове у видео плејеру</string>
     <string name="help_tip_video_subtitles_p2_s2">Изаберите уграђени запис или учитајте спољну датотеку</string>
-    <string name="help_tip_video_subtitles_p2_s3">Тапните на \"Ниједан\" (None) да онемогућите титлове</string>
+    <string name="help_tip_video_subtitles_p2_s3">Тапните на "Ниједан" (None) да онемогућите титлове</string>
     <!-- Video Pinch-to-Zoom (4.2.3) -->
     <string name="help_tip_video_zoom_title">Зумирање видео записа притиском прстију</string>
     <string name="help_tip_video_zoom_subtitle">Зумирајте видео записе помоћу покрета притискања и двоструког додира</string>
@@ -941,7 +941,7 @@
     <string name="help_tip_trash_fav_redesign_title">Редизајнирана Корпа и Омиљене ставке</string>
     <string name="help_tip_trash_fav_redesign_subtitle">Освежени екрани за Корпу и Омиљене ставке</string>
     <string name="help_tip_trash_fav_redesign_p1_title">Нови изглед</string>
-    <string name="help_tip_trash_fav_redesign_p1_desc">Екрани \"Корпа\" и \"Омиљене ставке\" су потпуно редизајнирани са свежим распоредом, побољшаном визуелном хијерархијом и глаткијим анимацијама. Нови дизајн их усклађује са модерним изгледом остатка апликације.</string>
+    <string name="help_tip_trash_fav_redesign_p1_desc">Екрани "Корпа" и "Омиљене ставке" су потпуно редизајнирани са свежим распоредом, побољшаном визуелном хијерархијом и глаткијим анимацијама. Нови дизајн их усклађује са модерним изгледом остатка апликације.</string>
     <!-- Story Cards (4.3.0) -->
     <string name="help_tip_story_cards_title">Картице са причама (Story cards)</string>
     <string name="help_tip_story_cards_subtitle">Фото приче преко временске линије кроз које можете превлачити</string>
@@ -957,7 +957,7 @@
     <string name="help_tip_video_options_popup_title">Искачући прозор са опцијама видео записа</string>
     <string name="help_tip_video_options_popup_subtitle">Компактан анимирани искачући прозор за контролу видеа</string>
     <string name="help_tip_video_options_popup_p1_title">Чистије контроле видео записа</string>
-    <string name="help_tip_video_options_popup_p1_desc">Дугмад за контролу видеа (титлови, брзина, јачина звука, ротација) су спојена у једно дугме \"више опција\" које се шири у замућени анимирани искачући прозор. Искачући прозор користи распоред у реду у хоризонталном положају (landscape) и у колони у вертикалном положају (portrait), одржавајући преглед видео записа чистим, а истовремено пружајући брз приступ свим контролама.</string>
+    <string name="help_tip_video_options_popup_p1_desc">Дугмад за контролу видеа (титлови, брзина, јачина звука, ротација) су спојена у једно дугме "више опција" које се шири у замућени анимирани искачући прозор. Искачући прозор користи распоред у реду у хоризонталном положају (landscape) и у колони у вертикалном положају (portrait), одржавајући преглед видео записа чистим, а истовремено пружајући брз приступ свим контролама.</string>
     <!-- RELEASE NOTES: 4.3.0 -->
     <!-- RELEASE NOTES: 4.2.3 -->
     <!-- RELEASE NOTES: 4.2.2 -->
@@ -972,38 +972,38 @@
     <string name="help_tip_timeline_group_period_p2_desc">Отворите Подешавања &gt; Временска линија и албуми да изаберете метод груписања и независно укључите или искључите раздвајаче датума за сваки екран. Такође можете потпуно искључити заглавља датума за чисту, непрекидну мрежу.</string>
     <string name="help_tip_timeline_group_period_p2_s1">Идите на Подешавања &gt; Временска линија и албуми</string>
     <string name="help_tip_timeline_group_period_p2_s2">Изаберите метод груписања за сваки екран</string>
-    <string name="help_tip_timeline_group_period_p2_s3">Изаберите \"Ништа\", \"Дневно\", \"Месечно\" или \"Годишње\"</string>
+    <string name="help_tip_timeline_group_period_p2_s3">Изаберите "Ништа", "Дневно", "Месечно" или "Годишње"</string>
     <string name="help_tip_timeline_group_period_p2_s4">Укључите или искључите раздвајаче датума</string>
     <!-- VIEWER ACTIONS: SAVE MOTION PHOTO VIDEO (5.0.0) -->
     <string name="help_tip_action_save_motion_video_title">Сачувајте фотографију са покретом као видео</string>
     <string name="help_tip_action_save_motion_video_subtitle">Извезите уграђени клип из фотографије са покретом као самосталан видео запис</string>
     <string name="help_tip_action_save_motion_video_p1_title">Извуците клип са покретом</string>
-    <string name="help_tip_action_save_motion_video_p1_desc">Фотографије са покретом (motion photos) чувају кратак видео запис уз статичну слику. Када отворите једну, Галерија приказује радњу \"Сачувај као видео\", која извози уграђени клип као обичан MP4 у вашу фасциклу \"Movies\" — савршено за дељење тог тренутка у формату видеа. Ово ради са локалним, нешифрованим фотографијама са покретом.</string>
+    <string name="help_tip_action_save_motion_video_p1_desc">Фотографије са покретом (motion photos) чувају кратак видео запис уз статичну слику. Када отворите једну, Галерија приказује радњу "Сачувај као видео", која извози уграђени клип као обичан MP4 у вашу фасциклу "Movies" — савршено за дељење тог тренутка у формату видеа. Ово ради са локалним, нешифрованим фотографијама са покретом.</string>
     <string name="help_tip_action_save_motion_video_p1_s1">Отворите фотографију са покретом</string>
     <string name="help_tip_action_save_motion_video_p1_s2">Отворите мени са радњама</string>
-    <string name="help_tip_action_save_motion_video_p1_s3">Тапните на \"Сачувај као видео\"</string>
-    <string name="help_tip_action_save_motion_video_p1_s4">Пронађите нови клип у својој фасцикли \"Movies\"</string>
+    <string name="help_tip_action_save_motion_video_p1_s3">Тапните на "Сачувај као видео"</string>
+    <string name="help_tip_action_save_motion_video_p1_s4">Пронађите нови клип у својој фасцикли "Movies"</string>
     <!-- EDITING: EFFECTS TAB (5.0.0) -->
     <string name="help_tip_edit_effects_title">Ефекти и алати за боју</string>
     <string name="help_tip_edit_effects_subtitle">Постеризација, Ивице, Оквири, Нијанса и црно-бело</string>
-    <string name="help_tip_edit_effects_p1_title">Картица \"Ефекти\"</string>
-    <string name="help_tip_edit_effects_p1_desc">Уређивач сада има картицу \"Ефекти\" са креативним алатима: Постеризација (Posterize) своди фотографију на равне траке боја, Ивице (Edges) исцртава контуре за изглед попут скице, а Оквири (Borders) додају рам око слике. Сваки ефекат приказује преглед уживо, тако да можете фино подесити жељени изглед пре него што га сачувате.</string>
+    <string name="help_tip_edit_effects_p1_title">Картица "Ефекти"</string>
+    <string name="help_tip_edit_effects_p1_desc">Уређивач сада има картицу "Ефекти" са креативним алатима: Постеризација (Posterize) своди фотографију на равне траке боја, Ивице (Edges) исцртава контуре за изглед попут скице, а Оквири (Borders) додају рам око слике. Сваки ефекат приказује преглед уживо, тако да можете фино подесити жељени изглед пре него што га сачувате.</string>
     <string name="help_tip_edit_effects_p2_title">Нијанса, црно-бело и негатив</string>
-    <string name="help_tip_edit_effects_p2_desc">На картици \"Боја\" можете мењати укупну нијансу (Hue) или конвертовати фотографију у црно-белу помоћу GPU-убрзаних прегледа. Мрежа филтера такође укључује \"Негатив\" пресет који тренутно инвертује боје. Комбинујте ефекте, алате за боју, филтере и подешавања за потпуно прилагођен изглед.</string>
-    <string name="help_tip_edit_effects_p2_s1">Отворите фотографију и тапните на \"Уреди\"</string>
-    <string name="help_tip_edit_effects_p2_s2">Отворите картицу \"Ефекти\" или \"Боја\"</string>
+    <string name="help_tip_edit_effects_p2_desc">На картици "Боја" можете мењати укупну нијансу (Hue) или конвертовати фотографију у црно-белу помоћу GPU-убрзаних прегледа. Мрежа филтера такође укључује "Негатив" пресет који тренутно инвертује боје. Комбинујте ефекте, алате за боју, филтере и подешавања за потпуно прилагођен изглед.</string>
+    <string name="help_tip_edit_effects_p2_s1">Отворите фотографију и тапните на "Уреди"</string>
+    <string name="help_tip_edit_effects_p2_s2">Отворите картицу "Ефекти" или "Боја"</string>
     <string name="help_tip_edit_effects_p2_s3">Подесите ефекат и погледајте преглед уживо</string>
     <string name="help_tip_edit_effects_p2_s4">Тапните на квачицу да сачувате промене</string>
     <!-- ALBUMS: SECTIONS (5.0.0) -->
     <string name="help_tip_albums_sections_title">Организујте албуме у секције</string>
-    <string name="help_tip_albums_sections_subtitle">Групишите албуме у категорије које се могу скупљати, као што су \"Заједничко\", \"Апликације\" и \"Остало\"</string>
+    <string name="help_tip_albums_sections_subtitle">Групишите албуме у категорије које се могу скупљати, као што су "Заједничко", "Апликације" и "Остало"</string>
     <string name="help_tip_albums_sections_p1_title">Секције албума</string>
     <string name="help_tip_albums_sections_p1_desc">Када је омогућено, Галерија аутоматски сортира ваше албуме у секције које се могу скупљати — Заједничко (Камера, Слике, Преузимања), Апликације (медији из других апликација) и Остало — на основу тога где су сачувани. Скупите секције које вам нису потребне да би екран са албумима остао уредан. Ово је подразумевано искључено и може се омогућити у подешавањима албума.</string>
     <string name="help_tip_albums_sections_p2_title">Преместите албум у секцију</string>
-    <string name="help_tip_albums_sections_p2_desc">Секције се аутоматски препознају, али их можете променити. Дуго притисните албум и изаберите \"Премести у секцију\" да бисте га сместили тачно тамо где желите. Апликација памти ваше ручне изборе.</string>
+    <string name="help_tip_albums_sections_p2_desc">Секције се аутоматски препознају, али их можете променити. Дуго притисните албум и изаберите "Премести у секцију" да бисте га сместили тачно тамо где желите. Апликација памти ваше ручне изборе.</string>
     <string name="help_tip_albums_sections_p2_s1">Омогућите секције албума у подешавањима</string>
     <string name="help_tip_albums_sections_p2_s2">Дуго притисните албум</string>
-    <string name="help_tip_albums_sections_p2_s3">Тапните на \"Премести у секцију\"</string>
+    <string name="help_tip_albums_sections_p2_s3">Тапните на "Премести у секцију"</string>
     <string name="help_tip_albums_sections_p2_s4">Изаберите секцију за тај албум</string>
     <!-- SETTINGS: BACKUP &amp; RESTORE WIZARD (5.0.0) -->
     <string name="help_tip_settings_backup_restore_title">Прављење резервних копија и враћање података апликације</string>
@@ -1013,12 +1013,12 @@
     <string name="help_tip_settings_backup_restore_p2_title">Извезите резервну копију</string>
     <string name="help_tip_settings_backup_restore_p2_desc">Изаберите тачно шта желите да укључите. Ако омогућите трезоре, бирате које желите, а сваки се аутентификује сопственим акредитивима у тренутку извоза, тако да ништа не напушта ваш уређај случајно откључано.</string>
     <string name="help_tip_settings_backup_restore_p2_s1">Идите на Подешавања &gt; Прављење резервних копија и враћање</string>
-    <string name="help_tip_settings_backup_restore_p2_s2">Изаберите \"Извези\" и одаберите шта желите да укључите</string>
+    <string name="help_tip_settings_backup_restore_p2_s2">Изаберите "Извези" и одаберите шта желите да укључите</string>
     <string name="help_tip_settings_backup_restore_p2_s3">По жељи поставите лозинку за архиву</string>
     <string name="help_tip_settings_backup_restore_p2_s4">Сачувајте датотеку резервне копије на сигурно место</string>
     <string name="help_tip_settings_backup_restore_p3_title">Вратите податке из резервне копије</string>
     <string name="help_tip_settings_backup_restore_p3_desc">Увоз вам омогућава да изаберете које делове архиве желите да вратите. Изаберите датотеку резервне копије, унесите лозинку ако је постављена, а затим одаберите податке и трезоре које желите да вратите.</string>
-    <string name="help_tip_settings_backup_restore_p3_s1">Изаберите \"Увези\" и одаберите своју датотеку резервне копије</string>
+    <string name="help_tip_settings_backup_restore_p3_s1">Изаберите "Увези" и одаберите своју датотеку резервне копије</string>
     <string name="help_tip_settings_backup_restore_p3_s2">Унесите лозинку ако је архива шифрована</string>
     <string name="help_tip_settings_backup_restore_p3_s3">Одаберите податке и трезоре за враћање</string>
     <!-- SETTINGS: ADVANCED PROTECTION MODE (5.0.0) -->
@@ -1038,7 +1038,7 @@
     <string name="help_tip_cloud_connect_p1_desc">Галерија се може повезати са вашим самостално хостованим Immich сервером тако да ваша удаљена библиотека буде доступна заједно са фотографијама на уређају. Пријавите се помоћу имејла и лозинке или API кључа — акредитиви се чувају шифровани на вашем уређају. Можете повезати више сервера и пребацивати се између њих.</string>
     <string name="help_tip_cloud_connect_p2_title">Додајте свој сервер</string>
     <string name="help_tip_cloud_connect_p2_desc">Биће вам потребна URL адреса сервера и лозинка вашег налога или API кључ. Након повезивања, Галерија потврђује сесију и одржава вас пријављеним, аутоматски се поново повезујући када је то потребно.</string>
-    <string name="help_tip_cloud_connect_p2_s1">Отворите \"Cloud accounts\" (Налози у облаку) из подешавања или Библиотеке</string>
+    <string name="help_tip_cloud_connect_p2_s1">Отворите "Cloud accounts" (Налози у облаку) из подешавања или Библиотеке</string>
     <string name="help_tip_cloud_connect_p2_s2">Додајте сервер и унесите његову URL адресу</string>
     <string name="help_tip_cloud_connect_p2_s3">Пријавите се лозинком или API кључем</string>
     <string name="help_tip_cloud_connect_p2_s4">Ваше удаљене фотографије ће се појавити на временској линији</string>
@@ -1071,7 +1071,7 @@
     <string name="help_tip_video_fix_black_title">Fix black video on hide</string>
     <string name="help_tip_video_fix_black_subtitle">Stop video blacking out when the bars hide</string>
     <string name="help_tip_video_fix_black_p1_title">Keep video visible</string>
-    <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › \'Fix black video on hide\' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don\'t need it.</string>
+    <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Претражите помоћ и савете</string>
     <string name="help_search_clear">Обришите претрагу</string>

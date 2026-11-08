@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Delete Selected</string>
     <string name="edit_backups_free_space">Free Space</string>
     <string name="edit_backups_section_actions">Actions</string>
-    <string name="edit_backups_used_percent">Used %1$s%%</string>
+    <string name="edit_backups_used_percent">Used %1$s%</string>
     <string name="edit_backups_selected_count">%1$d selected</string>
     <string name="edit_backups_select">Select</string>
     <string name="edit_backups_viewing_original">Original</string>
@@ -298,7 +298,7 @@
     <string name="vault_setup_security_error">Please set-up a phone security measure before setting up the vault.</string>
     <string name="vault_setup_summary2">A Széfet az eszköz zárolási képernyője védi (PIN-kód, jelszó vagy biometrikus azonosítás).\n\nA fájljaidat AES-256 titkosítás védi, és csak hitelesítés után férhetsz hozzájuk.</string>
     <string name="vault_setup_decryption_info">Your files are accessed on the fly and never stored decrypted on the device.</string>
-    <string name="vault_already_exists">Vault \"%1$s\" already exists</string>
+    <string name="vault_already_exists">Vault "%1$s" already exists</string>
     <string name="ignored">Ignored</string>
     <string name="location">Location</string>
     <string name="support_the_project">Support the project</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Média titkosítása…</string>
     <string name="vault_encrypt_notification_title">Encrypting media</string>
     <string name="vault_decrypt_notification_title">Decrypting media</string>
-    <string name="vault_operation_in_progress">%1$d%% completed</string>
+    <string name="vault_operation_in_progress">%1$d% completed</string>
     <string name="vault_notification_channel_name">Vault Operations</string>
     <string name="vault_notification_channel_description">Progress of encryption / decryption tasks</string>
     <string name="decrypt_vault">Decrypt Vault</string>
@@ -468,12 +468,12 @@
     <string name="vault_create_vault">Create Vault</string>
     <string name="verify_identity">Verify your identity</string>
     <string name="vault_hide_in_progress">Hiding media…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">Would you like to set a custom password for this vault?</string>
     <string name="vault_skip_password">Use device security</string>
     <string name="vault_set_password">Jelszó beállítása</string>
-    <string name="vault_deletion_title_named">Delete \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">Vault \"%1$s\" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
+    <string name="vault_deletion_title_named">Delete "%1$s"?</string>
+    <string name="vault_deletion_summary_named">Vault "%1$s" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
     <string name="vault_manage_security">Manage security</string>
     <string name="vault_change_security">Set custom password</string>
     <string name="vault_change_security_summary">Use a PIN, pattern, or password instead of device security</string>
@@ -551,8 +551,8 @@
     <string name="allow_vibrations_description">Allows the app to send haptic feedback during certain actions and gestures, such as long-pressing to select or pinch-to-zoom transitions.</string>
     <string name="trash_enabled_description">When enabled, deleted photos and videos are moved to trash and kept for 30 days before permanent deletion. When disabled, deleting is immediate and irreversible.</string>
     <string name="trash_confirmation_description">Shows a confirmation dialog before moving items to the trash, preventing accidental deletions.</string>
-    <string name="follow_system_theme_description">When enabled, the app follows your device\'s light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
-    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when \"Follow System Theme\" is disabled.</string>
+    <string name="follow_system_theme_description">When enabled, the app follows your device's light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
+    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when "Follow System Theme" is disabled.</string>
     <string name="amoled_mode_description">Uses a pure black background instead of dark grey, providing higher contrast and saving battery on AMOLED screens.</string>
     <string name="timeline_layout_description">Choose how photos are arranged in the timeline grid. The uniform grid shows equal-sized thumbnails, while the mosaic layout varies sizes for a more dynamic look.</string>
     <string name="favorite_icon_description">Choose where the favorite heart icon appears on thumbnails in the grid, or hide it entirely.</string>
@@ -561,13 +561,13 @@
     <string name="app_name_description">Change the name and icon displayed on your home screen launcher. The app will restart to apply the change.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Collecting metadata…</string>
-    <string name="metadata_collecting_progress">Collecting metadata… %1$d%%</string>
+    <string name="metadata_collecting_progress">Collecting metadata… %1$d%</string>
     <string name="metadata_idle">Tap to refresh media metadata from your library</string>
     <string name="video_playback">Video Playback</string>
     <string name="interface_settings">Interface</string>
     <string name="show_date_header">Show Media Date Header</string>
     <string name="show_date_header_summary">Show the media date in the media view top bar header.</string>
-    <string name="show_selection_titles">Display Selection Item\'s Title</string>
+    <string name="show_selection_titles">Display Selection Item's Title</string>
     <string name="show_selection_titles_summary">Display in the selection sheet a title for each action</string>
     <string name="selection_actions">Selection Actions</string>
     <string name="selection_actions_summary">Customize action bar items and order</string>
@@ -633,7 +633,7 @@
     <string name="motion_photo_export_video">Save as video</string>
     <string name="motion_photo_exporting">Saving video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="media_groupings">Media Groupings</string>
 <string name="sort_most_accurate">Most accurate</string>
     <string name="sort_by_date">Date</string>
@@ -655,7 +655,7 @@
     <!-- Editor tabs -->
     <string name="editor_done">Done</string>
     <string name="editor_save_subtitle">You can always undo these changes</string>
-    <string name="editor_save_copy_subtitle">Your original won\'t change</string>
+    <string name="editor_save_copy_subtitle">Your original won't change</string>
     <string name="editor_mirror">Mirror image</string>
     <string name="editor_rotate_90">Rotate 90 degrees</string>
     <string name="editor_aspect_ratio">Aspect ratio</string>
@@ -756,11 +756,11 @@
     <string name="add_selected">Add selected</string>
     <!-- Help & Tips Screen -->
     <string name="help_title">Help &amp; tips</string>
-    <string name="help_summary">Tutorials, tips, and what\'s new</string>
-    <string name="help_whats_new">What\'s new</string>
+    <string name="help_summary">Tutorials, tips, and what's new</string>
+    <string name="help_whats_new">What's new</string>
     <string name="help_whats_new_subtitle">Discover the latest Gallery features</string>
-    <string name="help_whats_new_in_version">What\'s new in v%s</string>
-    <string name="help_explore_whats_new">Explore what\'s new</string>
+    <string name="help_whats_new_in_version">What's new in v%s</string>
+    <string name="help_explore_whats_new">Explore what's new</string>
     <string name="help_get_started">Get started</string>
     <string name="help_make_most">Make the most of Gallery</string>
     <string name="help_explore_tips">Explore more tips</string>
@@ -839,14 +839,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
     <string name="backup_show_password">Show password</string>
     <string name="backup_verify_export_subtitle">Verify your identity to export vault contents</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -867,7 +867,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -899,7 +899,7 @@
     <string name="security_private_folder">Private folder</string>
     <string name="security_private_folder_summary_none">Not configured</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a \"Private folder\" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
+    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a "Private folder" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
     <string name="security_private_folder_status_active">Folder configured</string>
     <string name="security_private_folder_status_none">No folder selected</string>
     <string name="security_private_folder_pick">Pick folder</string>
@@ -937,7 +937,7 @@
     <string name="trash_restore_all">Restore all</string>
     <string name="trash_delete_all">Delete all</string>
     <string name="favorites_info_title">Your Favorites</string>
-    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="favorites_group_by_date">Group by date</string>
     <string name="favorites_group_by_date_on">Grouped by date</string>
     <string name="favorites_group_by_date_off">Showing all</string>
@@ -1367,8 +1367,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[Opcionális. Lehetővé teszi, hogy a ReFra elolvassa a fényképekbe és videókba ágyazott GPS-adatokat a Térképhez és a helyadatokhoz. A galéria akkor is működik, ha kihagyja.]]></string>
     <string name="smart_scan_notification_channel">Okos szkennelés</string>
     <string name="smart_scan_notification_title">Média keresése</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d / %3$d · %4$d%% összesen</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d / %3$d · %4$d%% összesen · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d / %3$d · %4$d% összesen</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d / %3$d · %4$d% összesen · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Előkészítés</string>
     <string name="trash_empty_state_title">A Kukában nincs elem</string>
     <string name="action_move_to_trash">Mozgatás a Kukába</string>
@@ -1529,9 +1529,9 @@
     <string name="smart_scan_eta_under_minute">Kevesebb mint egy perc maradt</string>
     <string name="smart_scan_eta_minutes">Körülbelül %1$d perc maradt</string>
     <string name="smart_scan_eta_hours">Körülbelül %1$d óra %2$d perc maradt</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d a %3$d elemből · Összesen %4$d%%</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d a %3$d elemből · Összesen %4$d%% · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Előkészítés · Összesen %2$d%%</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d a %3$d elemből · Összesen %4$d%</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d a %3$d elemből · Összesen %4$d% · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Előkészítés · Összesen %2$d%</string>
     <string name="smart_scan_phase_source_sync">Könyvtár szinkronizálása</string>
     <string name="smart_scan_phase_metadata">Metaadatok olvasása</string>
     <string name="smart_scan_phase_search_index">Okos keresés indexelése</string>
@@ -1582,7 +1582,7 @@
     <string name="frame_picker_extract_frames">Képkockák kinyerése</string>
     <string name="frame_picker_title">Képkockák kiválasztása</string>
     <string name="frame_picker_preparing">Forrás előkészítése…</string>
-    <string name="frame_picker_preparing_progress">Forrás előkészítése… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Forrás előkészítése… %1$d%</string>
     <string name="frame_picker_preview_description">Kiválasztott videókép</string>
     <string name="frame_picker_previous_frame">Előző képkocka</string>
     <string name="frame_picker_next_frame">Következő képkocka</string>
@@ -1746,7 +1746,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d biztonsági másolata kész</string>
     <string name="cloud_backup_account_albums">%1$d albumok</string>
     <string name="cloud_backup_dashboard_title">Biztonsági másolat és szinkronizálás</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% biztonsági mentése elkészült</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% biztonsági mentése elkészült</string>
     <string name="cloud_backup_overall_caption">%1$d %2$d elem %3$d szolgáltatásban</string>
     <string name="cloud_backup_services">Szolgáltatások</string>
     <string name="cloud_destinations_title">Célhelyek</string>

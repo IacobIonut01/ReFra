@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Eliminar lo seleccionado</string>
     <string name="edit_backups_free_space">Espacio libre</string>
     <string name="edit_backups_section_actions">Acciones</string>
-    <string name="edit_backups_used_percent">Usado %1$s%%</string>
+    <string name="edit_backups_used_percent">Usado %1$s%</string>
     <string name="edit_backups_selected_count">%1$d seleccionado(s)</string>
     <string name="edit_backups_select">Seleccionar</string>
     <string name="edit_backups_viewing_original">Original</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Cifrando medios...</string>
     <string name="vault_encrypt_notification_title">Cifrando medios</string>
     <string name="vault_decrypt_notification_title">Descifrando medios</string>
-    <string name="vault_operation_in_progress">%1$d%% completado</string>
+    <string name="vault_operation_in_progress">%1$d% completado</string>
     <string name="vault_notification_channel_name">Operaciones de bóveda</string>
     <string name="vault_notification_channel_description">Progreso de las tareas de cifrado/descifrado</string>
     <string name="decrypt_vault">Descifrar bóveda</string>
@@ -472,8 +472,8 @@
     <string name="vault_setup_password_prompt">¿Desea establecer una contraseña personalizada para esta caja fuerte?</string>
     <string name="vault_skip_password">Usar seguridad del dispositivo</string>
     <string name="vault_set_password">Establecer contraseña personalizada</string>
-    <string name="vault_deletion_title_named">¿Eliminar \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">La caja fuerte \"%1$s\" y todo su contenido serán eliminados permanentemente.\nEsta acción no se puede deshacer.</string>
+    <string name="vault_deletion_title_named">¿Eliminar "%1$s"?</string>
+    <string name="vault_deletion_summary_named">La caja fuerte "%1$s" y todo su contenido serán eliminados permanentemente.\nEsta acción no se puede deshacer.</string>
     <string name="vault_manage_security">Administrar seguridad</string>
     <string name="vault_change_security">Establecer contraseña personalizada</string>
     <string name="vault_change_security_summary">Usar un PIN, patrón o contraseña en lugar de la seguridad del dispositivo</string>
@@ -552,7 +552,7 @@
     <string name="trash_enabled_description">Cuando está activada, las fotos y vídeos eliminados se mueven a la papelera y se conservan durante 30 días antes de su eliminación permanente. Cuando está desactivado, el borrado es inmediato e irreversible.</string>
     <string name="trash_confirmation_description">Muestra un cuadro de diálogo de confirmación antes de mover elementos a la papelera, lo que evita eliminaciones accidentales.</string>
     <string name="follow_system_theme_description">Cuando está activada, la aplicación sigue automáticamente la configuración del modo claro/oscuro de tu dispositivo. Desactívalo para elegir manualmente el modo claro u oscuro a continuación.</string>
-    <string name="dark_mode_description">Obliga a la aplicación a utilizar el modo oscuro independientemente de la configuración del sistema. Solo disponible si \"Seguir tema del sistema\" está desactivado.</string>
+    <string name="dark_mode_description">Obliga a la aplicación a utilizar el modo oscuro independientemente de la configuración del sistema. Solo disponible si "Seguir tema del sistema" está desactivado.</string>
     <string name="amoled_mode_description">Utiliza un fondo negro puro en lugar de gris oscuro, lo que proporciona un mayor contraste y ahorra batería en las pantallas AMOLED.</string>
     <string name="timeline_layout_description">Elige cómo se organizan las fotos en la cuadrícula de la línea de tiempo. La cuadrícula uniforme muestra miniaturas de igual tamaño, mientras que la disposición en mosaico varía los tamaños para conseguir un aspecto más dinámico.</string>
     <string name="favorite_icon_description">Elige dónde aparece el icono del corazón de favorito en las miniaturas de la cuadrícula u ocúltalo por completo.</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">Cambia el nombre y el icono que aparece en su lanzador de la pantalla de inicio. La aplicación se reiniciará para aplicar el cambio.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Recopilando metadatos…</string>
-    <string name="metadata_collecting_progress">Recopilando metadatos… %1$d%%</string>
+    <string name="metadata_collecting_progress">Recopilando metadatos… %1$d%</string>
     <string name="metadata_idle">Pulse para actualizar los metadatos multimedia de su biblioteca</string>
     <string name="video_playback">Reproducción de vídeo</string>
     <string name="interface_settings">Interfaz</string>
@@ -839,14 +839,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Copia de seguridad fallida: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encriptar copia de seguridad con una contraseña</string>
     <string name="backup_password">Contraseña</string>
     <string name="backup_password_confirm">Confirmar contraseña</string>
     <string name="backup_show_password">Mostrar contraseña</string>
     <string name="backup_verify_export_subtitle">Verifica tu identidad para exportar contenidos de la bóveda</string>
-    <string name="backup_unlock_vault_subtitle">Desbloquear \"%1$s\" para incluirlo en la copia de seguridad</string>
+    <string name="backup_unlock_vault_subtitle">Desbloquear "%1$s" para incluirlo en la copia de seguridad</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -867,7 +867,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -899,7 +899,7 @@
     <string name="security_private_folder">Carpeta privada</string>
     <string name="security_private_folder_summary_none">Sin configurar</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Designa una carpeta en tu dispositivo a la que sólo se pueda acceder a través de esta aplicación. Su contenido queda completamente oculto de la línea de tiempo normal, los álbumes y los resultados de búsqueda.\n\nCómo funciona - Se accede a la carpeta a través de Storage Access Framework (SAF), lo que significa que su contenido no es indexado por el explorador de medios del sistema y no aparecerá en otras aplicaciones de galería o gestores de archivos que dependan de MediaStore. Cuando eliges una carpeta, se crea automáticamente un archivo .nomedia dentro de ella para evitar que Android escanee su contenido. Esto garantiza que las fotos y los vídeos de la carpeta permanezcan ocultos para el resto de aplicaciones.\n\nDónde encontrarla - Una vez configurada, aparece una entrada \"Carpeta privada\" en la lista de álbumes. Abrirla requiere autenticación si tienes activado el bloqueo de aplicaciones.\n\nQué puedes hacer - Explorar, ver y eliminar fotos y vídeos dentro de la carpeta privada. Los archivos se muestran en un visor específico con las mismas funciones que la galería principal (zoom, deslizamiento, metadatos).\n\nElegir una carpeta - Puedes elegir cualquier carpeta que permita tu dispositivo, incluyendo el almacenamiento interno, la tarjeta SD o una unidad USB. La aplicación recuerda tu elección en los reinicios. Puedes cambiar o eliminar la carpeta en cualquier momento sin que ello afecte a los propios archivos.\n\nImportante - No elimine el archivo .nomedia dentro de la carpeta privada. Si se elimina, Android escaneará la carpeta y su contenido puede aparecer en otras aplicaciones de la galería. La aplicación volverá a crearlo automáticamente la próxima vez que abra los ajustes de la carpeta privada.</string>
+    <string name="security_private_folder_description">Designa una carpeta en tu dispositivo a la que sólo se pueda acceder a través de esta aplicación. Su contenido queda completamente oculto de la línea de tiempo normal, los álbumes y los resultados de búsqueda.\n\nCómo funciona - Se accede a la carpeta a través de Storage Access Framework (SAF), lo que significa que su contenido no es indexado por el explorador de medios del sistema y no aparecerá en otras aplicaciones de galería o gestores de archivos que dependan de MediaStore. Cuando eliges una carpeta, se crea automáticamente un archivo .nomedia dentro de ella para evitar que Android escanee su contenido. Esto garantiza que las fotos y los vídeos de la carpeta permanezcan ocultos para el resto de aplicaciones.\n\nDónde encontrarla - Una vez configurada, aparece una entrada "Carpeta privada" en la lista de álbumes. Abrirla requiere autenticación si tienes activado el bloqueo de aplicaciones.\n\nQué puedes hacer - Explorar, ver y eliminar fotos y vídeos dentro de la carpeta privada. Los archivos se muestran en un visor específico con las mismas funciones que la galería principal (zoom, deslizamiento, metadatos).\n\nElegir una carpeta - Puedes elegir cualquier carpeta que permita tu dispositivo, incluyendo el almacenamiento interno, la tarjeta SD o una unidad USB. La aplicación recuerda tu elección en los reinicios. Puedes cambiar o eliminar la carpeta en cualquier momento sin que ello afecte a los propios archivos.\n\nImportante - No elimine el archivo .nomedia dentro de la carpeta privada. Si se elimina, Android escaneará la carpeta y su contenido puede aparecer en otras aplicaciones de la galería. La aplicación volverá a crearlo automáticamente la próxima vez que abra los ajustes de la carpeta privada.</string>
     <string name="security_private_folder_status_active">Carpeta configurada</string>
     <string name="security_private_folder_status_none">Ninguna carpeta seleccionada</string>
     <string name="security_private_folder_pick">Seleccionar carpeta</string>
@@ -1367,8 +1367,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[Opcional. Permite que ReFra lea los datos GPS integrados en fotos y vídeos para el Mapa y los detalles de ubicación. Tu galería seguirá funcionando si lo omites.]]></string>
     <string name="smart_scan_notification_channel">Escaneo Inteligente</string>
     <string name="smart_scan_notification_title">Escaneando medios</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d de %3$d · %4$d%% en total</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d de %3$d · %4$d%% en total · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d de %3$d · %4$d% en total</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d de %3$d · %4$d% en total · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Preparando</string>
     <string name="trash_empty_state_title">La papelera está vacía</string>
     <string name="action_move_to_trash">Mover a la Papelera</string>
@@ -1494,7 +1494,7 @@
     <string name="ai_models_group_cutout_ready_summary">El recorte de sujetos está disponible en el visor de medios</string>
     <string name="ai_models_source_cutout_url">huggingface.co/Acly/MobileSAM</string>
     <string name="ai_models_group_face_detect_title">Detección de rostro</string>
-    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, un detector de rostros liviano que potencia la acción automática \"Difuminar rostros\" del editor.</string>
+    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, un detector de rostros liviano que potencia la acción automática "Difuminar rostros" del editor.</string>
     <string name="ai_models_group_face_detect_download_summary">Descarga el detector UltraFace (~1.3 MB)</string>
     <string name="ai_models_group_face_detect_ready_summary">El difuminado automático de rostros está disponible en el editor de fotos</string>
     <string name="ai_models_source_face_detect_url">github.com/onnx/models · UltraFace</string>
@@ -1529,9 +1529,9 @@
     <string name="smart_scan_eta_under_minute">Menos de un minuto restante</string>
     <string name="smart_scan_eta_minutes">Aproximadamente %1$d min restantes</string>
     <string name="smart_scan_eta_hours">Aproximadamente %1$d hr %2$d min restantes</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d de %3$d elementos · %4$d%% en total</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d de %3$d elementos · %4$d%% en total · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Preparando · %2$d%% en total</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d de %3$d elementos · %4$d% en total</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d de %3$d elementos · %4$d% en total · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Preparando · %2$d% en total</string>
     <string name="smart_scan_phase_source_sync">Sincronizando biblioteca</string>
     <string name="smart_scan_phase_metadata">Leyendo metadatos</string>
     <string name="smart_scan_phase_search_index">Indexando Búsqueda Inteligente</string>
@@ -1582,7 +1582,7 @@
     <string name="frame_picker_extract_frames">Extraer fotogramas</string>
     <string name="frame_picker_title">Elegir fotogramas</string>
     <string name="frame_picker_preparing">Preparando fuente…</string>
-    <string name="frame_picker_preparing_progress">Preparando fuente… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Preparando fuente… %1$d%</string>
     <string name="frame_picker_preview_description">Fotograma de video seleccionado</string>
     <string name="frame_picker_previous_frame">Fotograma anterior</string>
     <string name="frame_picker_next_frame">Fotograma siguiente</string>
@@ -1746,7 +1746,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d respaldados</string>
     <string name="cloud_backup_account_albums">%1$d álbumes</string>
     <string name="cloud_backup_dashboard_title">Copia de seguridad y sincronización</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% respaldados</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% respaldados</string>
     <string name="cloud_backup_overall_caption">%1$d de %2$d elementos en %3$d servicios</string>
     <string name="cloud_backup_services">Servicios</string>
     <string name="cloud_destinations_title">Destinos</string>

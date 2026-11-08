@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Delete Selected</string>
     <string name="edit_backups_free_space">Free Space</string>
     <string name="edit_backups_section_actions">Actions</string>
-    <string name="edit_backups_used_percent">Used %1$s%%</string>
+    <string name="edit_backups_used_percent">Used %1$s%</string>
     <string name="edit_backups_selected_count">%1$d selected</string>
     <string name="edit_backups_select">Select</string>
     <string name="edit_backups_viewing_original">Original</string>
@@ -250,7 +250,7 @@
     <string name="setup_type_regex_first_subtitle">.*/Müzik/[^/]+/?$</string>
     <string name="setup_type_regex_example_second_title">Müzik klasörünün ve alt klasörlerinin altındaki herhangi bir albümü eşleştir:</string>
     <string name="setup_type_regex_example_second_subtitle">.*/Müzik/.+/[^/]+/?$</string>
-    <string name="setup_type_regex_example_third_title">Müzik klasöründeki \"Album_\" ile başlayan albümleri eşleştir:</string>
+    <string name="setup_type_regex_example_third_title">Müzik klasöründeki "Album_" ile başlayan albümleri eşleştir:</string>
     <string name="setup_type_regex_example_third_subtitle">.*/Müzik/Album_[^/]+/?$</string>
     <string name="setup_type_regex_error">Geçersiz Regex Deseni</string>
     <string name="setup_type_regex_error_second">Bu joker karakter zaten kullanılıyor</string>
@@ -298,7 +298,7 @@
     <string name="vault_setup_security_error">Kasayı ayarlamadan önce lütfen bir telefon güvenlik önlemi ayarlayın.</string>
     <string name="vault_setup_summary2">Kasa, telefon güvenlik önlemleriniz (şifre veya biyometrik) kullanılarak erişilecektir.\n\nKasa içeriği AES256 şifreleme algoritması kullanılarak şifrelenir.\nŞifreleme anahtarı kasanın içinde erişilemez ve kasanızı aktaramazsınız.</string>
     <string name="vault_setup_decryption_info">Your files are accessed on the fly and never stored decrypted on the device.</string>
-    <string name="vault_already_exists">\"%1$s\" adlı kasa zaten mevcut</string>
+    <string name="vault_already_exists">"%1$s" adlı kasa zaten mevcut</string>
     <string name="ignored">Yoksayıldı</string>
     <string name="location">Konum</string>
     <string name="support_the_project">Projeyi destekleyin</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Medya şifreleniyor...</string>
     <string name="vault_encrypt_notification_title">Medya şifreleniyor</string>
     <string name="vault_decrypt_notification_title">Medya şifresi çözülüyor</string>
-    <string name="vault_operation_in_progress">%1$d%% tamamlandı</string>
+    <string name="vault_operation_in_progress">%1$d% tamamlandı</string>
     <string name="vault_notification_channel_name">Kasa İşlemleri</string>
     <string name="vault_notification_channel_description">Şifreleme / şifre çözme görevlerinin ilerlemesi</string>
     <string name="decrypt_vault">Kasayı Çöz</string>
@@ -468,12 +468,12 @@
     <string name="vault_create_vault">Create Vault</string>
     <string name="verify_identity">Verify your identity</string>
     <string name="vault_hide_in_progress">Hiding media…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">Would you like to set a custom password for this vault?</string>
     <string name="vault_skip_password">Use device security</string>
     <string name="vault_set_password">Set custom password</string>
-    <string name="vault_deletion_title_named">Delete \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">Vault \"%1$s\" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
+    <string name="vault_deletion_title_named">Delete "%1$s"?</string>
+    <string name="vault_deletion_summary_named">Vault "%1$s" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
     <string name="vault_manage_security">Manage security</string>
     <string name="vault_change_security">Set custom password</string>
     <string name="vault_change_security_summary">Use a PIN, pattern, or password instead of device security</string>
@@ -551,8 +551,8 @@
     <string name="allow_vibrations_description">Allows the app to send haptic feedback during certain actions and gestures, such as long-pressing to select or pinch-to-zoom transitions.</string>
     <string name="trash_enabled_description">When enabled, deleted photos and videos are moved to trash and kept for 30 days before permanent deletion. When disabled, deleting is immediate and irreversible.</string>
     <string name="trash_confirmation_description">Shows a confirmation dialog before moving items to the trash, preventing accidental deletions.</string>
-    <string name="follow_system_theme_description">When enabled, the app follows your device\'s light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
-    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when \"Follow System Theme\" is disabled.</string>
+    <string name="follow_system_theme_description">When enabled, the app follows your device's light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
+    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when "Follow System Theme" is disabled.</string>
     <string name="amoled_mode_description">Uses a pure black background instead of dark grey, providing higher contrast and saving battery on AMOLED screens.</string>
     <string name="timeline_layout_description">Choose how photos are arranged in the timeline grid. The uniform grid shows equal-sized thumbnails, while the mosaic layout varies sizes for a more dynamic look.</string>
     <string name="favorite_icon_description">Choose where the favorite heart icon appears on thumbnails in the grid, or hide it entirely.</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">Change the name and icon displayed on your home screen launcher. The app will restart to apply the change.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Collecting metadata…</string>
-    <string name="metadata_collecting_progress">Collecting metadata… %1$d%%</string>
+    <string name="metadata_collecting_progress">Collecting metadata… %1$d%</string>
     <string name="metadata_idle">Tap to refresh media metadata from your library</string>
     <string name="video_playback">Video Oynatma</string>
     <string name="interface_settings">Arayüz</string>
@@ -601,7 +601,7 @@
     <string name="download_failed">İndirme başarısız</string>
     <string name="extended_date_header_title">Genişletilmiş Tarih Başlığı</string>
     <string name="clear_selection">Tümünü Kaldır</string>
-    <string name="selfies">Selfie\'ler</string>
+    <string name="selfies">Selfie'ler</string>
     <string name="screenshots">Ekran Görüntüleri</string>
     <string name="search_images_videos"><![CDATA[Görselleri ve videoları ara]]></string>
     <string name="suggestions">Öneriler</string>
@@ -655,7 +655,7 @@
     <!-- Editor tabs -->
     <string name="editor_done">Done</string>
     <string name="editor_save_subtitle">You can always undo these changes</string>
-    <string name="editor_save_copy_subtitle">Your original won\'t change</string>
+    <string name="editor_save_copy_subtitle">Your original won't change</string>
     <string name="editor_mirror">Mirror image</string>
     <string name="editor_rotate_90">Rotate 90 degrees</string>
     <string name="editor_aspect_ratio">Aspect ratio</string>
@@ -756,11 +756,11 @@
     <string name="add_selected">Add selected</string>
     <!-- Help & Tips Screen -->
     <string name="help_title">Help &amp; tips</string>
-    <string name="help_summary">Tutorials, tips, and what\'s new</string>
-    <string name="help_whats_new">What\'s new</string>
+    <string name="help_summary">Tutorials, tips, and what's new</string>
+    <string name="help_whats_new">What's new</string>
     <string name="help_whats_new_subtitle">Discover the latest Gallery features</string>
-    <string name="help_whats_new_in_version">What\'s new in v%s</string>
-    <string name="help_explore_whats_new">Explore what\'s new</string>
+    <string name="help_whats_new_in_version">What's new in v%s</string>
+    <string name="help_explore_whats_new">Explore what's new</string>
     <string name="help_get_started">Get started</string>
     <string name="help_make_most">Make the most of Gallery</string>
     <string name="help_explore_tips">Explore more tips</string>
@@ -839,14 +839,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
     <string name="backup_show_password">Show password</string>
     <string name="backup_verify_export_subtitle">Verify your identity to export vault contents</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -867,7 +867,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -899,7 +899,7 @@
     <string name="security_private_folder">Private folder</string>
     <string name="security_private_folder_summary_none">Not configured</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a \"Private folder\" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
+    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a "Private folder" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
     <string name="security_private_folder_status_active">Folder configured</string>
     <string name="security_private_folder_status_none">No folder selected</string>
     <string name="security_private_folder_pick">Pick folder</string>
@@ -937,7 +937,7 @@
     <string name="trash_restore_all">Restore all</string>
     <string name="trash_delete_all">Tümünü sil</string>
     <string name="favorites_info_title">Favorilerin</string>
-    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="favorites_group_by_date">Group by date</string>
     <string name="favorites_group_by_date_on">Grouped by date</string>
     <string name="favorites_group_by_date_off">Showing all</string>
@@ -1367,8 +1367,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[İsteğe bağlı. ReFra uygulamasının Harita ve konum ayrıntıları için fotoğraf ve videolara gömülü GPS verilerini okumasına izin verir. Bu adımı atlarsanız galeriniz çalışmaya devam eder.]]></string>
     <string name="smart_scan_notification_channel">Akıllı Tarama</string>
     <string name="smart_scan_notification_title">Medya taranıyor</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d / %3$d · %4$d%% toplam</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d / %3$d · %4$d%% toplam · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d / %3$d · %4$d% toplam</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d / %3$d · %4$d% toplam · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Hazırlanıyor</string>
     <string name="trash_empty_state_title">Çöp boş</string>
     <string name="action_move_to_trash">Çöpe Taşı</string>
@@ -1494,7 +1494,7 @@
     <string name="ai_models_group_cutout_ready_summary">Konu kesimi medya görüntüleyicide mevcuttur</string>
     <string name="ai_models_source_cutout_url">huggingface.co/Acly/MobileSAM</string>
     <string name="ai_models_group_face_detect_title">Yüz Tanıma</string>
-    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, editörün otomatik \"Yüzleri bulanıklaştır\" eylemini sağlayan hafif bir yüz algılayıcı.</string>
+    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, editörün otomatik "Yüzleri bulanıklaştır" eylemini sağlayan hafif bir yüz algılayıcı.</string>
     <string name="ai_models_group_face_detect_download_summary">UltraFace algılayıcıyı indir (~1.3 MB)</string>
     <string name="ai_models_group_face_detect_ready_summary">Fotoğraf düzenleyicisinde otomatik yüz bulanıklığı mevcuttur</string>
     <string name="ai_models_source_face_detect_url">github.com/onnx/models · UltraFace</string>
@@ -1522,16 +1522,16 @@
     <string name="refresh_all_smart_features">Tüm Akıllı Özellikleri yenile</string>
     <string name="refresh_all_smart_features_summary">Meta verileri, aramayı, kategorileri ve kişileri sırayla çalıştır</string>
     <string name="smart_features_include_ignored_albums">Yoksayılan albümleri dahil et</string>
-    <string name="smart_features_include_ignored_albums_summary">Akıllı Özellikler ve Akıllı Arama\'da zaman çizelgesinde gizli medyayı dahil et. Bunu değiştirmek tam bir yenilemeye başlar; kilitlenmiş albümler gizli kalır.</string>
+    <string name="smart_features_include_ignored_albums_summary">Akıllı Özellikler ve Akıllı Arama'da zaman çizelgesinde gizli medyayı dahil et. Bunu değiştirmek tam bir yenilemeye başlar; kilitlenmiş albümler gizli kalır.</string>
     <string name="smart_scan_stage_number">Aşama %1$d / %2$d</string>
     <string name="smart_scan_stage_items">%1$d / %2$d öğe · %3$d başarısız · %4$d atlandı</string>
     <string name="smart_scan_preparing_stage">Bu aşama hazırlanıyor…</string>
     <string name="smart_scan_eta_under_minute">Bir dakikadan az kaldı</string>
     <string name="smart_scan_eta_minutes">Yaklaşık %1$d dakika kaldı</string>
     <string name="smart_scan_eta_hours">Yaklaşık %1$d saat %2$d dakika kaldı</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d / %3$d öğe · %4$d%% genel</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d / %3$d öğe · %4$d%% genel · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Hazırlanıyor · %2$d%% genel</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d / %3$d öğe · %4$d% genel</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d / %3$d öğe · %4$d% genel · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Hazırlanıyor · %2$d% genel</string>
     <string name="smart_scan_phase_source_sync">Kütüphane senkronize ediliyor</string>
     <string name="smart_scan_phase_metadata">Meta veriler okunuyor</string>
     <string name="smart_scan_phase_search_index">Akıllı Arama dizine ekleniyor</string>
@@ -1582,7 +1582,7 @@
     <string name="frame_picker_extract_frames">Kareleri çıkar</string>
     <string name="frame_picker_title">Kareleri seç</string>
     <string name="frame_picker_preparing">Kaynak hazırlanıyor…</string>
-    <string name="frame_picker_preparing_progress">Kaynak hazırlanıyor… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Kaynak hazırlanıyor… %1$d%</string>
     <string name="frame_picker_preview_description">Seçilen video karesi</string>
     <string name="frame_picker_previous_frame">Önceki kare</string>
     <string name="frame_picker_next_frame">Sonraki kare</string>
@@ -1626,10 +1626,10 @@
     <string name="pinned_albums_as_grid_summary">Sabitlenmiş albümleri kaydırılabilen bir afiş yerine diğer albümlerin üzerinde normal kareler olarak göster</string>
     <string name="pinned_albums_as_grid_description">Etkinleştirildiğinde, sabitlenmiş albümler, diğer albümlerle aynı ızgara kareleri şeklinde (birden fazla satıra sarılır) görünür ve diğer albümlerden önce yerleştirilir. Devre dışı bırakıldığında, geniş, yatay kaydırılabilir bir afiş döngüsü olarak gösterilir.</string>
     <string name="media_type_albums_section">Medya türleri</string>
-    <string name="media_type_gifs">GIF\'ler</string>
+    <string name="media_type_gifs">GIF'ler</string>
     <string name="media_type_raw">Ham (Raw)</string>
     <string name="media_type_albums_setting_title">Medya türü albümlerini göster</string>
-    <string name="media_type_albums_setting_summary">Videolar, Fotoğraflar, GIF\'ler ve Ham dosyalar için Albümler sekmesinin üstüne hızlı albümler ekle</string>
+    <string name="media_type_albums_setting_summary">Videolar, Fotoğraflar, GIF'ler ve Ham dosyalar için Albümler sekmesinin üstüne hızlı albümler ekle</string>
     <string name="private_folder_move_confirm_title">Özel klasöre taşımak istiyor musunuz?</string>
     <string name="private_folder_move_confirm_summary">Seçilen öğeler özel klasörünüze kopyalanacak ve orijinalleri cihazınızdan kaldırılacak. Özel klasördeki dosyalar diğer uygulamalardan ve medya kitaplığından gizlenir.</string>
     <string name="private_folder_moving">Özel klasöre taşınıyor…</string>
@@ -1729,7 +1729,7 @@
     <string name="cloud_smb_url_hint">smb://host/share/folder</string>
     <string name="cloud_nfs_url_hint">nfs://host/export/path</string>
     <string name="cloud_smb_username_hint">kullanıcı veya DOMAIN\\user (misafir için boş bırakınız)</string>
-    <string name="cloud_nfs_uid_gid">Kullanıcı ID\'si (uid:gid)</string>
+    <string name="cloud_nfs_uid_gid">Kullanıcı ID'si (uid:gid)</string>
     <string name="cloud_nfs_uid_gid_hint">örn. 1000:1000 (isteğe bağlı, AUTH_SYS)</string>
     <string name="cloud_backed_up_title">Yedeklendi</string>
     <string name="cloud_backed_up_summary">%d bulut sağlayıcısında yedeklendi</string>
@@ -1746,7 +1746,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d yedeklendi</string>
     <string name="cloud_backup_account_albums">%1$d albüm</string>
     <string name="cloud_backup_dashboard_title">Yedekle &amp; Senkronize Et</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% yedeklendi</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% yedeklendi</string>
     <string name="cloud_backup_overall_caption">%1$d öğe / %2$d öğe, toplam %3$d hizmet arasında</string>
     <string name="cloud_backup_services">Hizmetler</string>
     <string name="cloud_destinations_title">Hedefler</string>
@@ -1803,9 +1803,9 @@
     <string name="cloud_upload_pending_total">%1$d öğe · %2$s yedeklenecek</string>
     <string name="cloud_upload_nothing_pending">Her şey yedeklendi</string>
     <string name="cloud_net_pick_wifi">Wi-Fi ağı seçin</string>
-    <string name="cloud_net_wifi_sheet_desc">Bağlı Wi-Fi\'nizi seçin veya bir isim yazın. Ağ değiştirmeyi devre dışı bırakmak için boş bırakın.</string>
+    <string name="cloud_net_wifi_sheet_desc">Bağlı Wi-Fi'nizi seçin veya bir isim yazın. Ağ değiştirmeyi devre dışı bırakmak için boş bırakın.</string>
     <string name="cloud_net_wifi_connected">Bağlı: %1$s</string>
-    <string name="cloud_net_wifi_not_connected">Wi-Fi\'ya bağlı değil veya ağ adını okumak için konum izni gerekiyor.</string>
+    <string name="cloud_net_wifi_not_connected">Wi-Fi'ya bağlı değil veya ağ adını okumak için konum izni gerekiyor.</string>
     <string name="cloud_net_wifi_manual_label">Ağ adı</string>
     <string name="cloud_net_wifi_manual_hint">Wi-Fi adını girin</string>
     <string name="cloud_net_wifi_disable">Değiştirmeyi devre dışı bırak</string>
@@ -1825,7 +1825,7 @@
     <string name="permission_local_network_title">Doğrudan yerel ağ erişimi</string>
     <string name="setup_reason_local_network">İsteğe bağlı. Bunu yalnızca ReFra mevcut ağınızdaki bir sunucuya doğrudan bağlandığında verin.</string>
     <string name="local_network_permission_dialog_title">Doğrudan yerel ağa erişime izin verilsin mi?</string>
-    <string name="local_network_permission_dialog_message">Bu sunucu, mevcut yerel ağınızdaki bir cihaza çözülüyor. Android, ReFra\'in ona doğrudan bağlanabilmesi için izin gerektirir.</string>
+    <string name="local_network_permission_dialog_message">Bu sunucu, mevcut yerel ağınızdaki bir cihaza çözülüyor. Android, ReFra'in ona doğrudan bağlanabilmesi için izin gerektirir.</string>
     <string name="local_network_permission_not_now">Şimdi değil</string>
     <string name="setup_reason_read_images"><![CDATA[Fotoğraflarınızı zaman çizelgesinde, albümlerde ve görüntüleyicide gösterir. Bunu yapmazsanız, galeri boş kalır.]]></string>
     <string name="setup_reason_read_videos"><![CDATA[Videolarınızı zaman çizelgesinde, albümlerde ve görüntüleyicide gösterir ve oynatır.]]></string>
@@ -1847,7 +1847,7 @@
     <string name="setup_cloud_enable">Bulut senkronizasyonunu kur</string>
     <string name="setup_cloud_choose_provider">Bir sağlayıcı seçin</string>
     <string name="setup_cloud_configured">Bağlandı · %1$s</string>
-    <string name="setup_cloud_none">Hiçbir bulut hesabınız bağlı değil. Bunu her zaman daha sonra Ayarlar\'dan kurabilirsiniz.</string>
+    <string name="setup_cloud_none">Hiçbir bulut hesabınız bağlı değil. Bunu her zaman daha sonra Ayarlar'dan kurabilirsiniz.</string>
     <string name="setup_cap_remote_assets">Uzak medyayı gözat</string>
     <string name="setup_cap_remote_albums">Uzak albümler</string>
     <string name="setup_cap_sync">Yedekle &amp; senkronize et</string>

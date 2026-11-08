@@ -58,8 +58,8 @@
     <string name="app_dev_name">IacobIonut01</string>
     <string name="donate">Spenden</string>
     <string name="github">GitHub</string>
-    <string name="donate_button_cd">\"Spenden\"-Knopf</string>
-    <string name="github_button_cd">\"GitHub\"-Knopf</string>
+    <string name="donate_button_cd">"Spenden"-Knopf</string>
+    <string name="github_button_cd">"GitHub"-Knopf</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
     <string name="dismiss_banner">Banner schließen</string>
     <string name="dismiss_banner_title">Banner verschieben?</string>
@@ -132,7 +132,7 @@
     <string name="move_to_another_album">In ein anderes Album verschieben</string>
     <string name="move">Verschieben</string>
     <string name="some_permissions_are_not_granted">Manche Berechtigungen wurden nicht erteilt!</string>
-    <string name="get_started">Los geht\'s</string>
+    <string name="get_started">Los geht's</string>
     <string name="welcome">Willkommen</string>
     <string name="required">Erforderlich</string>
     <string name="optional">Optional</string>
@@ -183,7 +183,7 @@
     <string name="edit_backups_delete_selected">Ausgewählte löschen</string>
     <string name="edit_backups_free_space">Freier Speicherplatz</string>
     <string name="edit_backups_section_actions">Aktionen</string>
-    <string name="edit_backups_used_percent">%1$s%% verwendet</string>
+    <string name="edit_backups_used_percent">%1$s% verwendet</string>
     <string name="edit_backups_selected_count">%1$d ausgewählt</string>
     <string name="edit_backups_select">Auswählen</string>
     <string name="edit_backups_viewing_original">Original</string>
@@ -299,7 +299,7 @@
     <string name="vault_setup_security_error">Bitte lege vor der Einrichtung des Tresors eine Telefonsicherheitseinstellung fest.</string>
     <string name="vault_setup_summary2">Der Safe ist durch den Sperrbildschirm deines Geräts (PIN, Passwort oder biometrische Daten) geschützt.\n\nDeine Dateien werden mit AES-256 verschlüsselt und der Zugriff ist erst nach einer Bestätigung deiner Identität möglich.</string>
     <string name="vault_setup_decryption_info">Der Zugriff auf Ihre Dateien erfolgt direkt im Hintergrund, und sie werden niemals unverschlüsselt auf dem Gerät gespeichert.</string>
-    <string name="vault_already_exists">Tresor \"%1$s\" existiert bereits</string>
+    <string name="vault_already_exists">Tresor "%1$s" existiert bereits</string>
     <string name="ignored">Ignoriert</string>
     <string name="location">Standort</string>
     <string name="support_the_project">Das Projekt unterstützen</string>
@@ -417,7 +417,7 @@
     <string name="encrypting_media">Medien verschlüsseln...</string>
     <string name="vault_encrypt_notification_title">Verschlüssele Medien</string>
     <string name="vault_decrypt_notification_title">Entschlüssele Medien</string>
-    <string name="vault_operation_in_progress">%1$d%% abgeschlossen</string>
+    <string name="vault_operation_in_progress">%1$d% abgeschlossen</string>
     <string name="vault_notification_channel_name">Tresoroperationen</string>
     <string name="vault_notification_channel_description">Fortschritt der Verschlüsselungs-/Entschlüsselungsaufgaben</string>
     <string name="decrypt_vault">Tresor entschlüsseln</string>
@@ -473,7 +473,7 @@
     <string name="vault_setup_password_prompt">Möchtest du ein eigenes Passwort für diesen Tresor setzen?</string>
     <string name="vault_skip_password">Gerätesicherheit nutzen</string>
     <string name="vault_set_password">Set custom password</string>
-    <string name="vault_deletion_title_named">\"%1$s\" löschen?</string>
+    <string name="vault_deletion_title_named">"%1$s" löschen?</string>
     <string name="vault_deletion_summary_named">Der Vault „%1$s“ und sein gesamter Inhalt werden endgültig gelöscht.\nDieser Vorgang kann nicht rückgängig gemacht werden.</string>
     <string name="vault_manage_security">Sicherheit verwalten</string>
     <string name="vault_change_security">Eigenes Passwort festlegen</string>
@@ -562,7 +562,7 @@
     <string name="app_name_description">Ändere den Namen und das Symbol der App auf deinem Startbildschirm. Die App wird neu gestartet, um die Änderung zu übernehmen.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Sammle Metadaten…</string>
-    <string name="metadata_collecting_progress">Sammle Metadaten… %1$d%%</string>
+    <string name="metadata_collecting_progress">Sammle Metadaten… %1$d%</string>
     <string name="metadata_idle">Tippen, um Medien-Metadaten aus Ihrer Bibliothek zu aktualisieren</string>
     <string name="video_playback">Video-Wiedergabe</string>
     <string name="interface_settings">Benutzeroberfläche</string>
@@ -847,7 +847,7 @@
     <string name="backup_password_confirm">Passwort bestätigen</string>
     <string name="backup_show_password">Passwort anzeigen</string>
     <string name="backup_verify_export_subtitle">Verifiziere deine Identität, um Tresor Inhalte zu exportieren</string>
-    <string name="backup_unlock_vault_subtitle">Entsperre \"%1$s\" um es in die Sicherung einzubinden</string>
+    <string name="backup_unlock_vault_subtitle">Entsperre "%1$s" um es in die Sicherung einzubinden</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verifiziere deine Tresor Sicherheit, um zu entscheiden, welche Tresore du sichern kannst</string>
     <string name="backup_import_password_title">Verschlüsselte Sicherung</string>
     <string name="backup_import_password_desc">Diese Sicherung ist passwortgeschützt. Gib das Passwort ein, um sie zu importieren.</string>
@@ -1253,7 +1253,7 @@
     <string name="cloud_upload_details_empty">Ein Backup starten, um den Upload-Fortschritt hier zu sehen</string>
     <string name="cloud_upload_details_not_running">Upload im Leerlauf</string>
     <string name="cloud_upload_uploading_count">Hochladen: %1$d von %2$d</string>
-    <string name="cloud_upload_completed_count">%1$d%% abgeschlossen</string>
+    <string name="cloud_upload_completed_count">%1$d% abgeschlossen</string>
     <string name="cloud_upload_failed_count">%1$d fehlgeschlagen</string>
     <string name="cloud_upload_item_done">Abgeschlossen</string>
     <string name="cloud_upload_item_failed">Fehlgeschlagen</string>
@@ -1368,8 +1368,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[Optional. Ermöglicht ReFra, in Fotos und Videos eingebettete GPS-Daten für die Karte und Standortdetails zu lesen. Deine Galerie funktioniert weiterhin, wenn du dies überspringst.]]></string>
     <string name="smart_scan_notification_channel">Intelligenter Scan</string>
     <string name="smart_scan_notification_title">Medien scannen</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d von %3$d · %4$d%% gesamt</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d von %3$d · %4$d%% gesamt · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d von %3$d · %4$d% gesamt</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d von %3$d · %4$d% gesamt · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Vorbereitung</string>
     <string name="trash_empty_state_title">Papierkorb ist leer</string>
     <string name="action_move_to_trash">In den Papierkorb verschieben</string>
@@ -1495,7 +1495,7 @@
     <string name="ai_models_group_cutout_ready_summary">Motivausschnitt ist im Medienbetrachter verfügbar</string>
     <string name="ai_models_source_cutout_url">huggingface.co/Acly/MobileSAM</string>
     <string name="ai_models_group_face_detect_title">Gesichtserkennung</string>
-    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, ein leichter Gesichtserkenner, der die automatische \"Gesichter unscharf machen\"-Funktion des Editors unterstützt.</string>
+    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, ein leichter Gesichtserkenner, der die automatische "Gesichter unscharf machen"-Funktion des Editors unterstützt.</string>
     <string name="ai_models_group_face_detect_download_summary">UltraFace-Detektor herunterladen (~1,3 MB)</string>
     <string name="ai_models_group_face_detect_ready_summary">Automatisches Gesichter-Überschärfen ist im Foto-Editor verfügbar</string>
     <string name="ai_models_source_face_detect_url">github.com/onnx/models · UltraFace</string>
@@ -1530,9 +1530,9 @@
     <string name="smart_scan_eta_under_minute">Weniger als eine Minute verbleibend</string>
     <string name="smart_scan_eta_minutes">Ungefähr %1$d Min. verbleibend</string>
     <string name="smart_scan_eta_hours">Ungefähr %1$d Std. %2$d Min. verbleibend</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d von %3$d Artikeln · %4$d%% insgesamt</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d von %3$d Artikeln · %4$d%% insgesamt · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Wird vorbereitet · %2$d%% insgesamt</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d von %3$d Artikeln · %4$d% insgesamt</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d von %3$d Artikeln · %4$d% insgesamt · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Wird vorbereitet · %2$d% insgesamt</string>
     <string name="smart_scan_phase_source_sync">Bibliothek wird synchronisiert</string>
     <string name="smart_scan_phase_metadata">Metadaten werden gelesen</string>
     <string name="smart_scan_phase_search_index">Smart Search wird indexiert</string>
@@ -1583,7 +1583,7 @@
     <string name="frame_picker_extract_frames">Frames extrahieren</string>
     <string name="frame_picker_title">Frames auswählen</string>
     <string name="frame_picker_preparing">Quelle wird vorbereitet…</string>
-    <string name="frame_picker_preparing_progress">Quelle wird vorbereitet… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Quelle wird vorbereitet… %1$d%</string>
     <string name="frame_picker_preview_description">Ausgewählter Videoframe</string>
     <string name="frame_picker_previous_frame">Vorheriges Bild</string>
     <string name="frame_picker_next_frame">Nächstes Bild</string>
@@ -1747,7 +1747,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d gesichert</string>
     <string name="cloud_backup_account_albums">%1$d Alben</string>
     <string name="cloud_backup_dashboard_title">Backup &amp; Synchronisation</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% gesichert</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% gesichert</string>
     <string name="cloud_backup_overall_caption">%1$d von %2$d Elementen über %3$d Dienste</string>
     <string name="cloud_backup_services">Dienste</string>
     <string name="cloud_destinations_title">Ziele</string>

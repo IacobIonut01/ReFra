@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Избриши изабрано</string>
     <string name="edit_backups_free_space">Ослободи простор</string>
     <string name="edit_backups_section_actions">Радње</string>
-    <string name="edit_backups_used_percent">Искоришћено %1$s%%</string>
+    <string name="edit_backups_used_percent">Искоришћено %1$s%</string>
     <string name="edit_backups_selected_count">%1$d изабрано</string>
     <string name="edit_backups_select">Изабери</string>
     <string name="edit_backups_viewing_original">Оригинал</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Шифровање медија...</string>
     <string name="vault_encrypt_notification_title">Шифровање медија</string>
     <string name="vault_decrypt_notification_title">Дешифровање медија</string>
-    <string name="vault_operation_in_progress">%1$d%% завршено</string>
+    <string name="vault_operation_in_progress">%1$d% завршено</string>
     <string name="vault_notification_channel_name">Операције у сефу</string>
     <string name="vault_notification_channel_description">Напредак шифровања / дешифровања</string>
     <string name="decrypt_vault">Дешифруј сеф</string>
@@ -468,7 +468,7 @@
     <string name="vault_create_vault">Креирај сеф</string>
     <string name="verify_identity">Потврдите свој идентитет</string>
     <string name="vault_hide_in_progress">Сакривање медија...</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">Да ли желите да поставите прилагођену лозинку за овај сеф?</string>
     <string name="vault_skip_password">Користи безбедност уређаја</string>
     <string name="vault_set_password">Постави прилагођену лозинку</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">Промените име и икону приказану у покретачу на почетном екрану. Апликација ће се поново покренути да би применила измену.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Прикупљање метаподатака…</string>
-    <string name="metadata_collecting_progress">Прикупљање метаподатака… %1$d%%</string>
+    <string name="metadata_collecting_progress">Прикупљање метаподатака… %1$d%</string>
     <string name="metadata_idle">Додирните за освежавање метаподатака медија из ваше библиотеке</string>
     <string name="video_playback">Репродукција видео записа</string>
     <string name="interface_settings">Интерфејс</string>
@@ -848,7 +848,7 @@
     <string name="backup_password_confirm">Потврдите лозинку</string>
     <string name="backup_show_password">Прикажи лозинку</string>
     <string name="backup_verify_export_subtitle">Потврдите свој идентитет да бисте извезли садржај сефа</string>
-    <string name="backup_unlock_vault_subtitle">Откључајте \"%1$s\" да бисте га укључили у резервну копију</string>
+    <string name="backup_unlock_vault_subtitle">Откључајте "%1$s" да бисте га укључили у резервну копију</string>
     <string name="backup_unlock_vaults_gate_subtitle">Потврдите безбедност сефа да бисте изабрали који ће сефови бити резервисани</string>
     <string name="backup_import_password_title">Шифрована резервна копија</string>
     <string name="backup_import_password_desc">Ова резервна копија је заштићена лозинком. Унесите лозинку да бисте је увезли.</string>
@@ -1369,8 +1369,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[Опционално. Омогућава апликацији ReFra да чита GPS податке уграђене у фотографије и видео снимке за мапу и детаље локације. Галерија ће и даље радити ако прескочите овај корак.]]></string>
     <string name="smart_scan_notification_channel">Смарт скенирање</string>
     <string name="smart_scan_notification_title">Скенирање медија</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d од %3$d · %4$d%% укупно</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d од %3$d · %4$d%% укупно · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d од %3$d · %4$d% укупно</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d од %3$d · %4$d% укупно · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Припрема</string>
     <string name="trash_empty_state_title">Канта за отпатке је празна</string>
     <string name="action_move_to_trash">Премести у Отпад</string>
@@ -1531,9 +1531,9 @@
     <string name="smart_scan_eta_under_minute">Мање од минут преостало</string>
     <string name="smart_scan_eta_minutes">Око %1$d минута преостало</string>
     <string name="smart_scan_eta_hours">Око %1$d сати %2$d минута преостало</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d од %3$d ставки · %4$d%% укупно</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d од %3$d ставки · %4$d%% укупно · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Припрема · %2$d%% укупно</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d од %3$d ставки · %4$d% укупно</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d од %3$d ставки · %4$d% укупно · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Припрема · %2$d% укупно</string>
     <string name="smart_scan_phase_source_sync">Синхронизује се библиотека</string>
     <string name="smart_scan_phase_metadata">Читање метаподатака</string>
     <string name="smart_scan_phase_search_index">Индексирање паметне претраге</string>
@@ -1584,7 +1584,7 @@
     <string name="frame_picker_extract_frames">Ekstrahuj frejmove</string>
     <string name="frame_picker_title">Izaberi frejmove</string>
     <string name="frame_picker_preparing">Priprema izvora…</string>
-    <string name="frame_picker_preparing_progress">Priprema izvora… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Priprema izvora… %1$d%</string>
     <string name="frame_picker_preview_description">Odabrani video frejm</string>
     <string name="frame_picker_previous_frame">Prethodni frejm</string>
     <string name="frame_picker_next_frame">Следећи кадар</string>
@@ -1748,7 +1748,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d резервне копије направљене</string>
     <string name="cloud_backup_account_albums">%1$d албума</string>
     <string name="cloud_backup_dashboard_title">Резервно копирање и синхронизација</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% резервне копије направљене</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% резервне копије направљене</string>
     <string name="cloud_backup_overall_caption">%1$d од %2$d ставки преко %3$d услуга</string>
     <string name="cloud_backup_services">Услуге</string>
     <string name="cloud_destinations_title">Дестинације</string>

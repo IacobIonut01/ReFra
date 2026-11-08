@@ -3,5 +3,5 @@
 <string name="vault_items_encrypted">%1$d élément(s) chiffré(s) avec succès</string>
 <string name="vault_encrypt_failed">Failed to encrypt %1$d item(s)</string>
 <string name="vault_restored_to">%1$d item(s) restored to %2$s</string>
-<string name="vault_item_deleted">L\'élément a été supprimé du coffre-fort</string>
+<string name="vault_item_deleted">L'élément a été supprimé du coffre-fort</string>
 </resources>

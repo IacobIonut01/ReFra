@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Xóa mục đã chọn</string>
     <string name="edit_backups_free_space">Dung lượng trống</string>
     <string name="edit_backups_section_actions">Thao tác</string>
-    <string name="edit_backups_used_percent">Đã dùng %1$s%%</string>
+    <string name="edit_backups_used_percent">Đã dùng %1$s%</string>
     <string name="edit_backups_selected_count">Đã chọn %1$d mục</string>
     <string name="edit_backups_select">Chọn</string>
     <string name="edit_backups_viewing_original">Gốc</string>
@@ -298,7 +298,7 @@
     <string name="vault_setup_security_error">Vui lòng thiết lập một biện pháp bảo mật thiết bị trước khi thiết lập két.</string>
     <string name="vault_setup_summary2">Két sẽ được truy cập bằng các biện pháp vảo mật của thiết bị (mật khẩu hoặc sinh trắc)\n\nNội dung bên trong két sẽ được mã hoá bằng thuật toán AES-256 và chỉ có thể được truy cập sau khi xác minh.</string>
     <string name="vault_setup_decryption_info">Các tệp của bạn được truy cập trực tiếp khi cần và không bao giờ được lưu trên thiết bị ở dạng đã giải mã.</string>
-    <string name="vault_already_exists">Két \"%1$s\" đã tồn tại</string>
+    <string name="vault_already_exists">Két "%1$s" đã tồn tại</string>
     <string name="ignored">Bị bỏ qua</string>
     <string name="location">Vị trí</string>
     <string name="support_the_project">Hỗ trợ dự án</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Đang mã hoá phương tiện…</string>
     <string name="vault_encrypt_notification_title">Đang mã hóa phương tiện</string>
     <string name="vault_decrypt_notification_title">Đang giải mã phương tiện</string>
-    <string name="vault_operation_in_progress">%1$d%% đã hoàn thành</string>
+    <string name="vault_operation_in_progress">%1$d% đã hoàn thành</string>
     <string name="vault_notification_channel_name">Thao tác két</string>
     <string name="vault_notification_channel_description">Tiến trình các tác vụ mã hóa / giải mã</string>
     <string name="decrypt_vault">Giải mã két</string>
@@ -472,8 +472,8 @@
     <string name="vault_setup_password_prompt">Bạn có muốn đặt mật khẩu tùy chỉnh cho két này không?</string>
     <string name="vault_skip_password">Sử dụng bảo mật của thiết bị</string>
     <string name="vault_set_password">Set custom password</string>
-    <string name="vault_deletion_title_named">Xóa \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">Két \"%1$s\" và toàn bộ nội dung của nó sẽ bị xóa vĩnh viễn.\nHành động này không thể hoàn tác.</string>
+    <string name="vault_deletion_title_named">Xóa "%1$s"?</string>
+    <string name="vault_deletion_summary_named">Két "%1$s" và toàn bộ nội dung của nó sẽ bị xóa vĩnh viễn.\nHành động này không thể hoàn tác.</string>
     <string name="vault_manage_security">Quản lý bảo mật</string>
     <string name="vault_change_security">Đặt mật khẩu tùy chỉnh</string>
     <string name="vault_change_security_summary">Sử dụng mã PIN, mẫu hình, hoặc mật khẩu thay vì sử dụng bảo mật của thiết bị</string>
@@ -552,7 +552,7 @@
     <string name="trash_enabled_description">Khi được bật, các ảnh và đoạn phim bị xóa sẽ được dời tới thùng rác và được giữ lại trong 30 ngày trước khi bị xóa vĩnh viễn. Khi tắt, việc xóa sẽ có hiệu lực ngay lập tức và không thể đảo ngược.</string>
     <string name="trash_confirmation_description">Hiển thị hộp thoại xác nhận trước khi chuyển các mục vào thùng rác, giúp tránh xóa nhầm.</string>
     <string name="follow_system_theme_description">Khi bật, ứng dụng sẽ tự động sử dụng chế độ sáng/tối theo thiết bị. Tắt tùy chọn này để tự chọn chế độ sáng hoặc tối bên dưới.</string>
-    <string name="dark_mode_description">Buộc ứng dụng luôn sử dụng chế độ tối bất kể cài đặt hệ thống của bạn. Chỉ khả dụng khi \"Theo hệ thống\" bị tắt.</string>
+    <string name="dark_mode_description">Buộc ứng dụng luôn sử dụng chế độ tối bất kể cài đặt hệ thống của bạn. Chỉ khả dụng khi "Theo hệ thống" bị tắt.</string>
     <string name="amoled_mode_description">Sử dụng nền đen thuần thay cho nền xám đậm, giúp tăng độ tương phản và tiết kiệm pin trên màn hình AMOLED.</string>
     <string name="timeline_layout_description">Chọn cách sắp xếp ảnh trong lưới dòng thời gian. Lưới đồng đều hiển thị các hình thu nhỏ có cùng kích thước, trong khi bố cục ghép ảnh sử dụng các kích thước khác nhau để tạo giao diện sinh động hơn.</string>
     <string name="favorite_icon_description">Chọn vị trí hiển thị biểu tượng trái tim yêu thích trên hình thu nhỏ trong lưới hoặc ẩn hoàn toàn biểu tượng này.</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">Thay đổi tên và biểu tượng hiển thị trên màn hình chính. Ứng dụng sẽ khởi động lại để áp dụng thay đổi.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Đang thu thập siêu dữ liệu…</string>
-    <string name="metadata_collecting_progress">Đang thu thập siêu dữ liệu… %1$d%%</string>
+    <string name="metadata_collecting_progress">Đang thu thập siêu dữ liệu… %1$d%</string>
     <string name="metadata_idle">Nhấn để làm mới siêu dữ liệu phương tiện từ thư viện của bạn</string>
     <string name="video_playback">Trình phát đoạn phim</string>
     <string name="interface_settings">Giao diện</string>
@@ -633,7 +633,7 @@
     <string name="motion_photo_export_video">Lưu thành video</string>
     <string name="motion_photo_exporting">Đang lưu video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="media_groupings">Media Groupings</string>
 <string name="sort_most_accurate">Most accurate</string>
     <string name="sort_by_date">Ngày</string>
@@ -653,7 +653,7 @@
     <!-- Editor tabs -->
     <string name="editor_done">Xong</string>
     <string name="editor_save_subtitle">Bạn luôn có thể hoàn tác những thay đổi này</string>
-    <string name="editor_save_copy_subtitle">Your original won\'t change</string>
+    <string name="editor_save_copy_subtitle">Your original won't change</string>
     <string name="editor_mirror">Mirror image</string>
     <string name="editor_rotate_90">Xoay 90 độ</string>
     <string name="editor_aspect_ratio">Aspect ratio</string>
@@ -837,14 +837,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
     <string name="backup_show_password">Show password</string>
     <string name="backup_verify_export_subtitle">Verify your identity to export vault contents</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -865,7 +865,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -897,7 +897,7 @@
     <string name="security_private_folder">Private folder</string>
     <string name="security_private_folder_summary_none">Not configured</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a \"Private folder\" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
+    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a "Private folder" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
     <string name="security_private_folder_status_active">Đã chỉnh sửa thư mục</string>
     <string name="security_private_folder_status_none">Không có thư mục nào được chọn</string>
     <string name="security_private_folder_pick">Chọn thư mục</string>
@@ -1365,8 +1365,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[Không bắt buộc. Cho phép ReFra đọc dữ liệu GPS được nhúng trong ảnh và video để dùng cho Bản đồ và thông tin vị trí. Thư viện của bạn vẫn hoạt động nếu bỏ qua bước này.]]></string>
     <string name="smart_scan_notification_channel">Quét thông minh</string>
     <string name="smart_scan_notification_title">Đang quét phương tiện</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d trong số %3$d · %4$d%% tổng cộng</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d trong số %3$d · %4$d%% tổng cộng · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d trong số %3$d · %4$d% tổng cộng</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d trong số %3$d · %4$d% tổng cộng · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Đang chuẩn bị</string>
     <string name="trash_empty_state_title">Thùng rác trống</string>
     <string name="action_move_to_trash">Di chuyển vào Thùng rác</string>
@@ -1492,7 +1492,7 @@
     <string name="ai_models_group_cutout_ready_summary">Cắt chủ thể có sẵn trong trình xem phương tiện</string>
     <string name="ai_models_source_cutout_url">huggingface.co/Acly/MobileSAM</string>
     <string name="ai_models_group_face_detect_title">Phát Hiện Khuôn Mặt</string>
-    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, một bộ phát hiện khuôn mặt nhẹ hỗ trợ hành động \"Làm mờ khuôn mặt\" tự động của trình chỉnh sửa.</string>
+    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, một bộ phát hiện khuôn mặt nhẹ hỗ trợ hành động "Làm mờ khuôn mặt" tự động của trình chỉnh sửa.</string>
     <string name="ai_models_group_face_detect_download_summary">Tải xuống bộ phát hiện UltraFace (~1.3 MB)</string>
     <string name="ai_models_group_face_detect_ready_summary">Làm mờ khuôn mặt tự động có sẵn trong trình chỉnh sửa ảnh</string>
     <string name="ai_models_source_face_detect_url">github.com/onnx/models · UltraFace</string>
@@ -1527,9 +1527,9 @@
     <string name="smart_scan_eta_under_minute">Còn chưa đầy một phút</string>
     <string name="smart_scan_eta_minutes">Khoảng %1$d phút còn lại</string>
     <string name="smart_scan_eta_hours">Khoảng %1$d giờ %2$d phút còn lại</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d trong số %3$d mục · %4$d%% tổng cộng</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d trong số %3$d mục · %4$d%% tổng cộng · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Đang chuẩn bị · %2$d%% tổng cộng</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d trong số %3$d mục · %4$d% tổng cộng</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d trong số %3$d mục · %4$d% tổng cộng · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Đang chuẩn bị · %2$d% tổng cộng</string>
     <string name="smart_scan_phase_source_sync">Đang đồng bộ thư viện</string>
     <string name="smart_scan_phase_metadata">Đang đọc siêu dữ liệu</string>
     <string name="smart_scan_phase_search_index">Đang lập chỉ mục Tìm kiếm Thông minh</string>
@@ -1580,7 +1580,7 @@
     <string name="frame_picker_extract_frames">Trích xuất khung hình</string>
     <string name="frame_picker_title">Chọn khung hình</string>
     <string name="frame_picker_preparing">Đang chuẩn bị nguồn…</string>
-    <string name="frame_picker_preparing_progress">Đang chuẩn bị nguồn… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Đang chuẩn bị nguồn… %1$d%</string>
     <string name="frame_picker_preview_description">Khung video đã chọn</string>
     <string name="frame_picker_previous_frame">Khung trước</string>
     <string name="frame_picker_next_frame">Khung tiếp theo</string>
@@ -1744,7 +1744,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d đã sao lưu</string>
     <string name="cloud_backup_account_albums">%1$d album</string>
     <string name="cloud_backup_dashboard_title">Sao lưu &amp; Đồng bộ</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% đã sao lưu</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% đã sao lưu</string>
     <string name="cloud_backup_overall_caption">%1$d trong tổng số %2$d mục trên %3$d dịch vụ</string>
     <string name="cloud_backup_services">Dịch vụ</string>
     <string name="cloud_destinations_title">Điểm đến</string>

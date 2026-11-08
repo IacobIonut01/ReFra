@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">刪除已選擇的項目</string>
     <string name="edit_backups_free_space">剩餘空間</string>
     <string name="edit_backups_section_actions">動作</string>
-    <string name="edit_backups_used_percent">已使用 %1$s%%</string>
+    <string name="edit_backups_used_percent">已使用 %1$s%</string>
     <string name="edit_backups_selected_count">已選取 %1$d</string>
     <string name="edit_backups_select">選取</string>
     <string name="edit_backups_viewing_original">原始</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">媒體加密中</string>
     <string name="vault_encrypt_notification_title">加密媒體</string>
     <string name="vault_decrypt_notification_title">解密媒體</string>
-    <string name="vault_operation_in_progress">%1$d%% 已完成</string>
+    <string name="vault_operation_in_progress">%1$d% 已完成</string>
     <string name="vault_notification_channel_name">私密空間操作</string>
     <string name="vault_notification_channel_description">加密/解密任務的進度</string>
     <string name="decrypt_vault">解密私密空間</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">變更主畫面啟動器上顯示的名稱與圖示。應用程式將重新啟動以套用變更。</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">正在收集後設資料…</string>
-    <string name="metadata_collecting_progress">正在收集後設資料… %1$d%%</string>
+    <string name="metadata_collecting_progress">正在收集後設資料… %1$d%</string>
     <string name="metadata_idle">點擊以從您的媒體庫中重新載入媒體後設資料</string>
     <string name="video_playback">影片播放</string>
     <string name="interface_settings">介面</string>
@@ -837,14 +837,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
     <string name="backup_show_password">Show password</string>
     <string name="backup_verify_export_subtitle">Verify your identity to export vault contents</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -897,7 +897,7 @@
     <string name="security_private_folder">Private folder</string>
     <string name="security_private_folder_summary_none">Not configured</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a \"Private folder\" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
+    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a "Private folder" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
     <string name="security_private_folder_status_active">Folder configured</string>
     <string name="security_private_folder_status_none">No folder selected</string>
     <string name="security_private_folder_pick">Pick folder</string>
@@ -935,7 +935,7 @@
     <string name="trash_restore_all">全部還原</string>
     <string name="trash_delete_all">Delete all</string>
     <string name="favorites_info_title">Your Favorites</string>
-    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="favorites_group_by_date">Group by date</string>
     <string name="favorites_group_by_date_on">Grouped by date</string>
     <string name="favorites_group_by_date_off">Showing all</string>
@@ -1365,8 +1365,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[選用。允許 ReFra 讀取照片和影片中嵌入的 GPS 資料，以供地圖和位置詳細資料使用。即使略過此步驟，相簿仍可正常運作。]]></string>
     <string name="smart_scan_notification_channel">智慧掃描</string>
     <string name="smart_scan_notification_title">掃描媒體</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d 共 %3$d · %4$d%% 總計</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d 共 %3$d · %4$d%% 總計 · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d 共 %3$d · %4$d% 總計</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d 共 %3$d · %4$d% 總計 · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · 準備中</string>
     <string name="trash_empty_state_title">垃圾桶為空</string>
     <string name="action_move_to_trash">移到垃圾桶</string>
@@ -1527,9 +1527,9 @@
     <string name="smart_scan_eta_under_minute">剩餘不到一分鐘</string>
     <string name="smart_scan_eta_minutes">約剩 %1$d 分鐘</string>
     <string name="smart_scan_eta_hours">約剩 %1$d 小時 %2$d 分鐘</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d / %3$d 項目 · %4$d%% 總計</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d / %3$d 項目 · %4$d%% 總計 · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · 準備中 · %2$d%% 總計</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d / %3$d 項目 · %4$d% 總計</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d / %3$d 項目 · %4$d% 總計 · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · 準備中 · %2$d% 總計</string>
     <string name="smart_scan_phase_source_sync">同步資料庫</string>
     <string name="smart_scan_phase_metadata">讀取元資料</string>
     <string name="smart_scan_phase_search_index">索引智慧搜尋</string>
@@ -1580,7 +1580,7 @@
     <string name="frame_picker_extract_frames">提取幀</string>
     <string name="frame_picker_title">選擇幀</string>
     <string name="frame_picker_preparing">準備來源…</string>
-    <string name="frame_picker_preparing_progress">準備來源… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">準備來源… %1$d%</string>
     <string name="frame_picker_preview_description">選定的影片幀</string>
     <string name="frame_picker_previous_frame">上一幀</string>
     <string name="frame_picker_next_frame">下一幀</string>
@@ -1744,7 +1744,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d 已備份</string>
     <string name="cloud_backup_account_albums">%1$d 相簿</string>
     <string name="cloud_backup_dashboard_title">備份與同步</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% 已備份</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% 已備份</string>
     <string name="cloud_backup_overall_caption">跨 %3$d 服務中的 %1$d / %2$d 項目</string>
     <string name="cloud_backup_services">服務</string>
     <string name="cloud_destinations_title">目的地</string>

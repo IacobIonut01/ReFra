@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">删除所选项</string>
     <string name="edit_backups_free_space">剩余空间</string>
     <string name="edit_backups_section_actions">操作</string>
-    <string name="edit_backups_used_percent">已使用 %1$s%%</string>
+    <string name="edit_backups_used_percent">已使用 %1$s%</string>
     <string name="edit_backups_selected_count">已选中 %1$d 项</string>
     <string name="edit_backups_select">选择</string>
     <string name="edit_backups_viewing_original">原图</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">正在加密媒体……</string>
     <string name="vault_encrypt_notification_title">加密媒体</string>
     <string name="vault_decrypt_notification_title">解密媒体</string>
-    <string name="vault_operation_in_progress">%1$d%% 已完成</string>
+    <string name="vault_operation_in_progress">%1$d% 已完成</string>
     <string name="vault_notification_channel_name">保险箱操作</string>
     <string name="vault_notification_channel_description">加密/解密任务的进度</string>
     <string name="decrypt_vault">解密保险箱</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">更改主屏幕启动器上显示的名称和图标。应用将重新启动以应用更改。</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">正在收集元数据…</string>
-    <string name="metadata_collecting_progress">正在收集元数据… %1$d%%</string>
+    <string name="metadata_collecting_progress">正在收集元数据… %1$d%</string>
     <string name="metadata_idle">点击以刷新媒体库中的元数据</string>
     <string name="video_playback">视频播放</string>
     <string name="interface_settings">界面</string>
@@ -1365,8 +1365,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[可选。允许 ReFra 读取照片和视频中嵌入的 GPS 数据，用于地图和位置详情。即使跳过此步骤，图库仍可正常工作。]]></string>
     <string name="smart_scan_notification_channel">智能扫描</string>
     <string name="smart_scan_notification_title">正在扫描媒体</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d 共 %3$d · %4$d%% 总计</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d 共 %3$d · %4$d%% 总计 · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d 共 %3$d · %4$d% 总计</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d 共 %3$d · %4$d% 总计 · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · 正在准备</string>
     <string name="trash_empty_state_title">垃圾箱为空</string>
     <string name="action_move_to_trash">移动到垃圾箱</string>
@@ -1527,9 +1527,9 @@
     <string name="smart_scan_eta_under_minute">剩余不到一分钟</string>
     <string name="smart_scan_eta_minutes">约剩余 %1$d 分钟</string>
     <string name="smart_scan_eta_hours">约剩余 %1$d 小时 %2$d 分钟</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d 共 %3$d 项 · %4$d%% 总计</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d 共 %3$d 项 · %4$d%% 总计 · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · 准备中 · %2$d%% 总计</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d 共 %3$d 项 · %4$d% 总计</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d 共 %3$d 项 · %4$d% 总计 · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · 准备中 · %2$d% 总计</string>
     <string name="smart_scan_phase_source_sync">同步库</string>
     <string name="smart_scan_phase_metadata">读取元数据</string>
     <string name="smart_scan_phase_search_index">索引智能搜索</string>
@@ -1580,7 +1580,7 @@
     <string name="frame_picker_extract_frames">提取帧</string>
     <string name="frame_picker_title">选择帧</string>
     <string name="frame_picker_preparing">准备源文件…</string>
-    <string name="frame_picker_preparing_progress">准备源文件… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">准备源文件… %1$d%</string>
     <string name="frame_picker_preview_description">选定的视频帧</string>
     <string name="frame_picker_previous_frame">上一帧</string>
     <string name="frame_picker_next_frame">下一帧</string>
@@ -1744,7 +1744,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d 已备份</string>
     <string name="cloud_backup_account_albums">%1$d 相册</string>
     <string name="cloud_backup_dashboard_title">备份与同步</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% 已备份</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% 已备份</string>
     <string name="cloud_backup_overall_caption">%1$d 个项目，共 %2$d 个项目，跨 %3$d 个服务</string>
     <string name="cloud_backup_services">服务</string>
     <string name="cloud_destinations_title">目的地</string>

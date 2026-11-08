@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Izbriši odabrano</string>
     <string name="edit_backups_free_space">Slobodan prostor</string>
     <string name="edit_backups_section_actions">Radnje</string>
-    <string name="edit_backups_used_percent">Iskorišteno %1$s%%</string>
+    <string name="edit_backups_used_percent">Iskorišteno %1$s%</string>
     <string name="edit_backups_selected_count">%1$d odabrano</string>
     <string name="edit_backups_select">Odaberi</string>
     <string name="edit_backups_viewing_original">Original</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Šifriranje medija...</string>
     <string name="vault_encrypt_notification_title">Šifriranje medija</string>
     <string name="vault_decrypt_notification_title">Dešifriranje medija</string>
-    <string name="vault_operation_in_progress">%1$d%% dovršeno</string>
+    <string name="vault_operation_in_progress">%1$d% dovršeno</string>
     <string name="vault_notification_channel_name">Radnje u trezoru</string>
     <string name="vault_notification_channel_description">Napredak šifriranja / dešifriranja</string>
     <string name="decrypt_vault">Dešifriraj trezor</string>
@@ -468,7 +468,7 @@
     <string name="vault_create_vault">Stvori trezor</string>
     <string name="verify_identity">Potvrdite svoj identitet</string>
     <string name="vault_hide_in_progress">Skrivanje medija…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">Želite li postaviti prilagođenu lozinku za ovaj trezor?</string>
     <string name="vault_skip_password">Koristi sigurnost uređaja</string>
     <string name="vault_set_password">Set custom password</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">Promijenite naziv i ikonu prikazanu u pokretaču vašeg početnog zaslona. Aplikacija će se ponovno pokrenuti kako bi primijenila promjenu.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Prikupljanje metapodataka…</string>
-    <string name="metadata_collecting_progress">Prikupljanje metapodataka… %1$d%%</string>
+    <string name="metadata_collecting_progress">Prikupljanje metapodataka… %1$d%</string>
     <string name="metadata_idle">Dodirnite za osvježavanje metapodataka medija iz vaše knjižnice</string>
     <string name="video_playback">Reprodukcija videozapisa</string>
     <string name="interface_settings">Sučelje</string>
@@ -633,7 +633,7 @@
     <string name="motion_photo_export_video">Save as video</string>
     <string name="motion_photo_exporting">Saving video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="media_groupings">Media Groupings</string>
 <string name="sort_most_accurate">Most accurate</string>
     <string name="sort_by_date">Date</string>
@@ -848,7 +848,7 @@
     <string name="backup_password_confirm">Potvrdite lozinku</string>
     <string name="backup_show_password">Prikaži lozinku</string>
     <string name="backup_verify_export_subtitle">Potvrdite svoj identitet za izvoz sadržaja trezora</string>
-    <string name="backup_unlock_vault_subtitle">Otključajte \"%1$s\" kako biste ga uključili u sigurnosnu kopiju</string>
+    <string name="backup_unlock_vault_subtitle">Otključajte "%1$s" kako biste ga uključili u sigurnosnu kopiju</string>
     <string name="backup_unlock_vaults_gate_subtitle">Potvrdite sigurnost svog trezora kako biste odabrali koje ćete trezore kopirati</string>
     <string name="backup_import_password_title">Šifrirana sigurnosna kopija</string>
     <string name="backup_import_password_desc">Ova je sigurnosna kopija zaštićena lozinkom. Unesite lozinku za uvoz.</string>
@@ -901,7 +901,7 @@
     <string name="security_private_folder">Privatna mapa</string>
     <string name="security_private_folder_summary_none">Nije konfigurirano</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Odredite mapu na svom uređaju kojoj se može pristupiti samo putem ove aplikacije. Njezin sadržaj je potpuno skriven od uobičajene vremenske crte, albuma i rezultata pretraživanja.\n\nKako radi — Mapi se pristupa putem Storage Access Framework-a (SAF), što znači da sustavni skener medija ne indeksira njezin sadržaj i on se neće pojaviti u drugim aplikacijama galerije ili upraviteljima datoteka koji se oslanjaju na MediaStore. Kada odaberete mapu, unutar nje se automatski stvara .nomedia datoteka kako bi se spriječilo da Android skenira njezin sadržaj. Time se osigurava da fotografije i videozapisi u mapi ostanu skriveni od svih drugih aplikacija.\n\nGdje je možete pronaći — Nakon konfiguracije, unos \"Privatna mapa\" pojavljuje se na vašem popisu albuma. Otvaranje zahtijeva provjeru autentičnosti ako imate omogućen zaključavanje aplikacije.\n\nŠto možete učiniti — Pregledavajte, gledajte i brišite fotografije i videozapise unutar privatne mape. Datoteke se prikazuju u namjenskom pregledniku s istim značajkama kao i glavna galerija (zumiranje, prijelaz prstom, metapodaci).\n\nOdabir mape — Možete odabrati bilo koju mapu koju vaš uređaj dopušta, uključujući internu memoriju, SD karticu ili USB pogon. Aplikacija pamti vaš odabir nakon ponovnog pokretanja. Možete promijeniti ili ukloniti mapu u bilo kojem trenutku bez utjecaja na same datoteke.\n\nVažno — Nemojte brisati .nomedia datoteku unutar privatne mape. Ako se ukloni, Android će skenirati mapu i njezin se sadržaj može pojaviti u drugim aplikacijama galerije. Aplikacija će je automatski ponovno stvoriti sljedeći put kada otvorite postavke privatne mape.</string>
+    <string name="security_private_folder_description">Odredite mapu na svom uređaju kojoj se može pristupiti samo putem ove aplikacije. Njezin sadržaj je potpuno skriven od uobičajene vremenske crte, albuma i rezultata pretraživanja.\n\nKako radi — Mapi se pristupa putem Storage Access Framework-a (SAF), što znači da sustavni skener medija ne indeksira njezin sadržaj i on se neće pojaviti u drugim aplikacijama galerije ili upraviteljima datoteka koji se oslanjaju na MediaStore. Kada odaberete mapu, unutar nje se automatski stvara .nomedia datoteka kako bi se spriječilo da Android skenira njezin sadržaj. Time se osigurava da fotografije i videozapisi u mapi ostanu skriveni od svih drugih aplikacija.\n\nGdje je možete pronaći — Nakon konfiguracije, unos "Privatna mapa" pojavljuje se na vašem popisu albuma. Otvaranje zahtijeva provjeru autentičnosti ako imate omogućen zaključavanje aplikacije.\n\nŠto možete učiniti — Pregledavajte, gledajte i brišite fotografije i videozapise unutar privatne mape. Datoteke se prikazuju u namjenskom pregledniku s istim značajkama kao i glavna galerija (zumiranje, prijelaz prstom, metapodaci).\n\nOdabir mape — Možete odabrati bilo koju mapu koju vaš uređaj dopušta, uključujući internu memoriju, SD karticu ili USB pogon. Aplikacija pamti vaš odabir nakon ponovnog pokretanja. Možete promijeniti ili ukloniti mapu u bilo kojem trenutku bez utjecaja na same datoteke.\n\nVažno — Nemojte brisati .nomedia datoteku unutar privatne mape. Ako se ukloni, Android će skenirati mapu i njezin se sadržaj može pojaviti u drugim aplikacijama galerije. Aplikacija će je automatski ponovno stvoriti sljedeći put kada otvorite postavke privatne mape.</string>
     <string name="security_private_folder_status_active">Mapa konfigurirana</string>
     <string name="security_private_folder_status_none">Nijedna mapa nije odabrana</string>
     <string name="security_private_folder_pick">Odaberite mapu</string>
@@ -1369,8 +1369,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[Neobavezno. Omogućuje aplikaciji ReFra čitanje GPS podataka ugrađenih u fotografije i videozapise za Kartu i pojedinosti o lokaciji. Galerija će i dalje raditi ako ovo preskočite.]]></string>
     <string name="smart_scan_notification_channel">Pametno skeniranje</string>
     <string name="smart_scan_notification_title">Skeniranje medija</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d od %3$d · %4$d%% ukupno</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d od %3$d · %4$d%% ukupno · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d od %3$d · %4$d% ukupno</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d od %3$d · %4$d% ukupno · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Priprema</string>
     <string name="trash_empty_state_title">Otpad je prazan</string>
     <string name="action_move_to_trash">Premjesti u Otpad</string>
@@ -1531,9 +1531,9 @@
     <string name="smart_scan_eta_under_minute">Preostalo manje od minute</string>
     <string name="smart_scan_eta_minutes">Oko %1$d min preostalo</string>
     <string name="smart_scan_eta_hours">Ostalo je oko %1$d sata %2$d minute</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d %3$d predmeta · %4$d%% općenito</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d %3$d predmeta · %4$d%% ukupno · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Priprema · %2$d%% općenito</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d %3$d predmeta · %4$d% općenito</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d %3$d predmeta · %4$d% ukupno · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Priprema · %2$d% općenito</string>
     <string name="smart_scan_phase_source_sync">Sinkronizacijska biblioteka</string>
     <string name="smart_scan_phase_metadata">Čitanje metapodataka</string>
     <string name="smart_scan_phase_search_index">Indeksiranje pametne pretrage</string>
@@ -1584,7 +1584,7 @@
     <string name="frame_picker_extract_frames">Izvadi okvire</string>
     <string name="frame_picker_title">Odaberi okvire</string>
     <string name="frame_picker_preparing">Priprema izvora…</string>
-    <string name="frame_picker_preparing_progress">Priprema izvora… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Priprema izvora… %1$d%</string>
     <string name="frame_picker_preview_description">Odabrani video okvir</string>
     <string name="frame_picker_previous_frame">Prethodni okvir</string>
     <string name="frame_picker_next_frame">Sljedeći okvir</string>
@@ -1748,7 +1748,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d sigurnosno kopirano</string>
     <string name="cloud_backup_account_albums">%1$d albumi</string>
     <string name="cloud_backup_dashboard_title">Sigurnosna kopija i sinkronizacija</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% sigurnosno kopirano</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% sigurnosno kopirano</string>
     <string name="cloud_backup_overall_caption">%1$d od %2$d stavki preko %3$d servisa</string>
     <string name="cloud_backup_services">Servisi</string>
     <string name="cloud_destinations_title">Odredišta</string>

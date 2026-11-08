@@ -63,11 +63,11 @@
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
     <string name="dismiss_banner">Закрити банер</string>
     <string name="dismiss_banner_title">Перемістити банер?</string>
-    <string name="dismiss_banner_message">Кнопки \"Пожертвувати\" та \"GitHub\" перемістяться на компактну панель внизу сторінки налаштувань.</string>
+    <string name="dismiss_banner_message">Кнопки "Пожертвувати" та "GitHub" перемістяться на компактну панель внизу сторінки налаштувань.</string>
     <string name="dismiss_banner_confirm">Перемістити вниз</string>
     <string name="show_banner">Показати банер</string>
     <string name="restore_banner_title">Відновити банер?</string>
-    <string name="restore_banner_message">Повний банер \"Пожертвувати\" та \"GitHub\" буде відновлено у верхній частині сторінки налаштувань.</string>
+    <string name="restore_banner_message">Повний банер "Пожертвувати" та "GitHub" буде відновлено у верхній частині сторінки налаштувань.</string>
     <string name="restore_banner_confirm">Перемістити вгору</string>
     <string name="use_as">Використовувати як</string>
     <string name="set_as">"Встановити як: "</string>
@@ -109,8 +109,8 @@
     <string name="amoled_mode_title">Використовувати чорну тему</string>
     <string name="amoled_mode_summary">Підвищена контрастність, найкраще підходить для Amoled екранів</string>
     <string name="use_system_font_title">Use system font</string>
-    <string name="use_system_font_summary">Use your device\'s default font instead of the built-in one</string>
-    <string name="use_system_font_description">When enabled, the app uses your device\'s system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
+    <string name="use_system_font_summary">Use your device's default font instead of the built-in one</string>
+    <string name="use_system_font_description">When enabled, the app uses your device's system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
     <string name="color_palette_preview_description">Значки, текст та інше відповідають кольорам ваших шпалер</string>
     <string name="color_palette_wallpaper_colors">Кольори шпалер</string>
     <string name="color_palette_other_colors">Інші кольори</string>
@@ -135,7 +135,7 @@
     <string name="get_started">Початок роботи</string>
     <string name="welcome">Вітаємо</string>
     <string name="required">Необхідно</string>
-    <string name="optional">Необов\'язково</string>
+    <string name="optional">Необов'язково</string>
     <string name="permission_manage_media_title">Керування медіафайлами</string>
     <string name="permission_manage_media_summary">"Автоматично виводить діалогові вікна з підтвердженням, коли ви запитуєте кілька змін у медіафайлах (зміни в улюбленому, керування кошиком, редагування метаданих тощо)"</string>
     <string name="read_media_images">Читати зображення</string>
@@ -156,7 +156,7 @@
     <string name="hide_timeline_for_albums">Приховати часову шкалу для альбомів</string>
     <string name="hide_timeline_for_album_summary">Приховує заголовки дат під час відкриття альбому</string>
     <string name="allow_vibrations">Дозволити вібрації</string>
-    <string name="allow_vibrations_summary">Дозволяє надсилати зворотний зв\'язок у вигляді вібрацій під час виконання певних дій або жестів</string>
+    <string name="allow_vibrations_summary">Дозволяє надсилати зворотний зв'язок у вигляді вібрацій під час виконання певних дій або жестів</string>
     <string name="album_name">Назва альбому</string>
     <string name="create_new_album">Створити новий альбом</string>
     <string name="copy">Копіювати</string>
@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Видалити вибране</string>
     <string name="edit_backups_free_space">Вільне місце</string>
     <string name="edit_backups_section_actions">Дії</string>
-    <string name="edit_backups_used_percent">Використано %1$s%%</string>
+    <string name="edit_backups_used_percent">Використано %1$s%</string>
     <string name="edit_backups_selected_count">%1$d вибрано</string>
     <string name="edit_backups_select">Вибрати</string>
     <string name="edit_backups_viewing_original">Оригінал</string>
@@ -353,7 +353,7 @@
     <string name="matching_photos_count">%1$d збігів</string>
     <string name="recommended">рекомендовано</string>
     <string name="no_matching_photos">Збігів фото не знайдено</string>
-    <string name="category_helper_text">Додайте ім\'я, пошукові фрази та налаштуйте точність, щоб створити свою категорію</string>
+    <string name="category_helper_text">Додайте ім'я, пошукові фрази та налаштуйте точність, щоб створити свою категорію</string>
     <string name="reset_categories">Скинути категорії</string>
     <string name="reset_categories_summary">Видалити всі категорії та повторно ініціалізувати їх за замовчуванням</string>
     <string name="create">Створити</string>
@@ -371,7 +371,7 @@
     <string name="see_all_matches">Показати всі %1$d збігів</string>
     <string name="sensitivity">Чутливість</string>
     <string name="sensitivity_broad">Широка</string>
-    <string name="sensitivity_broad_desc">Включити вільно пов\'язані фотографії</string>
+    <string name="sensitivity_broad_desc">Включити вільно пов'язані фотографії</string>
     <string name="sensitivity_balanced">Збалансована</string>
     <string name="sensitivity_balanced_desc">Гарне поєднання релевантності</string>
     <string name="sensitivity_strict">Сувора</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Шифрування медіа...</string>
     <string name="vault_encrypt_notification_title">Шифрування медіа</string>
     <string name="vault_decrypt_notification_title">Розшифрування медіа</string>
-    <string name="vault_operation_in_progress">Завершено на %1$d%%</string>
+    <string name="vault_operation_in_progress">Завершено на %1$d%</string>
     <string name="vault_notification_channel_name">Операції зі сховищем</string>
     <string name="vault_notification_channel_description">Хід виконання завдань шифрування / розшифрування</string>
     <string name="decrypt_vault">Розшифрування сейфу</string>
@@ -433,7 +433,7 @@
     <string name="vault_delete_originals">Видалити оригінали після шифрування</string>
     <string name="vault_encrypt_and_keep">Зашифрувати &amp; Зберегти</string>
     <string name="vault_encrypt_and_delete">Зашифрувати &amp; Видалити</string>
-    <string name="vault_remember_choice">Запам\'ятати мій вибір</string>
+    <string name="vault_remember_choice">Запам'ятати мій вибір</string>
     <string name="vault_encrypt_behavior">Поведінка шифрування сховища</string>
     <string name="vault_encrypt_behavior_summary">Виберіть, що відбуватиметься з оригіналами під час додавання медіафайлів до сховища</string>
     <string name="vault_encrypt_ask">Завжди питати</string>
@@ -468,12 +468,12 @@
     <string name="vault_create_vault">Create Vault</string>
     <string name="verify_identity">Verify your identity</string>
     <string name="vault_hide_in_progress">Hiding media…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">Would you like to set a custom password for this vault?</string>
     <string name="vault_skip_password">Use device security</string>
     <string name="vault_set_password">Встановити окремий пароль</string>
-    <string name="vault_deletion_title_named">Видалити \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">Сховище \"%1$s\" та весь його вміст буде видалено назавжди.\nЦя дія не може бути скасована.</string>
+    <string name="vault_deletion_title_named">Видалити "%1$s"?</string>
+    <string name="vault_deletion_summary_named">Сховище "%1$s" та весь його вміст буде видалено назавжди.\nЦя дія не може бути скасована.</string>
     <string name="vault_manage_security">Керування безпекою</string>
     <string name="vault_change_security">Встановити окремий пароль</string>
     <string name="vault_change_security_summary">Використовувати PIN, графічний ключ або пароль замість безпеки пристрою</string>
@@ -551,8 +551,8 @@
     <string name="allow_vibrations_description">Allows the app to send haptic feedback during certain actions and gestures, such as long-pressing to select or pinch-to-zoom transitions.</string>
     <string name="trash_enabled_description">When enabled, deleted photos and videos are moved to trash and kept for 30 days before permanent deletion. When disabled, deleting is immediate and irreversible.</string>
     <string name="trash_confirmation_description">Shows a confirmation dialog before moving items to the trash, preventing accidental deletions.</string>
-    <string name="follow_system_theme_description">When enabled, the app follows your device\'s light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
-    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when \"Follow System Theme\" is disabled.</string>
+    <string name="follow_system_theme_description">When enabled, the app follows your device's light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
+    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when "Follow System Theme" is disabled.</string>
     <string name="amoled_mode_description">Uses a pure black background instead of dark grey, providing higher contrast and saving battery on AMOLED screens.</string>
     <string name="timeline_layout_description">Choose how photos are arranged in the timeline grid. The uniform grid shows equal-sized thumbnails, while the mosaic layout varies sizes for a more dynamic look.</string>
     <string name="favorite_icon_description">Choose where the favorite heart icon appears on thumbnails in the grid, or hide it entirely.</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">Change the name and icon displayed on your home screen launcher. The app will restart to apply the change.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Collecting metadata…</string>
-    <string name="metadata_collecting_progress">Collecting metadata… %1$d%%</string>
+    <string name="metadata_collecting_progress">Collecting metadata… %1$d%</string>
     <string name="metadata_idle">Tap to refresh media metadata from your library</string>
     <string name="video_playback">Відтворення відео</string>
     <string name="interface_settings">Інтерфейс</string>
@@ -633,7 +633,7 @@
     <string name="motion_photo_export_video">Save as video</string>
     <string name="motion_photo_exporting">Saving video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="media_groupings">Media Groupings</string>
 <string name="sort_most_accurate">Most accurate</string>
     <string name="sort_by_date">Date</string>
@@ -659,7 +659,7 @@
     <!-- Editor tabs -->
     <string name="editor_done">Done</string>
     <string name="editor_save_subtitle">You can always undo these changes</string>
-    <string name="editor_save_copy_subtitle">Your original won\'t change</string>
+    <string name="editor_save_copy_subtitle">Your original won't change</string>
     <string name="editor_mirror">Mirror image</string>
     <string name="editor_rotate_90">Rotate 90 degrees</string>
     <string name="editor_aspect_ratio">Aspect ratio</string>
@@ -760,11 +760,11 @@
     <string name="add_selected">Add selected</string>
     <!-- Help & Tips Screen -->
     <string name="help_title">Help &amp; tips</string>
-    <string name="help_summary">Tutorials, tips, and what\'s new</string>
-    <string name="help_whats_new">What\'s new</string>
+    <string name="help_summary">Tutorials, tips, and what's new</string>
+    <string name="help_whats_new">What's new</string>
     <string name="help_whats_new_subtitle">Discover the latest Gallery features</string>
-    <string name="help_whats_new_in_version">What\'s new in v%s</string>
-    <string name="help_explore_whats_new">Explore what\'s new</string>
+    <string name="help_whats_new_in_version">What's new in v%s</string>
+    <string name="help_explore_whats_new">Explore what's new</string>
     <string name="help_get_started">Get started</string>
     <string name="help_make_most">Make the most of Gallery</string>
     <string name="help_explore_tips">Explore more tips</string>
@@ -843,14 +843,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
     <string name="backup_show_password">Show password</string>
     <string name="backup_verify_export_subtitle">Verify your identity to export vault contents</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -871,7 +871,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -903,7 +903,7 @@
     <string name="security_private_folder">Private folder</string>
     <string name="security_private_folder_summary_none">Not configured</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a \"Private folder\" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
+    <string name="security_private_folder_description">Designate a folder on your device that is only accessible through this app. Its contents are completely hidden from the normal timeline, albums, and search results.\n\nHow it works — The folder is accessed through the Storage Access Framework (SAF), which means its contents are not indexed by the system media scanner and will not appear in other gallery apps or file managers that rely on MediaStore. When you pick a folder, a .nomedia file is automatically created inside it to prevent Android from scanning its contents. This ensures photos and videos in the folder stay hidden from all other apps.\n\nWhere you can find it — Once configured, a "Private folder" entry appears in your album list. Opening it requires authentication if you have app lock enabled.\n\nWhat you can do — Browse, view, and delete photos and videos inside the private folder. Files are displayed in a dedicated viewer with the same features as the main gallery (zoom, swipe, metadata).\n\nChoosing a folder — You can pick any folder your device allows, including internal storage, SD card, or a USB drive. The app remembers your choice across restarts. You can change or remove the folder at any time without affecting the files themselves.\n\nImportant — Do not delete the .nomedia file inside the private folder. If removed, Android will scan the folder and its contents may appear in other gallery apps. The app will recreate it automatically the next time you open the private folder settings.</string>
     <string name="security_private_folder_status_active">Folder configured</string>
     <string name="security_private_folder_status_none">No folder selected</string>
     <string name="security_private_folder_pick">Pick folder</string>
@@ -941,7 +941,7 @@
     <string name="trash_restore_all">Restore all</string>
     <string name="trash_delete_all">Delete all</string>
     <string name="favorites_info_title">Your Favorites</string>
-    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="favorites_group_by_date">Group by date</string>
     <string name="favorites_group_by_date_on">Grouped by date</string>
     <string name="favorites_group_by_date_off">Showing all</string>
@@ -1371,8 +1371,8 @@
     <string name="setup_reason_media_location_optional"><![CDATA[Необов’язково. Дозволяє ReFra читати дані GPS, вбудовані у фото та відео, для мапи й відомостей про розташування. Якщо пропустити цей крок, галерея продовжить працювати.]]></string>
     <string name="smart_scan_notification_channel">Розумне сканування</string>
     <string name="smart_scan_notification_title">Сканування медіа</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d з %3$d · %4$d%% загалом</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d з %3$d · %4$d%% загалом · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d з %3$d · %4$d% загалом</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d з %3$d · %4$d% загалом · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · Підготовка</string>
     <string name="trash_empty_state_title">Смітник порожній</string>
     <string name="action_move_to_trash">Перемістити в кошик</string>
@@ -1479,7 +1479,7 @@
     <string name="metadata_mode_privacy">Пов’язано з конфіденційністю</string>
     <string name="metadata_mode_privacy_description">Також видаляє вбудовані дати, дані про людей, ідентифікацію пристрою, авторство, описи, історію редагувань та походження.</string>
     <string name="metadata_mode_everything">Все, що можна видалити</string>
-    <string name="metadata_mode_everything_description">Видаляє всі необов\'язкові метадані, залишаючи лише дані, необхідні для відтворення або програвання медіа.</string>
+    <string name="metadata_mode_everything_description">Видаляє всі необов'язкові метадані, залишаючи лише дані, необхідні для відтворення або програвання медіа.</string>
     <string name="metadata_preserved_title">Що зберігається</string>
     <string name="metadata_preserved_description">Кодування пікселів, відео та аудіо залишаються незмінними. Орієнтація, анімація, колір та дані HDR, конфігурація кодеків, часи та необхідна структура контейнера зберігаються.</string>
     <string name="remove_metadata_confirm">Видалити</string>
@@ -1487,18 +1487,18 @@
     <string name="remove_metadata_success">Метадані видалені</string>
     <string name="remove_metadata_failed">Не вдалося видалити метадані</string>
     <string name="remove_metadata_rolled_back">Не вдалося видалити метадані. Оригінал відновлено.</string>
-    <string name="ai_models_feature_cutout">Вирізання об\'єкта</string>
+    <string name="ai_models_feature_cutout">Вирізання об'єкта</string>
     <string name="ai_models_feature_faces">Обличчя та люди</string>
     <string name="ai_models_group_search_title">Пошук та категорії</string>
     <string name="ai_models_group_search_desc">Моделі CLIP, які забезпечують розумний пошук та автоматичне сортування категорій.</string>
     <string name="ai_models_group_search_download_summary">Завантажити моделі CLIP (~147 МБ)</string>
-    <string name="ai_models_group_cutout_title">Вирізання об\'єкта</string>
-    <string name="ai_models_group_cutout_desc">Моделі MobileSAM, що виділяють об\'єкти у переглядачі медіа.</string>
+    <string name="ai_models_group_cutout_title">Вирізання об'єкта</string>
+    <string name="ai_models_group_cutout_desc">Моделі MobileSAM, що виділяють об'єкти у переглядачі медіа.</string>
     <string name="ai_models_group_cutout_download_summary">Завантажити моделі MobileSAM (~44 МБ)</string>
-    <string name="ai_models_group_cutout_ready_summary">Вирізання об\'єкта доступне у переглядачі медіа</string>
+    <string name="ai_models_group_cutout_ready_summary">Вирізання об'єкта доступне у переглядачі медіа</string>
     <string name="ai_models_source_cutout_url">huggingface.co/Acly/MobileSAM</string>
     <string name="ai_models_group_face_detect_title">Розпізнавання облич</string>
-    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, легкий детектор облич, який забезпечує автоматичну дію редактора \"Розмити обличчя\".</string>
+    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, легкий детектор облич, який забезпечує автоматичну дію редактора "Розмити обличчя".</string>
     <string name="ai_models_group_face_detect_download_summary">Завантажити детектор UltraFace (~1.3 МБ)</string>
     <string name="ai_models_group_face_detect_ready_summary">Автоматичне розмиття облич доступне у фоторедакторі</string>
     <string name="ai_models_source_face_detect_url">github.com/onnx/models · UltraFace</string>
@@ -1522,7 +1522,7 @@
     <string name="refresh_categories">Оновити категорії</string>
     <string name="refresh_categories_summary">Спочатку виправити вбудовані дані, потім оновити автоматичне відповідність категорій</string>
     <string name="refresh_persons">Оновити осіб</string>
-    <string name="refresh_persons_summary">Сканувати локальні фотографії та доступні прев\'ю в хмарі на наявність облич</string>
+    <string name="refresh_persons_summary">Сканувати локальні фотографії та доступні прев'ю в хмарі на наявність облич</string>
     <string name="refresh_all_smart_features">Оновити всі розумні функції</string>
     <string name="refresh_all_smart_features_summary">Запустити метадані, пошук, категорії та осіб послідовно</string>
     <string name="smart_features_include_ignored_albums">Включити ігноровані альбоми</string>
@@ -1533,9 +1533,9 @@
     <string name="smart_scan_eta_under_minute">Менше хвилини залишилось</string>
     <string name="smart_scan_eta_minutes">Приблизно %1$d хв залишилось</string>
     <string name="smart_scan_eta_hours">Приблизно %1$d год %2$d хв залишилось</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d із %3$d елементів · %4$d%% загалом</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d із %3$d елементів · %4$d%% загалом · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · Підготовка · %2$d%% загалом</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d із %3$d елементів · %4$d% загалом</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d із %3$d елементів · %4$d% загалом · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · Підготовка · %2$d% загалом</string>
     <string name="smart_scan_phase_source_sync">Синхронізація бібліотеки</string>
     <string name="smart_scan_phase_metadata">Читання метаданих</string>
     <string name="smart_scan_phase_search_index">Індексація Smart Search</string>
@@ -1586,7 +1586,7 @@
     <string name="frame_picker_extract_frames">Витягти кадри</string>
     <string name="frame_picker_title">Вибрати кадри</string>
     <string name="frame_picker_preparing">Підготовка джерела…</string>
-    <string name="frame_picker_preparing_progress">Підготовка джерела… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">Підготовка джерела… %1$d%</string>
     <string name="frame_picker_preview_description">Вибраний кадр відео</string>
     <string name="frame_picker_previous_frame">Попередній кадр</string>
     <string name="frame_picker_next_frame">Наступний кадр</string>
@@ -1620,12 +1620,12 @@
     <string name="editor_brush_size">Розмір</string>
     <string name="editor_brush_strength">Сила</string>
     <string name="editor_blur_faces">Затемнити обличчя</string>
-    <string name="subfolders_merged_title">Підпапки об\'єднані</string>
+    <string name="subfolders_merged_title">Підпапки об'єднані</string>
     <string name="subfolders_merged_description">Медіа з %1$d підпапок показано разом.</string>
     <string name="folders_combined_description">Медіа з %1$d папок показано разом за назвою та структурою папок.</string>
-    <string name="merge_parent_subfolders">Об\'єднати підпапки батьківської папки</string>
+    <string name="merge_parent_subfolders">Об'єднати підпапки батьківської папки</string>
     <string name="browse_subfolders">Переглянути підпапки</string>
-    <string name="show_combined_timeline">Показати об\'єднану хронологію</string>
+    <string name="show_combined_timeline">Показати об'єднану хронологію</string>
     <string name="pinned_albums_as_grid_title">Закріплені альбоми як плитки</string>
     <string name="pinned_albums_as_grid_summary">Показувати закріплені альбоми як звичайні плитки над іншими альбомами, замість прокручуваного банера</string>
     <string name="pinned_albums_as_grid_description">Якщо ввімкнено, закріплені альбоми відображаються як ті ж самі плитки сітки, що й решта ваших альбомів (переноситься на кілька рядків), розташовані перед іншими альбомами. Якщо вимкнено, вони показуються як широкий горизонтально прокручуваний банер-карусель.</string>
@@ -1725,22 +1725,22 @@
     <string name="cloud_nextcloud_rate_limited">Забагато спроб входу. Зачекайте і спробуйте знову.</string>
     <string name="cloud_nextcloud_server_error">Nextcloud не зміг розпочати вхід. Спробуйте пізніше.</string>
     <string name="cloud_nextcloud_network_error">Сервер Nextcloud недоступний.</string>
-    <string name="cloud_nextcloud_tls_error">Безпечне з\'єднання з Nextcloud не вдалося перевірити.</string>
+    <string name="cloud_nextcloud_tls_error">Безпечне з'єднання з Nextcloud не вдалося перевірити.</string>
     <string name="cloud_nextcloud_invalid_response">Nextcloud повернув недійсну відповідь на вхід.</string>
     <string name="cloud_help_webdav">Введіть повну URL-адресу WebDAV-ендпоінта, надану вашим хостингом, а потім ваші ім’я користувача та пароль WebDAV.</string>
-    <string name="cloud_help_smb">Використовуйте smb://host/share/folder. Залиште ім\'я користувача порожнім для гостьового доступу або введіть user / DOMAIN\\user та свій пароль. Ресурс повинен знаходитись у тій же локальній мережі, що й цей пристрій. Потрібен SMB2/3 (старий SMB1 не підтримується).</string>
+    <string name="cloud_help_smb">Використовуйте smb://host/share/folder. Залиште ім'я користувача порожнім для гостьового доступу або введіть user / DOMAIN\\user та свій пароль. Ресурс повинен знаходитись у тій же локальній мережі, що й цей пристрій. Потрібен SMB2/3 (старий SMB1 не підтримується).</string>
     <string name="cloud_help_nfs">Використовуйте nfs://host/export/path, де все після host — це експортований шлях. Підтримується тільки NFSv3 (з AUTH_SYS) — NFSv2 та NFSv4 не підтримуються. За бажанням встановіть uid:gid, який дозволяє доступ до експорту. Експорт повинен дозволяти IP цього пристрою, пропонувати NFSv3 mount і знаходитися в тій же локальній мережі.</string>
     <string name="cloud_smb_url_hint">smb://host/share/folder</string>
     <string name="cloud_nfs_url_hint">nfs://host/export/path</string>
     <string name="cloud_smb_username_hint">користувач або DOMAIN\\user (залишити порожнім для гостя)</string>
     <string name="cloud_nfs_uid_gid">Ідентифікатор користувача (uid:gid)</string>
-    <string name="cloud_nfs_uid_gid_hint">наприклад, 1000:1000 (необов\'язково, AUTH_SYS)</string>
+    <string name="cloud_nfs_uid_gid_hint">наприклад, 1000:1000 (необов'язково, AUTH_SYS)</string>
     <string name="cloud_backed_up_title">Резервне копіювання виконано</string>
     <string name="cloud_backed_up_summary">Резервне копіювання виконано на %d постачальниках хмари</string>
     <string name="cloud_backed_up_tap_hint">Натисніть, щоб керувати резервними копіями</string>
     <string name="cloud_backup_delete">Видалити у цього постачальника</string>
-    <string name="cloud_http_warning_title">Ненадійне з\'єднання</string>
-    <string name="cloud_http_warning_message">Цей сервер використовує незашифроване HTTP-з\'єднання. Ваші дані для входу та фотографії можуть бути прочитані або змінені іншими користувачами мережі. Продовжуйте лише якщо довіряєте цій мережі — наприклад, VPN або тунелю Tailscale/WireGuard. Продовжити все одно?</string>
+    <string name="cloud_http_warning_title">Ненадійне з'єднання</string>
+    <string name="cloud_http_warning_message">Цей сервер використовує незашифроване HTTP-з'єднання. Ваші дані для входу та фотографії можуть бути прочитані або змінені іншими користувачами мережі. Продовжуйте лише якщо довіряєте цій мережі — наприклад, VPN або тунелю Tailscale/WireGuard. Продовжити все одно?</string>
     <string name="cloud_backup_safe">Безпечно</string>
     <string name="cloud_backup_new">Новий</string>
     <string name="cloud_backup_album_queued">У черзі</string>
@@ -1750,7 +1750,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d збережено резервні копії</string>
     <string name="cloud_backup_account_albums">%1$d альбомів</string>
     <string name="cloud_backup_dashboard_title">Резервне копіювання та синхронізація</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% збережено резервні копії</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% збережено резервні копії</string>
     <string name="cloud_backup_overall_caption">%1$d з %2$d елементів у %3$d службах</string>
     <string name="cloud_backup_services">Служби</string>
     <string name="cloud_destinations_title">Призначення</string>
@@ -1784,7 +1784,7 @@
     <string name="cloud_person_merge">Об’єднати</string>
     <string name="cloud_person_set_cover">Встановити обкладинку</string>
     <string name="cloud_person_blur_everywhere">Розмиття всюди</string>
-    <string name="cloud_person_blur_everywhere_summary">Затемніть обличчя цієї людини на всіх фотографіях, де вона з\'являється, і збережіть результати як нові копії.</string>
+    <string name="cloud_person_blur_everywhere_summary">Затемніть обличчя цієї людини на всіх фотографіях, де вона з'являється, і збережіть результати як нові копії.</string>
     <string name="cloud_person_blurring_progress">Розмиття %1$d / %2$d…</string>
     <string name="cloud_free_space_never">Ніколи</string>
     <string name="cloud_free_space_never_summary">Автоматичне видалення вимкнене. Виберіть часовий проміжок для сканування локальних копій, які потрібно видалити.</string>
@@ -1911,7 +1911,7 @@
     <string name="library_section_visible">Показано</string>
     <string name="library_section_hidden">Приховано</string>
 <string name="cutout_init_failed">Не вдалося ініціалізувати механізм вирізання</string>
-    <string name="cutout_action">Вирізати об\'єкт</string>
+    <string name="cutout_action">Вирізати об'єкт</string>
     <string name="cutout_include">Включити</string>
     <string name="cutout_exclude">Виключити</string>
     <string name="cutout_reset">Скинути</string>
@@ -1925,8 +1925,8 @@
     
     
     <string name="long_press_cutout_title">Затисніть для вирізання</string>
-    <string name="long_press_cutout_summary">Затискання ізолює об\'єкт; поворот стає кнопкою</string>
-    <string name="long_press_cutout_description">Виберіть, що робить довге натискання на зображенні у переглядачі. Коли увімкнено, довге натискання запускає вирізання об\'єкта на пристрої, а дія обертання переміщується на кнопку на екрані. Коли вимкнено (за замовчуванням), довге натискання обертає зображення. Ви завжди можете вирізати об\'єкт за допомогою інструменту \"Вирізати\" у вбудованому редакторі.</string>
+    <string name="long_press_cutout_summary">Затискання ізолює об'єкт; поворот стає кнопкою</string>
+    <string name="long_press_cutout_description">Виберіть, що робить довге натискання на зображенні у переглядачі. Коли увімкнено, довге натискання запускає вирізання об'єкта на пристрої, а дія обертання переміщується на кнопку на екрані. Коли вимкнено (за замовчуванням), довге натискання обертає зображення. Ви завжди можете вирізати об'єкт за допомогою інструменту "Вирізати" у вбудованому редакторі.</string>
     <string name="slideshow">Слайдшоу</string>
     <string name="slideshow_start">Почати слайдшоу</string>
     <string name="slideshow_more_settings">Додаткові налаштування</string>

@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Delete Selected</string>
     <string name="edit_backups_free_space">Free Space</string>
     <string name="edit_backups_section_actions">Actions</string>
-    <string name="edit_backups_used_percent">%1$s%% 使用済み</string>
+    <string name="edit_backups_used_percent">%1$s% 使用済み</string>
     <string name="edit_backups_selected_count">%1$d 個選択済み</string>
     <string name="edit_backups_select">選択</string>
     <string name="edit_backups_viewing_original">オリジナル</string>
@@ -298,7 +298,7 @@
     <string name="vault_setup_security_error">保管庫をセットアップする前に、携帯電話のセキュリティ対策を設定してください。</string>
     <string name="vault_setup_summary2">保管庫には、携帯電話のセキュリティ対策（パスワードまたは生体認証）を使用してアクセスします。\n\n保管庫の内容は、AES256暗号化アルゴリズムを使用して暗号化されます。\n暗号化キーは保管庫内部にはアクセスできず、保管庫を転送することはできません。</string>
     <string name="vault_setup_decryption_info">ファイルは即座にアクセスされ、デバイスに復号化されることはありません。</string>
-    <string name="vault_already_exists">保管庫 \"%1$s\" はすでに存在します</string>
+    <string name="vault_already_exists">保管庫 "%1$s" はすでに存在します</string>
     <string name="ignored">非表示</string>
     <string name="location">ロケーション</string>
     <string name="support_the_project">プロジェクトをサポートする</string>
@@ -468,7 +468,7 @@
     <string name="vault_create_vault">Create Vault</string>
     <string name="verify_identity">本人確認を行ってください</string>
     <string name="vault_hide_in_progress">メディアを非表示にしています…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">この保管庫にカスタムパスワードを設定しますか？</string>
     <string name="vault_skip_password">端末のセキュリティを使用する</string>
     <string name="vault_set_password">Set custom password</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">ホーム画面のランチャーに表示される名前とアイコンを変更します。変更を適用するためにアプリが再起動します。</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">メタデータを収集しています…</string>
-    <string name="metadata_collecting_progress">メタデータを収集しています… %1$d%%</string>
+    <string name="metadata_collecting_progress">メタデータを収集しています… %1$d%</string>
     <string name="metadata_idle">タップしてライブラリからメディアメタデータを更新する</string>
     <string name="video_playback">動画再生</string>
     <string name="interface_settings">インターフェイス</string>
@@ -633,7 +633,7 @@
     <string name="motion_photo_export_video">Save as video</string>
     <string name="motion_photo_exporting">Saving video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="media_groupings">Media Groupings</string>
 <string name="sort_most_accurate">最も正確</string>
     <string name="sort_by_date">日時</string>
@@ -758,7 +758,7 @@
     <string name="help_whats_new">新着情報</string>
     <string name="help_whats_new_subtitle">最新のギャラリー機能をご覧ください</string>
     <string name="help_whats_new_in_version">v%s の新機能</string>
-    <string name="help_explore_whats_new">Explore what\'s new</string>
+    <string name="help_explore_whats_new">Explore what's new</string>
     <string name="help_get_started">始める</string>
     <string name="help_make_most">ギャラリーを最大限に活用する</string>
     <string name="help_explore_tips">さらにヒントを見る</string>
@@ -837,14 +837,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
     <string name="backup_export_password_notice">安全のために、パスワードでバックアップ全体を暗号化することができます。後でバックアップをインポートする必要があります。復元することはできません。</string>
     <string name="backup_protect_with_password">バックアップをパスワードで暗号化する</string>
     <string name="backup_password">パスワード</string>
     <string name="backup_password_confirm">パスワードを確認</string>
     <string name="backup_show_password">パスワードを表示</string>
     <string name="backup_verify_export_subtitle">保管庫の内容をエクスポートするには、本人確認を行ってください</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">暗号化されたバックアップ</string>
     <string name="backup_import_password_desc">このバックアップはパスワードで保護されています。インポートするには、パスワードを入力してください。</string>
@@ -865,7 +865,7 @@
     <string name="backup_restore_header">復元するものを選択してください</string>
     <string name="backup_restore">復元</string>
     <string name="backup_made_with_version">ReFra %1$s で作成されました</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d アイテム</string>
     <string name="backup_pick_file_prompt">復元するバックアップファイルを選択してください。</string>
     <string name="backup_choose_file">ファイルを選択</string>
@@ -1366,8 +1366,8 @@
 
     <string name="smart_scan_notification_channel">スマートスキャン</string>
     <string name="smart_scan_notification_title">メディアのスキャン</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d/%3$d · %4$d%% 全体</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d/%3$d · %4$d%% 全体 · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d/%3$d · %4$d% 全体</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d/%3$d · %4$d% 全体 · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · 準備中</string>
     <string name="trash_empty_state_title">ゴミ箱が空です</string>
     <string name="action_move_to_trash">ゴミ箱に移動</string>
@@ -1528,9 +1528,9 @@
     <string name="smart_scan_eta_under_minute">残り1分未満</string>
     <string name="smart_scan_eta_minutes">残り約 %1$d 分</string>
     <string name="smart_scan_eta_hours">残り約 %1$d 時間 %2$d 分</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d/%3$d アイテム · %4$d%% 全体</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d/%3$d アイテム · %4$d%% 全体 · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · 準備中 · %2$d%% 全体</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d/%3$d アイテム · %4$d% 全体</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d/%3$d アイテム · %4$d% 全体 · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · 準備中 · %2$d% 全体</string>
     <string name="smart_scan_phase_source_sync">ライブラリを同期しています</string>
     <string name="smart_scan_phase_metadata">メタデータの読み取り</string>
     <string name="smart_scan_phase_search_index">インデックス作成スマート検索</string>
@@ -1581,7 +1581,7 @@
     <string name="frame_picker_extract_frames">フレームの抽出</string>
     <string name="frame_picker_title">フレームを選ぶ</string>
     <string name="frame_picker_preparing">ソースを準備中…</string>
-    <string name="frame_picker_preparing_progress">ソースを準備中… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">ソースを準備中… %1$d%</string>
     <string name="frame_picker_preview_description">選択したビデオフレーム</string>
     <string name="frame_picker_previous_frame">前のフレーム</string>
     <string name="frame_picker_next_frame">次のフレーム</string>
@@ -1745,7 +1745,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d がバックアップされました</string>
     <string name="cloud_backup_account_albums">%1$d 枚のアルバム</string>
     <string name="cloud_backup_dashboard_title">バックアップと同期</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% がバックアップされました</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% がバックアップされました</string>
     <string name="cloud_backup_overall_caption">%3$d サービスにわたる %2$d アイテム中 %1$d</string>
     <string name="cloud_backup_services">サービス</string>
     <string name="cloud_destinations_title">目的地</string>

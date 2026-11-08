@@ -109,8 +109,8 @@
     <string name="amoled_mode_title">שימוש במצב Amoled</string>
     <string name="amoled_mode_summary">ניגודיות גבוהה יותר, מתאים במיוחד למסכי Amoled</string>
     <string name="use_system_font_title">Use system font</string>
-    <string name="use_system_font_summary">Use your device\'s default font instead of the built-in one</string>
-    <string name="use_system_font_description">When enabled, the app uses your device\'s system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
+    <string name="use_system_font_summary">Use your device's default font instead of the built-in one</string>
+    <string name="use_system_font_description">When enabled, the app uses your device's system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
     <string name="color_palette_preview_description">סמלים, טקסט ועוד מתאימים לצבעי הטפט שלך</string>
     <string name="color_palette_wallpaper_colors">צבעי הטפט</string>
     <string name="color_palette_other_colors">צבעים אחרים</string>
@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">מחיקת הנבחרים</string>
     <string name="edit_backups_free_space">שטח פנוי</string>
     <string name="edit_backups_section_actions">פעולות</string>
-    <string name="edit_backups_used_percent">בשימוש %1$s%%</string>
+    <string name="edit_backups_used_percent">בשימוש %1$s%</string>
     <string name="edit_backups_selected_count">%1$d נבחרו</string>
     <string name="edit_backups_select">בחירה</string>
     <string name="edit_backups_viewing_original">מקור</string>
@@ -298,7 +298,7 @@
     <string name="vault_setup_security_error">נא להגדיר אמצעי אבטחה במכשיר לפני הקמת הכספת.</string>
     <string name="vault_setup_summary2">הכספת מוגנת ע״י נעילת המכשיר שלך (PIN, סיסמה או אמצעים ביומטריים).\n\nהקבצים שלך מוצפנים באמצעות AES-256 וניתן לגשת אליהם רק לאחר אימות.</string>
     <string name="vault_setup_decryption_info">הקבצים שלך נגישים בזמן אמת ולעולם אינם מאוחסנים במכשיר במצב מפוענח.</string>
-    <string name="vault_already_exists">הכספת \"%1$s\" כבר קיימת</string>
+    <string name="vault_already_exists">הכספת "%1$s" כבר קיימת</string>
     <string name="ignored">מוסתר</string>
     <string name="location">מיקום</string>
     <string name="support_the_project">תמיכה בפרויקט</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">מצפין מדיה…</string>
     <string name="vault_encrypt_notification_title">מצפין מדיה</string>
     <string name="vault_decrypt_notification_title">מפענח מדיה</string>
-    <string name="vault_operation_in_progress">%1$d%% הושלמו</string>
+    <string name="vault_operation_in_progress">%1$d% הושלמו</string>
     <string name="vault_notification_channel_name">פעולות כספת</string>
     <string name="vault_notification_channel_description">התקדמות משימות הצפנה / פענוח</string>
     <string name="decrypt_vault">פענוח הכספת</string>
@@ -468,12 +468,12 @@
     <string name="vault_create_vault">יצירת כספת</string>
     <string name="verify_identity">אמת את זהותך</string>
     <string name="vault_hide_in_progress">מסתיר מדיה…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">האם תרצה להגדיר סיסמה מותאמת לכספת זו?</string>
     <string name="vault_skip_password">שימוש באבטחת המכשיר</string>
     <string name="vault_set_password">Set custom password</string>
-    <string name="vault_deletion_title_named">למחוק את \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">הכספת \"%1$s\" וכל תוכנה יימחקו לצמיתות.\nלא ניתן לבטל פעולה זו.</string>
+    <string name="vault_deletion_title_named">למחוק את "%1$s"?</string>
+    <string name="vault_deletion_summary_named">הכספת "%1$s" וכל תוכנה יימחקו לצמיתות.\nלא ניתן לבטל פעולה זו.</string>
     <string name="vault_manage_security">ניהול אבטחה</string>
     <string name="vault_change_security">הגדרת סיסמה מותאמת</string>
     <string name="vault_change_security_summary">שימוש ב-PIN, תבנית או סיסמה במקום אבטחת המכשיר</string>
@@ -552,7 +552,7 @@
     <string name="trash_enabled_description">כשמופעל, תמונות וסרטונים שנמחקו מועברים לסל המיחזור ונשמרים למשך 30 יום לפני מחיקה לצמיתות. כשמכובה, המחיקה מיידית ובלתי הפיכה.</string>
     <string name="trash_confirmation_description">מציג חלון אישור לפני העברת פריטים לסל המיחזור, ומונע מחיקות בטעות.</string>
     <string name="follow_system_theme_description">כשמופעל, האפליקציה עוקבת אוטומטית אחר הגדרת המצב הבהיר/כהה של המכשיר שלך. כבה כדי לבחור ידנית מצב בהיר או כהה למטה.</string>
-    <string name="dark_mode_description">מאלץ את האפליקציה להשתמש במצב כהה ללא קשר להגדרת המערכת שלך. זמין רק כש\"בהתאם לערכת המערכת\" כבוי.</string>
+    <string name="dark_mode_description">מאלץ את האפליקציה להשתמש במצב כהה ללא קשר להגדרת המערכת שלך. זמין רק כש"בהתאם לערכת המערכת" כבוי.</string>
     <string name="amoled_mode_description">משתמש ברקע שחור טהור במקום אפור כהה, ומספק ניגודיות גבוהה יותר וחוסך סוללה במסכי AMOLED.</string>
     <string name="timeline_layout_description">בחר כיצד התמונות מסודרות ברשת ציר הזמן. הרשת האחידה מציגה תמונות ממוזערות בגדלים שווים, בעוד שפריסת הפסיפס מגוונת את הגדלים למראה דינמי יותר.</string>
     <string name="favorite_icon_description">בחר היכן יופיע סמל הלב של המועדפים על התמונות הממוזערות ברשת, או הסתר אותו לחלוטין.</string>
@@ -561,7 +561,7 @@
     <string name="app_name_description">שינוי השם והסמל המוצגים במפעיל במסך הבית. האפליקציה תופעל מחדש כדי להחיל את השינוי.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">אוסף מטא-נתונים…</string>
-    <string name="metadata_collecting_progress">אוסף מטא-נתונים… %1$d%%</string>
+    <string name="metadata_collecting_progress">אוסף מטא-נתונים… %1$d%</string>
     <string name="metadata_idle">הקש כדי לרענן מטא-נתוני מדיה מהספרייה שלך</string>
     <string name="video_playback">ניגון וידאו</string>
     <string name="interface_settings">ממשק</string>
@@ -633,7 +633,7 @@
     <string name="motion_photo_export_video">Save as video</string>
     <string name="motion_photo_exporting">Saving video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="media_groupings">קיבוצי מדיה</string>
 <string name="sort_most_accurate">הכי מדויק</string>
     <string name="sort_by_date">תאריך</string>
@@ -843,14 +843,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
     <string name="backup_show_password">Show password</string>
     <string name="backup_verify_export_subtitle">Verify your identity to export vault contents</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -871,7 +871,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -903,7 +903,7 @@
     <string name="security_private_folder">תיקייה פרטית</string>
     <string name="security_private_folder_summary_none">לא מוגדר</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">הגדר תיקייה במכשירך שנגישה רק דרך אפליקציה זו. תכניה מוסתרים לחלוטין מציר הזמן הרגיל, מהאלבומים ומתוצאות החיפוש.\n\nאיך זה עובד — התיקייה נגישה דרך Storage Access Framework (SAF), שמשמעו שתכניה לא מאונדקסים ע״י סורק המדיה של המערכת ולא יופיעו באפליקציות גלריה אחרות או מנהלי קבצים שמסתמכים על MediaStore. כשבוחרים תיקייה, קובץ .nomedia נוצר בה אוטומטית כדי למנוע מ-Android לסרוק את תכניה. זה מבטיח שתמונות וסרטונים בתיקייה נשארים מוסתרים מכל האפליקציות האחרות.\n\nאיפה תמצא אותה — לאחר ההגדרה, רשומת \"תיקייה פרטית\" מופיעה ברשימת האלבומים שלך. פתיחתה דורשת אימות אם הפעלת נעילת אפליקציה.\n\nמה ניתן לעשות — לעיין, לצפות ולמחוק תמונות וסרטונים בתוך התיקייה הפרטית. הקבצים מוצגים במציג ייעודי עם אותן תכונות כמו הגלריה הראשית (זום, החלקה, מטא-נתונים).\n\nבחירת תיקייה — תוכל לבחור כל תיקייה שהמכשיר שלך מאפשר, כולל אחסון פנימי, כרטיס SD או כונן USB. האפליקציה זוכרת את הבחירה שלך בין הפעלות מחדש. תוכל לשנות או להסיר את התיקייה בכל עת מבלי להשפיע על הקבצים עצמם.\n\nחשוב — אל תמחק את קובץ .nomedia שבתיקייה הפרטית. אם יוסר, Android יסרוק את התיקייה ותכניה עלולים להופיע באפליקציות גלריה אחרות. האפליקציה תיצור אותו מחדש אוטומטית בפעם הבאה שתפתח את הגדרות התיקייה הפרטית.</string>
+    <string name="security_private_folder_description">הגדר תיקייה במכשירך שנגישה רק דרך אפליקציה זו. תכניה מוסתרים לחלוטין מציר הזמן הרגיל, מהאלבומים ומתוצאות החיפוש.\n\nאיך זה עובד — התיקייה נגישה דרך Storage Access Framework (SAF), שמשמעו שתכניה לא מאונדקסים ע״י סורק המדיה של המערכת ולא יופיעו באפליקציות גלריה אחרות או מנהלי קבצים שמסתמכים על MediaStore. כשבוחרים תיקייה, קובץ .nomedia נוצר בה אוטומטית כדי למנוע מ-Android לסרוק את תכניה. זה מבטיח שתמונות וסרטונים בתיקייה נשארים מוסתרים מכל האפליקציות האחרות.\n\nאיפה תמצא אותה — לאחר ההגדרה, רשומת "תיקייה פרטית" מופיעה ברשימת האלבומים שלך. פתיחתה דורשת אימות אם הפעלת נעילת אפליקציה.\n\nמה ניתן לעשות — לעיין, לצפות ולמחוק תמונות וסרטונים בתוך התיקייה הפרטית. הקבצים מוצגים במציג ייעודי עם אותן תכונות כמו הגלריה הראשית (זום, החלקה, מטא-נתונים).\n\nבחירת תיקייה — תוכל לבחור כל תיקייה שהמכשיר שלך מאפשר, כולל אחסון פנימי, כרטיס SD או כונן USB. האפליקציה זוכרת את הבחירה שלך בין הפעלות מחדש. תוכל לשנות או להסיר את התיקייה בכל עת מבלי להשפיע על הקבצים עצמם.\n\nחשוב — אל תמחק את קובץ .nomedia שבתיקייה הפרטית. אם יוסר, Android יסרוק את התיקייה ותכניה עלולים להופיע באפליקציות גלריה אחרות. האפליקציה תיצור אותו מחדש אוטומטית בפעם הבאה שתפתח את הגדרות התיקייה הפרטית.</string>
     <string name="security_private_folder_status_active">התיקייה מוגדרת</string>
     <string name="security_private_folder_status_none">לא נבחרה תיקייה</string>
     <string name="security_private_folder_pick">בחירת תיקייה</string>
@@ -1372,8 +1372,8 @@
 
     <string name="smart_scan_notification_channel">סריקה חכמה</string>
     <string name="smart_scan_notification_title">סריקת מדיה</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d של %3$d · %4$d%% בסך הכל</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d של %3$d · %4$d%% בסך הכל · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d של %3$d · %4$d% בסך הכל</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d של %3$d · %4$d% בסך הכל · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · הכנה</string>
     <string name="trash_empty_state_title">האשפה ריקה</string>
     <string name="action_move_to_trash">העבר לאשפה</string>
@@ -1499,7 +1499,7 @@
     <string name="ai_models_group_cutout_ready_summary">גזירת נושא זמינה במציג המדיה</string>
     <string name="ai_models_source_cutout_url">huggingface.co/Acly/MobileSAM</string>
     <string name="ai_models_group_face_detect_title">זיהוי פנים</string>
-    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, גלאי פנים קל משקל המניע את פעולת \"טשטוש הפנים\" האוטומטית של העורך.</string>
+    <string name="ai_models_group_face_detect_desc">UltraFace RFB-320, גלאי פנים קל משקל המניע את פעולת "טשטוש הפנים" האוטומטית של העורך.</string>
     <string name="ai_models_group_face_detect_download_summary">הורד את גלאי UltraFace (~1.3 MB)</string>
     <string name="ai_models_group_face_detect_ready_summary">טשטוש פנים אוטומטי זמין בעורך התמונות</string>
     <string name="ai_models_source_face_detect_url">github.com/onnx/models · UltraFace</string>
@@ -1534,9 +1534,9 @@
     <string name="smart_scan_eta_under_minute">נותרה פחות מדקה</string>
     <string name="smart_scan_eta_minutes">נותרו בערך %1$d דקות</string>
     <string name="smart_scan_eta_hours">נותרו בערך %1$d שעות %2$d דקות</string>
-    <string name="smart_scan_settings_progress">%1$s · %2$d של פריטים %3$d · %4$d%% בסך הכל</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %2$d של פריטים %3$d · %4$d%% בסך הכל · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · הכנה · %2$d%% בסך הכל</string>
+    <string name="smart_scan_settings_progress">%1$s · %2$d של פריטים %3$d · %4$d% בסך הכל</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %2$d של פריטים %3$d · %4$d% בסך הכל · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · הכנה · %2$d% בסך הכל</string>
     <string name="smart_scan_phase_source_sync">מסנכרן את הספרייה</string>
     <string name="smart_scan_phase_metadata">קריאת מטא נתונים</string>
     <string name="smart_scan_phase_search_index">הוספת חיפוש חכם לאינדקס</string>
@@ -1587,7 +1587,7 @@
     <string name="frame_picker_extract_frames">חלץ מסגרות</string>
     <string name="frame_picker_title">בחר מסגרות</string>
     <string name="frame_picker_preparing">מכין מקור...</string>
-    <string name="frame_picker_preparing_progress">מכין מקור... %1$d%%</string>
+    <string name="frame_picker_preparing_progress">מכין מקור... %1$d%</string>
     <string name="frame_picker_preview_description">מסגרת וידאו נבחרה</string>
     <string name="frame_picker_previous_frame">מסגרת קודמת</string>
     <string name="frame_picker_next_frame">המסגרת הבאה</string>
@@ -1705,7 +1705,7 @@
     <string name="cloud_net_active_url">כתובת URL פעילה כרגע</string>
     <string name="cloud_net_local_active">ברשת מקומית - באמצעות כתובת URL מקומית</string>
     <string name="cloud_net_external_active">מחוץ לרשת המקומית - באמצעות כתובת URL חיצונית</string>
-    <string name="cloud_help_immich">הזן את כתובת האתר של שרת Immich שלך (כלול http:// או https://). היכנס עם הדוא\"ל והסיסמה שלך, או הדבק מפתח API מהגדרות חשבון ← מפתחות API.</string>
+    <string name="cloud_help_immich">הזן את כתובת האתר של שרת Immich שלך (כלול http:// או https://). היכנס עם הדוא"ל והסיסמה שלך, או הדבק מפתח API מהגדרות חשבון ← מפתחות API.</string>
     <string name="cloud_help_owncloud">הזן את כתובת האתר של שרת הענן שלך (למשל https://cloud.example.com). השתמש בשם המשתמש והסיסמה של החשבון שלך, או בסיסמת אפליקציה אם הפעלת אימות דו-שלבי.</string>
     <string name="cloud_help_nextcloud">הזן את כתובת האתר של שרת Nextcloud שלך (למשל https://cloud.example.com). היכנס בצורה מאובטחת בדפדפן שלך, כולל אימות דו-שלבי, או השתמש בשם משתמש וסיסמת אפליקציה באופן ידני.</string>
     <string name="cloud_nextcloud_sign_in">היכנס באמצעות Nextcloud</string>
@@ -1751,7 +1751,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d מגובים</string>
     <string name="cloud_backup_account_albums">אלבומי %1$d</string>
     <string name="cloud_backup_dashboard_title">גיבוי וסנכרון</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% מגובה</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% מגובה</string>
     <string name="cloud_backup_overall_caption">%1$d של פריטי %2$d בשירותי %3$d</string>
     <string name="cloud_backup_services">שירותים</string>
     <string name="cloud_destinations_title">יעדים</string>

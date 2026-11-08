@@ -95,7 +95,7 @@
     <string name="secure_mode_summary">Hide the app preview when you exit it</string>
     <string name="reset">Reset</string>
     <string name="set_wallpaper">Wallpaper</string>
-    <string name="set_wallpaper_error">Can\'t set wallpaper, no app available!</string>
+    <string name="set_wallpaper_error">Can't set wallpaper, no app available!</string>
     <string name="monthly_timeline_title">Monthly Timeline</string>
     <string name="monthly_timeline_summary">Group the timeline monthly instead of per date (Restarts the app)</string>
     <string name="timeline_layout_type">Timeline layout</string>
@@ -109,8 +109,8 @@
     <string name="amoled_mode_title">Use Amoled Mode</string>
     <string name="amoled_mode_summary">Higher contrast, best suited for Amoled Screens</string>
     <string name="use_system_font_title">Use system font</string>
-    <string name="use_system_font_summary">Use your device\'s default font instead of the built-in one</string>
-    <string name="use_system_font_description">When enabled, the app uses your device\'s system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
+    <string name="use_system_font_summary">Use your device's default font instead of the built-in one</string>
+    <string name="use_system_font_description">When enabled, the app uses your device's system font instead of the built-in Google Sans font. This can improve readability if you use a custom system font.</string>
     <string name="color_palette_preview_description">Icons, text, and more match colors in your wallpaper</string>
     <string name="color_palette_wallpaper_colors">Wallpaper colors</string>
     <string name="color_palette_other_colors">Other colors</string>
@@ -128,7 +128,7 @@
     <string name="trash_incompatible_summary">Such items will be deleted permanently instead.</string>
     <string name="error_toast">An error occurred!</string>
     <string name="description">Description</string>
-    <string name="video_description_local_only">Video descriptions are stored locally and won\'t be written to the file</string>
+    <string name="video_description_local_only">Video descriptions are stored locally and won't be written to the file</string>
     <string name="move_to_another_album">Move to another album</string>
     <string name="move">Move</string>
     <string name="some_permissions_are_not_granted">Some permissions are not granted!</string>
@@ -182,7 +182,7 @@
     <string name="edit_backups_delete_selected">Delete Selected</string>
     <string name="edit_backups_free_space">Free Space</string>
     <string name="edit_backups_section_actions">Actions</string>
-    <string name="edit_backups_used_percent">Used %1$s%%</string>
+    <string name="edit_backups_used_percent">Used %1$s%</string>
     <string name="edit_backups_selected_count">%1$d selected</string>
     <string name="edit_backups_select">Select</string>
     <string name="edit_backups_viewing_original">Original</string>
@@ -296,9 +296,9 @@
     <string name="vault_setup_subtitle"><![CDATA[Encrypt your most private photos & videos]]></string>
     <string name="vault_setup_name">Vault Name</string>
     <string name="vault_setup_security_error">Please set-up a phone security measure before setting up the vault.</string>
-    <string name="vault_setup_summary2">The vault will be accessed using your phone security measures (password or biometrics)\n\nThe vault contents are encrypted using a AES256 encryption algorithm.\nEncryption key can\'t be accessed inside the vault and you will not be able to transfer your vault.</string>
+    <string name="vault_setup_summary2">The vault will be accessed using your phone security measures (password or biometrics)\n\nThe vault contents are encrypted using a AES256 encryption algorithm.\nEncryption key can't be accessed inside the vault and you will not be able to transfer your vault.</string>
     <string name="vault_setup_decryption_info">Your files are accessed on the fly and never stored decrypted on the device.</string>
-    <string name="vault_already_exists">Vault \"%1$s\" already exists</string>
+    <string name="vault_already_exists">Vault "%1$s" already exists</string>
     <string name="ignored">Ignored</string>
     <string name="location">Location</string>
     <string name="support_the_project">Support the project</string>
@@ -314,7 +314,7 @@
     <string name="no_metadata_found">No metadata found</string>
     <string name="loading_metadata">Loading metadata…</string>
     <string name="categorise_your_media">Categorise your media</string>
-    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device by using TensorFlow-Lite with a pre-trained model available in the app\'s assets.</string>
+    <string name="disclaimer_classification">Your media is not uploaded to any server, all classification is done locally on your device by using TensorFlow-Lite with a pre-trained model available in the app's assets.</string>
     <string name="ai_category">Smart Features</string>
     <!-- AI Model Management -->
 <string name="ai_models_manager">AI Models Manager</string>
@@ -416,7 +416,7 @@
     <string name="encrypting_media">Encrypting media...</string>
     <string name="vault_encrypt_notification_title">Encrypting media</string>
     <string name="vault_decrypt_notification_title">Decrypting media</string>
-    <string name="vault_operation_in_progress">%1$d%% completed</string>
+    <string name="vault_operation_in_progress">%1$d% completed</string>
     <string name="vault_notification_channel_name">Vault Operations</string>
     <string name="vault_notification_channel_description">Progress of encryption / decryption tasks</string>
     <string name="decrypt_vault">Decrypt Vault</string>
@@ -468,12 +468,12 @@
     <string name="vault_create_vault">Create Vault</string>
     <string name="verify_identity">Verify your identity</string>
     <string name="vault_hide_in_progress">Hiding media…</string>
-    <string name="vault_hide_no_local_items">Cloud items can\'t be added to a vault</string>
+    <string name="vault_hide_no_local_items">Cloud items can't be added to a vault</string>
     <string name="vault_setup_password_prompt">Would you like to set a custom password for this vault?</string>
     <string name="vault_skip_password">Use device security</string>
     <string name="vault_set_password">Set custom password</string>
-    <string name="vault_deletion_title_named">Delete \"%1$s\"?</string>
-    <string name="vault_deletion_summary_named">Vault \"%1$s\" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
+    <string name="vault_deletion_title_named">Delete "%1$s"?</string>
+    <string name="vault_deletion_summary_named">Vault "%1$s" and all its content will be deleted permanently.\nThis action cannot be undone.</string>
     <string name="vault_manage_security">Manage security</string>
     <string name="vault_change_security">Set custom password</string>
     <string name="vault_change_security_summary">Use a PIN, pattern, or password instead of device security</string>
@@ -551,8 +551,8 @@
     <string name="allow_vibrations_description">Allows the app to send haptic feedback during certain actions and gestures, such as long-pressing to select or pinch-to-zoom transitions.</string>
     <string name="trash_enabled_description">When enabled, deleted photos and videos are moved to trash and kept for 30 days before permanent deletion. When disabled, deleting is immediate and irreversible.</string>
     <string name="trash_confirmation_description">Shows a confirmation dialog before moving items to the trash, preventing accidental deletions.</string>
-    <string name="follow_system_theme_description">When enabled, the app follows your device\'s light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
-    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when \"Follow System Theme\" is disabled.</string>
+    <string name="follow_system_theme_description">When enabled, the app follows your device's light/dark mode setting automatically. Disable to manually choose light or dark mode below.</string>
+    <string name="dark_mode_description">Forces the app to use dark mode regardless of your system setting. Only available when "Follow System Theme" is disabled.</string>
     <string name="amoled_mode_description">Uses a pure black background instead of dark grey, providing higher contrast and saving battery on AMOLED screens.</string>
     <string name="timeline_layout_description">Choose how photos are arranged in the timeline grid. The uniform grid shows equal-sized thumbnails, while the mosaic layout varies sizes for a more dynamic look.</string>
     <string name="favorite_icon_description">Choose where the favorite heart icon appears on thumbnails in the grid, or hide it entirely.</string>
@@ -561,13 +561,13 @@
     <string name="app_name_description">Change the name and icon displayed on your home screen launcher. The app will restart to apply the change.</string>
     <!-- Settings Overhaul: Metadata worker feedback -->
     <string name="metadata_collecting">Collecting metadata…</string>
-    <string name="metadata_collecting_progress">Collecting metadata… %1$d%%</string>
+    <string name="metadata_collecting_progress">Collecting metadata… %1$d%</string>
     <string name="metadata_idle">Tap to refresh media metadata from your library</string>
     <string name="video_playback">Video Playback</string>
     <string name="interface_settings">Interface</string>
     <string name="show_date_header">Show Media Date Header</string>
     <string name="show_date_header_summary">Show the media date in the media view top bar header.</string>
-    <string name="show_selection_titles">Display Selection Item\'s Title</string>
+    <string name="show_selection_titles">Display Selection Item's Title</string>
     <string name="show_selection_titles_summary">Display in the selection sheet a title for each action</string>
     <string name="selection_actions">Selection Actions</string>
     <string name="selection_actions_summary">Customize action bar items and order</string>
@@ -633,7 +633,7 @@
     <string name="motion_photo_export_video">Save as video</string>
     <string name="motion_photo_exporting">Saving video…</string>
     <string name="motion_photo_export_success">Video saved to gallery</string>
-    <string name="motion_photo_export_failed">Couldn\'t save video</string>
+    <string name="motion_photo_export_failed">Couldn't save video</string>
     <string name="media_groupings">Media Groupings</string>
 <string name="sort_most_accurate">Most accurate</string>
     <string name="sort_by_date">Date</string>
@@ -655,7 +655,7 @@
     <!-- Editor tabs -->
     <string name="editor_done">Done</string>
     <string name="editor_save_subtitle">You can always undo these changes</string>
-    <string name="editor_save_copy_subtitle">Your original won\'t change</string>
+    <string name="editor_save_copy_subtitle">Your original won't change</string>
     <string name="editor_mirror">Mirror image</string>
     <string name="editor_rotate_90">Rotate 90 degrees</string>
     <string name="editor_aspect_ratio">Aspect ratio</string>
@@ -756,11 +756,11 @@
     <string name="add_selected">Add selected</string>
     <!-- Help & Tips Screen -->
     <string name="help_title">Help &amp; tips</string>
-    <string name="help_summary">Tutorials, tips, and what\'s new</string>
-    <string name="help_whats_new">What\'s new</string>
+    <string name="help_summary">Tutorials, tips, and what's new</string>
+    <string name="help_whats_new">What's new</string>
     <string name="help_whats_new_subtitle">Discover the latest Gallery features</string>
-    <string name="help_whats_new_in_version">What\'s new in v%s</string>
-    <string name="help_explore_whats_new">Explore what\'s new</string>
+    <string name="help_whats_new_in_version">What's new in v%s</string>
+    <string name="help_explore_whats_new">Explore what's new</string>
     <string name="help_get_started">Get started</string>
     <string name="help_make_most">Make the most of Gallery</string>
     <string name="help_explore_tips">Explore more tips</string>
@@ -839,14 +839,14 @@
     <string name="backup_export_done">Exported %1$d settings, %2$d favorites, %3$d cloud accounts, %4$d vaults (%5$d items).</string>
     <string name="backup_import_done">Imported %1$d settings, %2$d cloud favorites, %3$d cloud accounts, %4$d vaults (%5$d items). %6$d local favorites pending confirmation.</string>
     <string name="backup_error">Backup failed: %1$s</string>
-    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You\'ll be asked to verify your vault security before exporting.</string>
-    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You\'ll need it to import the backup later — it cannot be recovered.</string>
+    <string name="backup_export_vault_notice">Vault media will be decrypted into the backup in binary form. You'll be asked to verify your vault security before exporting.</string>
+    <string name="backup_export_password_notice">For extra safety you can encrypt the whole backup with a password. You'll need it to import the backup later — it cannot be recovered.</string>
     <string name="backup_protect_with_password">Encrypt backup with a password</string>
     <string name="backup_password">Password</string>
     <string name="backup_password_confirm">Confirm password</string>
     <string name="backup_show_password">Show password</string>
     <string name="backup_verify_export_subtitle">Verify your identity to export vault contents</string>
-    <string name="backup_unlock_vault_subtitle">Unlock \"%1$s\" to include it in the backup</string>
+    <string name="backup_unlock_vault_subtitle">Unlock "%1$s" to include it in the backup</string>
     <string name="backup_unlock_vaults_gate_subtitle">Verify your vault security to choose which vaults to back up</string>
     <string name="backup_import_password_title">Encrypted backup</string>
     <string name="backup_import_password_desc">This backup is password-protected. Enter the password to import it.</string>
@@ -867,7 +867,7 @@
     <string name="backup_restore_header">Choose what to restore</string>
     <string name="backup_restore">Restore</string>
     <string name="backup_made_with_version">Created with ReFra %1$s</string>
-    <string name="backup_empty">This backup doesn\'t contain any restorable data.</string>
+    <string name="backup_empty">This backup doesn't contain any restorable data.</string>
     <string name="backup_items_count">%1$d items</string>
     <string name="backup_pick_file_prompt">Choose a backup file to restore from.</string>
     <string name="backup_choose_file">Choose file</string>
@@ -899,7 +899,7 @@
     <string name="security_private_folder">ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍</string>
     <string name="security_private_folder_summary_none">କନଫିଗର୍ କରାଯାଇ ନାହିଁ</string>
     <string name="security_private_folder_summary">%s</string>
-    <string name="security_private_folder_description">ଆପଣଙ୍କ ଡିଭାଇସ୍‌ରେ ଏକ ଫୋଲ୍ଡର୍ ନିର୍ଦ୍ଦିଷ୍ଟ କରନ୍ତୁ, ଯାହାକୁ କେବଳ ଏହି ଆପ୍ ମାଧ୍ୟମରେ ଆକ୍ସେସ୍ କରାଯାଇପାରିବ। ଏହାର ବିଷୟବସ୍ତୁ ସାଧାରଣ ଟାଇମଲାଇନ୍, ଆଲବମ୍ ଏବଂ ସନ୍ଧାନ ଫଳାଫଳରୁ ସମ୍ପୂର୍ଣ୍ଣ ଲୁଚି ରହେ।\n\nଏହା କିପରି କାମ କରେ — ଫୋଲ୍ଡର୍‌କୁ Storage Access Framework (SAF) ମାଧ୍ୟମରେ ଆକ୍ସେସ୍ କରାଯାଏ। ତେଣୁ ଏହାର ବିଷୟବସ୍ତୁ ସିଷ୍ଟମ୍ ମିଡିଆ ସ୍କାନର୍ ଦ୍ୱାରା ଇଣ୍ଡେକ୍ସ କରାଯାଏ ନାହିଁ ଏବଂ MediaStore ଉପରେ ନିର୍ଭର କରୁଥିବା ଅନ୍ୟ ଗ୍ୟାଲେରୀ ଆପ୍ କିମ୍ବା ଫାଇଲ୍ ମ୍ୟାନେଜର୍‌ରେ ଦେଖାଯିବ ନାହିଁ। ଆପଣ ଏକ ଫୋଲ୍ଡର୍ ବାଛିଲେ, Android କୁ ତାହାର ବିଷୟବସ୍ତୁ ସ୍କାନ୍ କରିବାରୁ ରୋକିବା ପାଇଁ ସେଥିରେ ସ୍ୱୟଂଚାଳିତ ଭାବେ ଏକ .nomedia ଫାଇଲ୍ ତିଆରି ହୁଏ। ଏହା ଫୋଲ୍ଡର୍‌ର ଫଟୋ ଏବଂ ଭିଡିଓକୁ ଅନ୍ୟ ସମସ୍ତ ଆପ୍‌ରୁ ଲୁଚାଇ ରଖେ।\n\nଏହାକୁ କେଉଁଠି ପାଇବେ — କନଫିଗର୍ ହେବା ପରେ, ଆପଣଙ୍କ ଆଲବମ୍ ତାଲିକାରେ ଏକ \"ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍\" ଏଣ୍ଟ୍ରି ଦେଖାଯାଏ। ଆପ୍ ଲକ୍ ସକ୍ଷମ ଥିଲେ ଏହାକୁ ଖୋଲିବା ପାଇଁ ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ।\n\nଆପଣ କ’ଣ କରିପାରିବେ — ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍‌ର ଫଟୋ ଏବଂ ଭିଡିଓକୁ ବ୍ରାଉଜ୍, ଦେଖି ଏବଂ ଡିଲିଟ୍ କରିପାରିବେ। ଫାଇଲ୍‌ଗୁଡ଼ିକ ମୁଖ୍ୟ ଗ୍ୟାଲେରୀ ପରି ସମାନ ବୈଶିଷ୍ଟ୍ୟ (ଜୁମ୍, ସ୍ୱାଇପ୍, ମେଟାଡାଟା) ଥିବା ଏକ ଉତ୍ସର୍ଗୀକୃତ ଭ୍ୟୁଅର୍‌ରେ ଦେଖାଯାଏ।\n\nଏକ ଫୋଲ୍ଡର୍ ବାଛିବା — ଆପଣଙ୍କ ଡିଭାଇସ୍ ଅନୁମତି ଦେଉଥିବା ଯେକୌଣସି ଫୋଲ୍ଡର୍ ବାଛିପାରିବେ, ଯେଉଁଥିରେ ଆଭ୍ୟନ୍ତରୀଣ ଷ୍ଟୋରେଜ୍, SD କାର୍ଡ କିମ୍ବା USB ଡ୍ରାଇଭ୍ ସାମିଲ୍। ଆପ୍ ପୁନଃଆରମ୍ଭ ପରେ ମଧ୍ୟ ଆପଣଙ୍କ ପସନ୍ଦକୁ ମନେ ରଖେ। ଫାଇଲ୍‌ଗୁଡ଼ିକୁ ପ୍ରଭାବିତ ନକରି ଆପଣ ଯେକୌଣସି ସମୟରେ ଫୋଲ୍ଡର୍ ବଦଳାଇ କିମ୍ବା ହଟାଇପାରିବେ।\n\nଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ — ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍‌ର .nomedia ଫାଇଲ୍‌କୁ ଡିଲିଟ୍ କରନ୍ତୁ ନାହିଁ। ଏହାକୁ ହଟାଇଲେ, Android ଫୋଲ୍ଡର୍‌କୁ ସ୍କାନ୍ କରିବ ଏବଂ ଏହାର ବିଷୟବସ୍ତୁ ଅନ୍ୟ ଗ୍ୟାଲେରୀ ଆପ୍‌ଗୁଡ଼ିକରେ ଦେଖାଯାଇପାରେ। ପରବର୍ତ୍ତୀ ଥର ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍ ସେଟିଂସ୍ ଖୋଲିଲେ ଆପ୍ ଏହାକୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ପୁନଃତିଆରି କରିବ।</string>
+    <string name="security_private_folder_description">ଆପଣଙ୍କ ଡିଭାଇସ୍‌ରେ ଏକ ଫୋଲ୍ଡର୍ ନିର୍ଦ୍ଦିଷ୍ଟ କରନ୍ତୁ, ଯାହାକୁ କେବଳ ଏହି ଆପ୍ ମାଧ୍ୟମରେ ଆକ୍ସେସ୍ କରାଯାଇପାରିବ। ଏହାର ବିଷୟବସ୍ତୁ ସାଧାରଣ ଟାଇମଲାଇନ୍, ଆଲବମ୍ ଏବଂ ସନ୍ଧାନ ଫଳାଫଳରୁ ସମ୍ପୂର୍ଣ୍ଣ ଲୁଚି ରହେ।\n\nଏହା କିପରି କାମ କରେ — ଫୋଲ୍ଡର୍‌କୁ Storage Access Framework (SAF) ମାଧ୍ୟମରେ ଆକ୍ସେସ୍ କରାଯାଏ। ତେଣୁ ଏହାର ବିଷୟବସ୍ତୁ ସିଷ୍ଟମ୍ ମିଡିଆ ସ୍କାନର୍ ଦ୍ୱାରା ଇଣ୍ଡେକ୍ସ କରାଯାଏ ନାହିଁ ଏବଂ MediaStore ଉପରେ ନିର୍ଭର କରୁଥିବା ଅନ୍ୟ ଗ୍ୟାଲେରୀ ଆପ୍ କିମ୍ବା ଫାଇଲ୍ ମ୍ୟାନେଜର୍‌ରେ ଦେଖାଯିବ ନାହିଁ। ଆପଣ ଏକ ଫୋଲ୍ଡର୍ ବାଛିଲେ, Android କୁ ତାହାର ବିଷୟବସ୍ତୁ ସ୍କାନ୍ କରିବାରୁ ରୋକିବା ପାଇଁ ସେଥିରେ ସ୍ୱୟଂଚାଳିତ ଭାବେ ଏକ .nomedia ଫାଇଲ୍ ତିଆରି ହୁଏ। ଏହା ଫୋଲ୍ଡର୍‌ର ଫଟୋ ଏବଂ ଭିଡିଓକୁ ଅନ୍ୟ ସମସ୍ତ ଆପ୍‌ରୁ ଲୁଚାଇ ରଖେ।\n\nଏହାକୁ କେଉଁଠି ପାଇବେ — କନଫିଗର୍ ହେବା ପରେ, ଆପଣଙ୍କ ଆଲବମ୍ ତାଲିକାରେ ଏକ "ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍" ଏଣ୍ଟ୍ରି ଦେଖାଯାଏ। ଆପ୍ ଲକ୍ ସକ୍ଷମ ଥିଲେ ଏହାକୁ ଖୋଲିବା ପାଇଁ ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ।\n\nଆପଣ କ’ଣ କରିପାରିବେ — ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍‌ର ଫଟୋ ଏବଂ ଭିଡିଓକୁ ବ୍ରାଉଜ୍, ଦେଖି ଏବଂ ଡିଲିଟ୍ କରିପାରିବେ। ଫାଇଲ୍‌ଗୁଡ଼ିକ ମୁଖ୍ୟ ଗ୍ୟାଲେରୀ ପରି ସମାନ ବୈଶିଷ୍ଟ୍ୟ (ଜୁମ୍, ସ୍ୱାଇପ୍, ମେଟାଡାଟା) ଥିବା ଏକ ଉତ୍ସର୍ଗୀକୃତ ଭ୍ୟୁଅର୍‌ରେ ଦେଖାଯାଏ।\n\nଏକ ଫୋଲ୍ଡର୍ ବାଛିବା — ଆପଣଙ୍କ ଡିଭାଇସ୍ ଅନୁମତି ଦେଉଥିବା ଯେକୌଣସି ଫୋଲ୍ଡର୍ ବାଛିପାରିବେ, ଯେଉଁଥିରେ ଆଭ୍ୟନ୍ତରୀଣ ଷ୍ଟୋରେଜ୍, SD କାର୍ଡ କିମ୍ବା USB ଡ୍ରାଇଭ୍ ସାମିଲ୍। ଆପ୍ ପୁନଃଆରମ୍ଭ ପରେ ମଧ୍ୟ ଆପଣଙ୍କ ପସନ୍ଦକୁ ମନେ ରଖେ। ଫାଇଲ୍‌ଗୁଡ଼ିକୁ ପ୍ରଭାବିତ ନକରି ଆପଣ ଯେକୌଣସି ସମୟରେ ଫୋଲ୍ଡର୍ ବଦଳାଇ କିମ୍ବା ହଟାଇପାରିବେ।\n\nଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ — ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍‌ର .nomedia ଫାଇଲ୍‌କୁ ଡିଲିଟ୍ କରନ୍ତୁ ନାହିଁ। ଏହାକୁ ହଟାଇଲେ, Android ଫୋଲ୍ଡର୍‌କୁ ସ୍କାନ୍ କରିବ ଏବଂ ଏହାର ବିଷୟବସ୍ତୁ ଅନ୍ୟ ଗ୍ୟାଲେରୀ ଆପ୍‌ଗୁଡ଼ିକରେ ଦେଖାଯାଇପାରେ। ପରବର୍ତ୍ତୀ ଥର ବ୍ୟକ୍ତିଗତ ଫୋଲ୍ଡର୍ ସେଟିଂସ୍ ଖୋଲିଲେ ଆପ୍ ଏହାକୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ପୁନଃତିଆରି କରିବ।</string>
     <string name="security_private_folder_status_active">ଫୋଲ୍ଡର୍ କନଫିଗର୍ ହୋଇଛି</string>
     <string name="security_private_folder_status_none">କୌଣସି ଫୋଲ୍ଡର୍ ବଛାଯାଇ ନାହିଁ</string>
     <string name="security_private_folder_pick">ଫୋଲ୍ଡର୍ ବାଛନ୍ତୁ</string>
@@ -937,7 +937,7 @@
     <string name="trash_restore_all">Restore all</string>
     <string name="trash_delete_all">Delete all</string>
     <string name="favorites_info_title">Your Favorites</string>
-    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won\'t be removed from their original album.</string>
+    <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="favorites_group_by_date">Group by date</string>
     <string name="favorites_group_by_date_on">Grouped by date</string>
     <string name="favorites_group_by_date_off">Showing all</string>
@@ -1368,8 +1368,8 @@
     <!-- Odia coverage completion -->
     <string name="smart_scan_notification_channel">ସ୍ମାର୍ଟ ସ୍କ୍ୟାନ୍</string>
     <string name="smart_scan_notification_title">ମାଧ୍ୟମ ତଦନ୍ତ କରାଯାଉଛି</string>
-    <string name="smart_scan_notification_stage_progress">%1$s · %2$d ର %3$d · %4$d%% ସମ୍ପୂର୍ଣ୍ଣ</string>
-    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d ର %3$d · %4$d%% ସମ୍ପୂର୍ଣ୍ଣ · %5$s</string>
+    <string name="smart_scan_notification_stage_progress">%1$s · %2$d ର %3$d · %4$d% ସମ୍ପୂର୍ଣ୍ଣ</string>
+    <string name="smart_scan_notification_stage_progress_eta">%1$s · %2$d ର %3$d · %4$d% ସମ୍ପୂର୍ଣ୍ଣ · %5$s</string>
     <string name="smart_scan_notification_stage_preparing">%1$s · ପ୍ରସ୍ତୁତି ଚାଲିଛି</string>
     <string name="trash_empty_state_title">କଚରା ଖାଲି ଅଛି</string>
     <string name="action_move_to_trash">କଚରାକୁ ସ୍ଥାନାନ୍ତର କରନ୍ତୁ</string>
@@ -1530,9 +1530,9 @@
     <string name="smart_scan_eta_under_minute">ମିନିଟ୍ ବେଶି ନଥିବା ଅବଧି</string>
     <string name="smart_scan_eta_minutes">ସମ୍ପୂର୍ଣ୍ଣ ହେବାକୁ %1$d ମିନିଟ୍ ବଞ୍ଚିଛି</string>
     <string name="smart_scan_eta_hours">ସମ୍ପୂର୍ଣ୍ଣ ହେବାକୁ %1$d ଘଣ୍ଟା %2$d ମିନିଟ୍ ବଞ୍ଚିଛି</string>
-    <string name="smart_scan_settings_progress">%1$s · %3$d ମଧ୍ୟରୁ %2$d ଆଇଟମ୍ · ମୋଟ %4$d%%</string>
-    <string name="smart_scan_settings_progress_eta">%1$s · %3$d ମଧ୍ୟରୁ %2$d ଆଇଟମ୍ · ମୋଟ %4$d%% · %5$s</string>
-    <string name="smart_scan_settings_preparing">%1$s · ତିଆରି ହେଉଛି · ମୋଟ %2$d%%</string>
+    <string name="smart_scan_settings_progress">%1$s · %3$d ମଧ୍ୟରୁ %2$d ଆଇଟମ୍ · ମୋଟ %4$d%</string>
+    <string name="smart_scan_settings_progress_eta">%1$s · %3$d ମଧ୍ୟରୁ %2$d ଆଇଟମ୍ · ମୋଟ %4$d% · %5$s</string>
+    <string name="smart_scan_settings_preparing">%1$s · ତିଆରି ହେଉଛି · ମୋଟ %2$d%</string>
     <string name="smart_scan_phase_source_sync">ଲାଇବ୍ରେରୀ ସମନ୍ୱୟ କରୁଛି</string>
     <string name="smart_scan_phase_metadata">ମେଟାଡେଟା ପଢ଼ୁଛି</string>
     <string name="smart_scan_phase_search_index">ସ୍ମାର୍ଟ ସର୍ଚ୍ଚଙ୍କୁ ଇଣ୍ଡେକ୍ସ କରୁଛି</string>
@@ -1583,7 +1583,7 @@
     <string name="frame_picker_extract_frames">ଫ୍ରେମ୍ସ୍ ନିକାଳନ୍ତୁ</string>
     <string name="frame_picker_title">ଫ୍ରେମ୍ସ୍ ବାଛନ୍ତୁ</string>
     <string name="frame_picker_preparing">ସ୍ରୋତ ପ୍ରସ୍ଥୁତ କରୁଛି…</string>
-    <string name="frame_picker_preparing_progress">ସ୍ରୋତ ପ୍ରସ୍ଥୁତ କରୁଛି… %1$d%%</string>
+    <string name="frame_picker_preparing_progress">ସ୍ରୋତ ପ୍ରସ୍ଥୁତ କରୁଛି… %1$d%</string>
     <string name="frame_picker_preview_description">ଚୟିତ ଭିଡିଓ ଫ୍ରେମ୍</string>
     <string name="frame_picker_previous_frame">ପୂର୍ବ ଫ୍ରେମ୍</string>
     <string name="frame_picker_next_frame">ପରବର୍ତ୍ତୀ ଫ୍ରେମ୍</string>
@@ -1673,7 +1673,7 @@
     <string name="cloud_step_server_desc">ତୁମର ସର୍ଭର କେଉଁଠାରେ?</string>
     <string name="cloud_step_credentials_desc">କନେକ୍ଟ କରିବା ପାଇଁ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।</string>
     <string name="cloud_step_networking_desc">ବିକଳ୍ପ ଭାବେ, ଆପଣଙ୍କର ହୋମ୍ ନେଟୱର୍କରେ ତୃଟିହୀନ URL ବ୍ୟବହାର କରନ୍ତୁ।</string>
-    <string name="cloud_step_sync_desc">କ\'ଣ ବ୍ୟାକ୍ ଅପ୍ କରିବା ଓ କ\'ଣ ଆଣିବା ତାହା ଚୟନ କରନ୍ତୁ।</string>
+    <string name="cloud_step_sync_desc">କ'ଣ ବ୍ୟାକ୍ ଅପ୍ କରିବା ଓ କ'ଣ ଆଣିବା ତାହା ଚୟନ କରନ୍ତୁ।</string>
     <string name="cloud_step_review_desc">ସବୁକିଛି ସଠିକ୍ ଦିଖୁଛି କିନା ଯାଞ୍ଚ କରନ୍ତୁ।</string>
     <string name="cloud_show_secret">ଦେଖାନ୍ତୁ</string>
     <string name="cloud_hide_secret">ଲୁଚାନ୍ତୁ</string>
@@ -1724,7 +1724,7 @@
     <string name="cloud_nextcloud_network_error">Nextcloud ସର୍ଭରକୁ ଯୋଗାଯୋଗ କରାଯାଇପାରିଲା ନାହିଁ।</string>
     <string name="cloud_nextcloud_tls_error">Nextcloud ସହିତ ସୁରକ୍ଷିତ ସଂଯୋଗ ସତ୍ୟାପିତ କରାଯାଇପାରିଲା ନାହିଁ।</string>
     <string name="cloud_nextcloud_invalid_response">Nextcloud ଏକ ଅବୈଧ ସାଇନ୍-ଇନ୍ ପ୍ରତିକ୍ରିୟା ଦେଲା।</string>
-    <string name="cloud_help_webdav">ଆପଣଙ୍କର ହୋଷ୍ଟ ଦ୍ୱାରା ଦିଆଯାଇଥିବା ସମ୍ପୂର୍ଣ୍ଣ WebDAV ଏଣ୍ଡପଏଣ୍ଟ URL ଦାଖଲ କରନ୍ତୁ, ତା\'ପରେ ଆପଣଙ୍କର WebDAV ଉପଯୋଗକର୍ତ୍ତା ନାମ ଏବଂ ପାସୱାର୍ଡ।</string>
+    <string name="cloud_help_webdav">ଆପଣଙ୍କର ହୋଷ୍ଟ ଦ୍ୱାରା ଦିଆଯାଇଥିବା ସମ୍ପୂର୍ଣ୍ଣ WebDAV ଏଣ୍ଡପଏଣ୍ଟ URL ଦାଖଲ କରନ୍ତୁ, ତା'ପରେ ଆପଣଙ୍କର WebDAV ଉପଯୋଗକର୍ତ୍ତା ନାମ ଏବଂ ପାସୱାର୍ଡ।</string>
     <string name="cloud_help_smb">smb://host/share/folder. ବ୍ୟବହାର କରନ୍ତୁ। ଅତିଥି ପ୍ରବେଶ ପାଇଁ ଉପଯୋଗକର୍ତ୍ତା ନାମ ଖାଲି ରଖନ୍ତୁ, କିମ୍ବା user / DOMAIN\\user ଏବଂ ଆପଣଙ୍କର ପାସୱାର୍ଡ ମଧ୍ୟ ଦାଖଲ କରନ୍ତୁ। ସେୟାର୍ ଏହି ଡିଭାଇସ ସହିତ ସମାନ ସ୍ଥାନୀୟ ନେଟୱର୍କରେ ଥିବା ଆବଶ୍ୟକ। SMB2/3 ଆବଶ୍ୟକ (ପୂର୍ବତନ SMB1 ସମର୍ଥିତ ନୁହେଁ)।</string>
     <string name="cloud_help_nfs">nfs://host/export/path ବ୍ୟବହାର କରନ୍ତୁ, ଯେଉଁଠାରେ host ପରେ ଥିବା ସବୁ କିଛି ହେଉଛି exported path। କେବଳ NFSv3 (AUTH_SYS ସହିତ) ସମର୍ଥିତ — NFSv2 ଏବଂ NFSv4 ସମର୍ଥିତ ନୁହେଁ। ବିକଳ୍ପଭାବରେ, ଏକ uid:gid ସେଟ୍ କରନ୍ତୁ, ଯାହା export ପ୍ରବେଶ ଅନୁମତି ଦେଉଛି। ଏହି export ଏହି ଡିଭାଇସର IPକୁ ଅନୁମତି ଦେବାକୁ, NFSv3 ମାଉଣ୍ଟ ପ୍ରଦାନ କରିବାକୁ, ଏବଂ ସମାନ ସ୍ଥାନୀୟ ନେଟୱାର୍କରେ ଥିବାକୁ ହେବ।</string>
     <string name="cloud_smb_url_hint">smb://host/share/folder</string>
@@ -1747,7 +1747,7 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d ବ୍ୟାକ୍‌ଅପ୍ ହୋଇଛି</string>
     <string name="cloud_backup_account_albums">%1$d ଆଲବମ୍</string>
     <string name="cloud_backup_dashboard_title">ବ୍ୟାକଅପ୍ ଏବଂ ସିଙ୍କ୍</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% ବ୍ୟାକଅପ୍ ହୋଇଛି</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% ବ୍ୟାକଅପ୍ ହୋଇଛି</string>
     <string name="cloud_backup_overall_caption">%1$d ରୁ %2$d ଆଇଟମ୍ %3$d ସେବାରେ</string>
     <string name="cloud_backup_services">ସେବାଗୁଡିକ</string>
     <string name="cloud_destinations_title">ଗନ୍ତବ୍ୟସ୍ଥାନମାନେ</string>
@@ -1866,7 +1866,7 @@
     <string name="setup_ai_download">AI ମଡେଲଗୁଡିକ ଡାଉନଲୋଡ୍ କରନ୍ତୁ</string>
     <string name="setup_ai_download_size">ଏକଥରିକ ଡାଉନଲୋଡ୍ · ପରେ ଅଫ୍ଲାଇନ୍ କାମ କରେ</string>
     <string name="setup_ai_no_internet">AI ମଡେଲଗୁଡିକ ଡାଉନଲୋଡ୍ କରିବାକୁ ଇଣ୍ଟରନେଟ୍ ସଂଯୋଗ ଆବଶ୍ୟକ।</string>
-    <string name="setup_ai_features_title">ଆପଣ କ\'ଣ ପାଇବେ</string>
+    <string name="setup_ai_features_title">ଆପଣ କ'ଣ ପାଇବେ</string>
     <string name="setup_ai_feature_categories_title">ସ୍ମାର୍ଟ ବର୍ଗୀକରଣ</string>
     <string name="setup_ai_feature_categories_desc">ପ୍ରକୃତି, ଲୋକମାନେ ଏବଂ ଖାଦ୍ୟ ପରି ଦଳଗୁଡିକରେ ଫଟୋଗୁଡିକୁ ସ୍ୱୟଂକ୍ରିୟ ଭାବରେ ବର୍ଗୀକୃତ କରାଯାଏ।</string>
     <string name="setup_ai_feature_search_title">ବର୍ଣ୍ଣନା ଦ୍ୱାରା ସନ୍ଧାନ</string>
@@ -1893,7 +1893,7 @@
     <string name="setup_skip_for_now">ବର୍ତ୍ତମାନ ପାଇଁ ଛାଡ଼ିଦିଅନ୍ତୁ</string>
     <string name="setup_tips_title">ଟିପ୍ସ୍ ଏବଂ ଟ୍ରିକ୍ସ୍</string>
     <string name="setup_tips_subtitle">ଆପଣ ସମସ୍ତ ପ୍ରସ୍ତୁତ!</string>
-    <string name="setup_tips_body">ପ୍ରତ୍ୟେକ ବୈଶିଷ୍ଟ୍ୟ ପାଇଁ ଟିପ୍ସ୍ ଏବଂ ଟ୍ରିକ୍ସ୍ ଖୋଜିବା, ପ୍ରତ୍ୟେକ ରିଲିଜ୍ ରେ କ\'ଣ ନୂତନ ହୋଇଛି ତାହା ପଢିବା ଏବଂ ଆପ୍ପ୍ ର ସର୍ବାଧିକ ସଦ୍ବ୍ୟବହାର କରିବା ପାଇଁ ଯେକୌଣସି ସମୟରେ ସେଟିଂସ୍ରୁ ସାହାଯ୍ୟ ପୃଷ୍ଠା ଖୋଲନ୍ତୁ।</string>
+    <string name="setup_tips_body">ପ୍ରତ୍ୟେକ ବୈଶିଷ୍ଟ୍ୟ ପାଇଁ ଟିପ୍ସ୍ ଏବଂ ଟ୍ରିକ୍ସ୍ ଖୋଜିବା, ପ୍ରତ୍ୟେକ ରିଲିଜ୍ ରେ କ'ଣ ନୂତନ ହୋଇଛି ତାହା ପଢିବା ଏବଂ ଆପ୍ପ୍ ର ସର୍ବାଧିକ ସଦ୍ବ୍ୟବହାର କରିବା ପାଇଁ ଯେକୌଣସି ସମୟରେ ସେଟିଂସ୍ରୁ ସାହାଯ୍ୟ ପୃଷ୍ଠା ଖୋଲନ୍ତୁ।</string>
     <string name="library_customize">ଶଟକଟ୍ ସହିତ ବ୍ୟକ୍ତିଗତ କରନ୍ତୁ</string>
     <string name="library_customize_title">ଶଟକଟ୍ ସହିତ ବ୍ୟକ୍ତିଗତ କରନ୍ତୁ</string>
     <string name="library_customize_hint">ଟାଇଲ୍‌ଗୁଡିକୁ ପୁନର୍ବ୍ୟବସ୍ଥାପିତ କରିବା ପାଇଁ ଟାଇଲ୍‌ଗୁଡିକୁ ଟାଣନ୍ତୁ, ପୁନର୍ମାପନ କରିବା ପାଇଁ ପାର୍ଶ୍ୱ ହ୍ୟାଣ୍ଡଲ୍‌କୁ ଟାଣନ୍ତୁ, ହଟାଇବା ପାଇଁ × ଉପରେ ଟ୍ୟାପ୍ କରନ୍ତୁ।</string>
@@ -1923,7 +1923,7 @@
     
     <string name="long_press_cutout_title">କାଟିବା ପାଇଁ ଦୀର୍ଘ-ଦବାନ୍ତୁ</string>
     <string name="long_press_cutout_summary">ଦୀର୍ଘ-ଦବାଇବା ଏକ ବିଷୟକୁ ଅଲଗା କରେ; ଘୁରାଇବା ବଟନ୍ ହୋଇଯାଏ</string>
-    <string name="long_press_cutout_description">ଭିଊଅର୍‌ରେ ଏକ ଛବିରେ ଦୀର୍ଘ-ଦବାଇବା କ\'ଣ କରେ ତାହା ଚୟନ କରନ୍ତୁ। ସକ୍ରିୟ କଲେ, ଦୀର୍ଘ-ଦବାଇବା ଡିଭାଇସ୍ ମଧ୍ୟରେ ବିଷୟ କାଟିବାକୁ ଆରମ୍ଭ କରେ ଏବଂ ଘୁରାଇବା କାର୍ଯ୍ୟ ସ୍କ୍ରିନ୍ ବଟନ୍‌କୁ ସରାଏ। ଅସକ୍ରିୟ କଲେ (ଡିଫଲ୍ଟ), ଦୀର୍ଘ-ଦବାଇବା ଛବିକୁ ଧ୍ରୁଢ଼ କରେ। ବିଳୋପିତ ସମ୍ପାଦକଙ୍କ Cutout ଟୁଲ୍ ରୁ ସଦା ବିଷୟ ଆପଣ ବିଳୋପିତ କରିପାରିବେ।</string>
+    <string name="long_press_cutout_description">ଭିଊଅର୍‌ରେ ଏକ ଛବିରେ ଦୀର୍ଘ-ଦବାଇବା କ'ଣ କରେ ତାହା ଚୟନ କରନ୍ତୁ। ସକ୍ରିୟ କଲେ, ଦୀର୍ଘ-ଦବାଇବା ଡିଭାଇସ୍ ମଧ୍ୟରେ ବିଷୟ କାଟିବାକୁ ଆରମ୍ଭ କରେ ଏବଂ ଘୁରାଇବା କାର୍ଯ୍ୟ ସ୍କ୍ରିନ୍ ବଟନ୍‌କୁ ସରାଏ। ଅସକ୍ରିୟ କଲେ (ଡିଫଲ୍ଟ), ଦୀର୍ଘ-ଦବାଇବା ଛବିକୁ ଧ୍ରୁଢ଼ କରେ। ବିଳୋପିତ ସମ୍ପାଦକଙ୍କ Cutout ଟୁଲ୍ ରୁ ସଦା ବିଷୟ ଆପଣ ବିଳୋପିତ କରିପାରିବେ।</string>
     <string name="slideshow">ସ୍ଲାଇଡ୍‌ଶୋ</string>
     <string name="slideshow_start">ସ୍ଲାଇଡ୍‌ଶୋ ଆରମ୍ଭ କରନ୍ତୁ</string>
     <string name="slideshow_more_settings">ଅଧିକ ସେଟିଙ୍ଗସ୍</string>
