@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Voice-over recording: the runtime prompt runs through the host
+         activity's ActivityResult contract — the library never prompts
+         on its own. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <application>
+        <activity
+            android:name="com.dot.gallery.editor.android.EditorActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter>
+                <action android:name="com.dot.gallery.editor.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/jpeg" />
+                <data android:mimeType="image/png" />
+            </intent-filter>
+        </activity>
+
+        <!-- The library's exported filter covers only the custom action —
+             hosts re-declaring platform ACTION_EDIT do it on their own
+             subclass (the app does not claim every video container). -->
+        <activity
+            android:name="com.dot.gallery.editor.android.VideoEditorActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter>
+                <action android:name="com.dot.gallery.editor.action.EDIT_VIDEO" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

@@ -5,80 +5,80 @@
 
 package com.dot.gallery.cloud.ui
 
+import android.text.format.Formatter
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.PhotoAlbum
+import androidx.compose.material3.Button
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import com.dot.gallery.cloud.ui.components.CloudPage
+import com.dot.gallery.cloud.ui.components.CloudSectionLabel
+import com.dot.gallery.cloud.ui.components.cloudContentWidth
+import com.dot.gallery.cloud.ui.components.positionOf
+import com.dot.gallery.core.Position
+import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.presentation.components.GalleryFilterChip
+import com.dot.gallery.core.ui.components.SettingsItem
+import com.github.panpf.sketch.AsyncImage
+import org.jetbrains.compose.resources.pluralStringResource
+import com.dot.gallery.generated.resources.cloud_upload_albums_summary
+import com.dot.gallery.generated.resources.cloud_upload_album_items
+import com.dot.gallery.generated.resources.cloud_upload_filter_all
+import com.dot.gallery.generated.resources.cloud_upload_filter_off
+import com.dot.gallery.generated.resources.cloud_upload_filter_on
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dot.gallery.core.Constants
-import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.domain.model.Album
-import com.dot.gallery.feature.ignored.ui.setup.components.SelectableAlbumItem
 import com.dot.gallery.core.ui.components.RequestInitialSettingsFocus
-import com.dot.gallery.core.util.or
-import com.dot.gallery.core.Settings
-import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
-import com.dot.gallery.core.ui.components.settingsFocusGroup
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.action_cancel
 import com.dot.gallery.generated.resources.action_save
-import com.dot.gallery.generated.resources.cancel
-import com.dot.gallery.generated.resources.cloud_backup_album_queued
 import com.dot.gallery.generated.resources.cloud_backup_album_syncing
 import com.dot.gallery.generated.resources.cloud_backup_folder_dialog_hint
 import com.dot.gallery.generated.resources.cloud_dedup_header
@@ -88,7 +88,6 @@ import com.dot.gallery.generated.resources.cloud_delete_local_all_confirm
 import com.dot.gallery.generated.resources.cloud_destinations_no_albums
 import com.dot.gallery.generated.resources.cloud_find_duplicates
 import com.dot.gallery.generated.resources.cloud_local_deletion_unavailable
-import com.dot.gallery.generated.resources.cloud_upload_album_custom_path
 import com.dot.gallery.generated.resources.cloud_upload_album_custom_path_default
 import com.dot.gallery.generated.resources.cloud_upload_album_custom_path_summary
 import com.dot.gallery.generated.resources.cloud_upload_albums
@@ -126,254 +125,195 @@ fun CloudUploadSettingsScreen(
         derivedStateOf { uploadPrefs.filter { it.value }.keys }
     }
 
-    val albumGridSize by rememberAlbumGridSize()
-    val gridCells = remember(albumGridSize) {
-        Constants.albumCellsList[albumGridSize]
+    val context = LocalContext.current
+    var filter by rememberSaveable { mutableIntStateOf(FILTER_ALL) }
+    val visibleAlbums = remember(localAlbums, uploadPrefs, filter) {
+        when (filter) {
+            FILTER_ON -> localAlbums.filter { uploadPrefs[it.id] == true }
+            FILTER_OFF -> localAlbums.filter { uploadPrefs[it.id] != true }
+            else -> localAlbums
+        }
     }
-    val gridState = rememberLazyGridState()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val selectedItems = remember(localAlbums, enabledAlbums) {
+        localAlbums.filter { it.id in enabledAlbums }.sumOf { it.count }
+    }
     val initialFocusRequester = remember { FocusRequester() }
     RequestInitialSettingsFocus(initialFocusRequester, localAlbums.isNotEmpty())
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(Res.string.cloud_upload_albums),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        val subtitle = when {
-                            accountLabel.isNotBlank() && enabledAlbums.isNotEmpty() ->
-                                "$accountLabel · ${enabledAlbums.size} selected"
-                            accountLabel.isNotBlank() -> accountLabel
-                            enabledAlbums.isNotEmpty() -> "${enabledAlbums.size} albums selected"
-                            else -> null
-                        }
-                        if (subtitle != null) {
-                            Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
+    CloudPage(
+        title = stringResource(Res.string.cloud_upload_albums),
+        count = accountLabel.ifBlank { null },
+        onBack = navigateUp,
         bottomBar = {
-            // Persistent floating action bar — replaces the gigantic mid-screen
-            // button; only present once at least one album is selected.
+            // Pinned action, only once at least one album is selected.
             AnimatedVisibility(
                 visible = enabledAlbums.isNotEmpty(),
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it }
             ) {
-                Surface(
-                    tonalElevation = 3.dp,
-                    shadowElevation = 8.dp,
-                    color = MaterialTheme.colorScheme.surfaceContainer
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .navigationBarsPadding()
+                        .padding(vertical = 12.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    Button(
+                        onClick = { viewModel.triggerUploadNow() },
+                        enabled = !uploadRunning,
+                        modifier = Modifier.cloudContentWidth().heightIn(min = 48.dp),
                     ) {
-                        SetupButton(
-                            text = if (uploadRunning) stringResource(Res.string.cloud_upload_syncing)
-                            else stringResource(Res.string.cloud_upload_sync_now),
-                            enabled = !uploadRunning,
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
-                            onClick = { viewModel.triggerUploadNow() }
+                        Icon(Icons.Outlined.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(8.dp))
+                        Text(
+                            if (uploadRunning) stringResource(Res.string.cloud_upload_syncing)
+                            else stringResource(Res.string.cloud_upload_sync_now)
                         )
                     }
                 }
             }
         }
-    ) { paddingValues ->
-        LazyVerticalGrid(
-            state = gridState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .settingsFocusGroup(),
-            columns = gridCells,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            // Album grid
-            if (localAlbums.isEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = stringResource(Res.string.cloud_destinations_no_albums),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(32.dp)
+    ) {
+        item(key = "filters") {
+            Row(
+                modifier = Modifier.cloudContentWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf(
+                    FILTER_ALL to Res.string.cloud_upload_filter_all,
+                    FILTER_ON to Res.string.cloud_upload_filter_on,
+                    FILTER_OFF to Res.string.cloud_upload_filter_off,
+                ).forEach { (value, label) ->
+                    GalleryFilterChip(
+                        label = stringResource(label),
+                        selected = filter == value,
+                        onClick = { filter = value },
                     )
                 }
-            } else {
-                items(
-                    items = localAlbums,
-                    key = { it.toString() }
-                ) { album ->
-                    val isSelected = uploadPrefs[album.id] ?: false
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        SelectableAlbumItem(
-                            album = album,
-                            isSelected = isSelected,
-                            modifier = if (album == localAlbums.firstOrNull()) {
-                                Modifier.focusRequester(initialFocusRequester)
-                            } else {
-                                Modifier
-                            },
-                            isDisabled = false,
-                            showCheckmark = true,
-                            onClick = {
-                                viewModel.setAlbumUploadEnabled(album.id, album.label, !isSelected)
-                            }
-                        )
-                        // Non-intrusive status overlay for selected albums: a "New/Queued"
-                        // pill at rest, or a live syncing spinner while a backup is running.
-                        if (isSelected) {
-                            AlbumStatusBadge(
-                                syncing = uploadRunning,
-                                modifier = Modifier
-                                    .align(Alignment.TopStart)
-                                    .padding(12.dp)
-                            )
-                        }
+            }
+        }
+        item(key = "selection") {
+            Text(
+                text = stringResource(
+                    Res.string.cloud_upload_albums_summary,
+                    enabledAlbums.size,
+                    localAlbums.size,
+                    selectedItems.toInt(),
+                ),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.cloudContentWidth().padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 12.dp)
+            )
+        }
+        if (visibleAlbums.isEmpty()) {
+            item(key = "empty") {
+                Text(
+                    text = stringResource(Res.string.cloud_destinations_no_albums),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.cloudContentWidth().padding(16.dp)
+                )
+            }
+        }
+        itemsIndexed(visibleAlbums, key = { _, album -> "album_${album.id}" }) { index, album ->
+            val isSelected = uploadPrefs[album.id] ?: false
+            val details = pluralStringResource(
+                Res.plurals.cloud_upload_album_items, album.count.toInt(), album.count.toInt()
+            ) + " · " + Formatter.formatFileSize(context, album.size)
+            val summary = buildAnnotatedString {
+                append(details)
+                if (isSelected && uploadRunning) {
+                    append(" · ")
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                        append(stringResource(Res.string.cloud_backup_album_syncing))
                     }
                 }
             }
-
-            // Settings + Sync section for enabled albums
-            if (enabledAlbums.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column(
+            SettingsItem(
+                item = SettingsEntity.SwitchPreference(
+                    icon = Icons.Outlined.PhotoAlbum,
+                    title = album.label,
+                    summary = summary.text,
+                    summaryAnnotated = summary,
+                    isChecked = isSelected,
+                    onCheck = { viewModel.setAlbumUploadEnabled(album.id, album.label, it) },
+                    screenPosition = positionOf(index, visibleAlbums.size),
+                ),
+                modifier = if (index == 0) Modifier.focusRequester(initialFocusRequester) else Modifier,
+                customIcon = { _, _, _ ->
+                    AsyncImage(
+                        uri = album.uri.toString(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.cloud_upload_settings_header),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    )
+                },
+            )
+        }
+
+        // Options for the selected albums
+        if (enabledAlbums.isNotEmpty()) {
+            val pathAlbums = if (supportsUploadPaths) localAlbums.filter { it.id in enabledAlbums } else emptyList()
+            val rows = 1 + pathAlbums.size
+            item(key = "options_header") {
+                CloudSectionLabel(title = stringResource(Res.string.cloud_upload_settings_header))
+            }
+            item(key = "delete_local") {
+                SettingsItem(
+                    item = SettingsEntity.SwitchPreference(
+                        icon = Icons.Outlined.DeleteSweep,
+                        title = stringResource(Res.string.cloud_delete_local_after_upload),
+                        summary = stringResource(Res.string.cloud_delete_local_after_upload_summary),
+                        isChecked = deleteLocalEnabledForSelection(enabledAlbums, deleteLocalPrefs),
+                        onCheck = { enabled ->
+                            if (enabled) {
+                                // Arms deletion of the user's ORIGINAL files for every selected
+                                // album — requires the explicit confirm below, not a stray tap.
+                                showDeleteLocalConfirm = true
+                            } else {
+                                enabledAlbums.forEach { albumId ->
+                                    val album = localAlbums.find { it.id == albumId }
+                                    if (album != null) {
+                                        viewModel.setDeleteLocalEnabled(album.id, album.label, false)
+                                    }
+                                }
+                            }
+                        },
+                        screenPosition = positionOf(0, rows),
+                    )
+                )
+            }
+            // Per-album remote folder overrides (path-based providers only).
+            pathAlbums.forEachIndexed { index, album ->
+                item(key = "path_${album.id}") {
+                    SettingsItem(
+                        item = SettingsEntity.Preference(
+                            icon = Icons.Outlined.Folder,
+                            title = album.label,
+                            summary = customPaths[album.id].orEmpty().ifBlank {
+                                stringResource(Res.string.cloud_upload_album_custom_path_default)
+                            },
+                            screenPosition = positionOf(index + 1, rows),
+                            onClick = { pathEditAlbum = album },
                         )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(Res.string.cloud_delete_local_after_upload),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = stringResource(Res.string.cloud_delete_local_after_upload_summary),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Switch(
-                                checked = deleteLocalEnabledForSelection(enabledAlbums, deleteLocalPrefs),
-                                onCheckedChange = { enabled ->
-                                    if (enabled) {
-                                        // Arms deletion of the user's ORIGINAL files
-                                        // for every selected album — requires the
-                                        // explicit confirm below, not a stray tap.
-                                        showDeleteLocalConfirm = true
-                                    } else {
-                                        enabledAlbums.forEach { albumId ->
-                                            val album = localAlbums.find { it.id == albumId }
-                                            if (album != null) {
-                                                viewModel.setDeleteLocalEnabled(album.id, album.label, false)
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        // Per-album remote folder overrides (path-based providers only).
-                        if (supportsUploadPaths) {
-                            localAlbums.filter { it.id in enabledAlbums }.forEach { album ->
-                                val customPath = customPaths[album.id].orEmpty()
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable { pathEditAlbum = album }
-                                        .padding(horizontal = 4.dp, vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = album.label,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                        Text(
-                                            text = customPath.ifBlank {
-                                                stringResource(Res.string.cloud_upload_album_custom_path_default)
-                                            },
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Icon(
-                                        imageVector = Icons.Outlined.Folder,
-                                        contentDescription = stringResource(Res.string.cloud_upload_album_custom_path),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
+        }
 
-            // Dedup section
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Text(
-                        text = stringResource(Res.string.cloud_dedup_header),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
-                    )
-                    SetupButton(
-                        text = stringResource(Res.string.cloud_find_duplicates),
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        applyHorizontalPadding = false,
-                        applyBottomPadding = false,
-                        applyInsets = false,
-                        onClick = { showDedupDialog = true; viewModel.findDuplicates() }
-                    )
-                    Spacer(Modifier.height(32.dp))
-                }
-            }
+        item(key = "dedup_header") { CloudSectionLabel(title = stringResource(Res.string.cloud_dedup_header)) }
+        item(key = "dedup") {
+            SettingsItem(
+                item = SettingsEntity.Preference(
+                    icon = Icons.Outlined.ContentCopy,
+                    title = stringResource(Res.string.cloud_find_duplicates),
+                    screenPosition = Position.Alone,
+                    onClick = { showDedupDialog = true; viewModel.findDuplicates() },
+                )
+            )
         }
     }
 
@@ -489,49 +429,6 @@ fun CloudUploadSettingsScreen(
     }
 }
 
-/**
- * Compact overlay pill shown on selected album thumbnails. While a backup is
- * running it shows a live spinner ("Syncing"); otherwise it marks the album as
- * queued/new ("Queued").
- */
-@Composable
-private fun AlbumStatusBadge(
-    syncing: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val container = if (syncing) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.tertiary
-    val onContainer = if (syncing) MaterialTheme.colorScheme.onPrimary
-    else MaterialTheme.colorScheme.onTertiary
-
-    Row(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(container.copy(alpha = 0.92f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (syncing) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(12.dp),
-                strokeWidth = 2.dp,
-                color = onContainer
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Outlined.CheckCircle,
-                contentDescription = null,
-                tint = onContainer,
-                modifier = Modifier.size(14.dp)
-            )
-        }
-        Spacer(Modifier.size(4.dp))
-        Text(
-            text = if (syncing) stringResource(Res.string.cloud_backup_album_syncing)
-            else stringResource(Res.string.cloud_backup_album_queued),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = onContainer
-        )
-    }
-}
+private const val FILTER_ALL = 0
+private const val FILTER_ON = 1
+private const val FILTER_OFF = 2

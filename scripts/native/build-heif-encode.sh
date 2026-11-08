@@ -32,8 +32,8 @@ source "$SCRIPT_DIR/native-common.sh"
 OUT_ROOT="${NATIVE_OUTPUT_BASE:-$REPO_ROOT/app/androidApp/src/main/cpp}/heifenc"
 
 SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-if [ -z "$SDK" ] && [ -f "$REPO_ROOT/local.properties" ]; then
-    SDK="$(grep -E '^sdk\.dir=' "$REPO_ROOT/local.properties" | head -n1 | cut -d'=' -f2-)"
+if [ -z "$SDK" ]; then
+    SDK="$(native_read_property "$REPO_ROOT/local.properties" sdk.dir || true)"
 fi
 if [ -z "$SDK" ] || [ ! -d "$SDK" ]; then
     echo "ERROR: Android SDK not found. Set ANDROID_HOME or sdk.dir in local.properties." >&2
@@ -49,6 +49,10 @@ if [ -z "$NDK_VERSION" ] || [ ! -f "$TOOLCHAIN" ] ||
     exit 1
 fi
 NDK_CLANG="$(ls -d "$NDK_DIR"/toolchains/llvm/prebuilt/*/bin/clang 2>/dev/null | head -n1)"
+# Cygwin resolves "clang" to "clang.exe", but native CMake needs the actual file name.
+if [ -n "$NDK_CLANG" ] && [ -f "$NDK_CLANG.exe" ]; then
+    NDK_CLANG="$NDK_CLANG.exe"
+fi
 if [ -z "$NDK_CLANG" ] || [ ! -x "$NDK_CLANG" ]; then
     echo "ERROR: NDK clang not found under $NDK_DIR" >&2
     exit 1

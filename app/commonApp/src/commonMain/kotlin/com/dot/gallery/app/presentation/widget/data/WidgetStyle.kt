@@ -9,7 +9,7 @@ import com.dot.gallery.core.util.or
 
 
 /**
- * How a media widget renders its picked photo on the home screen (#1269).
+ * How a media widget renders its picked photo on the home screen.
  *
  * - [IMAGE]: the photo in colour — the default; widgets configured before
  *   display styles existed decode to this value.

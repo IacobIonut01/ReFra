@@ -3,6 +3,7 @@ package com.dot.gallery.core
 import android.content.Context
 import android.net.Uri
 import android.media.MediaScannerConnection
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.dot.gallery.core.work.isFinished
 import dev.brewkits.kmpworkmanager.background.domain.TaskEventBus
 import com.dot.gallery.core.presentation.components.FilterKind
@@ -36,6 +37,7 @@ import com.dot.gallery.domain.model.Vault
 import com.dot.gallery.domain.model.VaultState
 import com.dot.gallery.domain.model.ScannedMedia
 import com.dot.gallery.domain.model.shouldIgnore
+import com.dot.gallery.data.dao.ImageEmbeddingHeader
 import com.dot.gallery.data.dao.MediaCaptureTimeDao
 import com.dot.gallery.data.dao.ScannedMediaDao
 import com.dot.gallery.core.smart.SmartScanPlan
@@ -51,6 +53,7 @@ import com.dot.gallery.data.entity.CloudMediaSnapshotMapper
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.data.repository.MediaRepository
 import com.dot.gallery.domain.util.EventHandler
+import com.dot.gallery.domain.util.isCollectionMember
 import com.dot.gallery.domain.util.MediaOrder
 import com.dot.gallery.domain.util.OrderType
 import com.dot.gallery.domain.util.MediaGroupType
@@ -356,7 +359,7 @@ class MediaDistributorImpl @Inject constructor(
             // Always clear the refreshing flag, even if the caller's (composition-scoped)
             // coroutine is cancelled mid-refresh by navigating away during the delay.
             // isRefreshing lives in this app-scoped singleton, so a skipped reset would
-            // leave the pull-to-refresh spinner stuck forever, including on return (#958).
+            // leave the pull-to-refresh spinner stuck forever, including on return.
             isRefreshing.value = false
         }
     }
@@ -420,6 +423,29 @@ class MediaDistributorImpl @Inject constructor(
 
     override val groupSimilarMedia: StateFlow<Boolean> =
         repository.getSetting(Settings.Misc.GROUP_SIMILAR_MEDIA, true)
+            .distinctUntilChanged()
+            .stateIn(appScope, prioritySharingMethod, true)
+
+    private val albumDateHeadersKey = booleanPreferencesKey("album_group_by_date")
+    private val hideTimelineOnAlbumKey = booleanPreferencesKey("hide_timeline_on_album")
+    private val timelineDateHeadersKey = booleanPreferencesKey("timeline_group_by_date")
+
+    /** Same rule as [Settings.Album.rememberAlbumGroupByDate]. */
+    private val albumDateHeaders: StateFlow<Boolean> =
+        context.activeDataStore.data
+            .map { prefs ->
+                Settings.Album.resolveAlbumGroupByDate(
+                    storedValue = prefs[albumDateHeadersKey],
+                    legacyHideTimeline = prefs[hideTimelineOnAlbumKey] ?: false,
+                )
+            }
+            .distinctUntilChanged()
+            .stateIn(appScope, prioritySharingMethod, true)
+
+    /** Same default as [SettingsKeys.timelineGroupByDate]. */
+    private val timelineDateHeaders: StateFlow<Boolean> =
+        context.activeDataStore.data
+            .map { prefs -> prefs[timelineDateHeadersKey] ?: true }
             .distinctUntilChanged()
             .stateIn(appScope, prioritySharingMethod, true)
 
@@ -1225,7 +1251,8 @@ class MediaDistributorImpl @Inject constructor(
                     dateFormatsFlow,
                     albumMediaSortFlow,
                     groupSimilarMedia,
-                    enabledGroupTypes
+                    enabledGroupTypes,
+                    albumDateHeaders,
                 ) { values ->
                     val mediaResult = values[0] as Resource<List<UriMedia>>
                     val settings = values[1] as TimelineSettings?
@@ -1240,6 +1267,7 @@ class MediaDistributorImpl @Inject constructor(
                     val shouldGroupSimilar = values[5] as Boolean
                     @Suppress("UNCHECKED_CAST")
                     val groupTypes = values[6] as Set<MediaGroupType>
+                    val dateHeadersEnabled = values[7] as Boolean
 
                     val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
 
@@ -1255,6 +1283,7 @@ class MediaDistributorImpl @Inject constructor(
                         groupByMonth = settings.groupTimelineByMonth == true,
                         groupByYear = settings.groupTimelineByYear == true,
                         groupSimilarMedia = shouldGroupSimilar,
+                        dateHeadersEnabled = dateHeadersEnabled,
                         enabledGroupTypes = groupTypes,
                         defaultDateFormat = defaultDateFormat,
                         extendedDateFormat = extendedDateFormat,
@@ -1319,7 +1348,8 @@ class MediaDistributorImpl @Inject constructor(
             cloudMediaSource
                 .onEach { StartupTracer.begin("$tag.dep.cloudMedia(${it.size})").also { s -> StartupTracer.end(s) } },
             _cloudAlbumsFlow,
-            _cloudAlbumMembers
+            _cloudAlbumMembers,
+            timelineDateHeaders,
         ) { values ->
             combineEmissionCount++
             val combineSpan = StartupTracer.begin("$tag.combine_body(#$combineEmissionCount)")
@@ -1344,6 +1374,7 @@ class MediaDistributorImpl @Inject constructor(
             val cloudMedia = values[9] as List<UriMedia>
             @Suppress("UNCHECKED_CAST")
             val cloudAlbums = values[10] as List<CloudAlbum>
+            val timelineDateHeadersEnabled = values[12] as Boolean
             @Suppress("UNCHECKED_CAST")
             val cloudAlbumMembers = values[11] as Map<CloudAlbumMemberId, Set<CloudAlbumMemberId>>
             
@@ -1418,6 +1449,7 @@ class MediaDistributorImpl @Inject constructor(
                 groupByMonth = settings.groupTimelineByMonth == true,
                 groupByYear = settings.groupTimelineByYear == true,
                 groupSimilarMedia = shouldGroupSimilar,
+                dateHeadersEnabled = if (isMainTimeline) timelineDateHeadersEnabled else true,
                 enabledGroupTypes = groupTypes,
                 cloudBackups = cloudBackups,
                 defaultDateFormat = defaultDateFormat,
@@ -1656,6 +1688,8 @@ class MediaDistributorImpl @Inject constructor(
     override fun collectionMediaFlow(collectionId: Long): StateFlow<MediaState<UriMedia>> =
         combine(
             repository.getMediaIdsInCollection(collectionId),
+            repository.getAlbumIdsInCollection(collectionId),
+            repository.getExcludedMediaIdsInCollection(collectionId),
             repository.getCompleteMedia(),
             settingsFlow,
             dateFormatsFlow,
@@ -1665,19 +1699,33 @@ class MediaDistributorImpl @Inject constructor(
         ) { values ->
             @Suppress("UNCHECKED_CAST")
             val mediaIds = values[0] as List<Long>
-            val allMediaResult = values[1] as Resource<List<UriMedia>>
-            val settings = values[2] as TimelineSettings?
             @Suppress("UNCHECKED_CAST")
-            val dateFormats = values[3] as Triple<String, String, String>
-            val albumSort = values[4] as Settings.Album.LastSort
-            val shouldGroupSimilar = values[5] as Boolean
+            val albumIds = values[1] as List<Long>
             @Suppress("UNCHECKED_CAST")
-            val groupTypes = values[6] as Set<MediaGroupType>
+            val excludedIds = values[2] as List<Long>
+            val allMediaResult = values[3] as Resource<List<UriMedia>>
+            val settings = values[4] as TimelineSettings?
+            @Suppress("UNCHECKED_CAST")
+            val dateFormats = values[5] as Triple<String, String, String>
+            val albumSort = values[6] as Settings.Album.LastSort
+            val shouldGroupSimilar = values[7] as Boolean
+            @Suppress("UNCHECKED_CAST")
+            val groupTypes = values[8] as Set<MediaGroupType>
 
             val (defaultDateFormat, extendedDateFormat, weeklyDateFormat) = dateFormats
             val allMedia = allMediaResult.data ?: emptyList()
-            val mediaIdSet = mediaIds.toHashSet()
-            val collectionMedia = allMedia.filter { it.id in mediaIdSet }
+            val explicitMediaIds = mediaIds.toHashSet()
+            val memberAlbumIds = albumIds.toHashSet()
+            val excludedMediaIds = excludedIds.toHashSet()
+            val collectionMedia = allMedia.filter { media ->
+                isCollectionMember(
+                    mediaId = media.id,
+                    albumId = media.albumID,
+                    explicitMediaIds = explicitMediaIds,
+                    memberAlbumIds = memberAlbumIds,
+                    excludedMediaIds = excludedMediaIds,
+                )
+            }
 
             val sorter = albumSort.toMediaOrder()
 
@@ -1700,8 +1748,44 @@ class MediaDistributorImpl @Inject constructor(
     /**
      * Search
      */
+    /**
+     * Incrementally materialised embedding index. `SELECT *` on every table write
+     * (the plain Room flow) re-decodes every 3 KB vector per insert — quadratic
+     * during a Smart Scan over thousands of items. Headers carry no blob, so each
+     * emission costs a light query plus a fetch of only the new/changed rows.
+     */
+    private val embeddingRowCache = HashMap<Long, Pair<ImageEmbeddingHeader, ImageEmbedding>>()
+
+    private companion object {
+        /** Rows fetched per `IN (:ids)` query — well under SQLite's 999 bind limit. */
+        const val EMBEDDING_FETCH_BATCH = 500
+    }
+
+    private suspend fun embeddingSnapshotFor(headers: List<ImageEmbeddingHeader>): List<ImageEmbedding> {
+        val headerById = headers.associateBy { it.id }
+        val staleIds = synchronized(embeddingRowCache) {
+            embeddingRowCache.keys.retainAll(headerById.keys)
+            headers.filter { embeddingRowCache[it.id]?.first != it }.map { it.id }
+        }
+        if (staleIds.isNotEmpty()) {
+            val fresh = staleIds.chunked(EMBEDDING_FETCH_BATCH)
+                .flatMap { repository.getImageEmbeddings(it) }
+                .associateBy { it.id }
+            synchronized(embeddingRowCache) {
+                fresh.forEach { (id, embedding) ->
+                    embeddingRowCache[id] = headerById.getValue(id) to embedding
+                }
+            }
+        }
+        return synchronized(embeddingRowCache) {
+            headers.map { embeddingRowCache.getValue(it.id).second }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val imageEmbeddingsFlow: StateFlow<List<ImageEmbedding>> =
-        repository.getImageEmbeddings()
+        repository.getImageEmbeddingHeaders()
+            .mapLatest(::embeddingSnapshotFor)
             .stateIn(
                 scope = appScope,
                 started = sharingMethod,

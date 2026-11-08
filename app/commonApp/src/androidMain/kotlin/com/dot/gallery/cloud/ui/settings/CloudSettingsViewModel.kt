@@ -133,7 +133,7 @@ class CloudSettingsViewModel @Inject constructor(
                 runCatching { context.sketch.memoryCache.clear() }
                 runCatching { context.sketch.resultCache.clear() }
                 runCatching { context.sketch.downloadCache.clear() }
-                // #1276: the persistent thumbnail store lives in filesDir, not the image cache —
+                // the persistent thumbnail store lives in filesDir, not the image cache —
 
                 // clear it under the same "clear image caches" semantic.
                 runCatching { LocalThumbnailStore.clearShared(context) }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -46,15 +47,20 @@ import com.dot.gallery.core.logging.LogStats
 import com.dot.gallery.core.logging.LogEntry
 import com.dot.gallery.docs.scenes.DateFormatScene
 import com.dot.gallery.docs.scenes.SettingsItemScene
+import com.dot.gallery.docs.scenes.DocsLongPressActionScene
 import com.dot.gallery.docs.scenes.DocsVisualSearchOptionsScene
 import com.dot.gallery.data.entity.SmartScanStatus
 import com.dot.gallery.docs.scenes.TimelineDateHeaderScene
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.data.fixture.DemoFixtures
+import com.dot.gallery.docs.scenes.docsLogoPainter
+import com.dot.gallery.domain.settings.ALIAS_REFRA
 import com.dot.gallery.feature.settings.ui.CategoriesSettingsContent
 import com.dot.gallery.feature.settings.ui.CategoriesSettingsState
 import com.dot.gallery.feature.settings.ui.CloudIndexingProviderState
 import com.dot.gallery.feature.settings.ui.PrivateFolderDetailScreen
+import com.dot.gallery.feature.settings.ui.PrivateFolderPage
+import com.dot.gallery.feature.settings.ui.PrivateFolderStats
 import com.dot.gallery.feature.settings.ui.SettingsBackupScreen
 import com.dot.gallery.feature.settings.ui.SettingsCloudIndexingContent
 import com.dot.gallery.feature.settings.ui.SettingsCloudIndexingState
@@ -90,8 +96,12 @@ import com.dot.gallery.feature.settings.ui.AiModelGroupUi
 import com.dot.gallery.feature.settings.ui.AiModelsManagerActions
 import com.dot.gallery.feature.settings.ui.AiModelsManagerContent
 import com.dot.gallery.feature.settings.ui.AiModelsManagerState
-import com.dot.gallery.feature.settings.ui.BackupWizardScaffold
-import com.dot.gallery.feature.settings.ui.ImportSelectContent
+import com.dot.gallery.feature.settings.ui.ExportEncryptStep
+import com.dot.gallery.feature.settings.ui.ExportIncludeStep
+import com.dot.gallery.feature.settings.ui.ExportSaveStep
+import com.dot.gallery.feature.settings.ui.ImportChooseState
+import com.dot.gallery.feature.settings.ui.ImportChooseStep
+import com.dot.gallery.feature.settings.ui.ImportReviewStep
 import com.dot.gallery.feature.settings.ui.ColorPaletteContent
 import com.dot.gallery.feature.settings.ui.ColorPaletteOption
 import com.dot.gallery.feature.settings.ui.ColorPaletteState
@@ -159,10 +169,16 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "settings-hub",
         title = "Settings hub",
         pathTrace = listOf("Settings"),
-        states = listOf("banner", "banner-dismissed", "developer"),
+        states = listOf("banner", "banner-dismissed", "developer", "scrolled"),
     ) { state ->
         val docsNav = LocalDocsNavigator.current
         SettingsScreenContent(
+            appIcon = docsLogoPainter(ALIAS_REFRA),
+            // "scrolled" opens part-way down so rows sit under the transparent blur bar.
+            listState = rememberLazyListState(
+                initialFirstVisibleItemIndex = if (state == "scrolled") 2 else 0,
+                initialFirstVisibleItemScrollOffset = if (state == "scrolled") 120 else 0,
+            ),
             state = SettingsScreenState(
                 developerMode = state == "developer",
                 bannerDismissed = state == "banner-dismissed",
@@ -183,14 +199,17 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "settings-private-folder",
         title = "Private folder detail",
         pathTrace = listOf("Settings", "Security", "Private folder"),
-        states = listOf("none", "configured", "saf-uri"),
+        states = listOf("none", "configured", "saf-uri", "how-it-works"),
     ) { state ->
         PrivateFolderDetailScreen(
             currentUri = when (state) {
-                "configured" -> "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate"
+                "configured", "how-it-works" -> "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate"
                 "saf-uri" -> "content://com.android.externalstorage.documents/tree/1234-5678%3ASD%20Card%2FHidden%20Photos"
                 else -> ""
             },
+            stats = PrivateFolderStats(itemCount = 342, totalBytes = 1_932_735_283L),
+            onOpenFolder = {},
+            initialPage = if (state == "how-it-works") PrivateFolderPage.HowItWorks else PrivateFolderPage.Main,
             onPickFolder = {},
             onClearFolder = {},
             onClearFolderAndReveal = {},
@@ -219,8 +238,30 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "settings-backup",
         title = "Backup & restore",
         pathTrace = listOf("Settings", "Backup & restore"),
-    ) {
-        SettingsBackupScreen(onExport = {}, onImport = {})
+        states = listOf("hub", "never", "scrolled"),
+    ) { state ->
+        SettingsBackupScreen(
+            state = if (state == "never") {
+                com.dot.gallery.feature.settings.ui.BackupHubState()
+            } else {
+                com.dot.gallery.feature.settings.ui.BackupHubState(
+                    lastExportLabel = "Nov 4, 09:12",
+                    lastExportSize = "1.2 GB",
+                    lastExportSections = 11,
+                    healthCheckedLabel = "Nov 7, 07:40",
+                )
+            },
+            actions = com.dot.gallery.feature.settings.ui.BackupHubActions(
+                onExport = {},
+                onImport = {},
+                onCleanNow = {},
+                onAutoCleanChange = {}
+            ),
+            listState = rememberLazyListState(
+                initialFirstVisibleItemIndex = if (state == "scrolled") 1 else 0,
+                initialFirstVisibleItemScrollOffset = if (state == "scrolled") 40 else 0,
+            ),
+        )
     },
     DocsScene(
         id = "settings-slideshow",
@@ -269,6 +310,10 @@ val sceneRegistry: List<DocsScene> = listOf(
                 workerProgress = if (state == "scanning") 42f else 0f,
                 hasCategories = true,
                 modelsReady = true,
+                categoryCount = 24,
+                matchedCount = 1_812,
+                unmatchedCount = 204,
+                lastScanAt = nowSec * 1_000L,
             ),
         )
     },
@@ -276,16 +321,23 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "settings-smart-scan",
         title = "Smart Features data",
         pathTrace = listOf("Settings", "Smart Features", "Smart Features data"),
-        states = listOf("idle", "running"),
+        states = listOf("idle", "running", "partial", "scrolled"),
     ) { state ->
         val nowSec = DOCS_DEMO_EPOCH_SECONDS
         SmartScanDetailContent(
             state = SmartScanDetailState(
                 activeScan = if (state == "running") DemoFixtures.smartScanRun(nowSec) else null,
                 activePhases = if (state == "running") DemoFixtures.smartScanPhases(nowSec) else emptyList(),
-                latestScan = DemoFixtures.smartScanRun(nowSec).copy(status = SmartScanStatus.SUCCEEDED),
+                latestScan = DemoFixtures.smartScanRun(nowSec).copy(
+                    status = if (state == "partial") SmartScanStatus.PARTIAL else SmartScanStatus.SUCCEEDED,
+                    finishedAt = nowSec * 1_000L,
+                ),
                 searchReady = true,
                 personsReady = true,
+            ),
+            listState = rememberLazyListState(
+                initialFirstVisibleItemIndex = if (state == "scrolled") 2 else 0,
+                initialFirstVisibleItemScrollOffset = if (state == "scrolled") 60 else 0,
             ),
         )
     },
@@ -409,7 +461,8 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "settings-timeline-albums",
         title = "Timeline & albums settings",
         pathTrace = listOf("Settings", "Timeline & albums"),
-        states = listOf("default", "sections"),
+        states = listOf("default", "sections", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { state ->
         SettingsTimelineAlbumsContent(
             state = SettingsTimelineAlbumsState(
@@ -449,34 +502,87 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "visual-search-options",
         title = "Visual search options",
         pathTrace = listOf("Settings", "Media viewer", "Visual search"),
-        states = listOf("default", "off"),
+        states = listOf("default", "off", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { state -> DocsVisualSearchOptionsScene(state) },
     DocsScene(
+        id = "long-press-action",
+        title = "Long-press action",
+        pathTrace = listOf("Settings", "Media viewer", "Long-press action"),
+        states = listOf("rotate", "cutout-unavailable"),
+    ) { state -> DocsLongPressActionScene(state) },
+    DocsScene(
         id = "settings-backup-wizard",
-        title = "Backup import (select)",
-        pathTrace = listOf("Settings", "Backup & restore", "Import"),
-        states = listOf("full", "partial", "empty"),
+        title = "Backup wizards",
+        pathTrace = listOf("Settings", "Backup & restore", "Create backup"),
+        states = listOf("include", "encrypt", "save", "choose-file", "password", "review", "review-empty"),
     ) { state ->
-        BackupWizardScaffold(title = "Import") { padding ->
-            ImportSelectContent(
-                padding = padding,
-                sections = when (state) {
-                    "empty" -> emptyList()
-                    "partial" -> listOf(BackupSection.SETTINGS, BackupSection.VAULTS)
-                    else -> BackupSection.entries.toList()
-                },
+        val exportSections = listOf(
+            BackupSection.SETTINGS, BackupSection.LOCAL_FAVORITES, BackupSection.CLOUD_FAVORITES,
+            BackupSection.CLOUD_CONFIGS, BackupSection.VAULTS, BackupSection.ALBUMS,
+            BackupSection.CATEGORIES, BackupSection.EDIT_BACKUPS,
+        )
+        val on = exportSections - BackupSection.EDIT_BACKUPS
+        when (state) {
+            "include" -> ExportIncludeStep(
+                sections = exportSections,
+                isSelected = { it in on },
+                onToggle = { _, _ -> },
+                vaultItems = emptyList(),
+                vaultIsSelected = { true },
+                onToggleVault = { _, _ -> },
+                showVaultList = false,
+                nextEnabled = true,
+                onNext = {},
+                onCancel = {},
+            )
+            "encrypt" -> ExportEncryptStep(
+                protect = true,
+                onProtectChange = {},
+                password = "correct horse",
+                onPasswordChange = {},
+                confirm = "correct horse",
+                onConfirmChange = {},
+                showPassword = false,
+                onShowPasswordChange = {},
+                nextEnabled = true,
+                onNext = {},
+                onBack = {},
+            )
+            "save" -> ExportSaveStep(
+                fileName = "refra-backup-20261107-091200.rfbk",
+                protected = true,
+                includedTitles = listOf("App settings", "Favorites", "Cloud accounts", "Albums", "Vaults"),
+                sectionCount = on.size,
+                totalSections = exportSections.size,
+                vaultCount = 2,
+                onSave = {},
+                onBack = {},
+            )
+            "choose-file", "password" -> ImportChooseStep(
+                state = if (state == "password") ImportChooseState.NeedsPassword(wrongPassword = false)
+                else ImportChooseState.NoFile,
+                onPickFile = {},
+                onSubmitPassword = {},
+                onCancel = {},
+            )
+            else -> ImportReviewStep(
+                sections = if (state == "review-empty") emptyList() else listOf(
+                    BackupSection.SETTINGS, BackupSection.LOCAL_FAVORITES, BackupSection.CLOUD_FAVORITES,
+                    BackupSection.CLOUD_CONFIGS, BackupSection.VAULTS,
+                ),
                 contents = BackupContents(
                     schemaVersion = 2,
                     appVersionName = "1.8.0",
                     exportedAt = 1_771_000_000_000,
                     encrypted = false,
-                    settingsCount = if (state == "empty") 0 else 148,
-                    localFavoritesCount = if (state == "empty") 0 else 37,
-                    cloudFavoritesCount = if (state == "empty") 0 else 12,
-                    cloudConfigsCount = if (state == "empty") 0 else 2,
-                    vaultCount = if (state == "empty") 0 else 2,
-                    vaultMediaCount = if (state == "empty") 0 else 64,
-                    vaults = if (state == "empty") emptyList() else listOf(
+                    settingsCount = 148,
+                    localFavoritesCount = 37,
+                    cloudFavoritesCount = 12,
+                    cloudConfigsCount = 2,
+                    vaultCount = 2,
+                    vaultMediaCount = 64,
+                    vaults = listOf(
                         VaultSummary(uuid = "v-001", name = "Private", mediaCount = 41),
                         VaultSummary(uuid = "v-002", name = "Work", mediaCount = 23),
                     ),
@@ -485,6 +591,7 @@ val sceneRegistry: List<DocsScene> = listOf(
                 onToggle = { _, _ -> },
                 onToggleVault = { _, _ -> },
                 onRestore = {},
+                onBack = {},
             )
         }
     },
@@ -624,6 +731,8 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "settings-date-formats",
         title = "Date formats",
         pathTrace = listOf("Settings", "Timeline", "Date formats"),
+        states = listOf("default", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { state -> DateFormatScene(state) },
 ) + browseScenes + setupScenes + organizeScenes + platformScenes()
 

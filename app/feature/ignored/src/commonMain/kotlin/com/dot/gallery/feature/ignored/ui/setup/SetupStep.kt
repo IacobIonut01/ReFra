@@ -5,8 +5,8 @@
 
 package com.dot.gallery.feature.ignored.ui.setup
 
+/** Steps of the ignore sheet: pick the albums (or a path pattern), then where to hide them. */
 enum class SetupStep {
-    TYPE_SELECTION,
-    ALBUM_SELECTION,
-    CONFIRMATION
+    CHOOSE,
+    WHERE
 }

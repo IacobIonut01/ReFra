@@ -38,4 +38,15 @@ interface EditHistoryDao {
 
     @Query("DELETE FROM edited_media WHERE mediaId NOT IN (:existingMediaIds)")
     suspend fun deleteOrphans(existingMediaIds: List<Long>)
+
+    @Query(
+        """
+        SELECT * FROM edited_media
+        WHERE NOT EXISTS (SELECT 1 FROM media WHERE media.id = edited_media.mediaId)
+        """
+    )
+    suspend fun getOrphans(): List<EditedMedia>
+
+    @Query("DELETE FROM edited_media WHERE mediaId = :mediaId")
+    suspend fun deleteOrphan(mediaId: Long)
 }

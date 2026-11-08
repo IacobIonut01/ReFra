@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -42,6 +43,7 @@ import com.dot.gallery.domain.util.isCloud
 import com.dot.gallery.domain.uri.host
 import com.dot.gallery.domain.uri.scheme
 import com.dot.gallery.feature.exif.ui.cloudCopyDestinationStatus
+import com.dot.gallery.core.logging.printWarn
 
 class CopyMediaViewModel @Inject constructor(
     private val copyRuntime: CopyMediaRuntime,
@@ -52,7 +54,6 @@ class CopyMediaViewModel @Inject constructor(
     @me.tatarka.inject.annotations.Assisted private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val workInfosFlow = copyRuntime.mediaCopyWork
     private val _cloudCopyState = MutableStateFlow(CloudCopyUiState())
     val cloudCopyState: StateFlow<CloudCopyUiState> = _cloudCopyState.asStateFlow()
     private val _localCopyState = MutableStateFlow(LocalCopyUiState())
@@ -85,26 +86,32 @@ class CopyMediaViewModel @Inject constructor(
         CloudCopyEnvironment(connectionStates, settings, accounts, offline)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CloudCopyEnvironment())
 
-    val isActive: StateFlow<Boolean> = workInfosFlow
-        .map { list -> list.any { it.state == CopyWorkState.RUNNING || it.state == CopyWorkState.ENQUEUED } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
-
-    val progress: StateFlow<Float> = workInfosFlow
-        .map { list ->
-            // Only consider work that is currently running or enqueued
-            val activeWork = list.filter { it.state == CopyWorkState.RUNNING || it.state == CopyWorkState.ENQUEUED }
-
-            // If no active work, return 0 to show the album selection UI
-            if (activeWork.isEmpty()) return@map 0f
-
-            val progressValues = activeWork.map { it.progressPercent ?: 0 }
-            val avg = if (progressValues.isNotEmpty()) progressValues.sum() / progressValues.size else 0
-            avg.coerceIn(0, 100) / 100f
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0f)
-
     init {
-        savedStateHandle.get<String>(KEY_CLOUD_WORK_ID)?.let(::observeCloudWork)
+        savedStateHandle.get<String>(KEY_CLOUD_WORK_ID)?.let(::restoreCloudWork)
+    }
+
+    /**
+     * Picks a cloud transfer back up after the process was recreated, but only while it is still
+     * running. A transfer that already finished (or failed) is cleared rather than re-shown, so
+     * the copy sheet doesn't pop up with a stale result on a later launch.
+     */
+    private fun restoreCloudWork(workId: String) {
+        viewModelScope.launch {
+            val snapshot = runCatching { copyRuntime.observeCloudAlbumCopy(workId).first() }
+                .onFailure {
+                    printWarn(
+                        tag = "media-ops.copy",
+                        message = "Could not restore cloud copy state",
+                        ctx = mapOf("error" to (it.message ?: it::class.simpleName.orEmpty())),
+                    )
+                }
+                .getOrNull()
+            if (snapshot == null || snapshot.state.isTerminalCopyState()) {
+                clearCloudCopyResult()
+            } else {
+                observeCloudWork(workId)
+            }
+        }
     }
 
     fun cloudDestinationStatus(
@@ -364,10 +371,22 @@ class CopyMediaViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Copies into a folder path (the new-album flow). Tracked exactly like [enqueueLocalCopy], so
+     * the sheet follows only the copies it started, never older work still queued in the
+     * background.
+     */
     fun <T: Media> enqueueCopy(vararg sets: Pair<T, String>, onStarted: () -> Unit = {}) {
         if (sets.isEmpty()) return
         viewModelScope.launch {
-            copyRuntime.enqueueMediaCopy(sets.toList())
+            val workIds = copyRuntime.enqueueMediaCopy(sets.toList())
+            _localCopyState.value = LocalCopyUiState(
+                workIds = workIds,
+                destinationLabel = sets.first().second.trimEnd('/').substringAfterLast('/'),
+                total = sets.size,
+                active = true
+            )
+            observeLocalCopy(workIds)
             onStarted()
         }
     }

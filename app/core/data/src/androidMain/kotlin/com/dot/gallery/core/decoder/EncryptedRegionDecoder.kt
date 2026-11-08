@@ -69,7 +69,7 @@ class EncryptedRegionDecoder(
     override fun prepare() {
         if (bitmapRegionDecoder != null) return
 
-        // Decode regions straight from the shared canonical decrypted file (#1282).
+        // Decode regions straight from the shared canonical decrypted file.
         val handle = VaultDecryptStore.acquire(
             keychainHolder,
             (imageSource as ContentImageSource).uri.toFile()

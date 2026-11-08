@@ -262,7 +262,7 @@ class PrivateFolderRepository(private val context: Context) {
      *
      * Private-folder items are SAF documents, not MediaStore entries, so they
      * must be removed via [DocumentsContract.deleteDocument] rather than a
-     * MediaStore delete request (which crashes on tree document URIs — #1015).
+     * MediaStore delete request (which crashes on tree document URIs — ).
      * Returns true if deletion succeeded.
      */
     fun deleteByUri(uri: Uri): Boolean {

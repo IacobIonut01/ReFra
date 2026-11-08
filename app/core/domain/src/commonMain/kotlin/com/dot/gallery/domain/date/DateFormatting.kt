@@ -36,7 +36,7 @@ fun Long.getMonth(): String {
 fun Long.getYear(): String = epochSecToLocalDate().year.toString()
 
 fun Long.getMediaAppBarDate(format: CharSequence, extendedFormat: CharSequence): String =
-    if (epochSecToLocalDate().year < todayLocalDate().year) {
+    if (epochSecToLocalDate().year != todayLocalDate().year) {
         formatEpochSec(extendedFormat.toString())
     } else {
         formatEpochSec(format.toString())

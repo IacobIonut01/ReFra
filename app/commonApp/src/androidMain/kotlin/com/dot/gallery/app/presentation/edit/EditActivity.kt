@@ -39,6 +39,8 @@ import com.dot.gallery.core.ui.util.launchWriteRequest
 import com.dot.gallery.core.ui.util.rememberActivityResult
 import com.dot.gallery.core.ui.util.writeRequest
 import com.dot.gallery.ui.theme.GalleryTheme
+import androidx.compose.runtime.Composable
+import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
@@ -73,6 +75,12 @@ import com.dot.gallery.core.util.getString
 
 
 
+@Composable
+internal fun editHazeBlurStyle(allowBlur: Boolean): HazeBlurStyle =
+    HazeMaterials.thin(
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    ).then { blurEnabled(allowBlur) }
+
 class EditActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,9 +98,7 @@ class EditActivity : ComponentActivity() {
                 val hazeState = rememberHazeState()
                 CompositionLocalProvider(
                     LocalHazeState provides hazeState,
-                    LocalHazeBlurStyle provides HazeMaterials.thin(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
+                    LocalHazeBlurStyle provides editHazeBlurStyle(allowBlur),
                     LocalHazeGlassEnabled provides (allowBlur && allowGlass)
                 ) {
                     LaunchedEffect(Unit) {

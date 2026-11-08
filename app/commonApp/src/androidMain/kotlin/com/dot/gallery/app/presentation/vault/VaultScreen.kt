@@ -1,6 +1,7 @@
 package com.dot.gallery.app.presentation.vault
 
 import android.app.KeyguardManager
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import androidx.activity.ComponentActivity
@@ -188,13 +189,26 @@ fun VaultScreen(
                 ) { darkIcons }
             )
         },
+        readGateMode = { VaultPasswordManager.getGateMode(context) },
+        openSecuritySettings = {
+            runCatching {
+                context.startActivity(
+                    Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }.onFailure { printError(TAG, "Could not open security settings", it) }
+        },
         vaultDisplay = { sharedTransitionScope,
                          animatedContentScope,
                          onNavigateUp,
                          onMediaClick,
                          onVaultDeleted,
-                         onAuthenticateVault ->
+                         onAuthenticateVault,
+                         requestAddMedia,
+                         onAddMediaRequestHandled ->
             VaultDisplay(
+                requestAddMedia = requestAddMedia,
+                onAddMediaRequestHandled = onAddMediaRequestHandled,
                 globalNavigateUp = onNavigateUp,
                 vaultState = vaultState,
                 currentVault = viewModel.currentVault,

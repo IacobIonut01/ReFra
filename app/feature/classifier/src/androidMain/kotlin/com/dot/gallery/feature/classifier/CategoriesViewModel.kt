@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.core.MediaDistributor
-import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.domain.util.getUri
@@ -60,7 +59,12 @@ class CategoriesViewModel @Inject constructor(
     private val smartScanDao: SmartScanDao,
 ) : ViewModel() {
 
-    val modelStatus: StateFlow<ModelStatus> = modelManager.status(ModelGroup.SEARCH)
+    val modelStatus: StateFlow<ModelStatus> = modelManager.activeSearchModelStatus()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ModelStatus.NOT_INSTALLED)
+
+    /** Same as [modelStatus] but null until the first emission, so the hub never flashes the setup page. */
+    val searchModelStatus: StateFlow<ModelStatus?> = modelManager.activeSearchModelStatus()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // ============ Locations ============
     
@@ -89,6 +93,9 @@ class CategoriesViewModel @Inject constructor(
      */
     val categoriesWithCount: StateFlow<List<CategoryWithMediaCount>> = repository.getCategoriesWithMediaCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val imageEmbeddingCount: StateFlow<Int> = repository.getImageEmbeddingCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     val distinctClassifiedMediaCount: StateFlow<Int> = repository.getDistinctClassifiedMediaCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -121,6 +128,13 @@ class CategoriesViewModel @Inject constructor(
                 SmartScanPlan.runRequestsFeature(it, SmartScanFeature.CATEGORIES) &&
                     SmartScanPlan.shouldShowRun(it.userVisible, it.totalMedia)
             }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** When the latest scan that included category classification finished. */
+    val lastCategoryScanAt: StateFlow<Long?> = smartScanDao.observeLatestRun()
+        .map { run ->
+            run?.takeIf { SmartScanPlan.runRequestsFeature(it, SmartScanFeature.CATEGORIES) }?.finishedAt
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -210,12 +224,12 @@ class CategoriesViewModel @Inject constructor(
     /**
      * Create a new user-defined category
      */
-    fun createCategory(name: String, searchTerms: String) {
+    fun createCategory(name: String, searchTerms: String, isUserCreated: Boolean = true) {
         viewModelScope.launch(Dispatchers.IO) {
             val category = Category(
                 name = name,
                 searchTerms = searchTerms,
-                isUserCreated = true
+                isUserCreated = isUserCreated
             )
             repository.createCategory(category)
             // Trigger reclassification to include the new category
@@ -267,6 +281,29 @@ class CategoriesViewModel @Inject constructor(
     }
 
     /**
+     * Add one suggested category and sort it with a user-visible run, so the hub shows the
+     * progress (generated categories stay hidden until they hold a photo).
+     */
+    fun addSuggestedCategory(template: Category) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.createCategory(
+                Category(name = template.name, searchTerms = template.searchTerms, isUserCreated = false)
+            )
+            classifierRuntime.smartScanManual(SmartScanFeature.CATEGORIES.bit)
+        }
+    }
+
+    /** Ids of the photos currently in [categoryId], for the cover picker. */
+    fun mediaIdsInCategory(categoryId: Long) = repository.getMediaIdsInCategory(categoryId)
+
+    /** Use [mediaId] as the category's cover; null restores the automatic cover. */
+    fun setCategoryCover(categoryId: Long, mediaId: Long?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateCategoryCover(categoryId, mediaId)
+        }
+    }
+
+    /**
      * Delete a category
      */
     fun deleteCategory(categoryId: Long) {
@@ -295,13 +332,13 @@ class CategoriesViewModel @Inject constructor(
 
     /**
      * Count of category memberships held by videos — used to confirm the purge when
-     * the exclude-videos setting is enabled (#948).
+     * the exclude-videos setting is enabled.
      */
     suspend fun getVideoCategoryMembershipCount(): Int =
         repository.getVideoCategoryMembershipCount()
 
     /**
-     * Removes every video membership from all categories after user confirmation (#948).
+     * Removes every video membership from all categories after user confirmation.
      */
     fun purgeVideoCategoryMemberships() {
         viewModelScope.launch(Dispatchers.IO) {

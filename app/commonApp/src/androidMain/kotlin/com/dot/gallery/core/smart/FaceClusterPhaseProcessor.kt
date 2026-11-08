@@ -56,14 +56,18 @@ class FaceClusterPhaseProcessor @Inject constructor(
 ) : MediaPhaseProcessor(repository, database) {
     override val phase = SmartScanPhase.FACE_CLUSTER
     override val revision: String
-        get() = "cluster-v2:${modelManager.processorRevision(ModelGroup.FACE_DETECT)}:" +
-            modelManager.processorRevision(ModelGroup.FACE_RECOGNITION)
+        get() = faceClusterRevision(
+            modelManager.activeFaceModel,
+            modelManager.processorRevision(ModelGroup.FACE_DETECT),
+            modelManager.processorRevision(ModelGroup.FACE_RECOGNITION),
+        )
 
     override suspend fun process(context: SmartScanPhaseContext): SmartScanPhaseResult {
         if (!BuildConfig.ENABLE_INDEXING) return SmartScanPhaseResult.Blocked("indexing_disabled")
-        if (!modelManager.isReady(ModelGroup.FACE_DETECT) ||
-            !modelManager.isReady(ModelGroup.FACE_RECOGNITION)
-        ) return SmartScanPhaseResult.Blocked("face_model_unavailable")
+        if (!modelManager.isReady(modelManager.activeFaceModel)) {
+            return SmartScanPhaseResult.Blocked("face_model_unavailable")
+        }
+        val embeddingDimension = modelManager.activeFaceModel.embeddingDimension
 
         faceDao.deleteOrphans()
         faceDao.deleteOrphanExclusions()
@@ -80,7 +84,7 @@ class FaceClusterPhaseProcessor @Inject constructor(
                         }
                         .getOrNull()
                 }
-                ?.takeIf { it.size == FACE_EMBEDDING_DIMENSION && it.all(Float::isFinite) }
+                ?.takeIf { it.size == embeddingDimension && it.all(Float::isFinite) }
             if (embedding == null || face.left >= face.right || face.top >= face.bottom) null
             else face to embedding
         }
@@ -269,6 +273,5 @@ class FaceClusterPhaseProcessor @Inject constructor(
         private const val THUMBNAIL_DECODE_SIZE = 640
         private const val CROP_MARGIN = 1.45f
         private const val BATCH_SIZE = 500
-        private const val FACE_EMBEDDING_DIMENSION = 512
     }
 }

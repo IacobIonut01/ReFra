@@ -44,7 +44,7 @@ class PrivateFolderMoveViewModel @Inject constructor(
      * Move every item in [media] out of the private folder: each is copied back
      * into the public MediaStore and the private-folder original is deleted via
      * SAF (never a MediaStore delete request, which crashes on tree document
-     * URIs — #1015). Returns the count moved successfully.
+     * URIs — ). Returns the count moved successfully.
      */
     suspend fun <T : Media> moveOutOfPrivateFolder(media: List<T>): Int =
         withContext(Dispatchers.IO) {

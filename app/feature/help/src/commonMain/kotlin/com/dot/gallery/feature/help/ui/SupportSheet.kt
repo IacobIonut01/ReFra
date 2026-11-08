@@ -37,9 +37,18 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.DragHandle
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.VolunteerActivism
+import com.dot.gallery.core.presentation.components.ExpressiveSheet
 import com.dot.gallery.core.presentation.components.OptionItem
-import com.dot.gallery.core.presentation.components.OptionLayout
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetOptionRow
+import com.dot.gallery.core.presentation.components.SheetRowTrailing
+import com.dot.gallery.core.presentation.components.SheetTone
+import com.dot.gallery.core.presentation.components.sheetRowPosition
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -118,69 +127,42 @@ fun SupportSheet(
         BackHandler(showCryptoOptions) {
             showCryptoOptions = false
         }
-        ModalBottomSheet(
-            sheetState = state.sheetState,
-            onDismissRequest = {
-                scope.launch {
-                    showCryptoOptions = false
-                    state.hide()
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            tonalElevation = 0.dp,
-            dragHandle = { DragHandle() },
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 32.dp, vertical = 16.dp)
-                    .navigationBarsPadding()
-            ) {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontStyle = MaterialTheme.typography.titleLarge.fontStyle,
-                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                letterSpacing = MaterialTheme.typography.titleLarge.letterSpacing
-                            )
-                        ) {
-                            append(stringResource(Res.string.support_the_project))
-                        }
-                        if (showCryptoOptions) {
-                            append("\n")
-                            withStyle(
-                                style = SpanStyle(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontStyle = MaterialTheme.typography.bodyMedium.fontStyle,
-                                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                                    letterSpacing = MaterialTheme.typography.bodyMedium.letterSpacing
-                                )
-                            ) {
-                                append(stringResource(Res.string.click_to_copy))
-                            }
-                        }
-                    },
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .padding(bottom = 16.dp)
-                        .fillMaxWidth()
-                )
-                val options = remember(showCryptoOptions) {
-                    (if (showCryptoOptions) cryptoOptions else mainOptions).toMutableStateList()
-                }
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    optionList = options
-                )
-            }
-        }
+    }
+    ExpressiveSheet(
+        sheetState = state,
+        paneTitle = stringResource(Res.string.support_the_project),
+        onDismissRequest = { showCryptoOptions = false },
+    ) {
+        SupportSheetContent(
+            options = if (showCryptoOptions) cryptoOptions else mainOptions,
+            showingAddresses = showCryptoOptions,
+        )
+    }
+}
+
+/**
+ * Stateless body of [SupportSheet]: a badge and title, then each option as a grouped row. While
+ * [showingAddresses] the rows are crypto addresses that copy on tap.
+ */
+@Composable
+fun ColumnScope.SupportSheetContent(
+    options: List<OptionItem>,
+    showingAddresses: Boolean,
+) {
+    SheetHeader(
+        title = stringResource(Res.string.support_the_project),
+        body = if (showingAddresses) stringResource(Res.string.click_to_copy) else null,
+        icon = Icons.Outlined.VolunteerActivism,
+        tone = SheetTone.Tertiary,
+    )
+    options.forEachIndexed { index, item ->
+        SheetOptionRow(
+            title = item.text,
+            summary = item.summary,
+            icon = if (showingAddresses) Icons.Outlined.ContentCopy else Icons.AutoMirrored.Outlined.OpenInNew,
+            position = sheetRowPosition(index, options.size),
+            trailing = if (showingAddresses) SheetRowTrailing.None else SheetRowTrailing.Chevron,
+            onClick = { item.onClick(item.summary.toString()) },
+        )
     }
 }

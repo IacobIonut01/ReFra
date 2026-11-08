@@ -55,4 +55,14 @@
     <string name="editor_brush_size">גודל</string>
     <string name="editor_brush_strength">חוזק</string>
     <string name="editor_blur_faces">טשטוש פנים</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 סיביות)</string>
+    <string name="raw_export_tiff16">TIFF (16 סיביות)</string>
+    <string name="raw_export_choose_format">שמור עותק מעובד</string>
+    <string name="raw_export_choose_format_subtitle">בחר פורמט לקובץ ה-RAW שפיתחת</string>
+    <string name="raw_export_tiff_unavailable">קובץ TIFF שומר על עומק סיביות מלא, אך אינו יכול לכלול חיתוך, פילטרים או סימונים — יש להסירם כדי לייצא קובץ TIFF.</string>
+    <string name="editor_mosaic_faces">פנים מפסיפס</string>
+    <string name="cutout_no_object">לא זוהה אובייקט בעת לחיצה ממושכת</string>
+    <string name="cutout_init_failed">לא הצליח לאתחל את מנוע ה-cutout</string>
 </resources>

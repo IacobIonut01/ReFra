@@ -161,9 +161,9 @@ class EditViewModel @Inject constructor(
     val isDetectingFaces = _isDetectingFaces.asStateFlow()
     private var faceDetectionJob: Job? = null
 
-    /** True when the on-device face detector model is installed (gates the "Blur faces" action). */
+    /** True when the on-device face detector model is installed (gates the auto faces action). */
     val faceDetectAvailable: Boolean
-        get() = modelManager.isReady(com.dot.gallery.core.ml.ModelGroup.FACE_DETECT)
+        get() = modelManager.checkModelsPresent(com.dot.gallery.core.ml.ModelGroup.FACE_DETECT)
 
     /** Run face detection on the current image; results are emitted via [pendingFaceRegions]. */
     fun detectFacesForMarkup() {
@@ -1346,7 +1346,7 @@ class EditViewModel @Inject constructor(
 
         // Update applied-adjustments list (dedup same-kind for VariableFilter / ImageFilter).
         // adjustmentsWithout is the list with any previous entry of this kind removed; it is
-        // also what we fall back to when the new adjustment turns out to be a no-op (#957/#961).
+        // also what we fall back to when the new adjustment turns out to be a no-op (/).
         val updatedRecipe = updatedEditorRecipe(filters, adjustment)
         val replacesExistingAdjustment = when (adjustment) {
             is VariableFilter -> filters.any { it.name.equals(adjustment.name, ignoreCase = true) } ||
@@ -1380,8 +1380,8 @@ class EditViewModel @Inject constructor(
 
             val newBitmap = adjustment.apply(baseBitmap)
             // No-op guard: drop adjustments that produce no visible change so the tool icon
-            // stops showing as "modified" (#957) and identical actions don't stack on the
-            // undo/revert history (#961). A variable filter scrubbed back to its default
+            // stops showing as "modified" and identical actions don't stack on the
+            // undo/revert history. A variable filter scrubbed back to its default
             // value is treated as a no-op directly: pixel comparison alone is unreliable
             // because some filters aren't perfectly pixel-identical at their default and,
             // when this is the only filter, the base falls back to the already-filtered
@@ -1961,7 +1961,7 @@ class EditViewModel @Inject constructor(
                         _hasOriginalBackup.value = false
                         _isReverting.value = false
                         // Revert restores the original bytes onto the same URI, so drop the
-                        // now-stale edited bitmap from the memory cache too (#1004).
+                        // now-stale edited bitmap from the memory cache too.
                         evictImageCaches(media.uri)
                         onSuccess()
                     } else {

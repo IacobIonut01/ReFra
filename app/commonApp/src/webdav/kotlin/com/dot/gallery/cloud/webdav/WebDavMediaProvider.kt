@@ -192,7 +192,6 @@ open class WebDavMediaProvider(
         dialect.serverVersion(s)
     }
 
-    // === Remote Assets ===
 
     override fun getRemoteAssets(page: Int, pageSize: Int): Flow<Resource<List<CloudMediaEntity>>> = flow {
         try {
@@ -442,7 +441,6 @@ open class WebDavMediaProvider(
         return Bitmap.createScaledBitmap(bitmap, w, h, true)
     }
 
-    // === Share Link ===
 
     override suspend fun createShareLink(assetIds: List<String>, expiresAt: Long?): Result<String> =
         withContext(Dispatchers.IO) {
@@ -843,9 +841,9 @@ open class WebDavMediaProvider(
         } catch (_: Exception) {
             System.currentTimeMillis()
         }
-        // RFC 4918 `creationdate` is the filesystem birth time, not DateTimeOriginal.
-        // Keep it as a fallback so items sort before the capture-time index runs;
-        // the index still probes embedded EXIF and replaces this when present.
+        // RFC 4918 `creationdate` is ISO-8601. Most servers don't return it (SabreDAV
+        // omits it by default), but when present it's the closest provider-side
+        // capture time available; embedded EXIF resolution refines it later.
         val creationTs = parseCaptureTimestamp(creationDate)
         // Use the file path as the stable remoteId for all WebDAV flavors. The
         // path is what every WebDAV/OCS call expects (preview, delete, favorite,

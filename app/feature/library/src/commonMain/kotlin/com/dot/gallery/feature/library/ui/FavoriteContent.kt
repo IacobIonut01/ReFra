@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -25,11 +23,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.presentation.components.EmptyFavorites
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
 import com.dot.gallery.core.presentation.components.MediaScreen
 import com.dot.gallery.core.ui.components.SettingsItem
 import com.dot.gallery.core.ui.settings.rememberPreference
@@ -65,6 +65,8 @@ fun FavoriteContent(
     ) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
+    /** Docs seam: opens the grid scrolled to this item. */
+    initialFirstVisibleItemIndex: Int = 0,
 ) {
     var groupByDate by rememberPreference(SettingsKeys.favoritesGroupByDate)
     val favoritesGroupMethod by rememberPreference(SettingsKeys.favoritesGroupMethod)
@@ -76,7 +78,6 @@ fun FavoriteContent(
         mediaState = mediaState,
         metadataState = metadataState,
         allowHeaders = groupByDate,
-        enableStickyHeaders = groupByDate,
         groupMethod = if (groupByDate) favoritesGroupMethod else GROUP_NORMAL,
         mediaViewerRoute = mediaViewerRoute,
         lastCellIndex = lastCellIndex,
@@ -84,17 +85,12 @@ fun FavoriteContent(
         searchBar = searchBar,
         selectionSheetContent = selectionSheetContent,
         navActionsContent = {
-            IconButton(onClick = { groupByDate = !groupByDate }) {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = stringResource(Res.string.favorites_group_by_date),
-                    tint = if (groupByDate) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-            }
+            GalleryPageTopBarAction(
+                icon = Icons.Outlined.CalendarMonth,
+                contentDescription = stringResource(Res.string.favorites_group_by_date),
+                onClick = { groupByDate = !groupByDate },
+                tint = if (groupByDate) MaterialTheme.colorScheme.primary else Color.Unspecified,
+            )
         },
         emptyContent = { EmptyFavorites() },
         aboveGridContent = {
@@ -112,5 +108,6 @@ fun FavoriteContent(
         },
         sharedTransitionScope = sharedTransitionScope,
         animatedContentScope = animatedContentScope,
+        initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     )
 }

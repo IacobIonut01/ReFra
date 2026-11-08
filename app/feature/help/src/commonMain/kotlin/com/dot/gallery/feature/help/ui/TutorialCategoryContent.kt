@@ -14,19 +14,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.ui.components.settings
 import com.dot.gallery.feature.help.domain.HelpCategory
 import com.dot.gallery.feature.help.domain.HelpRepository
@@ -35,6 +30,11 @@ import com.dot.gallery.feature.help.domain.displayTitle
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.help.generated.resources.Res
 import com.dot.gallery.feature.help.generated.resources.help_tips_fallback
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 /**
  * Tips list for a single [HelpCategory]. [categoryName] is the enum name from
@@ -46,7 +46,7 @@ fun TutorialCategoryContent(
     categoryName: String,
     onNavigate: (HelpRoute) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
 
     val category = remember(categoryName) {
         runCatching { HelpCategory.valueOf(categoryName) }.getOrNull()
@@ -56,15 +56,11 @@ fun TutorialCategoryContent(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(category?.displayTitle() ?: stringResource(Res.string.help_tips_fallback)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = category?.displayTitle() ?: stringResource(Res.string.help_tips_fallback),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { padding ->
@@ -72,8 +68,9 @@ fun TutorialCategoryContent(
             Triple(stringResource(tip.title), stringResource(tip.subtitle), tip)
         }
         LazyColumn(
+            state = listState,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize().hazeSource(LocalHazeState.current)
                 .widthIn(max = 640.dp),
             contentPadding = PaddingValues(
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),

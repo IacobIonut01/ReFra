@@ -29,6 +29,17 @@ import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.feature.classifier.ui.CategoryViewContent
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.feature.classifier.CategoryViewModel
+import com.dot.gallery.feature.classifier.CategoriesViewModel
+import com.dot.gallery.domain.model.UriMedia
+import com.dot.gallery.domain.model.definedTimestamp
+
+/** First and last month of [media], formatted for the category header. */
+private fun categoryDateRange(media: List<UriMedia>): Pair<String, String>? {
+    val stamps = media.map { it.definedTimestamp * 1000L }.filter { it > 0 }
+    if (stamps.isEmpty()) return null
+    val format = java.text.SimpleDateFormat("MMM yyyy", java.util.Locale.getDefault())
+    return format.format(java.util.Date(stamps.min())) to format.format(java.util.Date(stamps.max()))
+}
 
 
 /**
@@ -94,13 +105,24 @@ fun CategoryViewScreen(
     val eventHandler = LocalEventHandler.current
     val viewModel = injectViewModel<CategoryViewModel> {categoryViewModel}
 
+    val categoriesViewModel = injectViewModel<CategoriesViewModel> {categoriesViewModel}
+
     val mediaState = viewModel.mediaByCategoryId.collectAsStateWithLifecycle()
     val category by viewModel.categoryDetails.collectAsStateWithLifecycle()
+    val scan by categoriesViewModel.categoryScan.collectAsStateWithLifecycle()
+    val scanProgress by categoriesViewModel.categoryWorkerProgress.collectAsStateWithLifecycle()
+    val media = mediaState.value.media
+    val dateRange = remember(media) { categoryDateRange(media) }
 
     CategoryViewContent(
         state = CategoryViewState(
             categoryId = categoryId,
             categoryName = category?.name ?: "",
+            category = category,
+            cover = media.find { it.id == category?.coverMediaId } ?: media.firstOrNull(),
+            dateRange = dateRange,
+            isScanning = scan != null,
+            scanProgress = if (scan != null && scanProgress > 0f) scanProgress / 100f else null,
         ),
         actions = CategoryViewActions(
             onInvalidCategory = { eventHandler.navigateUp() },
@@ -112,6 +134,13 @@ fun CategoryViewScreen(
                 eventHandler.navigate(Screen.MediaViewScreen.idAndCategoryId(mediaId, categoryId))
             },
             onSearchClick = { eventHandler.navigate(Screen.SearchScreen()) },
+            onTogglePin = categoriesViewModel::toggleCategoryPinned,
+            onDeleteCategory = { id ->
+                categoriesViewModel.deleteCategory(id)
+                eventHandler.navigateUp()
+            },
+            onChangeThreshold = categoriesViewModel::updateCategoryThreshold,
+            onSetCover = categoriesViewModel::setCategoryCover,
         ),
         mediaState = mediaState,
         metadataState = metadataState,

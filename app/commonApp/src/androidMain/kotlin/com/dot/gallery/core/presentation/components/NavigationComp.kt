@@ -79,10 +79,8 @@ import com.dot.gallery.feature.albums.ui.EditGroupContent
 import com.dot.gallery.app.presentation.albums.AlbumsScreen
 import com.dot.gallery.app.presentation.albumtimeline.AlbumTimelineScreen
 import com.dot.gallery.app.presentation.albumtimeline.albumViewerStateOwner
-import com.dot.gallery.app.presentation.classifier.AddCategoryScreen
 import com.dot.gallery.app.presentation.classifier.CategoriesSettingsScreen
 import com.dot.gallery.app.presentation.classifier.CategoryEditorScreen
-import com.dot.gallery.app.presentation.classifier.EditCategoryScreen
 import com.dot.gallery.app.presentation.classifier.CategoriesScreen
 import com.dot.gallery.app.presentation.location.LocationsScreen
 import com.dot.gallery.app.presentation.classifier.CategoryViewScreen
@@ -106,13 +104,16 @@ import com.dot.gallery.app.presentation.settings.subsettings.SettingsGeneralScre
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsMediaViewerScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsNavigationScreen
 import com.dot.gallery.feature.settings.ui.SettingsSelectionActionsContent
+import com.dot.gallery.feature.settings.ui.SettingsViewerActionsContent
 import com.dot.gallery.app.presentation.settings.subsettings.SlideshowSettingsScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsTimelineAlbumsScreen
 import com.dot.gallery.app.presentation.settings.subsettings.EditBackupsViewerScreen
 import com.dot.gallery.app.presentation.settings.subsettings.AIModelsManagerScreen
+import com.dot.gallery.app.presentation.settings.subsettings.IntelligenceFeatureScreen
+import com.dot.gallery.feature.settings.ui.IntelligenceFeature
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsCloudIndexingScreen
+import com.dot.gallery.app.presentation.settings.subsettings.SettingsHandoverScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsSecurityScreen
-import com.dot.gallery.feature.settings.ui.SettingsBackupScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsBackupExportScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsBackupImportScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsSmartFeaturesScreen
@@ -155,10 +156,6 @@ import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.domain.model.Category
 import com.dot.gallery.feature.editor.adjustments.varfilter.Pop
-import com.dot.gallery.cloud.ui.CloudTimelineScreen
-import com.dot.gallery.cloud.ui.backup.CloudBackupAndSyncScreen
-import com.dot.gallery.cloud.ui.backup.CloudBackupScreen
-import com.dot.gallery.cloud.ui.sync.SyncStatusScreen
 import com.dot.gallery.core.presentation.components.shape
 import com.dot.gallery.feature.editor.adjustments.filters.None
 import com.dot.gallery.core.presentation.util.update
@@ -227,6 +224,7 @@ fun NavigationComp(
         permissionState = it.all { item -> item.value }
     }
     var lastStartScreen by rememberLastScreen()
+    var libraryEditMode by rememberSaveable { mutableStateOf(false) }
     val forcedLastScreen by rememberForcedLastScreen()
     // Read synchronously once so the wizard isn't briefly shown before the real start screen.
     val startDest = rememberStartupDestination(initialStartDestination)
@@ -234,7 +232,7 @@ fun NavigationComp(
         if (event == Lifecycle.Event.ON_STOP) {
             val currentDest = navBackStackEntry?.destination?.route ?: startDest
             // Only update lastStartScreen if user hasn't set a forced default screen
-            if (!forcedLastScreen && (currentDest == Screen.TimelineScreen() || currentDest == Screen.AlbumsScreen() || currentDest == Screen.LibraryScreen())) {
+            if (!forcedLastScreen && (currentDest == Screen.TimelineScreen() || currentDest == Screen.LibraryScreen())) {
                 lastStartScreen = currentDest
             }
         }
@@ -245,9 +243,9 @@ fun NavigationComp(
     }
     val allowBlur by rememberAllowBlur()
 
-    LaunchedEffect(navBackStackEntry, isSelectionActive) {
+    LaunchedEffect(navBackStackEntry, isSelectionActive, libraryEditMode) {
         navBackStackEntry?.destination?.route?.let { route ->
-            bottomBarState.value = bottomNavEntries.any { it.route == route } && !isSelectionActive
+            bottomBarState.value = bottomNavEntries.any { it.route == route } && !isSelectionActive && !libraryEditMode
             if (route != Screen.VaultScreen()) {
                 shouldSkipAuth.value = false
             }
@@ -378,7 +376,7 @@ fun NavigationComp(
                 )
             }
             composable(
-                route = Screen.AlbumsScreen()
+                route = Screen.LibraryScreen()
             ) {
                 val albumsViewModel = injectViewModel<AlbumsViewModel> {albumsViewModel}
                 val albumSectionsEnabled by Settings.Album.rememberAlbumSectionsEnabled()
@@ -495,7 +493,6 @@ fun NavigationComp(
                     }
                 )
 
-                // Collection sheet state
                 val collectionSheetState = rememberAppBottomSheetState()
                 var collectionDialogMode by remember { mutableStateOf("create") }
                 var collectionDialogId by remember { mutableStateOf<Long?>(null) }
@@ -525,7 +522,6 @@ fun NavigationComp(
                     }
                 )
 
-                // Move to section sheet state
                 val moveToSectionSheetState = rememberAppBottomSheetState()
                 var pendingMoveAlbum by remember { mutableStateOf<Album?>(null) }
                 var pendingMoveCurrentSectionId by remember { mutableStateOf<Long?>(null) }
@@ -550,8 +546,17 @@ fun NavigationComp(
                     }
                 )
 
-                AlbumsScreen(
+                LibraryScreen(
                     paddingValues = paddingValues,
+                    editMode = libraryEditMode,
+                    onEditModeChange = { libraryEditMode = it },
+                ) { albumsPadding, libraryHeader, libraryMenuItems, onLibraryContentDrawn, albumsMinCellWidth ->
+                AlbumsScreen(
+                    paddingValues = albumsPadding,
+                    header = libraryHeader,
+                    menuItems = libraryMenuItems,
+                    onContentDrawn = onLibraryContentDrawn,
+                    minCellWidth = albumsMinCellWidth,
                     isScrolling = isScrolling,
                     onAlbumClick = onAlbumClickWithLock,
                     onAlbumLongClick = albumsViewModel.onAlbumLongClick,
@@ -630,6 +635,7 @@ fun NavigationComp(
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = this
                 )
+                }
             }
             composable(
                 route = Screen.AlbumViewScreen.albumAndName(),
@@ -714,6 +720,7 @@ fun NavigationComp(
                         groupViewRenameInitialName = group.group.label
                         groupViewScope.launch { groupViewRenameSheetState.show() }
                     },
+                    onAddAlbums = { id -> eventHandler.navigate(Screen.EditGroupScreen.groupId(id)) },
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = this
                 )
@@ -979,17 +986,6 @@ fun NavigationComp(
             }
 
             composable(
-                route = Screen.LibraryScreen()
-            ) {
-                LibraryScreen(
-                    paddingValues = paddingValues,
-                    isScrolling = isScrolling,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = this
-                )
-            }
-
-            composable(
                 route = Screen.CategoriesScreen()
             ) {
                 val categoriesViewModel = injectViewModel<CategoriesViewModel> {categoriesViewModel}
@@ -1001,6 +997,7 @@ fun NavigationComp(
                     initialValue = MediaState()
                 )
                 CategoriesScreen(
+                    viewModel = categoriesViewModel,
                     categoriesWithCount = categoriesWithCount,
                     distinctMediaCount = distinctMediaCount,
                     mediaState = categoryMediaState,
@@ -1035,42 +1032,6 @@ fun NavigationComp(
                     locations = locations,
                     geoMedia = geoMedia,
                     initialMediaId = initialMediaId
-                )
-            }
-
-            composable(
-                route = Screen.AddCategoryScreen()
-            ) {
-                AddCategoryScreen(
-                    paddingValues = paddingValues,
-                    isScrolling = isScrolling,
-                    metadataState = metadataState(),
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = this,
-                    onNavigateBack = { navController.navigateUp() }
-                )
-            }
-            
-            composable(
-                route = Screen.EditCategoryScreen.route(),
-                arguments = listOf(
-                    navArgument(name = "categoryId") {
-                        type = NavType.LongType
-                        defaultValue = -1
-                    }
-                )
-            ) { backStackEntry ->
-                val categoryId = remember(backStackEntry) {
-                    backStackEntry.arguments?.getLong("categoryId") ?: -1
-                }
-                EditCategoryScreen(
-                    categoryId = categoryId,
-                    paddingValues = paddingValues,
-                    isScrolling = isScrolling,
-                    metadataState = metadataState(),
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = this,
-                    onNavigateBack = { navController.navigateUp() }
                 )
             }
 
@@ -1292,6 +1253,10 @@ fun NavigationComp(
                     navArgument(name = "collectionId") {
                         type = NavType.LongType
                         defaultValue = -1
+                    },
+                    navArgument(name = "slideshow") {
+                        type = NavType.BoolType
+                        defaultValue = false
                     }
                 )
             ) { backStackEntry ->
@@ -1300,6 +1265,9 @@ fun NavigationComp(
                 }
                 val collectionId: Long = remember(backStackEntry) {
                     backStackEntry.arguments?.getLong("collectionId") ?: -1
+                }
+                val slideshow: Boolean = remember(backStackEntry) {
+                    backStackEntry.arguments?.getBoolean("slideshow") ?: false
                 }
 
                 val distributor = LocalMediaDistributor.current
@@ -1313,6 +1281,7 @@ fun NavigationComp(
                     paddingValues = paddingValues,
                     mediaId = mediaId,
                     target = "collection_$collectionId",
+                    slideshow = slideshow,
                     mediaState = mediaState,
                     metadataState = metadataState(),
                     albumsState = albumsState(),
@@ -1338,11 +1307,46 @@ fun NavigationComp(
             composable(Screen.SettingsCloudIndexingScreen()) {
                 SettingsCloudIndexingScreen()
             }
+            composable(Screen.SettingsHandoverScreen()) {
+                SettingsHandoverScreen()
+            }
             composable(Screen.SmartScanPreferenceDetailScreen()) {
                 SmartScanPreferenceDetailScreen()
             }
             composable(Screen.AIModelsManagerScreen()) {
                 AIModelsManagerScreen()
+            }
+            composable(
+                route = Screen.IntelligenceFeatureScreen.feature(),
+                arguments = listOf(
+                    navArgument(name = "feature") {
+                        type = NavType.StringType
+                        defaultValue = IntelligenceFeature.FACE_GROUPING.name
+                    },
+                    navArgument(name = "offer") {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    }
+                )
+            ) { backStackEntry ->
+                val feature = remember(backStackEntry) {
+                    IntelligenceFeature.fromName(backStackEntry.arguments?.getString("feature"))
+                }
+                val offer = remember(backStackEntry) {
+                    backStackEntry.arguments?.getBoolean("offer") ?: false
+                }
+                IntelligenceFeatureScreen(
+                    feature = feature,
+                    showNotNow = offer,
+                    onScanForPeople = {
+                        // Opened from People: go back to it rather than stacking a second copy.
+                        if (!navController.popBackStack(Screen.PeopleListScreen(), inclusive = false)) {
+                            navController.navigate(Screen.PeopleListScreen()) {
+                                popUpTo(Screen.IntelligenceFeatureScreen.feature()) { inclusive = true }
+                            }
+                        }
+                    },
+                )
             }
             composable(Screen.SettingsAppearanceScreen()) {
                 ColorPaletteScreen()
@@ -1360,7 +1364,7 @@ fun NavigationComp(
                 SettingsSecurityScreen()
             }
             composable(Screen.SettingsBackupScreen()) {
-                SettingsBackupScreen(
+                com.dot.gallery.app.presentation.settings.subsettings.SettingsBackupHubScreen(
                     onExport = { navController.navigate(Screen.SettingsBackupExportScreen()) },
                     onImport = { navController.navigate(Screen.SettingsBackupImportScreen()) }
                 )
@@ -1384,6 +1388,9 @@ fun NavigationComp(
             composable(Screen.SettingsSelectionActionsScreen()) {
                 SettingsSelectionActionsContent()
             }
+            composable(Screen.SettingsViewerActionsScreen()) {
+                SettingsViewerActionsContent()
+            }
             composable(Screen.SlideshowSettingsScreen()) {
                 SlideshowSettingsScreen()
             }
@@ -1391,7 +1398,7 @@ fun NavigationComp(
                 CloudAccountsScreen()
             }
             // Legacy/debug-only route: cloud media lives in the unified timeline. Keep old deep
-            // links working without exposing the standalone CloudTimelineScreen in production.
+            // links working now that the standalone cloud timeline screen is gone.
             composable(Screen.CloudTimelineScreen()) {
                 LaunchedEffect(Unit) {
                     navController.navigate(Screen.CloudBackupDashboardScreen()) {
@@ -1484,14 +1491,6 @@ fun NavigationComp(
                 )
             }
 
-            composable(Screen.SyncStatusScreen()) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(Screen.CloudBackupDashboardScreen()) {
-                        popUpTo(Screen.SyncStatusScreen()) { inclusive = true }
-                    }
-                }
-            }
-
             composable(Screen.CloudBackupScreen()) {
                 LaunchedEffect(Unit) {
                     navController.navigate(Screen.CloudBackupDashboardScreen()) {
@@ -1531,6 +1530,9 @@ fun NavigationComp(
                     },
                     onNavigateToOffline = {
                         navController.navigate(Screen.CloudOfflineModeScreen())
+                    },
+                    onNavigateToFreeUpSpace = {
+                        navController.navigate(Screen.FreeUpSpaceScreen.configId(-1L))
                     }
                 )
             }
@@ -1578,6 +1580,13 @@ fun NavigationComp(
                     onPersonClick = { person ->
                         navController.navigate(
                             Screen.PersonDetailScreen.personId(person.serverConfigId, person.id)
+                        )
+                    },
+                    onSetupFaceGrouping = {
+                        navController.navigate(
+                            Screen.IntelligenceFeatureScreen.feature(
+                                IntelligenceFeature.FACE_GROUPING.name, offer = true
+                            )
                         )
                     }
                 )
@@ -1660,7 +1669,9 @@ fun NavigationComp(
             }
 
             composable(Screen.MemoriesScreen()) {
-                MemoriesScreen()
+                val memoriesStoryViewModel = storyCardsViewModel
+                    ?: injectViewModel<StoryCardsViewModel>(viewModelStoreOwner = rootViewModelStoreOwner) { this.storyCardsViewModel }
+                MemoriesScreen(onOpenStory = memoriesStoryViewModel::openCards)
             }
 
             composable(
@@ -1857,6 +1868,9 @@ fun NavigationComp(
                 val longitude = remember(backStackEntry) {
                     backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
                 }
+                val slideshow = remember(backStackEntry) {
+                    backStackEntry.arguments?.getString("slideshow")?.toBoolean() ?: false
+                }
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(Screen.LocationTimelineScreen.location())
                 }
@@ -1879,6 +1893,7 @@ fun NavigationComp(
                     albumsState = albumsState(),
                     vaultState = vaultState(),
                     target = "location_${gpsLocationNameCity}_${gpsLocationNameCountry}_${latitude}_$longitude",
+                    slideshow = slideshow,
                     allowBlur = allowBlur,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = this
@@ -1920,7 +1935,13 @@ fun NavigationComp(
                     onDismiss = {
                         routeStoryCardsViewModel.clearViewerSnapshot()
                         navController.navigateUp()
-                    }
+                    },
+                    onOpenAllMemories = {
+                        routeStoryCardsViewModel.clearViewerSnapshot()
+                        navController.navigate(Screen.MemoriesScreen()) {
+                            popUpTo(Screen.StoryViewerScreen.cardId()) { inclusive = true }
+                        }
+                    },
                 )
             }
 

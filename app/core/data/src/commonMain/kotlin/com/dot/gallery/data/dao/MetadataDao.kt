@@ -111,6 +111,15 @@ interface MetadataDao {
     @Query("SELECT * FROM media_metadata_core")
     fun getFullMetadata(): Flow<List<FullMediaMetadata>>
 
+    @Query("SELECT * FROM media_metadata_core")
+    suspend fun getAllCore(): List<MediaMetadataCore>
+
+    @Query("SELECT * FROM media_metadata_video")
+    suspend fun getAllVideo(): List<MediaMetadataVideo>
+
+    @Query("SELECT * FROM media_metadata_flags")
+    suspend fun getAllFlags(): List<MediaMetadataFlags>
+
     @Transaction
     @Query("SELECT * FROM media_metadata_core WHERE mediaId = :id")
     fun getFullMetadata(id: Long): Flow<FullMediaMetadata>
@@ -207,7 +216,6 @@ interface MetadataDao {
         if (existing != null) {
             updateImageDescription(mediaId, description)
         } else {
-            // Create minimal core entry with just the description
             upsertCore(MediaMetadataCore(
                 mediaId = mediaId,
                 imageDescription = description,

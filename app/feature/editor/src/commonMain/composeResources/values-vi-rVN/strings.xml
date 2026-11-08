@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Kích thước</string>
     <string name="editor_brush_strength">Độ mạnh</string>
     <string name="editor_blur_faces">Làm mờ khuôn mặt</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bit)</string>
+    <string name="raw_export_tiff16">TIFF (16-bit)</string>
+    <string name="raw_export_choose_format">Lưu bản sao đã chỉnh sửa</string>
+    <string name="raw_export_choose_format_subtitle">Chọn định dạng cho tệp RAW đã xử lý của bạn</string>
+    <string name="raw_export_tiff_unavailable">Định dạng TIFF giữ nguyên độ sâu bit đầy đủ nhưng không thể chứa các phần cắt, bộ lọc hoặc chú thích — hãy xóa chúng đi trước khi xuất file TIFF.</string>
+    <string name="editor_mosaic_faces">Những khuôn mặt khảm</string>
+    <string name="cutout_no_object">Không phát hiện thấy vật thể nào khi nhấn và giữ</string>
+    <string name="cutout_init_failed">Không thể khởi tạo công cụ cắt</string>
 </resources>

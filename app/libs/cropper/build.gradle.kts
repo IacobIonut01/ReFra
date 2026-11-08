@@ -1,52 +1,42 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKmpLibrary)
+    alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.kotlin.compose.compiler)
 }
 
-android {
-    namespace = "com.smarttoolfactory.cropper"
-    compileSdk = 37
-
-    defaultConfig {
+// Cropper interaction machinery (state, gestures, overlay drawing) is platform-free,
+// so commonMain serves both the Android app and the standalone desktop editor.
+// The bitmap pipeline (ImageCropper composable + CropAgent) stays in androidMain
+// because it is built on android.graphics.Bitmap.
+kotlin {
+    android {
+        namespace = "com.smarttoolfactory.cropper"
+        compileSdk = 37
         minSdk = 29
-    }
-
-    buildTypes {
-        create("staging") {
-            initWith(getByName("release"))
-            isMinifyEnabled = false
-            isShrinkResources = false
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
 
-    composeCompiler {
-        includeSourceInformation = true
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.cmp.foundation)
+            implementation(libs.cmp.ui)
+            implementation(libs.cmp.runtime)
+            implementation(libs.cmp.material3)
+            implementation(libs.cmp.material.icons.extended)
+            implementation(libs.kotlinx.coroutines.core)
+
+            api(project(":app:libs:gesture"))
+        }
     }
-
-    buildFeatures {
-        compose = true
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
-}
-
-dependencies {
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.runtime)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.material.icons.extended)
-
-    implementation(project(":app:libs:gesture"))
 }

@@ -33,14 +33,24 @@ import me.tatarka.inject.annotations.Inject
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.core.workers.SmartScanWorker
 import com.dot.gallery.core.presentation.util.mediaStoreVersion
+import com.dot.gallery.core.Settings
+import com.dot.gallery.core.logging.printWarn
 
 
-internal fun smartScanConstraintsFor(phases: Collection<SmartScanPhase>, userVisible: Boolean): Constraints =
+/**
+ * [chargingOnly] is the "Scan only while charging" setting: with it off, background heavy phases
+ * still wait for a battery that is not low, but no longer for the charger.
+ */
+internal fun smartScanConstraintsFor(
+    phases: Collection<SmartScanPhase>,
+    userVisible: Boolean,
+    chargingOnly: Boolean = true,
+): Constraints =
     Constraints(
         // Low storage disallowed by default — ALLOW_LOW_STORAGE is the opt-out.
         systemConstraints = if (userVisible) emptySet()
             else setOf(SystemConstraint.REQUIRE_BATTERY_NOT_LOW),
-        requiresCharging = !userVisible && phases.any(SMART_SCAN_HEAVY_PHASES::contains),
+        requiresCharging = chargingOnly && !userVisible && phases.any(SMART_SCAN_HEAVY_PHASES::contains),
         // User-visible runs execute in the foreground service so a manual scan
         // isn't suspended when the app backgrounds.
         isHeavyTask = userVisible,
@@ -271,7 +281,7 @@ class SmartScanSchedulerImpl @Inject constructor(
         val trigger = TaskTrigger.OneTime()
     }
 
-    private fun workRequest(
+    private suspend fun workRequest(
         runId: String,
         phases: Collection<SmartScanPhase>,
         userVisible: Boolean,
@@ -279,9 +289,16 @@ class SmartScanSchedulerImpl @Inject constructor(
     ): ScanWork = ScanWork(
         id = id,
         inputJson = workDataJson(SmartScanWorker.KEY_RUN_ID to runId),
-        constraints = smartScanConstraintsFor(phases, userVisible),
+        constraints = smartScanConstraintsFor(phases, userVisible, scanOnlyWhileCharging()),
         tags = setOf(SmartScanWorker.WORK_NAME, SmartScanWorker.runTag(runId)),
     )
+
+    private suspend fun scanOnlyWhileCharging(): Boolean =
+        runCatching { Settings.SmartFeatures.scanOnlyWhileCharging(appContext).first() }
+            .onFailure {
+                printWarn("smart.scan", "reading the charging preference failed; keeping charging-only: ${it.message}")
+            }
+            .getOrDefault(true)
 
     companion object {
         const val WORK_NAME = "smart_scan_dispatcher"

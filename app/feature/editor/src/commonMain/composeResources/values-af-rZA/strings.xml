@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Grootte</string>
     <string name="editor_brush_strength">Sterkte</string>
     <string name="editor_blur_faces">Vervaag gesigte</string>
+    <string name="raw_export_jpeg">Jpeg</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bis)</string>
+    <string name="raw_export_tiff16">TIFF (16-bis)</string>
+    <string name="raw_export_choose_format">Bewaar ontwikkelde kopie</string>
+    <string name="raw_export_choose_format_subtitle">Kies 'n formaat vir jou ontwikkelde RAW.</string>
+    <string name="raw_export_tiff_unavailable">TIFF behou volle bitdiepte, maar kan nie uitsny, filters of merkers insluit nie — verwyder dit om TIFF uit te voer.</string>
+    <string name="editor_mosaic_faces">Mozaïekgesigte</string>
+    <string name="cutout_no_object">Geen voorwerp onder langdruk opgespoor nie</string>
+    <string name="cutout_init_failed">Misluk om die uitsny-enjin te inisialiseer</string>
 </resources>

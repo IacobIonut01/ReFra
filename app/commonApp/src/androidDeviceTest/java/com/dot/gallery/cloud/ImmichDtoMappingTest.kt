@@ -147,7 +147,7 @@ class ImmichDtoMappingTest {
 
     @Test
     fun assetStorePathNeverBecomesRelativePath() {
-        // Regression guard for #1270: `originalPath` is the SERVER's internal
+        // Regression guard: `originalPath` is the SERVER's internal
         // asset-store layout (upload/<userId>/<shard>/<shard>), not a user album —
         // mirroring it into `relativePath` recreated that tree under Pictures/.
         val dto = ImmichAssetDto(

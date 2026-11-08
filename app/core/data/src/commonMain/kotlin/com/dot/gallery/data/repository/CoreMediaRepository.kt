@@ -8,11 +8,12 @@ package com.dot.gallery.data.repository
 import com.dot.gallery.domain.uri.Uri
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.decoder.format.ImageReencoder
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
 import com.dot.gallery.data.dao.CategoryWithMediaCount
+import com.dot.gallery.data.dao.ImageEmbeddingHeader
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.AlbumGroup
 import com.dot.gallery.domain.model.AlbumGroupMember
@@ -156,7 +157,7 @@ interface CoreMediaRepository {
 
     suspend fun sanitizeMediaMetadata(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
     ): SanitizationResult
 
@@ -251,6 +252,8 @@ interface CoreMediaRepository {
     suspend fun getAllCategoriesAsync(): List<Category>
     fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>>
     fun getDistinctClassifiedMediaCount(): Flow<Int>
+    /** Live number of photos with a search embedding (the pool categories are matched from). */
+    fun getImageEmbeddingCount(): Flow<Int> = kotlinx.coroutines.flow.flowOf(0)
     fun getCategoryCount(): Flow<Int>
     fun getTopCategories(limit: Int = 10): Flow<List<CategoryWithMediaCount>>
     
@@ -258,6 +261,8 @@ interface CoreMediaRepository {
     suspend fun updateCategoryThreshold(categoryId: Long, threshold: Float)
     suspend fun updateCategoryName(categoryId: Long, name: String)
     suspend fun toggleCategoryPinned(categoryId: Long, isPinned: Boolean)
+    /** Pick [mediaId] as the category cover; null goes back to the best-scored member. */
+    suspend fun updateCategoryCover(categoryId: Long, mediaId: Long?)
     
     // Media-Category associations
     fun getMediaIdsInCategory(categoryId: Long): Flow<List<Long>>
@@ -272,7 +277,7 @@ interface CoreMediaRepository {
     suspend fun initializeDefaultCategories()
     suspend fun resetCategoryData()
 
-    // Video memberships excluded from categorisation (#948)
+    // Video memberships excluded from categorisation
     suspend fun getVideoCategoryMembershipCount(): Int
     suspend fun deleteVideoCategoryMemberships(): Int
 
@@ -297,6 +302,14 @@ interface CoreMediaRepository {
     suspend fun getRecord(id: Long): ImageEmbedding?
 
     fun getImageEmbeddings(): Flow<List<ImageEmbedding>>
+
+    suspend fun getImageEmbeddings(ids: List<Long>): List<ImageEmbedding>
+
+    /**
+     * Lightweight change feed over [getImageEmbeddings] — headers only, no vector
+     * decode. Consumers diff it and fetch just the changed rows.
+     */
+    fun getImageEmbeddingHeaders(): Flow<List<ImageEmbeddingHeader>>
 
     // ============ Album Groups ============
 
@@ -381,6 +394,8 @@ interface CoreMediaRepository {
     fun getAllAlbumIdsInCollections(): Flow<List<Long>>
 
     fun getAlbumIdsInCollection(collectionId: Long): Flow<List<Long>>
+
+    fun getExcludedMediaIdsInCollection(collectionId: Long): Flow<List<Long>>
 
     // ============ Album Sections ============
 

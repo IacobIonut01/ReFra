@@ -42,7 +42,7 @@ class SketchTiffDecoder(
             val realMime = requestContext.request.extras?.get("realMimeType") as String?
             val mime = realMime ?: fetchResult.mimeType
             if (mime == null || !(mime.contains("image/tiff") || mime.contains("image/tif"))) return null
-            // #1054: a file mislabeled image/tiff that is actually a standard JPEG/PNG/WebP/GIF/BMP
+            // a file mislabeled image/tiff that is actually a standard JPEG/PNG/WebP/GIF/BMP
             // must not be full-decoded as TIFF (fails / yields only a thumbnail). Peek the header and
             // defer to Sketch's native decoder when the bytes are a natively-decodable image.
             val (head, read) = fetchResult.dataSource.peekHeader(32)

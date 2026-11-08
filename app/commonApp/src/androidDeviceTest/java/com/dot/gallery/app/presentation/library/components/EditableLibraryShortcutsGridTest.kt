@@ -68,7 +68,6 @@ class EditableLibraryShortcutsGridTest {
                     editMode = false,
                     onClick = {},
                     onEnterEditMode = { enteredEditMode = true },
-                    onExitEditMode = {},
                     onChange = {}
                 )
             }
@@ -76,7 +75,7 @@ class EditableLibraryShortcutsGridTest {
         }
 
         // Every tile hidden leaves nothing to long-press; the obvious
-        // "Customize shortcuts" entry point must be shown instead (#1260).
+        // "Customize shortcuts" entry point must be shown instead.
         rule.onNodeWithTag("library-shortcuts-customize").assertIsDisplayed()
         rule.onNodeWithText(string(Res.string.library_customize))
             .assertIsDisplayed()
@@ -96,7 +95,6 @@ class EditableLibraryShortcutsGridTest {
                     editMode = true,
                     onClick = {},
                     onEnterEditMode = {},
-                    onExitEditMode = {},
                     onChange = { emitted = it }
                 )
             }
@@ -114,6 +112,42 @@ class EditableLibraryShortcutsGridTest {
     }
 
     @Test
+    fun longListsCollapseBehindAnExpandTile() {
+        val shortcuts = listOf(
+            LibraryShortcut.TRASH to "Trash",
+            LibraryShortcut.FAVORITES to "Favorites",
+            LibraryShortcut.VAULT to "Vault",
+            LibraryShortcut.IGNORED to "Ignored",
+            LibraryShortcut.CLOUD_ARCHIVE to "Archive",
+        )
+        rule.setContent {
+            CompositionLocalProvider(LocalSettingsStore provides MapSettingsStore()) {
+            GalleryTheme(ignoreUserPreference = true) {
+                EditableLibraryShortcutsGrid(
+                    working = shortcuts.map { (shortcut, _) -> LibraryShortcutPref(id = shortcut.id, visible = true) },
+                    runtime = shortcuts.associate { (shortcut, title) -> shortcut to runtimeShortcut(shortcut, title) },
+                    editMode = false,
+                    collapsible = true,
+                    onClick = {},
+                    onEnterEditMode = {},
+                    onChange = {}
+                )
+            }
+            }
+        }
+
+        rule.onNodeWithText("Vault").assertIsDisplayed()
+        rule.onNodeWithText("Ignored").assertDoesNotExist()
+        rule.onNodeWithText("Archive").assertDoesNotExist()
+
+        rule.onNodeWithTag("library-shortcuts-more").performClick()
+        rule.waitForIdle()
+
+        rule.onNodeWithText("Ignored").assertIsDisplayed()
+        rule.onNodeWithText("Archive").assertIsDisplayed()
+    }
+
+    @Test
     fun visibleTilesHideCustomizeEntryPoint() {
         rule.setContent {
             CompositionLocalProvider(LocalSettingsStore provides MapSettingsStore()) {
@@ -127,7 +161,6 @@ class EditableLibraryShortcutsGridTest {
                     editMode = false,
                     onClick = {},
                     onEnterEditMode = {},
-                    onExitEditMode = {},
                     onChange = {}
                 )
             }

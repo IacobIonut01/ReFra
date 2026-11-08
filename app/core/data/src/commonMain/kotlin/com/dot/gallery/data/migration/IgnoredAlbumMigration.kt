@@ -22,7 +22,6 @@ import androidx.sqlite.async.step
  */
 val MIGRATION_12_13 = object : Migration(12, 13) {
     override suspend fun migrate(connection: SQLiteConnection) {
-        // Create temporary table with new schema
         connection.executeSQL("""
             CREATE TABLE IF NOT EXISTS blacklist_new (
                 id INTEGER NOT NULL PRIMARY KEY,
@@ -34,24 +33,19 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
             )
         """)
         
-        // Copy data from old table to new table
         connection.executeSQL("""
             INSERT INTO blacklist_new (id, label, wildcard, location, matchedAlbums)
             SELECT id, label, wildcard, location, matchedAlbums FROM blacklist
         """)
         
-        // Drop old table
         connection.executeSQL("DROP TABLE blacklist")
         
-        // Rename new table to original name
         connection.executeSQL("ALTER TABLE blacklist_new RENAME TO blacklist")
         
-        // Now regenerate labels based on type
         regenerateLabels(connection)
     }
     
     private suspend fun regenerateLabels(connection: SQLiteConnection) {
-        // Get all ignored albums
         val cursor = connection.prepare("SELECT id, label, wildcard, albumIds FROM blacklist")
         
         val singleLabels = mutableListOf<String>()
@@ -80,7 +74,6 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
                     else -> singleLabels
                 }
                 
-                // Check if current label is valid (matches pattern and not duplicate)
                 val isValidLabel = oldLabel?.let { label ->
                     label.startsWith("$type #") && label !in existingLabels
                 } ?: false
@@ -99,7 +92,6 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
             }
         }
         
-        // Update labels
         connection.prepare("UPDATE blacklist SET label = ? WHERE id = ?").use { stmt ->
             albumsToUpdate.forEach { update ->
                 stmt.clearBindings()

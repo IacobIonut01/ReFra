@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.SharedLinkInfo
-import com.dot.gallery.cloud.core.SyncState
 import com.dot.gallery.cloud.offline.CacheAssetRef
 import com.dot.gallery.cloud.sync.CloudIndexProgressManager
 import com.dot.gallery.cloud.sync.CloudUploadWorker
@@ -36,9 +35,7 @@ import com.dot.gallery.cloud.ui.sharing.SharedLinksContentActions
 import com.dot.gallery.cloud.ui.sharing.SharedLinksUiState
 import com.dot.gallery.cloud.ui.space.FreeUpSpaceContent
 import com.dot.gallery.cloud.ui.space.FreeUpSpaceUiState
-import com.dot.gallery.cloud.ui.sync.SyncStatusContent
 import com.dot.gallery.cloud.ui.sync.SyncStatusUiState
-import com.dot.gallery.data.entity.CloudMediaEntity
 
 /**
  * Cloud "use" surfaces — backup dashboard, upload queue, sync status,
@@ -53,7 +50,8 @@ val cloudUseScenes: List<DocsScene> = listOf(
         id = "cloud-backup-dashboard",
         title = "Cloud backup dashboard",
         pathTrace = listOf("Library", "Backup & Sync"),
-        states = listOf("overview", "uploading", "indexing"),
+        states = listOf("overview", "uploading", "indexing", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { state -> DocsBackupDashboardScene(state) },
     DocsScene(
         id = "cloud-upload-details",
@@ -61,11 +59,6 @@ val cloudUseScenes: List<DocsScene> = listOf(
         pathTrace = listOf("Library", "Backup & Sync", "Upload details"),
         states = listOf("queued", "uploading"),
     ) { state -> DocsUploadDetailsScene(state) },
-    DocsScene(
-        id = "cloud-sync-status",
-        title = "Cloud sync status",
-        pathTrace = listOf("Settings", "Cloud accounts", "Home photos", "Sync status"),
-    ) { DocsSyncStatusScene() },
     DocsScene(
         id = "cloud-destinations",
         title = "Cloud destinations",
@@ -155,15 +148,6 @@ private fun uploadState(running: Boolean) = UploadDetailsUiState(
     pendingBytes = uploadGroups.sumOf { it.totalBytes },
 )
 
-private fun cloudMedia(remoteId: String, state: SyncState) = CloudMediaEntity(
-    remoteId = remoteId,
-    providerType = ProviderType.IMMICH,
-    serverConfigId = 11L,
-    label = "$remoteId.jpg",
-    mimeType = "image/jpeg",
-    syncState = state,
-)
-
 // ── Backup dashboard ──────────────────────────────────────────────────────
 
 /**
@@ -205,7 +189,6 @@ fun DocsBackupDashboardScene(state: String?) {
     )
 }
 
-// ── Upload details ────────────────────────────────────────────────────────
 
 @Composable
 fun DocsUploadDetailsScene(state: String?) {
@@ -238,26 +221,6 @@ fun DocsUploadDetailsScene(state: String?) {
         }
     }
     UploadDetailsContent(state = stateWithRealUris)
-}
-
-// ── Sync status ───────────────────────────────────────────────────────────
-
-@Composable
-fun DocsSyncStatusScene() {
-    SyncStatusContent(
-        state = SyncStatusUiState(
-            totalRemote = 12,
-            totalCached = 12,
-            synced = 8,
-            remoteOnly = 4,
-            pendingUpload = 0,
-        ),
-        synced = (1..8).map { cloudMedia("docs-synced-$it", SyncState.SYNCED) },
-        remoteOnly = (1..4).map { cloudMedia("docs-remote-$it", SyncState.REMOTE_ONLY) },
-        pendingUpload = emptyList(),
-        onSync = {},
-        onDownloadAll = {},
-    )
 }
 
 // ── Destinations ──────────────────────────────────────────────────────────

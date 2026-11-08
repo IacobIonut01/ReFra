@@ -139,9 +139,11 @@ class DocsMediaDistributor(
     override fun collectionMediaFlow(collectionId: Long): StateFlow<MediaState<UriMedia>> =
         MutableStateFlow(
             stateFor(
-                if (collectionId == DocsGalleryData.COLLECTION_TRIP) {
-                    media.value.filter { it.id in DocsGalleryData.tripMediaIds }
-                } else emptyList()
+                when (collectionId) {
+                    DocsGalleryData.COLLECTION_TRIP -> media.value.filter { it.id in DocsGalleryData.tripMediaIds }
+                    DocsGalleryData.COLLECTION_ALL -> media.value
+                    else -> emptyList()
+                }
             )
         )
 

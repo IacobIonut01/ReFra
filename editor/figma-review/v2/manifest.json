@@ -1,0 +1,163 @@
+{
+ "fileKey": "UagS4q8hC0lpqw3SMGRu08",
+ "pageId": "9:1425",
+ "status": "Approved — implementation in progress",
+ "created": "2026-10-09",
+ "lastRender": "2026-10-09",
+ "baseUrl": "https://www.figma.com/design/UagS4q8hC0lpqw3SMGRu08/GlitchOS--Copy-",
+ "sections": {
+  "s1-start": {
+   "id": "3244:44938",
+   "name": "ReFra v2 \u00b7 Start here \u2014 expressive & full-screen"
+  },
+  "s2-photo": {
+   "id": "3244:44939",
+   "name": "ReFra v2 \u00b7 Photo \u2014 light, colour, geometry, finish"
+  },
+  "s3-photo2": {
+   "id": "3244:44940",
+   "name": "ReFra v2 \u00b7 Photo \u2014 masks, retouch, layers, composition"
+  },
+  "s4-video": {
+   "id": "3244:44941",
+   "name": "ReFra v2 \u00b7 Video \u2014 timeline, picture, animation"
+  },
+  "s5-audio": {
+   "id": "3244:44942",
+   "name": "ReFra v2 \u00b7 Audio \u2014 recording, mixing, routing"
+  },
+  "s6-delivery": {
+   "id": "3244:44943",
+   "name": "ReFra v2 \u00b7 Delivery, accessibility, states"
+  }
+ },
+ "stageFrame": "3210:38452",
+ "variableCollection": "VariableCollectionId:3211:44405",
+ "frames": {
+  "x-photo-view": "3283:45617",
+  "x-photo-brush": "3283:45643",
+  "x-photo-composite": "3283:45679",
+  "x-video-focus": "3283:45717",
+  "x-toolbar-rest": "3283:45753",
+  "x-toolbar-pressed": "3283:45784",
+  "x-toolbar-expanded": "3283:45815",
+  "p-home": "3248:44904",
+  "p-tools": "3248:44965",
+  "p-light": "3248:45116",
+  "p-colour": "3248:45196",
+  "p-curves": "3248:45278",
+  "p-white-balance": "3248:45343",
+  "p-crop": "3249:44998",
+  "p-perspective": "3249:45083",
+  "p-text": "3249:45148",
+  "p-frames": "3249:45209",
+  "p-looks": "3249:45275",
+  "p-grain": "3249:45338",
+  "p-lut": "3251:45062",
+  "p-raw": "3251:45116",
+  "p-batch": "3251:45176",
+  "p-history": "3251:45241",
+  "p-export": "3251:45313",
+  "p-selective": "3254:45129",
+  "p-brush": "3254:45199",
+  "p-healing": "3254:45264",
+  "p-details": "3254:45325",
+  "p-vignette": "3254:45391",
+  "p-blur": "3254:45446",
+  "p-double": "3256:45187",
+  "p-layers": "3256:45254",
+  "p-add-image": "3256:45336",
+  "p-transform": "3256:45392",
+  "p-blend": "3256:45464",
+  "v-home": "3261:45244",
+  "v-tools": "3263:45257",
+  "v-add-media": "3264:45286",
+  "v-arrange": "3265:45295",
+  "v-trim": "3265:45424",
+  "v-transform": "3265:45549",
+  "v-colour": "3265:45683",
+  "v-speed": "3265:45810",
+  "v-reverse": "3265:45935",
+  "v-transitions": "3266:45377",
+  "v-keyframes": "3266:45499",
+  "v-layers": "3266:45636",
+  "v-mask": "3266:45744",
+  "v-chroma": "3266:45874",
+  "v-looks": "3268:45453",
+  "v-text": "3268:45589",
+  "v-captions": "3268:45713",
+  "v-animation": "3268:45843",
+  "v-add-audio": "3269:45503",
+  "v-voice": "3269:45581",
+  "v-clip-audio": "3269:45653",
+  "v-mixer": "3269:45740",
+  "v-routing": "3269:45999",
+  "v-ducking": "3269:46119",
+  "v-eq": "3269:46168",
+  "v-project": "3279:45537",
+  "v-export": "3279:45598",
+  "v-assets": "3279:45649",
+  "x-mixer-light": "3279:45706",
+  "x-large-text": "3279:45782",
+  "x-numeric": "3279:45830",
+  "x-empty": "3279:45869",
+  "x-layer-menu": "3279:45907",
+  "x-importing": "3282:45585",
+  "x-exporting": "3282:45613",
+  "x-export-error": "3282:45642",
+  "x-mic-permission": "3282:45672",
+  "x-no-blur": "3282:45702",
+  "x-photo-light": "3282:45734",
+  "x-photo-desktop": "3284:45692",
+  "x-video-desktop": "3284:45828",
+  "x-mixer-desktop": "3284:46100",
+  "x-keyboard": "3285:45731",
+  "x-photo-landscape": "3285:45869",
+  "x-video-landscape": "3285:45920"
+ },
+ "prototypes": {
+  "home->tools": "p-home toolbar_float -> p-tools",
+  "toolsGrid": "26 tool/* cells -> their tool frames",
+  "photoChain": "p-add-image -> p-transform -> p-blend -> p-layers -> x-layer-menu",
+  "focusChain": "exits return to p-home/p-brush/p-layers/v-home",
+  "toolbarMotion": "rest -> pressed -> expanded SMART_ANIMATE 180ms EASE_OUT; expanded -> rest INSTANT (reduced-motion path)",
+  "videoDock": "v-home dest-Media/Layers/Audio/Tools/Focus -> v-add-media/v-layers/v-mixer/v-tools/x-video-focus; export split -> v-export",
+  "audioChain": "v-mixer chips -> v-routing/v-ducking/v-eq; v-voice rec -> x-mic-permission",
+  "states": "v-export -> x-exporting -> x-export-error -> v-export; x-empty Add media -> v-add-media; x-large-text Set value -> x-numeric"
+ },
+ "notes": [
+  "Structural containers pinned FIXED both axes; zero-height grid collapses in p-tools/v-tools repaired (grid now 380x580 / 380x552).",
+  "All chips renamed hit/chip-* and sized >=48px tall with measured widths; chip strip viewports clip at 380px as scroll approximation.",
+  "Button instances: Content instance recolored primary + label Google Sans Flex onPrimary + placeholder star hidden via setProperties.",
+  "Drawn param rulers (41 ticks, labels min..max, needle at value fraction) in p-light (-2..+2,+0.7), p-colour (+18), p-details (+20), p-vignette (-40), v-speed (0.5x).",
+  "p-layers rows rebuilt: 388x64, thumb40, eye48+menu48 hits, Palm selected, Base Locked.",
+  "v-home: 5-dest dock (Media/Layers/Audio/Tools/Focus), Export split button in header, 76px two-line track gutters, audio clip labels + muted flag, clamped ruler labels.",
+  "Icons staged in 3210:38452 (ic/*) plus expressive comps: toolbar_float, conn_group, split_btn, switch_on, loading.",
+  "Instance children cannot take reactions: toolbar_float instance linked whole; v-voice rec button linked.",
+  "Blur spec: floating bars use BACKGROUND_BLUR 24 + bound panel paint at 0.88; x-no-blur uses opaque same-layout counterpart.",
+  "x-keyboard was cloned from x-photo-desktop and reparented into S6 (clone() initially landed on page).",
+  "2026-10-09 lead-finished corrections: mixer gains/48px fields/card112 math; desktop timeline 7 lanes; accessible layer rows; 200% text scene; numeric dialog above keyboard with Cancel; opaque full-screen scene; global small-target/type/scroll fixes (Figma scroll enums VERTICAL/HORIZONTAL); compositing+vignette; consistent hi-res focus; constant 2x speed + separate ramp; accessibility guide. Sidekick: mechanical recapture only, no design writes."
+ ],
+ "additionalFrames": {
+  "v-speed-ramp": {
+   "nodeId": "3329:45799",
+   "file": "v-speed-ramp.png",
+   "url": "https://www.figma.com/design/UagS4q8hC0lpqw3SMGRu08/GlitchOS--Copy-?node-id=3329-45799",
+   "note": "Auxiliary speed-ramp pose; distinct from constant 2x v-speed"
+  },
+  "interaction-guide": {
+   "nodeId": "3329:45942",
+   "file": "interaction-guide.png",
+   "url": "https://www.figma.com/design/UagS4q8hC0lpqw3SMGRu08/GlitchOS--Copy-?node-id=3329-45942",
+   "note": "Interaction/a11y guide: reading order, labels, focus restore, keyboard alternatives, TalkBack pinning, 48dp, contrast, opaque + reduced-motion"
+  }
+ },
+ "credits": {
+  "nodeId": "3297:45769",
+  "imageNodes": [
+   "3297:45772",
+   "3297:45773"
+  ],
+  "note": "Moraine Lake 2048x1536 public domain (0b10390de72d2becd9ec75fe9f95b971c520424a); Golden Gate 3200x2000 Diliff CC BY-SA 4.0 (97d9abdd37500dc211bec83bfe024fb03c92e9fe). Credits live on the review board, not in product UI."
+ }
+}

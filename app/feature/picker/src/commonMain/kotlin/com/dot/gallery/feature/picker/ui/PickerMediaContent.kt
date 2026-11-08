@@ -12,6 +12,7 @@ import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -25,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -47,21 +47,27 @@ import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.MediaItem
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.isHeaderKey
+import com.dot.gallery.feature.picker.ui.components.PickerEmptyState
+import com.dot.gallery.feature.picker.ui.components.PickerPlaceholderGrid
 import com.dot.gallery.ui.theme.Dimens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.picker.generated.resources.Res
 import com.dot.gallery.feature.picker.generated.resources.header_today
 import com.dot.gallery.feature.picker.generated.resources.header_yesterday
+import androidx.compose.foundation.lazy.grid.LazyGridState
 
 
 /**
  * Drag-to-select media grid for every picker source (timeline, album, private
- * folder, cloud, vault). Selection is shared through [LocalMediaSelector]; the
- * pick result itself is delivered by the FAB in [PickerContent].
+ * folder, cloud, vault), built from the gallery's own [MediaImage] cells and
+ * [MediaItemHeader] day headers. Selection is shared through [LocalMediaSelector];
+ * the pick result itself is delivered by the dock in [PickerContent].
+ *
+ * [header] spans the grid above the first day (source notices); [emptyTitle] and
+ * [emptySummary] fill the screen once the source has loaded with nothing in it.
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -69,15 +75,31 @@ fun <T: Media> PickerMediaContent(
     mediaState: StateFlow<MediaState<T>>,
     metadataState: State<MediaMetadataState>,
     allowSelection: Boolean,
+    contentPadding: PaddingValues,
+    emptyTitle: String,
+    emptySummary: String? = null,
+    header: (@Composable () -> Unit)? = null,
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    gridState: LazyGridState = rememberLazyGridState(),
 ) {
-    val scope = rememberCoroutineScope()
     val stringToday = stringResource(Res.string.header_today)
     val stringYesterday = stringResource(Res.string.header_yesterday)
     val state by mediaState.collectAsStateWithLifecycle()
-    val gridState = rememberLazyGridState()
     val feedbackManager = rememberFeedbackManager()
+
+    if (state.media.isEmpty()) {
+        if (state.isLoading) PickerPlaceholderGrid(contentPadding = contentPadding)
+        else PickerEmptyState(
+            title = emptyTitle,
+            summary = emptySummary,
+            modifier = Modifier.padding(
+                top = contentPadding.calculateTopPadding(),
+                bottom = contentPadding.calculateBottomPadding(),
+            ),
+        )
+        return
+    }
 
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
     LaunchedEffect(autoScrollSpeed.floatValue) {
@@ -89,38 +111,56 @@ fun <T: Media> PickerMediaContent(
         }
     }
     val scrollGestureActive = remember { mutableStateOf(false) }
+    // Media keys only, as in the timeline: the drag handler indexes these against media ids, so
+    // header keys in the list would shift every drag range by the headers above it.
     val allKeys by rememberedDerivedState {
-        state.mappedMedia.map { it.key }
+        state.mappedMedia.filterIsInstance<MediaItem.MediaViewItem<T>>().map { it.key }
     }
     val selector = LocalMediaSelector.current
     val selectedMedia = selector.selectedMedia.collectAsStateWithLifecycle()
-    // Phase 3 (#1076): cheap MOTION tier while the picker grid is flinging.
+    // cheap MOTION tier while the picker grid is flinging.
     val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })
+    val onMediaTap: (Media) -> Unit = {
+        feedbackManager.vibrate()
+        selector.rawUpdateSelection(
+            PickerSelection.tap(selectedMedia.value, it.id, allowSelection)
+        )
+    }
 
     CompositionLocalProvider(LocalThumbnailMotion provides thumbnailMotion) {
     LazyVerticalGrid(
         state = gridState,
         modifier = Modifier
             .fillMaxSize()
-            .photoGridDragHandler(
-                lazyGridState = gridState,
-                haptics = LocalHapticFeedback.current,
-                selectedIds = selectedMedia,
-                updateSelectedIds = selector::rawUpdateSelection,
-                autoScrollSpeed = autoScrollSpeed,
-                autoScrollThreshold = with(LocalDensity.current) { 40.dp.toPx() },
-                scrollGestureActive = scrollGestureActive,
-                layoutDirection = LocalLayoutDirection.current,
-                contentPadding = PaddingValues(),
-                allKeys = allKeys
+            .then(
+                // Single pick never drags out a range.
+                if (allowSelection) {
+                    Modifier.photoGridDragHandler(
+                        lazyGridState = gridState,
+                        haptics = LocalHapticFeedback.current,
+                        selectedIds = selectedMedia,
+                        updateSelectedIds = selector::rawUpdateSelection,
+                        autoScrollSpeed = autoScrollSpeed,
+                        autoScrollThreshold = with(LocalDensity.current) { 40.dp.toPx() },
+                        scrollGestureActive = scrollGestureActive,
+                        layoutDirection = LocalLayoutDirection.current,
+                        contentPadding = contentPadding,
+                        allKeys = allKeys
+                    )
+                } else Modifier
             ),
         columns = GridCells.Adaptive(Dimens.Photo()),
+        contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
+        if (header != null) {
+            item(key = "picker_header", span = { GridItemSpan(maxLineSpan) }) { header() }
+        }
         items(
             items = state.mappedMedia,
-            key = { if (it is MediaItem.MediaViewItem) it.media.toString() else it.key },
+            // Same keys as the timeline: the drag handler resolves media ids from them.
+            key = { it.key },
             contentType = { it.key.startsWith("media_") },
             span = { item ->
                 GridItemSpan(if (item.key.isHeaderKey) maxLineSpan else 1)
@@ -128,7 +168,6 @@ fun <T: Media> PickerMediaContent(
         ) { item ->
             when (item) {
                 is MediaItem.Header -> {
-
                     val isChecked = rememberSaveable { mutableStateOf(false) }
                     if (allowSelection) {
                         LaunchedEffect(selectedMedia.value.size) {
@@ -142,19 +181,17 @@ fun <T: Media> PickerMediaContent(
                     MediaItemHeader(
                         date = title,
                         showAsBig = item.key.contains("big"),
-                        isChecked = isChecked
-                    ) {
-                        if (allowSelection) {
-                            feedbackManager.vibrate()
-                            scope.launch {
-                                isChecked.value = !isChecked.value
-                                val list = mediaState.value.media.map { it.id }.filter { it in item.data }
-                                if (isChecked.value) {
-                                    selector.addToSelection(list)
-                                } else selector.removeFromSelection(list)
+                        isChecked = isChecked,
+                        onChecked = if (allowSelection) {
+                            {
+                                feedbackManager.vibrate()
+                                val dayIds = state.media.map { it.id }.filter { it in item.data }
+                                selector.rawUpdateSelection(
+                                    PickerSelection.toggleDay(selectedMedia.value, dayIds)
+                                )
                             }
-                        }
-                    }
+                        } else null
+                    )
                 }
 
                 is MediaItem.MediaViewItem -> {
@@ -171,34 +208,8 @@ fun <T: Media> PickerMediaContent(
                         media = item.media,
                         canClick = { true },
                         metadataState = metadataState,
-                        onMediaClick = {
-                            feedbackManager.vibrate()
-                            val id = it.id
-                            if (allowSelection) {
-                                if (selectedMedia.value.contains(id)) selector.removeFromSelection(listOf(id))
-                                else selector.addToSelection(listOf(id))
-                            } else {
-                                if (selectedMedia.value.isEmpty()) {
-                                    selector.addToSelection(listOf(id))
-                                } else {
-                                    selector.removeFromSelection(listOf(id))
-                                }
-                            }
-                        },
-                        onItemSelect = {
-                            feedbackManager.vibrate()
-                            val id = it.id
-                            if (allowSelection) {
-                                if (selectedMedia.value.contains(id))  selector.removeFromSelection(listOf(id))
-                                else selector.addToSelection(listOf(id))
-                            } else {
-                                if (selectedMedia.value.isEmpty()) {
-                                    selector.addToSelection(listOf(id))
-                                } else {
-                                    selector.removeFromSelection(listOf(id))
-                                }
-                            }
-                        }
+                        onMediaClick = onMediaTap,
+                        onItemSelect = onMediaTap,
                     )
                 }
             }

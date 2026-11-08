@@ -14,7 +14,6 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -22,14 +21,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,11 +35,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.UnfoldMore
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +50,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +60,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.dot.gallery.core.util.rememberFeedbackManager
@@ -74,18 +72,21 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.library.generated.resources.Res
 import com.dot.gallery.feature.library.generated.resources.library_customize
-import com.dot.gallery.feature.library.generated.resources.library_customize_hint
-import com.dot.gallery.feature.library.generated.resources.library_customize_title
-import com.dot.gallery.feature.library.generated.resources.library_edit_done
 import com.dot.gallery.feature.library.generated.resources.library_section_hidden
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_hide
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_show
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_size_full
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_size_half
+import com.dot.gallery.feature.library.generated.resources.library_shortcuts_less
+import com.dot.gallery.feature.library.generated.resources.library_shortcuts_more
 
 
 private val TILE_HEIGHT = 56.dp
-private val TILE_SPACING = 16.dp
+private val TILE_SPACING = 8.dp
+private const val COLLAPSED_VISIBLE_TILES = 3
+/** Below this, an icon and a label no longer fit, so a narrow pane stacks its tiles instead. */
+private val MIN_TILE_WIDTH = 150.dp
+private val TILE_SHAPE = RoundedCornerShape(28.dp)
 
 private data class Slot(val x: Float, val y: Float, val width: Float)
 
@@ -103,6 +104,7 @@ private fun computeSlots(
     unitPx: Float,
     spacingPx: Float,
     tileHeightPx: Float,
+    columns: Int,
 ): Pair<List<Slot>, Float> {
     if (spans.isEmpty()) return emptyList<Slot>() to 0f
     val slots = ArrayList<Slot>(spans.size)
@@ -110,8 +112,8 @@ private fun computeSlots(
     var y = 0f
     var used = 0
     for (s in spans) {
-        val span = s.coerceIn(1, 2)
-        if (used > 0 && used + span > 2) {
+        val span = s.coerceIn(1, minOf(LibraryShortcutSpan.FULL, columns))
+        if (used > 0 && used + span > columns) {
             x = 0f; y += tileHeightPx + spacingPx; used = 0
         }
         val w = if (span >= 2) unitPx * 2 + spacingPx else unitPx
@@ -125,14 +127,15 @@ private fun computeSlots(
 /**
  * Quick-Settings-style, in-place editable shortcut grid.
  *
- * Normal mode: tiles fill the row, tap navigates, long-press enters edit mode.
+ * Normal mode: tiles fill the row, tap navigates, long-press enters edit mode. With [collapsible],
+ * long lists fold behind a "more" tile so the shortcuts do not push the albums off screen.
  * Edit mode: drag to reorder live, drag the side handle to resize half/full,
  * tap the × to remove, and re-add hidden tiles from the tray below.
  *
  * [working] is the controlled list of every AVAILABLE shortcut (visible +
  * hidden), in order. Mutations are reported via [onChange]; the caller persists.
  */
-@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EditableLibraryShortcutsGrid(
     working: List<LibraryShortcutPref>,
@@ -140,9 +143,10 @@ fun EditableLibraryShortcutsGrid(
     editMode: Boolean,
     onClick: (String) -> Unit,
     onEnterEditMode: () -> Unit,
-    onExitEditMode: () -> Unit,
     onChange: (List<LibraryShortcutPref>) -> Unit,
     modifier: Modifier = Modifier,
+    columns: Int = LibraryShortcutSpan.COLUMNS,
+    collapsible: Boolean = false,
 ) {
     val feedbackManager = rememberFeedbackManager()
     val scope = rememberCoroutineScope()
@@ -153,6 +157,7 @@ fun EditableLibraryShortcutsGrid(
         mutableStateListOf<LibraryShortcutPref>().also { it.addAll(working) }
     }
     var draggingId by remember { mutableStateOf<String?>(null) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(working, draggingId) {
         if (draggingId == null && working != tiles.toList()) {
@@ -214,45 +219,16 @@ fun EditableLibraryShortcutsGrid(
     }
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(TILE_SPACING)) {
-        AnimatedVisibility(visible = editMode) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(Res.string.library_customize_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(Res.string.library_customize_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    FilledTonalButton(onClick = onExitEditMode) {
-                        Text(stringResource(Res.string.library_edit_done))
-                    }
-                }
-            }
-        }
-
-        val visibleTiles = tiles.filter { it.visible }
+        val allVisibleTiles = tiles.filter { it.visible }
         val hiddenTiles = tiles.filter { !it.visible }
+        val canCollapse = !editMode && collapsible && allVisibleTiles.size > COLLAPSED_VISIBLE_TILES + 1
+        val visibleTiles = if (canCollapse && !expanded) {
+            allVisibleTiles.take(COLLAPSED_VISIBLE_TILES)
+        } else allVisibleTiles
 
         // With every shortcut hidden there is no tile left to long-press, so
         // edit mode would be unreachable and the tiles could never be brought
-        // back. Show an obvious entry point into customization instead (#1260).
+        // back. Show an obvious entry point into customization instead.
         if (!editMode && visibleTiles.isEmpty() && hiddenTiles.isNotEmpty()) {
             Row(
                 modifier = Modifier
@@ -261,10 +237,10 @@ fun EditableLibraryShortcutsGrid(
                     .testTag("library-shortcuts-customize")
                     .dashedBorder(
                         color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = TILE_SHAPE,
                         gapLength = 8.dp
                     )
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(TILE_SHAPE)
                     .clickable(onClick = onEnterEditMode),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(
@@ -290,10 +266,13 @@ fun EditableLibraryShortcutsGrid(
             val spacingPx = with(density) { TILE_SPACING.toPx() }
             val tileHeightPx = with(density) { tileHeight.toPx() }
             val maxWidthPx = with(density) { maxWidth.toPx() }
-            val unitPx = (maxWidthPx - spacingPx) / 2f
+            val fittingColumns = ((maxWidth + TILE_SPACING) / (MIN_TILE_WIDTH + TILE_SPACING)).toInt()
+                .coerceIn(1, columns)
+            val unitPx = (maxWidthPx - spacingPx * (fittingColumns - 1)) / fittingColumns
 
             val (slots, totalHeightPx) = computeSlots(
-                visibleTiles.map { it.span }, unitPx, spacingPx, tileHeightPx
+                visibleTiles.map { it.span } + if (canCollapse) listOf(LibraryShortcutSpan.HALF) else emptyList(),
+                unitPx, spacingPx, tileHeightPx, fittingColumns
             )
             // Keep the geometry holder fresh for drag hit-testing.
             geo.slots = slots
@@ -305,6 +284,35 @@ fun EditableLibraryShortcutsGrid(
                 .fillMaxWidth()
                 .height(with(density) { totalHeightPx.toDp() })
             ) {
+                if (canCollapse) {
+                    val slot = slots.last()
+                    Box(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                translationX = slot.x
+                                translationY = slot.y
+                            }
+                            .width(with(density) { slot.width.toDp() })
+                            .height(tileHeight)
+                            .testTag("library-shortcuts-more")
+                            .clip(TILE_SHAPE)
+                            .clickable { expanded = !expanded }
+                    ) {
+                        LibrarySmallItem(
+                            title = if (expanded) {
+                                stringResource(Res.string.library_shortcuts_less)
+                            } else {
+                                stringResource(
+                                    Res.string.library_shortcuts_more,
+                                    allVisibleTiles.size - COLLAPSED_VISIBLE_TILES
+                                )
+                            },
+                            icon = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                            shape = TILE_SHAPE,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
                 visibleTiles.forEachIndexed { index, pref ->
                     val data = LibraryShortcut.fromId(pref.id)?.let { runtime[it] } ?: return@forEachIndexed
                     val slot = slots.getOrNull(index) ?: return@forEachIndexed
@@ -405,30 +413,32 @@ fun EditableLibraryShortcutsGrid(
                     ) {
                         ShortcutTile(
                             data = data,
-                            highlighted = editMode,
                             showIndicator = !editMode,
                             modifier = Modifier.fillMaxWidth().height(tileHeight)
                         )
                         if (editMode) {
-                            // Remove badge (top-start)
+                            // Hiding is reversible from the tray below, so the badge stays
+                            // neutral and sits on the corner, leaving the tile's icon visible.
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.TopStart)
+                                    .offset(x = (-14).dp, y = (-14).dp)
                                     .size(48.dp)
+                                    .clip(CircleShape)
                                     .clickable { setVisible(pref.id, false) },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(24.dp)
+                                        .size(20.dp)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.error),
+                                        .background(MaterialTheme.colorScheme.onSurface),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.Close,
                                         contentDescription = stringResource(Res.string.library_shortcut_hide),
-                                        tint = MaterialTheme.colorScheme.onError,
+                                        tint = MaterialTheme.colorScheme.surface,
                                         modifier = Modifier.size(14.dp)
                                     )
                                 }
@@ -470,7 +480,7 @@ fun EditableLibraryShortcutsGrid(
                                     modifier = Modifier
                                         .size(width = 20.dp, height = 38.dp)
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                                        .background(data.contentColor.copy(alpha = 0.18f)),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
@@ -482,7 +492,7 @@ fun EditableLibraryShortcutsGrid(
                                                 Res.string.library_shortcut_size_full
                                             }
                                         ),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        tint = data.contentColor,
                                         modifier = Modifier
                                             .size(18.dp)
                                             .graphicsLayer { rotationZ = 90f }
@@ -504,39 +514,42 @@ fun EditableLibraryShortcutsGrid(
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    hiddenTiles.forEach { pref ->
-                        val data = LibraryShortcut.fromId(pref.id)?.let { runtime[it] } ?: return@forEach
-                        Row(
-                            modifier = Modifier
-                                .sizeIn(minHeight = 48.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                .clickable { setVisible(pref.id, true) }
-                                .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if (data.icon != null) {
+                hiddenTiles.chunked(columns).forEach { row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(TILE_SPACING)
+                    ) {
+                        row.forEach { pref ->
+                            val data = LibraryShortcut.fromId(pref.id)?.let { runtime[it] }
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(tileHeight)
+                                    .dashedBorder(
+                                        color = MaterialTheme.colorScheme.outline,
+                                        shape = TILE_SHAPE,
+                                        gapLength = 8.dp
+                                    )
+                                    .clip(TILE_SHAPE)
+                                    .clickable { setVisible(pref.id, true) }
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
                                 Icon(
-                                    imageVector = data.icon,
-                                    contentDescription = null,
-                                    tint = data.contentColor,
-                                    modifier = Modifier.size(18.dp)
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = stringResource(Res.string.library_shortcut_show),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = data?.title.orEmpty(),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
                                 )
                             }
-                            Text(text = data.title, style = MaterialTheme.typography.labelLarge)
-                            Icon(
-                                imageVector = Icons.Filled.Add,
-                                contentDescription = stringResource(Res.string.library_shortcut_show),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
                         }
+                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }
             }
@@ -547,20 +560,15 @@ fun EditableLibraryShortcutsGrid(
 @Composable
 private fun ShortcutTile(
     data: RuntimeShortcut,
-    highlighted: Boolean,
     showIndicator: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val borderMod = if (highlighted) Modifier.border(
-        width = 1.5.dp,
-        color = MaterialTheme.colorScheme.primary,
-        shape = RoundedCornerShape(16.dp)
-    ) else Modifier
-    Box(modifier = modifier.clip(RoundedCornerShape(16.dp)).then(borderMod)) {
+    Box(modifier = modifier.clip(TILE_SHAPE)) {
         LibrarySmallItem(
             title = data.title,
             icon = data.icon,
             contentColor = data.contentColor,
+            shape = TILE_SHAPE,
             useIndicator = data.useIndicator && showIndicator,
             indicatorCounter = data.indicatorCounter,
             modifier = Modifier.fillMaxWidth()

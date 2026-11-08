@@ -5,6 +5,9 @@
 
 package com.dot.gallery.core.image.thumbnail
 
+import com.dot.gallery.core.util.SynchronizedRefinedThumbnailLoadTracker
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -61,5 +64,25 @@ class ThumbnailMotionTest {
         assertTrue(tracker.hasLoaded(media1))
         assertFalse(tracker.hasLoaded(media2))
         assertTrue(tracker.hasLoaded(media3))
+    }
+
+    @Test
+    fun sharedTrackerSurvivesConcurrentLoadCallbacks() {
+        // Glide Compose fires load callbacks on its decode threads while composition reads on main.
+        val tracker = SynchronizedRefinedThumbnailLoadTracker(capacity = 16)
+        val pool = Executors.newFixedThreadPool(8)
+        try {
+            val jobs = (0 until 8).map { worker ->
+                pool.submit {
+                    repeat(20_000) { i ->
+                        val key = RefinedThumbnailKey(model = "media-${(worker * 31 + i) % 64}", signature = "v")
+                        if (i % 2 == 0) tracker.markLoaded(key) else tracker.hasLoaded(key)
+                    }
+                }
+            }
+            jobs.forEach { it.get(30, TimeUnit.SECONDS) }
+        } finally {
+            pool.shutdownNow()
+        }
     }
 }

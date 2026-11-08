@@ -1,0 +1,81 @@
+---
+title: Video editor
+summary: Trim, split, arrange, and layer clips, adjust their picture, and export an MP4 copy with the ReFra video editor.
+area: edit
+path:
+  - Video
+  - Edit
+related: [editor, video-audio, save-edits, video-playback, frame-extraction]
+scenes: [studio-video]
+order: 10
+---
+
+**Edit** on a video opens the ReFra video editor. It works on MP4 and QuickTime clips and always exports a new copy, so the original video stays untouched. To have **Edit** open another app or ask each time, change **Default video editor** in [media viewer settings](/ReFra/features/viewer-settings).
+
+## The layout
+
+<PreviewCollection feature="video-editor" section="the-layout" />
+
+- **Header**: **Close**, **Undo**, **Redo**, and **Export**.
+- **Preview and transport**: the current frame, the time and total length, **Previous frame**, **Play**, **Next frame**, and a sound toggle for the preview. Muting the preview does not remove sound from the export.
+- **Timeline**: the clips on their tracks, with **Trim**, **Split**, **Delete**, and **Arrange** above them and zoom buttons (**Fit** shows the whole sequence). Tap a clip to select it, drag the time ruler to seek, and use **+** beside the tracks to add a video or audio track.
+- **Toolbar**: **Media**, **Layers**, **Audio**, and **Tools**.
+
+**Tools** opens every tool, grouped as **Edit**, **Picture**, **Audio**, and **Deliver**, with a search field.
+
+## Cut and arrange clips
+
+<PreviewCollection feature="video-editor" section="cut-and-arrange-clips" />
+
+- **Trim** sets a clip's **In point** and **Out point**. Drag the handles at the clip's ends, or use the buttons to move either end one frame at a time. **Reset trim** restores the full clip.
+- **Split** cuts the selected clip at the playhead; **Delete** removes it.
+- **Arrange clips** moves the selected clip **Earlier** or **Later**, can **Duplicate** it, and has two switches: **Ripple later clips**, so inserting shifts later clips along, and **Link audio to its video**.
+- Drag a clip to another position or onto another track. **Snap while dragging** in the editor's settings lines dropped clips up with the track start and clip edges.
+
+If you delete every clip, the editor shows **Add your first clip**; add media or undo to bring the last clip back.
+
+## Add media and overlays
+
+**Media** (or **Add media** in the catalogue) adds another video from the system picker:
+
+- **Insert at the playhead** splits the sequence there and moves later clips along.
+- **Add to the end** places it after the last clip.
+- **Add as an overlay** puts it on a layer above the main clips.
+
+**Layers** lists the main video and its overlay layers. Each can be shown, hidden, or locked, and **Add overlay** adds another layer.
+
+## Picture
+
+<PreviewCollection feature="video-editor" section="picture" />
+
+Picture tools change only the selected clip; other clips are unchanged.
+
+- **Transform & crop** sets the **Content mode** (**Fit**, **Fill**, or **Crop**), **Scale**, **Rotation**, and **X** and **Y** position, with **Lock proportions**, **Flip horizontally**, **Centre**, and a **Background** for empty areas.
+- **Clip colour** has **Light**, **Colour**, and **Curves** tabs, plus **Opacity**. **Reset clip edits** clears the clip's picture changes.
+
+## Export
+
+<PreviewCollection feature="video-editor" section="export" />
+
+**Export** opens a summary of exactly what will be written: the size, a constant frame rate, H.264 video in an MP4 file, an automatic bit rate, stereo 48 kHz AAC audio when any sound reaches the mix, and a new copy as the destination. **Export video** starts it; the sheet shows progress and can be hidden while it runs.
+
+The copy is saved to `Movies/ReFra`, and a notification tracks it; see [saving copies](/ReFra/features/save-edits). If an export stops, **Try again** retries it and your edits stay as they were.
+
+## Editor settings
+
+<PreviewCollection feature="video-editor" section="editor-settings" />
+
+**Settings** in the video editor holds:
+
+- **Snap while dragging**: dropped clips land on the lane start and clip edges.
+- **Ripple later clips**: inserting shifts later clips along.
+- **Fill empty audio tracks**: new audio goes to the selected empty track; see [video audio](/ReFra/features/video-audio).
+- **Microphone**: whether the editor may record voice-overs.
+- **Export**: the format, resolution, frame rate, and audio the exporter writes.
+
+## Example: cut a clip down
+
+1. Open the video and tap **Edit**.
+2. Play to the first moment you want to keep and tap **Split**; select the part before it and tap **Delete**.
+3. Select the remaining clip, tap **Trim**, and move its **Out point** in.
+4. Tap **Export**, then **Export video**.

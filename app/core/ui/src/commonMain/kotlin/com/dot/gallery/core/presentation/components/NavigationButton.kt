@@ -42,6 +42,12 @@ fun NavigationButton(
         else selector::clearSelection
     val icon = if (isChildRoute && !isSelectionActive) Icons.AutoMirrored.Filled.ArrowBack
     else Icons.Default.Close
+    val railHost = LocalGalleryRailBackHost.current
+    if (railHost != null) {
+        // The rail owns back (and the selection's close button) while it is visible.
+        if (isChildRoute || alwaysGoBack) RailBackRegistration(railHost) { eventHandler.navigateUp() }
+        return
+    }
     if (isChildRoute || isSelectionActive || alwaysGoBack) {
         IconButton(
             modifier = Modifier

@@ -31,19 +31,15 @@ import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -54,12 +50,9 @@ import androidx.compose.ui.unit.dp
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
 import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.presentation.util.LocalHazeState
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import com.dot.gallery.feature.editor.adjustments.Crop
 import com.dot.gallery.cloud.sync.CloudUploadWorker
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_backup_verifying_count
 import com.dot.gallery.generated.resources.cloud_backup_verifying_existing
@@ -72,6 +65,10 @@ import com.dot.gallery.generated.resources.cloud_upload_nothing_pending
 import com.dot.gallery.generated.resources.cloud_upload_pending_total
 import com.dot.gallery.generated.resources.cloud_upload_ready
 import com.dot.gallery.generated.resources.cloud_upload_syncing
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 
 
@@ -79,28 +76,21 @@ import com.dot.gallery.generated.resources.cloud_upload_syncing
 @Composable
 fun UploadDetailsContent(state: UploadDetailsUiState) {
     val context = LocalContext.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                modifier = Modifier.hazeEffectScaled(
-                    state = LocalHazeState.current,
-                    style = LocalHazeBlurStyle.current
-                ),
-                title = { Text(stringResource(Res.string.cloud_upload_details)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(Res.string.cloud_upload_details),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { innerPadding ->
         val layoutDir = LocalLayoutDirection.current
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             contentPadding = PaddingValues(
                 start = innerPadding.calculateStartPadding(layoutDir) + 16.dp,
                 end = innerPadding.calculateEndPadding(layoutDir) + 16.dp,

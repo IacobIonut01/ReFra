@@ -19,7 +19,11 @@ interface ConfigBackupManager {
         val cloudFavoritesCount: Int,
         val cloudConfigsCount: Int,
         val vaultCount: Int,
-        val vaultMediaCount: Int
+        val vaultMediaCount: Int,
+        /** Record counts for every section, including the ones added in schema v3. */
+        val sectionCounts: Map<BackupSection, Int> = emptyMap(),
+        val payloadBytes: Long = 0L,
+        val encrypted: Boolean = false
     )
 
     data class ImportIssue(
@@ -43,7 +47,9 @@ interface ConfigBackupManager {
         /** Device media URIs that match backed-up local favorites and need a system consent to favorite. */
         val pendingLocalFavoriteUris: List<Uri>,
         /** Non-fatal item-level failures. A successful result may still be partial when this is non-empty. */
-        val issues: List<ImportIssue>
+        val issues: List<ImportIssue>,
+        /** Per-section outcomes, including the sections added in schema v3. */
+        val sectionResults: Map<BackupSection, SectionRestoreResult> = emptyMap()
     )
 
     suspend fun exportBackup(
@@ -53,6 +59,10 @@ interface ConfigBackupManager {
         onProgress: BackupProgressListener = { _, _, _ -> }
     ): Result<ExportResult>
 
+    /** Reads only the archive header so the UI can preview it and decide whether a password is needed. */
+    suspend fun probeBackup(source: Uri): Result<BackupProbe>
+
+    /** @deprecated use [probeBackup] plus [inspectBackup]; kept for callers that only need the flag. */
     suspend fun isEncryptedBackup(source: Uri): Boolean
 
     suspend fun inspectBackup(

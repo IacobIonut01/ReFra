@@ -37,14 +37,14 @@ fun ProvideInsets(content: @Composable () -> Unit) {
     // Use the *IgnoringVisibility insets so the values stay correct while the
     // system bars are hidden (immersive media view) — the reason these were
     // "fixed" in the first place — while still recomputing on configuration
-    // changes such as screen rotation (#929). The previous keyless remember
+    // changes such as screen rotation. The previous keyless remember
     // captured the initial-orientation insets and never updated on rotation.
     val statusBarsPadding = WindowInsets.statusBarsIgnoringVisibility.asPaddingValues()
     val navigationBarsPadding = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues()
     // IMPORTANT: key the remember on the resolved Dp primitives, NOT on the
     // PaddingValues objects. asPaddingValues() returns a stable instance whose
     // calculateXPadding() reads the live insets lazily, so as a remember key it
-    // stays equal across a rotation and the block would never recompute (#929).
+    // stays equal across a rotation and the block would never recompute.
     val statusTop = statusBarsPadding.calculateTopPadding()
     val navBottom = navigationBarsPadding.calculateBottomPadding()
     val navStart = navigationBarsPadding.calculateStartPadding(layoutDirection)
@@ -119,7 +119,7 @@ fun rememberNavigationBarOnSides(): Boolean {
     val navBarsPadding = WindowInsets.navigationBars.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
     // Key on the resolved Dp primitives (see ProvideInsets) so this recomputes on
-    // rotation instead of caching the initial-orientation result (#929).
+    // rotation instead of caching the initial-orientation result.
     val bottom = navBarsPadding.calculateBottomPadding()
     val start = navBarsPadding.calculateStartPadding(layoutDirection)
     val end = navBarsPadding.calculateEndPadding(layoutDirection)

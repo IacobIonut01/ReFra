@@ -5,6 +5,10 @@
 
 package com.dot.gallery.feature.vault.ui
 
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import com.dot.gallery.core.presentation.components.galleryDetailPaneFits
+import com.dot.gallery.core.presentation.components.GalleryPaneLayout
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -80,8 +84,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import kotlin.uuid.Uuid
 import com.dot.gallery.feature.vault.generated.resources.Res
 import com.dot.gallery.feature.vault.generated.resources.vault_locked_out
+import com.dot.gallery.feature.vault.generated.resources.vault_unlock_list
+import com.dot.gallery.feature.vault.generated.resources.vault_unlock_named
 import com.dot.gallery.feature.vault.generated.resources.vault_wrong_password_attempts
 
 /**
@@ -110,7 +118,11 @@ import com.dot.gallery.feature.vault.generated.resources.vault_wrong_password_at
  *   flag (`darkTheme || current route is not the media viewer`) so the host can
  *   re-apply edge-to-edge styling.
  * - [vaultDisplay] hosts the app's `VaultDisplay` (delegating to
- *   [VaultDisplayContent]) inside the gate+vault-authenticated destination.
+ *   [VaultDisplayContent]) inside the gate+vault-authenticated destination. Its
+ *   `requestAddMedia` flag is set when the setup's Ready page asks to add photos; the host
+ *   opens its media picker and calls `onAddMediaRequestHandled`.
+ * - [readGateMode] reads the stored vault-list lock for the list summary and Ready page;
+ *   [openSecuritySettings] opens the system screen-lock settings from the setup notice.
  * - [mediaViewer] hosts the app's `MediaViewScreenRoute` — both as the
  *   [VaultRoute.EncryptedMediaViewScreen] destination and inside the deferred
  *   swipe-dismiss overlay driven by [ViewerDismissBridge] (`:core:ui`).
@@ -143,6 +155,8 @@ fun VaultContent(
     writeLockAllVaults: suspend (Boolean) -> Unit,
     onSystemBarStyleChange: (darkIcons: Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    readGateMode: suspend () -> GateMode = { GateMode.NONE },
+    openSecuritySettings: (() -> Unit)? = null,
     vaultDisplay: @Composable (
         sharedTransitionScope: SharedTransitionScope,
         animatedContentScope: AnimatedContentScope,
@@ -150,6 +164,8 @@ fun VaultContent(
         onMediaClick: (Long) -> Unit,
         onVaultDeleted: () -> Unit,
         onAuthenticateVault: (Vault) -> Unit,
+        requestAddMedia: Boolean,
+        onAddMediaRequestHandled: () -> Unit,
     ) -> Unit,
     mediaViewer: @Composable (
         sharedTransitionScope: SharedTransitionScope,
@@ -165,6 +181,11 @@ fun VaultContent(
     val parentEventHandler = LocalEventHandler.current
     val navController = rememberNavController()
     var addNewVault by remember { mutableStateOf(false) }
+    var requestAddMedia by remember { mutableStateOf(false) }
+    // Total wizard pages: name, unlock method, lock entry and Ready, plus the vault-list lock
+    // when the first vault is created.
+    var setupTotalSteps by remember { mutableIntStateOf(4) }
+    var setupIncludedGate by remember { mutableStateOf(false) }
 
     LaunchedEffect(eventHandler) {
         eventHandler.navigateAction = {
@@ -218,6 +239,12 @@ fun VaultContent(
         val vaultViewerTransition = rememberTransition(vaultViewerVisibility)
         val viewerAnimationsEnabled by rememberPreference(SettingsKeys.sharedElements)
         val vaultViewerActive = vaultViewerVisibility.currentState || vaultViewerVisibility.targetState
+        val vaultDualPane by rememberPreference(SettingsKeys.galleryDualPane)
+        var vaultPaneFraction by rememberPreference(SettingsKeys.galleryPaneFraction)
+        val windowSize = LocalWindowInfo.current.containerSize
+        val vaultSplitEligible = vaultDualPane && with(LocalDensity.current) {
+            galleryDetailPaneFits(windowSize.width.toDp(), windowSize.height.toDp())
+        }
         // Safety net: if the overlay disappears while a drag still holds the defer armed, release
         // the source cell's shared-element suppression.
         if (!vaultViewerActive) {
@@ -284,6 +311,7 @@ fun VaultContent(
                 false -> {
                     vaultDeviceAuth.consumeOutcome()
                     pendingAuthVault = null
+                    requestAddMedia = false
                 }
 
                 null -> Unit
@@ -392,6 +420,7 @@ fun VaultContent(
                     detectedAuthType = null
                     gateAuthType = null
                     pendingAuthVault = null
+                    requestAddMedia = false
                     if (!isInitialSetupFlow) currentVault.value = null
                     vaultDeviceAuth.cancel()
                     gateDeviceAuth.cancel()
@@ -432,315 +461,418 @@ fun VaultContent(
         SharedTransitionLayout {
             CompositionLocalProvider(LocalViewerDismissBridge provides vaultViewerDismissBridge) {
             Box(modifier = Modifier.fillMaxSize()) {
-            NavHost(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (vaultViewerActive) Modifier.clearAndSetSemantics { }
-                        else Modifier
-                    ),
-                navController = navController,
-                startDestination = VaultRoute.LoadingScreen,
-                enterTransition = { navigateInAnimation },
-                exitTransition = { navigateUpAnimation },
-                popEnterTransition = { navigateInAnimation },
-                popExitTransition = { navigateUpAnimation }
-            ) {
-                composable<VaultRoute.LoadingScreen> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                    // One-time navigation when loading finishes
-                    LaunchedEffect(vaultState.value.isLoading) {
-                        if (!vaultState.value.isLoading) {
-                            val dest = if (vaultState.value.vaults.isEmpty()) {
-                                isInitialSetupFlow = true
-                                VaultRoute.VaultSetup
-                            } else {
-                                VaultRoute.VaultGateAuth
+            // Wide windows keep the vault grid beside the open item, like the main gallery.
+            GalleryPaneLayout(
+                split = vaultSplitEligible && vaultViewerActive,
+                splitRequested = vaultSplitEligible && vaultViewerMediaId != null,
+                masterFraction = vaultPaneFraction,
+                onMasterFractionChange = { vaultPaneFraction = it },
+                masterContent = {
+                    NavHost(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(
+                                // A split viewer leaves the grid usable beside it.
+                                if (vaultViewerActive && !vaultSplitEligible) Modifier.clearAndSetSemantics { }
+                                else Modifier
+                            ),
+                        navController = navController,
+                        startDestination = VaultRoute.LoadingScreen,
+                        enterTransition = { navigateInAnimation },
+                        exitTransition = { navigateUpAnimation },
+                        popEnterTransition = { navigateInAnimation },
+                        popExitTransition = { navigateUpAnimation }
+                    ) {
+                        composable<VaultRoute.LoadingScreen> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
                             }
-                            navController.navigate(dest) {
-                                popUpTo(VaultRoute.LoadingScreen) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-                }
-
-                composable<VaultRoute.VaultGateAuth> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                    LaunchedEffect(gateAuthRequest) {
-                        if (isGateAuthenticated) {
-                            navController.navigate(VaultRoute.VaultSelect) {
-                                popUpTo(VaultRoute.VaultGateAuth) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        } else {
-                            triggerGateAuth()
-                        }
-                    }
-                }
-
-                composable<VaultRoute.VaultSelect> {
-                    if (isGateAuthenticated) {
-                        VaultSelectContent(
-                            vaultState = vaultState.value,
-                            onVaultSelected = { vault -> authenticateVault(vault) },
-                            onCreateVault = {
-                                addNewVault = true
-                                navController.navigate(VaultRoute.VaultSetup) {
-                                    launchSingleTop = true
+                            // One-time navigation when loading finishes
+                            LaunchedEffect(vaultState.value.isLoading) {
+                                if (!vaultState.value.isLoading) {
+                                    val dest = if (vaultState.value.vaults.isEmpty()) {
+                                        isInitialSetupFlow = true
+                                        VaultRoute.VaultSetup
+                                    } else {
+                                        VaultRoute.VaultGateAuth
+                                    }
+                                    navController.navigate(dest) {
+                                        popUpTo(VaultRoute.LoadingScreen) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 }
-                            },
-                            onChangeGateSecurity = {
-                                navController.navigate(VaultRoute.VaultGateSetup) {
-                                    launchSingleTop = true
-                                }
-                            },
-                            onNavigateUp = { parentEventHandler.navigateUp() }
-                        )
-                    } else {
-                        LaunchedEffect(Unit) {
-                            navController.navigate(VaultRoute.VaultGateAuth) {
-                                popUpTo(VaultRoute.VaultSelect) { inclusive = true }
-                                launchSingleTop = true
                             }
                         }
-                    }
-                }
 
-                composable<VaultRoute.VaultSetup> {
-                    if (vaultState.value.vaults.isEmpty() || isInitialSetupFlow || isGateAuthenticated) {
-                        VaultSetupContent(
-                            modifier = Modifier.hazeSource(LocalHazeState.current),
-                            existingVaults = vaultState.value.vaults,
-                            deviceSecurityAvailable = deviceSecurityAvailable,
-                            onCancel = {
-                                addNewVault = false
-                                if (vaultState.value.vaults.isEmpty()) {
-                                    parentEventHandler.navigateUp()
+                        composable<VaultRoute.VaultGateAuth> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                            LaunchedEffect(gateAuthRequest) {
+                                if (isGateAuthenticated) {
+                                    navController.navigate(VaultRoute.VaultSelect) {
+                                        popUpTo(VaultRoute.VaultGateAuth) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 } else {
-                                    eventHandler.navigateUp()
+                                    triggerGateAuth()
                                 }
-                            },
-                            onCreate = { vault ->
-                                currentVault.value = vault
-                                navController.navigate(VaultRoute.VaultPasswordSetup) {
-                                    popUpTo(VaultRoute.VaultSetup) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        )
-                    } else {
-                        LaunchedEffect(Unit) {
-                            navController.navigate(VaultRoute.VaultGateAuth) {
-                                popUpTo(VaultRoute.VaultSetup) { inclusive = true }
-                                launchSingleTop = true
                             }
                         }
-                    }
-                }
-                composable<VaultRoute.VaultPasswordSetup> {
-                    if (isInitialSetupFlow || isGateAuthenticated) {
-                        val currentVaultValue by currentVault.collectAsStateWithLifecycle()
-                        val isFirstVault = vaultState.value.vaults.isEmpty()
 
-                        fun afterPasswordSetup() {
-                            addNewVault = false
-                            val vault = currentVaultValue ?: return
-                            val first = isFirstVault
-                            setVault(
-                                vault,
-                                { /* name was already validated in VaultSetup */ },
-                                {
-                                    if (first) {
-                                        navController.navigate(VaultRoute.VaultGateSetup) {
-                                            popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
+                        composable<VaultRoute.VaultSelect> {
+                            if (isGateAuthenticated) {
+                                val vaults = vaultState.value.vaults
+                                var gateMode by remember { mutableStateOf<GateMode?>(null) }
+                                var lockTypes by remember { mutableStateOf<Map<Uuid, VaultAuthType?>>(emptyMap()) }
+                                LaunchedEffect(vaults) {
+                                    gateMode = readGateMode()
+                                    lockTypes = vaults.mapNotNull { vault ->
+                                        when (val status = vaultCredentialStatus(vault)) {
+                                            is VaultCredentialStatus.Valid -> vault.uuid to status.authType
+                                            VaultCredentialStatus.Missing -> vault.uuid to null
+                                            VaultCredentialStatus.Corrupt -> null
+                                        }
+                                    }.toMap()
+                                }
+                                VaultSelectContent(
+                                    gateMode = gateMode,
+                                    lockTypes = lockTypes,
+                                    vaultState = vaultState.value,
+                                    onVaultSelected = { vault -> authenticateVault(vault) },
+                                    onCreateVault = {
+                                        addNewVault = true
+                                        navController.navigate(VaultRoute.VaultSetup) {
                                             launchSingleTop = true
                                         }
-                                    } else {
-                                        navController.navigate(VaultRoute.VaultSelect) {
-                                            popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
+                                    },
+                                    onChangeGateSecurity = {
+                                        navController.navigate(VaultRoute.VaultGateSetup) {
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                    onNavigateUp = { parentEventHandler.navigateUp() }
+                                )
+                            } else {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultSelect) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+
+                        composable<VaultRoute.VaultSetup> {
+                            if (vaultState.value.vaults.isEmpty() || isInitialSetupFlow || isGateAuthenticated) {
+                                LaunchedEffect(Unit) {
+                                    setupIncludedGate = vaultState.value.vaults.isEmpty()
+                                    setupTotalSteps = if (setupIncludedGate) 4 else 3
+                                }
+                                VaultSetupContent(
+                                    modifier = Modifier.hazeSource(LocalHazeState.current),
+                                    existingVaults = vaultState.value.vaults,
+                                    deviceSecurityAvailable = deviceSecurityAvailable,
+                                    totalSteps = if (vaultState.value.vaults.isEmpty()) 4 else 3,
+                                    onOpenSecuritySettings = openSecuritySettings,
+                                    onCancel = {
+                                        addNewVault = false
+                                        if (vaultState.value.vaults.isEmpty()) {
+                                            parentEventHandler.navigateUp()
+                                        } else {
+                                            eventHandler.navigateUp()
+                                        }
+                                    },
+                                    onCreate = { vault ->
+                                        currentVault.value = vault
+                                        navController.navigate(VaultRoute.VaultPasswordSetup) {
+                                            popUpTo(VaultRoute.VaultSetup) { inclusive = true }
                                             launchSingleTop = true
                                         }
                                     }
+                                )
+                            } else {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultSetup) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 }
+                            }
+                        }
+                        composable<VaultRoute.VaultPasswordSetup> {
+                            if (isInitialSetupFlow || isGateAuthenticated) {
+                                val currentVaultValue by currentVault.collectAsStateWithLifecycle()
+                                val isFirstVault = vaultState.value.vaults.isEmpty()
+
+                                fun afterPasswordSetup() {
+                                    addNewVault = false
+                                    val vault = currentVaultValue ?: return
+                                    val first = isFirstVault
+                                    setVault(
+                                        vault,
+                                        { /* name was already validated in VaultSetup */ },
+                                        {
+                                            if (first) {
+                                                navController.navigate(VaultRoute.VaultGateSetup) {
+                                                    popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
+                                                    launchSingleTop = true
+                                                }
+                                            } else {
+                                                navController.navigate(VaultRoute.VaultReady) {
+                                                    popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
+                                                    launchSingleTop = true
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+
+                                VaultPasswordSetupContent(
+                                    modifier = Modifier.hazeSource(LocalHazeState.current),
+                                    vaultName = currentVaultValue?.name.orEmpty(),
+                                    totalSteps = setupTotalSteps,
+                                    onCancel = {
+                                        addNewVault = false
+                                        currentVault.value = null
+                                        if (vaultState.value.vaults.isEmpty()) {
+                                            parentEventHandler.navigateUp()
+                                        } else {
+                                            navController.navigate(VaultRoute.VaultSelect) {
+                                                popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    },
+                                    onSkip = { afterPasswordSetup() },
+                                    onSecretSet = { type, secret ->
+                                        val vault = currentVaultValue
+                                        if (vault != null) {
+                                            scope.launch {
+                                                writeVaultSecret(vault, type, secret)
+                                                afterPasswordSetup()
+                                            }
+                                        }
+                                    }
+                                )
+                            } else {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+                        composable<VaultRoute.VaultGateSetup> {
+                            if (isInitialSetupFlow || isGateAuthenticated) {
+                                var lockAllVaults by remember { mutableStateOf(false) }
+                                LaunchedEffect(Unit) {
+                                    lockAllVaults = readLockAllVaults()
+                                }
+
+                                // Part of the first-vault wizard (ends on the Ready page) or opened
+                                // from the vault list's security action (returns to the list).
+                                val fromSetup = remember { isInitialSetupFlow }
+                                var storedMode by remember { mutableStateOf<GateMode?>(null) }
+                                LaunchedEffect(Unit) {
+                                    storedMode = if (fromSetup) GateMode.DEVICE else readGateMode()
+                                }
+
+                                fun afterGateSetup() {
+                                    isInitialSetupFlow = false
+                                    isGateAuthenticated = true
+                                    navController.navigate(if (fromSetup) VaultRoute.VaultReady else VaultRoute.VaultSelect) {
+                                        popUpTo(VaultRoute.VaultGateSetup) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+
+                                val initialMode = storedMode
+                                if (initialMode != null) VaultGateSetupContent(
+                                    modifier = Modifier.hazeSource(LocalHazeState.current),
+                                    lockAllVaults = lockAllVaults,
+                                    initialMode = initialMode,
+                                    step = if (fromSetup) 4 else null,
+                                    totalSteps = 4,
+                                    onBack = if (navController.previousBackStackEntry != null) {
+                                        { navController.popBackStack() }
+                                    } else null,
+                                    onNoneSelected = {
+                                        scope.launch {
+                                            writeGateMode(GateMode.NONE)
+                                            afterGateSetup()
+                                        }
+                                    },
+                                    onDeviceSecuritySelected = {
+                                        scope.launch {
+                                            writeGateMode(GateMode.DEVICE)
+                                            afterGateSetup()
+                                        }
+                                    },
+                                    onCustomSecretSet = { type, secret ->
+                                        scope.launch {
+                                            writeGateMode(GateMode.CUSTOM)
+                                            writeGateSecret(type, secret)
+                                            afterGateSetup()
+                                        }
+                                    },
+                                    onLockAllVaultsChanged = { checked ->
+                                        lockAllVaults = checked
+                                        scope.launch {
+                                            writeLockAllVaults(checked)
+                                        }
+                                    }
+                                )
+                            } else {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultGateSetup) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+                        composable<VaultRoute.VaultReady> {
+                            val readyVault by currentVault.collectAsStateWithLifecycle()
+                            val vault = readyVault
+                            if (isGateAuthenticated && vault != null) {
+                                var unlockType by remember { mutableStateOf<VaultAuthType?>(null) }
+                                var gateMode by remember { mutableStateOf<GateMode?>(null) }
+                                var lockAll by remember { mutableStateOf(false) }
+                                LaunchedEffect(vault) {
+                                    unlockType = (vaultCredentialStatus(vault) as? VaultCredentialStatus.Valid)?.authType
+                                    if (setupIncludedGate) gateMode = readGateMode()
+                                    lockAll = readLockAllVaults()
+                                }
+                                fun toList() {
+                                    navController.navigate(VaultRoute.VaultSelect) {
+                                        popUpTo(VaultRoute.VaultReady) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                                BackHandler { toList() }
+                                VaultReadyContent(
+                                    modifier = Modifier.hazeSource(LocalHazeState.current),
+                                    vaultName = vault.name,
+                                    unlockType = unlockType,
+                                    gateMode = gateMode,
+                                    lockAllVaults = lockAll,
+                                    totalSteps = setupTotalSteps,
+                                    onLater = { toList() },
+                                    onAddPhotos = {
+                                        requestAddMedia = true
+                                        toList()
+                                        authenticateVault(vault)
+                                    },
+                                )
+                            } else {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultReady) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+                        composable<VaultRoute.VaultDisplay> {
+                            // If user reaches VaultDisplay without being authenticated
+                            // (e.g., back navigation), send them back to VaultSelect
+                            LaunchedEffect(isGateAuthenticated, isAuthenticated, vaultState) {
+                                if (!isGateAuthenticated && vaultState.value.vaults.isNotEmpty()) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultDisplay) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                } else if (!isAuthenticated && !addNewVault && vaultState.value.vaults.isNotEmpty()) {
+                                    navController.navigate(VaultRoute.VaultSelect) {
+                                        popUpTo(VaultRoute.VaultDisplay) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                            if (isGateAuthenticated && isAuthenticated) {
+                                vaultDisplay(
+                                    this@SharedTransitionLayout,
+                                    this@composable,
+                                    {
+                                        // When leaving VaultDisplay, revoke authentication
+                                        isAuthenticated = false
+                                        parentEventHandler.navigateUp()
+                                    },
+                                    { mediaId ->
+                                        retainedVaultViewerMediaId = mediaId
+                                        vaultViewerMediaId = mediaId
+                                        vaultViewerOpenCount++
+                                    },
+                                    {
+                                        isAuthenticated = false
+                                        navController.navigate(VaultRoute.VaultSelect) {
+                                            popUpTo(VaultRoute.VaultDisplay) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                    { vault -> authenticateVault(vault) },
+                                    requestAddMedia,
+                                    { requestAddMedia = false }
+                                )
+                            }
+                        }
+
+                        composable<VaultRoute.EncryptedMediaViewScreen> { backStackEntry ->
+                            if (isGateAuthenticated && isAuthenticated) {
+                                val args = backStackEntry.toRoute<VaultRoute.EncryptedMediaViewScreen>()
+                                mediaViewer(
+                                    this@SharedTransitionLayout,
+                                    this@composable,
+                                    args.mediaId,
+                                    null,
+                                    0,
+                                    null
+                                )
+                            } else {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(VaultRoute.VaultGateAuth) {
+                                        popUpTo(VaultRoute.VaultSelect) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                detailContent = {
+                    vaultViewerTransition.DeferredAnimatedVisibility(
+                        visible = { it },
+                        modifier = Modifier.fillMaxSize(),
+                        // Long enough for the sharedBounds return flight to finish before the overlay
+                        // layer is torn down. With media animations disabled there is no flight to
+                        // cover — the viewer appears/disappears instantly.
+                        enter = if (viewerAnimationsEnabled) fadeIn(tween(320)) else EnterTransition.None,
+                        exit = if (viewerAnimationsEnabled) fadeOut(tween(320)) else ExitTransition.None,
+                    ) {
+                        if (vaultViewerMediaId == null) {
+                            // Exiting: swap the interactive viewer for its non-interactive stand-in
+                            // so a fast re-tap falls through to the vault grid — the still-fading
+                            // viewer's gesture surfaces would otherwise swallow the touch.
+                            viewerExitVisual(vaultViewerDismissBridge)
+                        } else {
+                        val mediaId = retainedVaultViewerMediaId
+                        val currentVaultValue by currentVault.collectAsStateWithLifecycle()
+                        if (mediaId != null && currentVaultValue != null) {
+                            mediaViewer(
+                                this@SharedTransitionLayout,
+                                this,
+                                mediaId,
+                                { vaultViewerMediaId = null },
+                                vaultViewerOpenCount,
+                                vaultViewerDismissBridge
                             )
                         }
-
-                        VaultPasswordSetupContent(
-                            modifier = Modifier.hazeSource(LocalHazeState.current),
-                            onSkip = { afterPasswordSetup() },
-                            onSecretSet = { type, secret ->
-                                val vault = currentVaultValue
-                                if (vault != null) {
-                                    scope.launch {
-                                        writeVaultSecret(vault, type, secret)
-                                        afterPasswordSetup()
-                                    }
-                                }
-                            }
-                        )
-                    } else {
-                        LaunchedEffect(Unit) {
-                            navController.navigate(VaultRoute.VaultGateAuth) {
-                                popUpTo(VaultRoute.VaultPasswordSetup) { inclusive = true }
-                                launchSingleTop = true
-                            }
                         }
                     }
-                }
-                composable<VaultRoute.VaultGateSetup> {
-                    if (isInitialSetupFlow || isGateAuthenticated) {
-                        var lockAllVaults by remember { mutableStateOf(false) }
-                        LaunchedEffect(Unit) {
-                            lockAllVaults = readLockAllVaults()
-                        }
-
-                        fun afterGateSetup() {
-                            isInitialSetupFlow = false
-                            isGateAuthenticated = true
-                            navController.navigate(VaultRoute.VaultSelect) {
-                                popUpTo(VaultRoute.VaultGateSetup) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-
-                        VaultGateSetupContent(
-                            modifier = Modifier.hazeSource(LocalHazeState.current),
-                            lockAllVaults = lockAllVaults,
-                            onBack = if (navController.previousBackStackEntry != null) {
-                                { navController.popBackStack() }
-                            } else null,
-                            onNoneSelected = {
-                                scope.launch {
-                                    writeGateMode(GateMode.NONE)
-                                    afterGateSetup()
-                                }
-                            },
-                            onDeviceSecuritySelected = {
-                                scope.launch {
-                                    writeGateMode(GateMode.DEVICE)
-                                    afterGateSetup()
-                                }
-                            },
-                            onCustomSecretSet = { type, secret ->
-                                scope.launch {
-                                    writeGateMode(GateMode.CUSTOM)
-                                    writeGateSecret(type, secret)
-                                    afterGateSetup()
-                                }
-                            },
-                            onLockAllVaultsChanged = { checked ->
-                                lockAllVaults = checked
-                                scope.launch {
-                                    writeLockAllVaults(checked)
-                                }
-                            }
-                        )
-                    } else {
-                        LaunchedEffect(Unit) {
-                            navController.navigate(VaultRoute.VaultGateAuth) {
-                                popUpTo(VaultRoute.VaultGateSetup) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-                }
-                composable<VaultRoute.VaultDisplay> {
-                    // If user reaches VaultDisplay without being authenticated
-                    // (e.g., back navigation), send them back to VaultSelect
-                    LaunchedEffect(isGateAuthenticated, isAuthenticated, vaultState) {
-                        if (!isGateAuthenticated && vaultState.value.vaults.isNotEmpty()) {
-                            navController.navigate(VaultRoute.VaultGateAuth) {
-                                popUpTo(VaultRoute.VaultDisplay) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        } else if (!isAuthenticated && !addNewVault && vaultState.value.vaults.isNotEmpty()) {
-                            navController.navigate(VaultRoute.VaultSelect) {
-                                popUpTo(VaultRoute.VaultDisplay) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-                    if (isGateAuthenticated && isAuthenticated) {
-                        vaultDisplay(
-                            this@SharedTransitionLayout,
-                            this@composable,
-                            {
-                                // When leaving VaultDisplay, revoke authentication
-                                isAuthenticated = false
-                                parentEventHandler.navigateUp()
-                            },
-                            { mediaId ->
-                                retainedVaultViewerMediaId = mediaId
-                                vaultViewerMediaId = mediaId
-                                vaultViewerOpenCount++
-                            },
-                            {
-                                isAuthenticated = false
-                                navController.navigate(VaultRoute.VaultSelect) {
-                                    popUpTo(VaultRoute.VaultDisplay) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
-                            { vault -> authenticateVault(vault) }
-                        )
-                    }
-                }
-
-                composable<VaultRoute.EncryptedMediaViewScreen> { backStackEntry ->
-                    if (isGateAuthenticated && isAuthenticated) {
-                        val args = backStackEntry.toRoute<VaultRoute.EncryptedMediaViewScreen>()
-                        mediaViewer(
-                            this@SharedTransitionLayout,
-                            this@composable,
-                            args.mediaId,
-                            null,
-                            0,
-                            null
-                        )
-                    } else {
-                        LaunchedEffect(Unit) {
-                            navController.navigate(VaultRoute.VaultGateAuth) {
-                                popUpTo(VaultRoute.VaultSelect) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-                }
-            }
-            vaultViewerTransition.DeferredAnimatedVisibility(
-                visible = { it },
-                modifier = Modifier.fillMaxSize(),
-                // Long enough for the sharedBounds return flight to finish before the overlay
-                // layer is torn down. With media animations disabled there is no flight to
-                // cover — the viewer appears/disappears instantly.
-                enter = if (viewerAnimationsEnabled) fadeIn(tween(320)) else EnterTransition.None,
-                exit = if (viewerAnimationsEnabled) fadeOut(tween(320)) else ExitTransition.None,
-            ) {
-                if (vaultViewerMediaId == null) {
-                    // Exiting: swap the interactive viewer for its non-interactive stand-in
-                    // so a fast re-tap falls through to the vault grid — the still-fading
-                    // viewer's gesture surfaces would otherwise swallow the touch.
-                    viewerExitVisual(vaultViewerDismissBridge)
-                } else {
-                val mediaId = retainedVaultViewerMediaId
-                val currentVaultValue by currentVault.collectAsStateWithLifecycle()
-                if (mediaId != null && currentVaultValue != null) {
-                    mediaViewer(
-                        this@SharedTransitionLayout,
-                        this,
-                        mediaId,
-                        { vaultViewerMediaId = null },
-                        vaultViewerOpenCount,
-                        vaultViewerDismissBridge
-                    )
-                }
-                }
-            }
+                },
+            )
             // Committed swipe-dismiss flight morphs the media thumbnail from the release bounds
             // to the vault grid cell — outside the DeferredAV so its fade can't affect it.
             viewerFlightLayer(vaultViewerDismissBridge)
@@ -758,6 +890,7 @@ fun VaultContent(
             showPasswordDialog = false
             passwordError = null
             pendingAuthVault = null
+            requestAddMedia = false
         }
 
         // Gate password/PIN/pattern dialog
@@ -777,6 +910,7 @@ fun VaultContent(
                     )
             ) {
                 VaultPasswordUnlockDialog(
+                    title = stringResource(Res.string.vault_unlock_list),
                     authType = gateAuthType,
                     onDismiss = {
                         showGatePasswordDialog = false
@@ -827,11 +961,13 @@ fun VaultContent(
                     )
             ) {
                 VaultPasswordUnlockDialog(
+                    title = pendingAuthVault?.let { stringResource(Res.string.vault_unlock_named, it.name) },
                     authType = detectedAuthType,
                     onDismiss = {
                         showPasswordDialog = false
                         passwordError = null
                         pendingAuthVault = null
+                        requestAddMedia = false
                     },
                     onSubmit = { secret ->
                         val vault = pendingAuthVault

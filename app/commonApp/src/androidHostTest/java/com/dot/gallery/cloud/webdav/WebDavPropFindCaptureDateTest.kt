@@ -20,7 +20,7 @@ import com.dot.gallery.cloud.webdav.data.api.WebDavResource
 
 /**
  * The WebDAV `creationdate` prop is the only provider-side capture-time hint a
- * path-based server can offer (issue #1277). These tests pin that PROPFIND asks
+ * path-based server can offer. These tests pin that PROPFIND asks
  * for it and that a returned value lands on [WebDavResource.creationDate] for
  * the entity mapper to store as `takenTimestamp`.
  */

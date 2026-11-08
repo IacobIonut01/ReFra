@@ -6,6 +6,7 @@
 package com.dot.gallery.app.presentation.settings
 
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -28,6 +29,9 @@ import com.dot.gallery.cloud.core.hasAnyRemoteProvider
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.dev_unlocked
+import com.dot.gallery.app.presentation.setup.launcherIconFor
+import com.dot.gallery.core.Settings.Misc.rememberAppLogoAlias
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
 
 /**
@@ -49,7 +53,14 @@ fun SettingsScreen() {
     val eventHandler = LocalEventHandler.current
     val hasCloudProviders = remember { ProviderType.hasAnyRemoteProvider() }
 
+    val appLogoAlias by rememberAppLogoAlias()
+    // Launcher artwork is mipmap-bound, so it is resolved here and handed over as a painter.
+    val appIcon = rememberDrawablePainter(
+        drawable = AppCompatResources.getDrawable(context, launcherIconFor(appLogoAlias))
+    )
+
     SettingsScreenContent(
+        appIcon = appIcon,
         state = SettingsScreenState(
             developerMode = developerMode,
             bannerDismissed = bannerDismissed,

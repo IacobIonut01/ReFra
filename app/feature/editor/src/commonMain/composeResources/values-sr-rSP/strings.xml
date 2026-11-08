@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Величина</string>
     <string name="editor_brush_strength">Снага</string>
     <string name="editor_blur_faces">Растај лица</string>
+    <string name="raw_export_jpeg">ЈПЕГ</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">ТИФ (8-бита)</string>
+    <string name="raw_export_tiff16">ТИФ (16-битни)</string>
+    <string name="raw_export_choose_format">Сачувај развијени текст</string>
+    <string name="raw_export_choose_format_subtitle">Изаберите формат за ваш обрађени RAW</string>
+    <string name="raw_export_tiff_unavailable">TIFF задржава пуну дубину бита, али не може да укључи обрезивање, филтере или ознаке — уклоните их да бисте извезли TIFF.</string>
+    <string name="editor_mosaic_faces">Мозаик лица</string>
+    <string name="cutout_no_object">Ниједан објекат није детектован при дугом притиску.</string>
+    <string name="cutout_init_failed">Није успело да се иницијализује Cutout мотор</string>
 </resources>

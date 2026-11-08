@@ -9,8 +9,6 @@ import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
-import com.dot.gallery.cloud.core.LOCAL_PEOPLE_CONFIG_ID
-import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderType
 
 
@@ -29,18 +27,6 @@ data class PersonEntity(
     val lastUpdated: Long = 0L,
     @ColumnInfo(defaultValue = "0")
     val hidden: Boolean = false,
-    /** ISO-8601 calendar date (`yyyy-MM-dd`). Empty when unset. */
     @ColumnInfo(defaultValue = "")
     val birthDate: String = ""
-)
-
-fun PersonEntity.toPersonInfo(photoCount: Int): PersonInfo = PersonInfo(
-    id = id,
-    name = name,
-    providerType = ProviderType.LOCAL_PEOPLE,
-    serverConfigId = LOCAL_PEOPLE_CONFIG_ID,
-    thumbnailUrl = thumbnailUrl,
-    assetCount = photoCount,
-    birthDate = birthDate.takeIf { it.isNotBlank() },
-    hidden = hidden
 )

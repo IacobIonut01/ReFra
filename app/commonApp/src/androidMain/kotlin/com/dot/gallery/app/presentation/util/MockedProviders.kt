@@ -11,7 +11,7 @@ import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.PendingRemovalScope
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.metadata.MediaContainerFormat
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
@@ -173,7 +173,7 @@ class MockedMediaHandler: MediaHandler {
 
     override suspend fun sanitizeMediaMetadata(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
     ): SanitizationResult = SanitizationResult.Unsupported(MediaContainerFormat.UNKNOWN, "Unavailable in preview")
 
@@ -227,6 +227,8 @@ class MockedMediaHandler: MediaHandler {
         degrees: Int,
         forceCopy: Boolean
     ): String = "mock_rotate_$media.id"
+    override fun <T : Media> rotateImages(items: List<Pair<T, Boolean>>, degrees: Int): String? =
+        items.takeIf { it.isNotEmpty() }?.let { "mock_rotate_batch" }
     override suspend fun <T : Media> downloadCloudMedia(mediaList: List<T>): Result<Int> = Result.success(0)
 }
 

@@ -1,0 +1,61 @@
+---
+title: RAW development (legacy)
+summary: White balance, tone, detail, and output controls for RAW files, exported as a developed copy.
+area: edit-legacy
+path:
+  - Media viewer
+  - Edit
+related: [legacy-editor, legacy-lighting-colour, legacy-save-edits, image-formats]
+scenes: [editor-raw, raw-export]
+order: 6
+---
+
+A RAW file in the [editor](/ReFra/features/legacy-editor) gets its own tab set: **Smart** (where available), **White balance**, **Tone**, **Detail**, **Colour**, **Output**, **Filters**, **Markup**, and **More**. Ordinary photos never show the RAW-only tabs, and RAW files do not show the regular Lighting/Effects tabs.
+
+## White balance
+
+<PreviewCollection feature="legacy-raw-development" section="white-balance" />
+
+- **Camera**: use the white balance the camera recorded.
+- **Auto**: the app estimates a correction.
+- **Daylight**: a fixed daylight preset.
+- **Custom**: reveals **Temperature** (2000–12000 K) and **Tint** sliders for manual control.
+
+## Tone
+
+<PreviewCollection feature="legacy-raw-development" section="tone" />
+
+- **Exposure** (-3 to 3): brighten or darken the whole image in stops.
+- **Brightness** (-2 to 2): overall lightness.
+- **Contrast**, **Shadows**, and **Highlights** (-1 to 1 each): contrast strength, and how the darkest and brightest areas render.
+
+## Detail
+
+<PreviewCollection feature="legacy-raw-development" section="detail" />
+
+- **Demosaic**: chooses how the RAW sensor data is turned into pixels; **Linear**, **VNG**, **PPG**, **AHD**, or **DCB**. They render the file differently; preview each on your photo.
+- **Sharpen** (0 to 2): edge definition.
+- **Noise Reduction**: **Off**, **Low**, **Medium**, **High**.
+- **Half resolution**: renders and exports at reduced resolution for faster processing; leave it off for full detail.
+
+## Colour and output
+
+<PreviewCollection feature="legacy-raw-development" section="colour" />
+<PreviewCollection feature="legacy-raw-development" section="output" />
+
+- **Colour › Saturation** shifts every colour equally; **Vibrance** lifts muted colours more gently than already-strong ones.
+- **Colour › Colour space**: **sRGB**, **Adobe RGB**, **Wide**, or **ProPhoto**. sRGB is the safe choice for sharing.
+- **Output › Highlight recovery**: **Clip**, **Blend**, or **Rebuild** control how blown-out areas render; they can soften clipped highlights but cannot recover detail the sensor never captured.
+
+## Saving a developed copy
+
+<PreviewCollection feature="legacy-raw-development" section="saving" />
+
+Tap **Save Copy** in the toolbar to open the **Save developed copy** sheet, which offers **JPEG**, **PNG**, **TIFF (8-bit)**, or **TIFF (16-bit)**. TIFF keeps full bit depth but cannot include your crop, filters, or markup; remove them to export TIFF. JPEG and PNG include everything you applied. The developed copy lands in `Pictures/Edited` with a `_developed` suffix, and the original RAW is never overwritten.
+
+## Example: rescue a bright-window RAW
+
+1. Open the RAW, tap **Edit**.
+2. **White balance › Camera**, then **Tone › Highlights** down and **Shadows** up slightly.
+3. **Colour › Colour space › sRGB**, and **Output › Highlight recovery › Rebuild** to soften the window.
+4. Tap **Save Copy**, then choose **JPEG** in the sheet; a shareable photo appears in `Pictures/Edited` and the RAW stays untouched.

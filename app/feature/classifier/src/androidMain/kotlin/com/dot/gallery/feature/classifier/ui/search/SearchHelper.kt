@@ -1,8 +1,7 @@
 package com.dot.gallery.feature.classifier.ui.search
 
-import ai.onnxruntime.OrtSession
 import android.graphics.Bitmap
-
+import com.dot.gallery.app.presentation.search.helpers.SearchVisionHelper.SearchSessions
 
 
 interface SearchHelper {
@@ -15,11 +14,13 @@ interface SearchHelper {
         imageIdxList: List<Long>
     ): List<Pair<Long, Float>>
 
-    suspend fun getTextEmbedding(session: OrtSession, text: String): FloatArray
+    suspend fun getTextEmbedding(session: SearchSessions, text: String): FloatArray
 
-    fun setupTextSession(): OrtSession
+    fun setupTextSession(): SearchSessions
 
-    fun setupVisionSession(): OrtSession
+    fun setupVisionSession(): SearchSessions
 
-    suspend fun getImageEmbedding(session: OrtSession, bitmap: Bitmap): FloatArray
+    suspend fun getImageEmbedding(session: SearchSessions, bitmap: Bitmap): FloatArray
+
+    suspend fun getVideoEmbedding(session: SearchSessions, frames: List<Bitmap>): FloatArray
 }

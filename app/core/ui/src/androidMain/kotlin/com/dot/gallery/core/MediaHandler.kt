@@ -6,7 +6,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.runtime.compositionLocalOf
 import androidx.activity.result.IntentSenderRequest
 import com.dot.gallery.core.decoder.format.ImageReencoder
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
 import com.dot.gallery.core.metadata.SanitizationResult
@@ -70,7 +70,7 @@ interface MediaHandler {
 
     suspend fun sanitizeMediaMetadata(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
     ): SanitizationResult
 
@@ -114,6 +114,13 @@ interface MediaHandler {
     suspend fun <T : Media> addMedia(vault: Vault, media: T)
 
     suspend fun <T: Media> rotateImage(media: T, degrees: Int, forceCopy: Boolean = false): String
+
+    /**
+     * Rotates several items in one background batch with floating progress and per-cell
+     * animation. Each pair carries the item's forced-copy flag; returns the run id, or null
+     * when [items] is empty.
+     */
+    fun <T: Media> rotateImages(items: List<Pair<T, Boolean>>, degrees: Int): String?
 
     suspend fun <T: Media> downloadCloudMedia(mediaList: List<T>): Result<Int>
 }

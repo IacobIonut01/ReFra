@@ -30,8 +30,8 @@ OUT_ROOT="${NATIVE_OUTPUT_BASE:-$REPO_ROOT/app/androidApp/src/main/cpp}/heif"
 
 # Resolve the Android SDK from local.properties (sdk.dir) or the environment.
 SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-if [ -z "$SDK" ] && [ -f "$REPO_ROOT/local.properties" ]; then
-    SDK="$(grep -E '^sdk\.dir=' "$REPO_ROOT/local.properties" | head -n1 | cut -d'=' -f2-)"
+if [ -z "$SDK" ]; then
+    SDK="$(native_read_property "$REPO_ROOT/local.properties" sdk.dir || true)"
 fi
 if [ -z "$SDK" ] || [ ! -d "$SDK" ]; then
     echo "ERROR: Android SDK not found. Set ANDROID_HOME or sdk.dir in local.properties." >&2

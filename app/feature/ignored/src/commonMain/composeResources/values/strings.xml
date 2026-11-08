@@ -1,75 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_cancel">Cancel</string>
-    <string name="action_continue">Continue</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_edit">Edit</string>
     <string name="action_save">Save</string>
     <string name="albums">Albums</string>
-    <string name="albums_and_timeline">Both Albums and Timeline</string>
-    <string name="apply">Apply</string>
     <string name="continue_string">Continue</string>
-    <string name="edit_albums">Edit Albums</string>
-    <string name="edit_location">Edit Location</string>
     <string name="go_back">Go back</string>
-    <string name="ignored_albums">Ignored Albums</string>
-    <string name="ignored_albums_text">Select what albums you would like to not see in the main Timeline, in the Albums tab or both.\n\nYou can either select individual albums or create a Regex pattern to automatically hide any folder or file path that matches it.</string>
-    <string name="matched_albums">Matched albums: %1$s</string>
-    <string name="no_ignored_albums">No ignored albums</string>
-    <string name="setup_album_multiple_select">Select albums to ignore</string>
-    <string name="setup_album_regex_matched">%1$d albums matched</string>
-    <string name="setup_album_regex_placeholder">Path regex</string>
-    <string name="setup_album_single_select">Select an album to ignore</string>
-    <string name="setup_confirmation_albums">Albums</string>
-    <string name="setup_confirmation_location">Location</string>
-    <string name="setup_confirmation_matched">Matched Albums</string>
-    <string name="setup_confirmation_preview">Preview</string>
-    <string name="setup_confirmation_regex">Pattern</string>
-    <string name="setup_confirmation_subtitle">Overview your ignore options and matches</string>
-    <string name="setup_confirmation_title">Confirmation</string>
-    <string name="setup_confirmation_type">Type</string>
-    <string name="setup_confirmation_where">Where should be ignored</string>
-    <string name="setup_confirmation_who">Who should be ignored</string>
-    <string name="setup_location_location_subtitle">The album and it’s content will be hidden depending where the location is set</string>
-    <string name="setup_location_location_title">Where should be ignored</string>
-    <string name="setup_location_options_albums">Albums</string>
-    <string name="setup_location_options_both">Both</string>
-    <string name="setup_location_options_timeline">Timeline</string>
-    <string name="setup_location_title">Options</string>
-    <string name="setup_location_type_subtitle">You can select a single album, multiple albums, or create a Regex pattern to match folders by path</string>
-    <string name="setup_location_type_title">Who should be ignored</string>
-    <string name="setup_location_types_multiple">Multiple Albums</string>
-    <string name="setup_location_types_regex">Path Regex</string>
-    <string name="setup_location_types_single">Single Album</string>
-    <string name="setup_type_multiple">Multiple Albums</string>
-    <string name="setup_type_multiple_subtitle">Select albums to ignore</string>
-    <string name="setup_type_multiple_title">Multiple Selection</string>
-    <string name="setup_type_regex">Path Regex</string>
-    <string name="setup_type_regex_error">Invalid pattern</string>
-    <string name="setup_type_regex_error_second">This pattern is already in use</string>
-    <string name="setup_type_regex_example_first_title">Match anything with "Screenshots" in its path:</string>
+    <string name="ignored_albums">Ignored albums</string>
+    <string name="no_ignored_albums">Nothing is ignored</string>
     <string name="setup_type_regex_example_second_subtitle">.*/WhatsApp/.*</string>
-    <string name="setup_type_regex_example_second_title">Match everything inside the WhatsApp folder:</string>
     <string name="setup_type_regex_example_third_subtitle">/storage/emulated/0/DCIM/.*</string>
-    <string name="setup_type_regex_example_third_title">Match everything under DCIM on internal storage:</string>
     <string name="setup_type_regex_example_title">Examples</string>
     <string name="setup_type_regex_first_subtitle">.*Screenshots.*</string>
-    <string name="setup_type_regex_label">Path regex</string>
-    <string name="setup_type_regex_subtitle">Match folders and files by path</string>
-    <string name="setup_type_regex_summary">The pattern is matched against the full path of each file and its containing folder, such as /storage/emulated/0/DCIM/Camera/photo.jpg or DCIM/Camera/ — not the album name.\n\nIt must match the entire path, so use .* where anything may appear.</string>
-    <string name="setup_type_regex_title">Path Regex</string>
-    <string name="setup_type_selection_subtitle">Select your to-be-ignored album</string>
-    <string name="setup_type_selection_title">Selection</string>
-    <string name="setup_type_single">Single Album</string>
-    <string name="timeline">Timeline</string>
-    <string name="wildcard_summary_first">Path pattern: %1$s\nMatched albums: %2$s</string>
 
     <!-- Feature-local literals that were hardcoded in the app sources -->
     <string name="unknown_album">Unknown</string>
     <string name="no_matches">No matches</string>
-    <string name="selected_count">%1$d selected</string>
-    <string name="albums_count">%1$d albums</string>
     <string name="matched_more_count">+%1$d more</string>
     <string name="album_items_count">%1$d items</string>
-    <string name="continue_with_count">%1$s (%2$d)</string>
+    <string name="continue_with_count">%1$s · %2$d</string>
+
+    <!-- Ignored albums page -->
+    <string name="ignored_summary_title">Out of sight, still on your phone</string>
+    <string name="ignored_summary_body">Ignored albums are never moved or deleted. They just stop showing up where you choose.</string>
+    <plurals name="ignored_rules_count">
+        <item quantity="one">%1$d rule</item>
+        <item quantity="other">%1$d rules</item>
+    </plurals>
+    <string name="ignored_rules_label">active</string>
+    <plurals name="ignored_albums_hidden_count">
+        <item quantity="one">%1$d album</item>
+        <item quantity="other">%1$d albums</item>
+    </plurals>
+    <string name="ignored_albums_hidden_label">kept out of view</string>
+    <string name="ignored_filter_all">All</string>
+    <string name="ignored_filter_single">Single album</string>
+    <string name="ignored_filter_several">Several albums</string>
+    <string name="ignored_filter_patterns">Patterns</string>
+    <string name="ignored_filter_empty">No rules of this kind</string>
+    <string name="ignored_group_both">Albums and Timeline</string>
+    <string name="ignored_group_both_summary">Hidden everywhere in the gallery</string>
+    <string name="ignored_group_albums">Albums tab only</string>
+    <string name="ignored_group_albums_summary">Their photos still show up in Timeline</string>
+    <string name="ignored_group_timeline">Timeline only</string>
+    <string name="ignored_group_timeline_summary">The albums stay in Library, their photos leave Timeline</string>
+    <string name="ignored_kind_single">Single album</string>
+    <plurals name="ignored_kind_several">
+        <item quantity="one">%1$d album</item>
+        <item quantity="other">%1$d albums</item>
+    </plurals>
+    <plurals name="ignored_kind_pattern">
+        <item quantity="one">Path pattern · %1$d match</item>
+        <item quantity="other">Path pattern · %1$d matches</item>
+    </plurals>
+    <string name="ignored_footnote">Files stay where they are, so other apps and cloud backups still see them. Use Vault to lock photos away instead.</string>
+    <string name="ignored_add_action">Ignore albums</string>
+    <string name="ignored_empty_body">Hide albums you don’t want to scroll past, like screenshots or chat downloads. Nothing gets moved or deleted.</string>
+
+    <!-- Rule options sheet -->
+    <string name="ignored_rule_hidden_from">Hidden from</string>
+    <string name="ignored_rule_name">Name</string>
+    <string name="ignored_rule_name_unset">Not set</string>
+    <string name="ignored_rule_pattern">Path pattern</string>
+    <string name="ignored_location_albums">Albums tab</string>
+    <string name="ignored_location_timeline">Timeline</string>
+    <string name="ignored_location_both">Albums and Timeline</string>
+    <string name="ignored_stop">Stop ignoring</string>
+    <string name="ignored_stopped">Stopped ignoring %1$s</string>
+    <string name="ignored_undo">Undo</string>
+
+    <!-- Ignore sheet -->
+    <string name="ignored_setup_step">Step %1$d of %2$d</string>
+    <string name="ignored_setup_choose_title">Choose what to ignore</string>
+    <string name="ignored_setup_edit_albums_title">Change what is ignored</string>
+    <string name="ignored_method_albums">Albums</string>
+    <string name="ignored_method_pattern">Path pattern</string>
+    <string name="ignored_search_albums">Search albums</string>
+    <string name="ignored_search_empty">No albums match “%1$s”</string>
+    <string name="ignored_album_already_ignored">Already ignored</string>
+    <string name="ignored_action_back">Back</string>
+    <string name="ignored_pattern_label">Folder path pattern</string>
+    <plurals name="ignored_pattern_matches">
+        <item quantity="one">%1$d album matches. Updates as you type.</item>
+        <item quantity="other">%1$d albums match. Updates as you type.</item>
+    </plurals>
+    <string name="ignored_pattern_no_matches">No albums match yet. Matching folders created later are hidden too.</string>
+    <string name="ignored_pattern_invalid">Invalid pattern. Check brackets and special characters.</string>
+    <string name="ignored_pattern_in_use">Another rule already uses this pattern.</string>
+    <string name="ignored_matches_title">Matches</string>
+    <string name="ignored_examples_summary">Tap one to start from it. A pattern must match the whole folder path.</string>
+    <string name="ignored_example_screenshots">Anything with “Screenshots” in its path</string>
+    <string name="ignored_example_whatsapp">Everything inside the WhatsApp folder</string>
+    <string name="ignored_example_dcim">Everything under DCIM on internal storage</string>
+    <string name="ignored_setup_where_title">Where should they be hidden?</string>
+    <string name="ignored_setup_edit_where_title">Edit this rule</string>
+    <string name="ignored_hide_from">Hide from</string>
+    <string name="ignored_hide_from_summary">Nothing is deleted. You can change this later.</string>
+    <string name="ignored_option_albums_summary">The album leaves Library. Its photos stay in Timeline.</string>
+    <string name="ignored_option_timeline_summary">Its photos leave Timeline. The album stays in Library.</string>
+    <string name="ignored_option_both">Everywhere</string>
+    <string name="ignored_option_both_summary">Hidden from both Library and Timeline.</string>
+    <string name="ignored_name_label">Rule name (optional)</string>
+    <plurals name="ignored_selection_summary">
+        <item quantity="one">%1$d album · %2$d items</item>
+        <item quantity="other">%1$d albums · %2$d items</item>
+    </plurals>
+    <plurals name="ignored_confirm_albums">
+        <item quantity="one">Ignore %1$d album</item>
+        <item quantity="other">Ignore %1$d albums</item>
+    </plurals>
+    <string name="ignored_confirm_pattern">Ignore matching albums</string>
 </resources>

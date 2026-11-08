@@ -23,12 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -56,11 +51,8 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.GridPinchZoomLayout
 import com.dot.gallery.core.presentation.components.MediaGridView
-import com.dot.gallery.core.presentation.components.NavigationButton
-import com.dot.gallery.core.presentation.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.core.presentation.components.rememberGridPinchZoomState
 import com.dot.gallery.core.presentation.util.LocalHazeState
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.core.presentation.util.selectedMedia
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
@@ -71,7 +63,6 @@ import com.dot.gallery.feature.vault.domain.model.VaultGateAction
 import com.dot.gallery.feature.vault.domain.model.VerifyResult
 import com.dot.gallery.feature.vault.ui.components.VaultDeviceAuthBridge
 import com.dot.gallery.feature.vault.ui.components.VaultPasswordUnlockDialog
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,6 +74,15 @@ import com.dot.gallery.feature.vault.generated.resources.private_folder_security
 import com.dot.gallery.feature.vault.generated.resources.security_private_folder
 import com.dot.gallery.feature.vault.generated.resources.vault_locked_out
 import com.dot.gallery.feature.vault.generated.resources.vault_wrong_password_attempts
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.runtime.CompositionLocalProvider
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
+import com.dot.gallery.core.presentation.components.galleryDetailTopBarHeight
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.HazePerformanceMode
+import dev.chrisbanes.haze.LocalHazePerformanceMode
 
 /**
  * Private-folder screen: a memory-only auth gate (device credential via
@@ -263,12 +263,6 @@ fun PrivateFolderContent(
     var canScroll by rememberSaveable { mutableStateOf(true) }
     var lastCellIndex by gridSizeIndex
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = rememberTopAppBarState(),
-        canScroll = { canScroll },
-        flingAnimationSpec = null
-    )
-
     val dpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
     val pinchState = rememberGridPinchZoomState(
         cellsList = cellsList,
@@ -289,55 +283,25 @@ fun PrivateFolderContent(
             end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
         )
     ) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                LargeTopAppBar(
-                    modifier = Modifier.hazeEffectScaled(
-                        state = LocalHazeState.current,
-                        style = LocalHazeBlurStyle.current
-                    ),
-                    title = {
-                        TwoLinedDateToolbarTitle(
-                            albumName = stringResource(Res.string.security_private_folder),
-                            dateHeader = mediaState.value.dateHeader
-                        )
-                    },
-                    navigationIcon = {
-                        NavigationButton(
-                            albumId = privateFolderAlbumId,
-                            target = null,
-                            alwaysGoBack = true,
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = onOpenSecuritySettings) {
-                            Icon(
-                                imageVector = Icons.Outlined.Lock,
-                                contentDescription = stringResource(Res.string.private_folder_security_title)
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                    ),
-                )
-            }
-        ) { innerPadding ->
+        // The grid scrolls under the bar, which turns into the blur bar once it does.
+        val hazeState = LocalHazeState.current
+        val topBarHeight = galleryDetailTopBarHeight()
+        val isSelectionActive by selector.isSelectionActive.collectAsState()
+        Box {
             GridPinchZoomLayout(
                 state = pinchState,
-                modifier = Modifier.hazeSource(LocalHazeState.current),
-                indicatorTopPadding = innerPadding.calculateTopPadding() + 16.dp,
+                modifier = Modifier.hazeSource(hazeState),
+                indicatorTopPadding = topBarHeight + 16.dp,
             ) {
                 MediaGridView(
                     mediaState = mediaState,
                     metadataState = metadataState,
                     allowSelection = true,
                     showSearchBar = false,
-                    enableStickyHeaders = true,
+                    // Sticky date headers clash with the blur bar.
+                    enableStickyHeaders = false,
                     paddingValues = PaddingValues(
-                        top = innerPadding.calculateTopPadding(),
+                        top = topBarHeight,
                         bottom = paddingValues.calculateBottomPadding() + 128.dp
                     ),
                     canScroll = canScroll,
@@ -348,6 +312,23 @@ fun PrivateFolderContent(
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
                     onMediaClick = onMediaClick,
+                )
+            }
+            CompositionLocalProvider(LocalHazePerformanceMode provides HazePerformanceMode.Performance) {
+                GalleryPageTopBar(
+                    title = stringResource(Res.string.security_private_folder),
+                    count = mediaState.value.media.size.takeIf { it > 0 }?.toString(),
+                    onBack = if (isSelectionActive) selector::clearSelection else null,
+                    navigationIcon = if (isSelectionActive) Icons.Outlined.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                    hazeState = hazeState,
+                    scrolled = rememberScrolledUnderTopBar(pinchState.gridState),
+                    actions = {
+                        GalleryPageTopBarAction(
+                            icon = Icons.Outlined.Lock,
+                            contentDescription = stringResource(Res.string.private_folder_security_title),
+                            onClick = onOpenSecuritySettings,
+                        )
+                    },
                 )
             }
         }

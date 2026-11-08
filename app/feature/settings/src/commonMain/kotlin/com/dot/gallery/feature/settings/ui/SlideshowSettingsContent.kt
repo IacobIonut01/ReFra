@@ -5,6 +5,15 @@
 
 package com.dot.gallery.feature.settings.ui
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Animation
+import androidx.compose.material.icons.outlined.GifBox
+import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.Shuffle
+import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.ZoomOutMap
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -88,6 +97,7 @@ fun SlideshowSettingsContent(
 
         val intervalPref = SettingsEntity.SeekPreference(
             title = stringResource(Res.string.slideshow_interval),
+            icon = Icons.Outlined.Timer,
             currentValue = intervalSeconds.toFloat(),
             minValue = MIN_SLIDESHOW_INTERVAL.toFloat(),
             maxValue = MAX_SLIDESHOW_INTERVAL.toFloat(),
@@ -100,6 +110,7 @@ fun SlideshowSettingsContent(
 
         val transitionPref = SettingsEntity.Preference(
             title = stringResource(Res.string.slideshow_transition),
+            icon = Icons.Outlined.Animation,
             summary = transitionLabel(transition),
             onClick = { showTransitionDialog = true },
             screenPosition = Position.Middle
@@ -107,6 +118,7 @@ fun SlideshowSettingsContent(
 
         val kenBurnsPref = SettingsEntity.SwitchPreference(
             title = stringResource(Res.string.slideshow_ken_burns),
+            icon = Icons.Outlined.ZoomOutMap,
             summary = stringResource(Res.string.slideshow_ken_burns_summary),
             isChecked = kenBurns,
             onCheck = { kenBurns = it },
@@ -115,6 +127,7 @@ fun SlideshowSettingsContent(
 
         val randomPref = SettingsEntity.SwitchPreference(
             title = stringResource(Res.string.slideshow_random),
+            icon = Icons.Outlined.Shuffle,
             isChecked = randomOrder,
             onCheck = { randomOrder = it },
             screenPosition = Position.Middle
@@ -122,6 +135,7 @@ fun SlideshowSettingsContent(
 
         val reversePref = SettingsEntity.SwitchPreference(
             title = stringResource(Res.string.slideshow_reverse),
+            icon = Icons.Outlined.SwapVert,
             isChecked = reverseOrder,
             enabled = !randomOrder,
             onCheck = { reverseOrder = it },
@@ -130,6 +144,7 @@ fun SlideshowSettingsContent(
 
         val loopPref = SettingsEntity.SwitchPreference(
             title = stringResource(Res.string.slideshow_loop),
+            icon = Icons.Outlined.Repeat,
             isChecked = loop,
             onCheck = { loop = it },
             screenPosition = Position.Bottom
@@ -140,6 +155,7 @@ fun SlideshowSettingsContent(
 
         val includeGifsPref = SettingsEntity.SwitchPreference(
             title = stringResource(Res.string.slideshow_include_gifs),
+            icon = Icons.Outlined.GifBox,
             isChecked = includeGifs,
             onCheck = { includeGifs = it },
             screenPosition = Position.Top
@@ -147,6 +163,7 @@ fun SlideshowSettingsContent(
 
         val includeVideosPref = SettingsEntity.SwitchPreference(
             title = stringResource(Res.string.slideshow_include_videos),
+            icon = Icons.Outlined.Movie,
             isChecked = includeVideos,
             onCheck = { includeVideos = it },
             screenPosition = Position.Bottom

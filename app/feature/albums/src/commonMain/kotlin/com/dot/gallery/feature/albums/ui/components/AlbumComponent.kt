@@ -69,9 +69,12 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.core.presentation.components.ConfirmationSheet
+import com.dot.gallery.core.presentation.components.SheetSummaryTile
+import com.dot.gallery.core.presentation.components.SheetTone
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
 import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.presentation.components.OptionLayoutStyle
@@ -513,7 +516,11 @@ fun AlbumOptionSheet(
             }
         }
     }
+    val errorContainer = MaterialTheme.colorScheme.errorContainer
+    val onErrorContainer = MaterialTheme.colorScheme.onErrorContainer
     val optionList = remember(
+        errorContainer,
+        onErrorContainer,
         onMoveAlbumToTrash,
         onTogglePinClick,
         onToggleIgnoreClick,
@@ -540,6 +547,8 @@ fun AlbumOptionSheet(
                 OptionItem(
                     icon = Icons.Outlined.Delete,
                     text = trashTitle,
+                    containerColor = errorContainer,
+                    contentColor = onErrorContainer,
                     enabled = onMoveAlbumToTrash != null && !isCloudAlbum,
                     onClick = {
                         scope.launch {
@@ -708,13 +717,6 @@ fun AlbumOptionSheet(
         }
     }
 
-    LaunchedEffect(appBottomSheetState.isVisible) {
-        isSelectingThumbnail = nextAlbumCoverPickerState(
-            currentlySelecting = isSelectingThumbnail,
-            sheetVisible = appBottomSheetState.isVisible
-        )
-    }
-
     val options = remember(isSelectingThumbnail, optionList) {
         (if (isSelectingThumbnail) {
             changeThumbnailOptions
@@ -723,6 +725,8 @@ fun AlbumOptionSheet(
         }).toMutableStateList()
     }
 
+    val albumSummary = stringResource(Res.string.s_items, album.count) +
+        if (album.size > 0) " · ${formatSize(album.size)}" else ""
     OptionSheet(
         state = appBottomSheetState,
         optionList = arrayOf(options),
@@ -731,64 +735,24 @@ fun AlbumOptionSheet(
             BackHandler(isSelectingThumbnail) {
                 isSelectingThumbnail = false
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                when (albumThumbnailPresentation(album.isLocked)) {
-                    AlbumThumbnailPresentation.LOCKED_PLACEHOLDER -> LockedAlbumThumbnail(
-                        modifier = Modifier.size(98.dp),
-                        iconModifier = Modifier.size(36.dp)
-                    )
-                    AlbumThumbnailPresentation.MEDIA -> {
-                        val renderer = LocalMediaImageRenderer.current
-                        renderer.RenderImage(
-                            modifier = Modifier
-                                .size(98.dp)
-                                .clip(Shapes.large),
-                            contentScale = ContentScale.Crop,
-                            model = album.uri,
-                            contentDescription = album.label,
-                            signature = album
-                        )
-                    }
-                }
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontStyle = MaterialTheme.typography.titleLarge.fontStyle,
-                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                letterSpacing = MaterialTheme.typography.titleLarge.letterSpacing
-                            )
-                        ) {
-                            append(album.label)
-                        }
-                        append("\n")
-                        withStyle(
-                            style = SpanStyle(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontStyle = MaterialTheme.typography.bodyMedium.fontStyle,
-                                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                                letterSpacing = MaterialTheme.typography.bodyMedium.letterSpacing
-                            )
-                        ) {
-                            append(
-                                stringResource(
-                                    Res.string.s_items,
-                                    album.count
-                                ) + " (${formatSize(album.size)})"
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                )
-            }
+            AlbumOptionSheetHeader(
+                album = album,
+                summary = albumSummary,
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 16.dp),
+            )
         }
     )
     ConfirmationSheet(
+        icon = Icons.Outlined.Delete,
+        tone = SheetTone.Error,
+        confirmIcon = Icons.Outlined.Delete,
+        details = {
+            SheetSummaryTile(
+                title = album.label,
+                summary = albumSummary,
+                leading = { AlbumOptionThumbnail(album = album, size = 48.dp) },
+            )
+        },
         state = removeAlbumState,
         title = stringResource(
             if (useRecoverableTrash) Res.string.album_trash_confirm_title
@@ -804,6 +768,60 @@ fun AlbumOptionSheet(
         ),
         onConfirm = { onMoveAlbumToTrash?.invoke(album) }
     )
+}
+
+/** Cover, name and item count at the top of [AlbumOptionSheet]. */
+@Composable
+fun AlbumOptionSheetHeader(
+    album: Album,
+    summary: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        AlbumOptionThumbnail(album = album, size = 72.dp)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = album.label,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** Rounded album cover used by the option sheet header and its confirmation tile. */
+@Composable
+fun AlbumOptionThumbnail(album: Album, size: Dp) {
+    val shape = RoundedCornerShape(if (size >= 64.dp) 20.dp else 12.dp)
+    when (albumThumbnailPresentation(album.isLocked)) {
+        AlbumThumbnailPresentation.LOCKED_PLACEHOLDER -> LockedAlbumThumbnail(
+            modifier = Modifier.size(size),
+            iconModifier = Modifier.size(size / 3),
+            shape = shape,
+        )
+        AlbumThumbnailPresentation.MEDIA -> LocalMediaImageRenderer.current.RenderImage(
+            modifier = Modifier
+                .size(size)
+                .clip(shape),
+            contentScale = ContentScale.Crop,
+            model = album.uri,
+            contentDescription = album.label,
+            signature = album
+        )
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)

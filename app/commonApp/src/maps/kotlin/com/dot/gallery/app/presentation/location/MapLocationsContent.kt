@@ -6,11 +6,7 @@
 package com.dot.gallery.app.presentation.location
 
 import com.dot.gallery.core.presentation.util.LocalHazeState
-import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,11 +19,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,15 +65,9 @@ import androidx.window.core.layout.WindowSizeClass
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.navigate
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.domain.model.GeoMedia
 import com.dot.gallery.domain.model.LocationMedia
 import com.dot.gallery.data.model.MediaMetadataState
-import com.dot.gallery.domain.util.getUri
-import com.github.panpf.sketch.asBitmapOrNull
-import com.github.panpf.sketch.request.ImageRequest
-import com.github.panpf.sketch.resize.Scale
-import com.github.panpf.sketch.sketch
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.presentation.util.connectivityState
 import com.dot.gallery.core.presentation.util.rememberSurfaceCapture
@@ -117,16 +104,27 @@ import com.dot.gallery.core.presentation.util.update
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.location.MapStyles
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
+import com.dot.gallery.core.presentation.util.rememberSurfaceTopBarBlurStyle
 import com.dot.gallery.domain.model.definedTimestamp
 import com.dot.gallery.domain.date.getDate
 import com.dot.gallery.generated.resources.Res
-import com.dot.gallery.generated.resources.header_today
-import com.dot.gallery.generated.resources.header_yesterday
 import com.dot.gallery.generated.resources.locations
 import com.dot.gallery.generated.resources.map_attribution
 import com.dot.gallery.generated.resources.map_load_failed
 import com.dot.gallery.generated.resources.retry
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ViewList
+import androidx.compose.runtime.CompositionLocalProvider
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
+import com.dot.gallery.core.presentation.components.galleryDetailTopBarHeight
+import com.dot.gallery.generated.resources.place_detail_map
+import dev.chrisbanes.haze.HazePerformanceMode
+import dev.chrisbanes.haze.LocalHazePerformanceMode
 
+
+/** This build has the interactive map; its places action opens the places page. */
+internal const val HasInteractiveMap = true
 
 private const val PHOTO_MARKER_SOURCE = "photo-marker-source"
 private const val PHOTO_MARKER_LAYER = "photo-marker-layer"
@@ -149,6 +147,8 @@ fun MapLocationsContent(
      * which only tracks the style JSON.
      */
     onMapFullyRendered: () -> Unit = {},
+    /** Opens the places list; null hides the bar's places action. */
+    onShowPlaces: (() -> Unit)? = null,
 ) {
     val sheetHazeState = LocalHazeState.current
     val allowBlur by rememberAllowBlur()
@@ -184,13 +184,7 @@ fun MapLocationsContent(
             val items = buildList {
                 var lastDateGroup = ""
                 for (item in sorted) {
-                    val dateGroup = item.media.definedTimestamp.getDate(
-                        "EEE, d MMM",
-                        "EEEE",
-                        "EEE, d MMM yyyy",
-                        "Today",
-                        "Yesterday"
-                    )
+                    val dateGroup = item.media.definedTimestamp.getDate("MMMM yyyy")
                     if (dateGroup != lastDateGroup) {
                         add(MapGridItem.Header(dateGroup))
                         lastDateGroup = dateGroup
@@ -229,6 +223,9 @@ fun MapLocationsContent(
     val sheetPeekHeightPx = with(LocalDensity.current) { sheetPeekHeight.toPx() }
     var currentSheetPaddingPx by remember { mutableFloatStateOf(if (useWideLayout) 0f else sheetPeekHeightPx) }
     val density = LocalDensity.current
+    // The top bar floats over the full-bleed map; the camera keeps pins clear of it.
+    val topBarHeight = galleryDetailTopBarHeight()
+    val topBarPaddingPx = with(density) { topBarHeight.toPx() }
 
     val mapState = rememberGalleryMapState(
         initialPosition = GalleryCameraPosition(
@@ -315,61 +312,27 @@ fun MapLocationsContent(
     val accentComposeColor = ComposeColor(accentArgb)
     val surfaceComposeColor = ComposeColor(surfaceArgb)
 
-    // ── Load circular thumbnail for selected media marker ──
+    // ── Load the accent-ringed pin for the selected media marker ──
     var selectedThumbBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(selectedGeoMedia) {
-        val item = selectedGeoMedia ?: run {
-            selectedThumbBitmap = null
-            return@LaunchedEffect
-        }
-        selectedThumbBitmap = null
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val thumbSize = 192
-                val uri = item.media.getUri()
-                val bitmap = context.applicationContext.sketch.execute(
-                    ImageRequest(context.applicationContext, uri.toString()) {
-                        size(thumbSize, thumbSize)
-                        scale(Scale.CENTER_CROP)
-                        setExtra(key = "mediaSignature", value = item.media.toString())
-                    }
-                ).image?.asBitmapOrNull() ?: return@runCatching
-
-                val output = createBitmap(thumbSize, thumbSize)
-                val canvas = Canvas(output)
-                val half = thumbSize / 2f
-
-                // Opaque background circle so the thumbnail is never transparent
-                val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = surfaceArgb
-                    style = Paint.Style.FILL
-                }
-                canvas.drawCircle(half, half, half, bgPaint)
-
-                // Clip the photo into a circle
-                val photoPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-                canvas.saveLayer(null, null)
-                canvas.drawCircle(half, half, half, photoPaint)
-                photoPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-                canvas.drawBitmap(
-                    bitmap,
-                    (thumbSize - bitmap.width) / 2f,
-                    (thumbSize - bitmap.height) / 2f,
-                    photoPaint
-                )
-                canvas.restore()
-
-                // Border ring
-                val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    style = Paint.Style.STROKE
-                    strokeWidth = 6f
-                    color = surfaceArgb
-                }
-                canvas.drawCircle(half, half, half - 3f, borderPaint)
-
-                selectedThumbBitmap = output.asImageBitmap()
-            }
-        }
+    val selectedClusterCount = remember(selectedMediaId, visibleClusters) {
+        visibleClusters.firstOrNull { cluster -> cluster.members.any { it.mediaId == selectedMediaId } }?.count ?: 1
+    }
+    LaunchedEffect(selectedGeoMedia) { selectedThumbBitmap = null }
+    LaunchedEffect(selectedGeoMedia, selectedClusterCount) {
+        val item = selectedGeoMedia ?: return@LaunchedEffect
+        val count = selectedClusterCount
+        selectedThumbBitmap = withContext(Dispatchers.IO) {
+            MapMarkerIconFactory.load(
+                context = context,
+                media = item.media,
+                count = count,
+                sizePx = with(density) { 64.dp.roundToPx() },
+                borderColor = surfaceArgb,
+                badgeColor = accentArgb,
+                badgeContentColor = onAccentArgb,
+                selected = true,
+            )
+        }?.asImageBitmap()
     }
 
     // ── Capture map SurfaceView for haze blur ──
@@ -406,6 +369,7 @@ fun MapLocationsContent(
                 latitude = target.latitude,
                 longitude = target.longitude,
                 zoom = 12.0,
+                paddingTop = topBarPaddingPx.toDouble(),
                 paddingBottom = currentSheetPaddingPx.toDouble(),
             )
         )
@@ -469,6 +433,7 @@ fun MapLocationsContent(
                 latitude = item.latitude,
                 longitude = item.longitude,
                 zoom = 12.0,
+                paddingTop = topBarPaddingPx.toDouble(),
                 paddingBottom = currentSheetPaddingPx.toDouble(),
             ),
             durationMs = 500
@@ -627,7 +592,7 @@ fun MapLocationsContent(
             sourceId = "selected-source",
             iconImageName = if (hasThumb) "selected-thumb" else null,
             visible = hasThumb,
-            iconSize = 1.5f,
+            iconSize = 1f,
             aboveLayerId = "media-selected-circle"
         )
     }
@@ -662,7 +627,11 @@ fun MapLocationsContent(
                         if (cannotSplit) {
                             clusterSheet = cluster
                         } else {
-                            mapState.fitCluster(cluster, with(density) { 72.dp.roundToPx() })
+                            mapState.fitCluster(
+                                cluster = cluster,
+                                paddingPx = with(density) { 72.dp.roundToPx() },
+                                topPaddingPx = with(density) { (topBarHeight + 24.dp).roundToPx() },
+                            )
                         }
                         true
                     } else {
@@ -726,42 +695,34 @@ fun MapLocationsContent(
                 GalleryMapLoadState.READY -> Unit
             }
 
-            // Back button
-            NavigationBackButton(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .statusBarsPadding()
-                    .padding(8.dp),
-                containerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surfaceContainer,
-                containerModifier = if (allowBlur) Modifier
-                    .clip(CircleShape)
-                    .hazeEffectScaled(
-                        state = sheetHazeState,
-                        style = HazeMaterials.regular(
-                            containerColor = MaterialTheme.colorScheme.surface
+            // The map is always under the bar, so it is always the blur bar. It blurs the map
+            // capture the sheet already uses; with blur off it falls back to the opaque surface.
+            // The title follows the map style, which can be darker or lighter than the theme.
+            CompositionLocalProvider(LocalHazePerformanceMode provides HazePerformanceMode.Performance) {
+                GalleryPageTopBar(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    title = stringResource(Res.string.place_detail_map),
+                    count = sortedGeoMedia.size.takeIf { it > 0 }?.toString(),
+                    hazeState = sheetHazeState,
+                    scrolled = true,
+                    blurStyle = rememberSurfaceTopBarBlurStyle(),
+                    titleColor = if (!allowBlur || effectiveMapIsDark == isDark) ComposeColor.Unspecified
+                    else MaterialTheme.colorScheme.inverseOnSurface,
+                    actions = {
+                        if (onShowPlaces != null) {
+                            GalleryPageTopBarAction(
+                                icon = Icons.AutoMirrored.Outlined.ViewList,
+                                contentDescription = stringResource(Res.string.locations),
+                                onClick = onShowPlaces,
+                            )
+                        }
+                        MapAppearanceAction(
+                            appearance = mapAppearance,
+                            onAppearanceChange = { mapAppearance = it },
                         )
-                    )
-                else Modifier
-            )
-
-            MapAppearanceButton(
-                appearance = mapAppearance,
-                onAppearanceChange = { mapAppearance = it },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .statusBarsPadding()
-                    .padding(8.dp),
-                containerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surfaceContainer,
-                containerModifier = if (allowBlur) Modifier
-                    .clip(CircleShape)
-                    .hazeEffectScaled(
-                        state = sheetHazeState,
-                        style = HazeMaterials.regular(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
-                    )
-                else Modifier,
-            )
+                    },
+                )
+            }
 
             // Loading indicator
             if (metadataState.value.isLoading) {
@@ -779,16 +740,26 @@ fun MapLocationsContent(
     }
 
     // ── Shared composable: Media grid panel ──
-    val stringToday = stringResource(Res.string.header_today)
-    val stringYesterday = stringResource(Res.string.header_yesterday)
+    val panelPlace = remember(selectedGeoMedia, sortedGeoMedia) {
+        selectedGeoMedia?.let { selected -> mapPanelPlace(selected, sortedGeoMedia) }
+    }
 
     val mediaGridContent: @Composable (Modifier) -> Unit = { modifier ->
         MediaGridPanel(
             modifier = modifier,
             gridState = gridState,
             gridItems = gridItems,
-            stringToday = stringToday,
-            stringYesterday = stringYesterday,
+            place = panelPlace,
+            onOpenPlace = { place ->
+                eventHandler.navigate(
+                    Screen.LocationTimelineScreen.location(
+                        gpsLocationNameCity = place.city.orEmpty(),
+                        gpsLocationNameCountry = place.country.orEmpty(),
+                        latitude = place.latitude,
+                        longitude = place.longitude,
+                    )
+                )
+            },
             selectedMediaId = selectedMediaId,
             onMediaClick = { geoMedia -> openMediaViewer(geoMedia) },
             onLocationClick = { locationMedia ->
@@ -843,7 +814,8 @@ fun MapLocationsContent(
         val sheetMaxHeight = screenHeight / 2
 
         // Blur support
-        val surfaceColorLocal = MaterialTheme.colorScheme.surface
+        val surfaceColorLocal = MaterialTheme.colorScheme.surfaceContainerLow
+        val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
         val sheetHazeStyle = HazeMaterials.regular(
             containerColor = surfaceColorLocal
@@ -852,7 +824,7 @@ fun MapLocationsContent(
             when {
                 !allowBlur -> Modifier.background(
                     color = surfaceColorLocal,
-                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    shape = sheetShape
                 )
 
                 else -> Modifier
@@ -869,7 +841,7 @@ fun MapLocationsContent(
                     val containerHeight = with(density) { screenHeight.toPx() }
                     val sheetVisiblePx = (containerHeight - offset).coerceAtLeast(0f)
                     currentSheetPaddingPx = sheetVisiblePx
-                    mapState.setCameraPadding(bottom = sheetVisiblePx.toDouble())
+                    mapState.setCameraPadding(top = topBarPaddingPx.toDouble(), bottom = sheetVisiblePx.toDouble())
                 }
             }
         }
@@ -877,22 +849,24 @@ fun MapLocationsContent(
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
             sheetPeekHeight = sheetPeekHeight,
-            sheetContainerColor = if (allowBlur) ComposeColor.Transparent else MaterialTheme.colorScheme.surface,
-            sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+            sheetContainerColor = if (allowBlur) ComposeColor.Transparent else surfaceColorLocal,
+            sheetShape = sheetShape,
             sheetDragHandle = {},
             sheetContent = {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                        .clip(sheetShape)
                         .then(sheetBackgroundModifier)
                         .hazeEffectScaled(
                             state = sheetHazeState,
                             style = sheetHazeStyle
                         )
                 ) {
-                    BottomSheetDefaults.DragHandle(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    DragHandle(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 5.dp, bottom = 1.dp)
                     )
                     mediaGridContent(
                         Modifier

@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Dydis</string>
     <string name="editor_brush_strength">Jėga</string>
     <string name="editor_blur_faces">Sulieti veidus</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 bitų)</string>
+    <string name="raw_export_tiff16">TIFF (16 bitų)</string>
+    <string name="raw_export_choose_format">Išsaugoti parengtą kopiją</string>
+    <string name="raw_export_choose_format_subtitle">Pasirinkite savo apdoroto RAW failo formatą</string>
+    <string name="raw_export_tiff_unavailable">TIFF išlaiko visą bitų gylį, tačiau negali įtraukti apkarpymo, filtrų ar žymių — norėdami eksportuoti TIFF, juos pašalinkite.</string>
+    <string name="editor_mosaic_faces">Mozaikiniai veidai</string>
+    <string name="cutout_no_object">Ilgai paspaudus neaptiktas joks objektas</string>
+    <string name="cutout_init_failed">Nepavyko inicijuoti „Cutout“ variklio</string>
 </resources>

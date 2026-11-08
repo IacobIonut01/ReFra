@@ -40,7 +40,9 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.core.ml.FaceModel
 import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.SearchModel
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.domain.date.SystemDateFormatField
 import com.dot.gallery.core.presentation.util.systemDateTimePattern
@@ -49,6 +51,8 @@ import com.dot.gallery.core.security.AdvancedProtectionMonitor
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.domain.model.SearchHistory
 import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.domain.settings.normalizeLaunchRoute
+import com.dot.gallery.domain.settings.resolveLongPressAction
 import com.dot.gallery.domain.model.SlideshowTransition
 import com.dot.gallery.feature.viewer.SlideshowConfig
 import com.dot.gallery.domain.util.OrderType
@@ -214,10 +218,6 @@ object Settings {
             rememberPreference(SettingsKeys.albumSectionsEnabled)
 
         @Composable
-        fun rememberPinnedAlbumsAsGrid() =
-            rememberPreference(SettingsKeys.pinnedAlbumsAsGrid)
-
-        @Composable
         fun rememberShowMediaTypeAlbums() =
             rememberPreference(SettingsKeys.showMediaTypeAlbums)
 
@@ -308,7 +308,7 @@ object Settings {
             rememberPreference(libraryShortcutsLayoutKey)
 
         /**
-         * Whether the Library screen shows the Locations carousel section (#1181).
+         * Whether the Library screen shows the Locations carousel section.
          * Also read by `LibraryContentInputs` as the data-collection gate — it is a
          * data switch, not just a display toggle.
          */
@@ -316,7 +316,7 @@ object Settings {
         fun rememberShowLocationCategories() =
             rememberPreference(SettingsKeys.showLocationCategories)
 
-        /** Section ids that can be toggled in the Library edit mode (#1262). */
+        /** Section ids that can be toggled in the Library edit mode. */
         const val SECTION_PEOPLE = "people"
         const val SECTION_CATEGORIES = "categories"
 
@@ -327,6 +327,24 @@ object Settings {
         @Composable
         fun rememberHiddenSections() =
             rememberPreference(SettingsKeys.hiddenSections)
+    }
+
+    object PeoplePage {
+        private val HIDDEN_SOURCES = stringSetPreferencesKey("people_hidden_sources")
+
+        /**
+         * People sources the user turned off on the People page (on-device people and each
+         * connected account). Stored as an exclusion list so new accounts show up by default.
+         */
+        fun hiddenSources(context: Context): Flow<Set<String>> =
+            context.activeDataStore.data.map { it[HIDDEN_SOURCES] ?: emptySet() }
+
+        suspend fun setSourceVisible(context: Context, key: String, visible: Boolean) {
+            context.activeDataStore.edit { prefs ->
+                val current = prefs[HIDDEN_SOURCES] ?: emptySet()
+                prefs[HIDDEN_SOURCES] = if (visible) current - key else current + key
+            }
+        }
     }
 
     object SmartFeatures {
@@ -373,17 +391,68 @@ object Settings {
             context.activeDataStore.edit { it[PROVIDER_SMART_SEARCH] = enabled }
         }
 
+        private val SEARCH_MODEL = stringPreferencesKey("smart_features_search_model")
+
+        /**
+         * The search engine powering Smart Search + Categories. Defaults to CLIP (the
+         * historical engine); switching re-indexes the library on the next Smart Scan.
+         */
+        fun searchModel(context: Context): Flow<SearchModel> =
+            context.activeDataStore.data.map { prefs ->
+                prefs[SEARCH_MODEL]
+                    ?.let { runCatching { SearchModel.valueOf(it) }.getOrNull() }
+                    ?: SearchModel.DEFAULT
+            }
+
+        suspend fun setSearchModel(context: Context, model: SearchModel) {
+            context.activeDataStore.edit { it[SEARCH_MODEL] = model.name }
+        }
+
+        private val FACE_MODEL = stringPreferencesKey("smart_features_face_model")
+
+        /**
+         * The face grouping quality tier. Defaults to [FaceModel.STANDARD]; a stored tier whose
+         * models are not published yet resolves to the default.
+         */
+        fun faceModel(context: Context): Flow<FaceModel> =
+            context.activeDataStore.data.map { prefs -> FaceModel.resolve(prefs[FACE_MODEL]) }
+
+        suspend fun setFaceModel(context: Context, model: FaceModel) {
+            context.activeDataStore.edit { it[FACE_MODEL] = model.name }
+        }
+
+        private val SCAN_ONLY_WHILE_CHARGING = booleanPreferencesKey("smart_features_scan_only_while_charging")
+
+        /**
+         * Whether background (not user-started) heavy scans — search indexing, categories and
+         * face detection — wait for the charger. Default on, which is how background scans
+         * have always behaved; off lets them run whenever the battery is not low.
+         */
+        fun scanOnlyWhileCharging(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[SCAN_ONLY_WHILE_CHARGING] ?: true }
+
+        suspend fun setScanOnlyWhileCharging(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[SCAN_ONLY_WHILE_CHARGING] = enabled }
+        }
+
         private val REMOVED_MODEL_GROUPS = stringSetPreferencesKey("smart_features_removed_model_groups")
 
         /**
          * Model groups the user explicitly deleted. Persisted so a bundled (withML) build does
-         * not silently re-install them on the next app launch (issue #1229).
+         * not silently re-install them on the next app launch.
          */
         fun removedModelGroups(context: Context): Flow<Set<ModelGroup>> =
             context.activeDataStore.data.map { prefs ->
                 prefs[REMOVED_MODEL_GROUPS].orEmpty()
-                    .mapNotNullTo(LinkedHashSet()) { name ->
-                        runCatching { ModelGroup.valueOf(name) }.getOrNull()
+                    .flatMapTo(LinkedHashSet()) { name ->
+                        // "SEARCH" was the single search-model group before CLIP and
+                        // EmbeddingGemma 2 became selectable engines — honor the removal
+                        // intent for every search engine, not just its enum successor.
+                        if (name == "SEARCH") {
+                            listOf(ModelGroup.SEARCH_CLIP, ModelGroup.SEARCH_EG2)
+                        } else {
+                            listOfNotNull(runCatching { ModelGroup.valueOf(name) }.getOrNull())
+                        }
                     }
             }
 
@@ -392,6 +461,124 @@ object Settings {
                 val current = prefs[REMOVED_MODEL_GROUPS] ?: emptySet()
                 prefs[REMOVED_MODEL_GROUPS] =
                     if (removed) current + group.name else current - group.name
+            }
+        }
+    }
+
+    /**
+     * ReFra Handover — self-hosted remote inference / search-provider server.
+     * See HANDOVER_MEGAPLAN.md; wire protocol is HPKG v1 (docs/protocol.md).
+     */
+    object Handover {
+        private val ENABLED = booleanPreferencesKey("handover_enabled")
+        private val REMOTE_URL = stringPreferencesKey("handover_remote_url")
+        private val LOCAL_URL = stringPreferencesKey("handover_local_url")
+        private val LOCAL_WIFI_SSID = stringPreferencesKey("handover_local_wifi_ssid")
+        private val AUTO_URL_SWITCH = booleanPreferencesKey("handover_auto_url_switch")
+        private val ENGINE = stringPreferencesKey("handover_engine")
+        private val SINK = stringPreferencesKey("handover_sink")
+        private val ENCRYPTED_SECRET = stringPreferencesKey("handover_secret")
+        private val AUTH_MODE = stringPreferencesKey("handover_auth_mode")
+        private val PREFER_REMOTE_QUERIES = booleanPreferencesKey("handover_prefer_remote_queries")
+        private val PENDING_INDEX_DELETES = stringSetPreferencesKey("handover_pending_index_deletes")
+
+        fun enabled(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[ENABLED] ?: false }
+
+        suspend fun setEnabled(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[ENABLED] = enabled }
+        }
+
+        /** Externally reachable base URL of the handover server. */
+        fun remoteUrl(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[REMOTE_URL] ?: "" }
+
+        suspend fun setRemoteUrl(context: Context, url: String) {
+            context.activeDataStore.edit { it[REMOTE_URL] = url.trimEnd('/') }
+        }
+
+        /** LAN base URL used while on [localWifiSsid] when [autoUrlSwitch] is on. */
+        fun localUrl(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[LOCAL_URL] ?: "" }
+
+        suspend fun setLocalUrl(context: Context, url: String) {
+            context.activeDataStore.edit { it[LOCAL_URL] = url.trimEnd('/') }
+        }
+
+        fun localWifiSsid(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[LOCAL_WIFI_SSID] ?: "" }
+
+        suspend fun setLocalWifiSsid(context: Context, ssid: String) {
+            context.activeDataStore.edit { it[LOCAL_WIFI_SSID] = ssid }
+        }
+
+        fun autoUrlSwitch(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[AUTO_URL_SWITCH] ?: true }
+
+        suspend fun setAutoUrlSwitch(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[AUTO_URL_SWITCH] = enabled }
+        }
+
+        /** Engine id override; empty = server default. */
+        fun engine(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[ENGINE] ?: "" }
+
+        suspend fun setEngine(context: Context, engine: String) {
+            context.activeDataStore.edit { it[ENGINE] = engine }
+        }
+
+        /** Where computed embeddings land: "client" | "server" | "both". */
+        fun sink(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[SINK] ?: "both" }
+
+        suspend fun setSink(context: Context, sink: String) {
+            context.activeDataStore.edit { it[SINK] = sink }
+        }
+
+        /** Bearer secret, AES-256-GCM encrypted via CredentialEncryptor. */
+        fun encryptedSecret(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[ENCRYPTED_SECRET] ?: "" }
+
+        suspend fun setEncryptedSecret(context: Context, encrypted: String) {
+            context.activeDataStore.edit { it[ENCRYPTED_SECRET] = encrypted }
+        }
+
+        /** "bearer" (default) | "hmac" — must match the server's HANDOVER_AUTH_MODE. */
+        fun authMode(context: Context): Flow<String> =
+            context.activeDataStore.data.map { it[AUTH_MODE] ?: "bearer" }
+
+        suspend fun setAuthMode(context: Context, mode: String) {
+            context.activeDataStore.edit { it[AUTH_MODE] = mode }
+        }
+
+        /** Route text search through the server-side index (POST /api/v1/query). */
+        fun preferRemoteQueries(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[PREFER_REMOTE_QUERIES] ?: true }
+
+        suspend fun setPreferRemoteQueries(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[PREFER_REMOTE_QUERIES] = enabled }
+        }
+
+        /**
+         * Media ids queued for POST /api/v1/index/delete — persisted so deletes
+         * made while offline/unconfigured flush on the next successful call.
+         */
+        fun pendingIndexDeletes(context: Context): Flow<Set<String>> =
+            context.activeDataStore.data.map { it[PENDING_INDEX_DELETES] ?: emptySet() }
+
+        suspend fun addPendingIndexDeletes(context: Context, ids: Collection<String>) {
+            if (ids.isEmpty()) return
+            context.activeDataStore.edit { prefs ->
+                prefs[PENDING_INDEX_DELETES] =
+                    (prefs[PENDING_INDEX_DELETES] ?: emptySet()) + ids.toSet()
+            }
+        }
+
+        suspend fun removePendingIndexDeletes(context: Context, ids: Collection<String>) {
+            if (ids.isEmpty()) return
+            context.activeDataStore.edit { prefs ->
+                prefs[PENDING_INDEX_DELETES] =
+                    (prefs[PENDING_INDEX_DELETES] ?: emptySet()) - ids.toSet()
             }
         }
     }
@@ -453,6 +640,12 @@ object Settings {
                 val historyList = Json.decodeFromString<List<SearchHistory>>(currentHistory)
                 val updatedHistory = historyList.filter { it.mediaId != mediaId }
                 preferences[HISTORY_V2] = Json.encodeToString(updatedHistory)
+            }
+        }
+
+        suspend fun clearHistory(context: Context) {
+            context.activeDataStore.edit { preferences ->
+                preferences[HISTORY_V2] = EMPTY_HISTORY
             }
         }
 
@@ -730,11 +923,14 @@ object Settings {
         fun rememberDisableSmoothing() =
             rememberPreference(SettingsKeys.disableSmoothing)
 
-        // false (default): long-press rotates the image, cut-out is offered as an on-screen pill.
-        // true: long-press starts a subject cut-out, rotate is offered as an on-screen pill.
+        // One of LONG_PRESS_ACTION_ROTATE (default), _CUTOUT or _NONE. Falls back to the legacy
+        // long_press_cutout switch until the user picks an action.
         @Composable
-        fun rememberLongPressCutout() =
-            rememberPreference(SettingsKeys.longPressCutout)
+        fun rememberLongPressAction(): String {
+            val legacyCutout by rememberPreference(SettingsKeys.longPressCutout)
+            val storedAction by rememberPreference(SettingsKeys.longPressAction)
+            return resolveLongPressAction(storedAction, legacyCutout)
+        }
 
         // ==== Re-encode / save quality (format-preserving overwrite) ====
         // Mode: "auto" (JXL lossless where supported, else high quality) or "manual" (use sliders).
@@ -849,14 +1045,6 @@ object Settings {
             context.activeDataStore.edit { it[TAP_SIDES_TO_NAVIGATE_PROMPT_SHOWN] = true }
         }
 
-        /**
-         * Swipe a photo or video upwards in the full-screen viewer to move it to the trash.
-         * Off by default: it is a destructive gesture, so it stays opt-in.
-         */
-        @Composable
-        fun rememberSwipeUpToTrash() =
-            rememberPreference(SettingsKeys.swipeUpToTrash)
-
         @Composable
         fun rememberAutoHideOnVideoPlay() =
             rememberPreference(SettingsKeys.autoHideOnVideoPlay)
@@ -876,7 +1064,7 @@ object Settings {
         /**
          * Date/time format preferences store an empty string when the user has
          * not customized them. In that case the effective pattern is derived from
-         * the system locale + 12/24-hour setting at read time (see #953).
+         * the system locale + 12/24-hour setting at read time (see ).
          * Use rememberRaw*Format() in the editor (to distinguish system-follow
          * from a custom value); use remember*Format() everywhere else to obtain
          * the resolved, display-ready pattern.
@@ -960,7 +1148,7 @@ object Settings {
 
         /**
          * Workaround for video [android.view.SurfaceView] blacking out when the
-         * system bars are toggled while playing (#967). When enabled, the player
+         * system bars are toggled while playing. When enabled, the player
          * surface is re-bound on every system-bar visibility change. Defaults to on
          * for Samsung devices, where the issue is observed, and off elsewhere.
          */
@@ -971,7 +1159,7 @@ object Settings {
         /**
          * Lets the media viewer switch the window into
          * [android.content.pm.ActivityInfo.COLOR_MODE_HDR] while a Dolby Vision / HDR10 / HLG
-         * video is playing (#1274). Only takes effect on HDR-capable displays — the window
+         * video is playing. Only takes effect on HDR-capable displays — the window
          * toggle itself is gated on `HdrCapabilities.isHdrDisplay`, so this silently no-ops on
          * SDR-only hardware.
          */
@@ -1041,10 +1229,8 @@ object Settings {
             if (!permissionGranted || isSetupNeeded(preferences)) {
                 Routes.SETUP
             } else {
-                preferences[LAST_SCREEN].takeIf {
-                    it == Routes.TIMELINE ||
-                        it == Routes.ALBUMS ||
-                        it == Routes.LIBRARY
+                preferences[LAST_SCREEN]?.let(::normalizeLaunchRoute).takeIf {
+                    it == Routes.TIMELINE || it == Routes.LIBRARY
                 } ?: Routes.TIMELINE
             }
 
@@ -1099,10 +1285,6 @@ object Settings {
         @Composable
         fun rememberVisualSearchConvertFormat() =
             rememberPreference(SettingsKeys.visualSearchConvertFormat)
-
-        @Composable
-        fun rememberShowSearchBarFavoriteButton() =
-            rememberPreference(SettingsKeys.showSearchBarFavButton)
 
         @Composable
         fun rememberShowFilterButton() =
@@ -1189,6 +1371,7 @@ object Settings {
             rememberPreference(SettingsKeys.timelineLayoutType)
 
         const val EDITOR_BUILTIN = "builtin"
+        const val EDITOR_STUDIO = "studio"
 
         @Composable
         fun rememberDefaultImageEditor() =

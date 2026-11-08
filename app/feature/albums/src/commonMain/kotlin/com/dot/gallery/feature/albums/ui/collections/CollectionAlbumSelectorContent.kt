@@ -17,12 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,11 +29,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.cloud.core.CloudAlbum
 import com.dot.gallery.core.LocalMediaDistributor
-import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.core.presentation.components.MediaTypeAlbum
 import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.ui.components.SettingsItem
 import com.dot.gallery.core.ui.components.settings
@@ -49,6 +46,11 @@ import com.dot.gallery.feature.albums.generated.resources.save
 import com.dot.gallery.feature.albums.generated.resources.select_albums_for_collection
 import com.dot.gallery.feature.albums.generated.resources.select_albums_for_collection_subtitle
 import com.dot.gallery.feature.albums.generated.resources.skip
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 /**
  * Create mode: pass collectionName, onCreateWithAlbums, onSkip.
@@ -85,19 +87,14 @@ fun CollectionAlbumSelectorContent(
         }
     }
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.select_albums_for_collection)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(Res.string.select_albums_for_collection),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         },
         bottomBar = {
@@ -147,7 +144,8 @@ fun CollectionAlbumSelectorContent(
     ) { padding ->
         val subtitleText = stringResource(Res.string.select_albums_for_collection_subtitle)
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             contentPadding = PaddingValues(
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),
                 end = padding.calculateEndPadding(LocalLayoutDirection.current),
@@ -195,8 +193,23 @@ fun CollectionAlbumSelectorContent(
 }
 
 /**
- * Only real (local, non-negative) album ids are selectable collection members;
- * cloud album ids live in a separate negative namespace. Public so the app's
- * unit test can cover the same predicate the screen applies.
+ * Local MediaStore bucket ids are 32-bit and often negative. Cloud album ids
+ * are [CloudAlbum.CLOUD_ALBUM_ID_BASE] minus a 63-bit hash, so they fall
+ * outside that range. Synthetic albums keep the small negative ids.
+ * Public so the app's unit test can cover the same predicate the screen applies.
  */
-fun isSelectableCollectionAlbumId(albumId: Long): Boolean = albumId >= 0L
+fun isSelectableCollectionAlbumId(albumId: Long): Boolean {
+    if (albumId !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) return false
+    if (MediaTypeAlbum.isMediaTypeAlbumId(albumId)) return false
+    return albumId !in NON_BUCKET_ALBUM_IDS
+}
+
+/** Timeline, read-uri sentinel, new album, private folder, cloud placeholder, cloud base. */
+private val NON_BUCKET_ALBUM_IDS = longArrayOf(
+    -1L,
+    -99L,
+    -200L,
+    -300L,
+    -500L,
+    CloudAlbum.CLOUD_ALBUM_ID_BASE,
+)

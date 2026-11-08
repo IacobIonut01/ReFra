@@ -58,14 +58,14 @@ class MimeInputStreamModelLoader(
                     callback.onLoadFailed(IOException("Null InputStream for $uri"))
                     return
                 }
-                // #1054: MediaStore sometimes reports a RAW/TIFF MIME for a file that is actually a
+                // MediaStore sometimes reports a RAW/TIFF MIME for a file that is actually a
                 // standard JPEG/PNG/WebP/GIF/BMP (e.g. RawTherapee exports). Trusting that MIME sends
                 // the file to the embedded-preview/EXIF-thumbnail extractor, so it renders as a tiny
                 // blurry square. Only when the reported MIME is already suspicious do we peek the
                 // header and, if the bytes are a natively-decodable image, correct the MIME
                 // so the RAW/TIFF decoders decline and Glide uses its default decode path. Normal
                 // images skip this entirely (zero cost on the fling hot path).
-                // #1244: providers can also report HEIF/AVIF under a missing/generic MIME
+                // providers can also report HEIF/AVIF under a missing/generic MIME
                 // (null, application/octet-stream) — without the header peek the dedicated HEIF
                 // decoders decline and the file falls through to platform decode paths, which
                 // silently corrupt >10-bit streams. An ftyp-brand sniff re-routes them.

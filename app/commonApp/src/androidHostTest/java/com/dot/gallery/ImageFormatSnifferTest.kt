@@ -12,14 +12,14 @@ import com.dot.gallery.domain.util.isGif
 
 
 /**
- * Unit tests for [ImageFormatSniffer] magic-byte detection — the core of the #1054 fix that keeps
+ * Unit tests for [ImageFormatSniffer] magic-byte detection — the core of fix that keeps
  * standard images on the native decode path even when MediaStore reports a RAW/TIFF MIME.
  */
 class ImageFormatSnifferTest {
 
     private fun bytes(vararg ints: Int): ByteArray = ByteArray(ints.size) { ints[it].toByte() }
 
-    // Real SOI + APP1(Exif) prefix, as in the #1054 attachment (RawTherapee/Sony JPEG).
+    // Real SOI + APP1(Exif) prefix, as in attachment (RawTherapee/Sony JPEG).
     private val jpegExif = bytes(0xFF, 0xD8, 0xFF, 0xE1, 0x2A, 0xE6, 0x45, 0x78, 0x69, 0x66)
     private val jpegJfif = bytes(0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46)
     private val png = bytes(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00)

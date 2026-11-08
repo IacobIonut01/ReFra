@@ -18,7 +18,7 @@ fun HelpRoute.toScreenRoute(): String = when (this) {
     is HelpRoute.Raw -> route
     is HelpRoute.Target -> when (this) {
         HelpRoute.Target.TIMELINE -> Screen.TimelineScreen()
-        HelpRoute.Target.ALBUMS -> Screen.AlbumsScreen()
+        HelpRoute.Target.ALBUMS -> Screen.LibraryScreen()
         HelpRoute.Target.SEARCH -> Screen.SearchScreen()
         HelpRoute.Target.LIBRARY -> Screen.LibraryScreen()
         HelpRoute.Target.CATEGORIES -> Screen.CategoriesScreen()
@@ -53,7 +53,7 @@ fun HelpRoute.toScreenRoute(): String = when (this) {
         HelpRoute.Target.SHARED_LINKS -> Screen.SharedLinksScreen()
         HelpRoute.Target.FREE_UP_SPACE -> Screen.FreeUpSpaceScreen()
         HelpRoute.Target.PEOPLE_LIST -> Screen.PeopleListScreen()
-        HelpRoute.Target.SYNC_STATUS -> Screen.SyncStatusScreen()
+        HelpRoute.Target.SYNC_STATUS -> Screen.CloudBackupDashboardScreen()
         HelpRoute.Target.WHATS_NEW -> Screen.WhatsNewScreen()
     }
 }

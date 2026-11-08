@@ -30,7 +30,10 @@ import com.dot.gallery.core.CopyMediaRuntimeImpl
 import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.core.MediaDistributorImpl
 import com.dot.gallery.core.MediaHandler
+import com.dot.gallery.core.BulkRotateCoordinator
 import com.dot.gallery.core.MediaHandlerImpl
+import com.dot.gallery.core.presentation.components.FloatingProgressRegistry
+import com.dot.gallery.core.presentation.components.MediaRotationTracker
 import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.MediaSelectorImpl
 import com.dot.gallery.core.decryption.DecryptManager
@@ -70,8 +73,12 @@ import com.dot.gallery.data.repository.CoreMediaRepository
 import com.dot.gallery.data.repository.MediaRepositoryImpl
 import com.dot.gallery.data.repository.MediaRepository
 import com.dot.gallery.data.repository.MediaRepositoryRuntime
+import com.dot.gallery.feature.classifier.ui.search.RemoteSearchProvider
 import com.dot.gallery.feature.classifier.ui.search.SearchHelper
 import com.dot.gallery.app.presentation.search.SearchHelperImpl
+import com.dot.gallery.handover.HandoverClient
+import com.dot.gallery.handover.HandoverIndexMirror
+import com.dot.gallery.handover.HandoverSearchProvider
 import me.tatarka.inject.annotations.Component
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
@@ -125,7 +132,6 @@ import com.dot.gallery.core.VaultRuntimeImpl
 import com.dot.gallery.core.vault.VaultRuntime
 import com.dot.gallery.feature.classifier.ClassifierRuntime
 import com.dot.gallery.feature.viewer.MediaViewBackend
-import com.dot.gallery.feature.viewer.ActionsViewModel
 import com.dot.gallery.feature.viewer.ViewerRuntime
 import com.dot.gallery.cloud.image.CloudImageSource
 import com.dot.gallery.cloud.media.CloudDataSource
@@ -136,11 +142,9 @@ import com.dot.gallery.feature.albums.AlbumsViewModel
 import com.dot.gallery.feature.albums.ui.AlbumTimelineViewModel
 import com.dot.gallery.feature.albums.CloudAlbumManageViewModel
 import com.dot.gallery.app.presentation.cast.FCastViewModel
-import com.dot.gallery.feature.classifier.AddCategoryViewModel
 import com.dot.gallery.feature.classifier.CategoriesViewModel
 import com.dot.gallery.feature.classifier.CategoryEditorViewModel
 import com.dot.gallery.feature.classifier.CategoryViewModel
-import com.dot.gallery.feature.classifier.EditCategoryViewModel
 import com.dot.gallery.feature.albums.ui.collections.CollectionViewModel
 import com.dot.gallery.feature.editor.EditRuntime
 import com.dot.gallery.feature.editor.EditViewModel
@@ -150,7 +154,6 @@ import com.dot.gallery.feature.exif.MetadataViewViewModel
 import com.dot.gallery.app.presentation.frameextract.FrameExportWorker
 import com.dot.gallery.app.presentation.frameextract.FramePickerViewModel
 import com.dot.gallery.feature.ignored.ui.IgnoredViewModel
-import com.dot.gallery.feature.ignored.ui.setup.IgnoredOptionsViewModel
 import com.dot.gallery.feature.ignored.ui.setup.IgnoredSetupViewModel
 import com.dot.gallery.feature.library.LibraryViewModel
 import com.dot.gallery.feature.library.location.LocationsViewModel
@@ -160,6 +163,7 @@ import com.dot.gallery.feature.picker.PickerViewModel
 import com.dot.gallery.feature.vault.privatefolder.PrivateFolderMoveViewModel
 import com.dot.gallery.feature.vault.privatefolder.PrivateFolderViewModel
 import com.dot.gallery.feature.search.SearchViewModel
+import com.dot.gallery.app.presentation.settings.subsettings.HandoverSettingsViewModel
 import com.dot.gallery.feature.settings.subsettings.BackupRestoreViewModel
 import com.dot.gallery.feature.settings.subsettings.DeveloperViewModel
 import com.dot.gallery.feature.settings.subsettings.EditBackupsRuntime
@@ -168,7 +172,6 @@ import com.dot.gallery.feature.settings.subsettings.EditBackupsViewModel
 import com.dot.gallery.feature.settings.subsettings.SmartFeaturesViewModel
 import com.dot.gallery.feature.viewer.standalone.StandaloneViewModel
 import com.dot.gallery.feature.timeline.storycards.StoryCardsViewModel
-import com.dot.gallery.feature.albums.ui.ThumbnailChangerViewModel
 import com.dot.gallery.feature.vault.VaultViewModel
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.cloud.genericwebdav.di.WebDavProviderComponent
@@ -286,6 +289,14 @@ abstract class AppComponent(
 
     @Provides
     @Singleton
+    fun provideFloatingProgressRegistry(): FloatingProgressRegistry = FloatingProgressRegistry()
+
+    @Provides
+    @Singleton
+    fun provideMediaRotationTracker(): MediaRotationTracker = MediaRotationTracker()
+
+    @Provides
+    @Singleton
     fun provideDatabase(
         startupGate: StartupWorkGate
     ): InternalDatabase = StartupTracer.trace("AppComponent.provideDatabase") {
@@ -311,6 +322,18 @@ abstract class AppComponent(
     @Singleton
     fun provideBackgroundTaskScheduler(): BackgroundTaskScheduler =
         StartupTracer.trace("AppComponent.provideBackgroundTaskScheduler") { workScheduler() }
+
+    @Provides
+    @Singleton
+    fun provideBackupJobController(
+        runtime: com.dot.gallery.core.backup.BackupJobRuntime
+    ): com.dot.gallery.core.backup.BackupJobController = runtime
+
+    @Provides
+    @Singleton
+    fun provideDataHealthController(
+        impl: com.dot.gallery.core.workers.DataHealthControllerImpl
+    ): com.dot.gallery.core.backup.DataHealthController = impl
 
     @Provides
     @Singleton
@@ -350,10 +373,12 @@ abstract class AppComponent(
         providerRegistry: ProviderRegistry,
         cloudMediaDao: CloudMediaDao,
         cloudServerConfigDao: CloudServerConfigDao,
+        indexMirror: HandoverIndexMirror,
+        bulkRotateCoordinator: BulkRotateCoordinator,
     ): MediaHandler = StartupTracer.trace("AppComponent.provideMediaHandler") {
         MediaHandlerImpl(
             mediaRepository, application, scheduler, providerRegistry, cloudMediaDao,
-            cloudServerConfigDao
+            cloudServerConfigDao, indexMirror, bulkRotateCoordinator
         )
     }
 
@@ -417,6 +442,13 @@ abstract class AppComponent(
     @Singleton
     fun provideSearchHelper(modelManager: ModelManager): SearchHelper =
         StartupTracer.trace("AppComponent.provideSearchHelper") { SearchHelperImpl(modelManager) }
+
+    @Provides
+    @Singleton
+    fun provideRemoteSearchProvider(handoverClient: HandoverClient): RemoteSearchProvider =
+        StartupTracer.trace("AppComponent.provideRemoteSearchProvider") {
+            HandoverSearchProvider(handoverClient)
+        }
 
     @Provides
     @Singleton
@@ -580,6 +612,7 @@ abstract class AppComponent(
     abstract val mediaRepository: MediaRepository
     abstract override val modelManager: ModelManager
     abstract val searchHelper: SearchHelper
+    abstract val remoteSearchProvider: RemoteSearchProvider
     abstract val geocoder: Geocoder?
     abstract val decryptManager: DecryptManager
     abstract val mediaMetadataSidecarCache: MediaMetadataSidecarCache
@@ -634,10 +667,9 @@ abstract class AppComponent(
     // ── view model accessors — unscoped, one instance per ViewModelStore
 
     abstract val cloudBackupInfoViewModel: CloudBackupInfoViewModel
-    abstract val actionsViewModel: ActionsViewModel
-    abstract val addCategoryViewModel: AddCategoryViewModel
     abstract val albumsViewModel: AlbumsViewModel
     abstract val backupRestoreViewModel: BackupRestoreViewModel
+    abstract val backupHubViewModel: com.dot.gallery.app.presentation.settings.subsettings.BackupHubViewModel
     abstract val categoriesViewModel: CategoriesViewModel
     abstract val categoryEditorViewModel: CategoryEditorViewModel
     abstract val categoryViewModel: CategoryViewModel
@@ -651,10 +683,9 @@ abstract class AppComponent(
     abstract val collectionViewModel: CollectionViewModel
     abstract val developerViewModel: DeveloperViewModel
     abstract val editBackupsViewModel: EditBackupsViewModel
-    abstract val editCategoryViewModel: EditCategoryViewModel
+    abstract val handoverSettingsViewModel: HandoverSettingsViewModel
     abstract val editViewModel: EditViewModel
     abstract val fCastViewModel: FCastViewModel
-    abstract val ignoredOptionsViewModel: IgnoredOptionsViewModel
     abstract val ignoredSetupViewModel: IgnoredSetupViewModel
     abstract val ignoredViewModel: IgnoredViewModel
     abstract val libraryViewModel: LibraryViewModel
@@ -672,7 +703,6 @@ abstract class AppComponent(
     abstract val smartFeaturesViewModel: SmartFeaturesViewModel
     abstract val storyCardsViewModel: StoryCardsViewModel
     abstract val syncStatusViewModel: SyncStatusViewModel
-    abstract val thumbnailChangerViewModel: ThumbnailChangerViewModel
     abstract val uploadDetailsViewModel: UploadDetailsViewModel
     abstract val vaultViewModel: VaultViewModel
     abstract val albumTimelineViewModel: (savedStateHandle: SavedStateHandle) -> AlbumTimelineViewModel
@@ -687,6 +717,14 @@ abstract class AppComponent(
     abstract val locationsViewModel: (gpsLocationNameCity: String, gpsLocationNameCountry: String, latitude: Double?, longitude: Double?) -> LocationsViewModel
 
     // ── workers — resolved fresh per task by the @Worker adapters via WorkComponentHolder
+
+    abstract val backupExportWorker: com.dot.gallery.core.backup.BackupExportWorker
+    abstract val backupRestoreWorker: com.dot.gallery.core.backup.BackupRestoreWorker
+    abstract val backupJobRuntime: com.dot.gallery.core.backup.BackupJobRuntime
+    abstract val backupJobStore: com.dot.gallery.core.backup.BackupJobStore
+    abstract val dataHealthWorker: com.dot.gallery.core.workers.DataHealthWorker
+    abstract val dataHealthStore: com.dot.gallery.core.workers.DataHealthStore
+    abstract val dataHealthControllerImpl: com.dot.gallery.core.workers.DataHealthControllerImpl
 
     abstract val cloudAlbumCopyWorker: CloudAlbumCopyWorker
     abstract val cloudDownloadWorker: CloudDownloadWorker
@@ -706,9 +744,12 @@ abstract class AppComponent(
     abstract val modelDownloadWorker: ModelDownloadWorker
     abstract val redactedLocationRepairWorker: RedactedLocationRepairWorker
     abstract val rotateMediaWorker: RotateMediaWorker
+    abstract val floatingProgressRegistry: FloatingProgressRegistry
+    abstract val mediaRotationTracker: MediaRotationTracker
     abstract val searchIndexerUpdaterWorker: SearchIndexerUpdaterWorker
     abstract val smartScanWorker: SmartScanWorker
     abstract val tempVaultCleanupWorker: TempVaultCleanupWorker
     abstract val vaultOperationWorker: VaultOperationWorker
     abstract val frameExportWorker: FrameExportWorker
+    abstract val editorExportWorker: com.dot.gallery.core.workers.EditorExportWorker
 }

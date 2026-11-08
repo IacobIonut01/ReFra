@@ -24,6 +24,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.dot.gallery.core.presentation.components.FilterKind
+import com.dot.gallery.core.presentation.components.GalleryDetailAction
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
 import com.dot.gallery.domain.model.LastSort
 import com.dot.gallery.domain.util.OrderType
 import org.jetbrains.compose.resources.stringResource
@@ -35,20 +37,29 @@ import com.dot.gallery.feature.albums.generated.resources.sort_by_date_taken
 import com.dot.gallery.feature.albums.generated.resources.sort_by_file_name
 import com.dot.gallery.feature.albums.generated.resources.sort_descending
 
+/**
+ * Sort menu for an album's media. [anchor] draws what opens it (the detail header's sort pill);
+ * by default it is a sort icon button.
+ */
 @Composable
 fun AlbumSortDropdown(
     modifier: Modifier = Modifier,
     currentSort: LastSort,
-    onSortChange: (LastSort) -> Unit
+    onSortChange: (LastSort) -> Unit,
+    anchor: (@Composable (open: () -> Unit) -> Unit)? = null,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.Sort,
-                contentDescription = stringResource(Res.string.sort)
-            )
+        if (anchor != null) {
+            anchor { expanded = true }
+        } else {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.Sort,
+                    contentDescription = stringResource(Res.string.sort)
+                )
+            }
         }
 
         DropdownMenu(
@@ -128,5 +139,37 @@ fun AlbumSortDropdown(
                 }
             )
         }
+    }
+}
+
+/** Label of the sort pill: the date order when sorting by date, otherwise plain "Sort". */
+@Composable
+fun albumSortLabel(sort: LastSort): String = when {
+    sort.kind != FilterKind.DATE && sort.kind != FilterKind.DATE_MODIFIED -> stringResource(Res.string.sort)
+    sort.orderType == OrderType.Descending -> stringResource(Res.string.sort_descending)
+    else -> stringResource(Res.string.sort_ascending)
+}
+
+/** The sort button in the detail top bar's action group, wired to [AlbumSortDropdown]. */
+@Composable
+fun AlbumSortTopBarAction(currentSort: LastSort, onSortChange: (LastSort) -> Unit) {
+    AlbumSortDropdown(currentSort = currentSort, onSortChange = onSortChange) { open ->
+        GalleryPageTopBarAction(
+            icon = Icons.AutoMirrored.Outlined.Sort,
+            contentDescription = albumSortLabel(currentSort),
+            onClick = open,
+        )
+    }
+}
+
+/** The detail header's sort pill wired to [AlbumSortDropdown]. */
+@Composable
+fun AlbumSortPill(currentSort: LastSort, onSortChange: (LastSort) -> Unit) {
+    AlbumSortDropdown(currentSort = currentSort, onSortChange = onSortChange) { open ->
+        GalleryDetailAction(
+            label = albumSortLabel(currentSort),
+            icon = Icons.AutoMirrored.Outlined.Sort,
+            onClick = open,
+        )
     }
 }

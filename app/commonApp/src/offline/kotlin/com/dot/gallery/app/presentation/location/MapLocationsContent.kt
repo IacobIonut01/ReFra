@@ -12,6 +12,9 @@ import com.dot.gallery.domain.model.LocationMedia
 import com.dot.gallery.data.model.MediaMetadataState
 
 
+/** This build has no map: the Locations screen opens straight on the places page. */
+internal const val HasInteractiveMap = false
+
 @Suppress("UNUSED_PARAMETER")
 @Composable
 fun MapLocationsContent(
@@ -20,6 +23,7 @@ fun MapLocationsContent(
     geoMedia: List<GeoMedia> = emptyList(),
     initialMediaId: Long = -1L,
     onMapFullyRendered: () -> Unit = {},
+    onShowPlaces: (() -> Unit)? = null,
 ) {
-    ListLocationsContent(metadataState = metadataState, locations = locations)
+    ListLocationsContent(metadataState = metadataState, locations = locations, geoMedia = geoMedia)
 }

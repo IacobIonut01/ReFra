@@ -5,6 +5,9 @@
 
 package com.dot.gallery.app.presentation.storycards
 
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import com.dot.gallery.core.presentation.components.GallerySegmentedActionGroup
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.PredictiveBackHandler
@@ -33,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
@@ -136,6 +140,8 @@ import com.dot.gallery.generated.resources.story_pause
 import com.dot.gallery.generated.resources.story_position
 import com.dot.gallery.generated.resources.story_previous_photo
 import com.dot.gallery.generated.resources.story_resume
+import com.dot.gallery.generated.resources.story_all_memories
+import com.dot.gallery.domain.model.StoryCardType
 
 
 private const val DEFAULT_STORY_DURATION_SECONDS = 5
@@ -168,6 +174,8 @@ fun StoryViewerScreen(
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
     sessionKey: Int = 0,
     dismissBridge: ViewerDismissBridge? = null,
+    /** Opens the Memories page from a memory card; null hides the action. */
+    onOpenAllMemories: (() -> Unit)? = null,
 ) {
     val allowBlur by rememberAllowBlur()
     val darkMediaViewer by rememberDarkMediaViewer()
@@ -189,6 +197,7 @@ fun StoryViewerScreen(
             animatedVisibilityScope = animatedVisibilityScope,
             sessionKey = sessionKey,
             dismissBridge = dismissBridge,
+            onOpenAllMemories = onOpenAllMemories,
         )
     }
 }
@@ -205,6 +214,7 @@ private fun StoryViewerContent(
     animatedVisibilityScope: AnimatedVisibilityScope?,
     sessionKey: Int,
     dismissBridge: ViewerDismissBridge?,
+    onOpenAllMemories: (() -> Unit)?,
 ) {
     // Force light status bar icons (white) on dark background, restore on exit
     val windowInsetsController = rememberWindowInsetsController()
@@ -396,6 +406,9 @@ private fun StoryViewerContent(
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 isPagerScrollInProgress = pagerState.isScrollInProgress,
+                onOpenAllMemories = onOpenAllMemories?.takeIf {
+                    card.type == StoryCardType.MEMORIES || card.type == StoryCardType.CLOUD_MEMORIES
+                },
                 onCardFinished = {
                     scope.launch {
                         val page = pagerState.targetPage
@@ -423,6 +436,7 @@ private fun StoryCardViewer(
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     isPagerScrollInProgress: Boolean,
+    onOpenAllMemories: (() -> Unit)? = null,
     onCardFinished: () -> Unit
 ) {
     val mediaList = card.mediaList
@@ -544,6 +558,8 @@ private fun StoryCardViewer(
                 cardId = card.id,
                 animatedVisibilityScope = animatedVisibilityScope,
                 permitTransformDuringDeferredTransition = true,
+                // The viewer is flat; the flight morphs the card's rounding into this.
+                cornerRadius = 0.dp,
             )
         }
     }
@@ -565,6 +581,8 @@ private fun StoryCardViewer(
         modifier = Modifier
             .fillMaxSize()
             .onSizeChanged { dismissState.updateSize(it) }
+            // Root position too: beside the gallery the viewer does not start at the window origin.
+            .onGloballyPositioned { dismissState.updateOrigin(it.positionInRoot()) }
             // The dismiss gesture lives on this outermost, never-transformed box: the drag
             // offset lands on the shared-element card inside, so pointer positions here always
             // arrive in untranslated screen space. A handler inside the offset card would see
@@ -807,6 +825,34 @@ private fun StoryCardViewer(
                     }
                 }
 
+                if (onOpenAllMemories != null) {
+                    val memoriesBgModifier = if (allowBlur) {
+                        Modifier
+                            .clip(CircleShape)
+                            .hazeEffectScaled(
+                                state = hazeState,
+                                style = HazeMaterials.ultraThin(containerColor = blurContainerColor),
+                                glassContainerColor = blurContainerColor
+                            )
+                    } else {
+                        Modifier.background(fallbackContainerColor, CircleShape)
+                    }
+                    IconButton(
+                        onClick = onOpenAllMemories,
+                        enabled = viewerInteractive,
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .then(memoriesBgModifier)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.AutoAwesome,
+                            contentDescription = stringResource(Res.string.story_all_memories),
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
                 // Pause button — rounded with blur
                 if (autoAdvance || currentMedia.isVideo) {
                     val pauseBgModifier = if (allowBlur) {
@@ -875,13 +921,8 @@ private fun StoryCardViewer(
                 } else {
                     Modifier.background(fallbackContainerColor, RoundedCornerShape(100))
                 }
-                Row(
-                    modifier = Modifier
-                        .then(actionBgModifier)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                // Same connected segments as the media viewer's action bar.
+                GallerySegmentedActionGroup(surfaceModifier = actionBgModifier) {
                     val storyScope = rememberCoroutineScope()
                     val storyHandler = LocalMediaHandler.current
                     val storyDistributor = LocalMediaDistributor.current

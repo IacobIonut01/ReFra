@@ -20,6 +20,9 @@ interface CloudDeleteLocalPrefDao {
     @Query("SELECT * FROM cloud_delete_local_pref")
     fun getAll(): Flow<List<CloudDeleteLocalPrefEntity>>
 
+    @Query("SELECT * FROM cloud_delete_local_pref")
+    suspend fun getAllAsync(): List<CloudDeleteLocalPrefEntity>
+
     /** Album ids for which local copies should be removed once fully backed up. */
     @Query("SELECT albumId FROM cloud_delete_local_pref WHERE enabled = 1")
     suspend fun getEnabledAlbumIds(): List<Long>

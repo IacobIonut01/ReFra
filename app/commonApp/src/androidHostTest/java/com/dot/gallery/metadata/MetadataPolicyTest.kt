@@ -5,7 +5,6 @@ import com.dot.gallery.data.entity.isRedactedCoordinate
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataPolicy
-import com.dot.gallery.core.metadata.MetadataRemovalMode
 import com.dot.gallery.core.util.shouldRequestOriginalMetadata
 import com.dot.gallery.data.repository.shouldUsePerFileMetadataIsolation
 import com.dot.gallery.data.entity.MetadataParsingPolicy
@@ -159,32 +158,24 @@ class MetadataPolicyTest {
     }
 
     @Test
-    fun locationOnlyRemovesOnlyLocation() {
-        val policy = MetadataPolicy.forMode(MetadataRemovalMode.LOCATION)
-
-        assertTrue(MetadataCategory.LOCATION in policy.removedCategories)
-        assertFalse(MetadataCategory.TIMESTAMPS in policy.removedCategories)
-        assertTrue(MetadataCategory.STRUCTURAL_FUNCTIONAL in policy.preservedCategories)
+    fun locationPresetRemovesOnlyLocation() {
+        assertEquals(setOf(MetadataCategory.LOCATION), MetadataPolicy.LOCATION)
+        assertFalse(MetadataPolicy.removesEverything(MetadataPolicy.LOCATION))
     }
 
     @Test
-    fun privacyPreservesCaptureAndRenderingData() {
-        val policy = MetadataPolicy.forMode(MetadataRemovalMode.PRIVACY)
-
-        assertTrue(MetadataCategory.IDENTITY_DEVICE in policy.removedCategories)
-        assertTrue(MetadataCategory.TIMESTAMPS in policy.removedCategories)
-        assertTrue(MetadataCategory.PEOPLE in policy.removedCategories)
-        assertFalse(MetadataCategory.CAPTURE_SETTINGS in policy.removedCategories)
-        assertTrue(MetadataCategory.COLOR_HDR in policy.preservedCategories)
+    fun removeAllNeverSelectsStructuralOrColorMetadata() {
+        assertFalse(MetadataCategory.STRUCTURAL_FUNCTIONAL in MetadataPolicy.ALL)
+        assertFalse(MetadataCategory.COLOR_HDR in MetadataPolicy.ALL)
+        assertTrue(MetadataCategory.CAPTURE_SETTINGS in MetadataPolicy.ALL)
+        assertTrue(MetadataCategory.PROVENANCE in MetadataPolicy.ALL)
+        assertTrue(MetadataPolicy.removesEverything(MetadataPolicy.ALL))
     }
 
     @Test
-    fun everythingNeverSelectsStructuralOrColorMetadata() {
-        val policy = MetadataPolicy.forMode(MetadataRemovalMode.EVERYTHING)
-
-        assertFalse(MetadataCategory.STRUCTURAL_FUNCTIONAL in policy.removedCategories)
-        assertFalse(MetadataCategory.COLOR_HDR in policy.removedCategories)
-        assertTrue(MetadataCategory.CAPTURE_SETTINGS in policy.removedCategories)
-        assertTrue(MetadataCategory.PROVENANCE in policy.removedCategories)
+    fun normalizeDropsCategoriesThatAreAlwaysPreserved() {
+        val requested = setOf(MetadataCategory.LOCATION, MetadataCategory.COLOR_HDR, MetadataCategory.STRUCTURAL_FUNCTIONAL)
+        assertEquals(setOf(MetadataCategory.LOCATION), MetadataPolicy.normalize(requested))
+        assertTrue(MetadataPolicy.removesEverything(MetadataPolicy.ALL + MetadataPolicy.alwaysPreserved))
     }
 }

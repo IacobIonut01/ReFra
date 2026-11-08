@@ -13,6 +13,7 @@ import com.dot.gallery.domain.model.SlideshowTransition
 import com.dot.gallery.domain.model.StoryCardsConfig
 import com.dot.gallery.domain.util.OrderType
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 
 /**
  * Key table shared between the app and shared modules. Names must stay in sync
@@ -67,6 +68,10 @@ object SettingsKeys {
     val albumViewType = PrefKey.serializable(
         "album_last_view_obj", AlbumViewType.GRID, AlbumViewType.serializer()
     )
+    /** Album ids in the order the user arranged them; empty means the sort applies to every album. */
+    val albumCustomOrder = PrefKey.serializable(
+        "album_custom_order", emptyList<Long>(), ListSerializer(Long.serializer())
+    )
     // Selection sheet
     val selectionTitles = PrefKey.bool("selection_titles", default = true)
 
@@ -75,13 +80,24 @@ object SettingsKeys {
     val mediaViewDateHeader = PrefKey.bool("media_view_date_header", default = true)
     val tapSidesToNavigate = PrefKey.bool("tap_sides_to_navigate", default = false)
     val tapSidesPromptShown = PrefKey.bool("tap_sides_to_navigate_prompt_shown", default = false)
-    /** Off by default: it is a destructive gesture, so it stays opt-in. */
-    val swipeUpToTrash = PrefKey.bool("swipe_up_to_trash", default = false)
     val showFavoriteButton = PrefKey.bool("show_favorite_button", default = true)
-    val defaultImageEditor = PrefKey.string("default_image_editor", default = EDITOR_BUILTIN)
+    /**
+     * [EDITOR_STUDIO], [EDITOR_BUILTIN] for the built-in editor, or the package
+     * name of an installed image editor. Types the studio editor cannot open
+     * fall back to the built-in editor.
+     */
+    val defaultImageEditor = PrefKey.string("default_image_editor", default = EDITOR_STUDIO)
+    /**
+     * [EDITOR_STUDIO], [EDITOR_BUILTIN] for "ask every time" (video has no
+     * built-in editor), or the package name of an installed video editor.
+     */
+    val defaultVideoEditor = PrefKey.string("default_video_editor", default = EDITOR_STUDIO)
     val darkMediaViewer = PrefKey.bool("dark_media_viewer", default = true)
     val disableSmoothing = PrefKey.bool("disable_smoothing", default = false)
+    /** Legacy boolean superseded by [longPressAction]; still read to derive its default. */
     val longPressCutout = PrefKey.bool("long_press_cutout", default = false)
+    /** Empty means unset — resolve through [resolveLongPressAction] with [longPressCutout]. */
+    val longPressAction = PrefKey.string("long_press_action", default = "")
     val reencodeQualityMode = PrefKey.string("reencode_quality_mode", default = REENCODE_MODE_AUTO)
     val reencodeLossyQuality = PrefKey.int("reencode_lossy_quality", default = 90)
     val reencodeJxlEffort = PrefKey.int("reencode_jxl_effort", default = 7)
@@ -146,8 +162,8 @@ object SettingsKeys {
     val albumGroupByDate = PrefKey.bool("album_group_by_date", default = true)
     val mergeAlbumsByName = PrefKey.bool("merge_albums_by_name", default = true)
     val albumSectionsEnabled = PrefKey.bool("album_sections_enabled", default = false)
-    val pinnedAlbumsAsGrid = PrefKey.bool("pinned_albums_as_grid", default = false)
     val showMediaTypeAlbums = PrefKey.bool("show_media_type_albums", default = true)
+    val showPinnedAlbums = PrefKey.bool("show_pinned_albums", default = true)
     val updateModifiedDate = PrefKey.bool("update_modified_date", default = false)
     val hideTimelineOnAlbum = PrefKey.bool("hide_timeline_on_album", default = false)
     val timelineGroupByDate = PrefKey.bool("timeline_group_by_date", default = true)
@@ -161,6 +177,14 @@ object SettingsKeys {
     val vaultGroupMethod = PrefKey.string("vault_group_method", default = GROUP_NORMAL)
     val cloudArchiveGroupMethod = PrefKey.string("cloud_archive_group_method", default = GROUP_NORMAL)
     val locationGroupMethod = PrefKey.string("location_group_method", default = GROUP_NORMAL)
+    /** Month headers on the main timeline open with a card of the month's best photos. */
+    val timelineMonthHighlights = PrefKey.bool("timeline_month_highlights", default = true)
+    /** Month highlight cards carry a play button that starts a slideshow from the month. */
+    val timelineMonthRecaps = PrefKey.bool("timeline_month_recaps", default = true)
+    /** Timeline headers name where the photos were taken. */
+    val timelineHeaderPlaces = PrefKey.bool("timeline_header_places", default = true)
+    /** The timeline's sticky date header floats as a pill that opens the months view. */
+    val timelineFloatingDateLabel = PrefKey.bool("timeline_floating_date_label", default = true)
     val showLocationCategories = PrefKey.bool("library_show_location_categories", default = true)
     val hiddenSections = PrefKey.stringSet("library_hidden_sections")
 
@@ -178,10 +202,16 @@ object SettingsKeys {
     val forcedLastScreen = PrefKey.bool("forced_last_screen", default = false)
     val oldNavbar = PrefKey.bool("old_navbar", default = false)
     val autoHideSearchBar = PrefKey.bool("auto_hide_searchbar", default = true)
+    /** Large windows keep the gallery beside the viewer instead of opening it fullscreen. */
+    val galleryDualPane = PrefKey.bool("gallery_dual_pane", default = true)
+    /** Share of the window width given to the gallery pane while the viewer is beside it. */
+    val galleryPaneFraction = PrefKey.float("gallery_pane_fraction", default = 0.45f)
+    /** Width in dp of the settings list kept beside an open settings page. */
+    val settingsPaneWidth = PrefKey.float("settings_pane_width", default = 360f)
     val autoOpenSearchKeyboard = PrefKey.bool("auto_open_search_keyboard", default = true)
     val autoHideNavBar = PrefKey.bool("auto_hide_navigationbar", default = true)
 
-    // Date format overrides — blank = follow system (see #953)
+    // Date format overrides — blank = follow system (see )
     val rawDateHeaderFormat = PrefKey.string("date_header_format", default = "")
     val rawExtendedDateHeaderFormat = PrefKey.string("extended_date_header_format", default = "")
     val rawExifDateFormat = PrefKey.string("exif_date_format", default = "")
@@ -212,6 +242,10 @@ const val LAUNCH_ROUTE_TIMELINE = "timeline_screen"
 const val LAUNCH_ROUTE_ALBUMS = "albums_screen"
 const val LAUNCH_ROUTE_LIBRARY = "library_screen"
 const val LAUNCH_ROUTE_AUTO = "auto"
+
+/** Albums merged into Library, so a stored Albums choice now opens Library. */
+fun normalizeLaunchRoute(route: String): String =
+    if (route == LAUNCH_ROUTE_ALBUMS) LAUNCH_ROUTE_LIBRARY else route
 
 /** Slideshow interval bounds — mirror `Settings.Slideshow` constants. */
 const val DEFAULT_SLIDESHOW_INTERVAL = 5
@@ -263,5 +297,23 @@ const val VISUAL_SEARCH_FORMAT_WEBP = "webp"
 const val REENCODE_MODE_AUTO = "auto"
 const val REENCODE_MODE_MANUAL = "manual"
 
+/** Viewer long-press actions stored in [SettingsKeys.longPressAction]. */
+const val LONG_PRESS_ACTION_ROTATE = "rotate"
+const val LONG_PRESS_ACTION_CUTOUT = "cutout"
+const val LONG_PRESS_ACTION_NONE = "none"
+
+/**
+ * Effective viewer long-press action. A missing or unknown stored value falls back to the legacy
+ * `long_press_cutout` switch so users who enabled cut-out before the chooser existed keep it.
+ */
+fun resolveLongPressAction(storedValue: String?, legacyCutout: Boolean): String =
+    when (storedValue) {
+        LONG_PRESS_ACTION_ROTATE, LONG_PRESS_ACTION_CUTOUT, LONG_PRESS_ACTION_NONE -> storedValue
+        else -> if (legacyCutout) LONG_PRESS_ACTION_CUTOUT else LONG_PRESS_ACTION_ROTATE
+    }
+
 /** Built-in editor sentinel — mirror `Settings.Misc.EDITOR_BUILTIN`. */
 const val EDITOR_BUILTIN = "builtin"
+
+/** New standalone ReFra editor sentinel — mirror `Settings.Misc.EDITOR_STUDIO`. */
+const val EDITOR_STUDIO = "studio"

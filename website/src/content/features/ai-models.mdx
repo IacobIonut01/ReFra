@@ -1,57 +1,73 @@
 ---
 title: AI models
-summary: The downloadable model packs that power smart search, categories, cutout, and people grouping.
+summary: The Intelligence Hub, where you download the on-device models behind smart search, categories, face grouping, and subject cutout.
 area: discover
 path:
   - Settings
   - Smart Features
-  - AI Models Manager
-related: [smart-features, smart-scan, search, people, subject-cutout]
+  - Intelligence Hub
+related: [smart-features, smart-scan, search, people, subject-cutout, remote-inference]
 scenes: [settings-ai-models]
 order: 6
 ---
 
-**Settings › Smart Features › AI Models Manager** is where the machine-learning models live. They are separate downloads, each enabling a different feature, and all processing they enable runs on your device. The manager itself states that no images, queries, or classification data leave the phone.
+**Settings › Smart Features › Intelligence Hub** is where the machine-learning models live. They are separate downloads, each one powering a feature, and the features run on your device: the hub states that your photos, faces, and searches never leave it.
 
-## The model groups
+## The hub
 
-<PreviewCollection feature="ai-models" section="the-model-groups" />
+<PreviewCollection feature="ai-models" section="the-hub" />
 
-| Group | Size | What it unlocks |
+The summary at the top counts how many models are ready and how much space they use. Below it, **Features** lists three entries, each with its status, such as **Not downloaded** with the download size, **Downloading** with a percentage, or **Ready** with the size on disk:
+
+| Feature | Download | What it unlocks |
 | --- | --- | --- |
-| **Search & Categories** | ~147 MB | Descriptive text search and automatic categories. |
-| **Subject Cutout** | ~44 MB | Isolating a subject in the media viewer's cutout. |
-| **Face Detection** | ~1.3 MB | The editor's automatic "Blur faces" action. |
-| **Face Recognition (People)** | ~130 MB | Grouping the same person across photos in the Library. Requires Face Detection too. |
+| **Smart search** | ~150–320 MB, by engine | Descriptive text search, visual similarity search, and automatic [categories](/ReFra/features/categories). |
+| **Face grouping** | ~131 MB | Grouping the same person across photos in [People](/ReFra/features/people), and the editor's **Blur faces** and **Mosaic faces** markup actions. |
+| **Subject cutout** | ~44 MB | [Subject cutout](/ReFra/features/subject-cutout) in the viewer and the editor's **Cutout** and **Remove background** tools. |
 
-Each group lists its model files and the source the models came from (the project repository or the model's public home), so you can see exactly what is downloaded.
+Tap a feature to open its page: what it does, a preview, its options, and one button that downloads the models and turns the feature on, such as **Download & turn on search**. Once installed, the same button removes the models after a confirmation.
 
-## Install, download, remove
+## Choosing a search engine
 
-- On a build that can download: each group offers **Download AI Models** with its size. A download in progress can be stopped with **Cancel AI Model Download**.
-- On a build that bundles the models: the action reads **Install AI Models** and restores the bundled copies, no download needed; "Preparing AI Models" shows while they are set up.
-- **Delete AI Models** removes a group's files after a confirmation. On offline builds with bundled models, deletion is refused with "Bundled models cannot be deleted from this offline build."
-- An offline build *without* bundled models shows **AI Models Unavailable**: "This offline build cannot download missing models." An offline build *with* bundled models can still install them; only downloading is unavailable.
+Smart search and categories run on one of two engines, picked under **Search engine** on the Smart search page. Switching engines indexes your photos again. **Compare engines** opens a side-by-side sheet covering accuracy, speed, languages, and video support.
 
-When a group is ready, its summary line says so, for example "AI-powered search and classification are available" or "Subject cutout is available in the media viewer".
+| | CLIP | EmbeddingGemma 2 |
+| --- | --- | --- |
+| Embedding size | 512 | 768 |
+| Understands | Text &amp; images | Text, images &amp; videos |
+| Download size | ~150 MB | ~320 MB |
+| Indexing speed | Fast | Slower (larger model) |
+| Result quality | Good | Higher |
+| Languages | Mostly English | 100+ languages |
 
-## What each feature needs
+CLIP is the default and the lighter option; EmbeddingGemma 2 is more accurate, multilingual, and can index video content as well as images. Removing the engine in use stops search until another engine is installed and selected.
 
-- Descriptive [search](/ReFra/features/search) and [categories](/ReFra/features/categories): the **Search & Categories** group.
-- [People](/ReFra/features/people) grouping: **Face Detection** plus **Face Recognition (People)**.
-- [Subject cutout](/ReFra/features/subject-cutout) in the viewer: **Subject Cutout**.
-- The editor's **Blur faces**: **Face Detection** alone.
+## Face grouping quality
+
+The Face grouping page has a **Quality** choice that decides how faces are found and compared. **Standard** (UltraFace and ArcFace) is the one available now; **Fast** and **Accurate** are listed as **Coming soon**. Changing the quality scans your photos again, because each tier compares faces in its own way.
+
+## Scan options
+
+The feature pages for Smart search and Face grouping share two options:
+
+- **Scan only while charging**: background scans for People and search wait for the charger.
+- **Skip hidden albums**: hidden albums stay out of People and search. Locked albums are never scanned.
+
+## Bundled and offline builds
+
+- On a build that bundles the models, the button reads **Install** and restores the bundled copies with no download; the status reads **Preparing…** while they are set up.
+- On an offline build without bundled models, missing models cannot be downloaded, and the feature says so. A feature the build does not include shows **Not available in this build**.
 
 After installing new models, run a refresh under **Smart Features data** so existing media gets indexed; see [Smart Features data](/ReFra/features/smart-scan).
 
 ## Example: people grouping without the big search pack
 
-1. Open **Settings › Smart Features › AI Models Manager**.
-2. Download **Face Detection** (~1.3 MB), then **Face Recognition (People)** (~130 MB).
-3. Skip **Search & Categories** if descriptive search is not needed.
+1. Open **Settings › Smart Features › Intelligence Hub**.
+2. Tap **Face grouping**, then **Download & start grouping**.
+3. Leave **Smart search** off if descriptive search is not needed.
 4. Open **Smart Features data** and refresh persons; the Library's People section starts filling in.
 
 ## If a download fails or is absent
 
-- Retry the download on a stable connection. The manager shows each group's size before you start, so you can check space first.
-- On an offline build, only bundled models can be installed; there is no download path, so a missing group stays unavailable on that build.
+- Retry the download on a stable connection; Wi-Fi is recommended. Each feature shows its download size before you start, so you can check space first.
+- On an offline build, only bundled models can be installed; there is no download path, so a missing model stays unavailable on that build.

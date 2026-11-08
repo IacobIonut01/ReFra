@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.app.presentation.edit.EditScreen2
+import com.dot.gallery.app.presentation.storycards.components.StoryCardsRow
 import com.dot.gallery.app.presentation.trashed.components.TrashFooterContent
 import com.dot.gallery.app.presentation.frameextract.FrameExportFormat
 import com.dot.gallery.app.presentation.frameextract.FrameExportWorker
@@ -42,6 +43,8 @@ import com.dot.gallery.app.presentation.frameextract.FramePickerScreen
 import com.dot.gallery.app.presentation.frameextract.FramePickerUiState
 import com.dot.gallery.app.presentation.frameextract.FrameIdentity
 import com.dot.gallery.app.presentation.frameextract.FramePreview
+import com.dot.gallery.app.presentation.settings.subsettings.HandoverSettingsContent
+import com.dot.gallery.app.presentation.settings.subsettings.HandoverSettingsState
 import com.dot.gallery.app.presentation.frameextract.FrameSelectionReducer
 import com.dot.gallery.app.presentation.frameextract.FrameVideoMetadata
 import com.dot.gallery.app.presentation.frameextract.SelectionChange
@@ -58,6 +61,9 @@ import com.dot.gallery.docs.scenes.DocsSharedScopes
 import com.dot.gallery.docs.showcase.generated.resources.Res
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.UriMedia
+import com.dot.gallery.domain.model.StoryCard
+import com.dot.gallery.domain.model.StoryCardType
+import com.dot.gallery.domain.uri.parseUri
 import com.dot.gallery.domain.model.editor.DevelopCategory
 import com.dot.gallery.domain.model.editor.DrawMode
 import com.dot.gallery.domain.model.editor.DrawType
@@ -74,6 +80,9 @@ import com.dot.gallery.feature.viewer.components.media.CutoutController
 import com.dot.gallery.feature.viewer.components.media.CutoutControlsBar
 import com.dot.gallery.feature.viewer.components.media.CutoutState
 import com.dot.gallery.feature.viewer.components.media.ZoomablePagerImagePointTool
+import com.dot.gallery.handover.EngineInfo
+import com.dot.gallery.handover.HandoverEnvelope
+import com.dot.gallery.handover.HandoverInfo
 import java.io.File
 import kotlinx.coroutines.runBlocking
 
@@ -86,17 +95,30 @@ import kotlinx.coroutines.runBlocking
  */
 actual fun platformScenes(): List<DocsScene> = listOf(
     DocsScene(
+        id = "stories-carousel",
+        title = "Story highlights carousel",
+        pathTrace = listOf("Timeline", "Story cards"),
+        states = listOf("one", "two", "many", "loading"),
+        presentation = "component",
+        widthDp = 412,
+        heightDp = 236,
+    ) { state -> DocsStoryCardsScene(state) },
+    DocsScene(
         id = "editor-photo",
         title = "Photo editor",
         pathTrace = listOf("Photo", "Edit"),
         states = listOf("lighting", "colour", "effects", "filters", "markup", "crop", "save-menu"),
         captureWindow = true,
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsPhotoEditorScene(state) },
     DocsScene(
         id = "editor-raw",
         title = "RAW develop editor",
         pathTrace = listOf("RAW photo", "Edit", "Develop"),
         states = listOf("white-balance", "tone", "detail", "colour", "output"),
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsRawEditorScene(state) },
     DocsScene(
         id = "raw-export",
@@ -104,11 +126,15 @@ actual fun platformScenes(): List<DocsScene> = listOf(
         pathTrace = listOf("RAW photo", "Edit", "Save"),
         states = listOf("all-formats", "edits-applied"),
         captureWindow = true,
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsRawExportScene(state) },
     DocsScene(
         id = "markup-text",
         title = "Markup text input",
         pathTrace = listOf("Photo", "Edit", "Markup", "Text"),
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsMarkupTextScene(state) },
     DocsScene(
         id = "cutout-tools",
@@ -141,9 +167,18 @@ actual fun platformScenes(): List<DocsScene> = listOf(
         id = "browse-trash",
         title = "Trash",
         pathTrace = listOf("Library", "Trash"),
-        states = listOf("filled", "empty"),
+        states = listOf("filled", "scrolled", "empty"),
     ) { state -> DocsTrashScene(state) },
-) + cloudSetupScenes + cloudSettingsScenes + cloudUseScenes + viewerScenes + exploreScenes
+    DocsScene(
+        id = "settings-remote-inference",
+        title = "Remote inference",
+        pathTrace = listOf("Settings", "Smart Features", "Remote inference"),
+        states = listOf("configured", "blank", "scrolled"),
+        swipedStates = listOf("scrolled"),
+    ) { state -> DocsRemoteInferenceScene(state) },
+) + cloudSetupScenes + cloudSettingsScenes + cloudUseScenes + viewerScenes + exploreScenes +
+    placesMemoriesScenes +
+    editorScenes
 
 // ── Bundled-asset fixtures ────────────────────────────────────────────────
 
@@ -170,6 +205,45 @@ private fun rememberDocsAssetFile(path: String, fileName: String): File {
             }
         }
     }
+}
+
+@Composable
+private fun DocsStoryCardsScene(state: String?) {
+    if (state == "loading") {
+        StoryCardsRow(cards = null, onCardClick = {}, modifier = Modifier.padding(vertical = 8.dp))
+        return
+    }
+    val lake = rememberDocsAssetFile("drawable/docs_lake.jpg", "stories-lake.jpg")
+    val earth = rememberDocsAssetFile("drawable/docs_earth.jpg", "stories-earth.jpg")
+    val flower = rememberDocsAssetFile("drawable/docs_flower.jpg", "stories-flower.jpg")
+    val detail = rememberDocsAssetFile("drawable/docs_flower_detail.jpg", "stories-detail.jpg")
+    val cards = remember(lake, earth, flower, detail) {
+        val files = listOf(lake, earth, flower, detail)
+        val media = DocsGalleryData.mediaItems().take(4).mapIndexed { index, item ->
+            item.copy(uri = parseUri("file://${files[index].absolutePath}"), path = files[index].absolutePath)
+        }
+        val types = listOf(StoryCardType.MEMORIES, StoryCardType.LOCATIONS, StoryCardType.FAVORITES, StoryCardType.ALBUMS)
+        val titles = listOf("On this day", "At the coast", "Favorites", "Camera")
+        (0..7).map { index ->
+            StoryCard(
+                id = index.toLong(),
+                type = types[index % types.size],
+                title = titles[index % titles.size],
+                subtitle = "4 highlights",
+                thumbnailMedia = media[index % media.size],
+                mediaList = media,
+            )
+        }
+    }
+    StoryCardsRow(
+        cards = when (state) {
+            "one" -> cards.take(1)
+            "two" -> cards.take(2)
+            else -> cards
+        },
+        onCardClick = {},
+        modifier = Modifier.padding(vertical = 8.dp),
+    )
 }
 
 /** Keeps the tagged root dark (editor chrome is dark) while a scene has no bitmap. */
@@ -648,8 +722,11 @@ fun DocsWidgetStyleScene(state: String?) {
 @Composable
 private fun DocsTrashScene(state: String?) {
     val session = LocalDocsGallerySession.current!!
-    val trashedMedia = remember {
-        DocsGalleryData.mediaItems().take(2).mapIndexed { index, media ->
+    // "scrolled" trashes the whole demo library twice over so the grid sits part-way down
+    // under the transparent blur bar.
+    val trashedMedia = remember(state) {
+        val source = DocsGalleryData.mediaItems().let { if (state == "scrolled") it + it else it.take(2) }
+        source.mapIndexed { index, media ->
             media.copy(
                 id = 90L + index,
                 trashed = 1,
@@ -698,6 +775,43 @@ private fun DocsTrashScene(state: String?) {
             },
             sharedTransitionScope = sts,
             animatedContentScope = acs,
+            initialFirstVisibleItemIndex = if (state == "scrolled") 4 else 0,
         )
     }
+}
+
+/** Remote inference settings over the real [HandoverSettingsContent]. */
+@Composable
+private fun DocsRemoteInferenceScene(state: String?) {
+    val configured = state != "blank"
+    HandoverSettingsContent(
+        state = HandoverSettingsState(
+            enabled = configured,
+            remoteUrl = if (configured) "https://handover.example.com" else "",
+            localUrl = if (configured) "http://192.168.1.10:8610" else "",
+            wifiSsid = if (configured) "HomeNet" else "",
+            autoSwitch = configured,
+            engine = "",
+            sink = HandoverEnvelope.SINK_BOTH,
+            preferRemoteQueries = true,
+            secretSet = configured,
+            status = if (configured) HandoverInfo(
+                server = "refra-handover",
+                version = "0.1.0",
+                protocol = 1,
+                principal = "alice",
+                engines = listOf(
+                    EngineInfo(
+                        id = "eg2-q4",
+                        displayName = "EmbeddingGemma 2 (q4)",
+                        engine = "eg2",
+                        appEngine = "EMBEDDING_GEMMA_2",
+                        modalities = listOf("text", "image", "video"),
+                        embeddingDim = 768,
+                        loaded = true,
+                    ),
+                ),
+            ) else null,
+        ),
+    )
 }

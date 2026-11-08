@@ -12,9 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
@@ -22,7 +22,16 @@ import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.UploadTargetResolver
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
-import com.dot.gallery.core.ui.components.BaseSettingsScreen
+import com.dot.gallery.core.ui.components.SettingsItem
+import com.dot.gallery.cloud.ui.components.CloudPage
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BatteryChargingFull
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.SignalCellularAlt
+import androidx.compose.material.icons.outlined.Videocam
 import com.dot.gallery.core.presentation.util.add
 import com.dot.gallery.data.entity.CloudServerConfigEntity
 import com.dot.gallery.generated.resources.Res
@@ -128,6 +137,7 @@ fun BackupOptionsContent(
             add(SettingsEntity.Header(title = networkHeader))
             add(
                 SettingsEntity.SwitchPreference(
+                    icon = Icons.Outlined.SignalCellularAlt,
                     title = cellularPhotosTitle,
                     summary = cellularPhotosSummary,
                     isChecked = cellularPhotos,
@@ -137,6 +147,7 @@ fun BackupOptionsContent(
             )
             add(
                 SettingsEntity.SwitchPreference(
+                    icon = Icons.Outlined.Videocam,
                     title = cellularVideosTitle,
                     summary = cellularVideosSummary,
                     isChecked = cellularVideos,
@@ -149,6 +160,7 @@ fun BackupOptionsContent(
             add(SettingsEntity.Header(title = backgroundHeader))
             add(
                 SettingsEntity.SwitchPreference(
+                    icon = Icons.Outlined.BatteryChargingFull,
                     title = requireChargingTitle,
                     summary = requireChargingSummary,
                     isChecked = requireCharging,
@@ -161,6 +173,7 @@ fun BackupOptionsContent(
             add(SettingsEntity.Header(title = albumSyncHeader))
             add(
                 SettingsEntity.SwitchPreference(
+                    icon = Icons.Outlined.PhotoLibrary,
                     title = syncAlbumsTitle,
                     summary = syncAlbumsSummary,
                     isChecked = syncAlbums,
@@ -173,6 +186,7 @@ fun BackupOptionsContent(
                 add(SettingsEntity.Header(title = destinationHeader))
                 add(
                     SettingsEntity.Preference(
+                        icon = Icons.Outlined.Folder,
                         title = uploadFolderTitle,
                         summary = uploadFolderSummary,
                         rightText = uploadBasePath.ifBlank { uploadFolderDefault },
@@ -182,6 +196,7 @@ fun BackupOptionsContent(
                 )
                 add(
                     SettingsEntity.Preference(
+                        icon = Icons.Outlined.Movie,
                         title = videosFolderTitle,
                         summary = videosFolderSummary,
                         rightText = uploadVideosPath.ifBlank { videosFolderSame },
@@ -193,15 +208,13 @@ fun BackupOptionsContent(
         }.toMutableStateList()
     }
 
-    BaseSettingsScreen(
-        title = if (global) {
-            stringResource(Res.string.cloud_global) + " · " +
-                stringResource(Res.string.cloud_backup_options)
-        } else {
-            stringResource(Res.string.cloud_backup_options)
-        },
-        settingsList = settingsList
-    )
+    CloudPage(
+        title = stringResource(Res.string.cloud_backup_options),
+        count = if (global) stringResource(Res.string.cloud_global)
+        else config.displayName.ifBlank { config.providerType.displayName },
+    ) {
+        items(settingsList, key = { it.title }) { SettingsItem(item = it) }
+    }
 
     editingPath?.let { field ->
         val isVideos = field == PathField.VIDEOS

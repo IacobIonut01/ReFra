@@ -373,7 +373,7 @@ class CloudDownloadWorker @Inject constructor(
         }
 
         /**
-         * One download pass on app open (#1241). Non-manual: the per-account
+         * One download pass on app open. Non-manual: the per-account
          * `downloadRemoteEnabled`/`syncEnabled` gating and the metered-network
          * check apply exactly like the periodic worker.
          */

@@ -30,7 +30,7 @@ class CloudSyncScheduler @Inject constructor(
     private val lastAppOpenTriggerAt = AtomicLong(0L)
 
     /**
-     * "Sync when the app is opened" (#1241): enqueues one-time sync, upload, and
+     * "Sync when the app is opened": enqueues one-time sync, upload, and
      * download passes whenever the app comes to the foreground, so local photo
      * changes and remote changes are picked up immediately instead of waiting for
      * the periodic interval. The one-time workers keep their periodic semantics —

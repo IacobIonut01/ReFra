@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Koko</string>
     <string name="editor_brush_strength">Vahvuus</string>
     <string name="editor_blur_faces">Häivytä kasvot</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bittinen)</string>
+    <string name="raw_export_tiff16">TIFF (16-bittinen)</string>
+    <string name="raw_export_choose_format">Tallenna kehitetty kopio</string>
+    <string name="raw_export_choose_format_subtitle">Valitse muoto käsitellylle RAW-kuvalle</string>
+    <string name="raw_export_tiff_unavailable">TIFF-tiedostomuoto säilyttää täyden bittisyvyyden, mutta siihen ei voi sisällyttää rajauksia, suodattimia tai merkintöjä — poista ne ennen TIFF-tiedoston vientiä.</string>
+    <string name="editor_mosaic_faces">Mosaiikkikasvot</string>
+    <string name="cutout_no_object">Pitkän painalluksen aikana ei havaittu kohdetta</string>
+    <string name="cutout_init_failed">Cutout-moottorin alustaminen epäonnistui</string>
 </resources>

@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dot.gallery.domain.model.editor.DrawMode
 import com.dot.gallery.domain.model.editor.DrawType
+import com.dot.gallery.domain.model.editor.MarkupBrush
 import com.dot.gallery.feature.editor.model.MarkupItems
 import com.dot.gallery.domain.model.editor.PathProperties
 import com.dot.gallery.domain.model.editor.TextAnnotation
@@ -64,6 +65,7 @@ import com.dot.gallery.feature.editor.generated.resources.type_blur
 import com.dot.gallery.feature.editor.generated.resources.type_mosaic
 import com.dot.gallery.feature.editor.generated.resources.editor_add_or_select_text
 import com.dot.gallery.feature.editor.generated.resources.editor_blur_faces
+import com.dot.gallery.feature.editor.generated.resources.editor_mosaic_faces
 import com.dot.gallery.feature.editor.generated.resources.editor_brush_size
 import com.dot.gallery.feature.editor.generated.resources.editor_brush_strength
 import com.dot.gallery.feature.editor.generated.resources.editor_highlighter
@@ -253,7 +255,7 @@ private fun MarkupSelectorPhone(
                 currentPathProperty = currentPathProperty,
                 setCurrentPathProperty = setCurrentPathProperty,
                 onDetectFaces = onDetectFaces,
-                faceDetectAvailable = faceDetectAvailable && drawType == DrawType.Blur,
+                faceDetectAvailable = faceDetectAvailable,
                 isDetectingFaces = isDetectingFaces
             )
             return@Column
@@ -405,7 +407,7 @@ private fun MarkupSelectorTablet(
                 currentPathProperty = currentPathProperty,
                 setCurrentPathProperty = setCurrentPathProperty,
                 onDetectFaces = onDetectFaces,
-                faceDetectAvailable = faceDetectAvailable && drawType == DrawType.Blur,
+                faceDetectAvailable = faceDetectAvailable,
                 isDetectingFaces = isDetectingFaces
             )
         } else {
@@ -603,7 +605,13 @@ private fun BrushEffectControls(
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(
-                    text = stringResource(Res.string.editor_blur_faces),
+                    text = stringResource(
+                        if (currentPathProperty.brush == MarkupBrush.Mosaic) {
+                            Res.string.editor_mosaic_faces
+                        } else {
+                            Res.string.editor_blur_faces
+                        }
+                    ),
                     color = Color.White,
                     style = MaterialTheme.typography.bodyMedium
                 )

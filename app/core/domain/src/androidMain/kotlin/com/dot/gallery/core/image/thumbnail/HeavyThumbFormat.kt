@@ -19,7 +19,7 @@ import com.dot.gallery.domain.util.isPsd
 
 
 /**
- * #1276: formats the platform thumbnailer cannot serve (`ContentResolver.loadThumbnail` throws)
+ * formats the platform thumbnailer cannot serve (`ContentResolver.loadThumbnail` throws)
  * and the app decodes in software — the expensive decodes [LocalThumbnailStore] exists to
  * amortize across Glide disk-cache evictions and process death.
  */

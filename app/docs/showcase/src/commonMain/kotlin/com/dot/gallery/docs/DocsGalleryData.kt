@@ -9,6 +9,7 @@ import com.dot.gallery.domain.date.DateGrouper
 import com.dot.gallery.domain.date.epochSecToLocalDate
 import com.dot.gallery.domain.date.formatEpochSec
 import com.dot.gallery.domain.date.getDate
+import com.dot.gallery.domain.date.isRelativeDateLabel
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.Collection
 import com.dot.gallery.domain.model.CollectionWithCount
@@ -34,6 +35,9 @@ object DocsGalleryData {
     const val ALBUM_SCREENSHOTS = 2L
     const val ALBUM_DOWNLOAD = 3L
     const val COLLECTION_TRIP = 90L
+
+    /** Docs-only collection holding the whole sample library, tall enough to scroll. */
+    const val COLLECTION_ALL = 91L
 
     /** Drawables bundled under `composeResources/drawable/`. */
     const val DRAWABLE_LAKE = "lake"
@@ -81,7 +85,7 @@ object DocsGalleryData {
             albumID = row.albumID,
             albumLabel = row.albumLabel,
             timestamp = taken,
-            takenTimestamp = taken,
+            takenTimestamp = taken * 1000L,
             fullDate = taken.getDate("EEE, MMM d, yyyy"),
             mimeType = if (row.label.endsWith(".png")) "image/png" else "image/jpeg",
             favorite = if (row.favorite) 1 else 0,
@@ -196,7 +200,7 @@ object DocsGalleryData {
             // Big month header once a group lands a week or more back (same rule as
             // mapMediaToItem's default path).
             val firstTimestamp = group.first().timestamp
-            val month = if (dateGrouper.daysUntilToday(firstTimestamp) >= 7) {
+            val month = if (!isRelativeDateLabel(dateGrouper.daysUntilToday(firstTimestamp))) {
                 if (firstTimestamp.epochSecToLocalDate().year == dateGrouper.currentYear) {
                     firstTimestamp.formatEpochSec("MMMM")
                 } else {

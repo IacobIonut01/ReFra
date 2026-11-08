@@ -54,6 +54,14 @@ import com.dot.gallery.feature.vault.utils.VaultPasswordManager
 import com.dot.gallery.feature.vault.utils.rememberBiometricState
 import kotlinx.coroutines.launch
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
+import com.dot.gallery.core.Settings.Misc.rememberAllowGlass
+import com.dot.gallery.core.presentation.util.LocalHazeGlassEnabled
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 import com.dot.gallery.app.presentation.mediaview.MediaViewScreenRoute
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.generated.resources.Res
@@ -79,6 +87,7 @@ fun PickerScreen(
     title: String,
     allowedMedia: AllowedMedia,
     allowSelection: Boolean,
+    excludedVaultUuid: String? = null,
     onClose: () -> Unit,
     sendMediaAsResult: (List<Uri>) -> Unit,
     sendMediaAsMediaResult: (List<Media>) -> Unit
@@ -89,7 +98,13 @@ fun PickerScreen(
     }
     val albumsState = mediaVM.albumsState.collectAsStateWithLifecycle()
     val metadataState = mediaVM.metadataState.collectAsStateWithLifecycle()
-    val vaultState = mediaVM.vaultState.collectAsStateWithLifecycle()
+    val allVaultsState = mediaVM.vaultState.collectAsStateWithLifecycle()
+    // Adding to a vault opens the picker with that vault hidden, so it can't pick from itself.
+    val vaultState = remember(excludedVaultUuid) {
+        derivedStateOf {
+            excludedVaultState(allVaultsState.value, excludedVaultUuid)
+        }
+    }
 
     val context = LocalContext.current
     val allowBlur by Settings.Misc.rememberAllowBlur()
@@ -182,6 +197,17 @@ fun PickerScreen(
         }
     )
 
+    val allowGlass by rememberAllowGlass()
+    val hazeState = rememberHazeState()
+    // The picker runs in its own activity, so it provides the frosted-surface locals the floating
+    // dock samples (MainActivity's providers never reach it).
+    CompositionLocalProvider(
+        LocalHazeState provides hazeState,
+        LocalHazeBlurStyle provides HazeMaterials.regular(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ).then { blurEnabled(allowBlur) },
+        LocalHazeGlassEnabled provides (allowBlur && allowGlass)
+    ) {
     PickerContent(
         state = PickerState(
             title = title,
@@ -339,6 +365,7 @@ fun PickerScreen(
             }
         },
     )
+    }
 
     AnimatedVisibility(
         visible = showPrivateFolderPasswordDialog,
@@ -486,3 +513,8 @@ fun PickerScreen(
         }
     }
 }
+
+/** [state] without the vault whose uuid is [excludedVaultUuid] (the vault being added to). */
+internal fun excludedVaultState(state: VaultState, excludedVaultUuid: String?): VaultState =
+    if (excludedVaultUuid == null) state
+    else state.copy(vaults = state.vaults.filterNot { it.uuid.toString() == excludedVaultUuid })

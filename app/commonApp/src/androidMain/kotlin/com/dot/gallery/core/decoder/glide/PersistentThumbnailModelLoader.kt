@@ -31,11 +31,12 @@ import com.dot.gallery.core.image.thumbnail.HeavyThumbnailDecoder
 import com.dot.gallery.core.image.thumbnail.LocalThumbnailStore
 import com.dot.gallery.core.image.thumbnail.ThumbnailSingleFlight
 import com.dot.gallery.core.image.thumbnail.ThumbnailTelemetry
+import com.dot.gallery.core.logging.printWarn
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
 /**
- * #1276: persistent-thumbnail fast path for software-decoded formats.
+ * persistent-thumbnail fast path for software-decoded formats.
  *
  * The platform thumbnailer cannot serve JXL/PSD/JP2/TIFF/RAW or >10-bit HEIF, so every Glide
  * disk-cache miss for those files previously meant a full multi-MB software decode — and the
@@ -72,20 +73,20 @@ class PersistentThumbnailModelLoader(
         if (width > HeavyThumbnailDecoder.CANONICAL_PX || height > HeavyThumbnailDecoder.CANONICAL_PX) {
             return null
         }
-        // Classification is memoized per Uri — a getType call (+ head sniff only for unusable
-        // MIMEs) happens at most once per media item per process.
-        val kind = HeavyThumbnailClassifier.classify(context.contentResolver, model)
-            ?: return null
+        // No I/O here: Glide builds LoadData on its single disk-cache thread before every cache
+        // lookup, so classifying in this method serialised a getType + header probe per tile
+        // behind every other request — crippling on slow (SD card / FUSE) storage. The fetcher
+        // classifies instead and declines non-heavy files so Glide falls through to the next
+        // loader; disk-cache hits never classify at all.
         return LoadData(
             ObjectKey("persistent-thumb-v1:$model"),
-            PersistentThumbnailFetcher(context, model, kind)
+            PersistentThumbnailFetcher(context, model)
         )
     }
 
     private class PersistentThumbnailFetcher(
         context: Context,
         private val uri: Uri,
-        private val kind: HeavyThumbFormat,
     ) : DataFetcher<Bitmap> {
 
         private val appContext = context.applicationContext
@@ -96,6 +97,21 @@ class PersistentThumbnailModelLoader(
                 callback.onLoadFailed(IOException("cancelled"))
                 return
             }
+            // Memoized per Uri — a getType call (+ head sniff only for unusable or HEIF MIMEs)
+            // happens at most once per media item per process.
+            val kind = runCatching {
+                HeavyThumbnailClassifier.classify(appContext.contentResolver, uri)
+            }.onFailure {
+                printWarn(TAG, "classification failed", ctx = mapOf("error" to it.toString()))
+            }.getOrNull()
+            if (kind == null) {
+                callback.onLoadFailed(NOT_HEAVY)
+                return
+            }
+            load(kind, callback)
+        }
+
+        private fun load(kind: HeavyThumbFormat, callback: DataCallback<in Bitmap>) {
             val identity = mediaIdentity(appContext.contentResolver, uri)
             if (identity == null) {
                 callback.onLoadFailed(IOException("no media identity for $uri"))
@@ -191,6 +207,16 @@ class PersistentThumbnailModelLoader(
         private companion object {
             /** Lossy WebP quality for canonical entries — thumbnails, not archival. */
             private const val WEBP_QUALITY = 88
+
+            private const val TAG = "decode.thumbnail"
+
+            /**
+             * Shared decline signal for the common non-heavy case — fired once per grid tile
+             * miss, so it must not allocate a fresh exception and stack trace each time.
+             */
+            private val NOT_HEAVY = IOException("not a heavy thumbnail format").apply {
+                stackTrace = emptyArray()
+            }
         }
     }
 

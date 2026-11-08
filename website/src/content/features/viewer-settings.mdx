@@ -6,7 +6,7 @@ path:
   - Settings
   - Media Viewer
 related: [media-viewer, slideshow, visual-search]
-scenes: [settings-media-viewer]
+scenes: [settings-media-viewer, long-press-action]
 order: 6
 ---
 
@@ -20,10 +20,12 @@ order: 6
 - **Show Media Date Header**: puts the current item's date and time in the viewer's top bar.
 - **Tap sides to navigate**: tapping the left or right edge of an unzoomed item jumps to the previous or next one; tapping the center shows or hides the controls. Side taps take priority over video seeking. Zoomed images, panoramas, slideshows, and locked or standalone viewers keep their usual gestures.
 - **Favorite button in viewer**: shows a heart in the viewer toolbar for quick favoriting.
-- **Default image editor**: picks which app the edit button opens: the **Built-in editor** or any compatible external editor installed on the device.
+- **Default image editor**: picks which app the edit button opens: the **ReFra editor (preview)** (the default), the **Built-in editor**, or any compatible external editor installed on the device. Formats the ReFra editor cannot open still go to the built-in editor; see [the ReFra editor](/ReFra/features/editor).
+- **Default video editor**: the app that opens when you edit a video: the **ReFra editor** (the default), **Ask every time** for the system's app chooser, or a video editor installed on the device. See [video editor](/ReFra/features/video-editor).
+- **Viewer action bar**: picks the quick actions shown under the media in the viewer and their order. Drag to reorder, and add or remove actions; an action only appears when it applies to the current item.
 - **Disable smoothing**: draws images with crisp pixels when zoomed instead of a smoothed blur. Turn it on for pixel art and screenshots; leave it off for photos.
 - **Dark viewer background**: keeps the viewer background black even in the light theme.
-- **Long-press to cut out**: when on, long-pressing an image starts an on-device subject cutout and the rotate action moves to an on-screen button. When off (the default), long-pressing rotates the image. The editor's Cutout tool is available either way.
+- **Long-press action**: picks what a long-press on an image does in the viewer: **Rotate** (the default), **Cut out subject**, or **None**. While the Subject Cutout model is not downloaded, **Cut out subject** is disabled with a hint to get it from AI models. You can always cut out a subject with the editor's **Cutout** tool.
 - **Save quality**: how edited and rotated images are re-encoded. **Auto** saves lossless where the format supports it (JXL) and high quality otherwise. **Manual** exposes **Lossy quality** (1 to 100) and **JXL effort** (1 to 9) sliders.
 - **Slideshow**: opens the slideshow options; see [slideshow](/ReFra/features/slideshow).
 
@@ -34,6 +36,12 @@ order: 6
 - **Fix black video on hide**: re-binds the video surface when controls hide or show, for devices where the picture otherwise goes black while audio continues. It is already enabled on devices where the issue is known.
 - **HDR video playback**: switches the screen into HDR mode for Dolby Vision, HDR10, and HLG videos. It only works on an HDR-capable display and does nothing otherwise.
 - **Visual search**: opens the handoff options for searching the current image with another app; see [visual search](/ReFra/features/visual-search).
+
+## Long-press action
+
+<PreviewCollection feature="viewer-settings" section="long-press-action" />
+
+**Long-press action** decides what happens when you touch and hold an image in the viewer. **Rotate** turns the image 90 degrees for viewing; save the rotation from the button that appears. **Cut out subject** starts an on-device [subject cutout](/ReFra/features/subject-cutout); while it is chosen, a Rotate button is shown on screen instead. **None** does nothing. The option is disabled until the Subject Cutout model is downloaded from **AI models**.
 
 ## Example: crisp screenshots and quiet video
 

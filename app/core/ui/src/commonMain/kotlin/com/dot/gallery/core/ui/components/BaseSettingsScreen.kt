@@ -13,40 +13,35 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.PreferenceType
 import com.dot.gallery.core.SettingsEntity
-import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 
 
 /**
- * Shared settings-screen scaffold: collapsing app bar, grouped preference list,
- * initial focus for the first actionable row.
+ * Shared settings-screen scaffold: [GalleryPageTopBar] header (the transparent blur bar once the
+ * list scrolls under it), grouped preference list, initial focus for the first actionable row.
  *
  * [searchSink], when provided, receives `(route, titles)` for every non-header
  * toggle row so a platform search registry (Android: Help & Tips settings
  * search) can index them without this module knowing the registry exists.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaseSettingsScreen(
     title: String,
@@ -59,6 +54,8 @@ fun BaseSettingsScreen(
     listState: LazyListState = rememberLazyListState(),
     searchRoute: String? = null,
     searchSink: ((String, List<String>) -> Unit)? = null,
+    /** Overrides the app-navigation back action — for hosts outside the nav graph (the editors). */
+    onBack: (() -> Unit)? = null,
 ) {
     if (searchRoute != null && searchSink != null) {
         val toggleTitles = settingsList
@@ -68,8 +65,6 @@ fun BaseSettingsScreen(
             searchSink(searchRoute, toggleTitles)
         }
     }
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val initialFocusRequester = remember { FocusRequester() }
     val firstActionableIndex = settingsList.indexOfFirst { item ->
         item.enabled && !item.isHeader && when (item.type) {
@@ -87,29 +82,26 @@ fun BaseSettingsScreen(
             }
         },
     )
+    // The page's only haze source: the top bar blurs it once rows scroll underneath.
+    val hazeState = rememberHazeState()
+    val scrolled by remember(listState) { derivedStateOf { listState.canScrollBackward } }
     Scaffold(
-        modifier = Modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .semantics { paneTitle = title },
+        modifier = Modifier.semantics { paneTitle = title },
         topBar = {
-            LargeTopAppBar(
-                title = { Text(title, modifier = Modifier.semantics { heading() }) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface)
-            )
+            GalleryPageTopBar(title = title, onBack = onBack, hazeState = hazeState, scrolled = scrolled)
         }
     ) { padding ->
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
+                .hazeSource(hazeState)
                 .settingsFocusGroup(),
             contentPadding = PaddingValues(
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),
                 end = padding.calculateEndPadding(LocalLayoutDirection.current),
-                top = 16.dp + padding.calculateTopPadding(),
-                bottom = padding.calculateBottomPadding()
+                top = 8.dp + padding.calculateTopPadding(),
+                bottom = 24.dp + padding.calculateBottomPadding()
             ),
         ) {
             if (topContent != null) {

@@ -10,10 +10,13 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.dot.gallery.core.Settings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -27,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.core.logging.printInfo
+import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.core.logging.printWarning
 import com.dot.gallery.core.logging.printDebug
 import com.dot.gallery.core.AppIdentity
@@ -57,6 +61,19 @@ fun installBundledModel(
     } finally {
         tempFile.delete()
     }
+}
+
+/**
+ * Whether this APK packages the complete model set as assets. The WithML flavour adds the model
+ * pack to its asset dirs, so this reads the installed APK rather than trusting the
+ * `ML_MODELS_BUNDLED` build flag; a partial pack reports false and keeps the download path open.
+ */
+fun Context.hasBundledModelAssets(): Boolean {
+    val packaged = runCatching { assets.list("")?.toSet().orEmpty() }.getOrElse {
+        printWarn("ml.models", "Could not list APK assets", mapOf("error" to it.toString()))
+        emptySet()
+    }
+    return ModelManager.REQUIRED_FILES.all { it in packaged }
 }
 
 private fun File.sha256(): String {
@@ -137,9 +154,63 @@ class ModelManager @Inject constructor(
         File(modelsDir, "${ModelGroup.of(name).subDir}/$name.tmp")
 
     /**
+     * The search engine selected in Settings → AI Models. Read from DataStore at init and
+     * cached here so synchronous hot paths (session setup, `isReady` checks) can resolve
+     * the active [SearchModel] without suspending.
+     */
+    private val _activeSearchModel = MutableStateFlow(SearchModel.DEFAULT)
+    val activeSearchModelFlow: StateFlow<SearchModel> = _activeSearchModel.asStateFlow()
+    val activeSearchModel: SearchModel get() = _activeSearchModel.value
+
+    /** Persist + apply a new search engine. Callers should schedule a Smart Scan to re-index. */
+    suspend fun setActiveSearchModel(model: SearchModel) {
+        if (model == _activeSearchModel.value) return
+        Settings.SmartFeatures.setSearchModel(context, model)
+        _activeSearchModel.value = model
+        printInfo("ModelManager: active search model switched to ${model.name}")
+    }
+
+    /** Status of whichever search engine is currently selected. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun activeSearchModelStatus(): Flow<ModelStatus> =
+        activeSearchModelFlow.flatMapLatest { status(it.group) }
+
+    /**
+     * The face grouping tier selected in the Intelligence Hub, cached like [activeSearchModel]
+     * so the scan processors can build their revisions synchronously.
+     */
+    private val _activeFaceModel = MutableStateFlow(FaceModel.DEFAULT)
+    val activeFaceModelFlow: StateFlow<FaceModel> = _activeFaceModel.asStateFlow()
+    val activeFaceModel: FaceModel get() = _activeFaceModel.value
+
+    /**
+     * Persist + apply a face tier. Unpublished tiers are refused. Callers schedule a PERSONS
+     * scan: the tier is part of the face revisions, so every face is processed again.
+     */
+    suspend fun setActiveFaceModel(model: FaceModel): Boolean {
+        if (!model.isAvailable) {
+            printWarning("ModelManager: face model ${model.name} has no published models yet")
+            return false
+        }
+        if (model == _activeFaceModel.value) return false
+        Settings.SmartFeatures.setFaceModel(context, model)
+        _activeFaceModel.value = model
+        printInfo("ModelManager: active face model switched to ${model.name}")
+        return true
+    }
+
+    /** Whether every model group of [model] is installed. */
+    fun isReady(model: FaceModel): Boolean = model.isAvailable && model.groups.all(::isReady)
+
+    fun isReady(model: SearchModel): Boolean = isReady(model.group)
+    fun status(model: SearchModel): StateFlow<ModelStatus> = status(model.group)
+    fun processorRevision(model: SearchModel): String = processorRevision(model.group)
+    fun getInstalledSize(model: SearchModel): Long = getInstalledSize(model.group)
+
+    /**
      * Initialize models on app start.
      * For withML builds: copies bundled assets to filesDir if not already present, unless the
-     * user explicitly deleted the group (its removal is persisted — issue #1229).
+     * user explicitly deleted the group (its removal is persisted — ).
      * For noML builds: checks if models have been previously downloaded.
      */
     suspend fun initializeModels() = mutex.withLock {
@@ -149,6 +220,18 @@ class ModelManager @Inject constructor(
             }.getOrElse {
                 printWarning("ModelManager: failed to read removed model groups: ${it.message}")
                 emptySet()
+            }
+            _activeSearchModel.value = runCatching {
+                Settings.SmartFeatures.searchModel(context).first()
+            }.getOrElse {
+                printWarning("ModelManager: failed to read search model pref: ${it.message}")
+                SearchModel.DEFAULT
+            }
+            _activeFaceModel.value = runCatching {
+                Settings.SmartFeatures.faceModel(context).first()
+            }.getOrElse {
+                printWarning("ModelManager: failed to read face model pref: ${it.message}")
+                FaceModel.DEFAULT
             }
             if (AppIdentity.mlModelsBundled) {
                 ModelGroup.entries.forEach { group ->
@@ -164,7 +247,7 @@ class ModelManager @Inject constructor(
     private fun initializeGroup(group: ModelGroup, removedGroups: Set<ModelGroup>) {
         if (group in removedGroups) {
             // The user deleted this group — finish any interrupted delete and stay uninstalled
-            // instead of silently restoring the bundled copies (issue #1229).
+            // instead of silently restoring the bundled copies.
             File(modelsDir, group.subDir).deleteRecursively()
             fileInfoCache.remove(group)
             modelValidationCache.remove(group)
@@ -271,7 +354,7 @@ class ModelManager @Inject constructor(
 
     /**
      * Delete all downloaded/copied model files and persist the removal so the group is not
-     * silently restored on the next launch (issue #1229). Re-install stays possible via
+     * silently restored on the next launch. Re-install stays possible via
      * [installBundledModels] (withML) or a network download (INTERNET builds), so deletion
      * is only offered when [canInstallModels] is true.
      */
@@ -420,10 +503,18 @@ class ModelManager @Inject constructor(
             "https://raw.githubusercontent.com/IacobIonut01/ReFra/refs/heads/main/ml-models/src/main/assets/"
 
         val EXPECTED_CHECKSUMS = mapOf(
+            // CLIP ViT-B/32 INT8 — hosted in-repo under ml-models/src/main/assets
             "visual_quant.onnx" to "a2fbb26b5f6ab5c79dd9bf99ab2dbac4711abc88dc2e20afc02a0827aa3d59c2",
             "textual_quant.onnx" to "1ebb71a5ea1897823a829af8fc8168c5cfff761969bb62aee1fafdf5a2788aba",
             "vocab.json" to "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
             "merges.txt" to "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+            // EmbeddingGemma 2 — onnx-community/embeddinggemma-2-ONNX @ onnx/ + tokenizer
+            "model_q4.onnx" to "f9eeba97acddf139b8ee2ddf04bc30dceafa88de93fadf74d7644e0d61a477a9",
+            "model_q4.onnx_data" to "c3975f2d1ab7a1878ae31a7d7a9b7804a827aff3800b60dfceafce21cac3df49",
+            "vision_encoder_q4.onnx" to "7ea284226d4938f0ad921ab091f1d80a9ca699aa802984ef5cd5eec4f4761d96",
+            "vision_encoder_q4.onnx_data" to "0a9d6c927334f152a33dd90874f65d6ea5228999abe6a450d3f7813677fa704c",
+            "tokenizer.json" to "4d777ef5bdc1aa36227abdfb77c3e49e7b9c892d16e1b6bda41c393504828be4",
+            "tokenizer_config.json" to "17bd5d6e9364ca49a534e1502076593317c298d4a663623091ed45388f004874",
             "mobile_sam_image_encoder.onnx" to "580f5fb648ea1062c0aabc26217aed56921985f03f0cbbd852bba81d760cc749",
             "sam_mask_decoder_single.onnx" to "93915fc7c993ab9d59ab8c9ccd3bce37f7509c81ab4150a74abd4d2abbd8570d",
             "version-RFB-320.onnx" to "34cd7e60aeff28744c657de7a3dc64e872d506741de66987f3426f2b79f88017",

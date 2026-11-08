@@ -21,7 +21,7 @@
  * only what can be verified deterministically (plan §8).
  */
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { parseFrontmatter, walk, WEBSITE_ROOT } from './scripts/lib/docs.mjs';
 
 const config = JSON.parse(readFileSync(join(WEBSITE_ROOT, 'style.config.json'), 'utf8'));
@@ -44,7 +44,8 @@ const globToRe = (pattern) =>
 
 const patterns = (config.scan?.include ?? []).map(globToRe);
 const files = walk(join(WEBSITE_ROOT, 'src', 'content')).filter((f) =>
-  patterns.some((re) => re.test(f.slice(WEBSITE_ROOT.length + 1))),
+  // Globs use '/', so Windows paths are normalised before matching.
+  patterns.some((re) => re.test(f.slice(WEBSITE_ROOT.length + 1).replaceAll(sep, '/'))),
 );
 
 /* --------------------------------- masking -------------------------------- */
@@ -174,7 +175,7 @@ const failures = [];
 const warnings = [];
 let fileCount = 0;
 
-const isFeature = (file) => file.includes('/content/features/');
+const isFeature = (file) => file.replaceAll(sep, '/').includes('/content/features/');
 
 for (const file of files) {
   fileCount += 1;

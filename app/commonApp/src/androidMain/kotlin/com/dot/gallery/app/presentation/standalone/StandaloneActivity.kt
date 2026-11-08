@@ -146,7 +146,7 @@ open class StandaloneActivity : AppCompatActivity() {
                     LocalHazeGlassEnabled provides (allowBlur && allowGlass)
                 ) {
                     // Standalone has no NavHost, so the "view all metadata" button's navigate()
-                    // call was dropped and nothing happened (#959/#946). We intercept that route
+                    // call was dropped and nothing happened (/). We intercept that route
                     // here and show the metadata screen inside the AnimatedContent below; when set
                     // (mediaUri to isVideo) the metadata screen is shown instead of the image.
                     var metadataArgs by remember { mutableStateOf<Pair<String, Boolean>?>(null) }

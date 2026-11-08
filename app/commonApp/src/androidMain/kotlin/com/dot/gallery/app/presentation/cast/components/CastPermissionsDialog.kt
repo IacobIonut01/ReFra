@@ -25,7 +25,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.ExpressiveSheetColumn
+import com.dot.gallery.core.presentation.components.ExpressiveSheetShape
+import com.dot.gallery.core.presentation.components.SheetDismissConfirmActions
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetOptionRow
+import com.dot.gallery.core.presentation.components.sheetRowPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,6 +55,7 @@ import com.dot.gallery.generated.resources.close
 import com.dot.gallery.generated.resources.setup_grant_permissions
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CastPermissionsDialog(
     permissions: List<CastPermission>,
@@ -58,35 +69,25 @@ fun CastPermissionsDialog(
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) onDismiss() }
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                imageVector = Icons.Outlined.Cast,
-                contentDescription = null
-            )
-        },
-        title = {
-            Text(text = stringResource(Res.string.cast_permissions_required))
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.cast_permissions_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(8.dp))
-                permissions.forEach { perm ->
-                    PermissionRow(perm)
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        dragHandle = { DragHandle(modifier = Modifier.padding(vertical = 5.dp)) },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 0.dp,
+        shape = ExpressiveSheetShape,
+    ) {
+        ExpressiveSheetColumn {
+            CastPermissionsContent(
+                permissions = permissions.map {
+                    CastPermissionRowState(stringResource(it.labelRes), stringResource(it.descriptionRes), it.granted)
+                },
+                confirmText = stringResource(
+                    if (missingLocalNetworkPermission) Res.string.setup_grant_permissions
+                    else Res.string.cast_open_settings
+                ),
+                onDismiss = onDismiss,
+                onConfirm = {
                     if (missingLocalNetworkPermission) {
                         localNetworkPermissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
                     } else {
@@ -99,56 +100,46 @@ fun CastPermissionsDialog(
                             }
                         )
                     }
-                }
-            ) {
-                Text(stringResource(
-                    if (missingLocalNetworkPermission) Res.string.setup_grant_permissions
-                    else Res.string.cast_open_settings
-                ))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.close))
-            }
-        }
-    )
-}
-
-@Composable
-private fun PermissionRow(permission: CastPermission) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = if (permission.granted) Icons.Outlined.CheckCircle else Icons.Outlined.Cancel,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = if (permission.granted) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.error
-            }
-        )
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(permission.labelRes),
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (permission.granted) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    MaterialTheme.colorScheme.error
-                }
-            )
-            Text(
-                text = stringResource(permission.descriptionRes),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
         }
     }
+}
+
+/** One permission line of [CastPermissionsContent]. */
+data class CastPermissionRowState(val label: String, val description: String, val granted: Boolean)
+
+/** Stateless body of [CastPermissionsDialog]: badge and message, one row per permission, actions. */
+@Composable
+fun ColumnScope.CastPermissionsContent(
+    permissions: List<CastPermissionRowState>,
+    confirmText: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    SheetHeader(
+        title = stringResource(Res.string.cast_permissions_required),
+        body = stringResource(Res.string.cast_permissions_message),
+        icon = Icons.Outlined.Cast,
+    )
+    permissions.forEachIndexed { index, permission ->
+        SheetOptionRow(
+            title = permission.label,
+            summary = permission.description,
+            position = sheetRowPosition(index, permissions.size),
+            leading = {
+                Icon(
+                    imageVector = if (permission.granted) Icons.Outlined.CheckCircle else Icons.Outlined.Cancel,
+                    contentDescription = null,
+                    tint = if (permission.granted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                )
+            },
+        )
+    }
+    SheetDismissConfirmActions(
+        dismissText = stringResource(Res.string.close),
+        onDismiss = onDismiss,
+        confirmText = confirmText,
+        onConfirm = onConfirm,
+    )
 }

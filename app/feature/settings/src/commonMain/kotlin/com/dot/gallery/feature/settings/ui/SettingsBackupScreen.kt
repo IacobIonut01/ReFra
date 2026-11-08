@@ -5,165 +5,228 @@
 
 package com.dot.gallery.feature.settings.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.NavigationBackButton
-import org.jetbrains.compose.resources.stringResource
+import com.dot.gallery.core.Position
+import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.ui.components.BaseSettingsScreen
+import com.dot.gallery.core.ui.components.Footnote
+import com.dot.gallery.core.ui.components.SettingsItem
+import com.dot.gallery.core.ui.components.StatTile
+import com.dot.gallery.core.ui.components.SummaryCard
+import com.dot.gallery.core.ui.components.SummaryCardButton
+import com.dot.gallery.core.ui.components.settingsContentWidth
 import com.dot.gallery.feature.settings.generated.resources.Res
-import com.dot.gallery.feature.settings.generated.resources.backup_export
-import com.dot.gallery.feature.settings.generated.resources.backup_export_card_desc
-import com.dot.gallery.feature.settings.generated.resources.backup_import
-import com.dot.gallery.feature.settings.generated.resources.backup_import_card_desc
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_auto_clean
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_auto_clean_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_backup_size
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_clean_now
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_clean_now_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_cleaning
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_create
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_health_checked
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_health_description
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_health_issues
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_health_ok
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_health_title
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_last_backup_on
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_never
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_restore_short
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_restored
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_running
+import com.dot.gallery.feature.settings.generated.resources.backup_hub_sections_saved
 import com.dot.gallery.feature.settings.generated.resources.backup_intro
 import com.dot.gallery.feature.settings.generated.resources.backup_warning
 import com.dot.gallery.feature.settings.generated.resources.settings_backup
+import org.jetbrains.compose.resources.stringResource
 
+/** Everything the hub needs, already formatted so this screen stays platform-independent. */
+data class BackupHubState(
+    val lastExportLabel: String? = null,
+    val lastExportSize: String? = null,
+    /** Sections the last backup included. */
+    val lastExportSections: Int? = null,
+    val lastRestoreLabel: String? = null,
+    val lastRestoreResult: String? = null,
+    val healthCheckedLabel: String? = null,
+    val orphanCount: Int = 0,
+    val autoClean: Boolean = true,
+    val cleaning: Boolean = false,
+    val runningLabel: String? = null
+)
 
-@OptIn(ExperimentalMaterial3Api::class)
+data class BackupHubActions(
+    val onExport: () -> Unit,
+    val onImport: () -> Unit,
+    val onCleanNow: () -> Unit,
+    val onAutoCleanChange: (Boolean) -> Unit
+)
+
+private const val CleanNowTag = "backup-clean-now"
+
+/**
+ * Backup & restore hub: a summary card for the last backup with Create backup / Restore, the
+ * Data health group (status, automatic and one-off cleanup) and the vault-media footnote.
+ */
 @Composable
 fun SettingsBackupScreen(
-    onExport: () -> Unit,
-    onImport: () -> Unit
+    state: BackupHubState,
+    actions: BackupHubActions,
+    listState: LazyListState = rememberLazyListState(),
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.settings_backup)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = padding.calculateTopPadding(),
-                    bottom = padding.calculateBottomPadding()
-                ),
-            contentAlignment = Alignment.TopCenter
-        ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .widthIn(max = 640.dp)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = stringResource(Res.string.backup_intro),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            BackupBigActionCard(
-                icon = Icons.Outlined.FileUpload,
-                title = stringResource(Res.string.backup_export),
-                description = stringResource(Res.string.backup_export_card_desc),
-                onClick = onExport
-            )
-            BackupBigActionCard(
-                icon = Icons.Outlined.FileDownload,
-                title = stringResource(Res.string.backup_import),
-                description = stringResource(Res.string.backup_import_card_desc),
-                onClick = onImport
-            )
-            BackupNoticeCard(
-                icon = Icons.Outlined.Shield,
-                text = stringResource(Res.string.backup_warning)
-            )
-            Spacer(Modifier.height(16.dp))
-        }
-        }
+    val healthHeader = stringResource(Res.string.backup_hub_health_title)
+    val healthDescription = stringResource(Res.string.backup_hub_health_description)
+    val healthTitle = if (state.orphanCount == 0) stringResource(Res.string.backup_hub_health_ok)
+    else stringResource(Res.string.backup_hub_health_issues, state.orphanCount)
+    val healthSummary = state.healthCheckedLabel?.let { stringResource(Res.string.backup_hub_health_checked, it) }
+    val autoCleanTitle = stringResource(Res.string.backup_hub_auto_clean)
+    val autoCleanSummary = stringResource(Res.string.backup_hub_auto_clean_summary)
+    val cleanTitle = stringResource(Res.string.backup_hub_clean_now)
+    val cleanSummary = stringResource(
+        if (state.cleaning) Res.string.backup_hub_cleaning else Res.string.backup_hub_clean_now_summary
+    )
+    val rows = remember(
+        healthHeader, healthTitle, healthSummary, autoCleanTitle, autoCleanSummary,
+        cleanTitle, cleanSummary, state.orphanCount, state.autoClean, state.cleaning, actions,
+    ) {
+        mutableStateListOf<SettingsEntity>(
+            SettingsEntity.Header(healthHeader),
+            SettingsEntity.Preference(
+                icon = if (state.orphanCount == 0) Icons.Outlined.Storage else Icons.Outlined.Warning,
+                title = healthTitle,
+                summary = healthSummary,
+                screenPosition = Position.Top,
+            ),
+            SettingsEntity.SwitchPreference(
+                icon = Icons.Outlined.Schedule,
+                title = autoCleanTitle,
+                summary = autoCleanSummary,
+                isChecked = state.autoClean,
+                onCheck = actions.onAutoCleanChange,
+                screenPosition = Position.Middle,
+            ),
+            SettingsEntity.Preference(
+                icon = Icons.Outlined.CleaningServices,
+                title = cleanTitle,
+                summary = cleanSummary,
+                enabled = !state.cleaning,
+                onClick = actions.onCleanNow,
+                screenPosition = Position.Bottom,
+                tag = CleanNowTag,
+            ),
+        )
     }
+
+    BaseSettingsScreen(
+        title = stringResource(Res.string.settings_backup),
+        listState = listState,
+        topContent = { BackupHubCard(state, actions) },
+        settingsList = rows,
+        settingsBuilder = { item, _, modifier ->
+            when {
+                item.isHeader && item.title == healthHeader -> Column(modifier) {
+                    SettingsItem(item = item)
+                    Text(
+                        text = healthDescription,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .settingsContentWidth()
+                            .padding(start = 8.dp, end = 8.dp, bottom = 12.dp),
+                    )
+                }
+                item.tag == CleanNowTag -> SettingsItem(
+                    item = item,
+                    modifier = modifier,
+                    customTrailingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                )
+                else -> SettingsItem(item = item, modifier = modifier)
+            }
+        },
+        bottomContent = {
+            Footnote(icon = Icons.Outlined.Shield, text = stringResource(Res.string.backup_warning))
+        },
+    )
 }
 
 @Composable
-private fun BackupBigActionCard(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(onClick = onClick)
-            .padding(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+private fun BackupHubCard(state: BackupHubState, actions: BackupHubActions) {
+    val body = listOfNotNull(
+        state.runningLabel?.let { stringResource(Res.string.backup_hub_running, it) },
+        state.lastRestoreLabel?.let { label ->
+            stringResource(Res.string.backup_hub_restored, label) +
+                (state.lastRestoreResult?.takeIf(String::isNotBlank)?.let { " · $it" } ?: "")
+        },
+    ).joinToString("\n").ifEmpty {
+        if (state.lastExportLabel == null) stringResource(Res.string.backup_intro) else ""
+    }.ifEmpty { null }
+    SummaryCard(
+        icon = Icons.Outlined.CloudUpload,
+        title = state.lastExportLabel?.let { stringResource(Res.string.backup_hub_last_backup_on, it) }
+            ?: stringResource(Res.string.backup_hub_never),
+        body = body,
+        modifier = Modifier.padding(bottom = 20.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(26.dp)
-            )
+        if (state.lastExportLabel != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.lastExportSections?.let {
+                    StatTile(
+                        value = it.toString(),
+                        label = stringResource(Res.string.backup_hub_sections_saved),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                state.lastExportSize?.takeIf(String::isNotBlank)?.let {
+                    StatTile(
+                        value = it,
+                        label = stringResource(Res.string.backup_hub_backup_size),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
         }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SummaryCardButton(
+                label = stringResource(Res.string.backup_hub_create),
+                icon = Icons.Outlined.Upload,
+                filled = true,
+                onClick = actions.onExport,
+                modifier = Modifier.weight(1f),
             )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            SummaryCardButton(
+                label = stringResource(Res.string.backup_hub_restore_short),
+                icon = Icons.Outlined.Download,
+                onClick = actions.onImport,
+                modifier = Modifier.weight(1f),
             )
         }
     }
 }
-

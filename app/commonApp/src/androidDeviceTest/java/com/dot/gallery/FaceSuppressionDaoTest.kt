@@ -31,7 +31,7 @@ import org.junit.runner.RunWith
 
 /**
  * Covers the `face_suppressions` table written by `LocalPeopleProvider.deletePerson`
- * (#1262): rows are keyed by media + box with no person FK, so they must survive the
+ *rows are keyed by media + box with no person FK, so they must survive the
  * person delete they were created by, and media-scoped orphan cleanup mirrors
  * `deleteOrphanLinks`/`deleteOrphanExclusions`.
  */
@@ -140,7 +140,7 @@ class FaceSuppressionDaoTest {
         insertPerson("personB", hidden = true)
         insertPerson("personC", hidden = true)
 
-        // The Library People section reads this flow to stay reachable (#1262).
+        // The Library People section reads this flow to stay reachable.
         assertEquals(2, personDao.observeHiddenCount().first())
         // Hidden rows are excluded from the visible list but resolve by id.
         assertEquals(

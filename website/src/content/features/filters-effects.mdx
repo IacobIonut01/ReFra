@@ -1,43 +1,55 @@
 ---
-title: Filters and effects
-summary: The named filter looks and the Posterize, Edges, and Borders effects.
+title: Looks and effects
+summary: Preset looks and your own presets, detail and blur, vignette, grain, colour tone, and stylised effects in the ReFra editor.
 area: edit
 path:
   - Media viewer
   - Edit
-  - Filters
-related: [editor, lighting-colour, save-edits]
-scenes: [editor-photo]
+  - Tools
+related: [editor, lighting-colour, markup, legacy-filters-effects]
+scenes: [studio-photo]
 order: 4
 ---
 
-## Filters
+Most of these tools sit in the **Adjust** group of the catalogue. Like every tool, each opens its controls above the toolbar and adds its change as one undo step when you tap **Apply**.
 
-<PreviewCollection feature="filters-effects" section="filters" />
+## Looks
 
-The **Filters** tab shows the photo with each look applied as thumbnails. The full list:
+<PreviewCollection feature="filters-effects" section="looks" />
 
-Original, Lite, Playa, Honey, Isla, Desert, Clay, Palma, Blush, Alpaca, Modena, West, Metro, Reel, Bazaar, Ollie, Onyx, Eiffel, Vogue, Vista, Astro, Negative.
+**Looks** applies a finished colour treatment. The filters along the top narrow the grid: **All**, **Colour**, **Cinematic**, **Film**, **B&W**, and **My presets**. Each look shows a preview of your photo; **Original** removes the look. After picking one, **Strength** sets how much of it applies.
 
-- Tap a filter to preview it full size; **Original** removes the filter.
-- An **Intensity** slider (0 to 100) controls how strongly the chosen filter applies, so a look can be a hint instead of a blanket.
-- The names are the label; compare them on your own photo rather than guessing from the word.
+To keep your own settings, tap **New preset**. A preset saves the current look with your **Light** and **Colour** settings, and it appears under **My presets**. The options on a saved preset can **Update with current**, **Rename**, or **Delete** it. Your presets stay available the next time you open the editor.
 
-## Effects
+## Details and lens blur
 
-<PreviewCollection feature="filters-effects" section="effects" />
+<PreviewCollection feature="filters-effects" section="details-and-lens-blur" />
 
-The **Effects** tab holds three adjustable effects:
+- **Details**: **Texture**, **Clarity**, **Sharpening**, and **Noise reduction**.
+- **Lens blur**: a **Radial** or **Linear** blur that keeps the focus area sharp. Drag the blur centre on the photo, then set **Strength**, **Transition**, and **Highlight bokeh**; **Linear** also has an **Angle**.
 
-- **Posterize**: reduces the image to fewer colour bands for a graphic look.
-- **Edges**: draws the picture's edges, sketch-style.
-- **Borders**: adds a frame around the image; its strength is adjustable.
+## Vignette and grain
 
-Each has its own control under the preview; **Undo** covers every change and a held applied tool removes it, same as the other tabs.
+- **Vignette**: **Amount**, **Midpoint**, **Feather**, and **Roundness**, plus **Highlights**, which protects bright tones from a darkening vignette. Negative amounts darken the edges; positive amounts lighten them.
+- **Grain**: **Amount**, **Size**, and **Roughness** for a film-like texture.
 
-## Example: a softer look for a portrait
+## Colour tone
 
-1. Open the photo, tap **Edit › Filters**.
-2. Try a few (Blush, Palma) on the live preview.
-3. Settle on one, then drag **Intensity** down to about 40 so it stays subtle.
-4. **Save Copy**; the unfiltered original is unaffected.
+**Colour tone** has single-purpose colour moves the Colour tool does not cover: **Skin tone** shifts the red-green balance, **Blue tone** the blue channel, **Hue** rotates every colour, and **Black & white** removes colour by the amount you set.
+
+## Posterize, edges, and borders
+
+<PreviewCollection feature="filters-effects" section="posterize-edges-and-borders" />
+
+**Posterize**, **Edges**, and **Borders** share one tool with a tab for each:
+
+- **Posterize** reduces the number of tonal levels.
+- **Edges** blends the photo toward an outline drawing of itself.
+- **Borders** paints a frame inside the edges with a **Border width** and a colour from the swatch row.
+
+## Example: a soft film look
+
+1. Open **Looks**, filter to **Film**, and pick a look; lower **Strength** a little.
+2. Open **Grain** and add a small **Amount**.
+3. Finish with a light **Vignette**.
+4. Tap **New preset** in **Looks** so the same treatment is one tap away next time.

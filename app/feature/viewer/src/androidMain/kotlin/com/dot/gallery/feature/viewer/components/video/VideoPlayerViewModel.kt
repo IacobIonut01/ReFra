@@ -94,7 +94,7 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
 
     private val keychainHolder = KeychainHolder(appContext)
 
-    /** Borrowed canonical decrypted file — released in onCleared, never deleted directly (#1282). */
+    /** Borrowed canonical decrypted file — released in onCleared, never deleted directly. */
     private var decryptedHandle: VaultDecryptCache.Handle? = null
     private val decryptedFile: File? get() = decryptedHandle?.file
     private var initialSeekApplied = false
@@ -131,7 +131,7 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
 
     @UnstableApi
     private fun createExoPlayer(): ExoPlayer {
-        return ExoPlayer.Builder(appContext)
+        return ExoPlayer.Builder(appContext, ViewerRenderersFactory(appContext))
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
             .build().apply {
             setSeekParameters(SeekParameters.EXACT)
@@ -519,7 +519,7 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
      * Classify the selected video track's HDR format (Dolby Vision / HDR10 / HLG / SDR) from its
      * [androidx.media3.common.Format] into [PlaybackState.videoHdr]. The media viewer drives the
      * window's COLOR_MODE_HDR from this — without it the window stays in SDR and HDR output is
-     * tone-mapped by the compositor even on capable devices (#1274).
+     * tone-mapped by the compositor even on capable devices.
      */
     @UnstableApi
     private fun updateVideoHdrInfo(tracks: Tracks) {

@@ -25,7 +25,6 @@ fun SettingsNavigationScreen() {
     SettingsNavigationContent(
         state = SettingsNavigationState(
             timelineRoute = Screen.TimelineScreen(),
-            albumsRoute = Screen.AlbumsScreen(),
             libraryRoute = Screen.LibraryScreen(),
         ),
         actions = SettingsNavigationActions(

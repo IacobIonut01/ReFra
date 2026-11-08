@@ -107,7 +107,7 @@ suspend fun Context.retrieveExtraMediaMetadata(
                 }
                 // The service-side MediaMetadataRetriever cannot reach the mediaextractor
                 // daemon from an isolated UID on Android 12, and that failure takes the
-                // whole IPC reply down with it (#1267). Probe in-process and backfill
+                // whole IPC reply down with it. Probe in-process and backfill
                 // whatever the isolated pass could not produce.
                 val probe = if (policy == MetadataParsingPolicy.ON_DEMAND_COMPATIBLE &&
                     bundle.videoProbeNeeded()
@@ -345,7 +345,7 @@ private fun probeVideoMetadataInProcess(context: Context, uri: Uri): VideoProbe?
  * (e.g. metadata-extractor cannot read the format, or the isolated service is unavailable on the
  * device). Reads the dimensions via [BitmapFactory] bounds and EXIF via the platform
  * [ExifInterface] so that at least resolution, size and any embedded EXIF (date, camera, ISO,
- * shutter, aperture, GPS) still appear instead of an empty properties sheet (#1002).
+ * shutter, aperture, GPS) still appear instead of an empty properties sheet.
  *
  * This uses the same in-process [BitmapFactory]/[ContentResolver] reads that the primary path
  * already relies on for its dimension fallback, so it does not weaken the sandbox guarantee
@@ -375,7 +375,7 @@ private suspend fun buildFallbackImageMetadata(
 
     // BitmapFactory can't decode JXL/JP2/PSD/SVG (and some HEIF/AVIF/TIFF), so recover the
     // intrinsic dimensions from the same native decoders used for rendering. This guarantees the
-    // properties sheet shows resolution + size instead of nothing for those formats (#1002).
+    // properties sheet shows resolution + size instead of nothing for those formats.
     if (imgW == 0 || imgH == 0) {
         SpecialFormatProbe.getSize(context, uri)?.let {
             imgW = it.width

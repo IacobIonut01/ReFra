@@ -54,7 +54,7 @@ import me.tatarka.inject.annotations.Inject
 
 
 /**
- * Worker that classifies media into categories using CLIP embeddings.
+ * Worker that classifies media into categories using EmbeddingGemma 2 embeddings.
  *
  * This worker:
  * 1. Loads all categories and their search terms
@@ -83,7 +83,7 @@ class CategoryWorker @Inject constructor(
                     return@withLogScope WorkerResult.Success()
                 }
 
-                if (!modelManager.isReady(ModelGroup.SEARCH)) {
+                if (!modelManager.isReady(modelManager.activeSearchModel)) {
                     printInfo("CategoryWorker: ML models not installed, skipping")
                     return@withLogScope WorkerResult.Success()
                 }
@@ -108,13 +108,16 @@ class CategoryWorker @Inject constructor(
                     return@withLogScope WorkerResult.Success()
                 }
 
-                // Get all image embeddings
-                var imageEmbeddings = embeddingDao.getRecords().firstOrNull() ?: emptyList()
+                // Get all image embeddings for the active engine. Rows written by the
+                // other search model (different dimension) are excluded — a dot product
+                // across dimensions would corrupt scores and can crash.
+                val dimension = modelManager.activeSearchModel.embeddingDimension
+                var imageEmbeddings = (embeddingDao.getRecords().firstOrNull() ?: emptyList())
+                    .filter { it.embedding.size == dimension }
                 if (imageEmbeddings.isEmpty()) {
                     printInfo("CategoryWorker: No image embeddings found, starting search indexer...")
                     env.setProgress(WORK_NAME, workData(KEY_PROGRESS to 0f, KEY_STATUS to "Starting image indexer..."), percent = 0)
 
-                    // Start the search indexer
                     startSearchIndexer()
 
                     // Wait for the search indexer to complete (with timeout)
@@ -131,7 +134,8 @@ class CategoryWorker @Inject constructor(
 
                         if (!isRunning) {
                             // Check if we now have embeddings
-                            imageEmbeddings = embeddingDao.getRecords().firstOrNull() ?: emptyList()
+                            imageEmbeddings = (embeddingDao.getRecords().firstOrNull() ?: emptyList())
+                                .filter { it.embedding.size == dimension }
                             if (imageEmbeddings.isNotEmpty()) {
                                 printInfo("CategoryWorker: Search indexer completed, found ${imageEmbeddings.size} embeddings")
                                 break
@@ -160,7 +164,7 @@ class CategoryWorker @Inject constructor(
                     }
                 }
 
-                // Exclude videos from categorisation when the user opted in (#948). Embeddings
+                // Exclude videos from categorisation when the user opted in. Embeddings
                 // carry no mimeType, so video ids are resolved through the media mirrors.
                 val excludeVideos = Settings.Misc.getSetting(
                     appContext, Settings.Misc.CATEGORIES_EXCLUDE_VIDEOS, false
@@ -195,9 +199,11 @@ class CategoryWorker @Inject constructor(
                             ))
                         }
 
-                        // Generate text embedding for the category's search terms (if any)
+                        // Generate text embedding for the category's search terms (if any).
+                        // A stored embedding from the other engine (wrong dimension) is
+                        // discarded and recomputed.
                         val categoryEmbedding = if (category.searchTerms.isNotBlank()) {
-                            category.embedding ?: run {
+                            category.embedding?.takeIf { it.size == dimension } ?: run {
                                 val embedding = visionHelper.getTextEmbedding(session, category.searchTerms)
                                 categoryDao.updateCategory(category.copy(
                                     embedding = embedding,
@@ -218,7 +224,10 @@ class CategoryWorker @Inject constructor(
                             return@fastForEachIndexed
                         }
 
-                        // Find matching media
+                        // Find matching media — the stored threshold is a normalized
+                        // sensitivity; map it onto the active engine's cosine band.
+                        val threshold = modelManager.activeSearchModel
+                            .thresholdFromSensitivity(category.threshold)
                         val matchingMedia = mutableListOf<MediaCategory>()
 
                         imageEmbeddings.fastForEach { imageEmbedding ->
@@ -237,7 +246,7 @@ class CategoryWorker @Inject constructor(
                                 bestScore = maxOf(bestScore, ref.embedding.dot(imageEmbedding.embedding))
                             }
 
-                            if (bestScore >= category.threshold) {
+                            if (bestScore >= threshold) {
                                 matchingMedia.add(
                                     MediaCategory(
                                         mediaId = imageEmbedding.id,

@@ -55,4 +55,14 @@
     <string name="editor_brush_size">大小</string>
     <string name="editor_brush_strength">强度</string>
     <string name="editor_blur_faces">模糊面孔</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">巴布亚新几内亚</string>
+    <string name="raw_export_tiff8">TIFF（8位）</string>
+    <string name="raw_export_tiff16">TIFF（16位）</string>
+    <string name="raw_export_choose_format">保存已处理的底片</string>
+    <string name="raw_export_choose_format_subtitle">为已处理的RAW文件选择一种格式</string>
+    <string name="raw_export_tiff_unavailable">TIFF 格式可保留完整的位深度，但无法包含裁剪、滤镜或标注——若要导出 TIFF 文件，请先将其移除。</string>
+    <string name="editor_mosaic_faces">马赛克人脸</string>
+    <string name="cutout_no_object">长按时未检测到任何对象</string>
+    <string name="cutout_init_failed">无法初始化剪切引擎</string>
 </resources>

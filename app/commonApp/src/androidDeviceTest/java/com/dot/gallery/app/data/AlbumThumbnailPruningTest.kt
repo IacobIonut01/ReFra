@@ -48,7 +48,7 @@ import com.dot.gallery.core.MediaRepositoryRuntimeImpl
 
 
 /**
- * Issue #1247: a pinned album cover whose media is deleted must not keep rendering a
+ * a pinned album cover whose media is deleted must not keep rendering a
  * dangling URI. [MediaRepositoryImpl.getAlbumThumbnails] re-validates stored covers on
  * every MediaStore change, skips dead ones and prunes their rows.
  */

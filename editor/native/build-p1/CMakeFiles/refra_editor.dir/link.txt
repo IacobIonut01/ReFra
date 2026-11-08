@@ -1,0 +1,2 @@
+/usr/bin/ar qc librefra_editor.a CMakeFiles/refra_editor.dir/src/color.c.o
+/usr/bin/ranlib librefra_editor.a

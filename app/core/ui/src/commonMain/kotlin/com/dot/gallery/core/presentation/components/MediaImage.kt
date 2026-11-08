@@ -6,6 +6,26 @@
 package com.dot.gallery.core.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.GraphicsLayerScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -61,6 +81,7 @@ import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
+import com.dot.gallery.core.LocalMediaViewerOverlayController
 import com.dot.gallery.core.presentation.components.util.advancedShadow
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.data.model.MediaMetadataState
@@ -102,9 +123,19 @@ fun <T : Media> MediaImage(
     val isSelected by rememberedDerivedState(selectionState, selectedMedia, media) {
         selectionState && media.id in selectedMedia
     }
+    val viewer = LocalMediaViewerOverlayController.current
+    val isPreviewed = LocalGalleryDetailPane.current &&
+        viewer?.visible == true && viewer.currentMediaId == media.id
     val metadata by rememberedDerivedState(metadataState.value) {
         metadataState.value.metadataMap[media.id]
     }
+    val rotationTracker = LocalMediaRotationTracker.current
+    // Per-cell view of the shared tracker: only this cell recomposes when its entry changes.
+    val rotationEntry by remember(rotationTracker, media.id) {
+        derivedStateOf { rotationTracker?.entry(media.id) }
+    }
+    val pendingRotation = rotationEntry?.pending
+    val rotationRevision = rotationEntry?.revision ?: 0
 
     val selectedSize: Dp
     val scale: Float
@@ -140,14 +171,18 @@ fun <T : Media> MediaImage(
         strokeSize = 0.dp
         strokeColor = Color.Transparent
     }
-    val roundedShape = remember(selectedShapeSize) {
-        RoundedCornerShape(selectedShapeSize)
+    val roundedShape = remember(selectedShapeSize, isPreviewed) {
+        RoundedCornerShape(if (isPreviewed) 24.dp else selectedShapeSize)
     }
     val prefetcher = LocalMediaPrefetcher.current
 
     Box(
         modifier = Modifier
             .clip(roundedShape)
+            .then(
+                if (isPreviewed) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, roundedShape)
+                else Modifier
+            )
             .combinedClickable(
                 enabled = canClick(),
                 onClick = {
@@ -156,7 +191,7 @@ fun <T : Media> MediaImage(
                     } else {
                         // Encrypted videos are played by the vault player, not the image
                         // pipeline — prefetching would only pay a full decrypt for nothing
-                        // it can use (#1282).
+                        // it can use.
                         if (!(media.isEncrypted && media.isVideo)) {
                             prefetcher?.prefetch(media)
                         }
@@ -177,17 +212,27 @@ fun <T : Media> MediaImage(
         // Stable thumbnail cache signature: invalidates only when the underlying bytes change
         // (definedTimestamp/size) and still carries filename/mime for animated-format detection.
         // Excludes volatile presentation fields (favorite/trashed/selection) so toggling them no
-        // longer evicts the decoded thumbnail and forces a re-decode flash (#1076).
+        // longer evicts the decoded thumbnail and forces a re-decode flash.
+        // A completed in-app rotation bumps the revision so the rewritten bytes are re-decoded
+        // even when the file kept its timestamp and size.
         val thumbnailSignature = remember(
             media.id,
             media.definedTimestamp,
             media.size,
             media.mimeType,
             media.label,
-            media.path
+            media.path,
+            rotationRevision
         ) {
-            "${media.id}:${media.definedTimestamp}:${media.size}:${media.mimeType}:${media.label}:${media.path}"
+            val base = "${media.id}:${media.definedTimestamp}:${media.size}:${media.mimeType}:${media.label}:${media.path}"
+            if (rotationRevision > 0) "$base:rot$rotationRevision" else base
         }
+        // Rotation animation state exists only while this cell has a rotation in flight, like
+        // the selection animations above, so idle cells pay nothing for it.
+        val rotation = if (pendingRotation != null) {
+            rememberCellRotation(media.id, pendingRotation, thumbnailSignature, rotationTracker)
+        } else null
+        val rotationDone = pendingRotation?.phase == PendingMediaRotation.Phase.Done
         renderer.RenderImage(
             modifier = Modifier
                 .fillMaxSize()
@@ -200,8 +245,12 @@ fun <T : Media> MediaImage(
                 .graphicsLayer {
                     val insetPx = selectedSize.toPx()
                     val min = size.minDimension
-                    if (min > 0f && insetPx > 0f) {
-                        val s = ((min - insetPx * 2f) / min).coerceIn(0f, 1f)
+                    val s = if (min > 0f && insetPx > 0f) ((min - insetPx * 2f) / min).coerceIn(0f, 1f) else 1f
+                    if (rotation != null) {
+                        // Once done the new bytes are already rotated, so the base layer stays upright.
+                        val angle = if (rotationDone) 0f else rotation.turn.value
+                        applyRotationTurn(angle, rotation.lift.value * s, rotation.cornerFraction() * RotationCorner.toPx())
+                    } else if (s != 1f) {
                         scaleX = s
                         scaleY = s
                     }
@@ -221,11 +270,62 @@ fun <T : Media> MediaImage(
             contentScale = ContentScale.Crop,
             signature = thumbnailSignature
         )
+        if (rotation != null && rotationDone) {
+            renderer.RenderImage(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
+                    .aspectRatio(aspectRatio)
+                    .graphicsLayer {
+                        alpha = rotation.outgoingAlpha.value
+                        applyRotationTurn(rotation.turn.value, 1f, 0f)
+                    },
+                model = media.getUri(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                signature = rotation.outgoingSignature
+            )
+        }
+        if (rotation != null) {
+            AnimatedVisibility(
+                modifier = Modifier.align(Alignment.Center),
+                visible = pendingRotation?.phase == PendingMediaRotation.Phase.Processing,
+                enter = fadeIn() + scaleIn(initialScale = 0.6f),
+                exit = fadeOut() + scaleOut(targetScale = 0.6f),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        strokeWidth = 2.5.dp,
+                    )
+                }
+            }
+        }
+
+        val favIconPosition = cellState?.favoriteIconPosition ?: rememberPreference(SettingsKeys.favoriteIconPosition).value
+        val isBackedUp = cellState?.cloudBackedUpIds?.contains(media.id) == true
+        val hasStatus = (metadata?.isRelevant == true) || media.isCloud || isBackedUp
+        val badges = remember(favIconPosition, media.isFavorite, media.isVideo, stackCount, hasStatus, selectionState) {
+            resolveCellBadgeLayout(
+                favoritePosition = favIconPosition,
+                isFavorite = media.isFavorite,
+                hasVideo = media.isVideo,
+                hasStack = stackCount > 1,
+                hasStatus = hasStatus,
+                selectionActive = selectionState,
+            )
+        }
+        val statusAlignment = (badges.status ?: CellCorner.BottomStart).alignment
 
         if (media.isVideo) {
             VideoDurationHeader(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .align((badges.video ?: CellCorner.TopEnd).alignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale),
                 media = media
@@ -238,7 +338,7 @@ fun <T : Media> MediaImage(
             val badgeShape = RoundedCornerShape(6.dp)
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopStart)
+                    .align((badges.stack ?: CellCorner.TopStart).alignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(6.dp)
@@ -262,17 +362,11 @@ fun <T : Media> MediaImage(
             }
         }
 
-        val favIconPosition = cellState?.favoriteIconPosition ?: rememberPreference(SettingsKeys.favoriteIconPosition).value
-        if (media.isFavorite && favIconPosition != FAV_ICON_DISABLED) {
-            val favAlignment = when (favIconPosition) {
-                FAV_ICON_BOTTOM_START -> Alignment.BottomStart
-                FAV_ICON_TOP_END -> Alignment.TopEnd
-                FAV_ICON_TOP_START -> Alignment.TopStart
-                else -> Alignment.BottomEnd
-            }
+        val favoriteCorner = badges.favorite
+        if (favoriteCorner != null) {
             Icon(
                 modifier = Modifier
-                    .align(favAlignment)
+                    .align(favoriteCorner.alignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
@@ -286,7 +380,7 @@ fun <T : Media> MediaImage(
         if (metadata != null && metadata!!.isRelevant) {
             Icon(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(statusAlignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(8.dp)
@@ -316,7 +410,7 @@ fun <T : Media> MediaImage(
             if (showProgress) {
                 CircularProgressIndicator(
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
+                        .align(statusAlignment)
                         .padding(selectedSize / 1.5f)
                         .scale(scale)
                         .padding(6.dp)
@@ -327,7 +421,7 @@ fun <T : Media> MediaImage(
             } else {
                 Icon(
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
+                        .align(statusAlignment)
                         .padding(selectedSize / 1.5f)
                         .scale(scale)
                         .padding(6.dp)
@@ -342,11 +436,11 @@ fun <T : Media> MediaImage(
                     contentDescription = null
                 )
             }
-        } else if (cellState?.cloudBackedUpIds?.contains(media.id) == true) {
+        } else if (isBackedUp) {
             // Local media that is backed up on at least one cloud provider.
             Icon(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(statusAlignment)
                     .padding(selectedSize / 1.5f)
                     .scale(scale)
                     .padding(6.dp)
@@ -380,4 +474,78 @@ fun <T : Media> MediaImage(
             }
         }
     }
+}
+
+private val RotationSpring = spring<Float>(dampingRatio = 0.62f, stiffness = Spring.StiffnessLow)
+private const val RotationLift = 0.86f
+private val RotationCorner = 16.dp
+// Long enough for the re-encoded thumbnail (new cache key, full decode) to land underneath.
+private const val RotationOutgoingHoldMs = 900L
+private const val RotationOutgoingFadeMs = 280
+
+/**
+ * Turns the cell content by [angle] degrees, scaled so the rotated bounds always fit inside the
+ * cell (mosaic cells are not square), with rounded corners while the item is lifted.
+ */
+private fun GraphicsLayerScope.applyRotationTurn(angle: Float, lift: Float, cornerPx: Float) {
+    if (angle == 0f && lift == 1f && cornerPx == 0f) return
+    val w = size.width
+    val h = size.height
+    val radians = angle * (PI.toFloat() / 180f)
+    val c = abs(cos(radians))
+    val sn = abs(sin(radians))
+    val fit = if (w > 0f && h > 0f) min(w / (w * c + h * sn), h / (w * sn + h * c)) else 1f
+    rotationZ = angle
+    scaleX = fit * lift
+    scaleY = fit * lift
+    if (cornerPx > 0f) {
+        shape = RoundedCornerShape(cornerPx)
+        clip = true
+    }
+}
+
+/** Animation state of one cell's in-flight rotation; [outgoingSignature] is the pre-rotation thumbnail. */
+@Stable
+private class CellRotation(val outgoingSignature: String) {
+    val turn = Animatable(0f)
+    val lift = Animatable(1f)
+    val outgoingAlpha = Animatable(1f)
+
+    /** Corner rounding follows the lift, so the card rounds as it rises and squares as it lands. */
+    fun cornerFraction(): Float = ((1f - lift.value) / (1f - RotationLift)).coerceIn(0f, 1f)
+}
+
+@Composable
+private fun rememberCellRotation(
+    mediaId: Long,
+    pending: PendingMediaRotation,
+    signature: String,
+    tracker: MediaRotationTracker?,
+): CellRotation {
+    val rotation = remember(mediaId) { CellRotation(outgoingSignature = signature) }
+    LaunchedEffect(rotation, pending.phase, pending.degrees) {
+        val degrees = pending.degrees.toFloat()
+        when (pending.phase) {
+            PendingMediaRotation.Phase.Queued -> rotation.lift.animateTo(RotationLift, RotationSpring)
+            PendingMediaRotation.Phase.Processing -> coroutineScope {
+                launch { rotation.lift.animateTo(RotationLift, RotationSpring) }
+                rotation.turn.animateTo(degrees, RotationSpring)
+            }
+            PendingMediaRotation.Phase.Done -> coroutineScope {
+                // The rotated file loads underneath while the old thumbnail finishes its turn
+                // on top and fades out, so there is no blank frame and no turn back.
+                launch { rotation.lift.animateTo(1f, RotationSpring) }
+                launch { rotation.turn.animateTo(degrees, RotationSpring) }
+                delay(RotationOutgoingHoldMs)
+                rotation.outgoingAlpha.animateTo(0f, tween(RotationOutgoingFadeMs))
+                tracker?.settle(mediaId)
+            }
+            PendingMediaRotation.Phase.Failed -> coroutineScope {
+                launch { rotation.lift.animateTo(1f, RotationSpring) }
+                rotation.turn.animateTo(0f, RotationSpring)
+                tracker?.settle(mediaId)
+            }
+        }
+    }
+    return rotation
 }

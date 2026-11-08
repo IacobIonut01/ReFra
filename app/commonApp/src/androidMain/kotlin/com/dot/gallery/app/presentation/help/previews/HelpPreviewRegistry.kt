@@ -336,10 +336,23 @@ private fun CategoriesPreviewMini(modifier: Modifier = Modifier) {
             modifier = Modifier.matchParentSize()
         ) {
             PreviewScreenProvider { sharedScope, animScope ->
-                CategoriesScreen(
-                    categoriesWithCount = remember { HelpMockData.MOCK_CATEGORIES_WITH_COUNT },
-                    distinctMediaCount = remember { HelpMockData.MOCK_CATEGORIES_WITH_COUNT.sumOf { it.mediaCount } },
-                    mediaState = remember { MediaState() },
+                com.dot.gallery.feature.classifier.ui.CategoriesContent(
+                    state = remember {
+                        com.dot.gallery.feature.classifier.ui.CategoriesState(
+                            categoriesWithCount = HelpMockData.MOCK_CATEGORIES_WITH_COUNT,
+                            distinctMediaCount = HelpMockData.MOCK_CATEGORIES_WITH_COUNT.sumOf { it.mediaCount },
+                            mediaState = MediaState(isLoading = false),
+                        )
+                    },
+                    actions = remember {
+                        com.dot.gallery.feature.classifier.ui.CategoriesActions(
+                            onOpenCategory = {},
+                            onEditCategory = {},
+                            onCreateCategory = {},
+                            onOpenSettings = {},
+                        )
+                    },
+                    lastCellIndex = remember { androidx.compose.runtime.mutableIntStateOf(1) },
                     sharedTransitionScope = sharedScope,
                     animatedContentScope = animScope,
                 )

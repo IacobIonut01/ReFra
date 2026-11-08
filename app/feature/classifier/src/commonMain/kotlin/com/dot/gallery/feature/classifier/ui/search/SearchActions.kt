@@ -49,4 +49,16 @@ data class SearchActions(
     val onOpenMedia: (mediaId: Long) -> Unit,
     /** Open a search result in the viewer (`idAndQuery(id)`). */
     val onOpenSearchResult: (mediaId: Long) -> Unit,
+    /** Remove every search history entry. */
+    val onClearHistory: () -> Unit = {},
+    /** Open an album suggested while typing. */
+    val onOpenAlbum: (albumId: Long, label: String) -> Unit = { _, _ -> },
+    /** Show favourites as results, with [label] in the field (`setFavoritesQuery`). */
+    val onFavoritesFilter: (label: String) -> Unit = {},
+    /** Open the Smart search setup when the model is missing. */
+    val onSetUpSmartSearch: () -> Unit = {},
+    /** "See all" on the Categories section. */
+    val onSeeAllCategories: () -> Unit = {},
+    /** "See all" on the Places section. */
+    val onSeeAllPlaces: () -> Unit = {},
 )

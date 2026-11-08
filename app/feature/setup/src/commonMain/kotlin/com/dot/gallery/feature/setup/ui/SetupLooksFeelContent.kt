@@ -8,20 +8,22 @@ package com.dot.gallery.feature.setup.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Contrast
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,31 +35,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.SettingsKeys
-import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.setup.generated.resources.Res
 import com.dot.gallery.feature.setup.generated.resources.setup_appearance_summary
+import com.dot.gallery.feature.setup.generated.resources.setup_back
 import com.dot.gallery.feature.setup.generated.resources.setup_continue
 import com.dot.gallery.feature.setup.generated.resources.setup_looks_restart_note
 import com.dot.gallery.feature.setup.generated.resources.setup_looks_subtitle
 import com.dot.gallery.feature.setup.generated.resources.setup_looks_title
-import com.dot.gallery.feature.setup.generated.resources.setup_open_appearance
 import com.dot.gallery.feature.setup.generated.resources.setup_section_app_logo
 import com.dot.gallery.feature.setup.generated.resources.setup_section_app_name
 import com.dot.gallery.feature.setup.generated.resources.setup_section_appearance
-
+import com.dot.gallery.feature.setup.generated.resources.setup_step_looks
+import com.dot.gallery.ui.theme.GalleryGlass
+import org.jetbrains.compose.resources.stringResource
 
 /**
- * Looks & Feel page: app-name and app-logo pickers plus an appearance-settings shortcut.
- * Alias selection persists through `SettingsKeys.appNameAlias`/`appLogoAlias`; the app
- * applies them on finish (restart when the launcher alias actually changes).
- *
- * [logoPainter] resolves each alias to its launcher artwork — mipmap drawables on
- * Android, so the seam stays platform-side.
+ * Step 2 · Looks & feel: the four real launcher icons, the ReFra / Gallery name as a segmented
+ * control, and a row into the appearance settings.
  */
 @Composable
 fun SetupLooksFeelContent(
@@ -73,135 +72,158 @@ fun SetupLooksFeelContent(
     var appNameAlias by rememberPreference(SettingsKeys.appNameAlias)
     var appLogoAlias by rememberPreference(SettingsKeys.appLogoAlias)
 
-    SetupWizardScaffold(
+    SetupStepScaffold(
         modifier = modifier,
-        showBack = true,
-        onBack = onBack,
         stepNumber = stepNumber,
         totalSteps = totalSteps,
+        stepName = stringResource(Res.string.setup_step_looks),
+        hero = SetupHero(
+            icon = Icons.Outlined.Palette,
+            shape = SetupHeroShape.Looks.toShape(),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
         title = stringResource(Res.string.setup_looks_title),
         subtitle = stringResource(Res.string.setup_looks_subtitle),
+        onBack = onBack,
+        onSkip = onNext,
         bottomBar = {
-            SetupButton(
-                text = stringResource(Res.string.setup_continue),
-                applyHorizontalPadding = false,
-                applyBottomPadding = false,
-                applyInsets = false,
-                applyNavigationPadding = false,
-                onClick = onNext
+            SetupBottomActions(
+                primaryLabel = stringResource(Res.string.setup_continue),
+                onPrimary = onNext,
+                secondaryLabel = stringResource(Res.string.setup_back),
+                onSecondary = onBack,
             )
-        }
+        },
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // App name
-            SetupSectionCard(title = stringResource(Res.string.setup_section_app_name)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    state.nameAliases.forEach { alias ->
-                        LogoChoice(
-                            modifier = Modifier.weight(1f),
-                            label = alias,
-                            iconPainter = logoPainter(appLogoAlias),
-                            selected = appNameAlias == alias,
-                            onClick = { appNameAlias = alias }
-                        )
-                    }
-                }
-            }
-
-            // App logo
-            SetupSectionCard(title = stringResource(Res.string.setup_section_app_logo)) {
+        SetupGlassPanel {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(22.dp, 22.dp, 6.dp, 6.dp))
+                    .background(GalleryGlass.row)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                PanelLabel(stringResource(Res.string.setup_section_app_logo))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        .selectableGroup(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     state.logoAliases.forEach { alias ->
-                        LogoChoice(
-                            modifier = Modifier.width(96.dp),
+                        LauncherChoice(
                             label = alias,
-                            iconPainter = logoPainter(alias),
+                            painter = logoPainter(alias),
                             selected = appLogoAlias == alias,
-                            onClick = { appLogoAlias = alias }
+                            onClick = { appLogoAlias = alias },
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
-                Text(
-                    modifier = Modifier.padding(top = 12.dp),
-                    text = stringResource(Res.string.setup_looks_restart_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                PanelLabel(stringResource(Res.string.setup_section_app_name))
+                NameSegments(
+                    options = state.nameAliases,
+                    selected = appNameAlias,
+                    onSelect = { appNameAlias = it },
                 )
             }
-
-            // Appearance
-            SetupSectionCard(
+            SetupGlassRow(
                 title = stringResource(Res.string.setup_section_appearance),
-                subtitle = stringResource(Res.string.setup_appearance_summary)
-            ) {
-                SetupButton(
-                    text = stringResource(Res.string.setup_open_appearance),
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    applyNavigationPadding = false,
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    onClick = actions.onOpenAppearance
-                )
-            }
+                summary = stringResource(Res.string.setup_appearance_summary),
+                icon = Icons.Outlined.Contrast,
+                position = SetupRowPosition.Bottom,
+                onClick = actions.onOpenAppearance,
+                trailing = {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+            )
         }
+        SetupNote(icon = Icons.Outlined.Info, text = stringResource(Res.string.setup_looks_restart_note))
     }
 }
 
 @Composable
-private fun LogoChoice(
+private fun PanelLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 4.dp),
+    )
+}
+
+/** One launcher icon tile; the selected one gets a 2 dp primary outline. */
+@Composable
+private fun LauncherChoice(
     label: String,
-    iconPainter: Painter,
+    painter: Painter,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.outlineVariant
-    val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-    else Color.Transparent
+    val shape = RoundedCornerShape(18.dp)
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
-            .background(containerColor)
-            .clickable(onClick = onClick)
-            .padding(vertical = 16.dp),
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+            .border(2.dp, if (selected) MaterialTheme.colorScheme.primary else Color.Transparent, shape)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(vertical = 10.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Image(
-            painter = iconPainter,
-            contentDescription = label,
+            painter = painter,
+            contentDescription = null,
             modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
+                .size(44.dp)
+                .clip(RoundedCornerShape(12.dp)),
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
         )
-        Icon(
-            imageVector = Icons.Filled.CheckCircle,
-            contentDescription = null,
-            tint = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant,
-            modifier = Modifier.size(20.dp)
-        )
+    }
+}
+
+/** Two-option segmented control for the app name. */
+@Composable
+private fun NameSegments(options: List<String>, selected: String, onSelect: (String) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+            .padding(4.dp)
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        options.forEach { option ->
+            val isSelected = option == selected
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 44.dp)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(option) }),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = option,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     }
 }

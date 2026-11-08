@@ -30,7 +30,7 @@ import com.dot.gallery.core.util.or
 
 
 /**
- * Phase 1 (#1076): low-overhead thumbnail telemetry.
+ * low-overhead thumbnail telemetry.
  *
  * Records only bounded counters/histograms — never retains bitmaps, media, drawables, or
  * Activity references — so it is safe to keep attached to every grid thumbnail request.
@@ -75,7 +75,7 @@ object ThumbnailTelemetry {
     private val histogram = AtomicIntegerArray(BUCKET_EDGES_MS.size + 1)
     private val totalLatencyMs = AtomicLong(0)
 
-    // #1276: per-format fill counter for the persistent thumbnail store — "which formats
+    // per-format fill counter for the persistent thumbnail store — "which formats
     // regenerate" is measurable instead of anecdotal. Keyed by HeavyThumbFormat name (≤6 entries).
     private val storeFills = ConcurrentHashMap<String, AtomicLong>()
 
@@ -231,7 +231,7 @@ object ThumbnailTelemetry {
     }
 
     /**
-     * #1276: disk-cache occupancy — Sketch's bounded cache plus the persistent thumbnail store's
+     * disk-cache occupancy — Sketch's bounded cache plus the persistent thumbnail store's
      * entries/bytes/hit-miss counters. Confirms whether the download/result cache is saturated
      * and whether the store is absorbing heavy-format decodes. Call alongside [logDump].
      */

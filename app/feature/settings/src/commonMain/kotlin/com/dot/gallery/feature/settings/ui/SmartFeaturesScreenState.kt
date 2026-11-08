@@ -22,4 +22,6 @@ data class SmartFeaturesScreenState(
     val categoriesSummary: String = "",
     val scanSummary: String = "",
     val hasCloudProviders: Boolean = false,
+    val handoverEnabled: Boolean = false,
+    val handoverSummary: String = "",
 )

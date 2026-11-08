@@ -55,4 +55,14 @@
     <string name="editor_brush_size">サイズ</string>
     <string name="editor_brush_strength">強さ</string>
     <string name="editor_blur_faces">顔をぼかします</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF（8ビット）</string>
+    <string name="raw_export_tiff16">TIFF（16ビット）</string>
+    <string name="raw_export_choose_format">現像済みの写真を保存する</string>
+    <string name="raw_export_choose_format_subtitle">現像したRAWファイルの形式を選択してください</string>
+    <string name="raw_export_tiff_unavailable">TIFFはビット深度を完全に保持しますが、トリミング、フィルター、マークアップを含めることはできません。TIFFとしてエクスポートするには、これらを削除してください。</string>
+    <string name="editor_mosaic_faces">モザイク処理された顔</string>
+    <string name="cutout_no_object">長押ししてもオブジェクトが検出されませんでした</string>
+    <string name="cutout_init_failed">カットアウトエンジンの初期化に失敗しました</string>
 </resources>

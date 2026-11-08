@@ -42,4 +42,5 @@ export const AREA_LABELS: Record<string, string> = {
   cloud: 'Cloud',
   customize: 'Customize',
   utilities: 'Utilities',
+  'edit-legacy': 'Built-in editor (legacy)',
 };

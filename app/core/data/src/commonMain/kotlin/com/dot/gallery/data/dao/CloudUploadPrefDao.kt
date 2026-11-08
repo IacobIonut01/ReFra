@@ -25,8 +25,6 @@ interface CloudUploadPrefDao {
     @Query("SELECT * FROM cloud_upload_pref WHERE uploadEnabled = 1")
     suspend fun getEnabledList(): List<CloudUploadPrefEntity>
 
-    // === Per-account (server config) scoped queries ===
-
     @Query("SELECT * FROM cloud_upload_pref WHERE serverConfigId = :configId")
     fun getByConfig(configId: Long): Flow<List<CloudUploadPrefEntity>>
 

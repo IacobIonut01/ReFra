@@ -38,6 +38,15 @@ object LogExporter {
     private const val MAX_URL_LENGTH = 7500
     private const val MAX_INLINE_BODY_CHARS = 3000
 
+    /**
+     * Clipboard text crosses Binder as UTF-16, and a transaction over ~1 MB throws
+     * `TransactionTooLargeException`; 200k chars stays well under that.
+     */
+    const val MAX_CLIPBOARD_LOG_CHARS = 200_000
+
+    /** GitHub rejects issue bodies longer than 65,536 characters. */
+    const val MAX_GITHUB_LOG_CHARS = 60_000
+
     private val json = Json { encodeDefaults = false; ignoreUnknownKeys = true }
 
     fun clipboardText(
@@ -51,14 +60,32 @@ object LogExporter {
         appendLine(DiagnosticInfo.asText(context))
         appendLine("```")
         appendLine()
-        if (forGithub) {
-            appendLine("<details><summary>Logs (${entries.size})</summary>")
-            appendLine()
+        append(logBlock(entries, forGithub, if (forGithub) MAX_GITHUB_LOG_CHARS else MAX_CLIPBOARD_LOG_CHARS))
+    }
+
+    /**
+     * The fenced JSONL block for [entries] (newest first), keeping only the newest lines that fit
+     * in [maxChars] so large sessions cannot overflow the clipboard; the zip export stays complete.
+     */
+    fun logBlock(entries: List<LogEntry>, forGithub: Boolean, maxChars: Int): String {
+        var used = 0
+        val lines = entries.asSequence()
+            .map { it.toJson(json) }
+            .takeWhile { line -> (used + line.length + 1 <= maxChars).also { if (it) used += line.length + 1 } }
+            .toList()
+        val omitted = entries.size - lines.size
+        return buildString {
+            if (forGithub) {
+                val count = if (omitted > 0) "${lines.size} of ${entries.size}" else "${entries.size}"
+                appendLine("<details><summary>Logs ($count)</summary>")
+                appendLine()
+            }
+            appendLine("```jsonl")
+            lines.forEach(::appendLine)
+            appendLine("```")
+            if (omitted > 0) appendLine("_$omitted older entries omitted — share the diagnostics zip for the full log._")
+            if (forGithub) appendLine("</details>")
         }
-        appendLine("```jsonl")
-        entries.forEach { appendLine(it.toJson(json)) }
-        appendLine("```")
-        if (forGithub) appendLine("</details>")
     }
 
     fun entryText(entry: LogEntry): String = buildString {

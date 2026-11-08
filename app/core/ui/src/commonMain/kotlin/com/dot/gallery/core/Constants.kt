@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 object Constants {
 
     /**
-     * Legacy date formats used in media groups. As of #953 these are only
+     * Legacy date formats used in media groups. As these are only
      * fallbacks: when a user has not set a custom pattern, the effective
      * pattern is derived from the system locale + 12/24-hour setting at read
      * time (see SystemDateFormatField / systemDateTimePattern).

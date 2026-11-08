@@ -35,13 +35,10 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -58,7 +55,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -76,7 +72,6 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.sp
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.domain.model.StoryCardType
 import com.dot.gallery.core.ui.components.SettingsItem
 import com.dot.gallery.core.Settings
@@ -112,6 +107,11 @@ import com.dot.gallery.generated.resources.story_viewer_duration
 import com.dot.gallery.generated.resources.story_viewer_duration_summary
 import com.dot.gallery.generated.resources.story_viewer_settings_title
 import org.jetbrains.compose.resources.StringResource
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -125,8 +125,7 @@ fun StoryCardsSettingsScreen(
     var draftOrder by remember(config.normalizedOrder) { mutableStateOf(config.normalizedOrder) }
 
     val title = stringResource(Res.string.story_cards_settings_title)
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
 
     // Drag-to-reorder state
     var draggingIndex by remember { mutableIntStateOf(-1) }
@@ -144,22 +143,19 @@ fun StoryCardsSettingsScreen(
     }
 
     Scaffold(
-        modifier = Modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .semantics { paneTitle = title },
+        modifier = Modifier.semantics { paneTitle = title },
         topBar = {
-            LargeTopAppBar(
-                title = { Text(title, modifier = Modifier.semantics { heading() }) },
-                navigationIcon = { NavigationBackButton(forcedAction = onNavigateBack) },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = title,
+                onBack = onNavigateBack,
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             userScrollEnabled = draggingIndex == -1,
             contentPadding = PaddingValues(
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),

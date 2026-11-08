@@ -13,6 +13,7 @@ import com.dot.gallery.domain.date.getDateExt
 import com.dot.gallery.domain.date.getDateHeader
 import com.dot.gallery.domain.date.getMonth
 import com.dot.gallery.domain.date.getYear
+import com.dot.gallery.domain.date.isRelativeDateLabel
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.MediaItem
 import com.dot.gallery.domain.model.MediaState
@@ -22,6 +23,19 @@ import com.dot.gallery.domain.model.timestampFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Viewer page order.
+ *
+ * [groupedIds] is the date-header walk (stacked siblings stay behind their
+ * representative). With date headers off, the grid lists [sourceIds] in the
+ * active sort, and the pager has to follow that same list.
+ */
+fun pagerIdsForOpenGrid(
+    sourceIds: List<Long>,
+    groupedIds: List<Long>,
+    dateHeadersEnabled: Boolean,
+): List<Long> = if (dateHeadersEnabled) groupedIds else sourceIds.distinct()
+
 suspend fun <T : Media> mapMediaToItem(
     data: List<T>,
     error: String,
@@ -30,6 +44,7 @@ suspend fun <T : Media> mapMediaToItem(
     groupByYear: Boolean = false,
     withMonthHeader: Boolean = true,
     groupSimilarMedia: Boolean = false,
+    dateHeadersEnabled: Boolean = true,
     enabledGroupTypes: Set<MediaGroupType> = MediaGroupType.entries.toSet(),
     cloudGroupKeyOverrides: Map<Long, String> = emptyMap(),
     cloudBackups: Map<Long, List<UriMedia>> = emptyMap(),
@@ -85,7 +100,7 @@ suspend fun <T : Media> mapMediaToItem(
                         pagerMediaList.add(representative)
                         // Store members ordered so the representative (JPG over its RAW/DNG
                         // sibling) is first — keeps the opened stack and multi-file share aligned
-                        // with the grid cover (#995).
+                        // with the grid cover.
                         mediaGroupsMap[representative.id] = group.sortedByRepresentative()
                         return@flatMap listOf(
                             MediaItem.MediaViewItem(
@@ -121,7 +136,7 @@ suspend fun <T : Media> mapMediaToItem(
             // The group key is a localized date string only for items a week or
             // older — Today/Yesterday/weekday label keys get no big month header.
             val firstTimestamp = data.first().timestampFor(dateSource)
-            val month = if (dateGrouper != null && dateGrouper.daysUntilToday(firstTimestamp) >= 7) {
+            val month = if (dateGrouper != null && !isRelativeDateLabel(dateGrouper.daysUntilToday(firstTimestamp))) {
                 if (firstTimestamp.epochSecToLocalDate().year == dateGrouper.currentYear) {
                     firstTimestamp.formatEpochSec("MMMM")
                 } else {
@@ -173,7 +188,18 @@ suspend fun <T : Media> mapMediaToItem(
         isLoading = false,
         error = error,
         media = data,
-        pagerMedia = (if (groupSimilarMedia) pagerMediaList else data).distinctBy { it.id },
+        pagerMedia = run {
+            val groupedPager = (if (groupSimilarMedia) pagerMediaList else data).distinctBy { it.id }
+            val ids = pagerIdsForOpenGrid(
+                sourceIds = data.map { it.id },
+                groupedIds = groupedPager.map { it.id },
+                dateHeadersEnabled = dateHeadersEnabled,
+            )
+            // `putIfAbsent` is JVM-only; getOrPut keeps the first occurrence, same semantics.
+            val byId = LinkedHashMap<Long, T>(data.size)
+            for (item in data) byId.getOrPut(item.id) { item }
+            ids.mapNotNull { byId[it] }
+        },
         mediaGroups = mediaGroupsMap,
         headers = headers,
         mappedMedia = mappedData,

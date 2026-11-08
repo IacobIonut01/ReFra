@@ -82,6 +82,13 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
     allowHeaders: Boolean = true,
     enableStickyHeaders: Boolean = false,
     hasToolbarOffset: Boolean = true,
+    /**
+     * Where the sticky date header rests, measured from the top of the grid. Null keeps the
+     * classic 64 dp app bar plus status bar; pages with another header height (the vault's
+     * Library-style top bar) pass their real top padding so the sticky header covers the first
+     * in-grid header instead of drawing a second one below it.
+     */
+    stickyHeaderTopOffset: Dp? = null,
     groupMethod: String = GROUP_NORMAL,
     aboveGridContent: @Composable (() -> Unit)? = null,
     isScrolling: MutableState<Boolean>,
@@ -120,7 +127,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
     // yank it back to the top, even if a transient empty/loading emission or a
     // re-sort (e.g. DATE_TAKEN rescan firing the MediaStore observer) happens
     // right after returning. Gating on the grid's own restored position - captured
-    // once at first composition - is robust to all of those races (#919/#960/#965).
+    // once at first composition - is robust to all of those races (//).
     val startedAtTop = remember {
         gridState.firstVisibleItemIndex == 0 && gridState.firstVisibleItemScrollOffset == 0
     }
@@ -141,16 +148,14 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
 
     val hideSearchBarSetting by rememberPreference(SettingsKeys.autoHideSearchBar)
     val searchBarPadding by animateDpAsState(
-        targetValue = remember(
-            isScrolling.value,
-            showSearchBar,
-            searchBarPaddingTop,
-            hideSearchBarSetting
-        ) {
-            if (showSearchBar && (!isScrolling.value || !hideSearchBarSetting)) {
-                SearchBarDefaults.InputFieldHeight + searchBarPaddingTop + 8.dp
-            } else if (showSearchBar && isScrolling.value) searchBarPaddingTop else 0.dp
-        },
+        // Read padding during composition: Scaffold mutates its PaddingValues in place, so the
+        // object identity cannot key a cache when the header grows or shrinks.
+        targetValue = if (showSearchBar && (!isScrolling.value || !hideSearchBarSetting)) {
+            maxOf(
+                SearchBarDefaults.InputFieldHeight + searchBarPaddingTop + 8.dp,
+                paddingValues.calculateTopPadding(),
+            )
+        } else if (showSearchBar && isScrolling.value) searchBarPaddingTop else 0.dp,
         label = "searchBarPadding"
     )
 
@@ -171,11 +176,24 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
             modifier = Modifier.fillMaxSize(),
             headerMatcher = { item -> item.key.isHeaderKey || item.key.isIgnoredKey },
             searchBarOffset = { if (showSearchBar) 28.roundSpToPx(density) + searchBarPaddingPx else 0 },
-            toolbarOffset = { if (showSearchBar) 0 else if (hasToolbarOffset) 64.roundDpToPx(density) + searchBarHeightPx else 0 },
+            toolbarOffset = {
+                when {
+                    showSearchBar -> 0
+                    stickyHeaderTopOffset != null -> with(density) { stickyHeaderTopOffset.roundToPx() }
+                    hasToolbarOffset -> 64.roundDpToPx(density) + searchBarHeightPx
+                    else -> 0
+                }
+            },
             stickyHeader = {
                 val show by remember {
                     derivedStateOf {
-                        mediaState.value.media.isNotEmpty() && stickyHeaderItem != null
+                        // With a measured top offset the first in-grid header already sits in the
+                        // sticky slot at rest, so the sticky copy (and its gradient) only appears
+                        // once the grid scrolls.
+                        val atRest = gridState.firstVisibleItemIndex == 0 &&
+                            gridState.firstVisibleItemScrollOffset == 0
+                        mediaState.value.media.isNotEmpty() && stickyHeaderItem != null &&
+                            !(stickyHeaderTopOffset != null && atRest)
                     }
                 }
                 AnimatedVisibility(
@@ -184,10 +202,15 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                     exit = exitAnimation
                 ) {
                     val text by rememberedDerivedState(stickyHeaderItem) { stickyHeaderItem ?: "" }
+                    val decorations = LocalTimelineDecorations.current
+                    if (decorations?.floatingDateLabel == true) {
+                        TimelineFloatingDate(text = text, topPadding = searchBarPadding, decorations = decorations, gridState = gridState)
+                        return@AnimatedVisibility
+                    }
                     val darkTheme = isDarkTheme()
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.titleMedium.let { style ->
+                        style = MaterialTheme.typography.labelLarge.let { style ->
                             if (!darkTheme) style.copy(
                                 shadow = Shadow(
                                     color = Color.White,
@@ -210,7 +233,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                                 )
                             )
                             .padding(horizontal = 16.dp)
-                            .padding(top = 24.dp + searchBarPadding, bottom = 24.dp)
+                            .padding(top = 20.dp + searchBarPadding, bottom = 20.dp)
                             .fillMaxWidth()
                     )
                 }
@@ -236,7 +259,16 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 allowSharedElements = allowSharedElements,
                 onRetry = onRetry,
             )
-            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
+            FloatingTopBarScrim(
+                barZoneHeight = searchBarPadding,
+                visibility = {
+                    topScrimVisibility(
+                        gridState.firstVisibleItemIndex,
+                        gridState.firstVisibleItemScrollOffset,
+                        TopBarScrimScrollFade.toPx(),
+                    )
+                },
+            )
         }
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -260,7 +292,16 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 allowSharedElements = allowSharedElements,
                 onRetry = onRetry,
             )
-            FloatingTopBarScrim(barZoneHeight = searchBarPadding)
+            FloatingTopBarScrim(
+                barZoneHeight = searchBarPadding,
+                visibility = {
+                    topScrimVisibility(
+                        gridState.firstVisibleItemIndex,
+                        gridState.firstVisibleItemScrollOffset,
+                        TopBarScrimScrollFade.toPx(),
+                    )
+                },
+            )
         }
     }
 

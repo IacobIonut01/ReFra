@@ -6,6 +6,8 @@
 package com.dot.gallery.feature.classifier.ui
 
 import androidx.compose.runtime.Stable
+import com.dot.gallery.domain.model.Category
+import com.dot.gallery.domain.model.UriMedia
 
 
 /**
@@ -22,6 +24,16 @@ data class CategoryViewState(
     val categoryId: Long = -1L,
     /** Resolved category name for the id route (`category?.name`). */
     val categoryName: String = "",
+    /** Full category on the id route; drives the header (description, examples, strictness). */
+    val category: Category? = null,
+    /** Cover photo shown in the header; falls back to the category glyph. */
+    val cover: UriMedia? = null,
+    /** Header date range (first, last), already formatted app-side. */
+    val dateRange: Pair<String, String>? = null,
+    /** A user-visible category scan is still running. */
+    val isScanning: Boolean = false,
+    /** Scan progress in 0..1; null when unknown. */
+    val scanProgress: Float? = null,
 ) {
     val isLegacy: Boolean get() = legacyCategory != null
 

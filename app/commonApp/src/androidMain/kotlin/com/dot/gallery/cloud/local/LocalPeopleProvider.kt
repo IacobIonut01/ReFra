@@ -5,12 +5,19 @@
 
 package com.dot.gallery.cloud.local
 
+import androidx.core.net.toUri
+import androidx.room3.withWriteTransaction
+import com.dot.gallery.cloud.core.LOCAL_PEOPLE_CONFIG_ID
 import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderCapability
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
-import androidx.core.net.toUri
-import androidx.room3.withWriteTransaction
+import com.dot.gallery.core.Resource
+import com.dot.gallery.core.injection.Singleton
+import com.dot.gallery.core.ml.FaceHelper
+import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.ModelManager
+import com.dot.gallery.data.InternalDatabase
 import com.dot.gallery.data.dao.CloudMediaDao
 import com.dot.gallery.data.dao.DetectedFaceDao
 import com.dot.gallery.data.dao.PersonDao
@@ -20,13 +27,8 @@ import com.dot.gallery.data.entity.FaceLinkEntity
 import com.dot.gallery.data.entity.FaceLinkKind
 import com.dot.gallery.data.entity.FaceSuppressionEntity
 import com.dot.gallery.data.entity.PersonEntity
-import com.dot.gallery.data.entity.toPersonInfo
-import com.dot.gallery.core.Resource
-import com.dot.gallery.core.ml.FaceHelper
-import com.dot.gallery.core.ml.ModelGroup
-import com.dot.gallery.data.InternalDatabase
-import com.dot.gallery.domain.model.Media
 import com.dot.gallery.data.repository.MediaRepository
+import com.dot.gallery.domain.model.Media
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -35,12 +37,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
-import com.dot.gallery.core.injection.Singleton
-import com.dot.gallery.cloud.core.matches
-import com.dot.gallery.core.util.or
-import com.dot.gallery.core.presentation.util.remove
-import com.dot.gallery.core.ml.ModelManager
-import com.dot.gallery.domain.uri.path
 
 
 /** A pair of local people that look similar enough to be worth a manual merge review. */
@@ -82,7 +78,16 @@ class LocalPeopleProvider @Inject constructor(
     override val isAvailable: Boolean
         get() = modelManager.isReady(ModelGroup.FACE_DETECT)
 
-    private fun PersonEntity.toInfo(photoCount: Int) = toPersonInfo(photoCount)
+    private fun PersonEntity.toInfo(photoCount: Int) = PersonInfo(
+        id = id,
+        name = name,
+        providerType = ProviderType.LOCAL_PEOPLE,
+        serverConfigId = LOCAL_PEOPLE_CONFIG_ID,
+        thumbnailUrl = thumbnailUrl,
+        assetCount = photoCount,
+        hidden = hidden,
+        birthDate = birthDate
+    )
 
     override fun getPeople(): Flow<Resource<List<PersonInfo>>> = combine(
         personDao.getVisibleByProvider(ProviderType.LOCAL_PEOPLE),
@@ -97,7 +102,7 @@ class LocalPeopleProvider @Inject constructor(
 
     /**
      * Hidden local people count — always collected by the People list/library so the
-     * feature stays reachable when every person is hidden (#1262).
+     * feature stays reachable when every person is hidden.
      */
     fun observeHiddenPeopleCount(): Flow<Int> = personDao.observeHiddenCount()
 
@@ -111,7 +116,7 @@ class LocalPeopleProvider @Inject constructor(
     }
 
     /**
-     * Reactive single-person lookup that includes hidden rows (#1262): a hidden
+     * Reactive single-person lookup that includes hidden rows: a hidden
      * person's detail page must keep working — it is the only place they can be
      * unhidden from once the grid's hidden section is collapsed. Emits null once
      * the row is gone (deleted or merged away).
@@ -208,7 +213,10 @@ class LocalPeopleProvider @Inject constructor(
         runCatching { personDao.updateName(personId, name) }
 
     override suspend fun updatePersonBirthDate(personId: String, birthDate: String): Result<Unit> =
-        runCatching { personDao.updateBirthDate(personId, birthDate) }
+        runCatching {
+            val person = personDao.getById(personId) ?: error("Person not found: $personId")
+            personDao.insert(person.copy(birthDate = birthDate, lastUpdated = System.currentTimeMillis()))
+        }
 
     /**
      * Reassign every face of [sourceId] to [targetId] and delete the now-empty source
@@ -405,7 +413,7 @@ class LocalPeopleProvider @Inject constructor(
     }
 
     /**
-     * Delete [personId] entirely (#1262): the person row is removed — FK SET_NULL
+     * Delete [personId] entirely: the person row is removed — FK SET_NULL
      * un-assigns its faces while links, exclusions and clusters cascade — and every
      * face that belonged to it is recorded in `face_suppressions` so the batch
      * clusterer never groups the same faces into a resurrected person on the next

@@ -33,8 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,13 +42,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.util.rememberFeedbackManager
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.feature.albums.ui.util.formatSize
@@ -62,6 +58,14 @@ import com.dot.gallery.feature.albums.generated.resources.item_count
 import com.dot.gallery.feature.albums.generated.resources.locked
 import com.dot.gallery.feature.albums.generated.resources.n_albums
 import com.dot.gallery.feature.albums.generated.resources.other_albums
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.CompositionLocalProvider
+import dev.chrisbanes.haze.HazePerformanceMode
+import dev.chrisbanes.haze.LocalHazePerformanceMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,31 +91,26 @@ fun EditGroupContent(
         allAlbums.filter { it.id !in memberIds }
     }
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val gridState = rememberLazyGridState()
+    val hazeState = LocalHazeState.current
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.edit_group) + " — " + (group?.group?.label ?: ""),
-                        style = MaterialTheme.typography.titleLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    NavigationBackButton()
-                },
-                scrollBehavior = scrollBehavior
-            )
+            CompositionLocalProvider(LocalHazePerformanceMode provides HazePerformanceMode.Performance) {
+                GalleryPageTopBar(
+                    title = stringResource(Res.string.edit_group) + " — " + (group?.group?.label ?: ""),
+                    hazeState = hazeState,
+                    scrolled = rememberScrolledUnderTopBar(gridState),
+                )
+            }
         }
     ) { innerPaddingValues ->
         LazyVerticalGrid(
+            state = gridState,
             modifier = Modifier
-                .padding(horizontal = 8.dp)
                 .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                .hazeSource(hazeState)
+                .padding(horizontal = 8.dp),
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(
                 top = innerPaddingValues.calculateTopPadding(),

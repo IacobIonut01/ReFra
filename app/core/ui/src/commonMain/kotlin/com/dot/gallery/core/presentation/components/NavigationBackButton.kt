@@ -40,6 +40,12 @@ fun NavigationBackButton(
     forcedAction: (() -> Unit)? = null
 ) {
     val eventHandler = LocalEventHandler.current
+    val railHost = LocalGalleryRailBackHost.current
+    if (railHost != null) {
+        // The rail shows the back button for this screen; keep its action current there.
+        RailBackRegistration(railHost, forcedAction ?: { eventHandler.navigateUpAction() })
+        return
+    }
     IconButton(
         modifier = modifier
             .then(paddingModifier)

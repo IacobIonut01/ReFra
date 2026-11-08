@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.data.dao.CategoryWithMediaCount
 import com.dot.gallery.domain.model.UriMedia
-import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.core.smart.SmartScanScheduler
@@ -29,7 +28,8 @@ class LibraryViewModel @Inject constructor(
 
     val areAiFeaturesAvailable: Boolean get() = modelManager.areAiFeaturesAvailable
 
-    val modelStatus: StateFlow<ModelStatus> = modelManager.status(ModelGroup.SEARCH)
+    val modelStatus: StateFlow<ModelStatus> = modelManager.activeSearchModelStatus()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ModelStatus.NOT_INSTALLED)
 
     val state: StateFlow<LibrarySnapshot> = source.state
 

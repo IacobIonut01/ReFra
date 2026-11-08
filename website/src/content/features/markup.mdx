@@ -1,47 +1,45 @@
 ---
 title: Markup
-summary: Draw, highlight, blur, and add text on top of a photo in the editor.
+summary: Draw, highlight, blur, pixelate, and add text on a photo in the ReFra editor, with automatic face blurring.
 area: edit
 path:
   - Media viewer
   - Edit
   - Markup
-related: [editor, save-edits]
-scenes: [editor-photo, markup-text]
+related: [editor, filters-effects, ai-models, legacy-markup]
+scenes: [studio-photo]
 order: 5
 ---
 
-The **Markup** tab in the [editor](/ReFra/features/editor) draws on top of the photo. While a markup session is open, **Apply markup** commits it and **Cancel markup** throws it away; **Save** stays disabled until the session is finished.
+**Markup** is pinned to the toolbar by default and sits in the **Retouch** group of the catalogue. Strokes and text stay editable while the tool is open; **Apply** adds the whole markup session to the recipe as one undo step.
 
-## The tools
+## Brushes and modes
 
-<PreviewCollection feature="markup" section="tools" />
+<PreviewCollection feature="markup" section="brushes-and-modes" />
 
-- **Stylus / Pen** and **Highlighter**: freehand drawing; the highlighter lays translucent strokes.
-- **Marker**: a bolder freehand stroke.
-- **Blur** and **Mosaic**: paint over areas to soften or pixelate them.
-- **Text**: tap to place, type into **Type something**, pick a colour dot, **Done**; an existing text can be **Remove**d.
-- **Eraser**: removes strokes you made.
-- **Pan**: moves around the zoomed image without drawing.
+The tabs pick the brush: **Pen**, **Highlighter**, **Blur**, **Mosaic**, and **Text**.
 
-Ink tools get a colour picker (hue, vibrancy, and saturation controls) plus a **Size** slider. The brush size runs 15 to 150 and blur/mosaic strength shows as a percentage.
+- **Pen** and **Highlighter** draw in the colour you pick from the swatch row. **Size** sets the stroke width.
+- **Blur** and **Mosaic** obscure what you paint over. They have **Size** and **Strength**.
 
-## Working with text
+The buttons under the header switch what a finger does on the photo: **Draw**, **Move and zoom** (to work on a detail), or **Erase**, which removes a whole stroke when you touch it. **Clear markup** removes every stroke and text label.
 
-<PreviewCollection feature="markup" section="text" />
+## Text
 
-1. Tap **Text**, type into **Type something**, pick a colour dot, and tap **Done**.
-2. Tap the placed text to select it. Drag its body to move it; the top-left **X** deletes it, the top-right curved arrow rotates it, and the bottom corners resize it.
-3. Two fingers on the selected text rotate and resize it together; two fingers anywhere else zoom and pan the canvas underneath.
-4. **Apply markup** keeps it; **Cancel markup** throws the whole session away.
+1. Choose **Text**, then **Add text** and type.
+2. Drag a label to move it; tap it again to edit the words.
+3. With a label selected, pick a colour from the swatch row, or tap **Remove** to delete it.
+4. Tap **Done** to finish typing.
 
-## Blur faces
+## Blur or mosaic faces
 
-When the **Face Detection** model is installed (see [AI models](/ReFra/features/ai-models)), a **Blur faces** button finds and obscures faces automatically; you can still paint over the revealed regions to touch up. Automatic blurring is a visual step, not a privacy guarantee; zoom the result and check it before sharing.
+When the **Face Detection** model is installed (see [AI models](/ReFra/features/ai-models)), **Blur** gets a **Blur faces** action and **Mosaic** gets **Mosaic faces**. It finds the faces in the photo and covers each with a stroke of the active brush. Those strokes erase and undo like any other, so you can touch up the result by hand.
+
+Automatic face detection can miss a face. Zoom in and check the result before you share it.
 
 ## Example: hide an address label
 
-1. Open the parcel photo, **Edit › Markup**.
-2. Choose **Mosaic**, set a generous size and strength, and paint until every letter of the address is covered.
-3. **Apply markup**, then **Save Copy**.
-4. Open the saved copy and zoom into the label area to confirm nothing readable leaks before sharing.
+1. Open the photo and tap **Markup**.
+2. Pick **Mosaic**, raise **Size**, and paint over the label.
+3. Switch to **Move and zoom**, zoom in, and check the edges; switch back to **Draw** for any gaps.
+4. Tap **Apply**, then save a copy.

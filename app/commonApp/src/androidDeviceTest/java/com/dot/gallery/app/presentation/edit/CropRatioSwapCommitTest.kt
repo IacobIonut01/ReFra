@@ -43,7 +43,7 @@ import com.dot.gallery.core.presentation.util.add
 
 
 /**
- * Regression coverage for #1278 — picking a preset ratio swaps the cropper through
+ * Regression coverage — picking a preset ratio swaps the cropper through
  * `AnimatedContent`, which briefly composes the old- and new-ratio subtrees together.
  * The shared `crop` flag must be consumed only by the subtree rendering the current
  * target ratio, and the reported rect must be the settled post-init geometry — never

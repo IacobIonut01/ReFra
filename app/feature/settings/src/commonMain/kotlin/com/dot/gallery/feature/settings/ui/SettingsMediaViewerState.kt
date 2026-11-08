@@ -15,5 +15,8 @@ data class SettingsMediaViewerState(
     /** Default `video_surface_rebind` (platform-conditioned: Samsung). */
     val surfaceRebindDefault: Boolean = false,
     val editApps: List<EditAppEntry> = emptyList(),
+    val videoEditApps: List<EditAppEntry> = emptyList(),
     val visualSearchTargets: List<VisualSearchTarget> = emptyList(),
+    /** Whether the subject cutout model is installed — gates the "Cut out subject" long-press option. */
+    val cutoutModelAvailable: Boolean = true,
 )

@@ -6,60 +6,59 @@
 package com.dot.gallery.feature.exif.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.DragHandle
-import com.dot.gallery.core.presentation.components.SetupButton
+import com.dot.gallery.core.presentation.components.ExpressiveSheet
+import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
+import com.dot.gallery.core.presentation.components.SheetDismissConfirmActions
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetSummaryTile
+import com.dot.gallery.core.presentation.components.SheetTextField
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.data.entity.MediaMetadata
 import com.dot.gallery.domain.model.Media
+import com.dot.gallery.domain.util.fileExtension
+import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.domain.util.isVideo
-import com.dot.gallery.ui.theme.Shapes
-import kotlinx.coroutines.launch
+import com.dot.gallery.feature.albums.ui.util.formatSize
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.exif.generated.resources.Res
 import com.dot.gallery.feature.exif.generated.resources.action_cancel
-import com.dot.gallery.feature.exif.generated.resources.action_confirm
+import com.dot.gallery.feature.exif.generated.resources.action_save
 import com.dot.gallery.feature.exif.generated.resources.description
-import com.dot.gallery.feature.exif.generated.resources.edit_metadata
-import com.dot.gallery.feature.exif.generated.resources.label
+import com.dot.gallery.feature.exif.generated.resources.edit_name_and_description
+import com.dot.gallery.feature.exif.generated.resources.media_name
 import com.dot.gallery.feature.exif.generated.resources.video_description_local_only
 
 /**
- * Label + description editor sheet. Applying the update (rename, description
- * write, media scan) is the caller's job — the content reports the intent via
- * [onSave].
+ * Name + description editor sheet: a tile for the file being edited, a filled Name field, a
+ * multi-line Description field and, for videos, a notice that the description stays on the
+ * device. Applying the update (rename, description write, media scan) is the caller's job —
+ * the content reports the intent via [onSave].
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MetadataEditSheetContent(
     state: AppBottomSheetState,
@@ -68,131 +67,93 @@ fun MetadataEditSheetContent(
     onSave: (newLabel: String, imageDescription: String?) -> Unit,
     onCancel: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     var imageDescription by rememberSaveable(metadata) {
         mutableStateOf(metadata?.imageDescription)
     }
     var newLabel by rememberSaveable { mutableStateOf(media.label) }
+    val title = stringResource(Res.string.edit_name_and_description)
+    val changed = newLabel != media.label ||
+        (imageDescription.orEmpty() != metadata?.imageDescription.orEmpty())
 
-    if (state.isVisible) {
-        ModalBottomSheet(
-            sheetState = state.sheetState,
-            onDismissRequest = {
-                scope.launch { state.hide() }
-            },
-            dragHandle = { DragHandle() },
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .imePadding()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Text(
-                    text = stringResource(Res.string.edit_metadata),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleLarge,
+    ExpressiveSheet(sheetState = state, paneTitle = title) {
+        SheetHeader(title = title)
+        SheetSummaryTile(
+            title = media.label,
+            summary = listOfNotNull(
+                media.fileExtension.uppercase().takeIf { it.isNotBlank() },
+                media.size.takeIf { it > 0 }?.let { formatSize(it) },
+            ).joinToString(" · ").ifEmpty { null },
+            leading = {
+                Box(
                     modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth()
-                )
-
-                TextField(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth(),
-                    value = newLabel,
-                    onValueChange = { newValue ->
-                        newLabel = newValue
-                    },
-                    label = {
-                        Text(text = stringResource(Res.string.label))
-                    },
-                    singleLine = true,
-                    shape = Shapes.large,
-                    colors = TextFieldDefaults.colors(
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent
-                    )
-                )
-
-                TextField(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .height(112.dp),
-                    value = imageDescription ?: "",
-                    onValueChange = { newValue ->
-                        imageDescription = newValue
-                    },
-                    label = {
-                        Text(text = stringResource(Res.string.description))
-                    },
-                    shape = Shapes.large,
-                    colors = TextFieldDefaults.colors(
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent
-                    )
-                )
-
-                // Show info message for videos that description is stored locally only
-                AnimatedVisibility(visible = media.isVideo) {
-                    Row(
-                        modifier = Modifier
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = stringResource(Res.string.video_description_local_only),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalArrangement = Arrangement
-                        .spacedBy(24.dp, Alignment.CenterHorizontally)
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
-                    val tertiaryOnContainer = MaterialTheme.colorScheme.onTertiaryContainer
-                    SetupButton(
-                        onClick = onCancel,
-                        containerColor = tertiaryContainer,
-                        contentColor = tertiaryOnContainer,
-                        applyHorizontalPadding = false,
-                        applyBottomPadding = false,
-                        applyInsets = false,
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(Res.string.action_cancel)
+                    Icon(
+                        imageVector = Icons.Outlined.Image,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    SetupButton(
-                        onClick = { onSave(newLabel, imageDescription) },
-                        applyHorizontalPadding = false,
-                        applyBottomPadding = false,
-                        applyInsets = false,
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(Res.string.action_confirm)
+                    val model = media.getUri()
+                    LocalMediaImageRenderer.current.RenderImage(
+                        modifier = Modifier.matchParentSize(),
+                        model = model,
+                        contentScale = ContentScale.Crop,
+                        contentDescription = null,
+                        signature = model,
                     )
                 }
+            },
+            modifier = Modifier.padding(bottom = 12.dp),
+        )
+        SheetTextField(
+            value = newLabel,
+            onValueChange = { newLabel = it },
+            label = stringResource(Res.string.media_name),
+        )
+        SheetTextField(
+            value = imageDescription ?: "",
+            onValueChange = { imageDescription = it },
+            label = stringResource(Res.string.description),
+            singleLine = false,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .heightIn(min = 112.dp),
+        )
+
+        // Video descriptions live in the app database only; say so before the user types one.
+        AnimatedVisibility(visible = media.isVideo) {
+            Row(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    text = stringResource(Res.string.video_description_local_only),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
             }
-            Spacer(modifier = Modifier)
         }
+
+        SheetDismissConfirmActions(
+            dismissText = stringResource(Res.string.action_cancel),
+            onDismiss = onCancel,
+            confirmText = stringResource(Res.string.action_save),
+            onConfirm = { onSave(newLabel, imageDescription) },
+            confirmEnabled = changed && newLabel.isNotBlank(),
+        )
     }
 }

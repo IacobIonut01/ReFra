@@ -1,0 +1,33 @@
+{
+  "scope": "Lead-authored read-only Figma design checks; not runtime accessibility certification",
+  "fileKey": "UagS4q8hC0lpqw3SMGRu08",
+  "pageId": "9:1425",
+  "summary": {
+    "frames": 81,
+    "coreInventoryFrames": 80,
+    "auxiliarySpeedRampFrames": 1,
+    "visibleNamedHitTargets": 728,
+    "visibleTextNodes": 1449,
+    "visibleImageNodes": 185
+  },
+  "checks": {
+    "namedTargetsBelow47_5DesignPixels": 0,
+    "visibleTextBelow12DesignPixels": 0,
+    "visibleGenericLabelButtonPlaceholders": 0,
+    "zeroSizedStructuralFrames": 0,
+    "topLevelVerticalFlowOverflow": 0
+  },
+  "exceptions": [
+    "Decorative spacers and zero-valued audio meter foreground levels are not structural content containers.",
+    "Targets were assessed from named design hit regions. Native touch dispatch, focus traversal and screen-reader semantics require implementation testing."
+  ],
+  "floatingPanelContrast": {
+    "method": "sRGB relative luminance, 88% panel paint composited over black and white backdrop extrema",
+    "darkPrimaryMinimum": 8.72,
+    "darkSecondaryMinimum": 6.6,
+    "lightPrimaryMinimum": 11.34,
+    "lightSecondaryMinimum": 6.19,
+    "scope": "Specified panel/text token combinations, not every pixel or every state in the file"
+  },
+  "visualReview": "All initial contact strips and wide layouts were reviewed. Consolidated corrections and targeted confirmation repairs were applied; current frame captures are the visual evidence."
+}

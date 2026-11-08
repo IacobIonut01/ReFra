@@ -18,7 +18,6 @@ import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -26,9 +25,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDateRangePickerState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,12 +34,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.logging.LogEntry
 import com.dot.gallery.core.logging.formatLogClock
 import com.dot.gallery.core.presentation.components.AppSearchField
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.ui.components.settings
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import kotlinx.coroutines.launch
@@ -55,6 +50,11 @@ import com.dot.gallery.feature.settings.generated.resources.dev_pick_range
 import com.dot.gallery.feature.settings.generated.resources.dev_search_hint
 import com.dot.gallery.feature.settings.generated.resources.dev_session_logs
 import com.dot.gallery.feature.settings.generated.resources.ok
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,8 +80,7 @@ fun SessionLogsContent(
         }
     }
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
     // The settings{} DSL lambda is not composable — feed items and labels are
     // resolved here so LogPreference rows can be built inside it.
     val feed = remember(state.entries) { buildLogFeed(state.entries) }
@@ -91,20 +90,17 @@ fun SessionLogsContent(
     val groupsHeader = stringResource(Res.string.dev_mode_by_area)
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.dev_session_logs)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(Res.string.dev_session_logs),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             contentPadding = PaddingValues(
                 top = padding.calculateTopPadding(),
                 bottom = padding.calculateBottomPadding() + 32.dp

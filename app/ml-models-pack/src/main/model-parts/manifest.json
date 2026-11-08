@@ -10,6 +10,26 @@
             ],
             "sha256": "ffe014a45c9488506719d37fd578ece6661bb385535b36e8039975fa5d4683db",
             "size": 136619444
+        },
+        {
+            "asset": "model_q4.onnx_data",
+            "sourceDir": "src/main/assets",
+            "parts": [
+                "model_q4.onnx_data.part000",
+                "model_q4.onnx_data.part001"
+            ],
+            "sha256": "c3975f2d1ab7a1878ae31a7d7a9b7804a827aff3800b60dfceafce21cac3df49",
+            "size": 174028800
+        },
+        {
+            "asset": "vision_encoder_q4.onnx_data",
+            "sourceDir": "src/main/assets",
+            "parts": [
+                "vision_encoder_q4.onnx_data.part000",
+                "vision_encoder_q4.onnx_data.part001"
+            ],
+            "sha256": "0a9d6c927334f152a33dd90874f65d6ea5228999abe6a450d3f7813677fa704c",
+            "size": 108957696
         }
     ]
 }

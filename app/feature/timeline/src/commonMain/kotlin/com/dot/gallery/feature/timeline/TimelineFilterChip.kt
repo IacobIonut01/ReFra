@@ -29,7 +29,7 @@ fun TimelineFilterChip(
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
-        else MaterialTheme.colorScheme.surface,
+        else MaterialTheme.colorScheme.surfaceContainerHighest,
         label = "chipBackground"
     )
     val contentColor by animateColorAsState(
@@ -38,8 +38,8 @@ fun TimelineFilterChip(
         label = "chipContent"
     )
     val borderColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.outlineVariant,
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHighest,
         label = "chipBorder"
     )
 

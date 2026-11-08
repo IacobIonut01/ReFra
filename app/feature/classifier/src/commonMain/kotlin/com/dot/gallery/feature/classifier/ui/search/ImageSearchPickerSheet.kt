@@ -96,6 +96,7 @@ import com.dot.gallery.feature.classifier.generated.resources.header_today
 import com.dot.gallery.feature.classifier.generated.resources.header_yesterday
 import com.dot.gallery.feature.classifier.generated.resources.no_media_found
 import com.dot.gallery.feature.classifier.generated.resources.search_by_image
+import com.dot.gallery.feature.classifier.generated.resources.search_by_image_subtitle
 import com.dot.gallery.feature.classifier.generated.resources.timeline
 
 
@@ -140,7 +141,7 @@ fun ImageSearchPickerSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 0.dp,
         dragHandle = { DragHandle() },
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
@@ -183,20 +184,24 @@ fun ImageSearchPickerSheet(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                                .padding(start = 24.dp, end = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.ImageSearch,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = stringResource(Res.string.search_by_image),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f)
-                            )
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(Res.string.search_by_image),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = stringResource(Res.string.search_by_image_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             IconButton(onClick = onDismiss) {
                                 Icon(
                                     imageVector = Icons.Outlined.Close,
@@ -204,29 +209,21 @@ fun ImageSearchPickerSheet(
                                 )
                             }
                         }
-                        // Pill tabs
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 8.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh
+                        // Source chips
+                        Row(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                PickerPillTab(
-                                    selected = selectedTabIndex == 0,
-                                    text = stringResource(Res.string.timeline),
-                                    onClick = { selectedTabIndex = 0 }
-                                )
-                                PickerPillTab(
-                                    selected = selectedTabIndex == 1,
-                                    text = stringResource(Res.string.albums),
-                                    onClick = { selectedTabIndex = 1 }
-                                )
-                            }
+                            PickerPillTab(
+                                selected = selectedTabIndex == 0,
+                                text = stringResource(Res.string.timeline),
+                                onClick = { selectedTabIndex = 0 }
+                            )
+                            PickerPillTab(
+                                selected = selectedTabIndex == 1,
+                                text = stringResource(Res.string.albums),
+                                onClick = { selectedTabIndex = 1 }
+                            )
                         }
                     }
                 }
@@ -448,40 +445,44 @@ private fun ImagePickerAlbumCell(
     }
 }
 
+/** Source chip: primary container with 12 dp corners when selected, a pill otherwise. */
 @Composable
-private fun RowScope.PickerPillTab(
+private fun PickerPillTab(
     selected: Boolean,
     text: String,
     onClick: () -> Unit
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
         label = "pillTabBg"
     )
     val textColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
         else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "pillTabText"
     )
+    val shape = if (selected) RoundedCornerShape(12.dp) else CircleShape
     Surface(
         modifier = Modifier
-            .weight(1f)
-            .heightIn(min = 48.dp)
-            .clip(CircleShape)
+            .heightIn(min = 40.dp)
+            .clip(shape)
             .selectable(
                 selected = selected,
                 role = Role.Tab,
                 onClick = onClick,
             ),
-        shape = CircleShape,
+        shape = shape,
         color = backgroundColor
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.labelLarge,
-            color = textColor,
-            textAlign = TextAlign.Center
-        )
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.heightIn(min = 40.dp)) {
+            Text(
+                text = text,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.labelLarge,
+                color = textColor,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

@@ -247,7 +247,7 @@ object TiffImageDecoder {
      * Used by the RAW Sketch decoder, which never reaches [decode]'s TIFF-MIME gate.
      */
     fun decodePreview(bytes: ByteArray, reqW: Int, reqH: Int): Bitmap? {
-        // #1054 safety net: if the "RAW/TIFF" container is actually a standard natively-decodable
+        // safety net: if the "RAW/TIFF" container is actually a standard natively-decodable
         // image (mislabeled by MediaStore), decode it directly at full resolution instead of pulling
         // a tiny embedded preview / EXIF thumbnail. Guards against any routing that slips past the
         // MIME/header checks upstream.
@@ -290,7 +290,7 @@ object TiffImageDecoder {
 
     /**
      * Full decode (downsampled to the requested size) of a standard natively-decodable image
-     * (JPEG/PNG/WebP/GIF/BMP) via [BitmapFactory]. Used by [decodePreview]'s #1054 safety net when a
+     * (JPEG/PNG/WebP/GIF/BMP) via [BitmapFactory]. Used by [decodePreview]'s safety net when a
      * file mislabeled as RAW/TIFF is actually a standard image.
      */
     private fun decodeStandard(bytes: ByteArray, reqW: Int, reqH: Int): Bitmap? {

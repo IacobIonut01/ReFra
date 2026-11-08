@@ -22,7 +22,7 @@ import com.dot.gallery.R
 /**
  * Collection adapter for the grid media widget. Each cell is its own
  * RemoteViews item carrying a fill-in intent with the picked photo's media id,
- * so a tap opens THAT photo instead of just the app (#1268).
+ * so a tap opens THAT photo instead of just the app.
  */
 class GridMediaWidgetService : RemoteViewsService() {
 

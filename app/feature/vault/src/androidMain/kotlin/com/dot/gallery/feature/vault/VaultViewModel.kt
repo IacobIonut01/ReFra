@@ -113,7 +113,7 @@ open class VaultViewModel @Inject constructor(
     )
 
     override fun onCleared() {
-        // Free decrypted vault temps when leaving the vault (#1282) — the periodic worker
+        // Free decrypted vault temps when leaving the vault — the periodic worker
         // covers stragglers, but there's no reason to keep plaintext alive while the user
         // browses the plain library.
         Thread { VaultDecryptStore.sweep(appContext) }.start()
@@ -161,15 +161,27 @@ open class VaultViewModel @Inject constructor(
 
     fun deleteVault(vault: Vault) {
         viewModelScope.launch(Dispatchers.IO) {
+            var deleted = false
             repository.deleteVault(
                 vault = vault,
                 onSuccess = {
+                    deleted = true
                     currentVault.value = null
                 },
                 onFailed = {
                     printError("Failed to delete vault: $it")
                 }
             )
+            // Deleting a vault must also remove its credential and lockout state; otherwise a
+            // later restore of a backup with the same UUID silently inherits the old password.
+            if (deleted) {
+                runCatching {
+                    com.dot.gallery.feature.vault.utils.VaultPasswordManager
+                        .clearVaultSecrets(appContext, vault.uuid)
+                }.onFailure {
+                    printError("Failed to clear vault credentials: ${it.message}")
+                }
+            }
         }
     }
 
@@ -249,7 +261,7 @@ open class VaultViewModel @Inject constructor(
                 if (outcome.leftoverUris.isNotEmpty()) {
                     _pendingDeletions.emit(outcome.leftoverUris)
                 }
-                // Report the count that actually landed in the vault (#1282) — the worker
+                // Report the count that actually landed in the vault — the worker
                 // records per-item results; fall back to the requested count for older data.
                 val succeeded = outcome.succeededCount
                     ?: itemCount.coerceAtLeast(outcome.leftoverUris.size)

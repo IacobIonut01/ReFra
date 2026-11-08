@@ -96,7 +96,7 @@ class LibrarySectionsEditCardTest {
             }
         }
 
-        // Disabled rows explain themselves instead of silently refusing (#1262 —
+        // Disabled rows explain themselves instead of silently refusing (
         // the section can be hidden while people are still reachable elsewhere).
         rule.onNodeWithText(string(Res.string.library_section_people_unavailable))
             .assertIsDisplayed()

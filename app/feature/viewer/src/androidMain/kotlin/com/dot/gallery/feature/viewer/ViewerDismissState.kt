@@ -12,8 +12,10 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.dot.gallery.domain.model.Media
 import kotlinx.coroutines.CancellationException
@@ -77,6 +79,7 @@ class ViewerDismissState(
     var animationsEnabled: Boolean = true
 
     private var sizePx by mutableStateOf(IntSize.Zero)
+    private var originPx by mutableStateOf(Offset.Zero)
     private var dragOffsetY by mutableFloatStateOf(0f)
     private var gestureActive by mutableStateOf(false)
 
@@ -162,6 +165,22 @@ class ViewerDismissState(
     }
 
     /**
+     * Root position of the viewer box. It is not the window origin when the viewer shares the
+     * window with the gallery, and it moves while that pane slides in.
+     */
+    fun updateOrigin(origin: Offset) {
+        originPx = origin
+    }
+
+    /** Viewer bounds in root coordinates, the space cell bounds and flights are expressed in. */
+    private fun viewerBounds(offsetY: Float = 0f) = Rect(
+        left = originPx.x,
+        top = originPx.y + offsetY,
+        right = originPx.x + sizePx.width,
+        bottom = originPx.y + sizePx.height + offsetY,
+    )
+
+    /**
      * Deterministic enter flight for the overlay open: morphs the media thumbnail from the
      * source cell's live bounds to fullscreen while the container's fade-in runs underneath,
      * then hands the visual back to the in-place element. Replaces the shared-element bounds
@@ -177,12 +196,18 @@ class ViewerDismissState(
         val b = bridge ?: return
         if (!animationsEnabled || gestureActive || committed || backActive) return
         // The screen's effect can resume before the first layout pass — wait for the box size.
-        val size = withTimeoutOrNull(800) {
+        withTimeoutOrNull(800) {
             snapshotFlow { sizePx }.first { it.width > 0 && it.height > 0 }
         } ?: return
-        val full = Rect(0f, 0f, size.width.toFloat(), size.height.toFloat())
         b.suppressedElementKey = key
-        b.flight = ViewerDismissFlight(key = key, media = media, bounds = cellBounds, isEnter = true)
+        b.flight = ViewerDismissFlight(
+            key = key,
+            media = media,
+            bounds = cellBounds,
+            isEnter = true,
+            sourceCornerRadius = b.cellCornerRadii[key] ?: 0.dp,
+            targetCornerRadius = b.targetCornerRadii[key] ?: 0.dp,
+        )
         val progress = Animatable(0f)
         try {
             progress.animateTo(
@@ -194,6 +219,8 @@ class ViewerDismissState(
                     // return flight armed mid-enter) — this coroutine only ever writes
                     // its own enter flight.
                     if (f.isEnter) {
+                        // Read live: a split viewer pane is still sliding into place.
+                        val full = viewerBounds()
                         f.bounds = Rect(
                             left = lerp(cellBounds.left, full.left, value),
                             top = lerp(cellBounds.top, full.top, value),
@@ -263,13 +290,15 @@ class ViewerDismissState(
             // The exit fade runs underneath the flight so the card keeps the release offset;
             // the in-place media is hidden (isDismissedVisualHidden) and the root-level flight
             // layer carries the visual to the cell. Backdrop/chrome fade via progress.
-            val release = Rect(
-                left = 0f,
-                top = dragOffsetY,
-                right = sizePx.width.toFloat(),
-                bottom = sizePx.height + dragOffsetY,
+            val release = viewerBounds(dragOffsetY)
+            val flightKey = armedKey!!
+            b.flight = ViewerDismissFlight(
+                key = flightKey,
+                media = media,
+                bounds = release,
+                sourceCornerRadius = b.cellCornerRadii[flightKey] ?: 0.dp,
+                targetCornerRadius = b.targetCornerRadii[flightKey] ?: 0.dp,
             )
-            b.flight = ViewerDismissFlight(key = armedKey!!, media = media, bounds = release)
             launch {
                 dragAnimation.animateTo(
                     targetValue = heightPx * DISMISS_FADE_DISTANCE_FRACTION,
@@ -360,8 +389,14 @@ class ViewerDismissState(
         backActive = true
         hiddenElementKey = elementKey
         b.suppressedElementKey = elementKey
-        val full = Rect(0f, 0f, sizePx.width.toFloat(), sizePx.height.toFloat())
-        b.flight = ViewerDismissFlight(key = elementKey, media = media, bounds = full)
+        val full = viewerBounds()
+        b.flight = ViewerDismissFlight(
+            key = elementKey,
+            media = media,
+            bounds = full,
+            sourceCornerRadius = b.cellCornerRadii[elementKey] ?: 0.dp,
+            targetCornerRadius = b.targetCornerRadii[elementKey] ?: 0.dp,
+        )
         fun Rect.lerpTo(other: Rect, t: Float) = Rect(
             left = lerp(left, other.left, t),
             top = lerp(top, other.top, t),

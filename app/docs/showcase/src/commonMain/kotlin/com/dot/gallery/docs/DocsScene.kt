@@ -59,6 +59,18 @@ data class DocsScene(
      * top scrims still paint from y0 and only the content reserves the space.
      */
     val handlesContentPadding: Boolean = false,
+    /**
+     * States the capture test reaches by swiping the scene's content up before the screenshot,
+     * for screens that take no initial scroll position: their transparent blur top bar only
+     * shows once content has scrolled under it. The live embed shows these states at rest.
+     */
+    val swipedStates: List<String> = emptyList(),
+    /**
+     * The app themes this scene is captured in. A surface that only ships one
+     * theme (the ReFra editor is dark-only for now) lists just that one, so a
+     * light-and-dark sweep never records frames the app cannot show.
+     */
+    val themes: List<String> = listOf("light", "dark"),
     val content: @Composable (state: String?) -> Unit,
 ) {
     init {
@@ -70,6 +82,12 @@ data class DocsScene(
         }
         require(recordedStates.all { it in states }) {
             "Scene '$id' recordedStates must be declared in states, got $recordedStates"
+        }
+        require(swipedStates.all { it in states }) {
+            "Scene '$id' swipedStates must be declared in states, got $swipedStates"
+        }
+        require(themes.isNotEmpty() && themes.all { it == "light" || it == "dark" }) {
+            "Scene '$id' themes must be a non-empty subset of light and dark, got $themes"
         }
     }
 }

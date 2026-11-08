@@ -6,6 +6,7 @@
 package com.dot.gallery.core.smart
 
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.core.ml.FaceModel
 import com.dot.gallery.data.entity.CloudMediaEntity
 import com.dot.gallery.data.entity.DetectedFaceEntity
 import com.dot.gallery.data.entity.MediaFeature
@@ -88,6 +89,31 @@ class SmartScanPlanTest {
     }
 
     @Test
+    fun turningOffChargingOnlyLetsBackgroundHeavyRunsRunOnBattery() {
+        val heavy = SmartScanPlan.phasesFor(SmartScanFeature.PERSONS.bit)
+        val relaxed = smartScanConstraintsFor(heavy, userVisible = false, chargingOnly = false)
+        assertEquals(false, relaxed.requiresCharging)
+        assertTrue(SystemConstraint.REQUIRE_BATTERY_NOT_LOW in relaxed.systemConstraints)
+        assertEquals(true, smartScanConstraintsFor(heavy, userVisible = false, chargingOnly = true).requiresCharging)
+    }
+
+    @Test
+    fun standardFaceTierKeepsTheRevisionsWrittenBeforeTiers() {
+        assertEquals("face-v3:d:e", faceIndexRevision(FaceModel.STANDARD, "d", "e"))
+        assertEquals("cluster-v2:d:e", faceClusterRevision(FaceModel.STANDARD, "d", "e"))
+        assertEquals("face-v3:d:e:fast-v1", faceIndexRevision(FaceModel.FAST, "d", "e"))
+        assertEquals("cluster-v2:d:e:accurate-v1", faceClusterRevision(FaceModel.ACCURATE, "d", "e"))
+    }
+
+    @Test
+    fun unpublishedFaceTiersResolveToTheDefault() {
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve(null))
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve("FAST"))
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve("unknown"))
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve("STANDARD"))
+    }
+
+    @Test
     fun nullRunRequestsNoFeature() {
         assertEquals(false, SmartScanPlan.runRequestsFeature(null, SmartScanFeature.CATEGORIES))
         assertEquals(false, SmartScanPlan.runRequestsFeature(null, SmartScanFeature.METADATA))
@@ -145,7 +171,7 @@ class SmartScanPlanTest {
     fun automaticScanIsSkippedOnlyWhenMediaAndProcessorRevisionsAreCurrent() {
         val expected = mapOf(
             SmartScanPhase.METADATA to "metadata-v1",
-            SmartScanPhase.SEARCH_INDEX to "clip-v2"
+            SmartScanPhase.SEARCH_INDEX to "eg2-v1"
         )
 
         assertEquals(true, SmartScanPlan.isAutomaticScanCurrent(true, expected, expected))
@@ -155,7 +181,7 @@ class SmartScanPlanTest {
             SmartScanPlan.isAutomaticScanCurrent(
                 true,
                 expected,
-                expected + (SmartScanPhase.SEARCH_INDEX to "clip-v1")
+                expected + (SmartScanPhase.SEARCH_INDEX to "clip-v2")
             )
         )
         assertEquals(
@@ -449,32 +475,56 @@ class SmartScanPlanTest {
         val embedding = ImageEmbedding(
             id = 7L,
             date = 100L,
-            embedding = FloatArray(512) { 1f / sqrt(512f) }
+            embedding = FloatArray(768) { 1f / sqrt(768f) }
         )
 
-        assertEquals(true, canAdoptExistingSearchEmbedding(embedding, 100L, "clip-v2"))
-        assertEquals(false, canAdoptExistingSearchEmbedding(embedding, 101L, "clip-v2"))
-        assertEquals(true, canAdoptExistingSearchEmbedding(embedding.copy(resultRevision = "clip-v2"), 100L, "clip-v2"))
-        assertEquals(false, canAdoptExistingSearchEmbedding(embedding.copy(resultRevision = "clip-v1"), 100L, "clip-v2"))
+        assertEquals(true, canAdoptExistingSearchEmbedding(embedding, 100L, "eg2-v1", 768))
+        assertEquals(false, canAdoptExistingSearchEmbedding(embedding, 101L, "eg2-v1", 768))
+        assertEquals(true, canAdoptExistingSearchEmbedding(embedding.copy(resultRevision = "eg2-v1"), 100L, "eg2-v1", 768))
+        assertEquals(false, canAdoptExistingSearchEmbedding(embedding.copy(resultRevision = "clip-v2"), 100L, "eg2-v1", 768))
+    }
+
+    @Test
+    fun adoptionIsScopedToTheActiveEnginesDimension() {
+        // Both engines' rows are dimension-valid in the table — adoption only succeeds
+        // for rows matching the dimension of the engine driving the scan.
+        val clipEmbedding = ImageEmbedding(
+            id = 7L,
+            date = 100L,
+            embedding = FloatArray(512) { 1f / sqrt(512f) },
+            resultRevision = "clip-v2"
+        )
+        val eg2Embedding = ImageEmbedding(
+            id = 8L,
+            date = 100L,
+            embedding = FloatArray(768) { 1f / sqrt(768f) },
+            resultRevision = "eg2-v1"
+        )
+
+        // CLIP rows are adoptable while CLIP is active, never under the 768-d EG2 check.
+        assertEquals(true, canAdoptExistingSearchEmbedding(clipEmbedding, 100L, "clip-v2", 512))
+        assertEquals(false, canAdoptExistingSearchEmbedding(clipEmbedding, 100L, "clip-v2", 768))
+        assertEquals(true, canAdoptExistingSearchEmbedding(eg2Embedding, 100L, "eg2-v1", 768))
+        assertEquals(false, canAdoptExistingSearchEmbedding(eg2Embedding, 100L, "eg2-v1", 512))
     }
 
     @Test
     fun invalidExistingSearchEmbeddingMustBeRebuilt() {
         assertEquals(
             false,
-            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf()), 1L, "clip-v2")
+            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf()), 1L, "clip-v2", 512)
         )
         assertEquals(
             false,
-            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf(Float.NaN)), 1L, "clip-v2")
+            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf(Float.NaN)), 1L, "clip-v2", 512)
         )
         assertEquals(
             false,
-            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf(0f, 0f)), 1L, "clip-v2")
+            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf(0f, 0f)), 1L, "clip-v2", 512)
         )
         assertEquals(
             false,
-            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf(0.6f, 0.8f)), 1L, "clip-v2")
+            canAdoptExistingSearchEmbedding(ImageEmbedding(1L, 1L, floatArrayOf(0.6f, 0.8f)), 1L, "clip-v2", 512)
         )
     }
 
@@ -491,6 +541,63 @@ class SmartScanPlanTest {
                 mappings.map { it.copy(resultRevision = "categories-v1") },
                 setOf(7L),
                 "categories-v2"
+            )
+        )
+    }
+
+    @Test
+    fun categoryResultsForADifferentSourceAreNotAdopted() {
+        val mappings = listOf(
+            MediaCategory(
+                mediaId = 7L,
+                categoryId = 2L,
+                similarityScore = 0.8f,
+                resultRevision = "categories-v2"
+            )
+        )
+
+        assertEquals(
+            false,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = false,
+                storedSourceRevision = "embeddings:1:old-terms:0.2:",
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L, 8L),
+                revision = "categories-v2"
+            )
+        )
+        assertEquals(
+            false,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = false,
+                storedSourceRevision = null,
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L),
+                revision = "categories-v2"
+            )
+        )
+        assertEquals(
+            false,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = true,
+                storedSourceRevision = "embeddings:1:beaches:0.2:",
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L),
+                revision = "categories-v2"
+            )
+        )
+        assertEquals(
+            true,
+            shouldAdoptExistingCategoryResults(
+                fullRefresh = false,
+                storedSourceRevision = "embeddings:1:beaches:0.2:",
+                source = "embeddings:1:beaches:0.2:",
+                mappings = mappings,
+                validMediaIds = setOf(7L),
+                revision = "categories-v2"
             )
         )
     }

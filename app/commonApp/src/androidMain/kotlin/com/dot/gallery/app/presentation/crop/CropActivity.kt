@@ -76,7 +76,7 @@ import com.dot.gallery.generated.resources.editor_crop
 /**
  * Handles the legacy `com.android.camera.action.CROP` intent so ReFra can serve as a crop provider
  * for callers such as the Settings AvatarPicker (Settings → System → Users → profile picture),
- * matching Gallery2/Google Photos (#997).
+ * matching Gallery2/Google Photos.
  *
  * Contract (subset used by AvatarPicker and most callers):
  * - source image: [android.content.Intent.getData]

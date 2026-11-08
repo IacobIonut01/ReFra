@@ -22,7 +22,7 @@ import me.tatarka.inject.annotations.Inject
 
 /**
  * Legacy ClassifierWorker that now delegates to the new CategoryWorker.
- * This worker is kept for backward compatibility but uses the new CLIP-based
+ * This worker is kept for backward compatibility but uses the EmbeddingGemma-based
  * category classification system instead of the old ONNX mobile_ica model.
  *
  * @deprecated Use CategoryWorker directly via startCategoryClassification()

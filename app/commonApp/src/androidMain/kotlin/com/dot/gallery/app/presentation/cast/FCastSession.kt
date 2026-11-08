@@ -523,7 +523,6 @@ class FCastSession @Inject constructor(
         }
     }
 
-    // --- HTTP Server ---
 
     private fun startHttpServer() {
         if (httpServer != null) return

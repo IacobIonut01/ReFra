@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -37,11 +38,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.presentation.components.OptionPosition.ALONE
+
+const val OptionAttentionTag = "Option.Attention"
 
 
 @Composable
@@ -53,6 +57,7 @@ fun OptionButton(
     textContainer: @Composable () -> Unit,
     summaryContainer: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
+    attention: Boolean = false,
     position: OptionPosition = ALONE,
     onClick: () -> Unit
 ) {
@@ -88,6 +93,7 @@ fun OptionButton(
         }
         if (summaryContainer != null) {
             Column(
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 ProvideTextStyle(
@@ -109,7 +115,8 @@ fun OptionButton(
             }
         } else {
             Box(
-                contentAlignment = Alignment.Center
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.CenterStart
             ) {
                 ProvideTextStyle(
                     value = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
@@ -117,6 +124,16 @@ fun OptionButton(
                     textContainer()
                 }
             }
+        }
+        if (attention) {
+            // Same unread dot the header's overflow button shows, so the reason it is marked
+            // stays visible once the menu is open.
+            Badge(
+                containerColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .testTag(OptionAttentionTag)
+            )
         }
     }
 }

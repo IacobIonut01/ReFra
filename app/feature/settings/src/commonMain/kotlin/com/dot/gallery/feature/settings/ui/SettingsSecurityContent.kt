@@ -5,6 +5,11 @@
 
 package com.dot.gallery.feature.settings.ui
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Dataset
+import androidx.compose.material.icons.outlined.FolderSpecial
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -149,6 +154,8 @@ fun SettingsSecurityContent(
             BackHandler { detailKey = null }
             PrivateFolderDetailScreen(
                 currentUri = privateFolderUri,
+                stats = if (privateFolderUri.isNotEmpty()) actions.privateFolderStats(privateFolderUri) else null,
+                onOpenFolder = actions.onOpenPrivateFolder,
                 onPickFolder = actions.onPickPrivateFolder,
                 onClearFolder = {
                     actions.onClearPrivateFolder()
@@ -211,6 +218,7 @@ private fun SecurityListScreen(
         val metadataIsolationPref = rememberPreference(
             metadataIsolationMode,
             title = stringResource(Res.string.security_metadata_isolation),
+            icon = Icons.Outlined.Dataset,
             summary = metadataIsolationSummary,
             onClick = { onDetailClick(DETAIL_METADATA_ISOLATION) },
             screenPosition = Position.Top
@@ -219,6 +227,7 @@ private fun SecurityListScreen(
         val sandboxedDecodePref = rememberSwitchPreference(
             sandboxedDecode,
             title = stringResource(Res.string.security_sandboxed_decode),
+            icon = Icons.Outlined.Shield,
             summary = stringResource(Res.string.security_sandboxed_decode_summary) + enforcedSuffix,
             isChecked = sandboxedDecode,
             onCheck = onSandboxedDecodeChange,
@@ -242,6 +251,7 @@ private fun SecurityListScreen(
         val encryptionStatusPref = rememberPreference(
             encryptionState,
             title = stringResource(Res.string.security_encryption_status),
+            icon = Icons.Outlined.Lock,
             summary = encryptionSummary,
             enabled = false,
             onClick = {},
@@ -251,11 +261,12 @@ private fun SecurityListScreen(
         val privateFolderSummary = if (privateFolderUri.isEmpty()) {
             stringResource(Res.string.security_private_folder_summary_none)
         } else {
-            stringResource(Res.string.security_private_folder_summary, privateFolderUri)
+            stringResource(Res.string.security_private_folder_summary, privateFolderDisplayPath(privateFolderUri))
         }
         val privateFolderPref = rememberPreference(
             privateFolderUri,
             title = stringResource(Res.string.security_private_folder),
+            icon = Icons.Outlined.FolderSpecial,
             summary = privateFolderSummary,
             onClick = { onDetailClick(DETAIL_PRIVATE_FOLDER) },
             screenPosition = Position.Bottom

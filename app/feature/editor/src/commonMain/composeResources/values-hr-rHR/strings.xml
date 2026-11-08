@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Veličina</string>
     <string name="editor_brush_strength">Snaga</string>
     <string name="editor_blur_faces">Zamagli lica</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bitni)</string>
+    <string name="raw_export_tiff16">TIFF (16-bitni)</string>
+    <string name="raw_export_choose_format">Sačuvaj razvijeni tekst</string>
+    <string name="raw_export_choose_format_subtitle">Odaberite format za vaš razvijeni RAW</string>
+    <string name="raw_export_tiff_unavailable">TIFF zadržava punu dubinu bita, ali ne može uključiti obrezivanje, filtre ili oznake — uklonite ih za izvoz TIFF-a.</string>
+    <string name="editor_mosaic_faces">Mozaik lica</string>
+    <string name="cutout_no_object">Pri dugom pritisku nije detektiran nijedan objekt.</string>
+    <string name="cutout_init_failed">Nije uspjelo inicijalizirati motor za izrezivanje</string>
 </resources>
