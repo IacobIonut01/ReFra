@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 native_sha256() {
+    # GNU coreutils prefixes the output with a backslash when the file name itself contains
+    # one (Windows paths passed in through the environment), so drop that escape marker.
     if command -v sha256sum >/dev/null 2>&1; then
-        sha256sum "$1" | awk '{print $1}'
+        sha256sum "$1" | awk '{print $1}' | sed 's/^\\//'
     else
         shasum -a 256 "$1" | awk '{print $1}'
     fi
@@ -79,13 +81,43 @@ native_prepare_source() {
             echo "ERROR: SHA-256 mismatch for $key: expected $expected_sha, got $actual_sha" >&2
             exit 1
         fi
-        tar -xzf "$archive" --strip-components=1 -C "$destination"
+        # GNU tar reads a Windows drive path ("D:/...") as a remote host spec; keep it local.
+        # bsdtar (macOS) neither needs nor accepts --force-local.
+        if tar --version 2>/dev/null | grep -q "GNU tar"; then
+            tar --force-local -xzf "$archive" --strip-components=1 -C "$destination"
+        else
+            tar -xzf "$archive" --strip-components=1 -C "$destination"
+        fi
     fi
 
     if [ ! -e "$destination/$sentinel" ]; then
         echo "ERROR: Invalid $key source; missing $sentinel in $destination" >&2
         exit 1
     fi
+}
+
+# Reads a local.properties entry and prints it in a shell-friendly form.
+# Android Studio writes java.util.Properties escapes into that file (for example
+# "sdk.dir=D\:\\Android"), so backslash escapes are removed and Windows separators are
+# normalised to '/' for the bash tooling.
+native_read_property() {
+    local file="$1"
+    local key="$2"
+    local line value out="" char i=0
+    [ -f "$file" ] || return 1
+    line="$(grep -E "^${key//./\\.}[[:space:]]*=" "$file" | head -n1)" || return 1
+    [ -n "$line" ] || return 1
+    value="${line#*=}"
+    while [ "$i" -lt "${#value}" ]; do
+        char="${value:$i:1}"
+        if [ "$char" = '\' ] && [ "$((i + 1))" -lt "${#value}" ]; then
+            i=$((i + 1))
+            char="${value:$i:1}"
+        fi
+        out="$out$char"
+        i=$((i + 1))
+    done
+    printf '%s' "$out" | tr '\\' '/'
 }
 
 native_set_reproducible_env() {
@@ -96,9 +128,17 @@ native_set_reproducible_env() {
         SOURCE_DATE_EPOCH="$(git -C "$REPO_ROOT" log -1 --format=%ct 2>/dev/null || printf '1')"
         export SOURCE_DATE_EPOCH
     fi
-    local work_real ndk_real
+    local work_real ndk_real native_path_root
     work_real="$(cd "$WORK" && pwd -P)"
     ndk_real="$(cd "$NDK_DIR" && pwd -P)"
     NATIVE_REPRO_FLAGS="-ffile-prefix-map=$WORK=/usr/src/refra-native -ffile-prefix-map=$work_real=/usr/src/refra-native -ffile-prefix-map=$NDK_DIR=/opt/android-ndk -ffile-prefix-map=$ndk_real=/opt/android-ndk"
+    # Windows drive paths (C:/...) contain a ':' that the NDK launcher reads as a path-list
+    # separator, corrupting -ffile-prefix-map. Reproducible remapping is a Unix-only guarantee,
+    # so drop the flags rather than passing values the compiler cannot parse.
+    for native_path_root in "$WORK" "$NDK_DIR"; do
+        case "$native_path_root" in
+            [A-Za-z]:*) NATIVE_REPRO_FLAGS="" ;;
+        esac
+    done
     export NATIVE_REPRO_FLAGS
 }

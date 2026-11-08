@@ -82,17 +82,36 @@ val nativeSourceOverrides = listOf(
     "LIBTIFF_SOURCE_DIR",
     "JP2FORANDROID_SOURCE_DIR"
 )
+// On Windows a bare "bash" resolves to C:\Windows\System32\bash.exe (the WSL launcher),
+// which cannot open a script at a Windows path. Prefer a real POSIX shell, and let
+// REFRA_BASH override the pick.
+val nativeBashExecutable: String = run {
+    System.getenv("REFRA_BASH")?.takeIf { it.isNotBlank() }?.let { return@run it }
+    if (!System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) return@run "bash"
+    listOf(
+        "C:/Program Files/Git/bin/bash.exe",
+        "C:/Program Files/Git/usr/bin/bash.exe",
+        "C:/cygwin64/bin/bash.exe",
+        "C:/cygwin/bin/bash.exe",
+        "C:/msys64/usr/bin/bash.exe"
+    ).firstOrNull { File(it).isFile } ?: "bash"
+}
 val nativeTasksByAbi = nativeAbiTaskSuffixes.mapValues { (abi, suffix) ->
     nativeStacks.map { (stack, scriptName, outputName) ->
         val script = rootProject.file("scripts/native/$scriptName")
         tasks.register<Exec>("build${stack}Native$suffix") {
             group = "build"
             workingDir(rootProject.projectDir)
-            commandLine("bash", script.absolutePath, abi)
+            // bash parses backslashes as escapes, so a Windows absolutePath (D:\...) loses
+            // its separators and bash reports the script as missing. Forward slashes work
+            // in every shell and on every platform.
+            commandLine(nativeBashExecutable, script.invariantSeparatorsPath, abi)
             environment("NATIVE_OFFLINE", "0")
             environment("NATIVE_SOURCE_ARCHIVES_DIR", "")
-            environment("NATIVE_DOWNLOAD_CACHE", nativeDownloadCache.absolutePath)
-            environment("NATIVE_OUTPUT_BASE", file("src/main/cpp").absolutePath)
+            // The scripts are POSIX shell; backslashes in these paths make GNU sha256sum
+            // escape its output, so hand them over with forward slashes on every platform.
+            environment("NATIVE_DOWNLOAD_CACHE", nativeDownloadCache.invariantSeparatorsPath)
+            environment("NATIVE_OUTPUT_BASE", file("src/main/cpp").invariantSeparatorsPath)
             nativeSourceOverrides.forEach { environment(it, "") }
             inputs.file(script)
             inputs.file(nativeCommonScript)
@@ -134,6 +153,15 @@ tasks.configureEach {
         dependsOn(":app:ml-models-pack:checkModelSizes")
     }
 }
+
+// Every build type is signed with the release key when its secrets are available. The
+// fallbacks below only apply on machines that do not export them, so local builds keep
+// working; CI exports the secrets and never takes the fallback path.
+val releaseSigningAvailable = listOf(
+    "SIGNING_STORE_PASSWORD",
+    "SIGNING_KEY_ALIAS",
+    "SIGNING_KEY_PASSWORD"
+).all { !System.getenv(it).isNullOrBlank() }
 
 android {
     // The app shell's namespace — the bulk `com.dot.gallery` namespace (and its
@@ -218,6 +246,9 @@ android {
             )
             buildConfigField("Boolean", "ENABLE_INDEXING", "false")
             buildConfigField("Boolean", "ALLOW_INSECURE_TLS", "true")
+            if (releaseSigningAvailable) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         getByName("release") {
             manifestPlaceholders += mapOf(
@@ -269,6 +300,12 @@ android {
             buildConfigField("Boolean", "SMB_ENABLED", "$includeSmb")
             buildConfigField("Boolean", "NFS_ENABLED", "$includeNfs")
             buildConfigField("Boolean", "ALLOW_INSECURE_TLS", "true")
+            // Staging is a local-only variant (CI builds the Release build types), so it can
+            // fall back to the auto-generated debug key when the release signing secrets are
+            // not exported. Release/GPlay builds stay strict.
+            if (!releaseSigningAvailable) {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
         create("gplay") {
             initWith(getByName("release"))
