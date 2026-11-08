@@ -139,6 +139,9 @@ async function main() {
       browser = await chromium.launch({ channel: 'chrome', args: launchArgs });
     }
     const page = await browser.newPage({ viewport: { width: PROBE_W, height: PROBE_H } });
+    page.on('console', (m) => console.log(`publish-live: [console.${m.type()}] ${m.text().slice(0, 400)}`));
+    page.on('pageerror', (e) => console.log(`publish-live: [pageerror] ${String(e).slice(0, 600)}`));
+    page.on('requestfailed', (r) => console.log(`publish-live: [requestfailed] ${r.url()} ${r.failure()?.errorText ?? ''}`));
 
     await page.addInitScript(() => {
       window.__docsMessages = [];
@@ -151,11 +154,17 @@ async function main() {
     });
 
     await page.goto(`http://127.0.0.1:${port}/index.html?scene=${PROBE_SCENE}&theme=light`);
-    await page.waitForFunction(
-      () => window.__docsMessages?.some((m) => m?.type === 'docs:ready'),
-      undefined,
-      { timeout: 180_000 },
-    );
+    try {
+      await page.waitForFunction(
+        () => window.__docsMessages?.some((m) => m?.type === 'docs:ready'),
+        undefined,
+        { timeout: 180_000 },
+      );
+    } catch (waitError) {
+      const partial = await page.evaluate(() => window.__docsMessages).catch(() => null);
+      console.log(`publish-live: timed out; captured messages: ${JSON.stringify(partial)?.slice(0, 1500)}`);
+      throw waitError;
+    }
     const captured = await page.evaluate(() => window.__docsMessages);
 
     const catalog = captured.find((m) => m?.type === 'docs:scenes');
