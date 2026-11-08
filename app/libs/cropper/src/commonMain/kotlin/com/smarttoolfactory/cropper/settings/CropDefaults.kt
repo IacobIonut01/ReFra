@@ -7,7 +7,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.smarttoolfactory.cropper.ImageCropper
 import com.smarttoolfactory.cropper.crop
 import com.smarttoolfactory.cropper.model.AspectRatio
 import com.smarttoolfactory.cropper.model.CropOutline

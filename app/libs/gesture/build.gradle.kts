@@ -1,48 +1,36 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKmpLibrary)
+    alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.kotlin.compose.compiler)
 }
 
-android {
-    namespace = "com.smarttoolfactory.gesture"
-    compileSdk = 37
-
-    defaultConfig {
+// Shared pointer-gesture helpers — pure Compose, so they serve the Android
+// app and the standalone desktop editor from one commonMain source set.
+kotlin {
+    android {
+        namespace = "com.smarttoolfactory.gesture"
+        compileSdk = 37
         minSdk = 29
-    }
-
-    buildTypes {
-        create("staging") {
-            initWith(getByName("release"))
-            isMinifyEnabled = false
-            isShrinkResources = false
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
 
-    composeCompiler {
-        includeSourceInformation = true
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.cmp.foundation)
+            implementation(libs.cmp.ui)
+            implementation(libs.cmp.runtime)
+            implementation(libs.kotlinx.coroutines.core)
+        }
     }
-
-    buildFeatures {
-        compose = true
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
-}
-
-dependencies {
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.runtime)
 }

@@ -1,6 +1,5 @@
 package com.smarttoolfactory.gesture
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
@@ -37,7 +36,6 @@ import androidx.compose.ui.unit.dp
  * to describe the element or do customizations
  * @param onClick will be called when user clicks on the element
  */
-@SuppressLint("ModifierFactoryUnreferencedReceiver")
 fun Modifier.touchDelegate(
     dpRect: DelegateRect = DelegateRect.Zero,
     enabled: Boolean = true,

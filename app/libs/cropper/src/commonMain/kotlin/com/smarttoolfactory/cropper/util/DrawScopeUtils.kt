@@ -10,11 +10,11 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -81,10 +81,10 @@ fun DrawScope.drawChecker() {
  * Draw with layer to use [BlendMode]s
  */
 fun DrawScope.drawWithLayer(block: DrawScope.() -> Unit) {
-    with(drawContext.canvas.nativeCanvas) {
-        val checkPoint = saveLayer(null, null)
+    with(drawContext.canvas) {
+        saveLayer(Rect(Offset.Zero, size), Paint())
         block()
-        restoreToCount(checkPoint)
+        restore()
     }
 }
 

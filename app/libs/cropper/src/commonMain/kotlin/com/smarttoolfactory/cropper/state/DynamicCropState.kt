@@ -175,7 +175,7 @@ class DynamicCropState internal constructor(
             // image edge - common when the image is letterboxed and the draw area is smaller than
             // the container - made animateTransformationToOverlayBounds() zoom the image in to
             // cover the oversized box. Clamping the overlay to the image first means no zoom-in is
-            // ever required, so the crop box behaves like a plain selection rectangle (#956).
+            // ever required, so the crop box behaves like a plain selection rectangle.
             clampOverlayToImageBounds()
 
             // Pan the image so it keeps covering the (now in-bounds) overlay. Because the overlay
@@ -353,7 +353,7 @@ class DynamicCropState internal constructor(
      * the image draw area). A box left bigger than the image — common when the image is
      * letterboxed and the draw area is smaller than the container — makes
      * [animateTransformationToOverlayBounds] zoom the image in to cover it. Clamping the
-     * overlay first means no zoom-in is ever required (#956).
+     * overlay first means no zoom-in is ever required.
      */
     private suspend fun clampOverlayToImageBounds() {
         val imageBounds = Rect(
@@ -398,7 +398,7 @@ class DynamicCropState internal constructor(
                 // Clamp it to the visible image first, same as onUp, so the
                 // transform below only pans instead of zooming in. Pure image
                 // gestures (touchRegion == None && !gestureInvoked) keep the
-                // zoom-to-cover behaviour (#956).
+                // zoom-to-cover behaviour.
                 if (gestureInvoked || touchRegion != TouchRegion.None) {
                     clampOverlayToImageBounds()
                 }

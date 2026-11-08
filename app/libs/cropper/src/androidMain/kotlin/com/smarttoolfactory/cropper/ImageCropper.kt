@@ -287,7 +287,6 @@ private fun ImageCropperImpl(
 
     Box(contentAlignment = Alignment.Center) {
 
-        // Draw Image
         ImageDrawCanvas(
             modifier = modifier,
             imageBitmap = imageBitmap,

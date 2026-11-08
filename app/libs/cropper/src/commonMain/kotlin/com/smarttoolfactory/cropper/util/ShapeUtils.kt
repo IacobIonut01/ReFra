@@ -1,14 +1,13 @@
 package com.smarttoolfactory.cropper.util
 
-import android.graphics.Matrix
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import com.smarttoolfactory.cropper.model.AspectRatio
@@ -29,20 +28,28 @@ import kotlin.math.sin
  * For instance to draw triangle loop thrice with angle
  * 0, 120, 240 degrees in radians and draw lines from each coordinate.
  * ```
+ * @param degrees rotation of the polygon around its center in degrees
  */
-fun createPolygonPath(cx: Float, cy: Float, sides: Int, radius: Float): Path {
+fun createPolygonPath(
+    cx: Float,
+    cy: Float,
+    sides: Int,
+    radius: Float,
+    degrees: Float = 0f,
+): Path {
 
     val angle = 2.0 * Math.PI / sides
+    val offset = degrees * Math.PI / 180.0
 
     return Path().apply {
         moveTo(
-            cx + (radius * cos(0.0)).toFloat(),
-            cy + (radius * sin(0.0)).toFloat()
+            cx + (radius * cos(offset)).toFloat(),
+            cy + (radius * sin(offset)).toFloat()
         )
         for (i in 1 until sides) {
             lineTo(
-                cx + (radius * cos(angle * i)).toFloat(),
-                cy + (radius * sin(angle * i)).toFloat()
+                cx + (radius * cos(angle * i + offset)).toFloat(),
+                cy + (radius * sin(angle * i + offset)).toFloat()
             )
         }
         close()
@@ -62,12 +69,10 @@ fun createPolygonShape(sides: Int, degrees: Float = 0f): GenericShape {
                 cx = size.width / 2,
                 cy = size.height / 2,
                 sides = sides,
-                radius = radius
+                radius = radius,
+                degrees = degrees
             )
         )
-        val matrix = Matrix()
-        matrix.postRotate(degrees, size.width / 2, size.height / 2)
-        this.asAndroidPath().transform(matrix)
     }
 }
 
@@ -100,12 +105,12 @@ fun Path.scaleAndTranslatePath(
     val pathSize = getBounds().size
 
     val matrix = Matrix()
-    matrix.postScale(
+    matrix.scale(
         width / pathSize.width,
         height / pathSize.height
     )
 
-    this.asAndroidPath().transform(matrix)
+    this.transform(matrix)
 
     val left = getBounds().left
     val top = getBounds().top

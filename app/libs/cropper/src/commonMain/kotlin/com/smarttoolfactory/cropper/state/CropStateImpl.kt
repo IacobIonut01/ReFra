@@ -122,7 +122,7 @@ abstract class CropState internal constructor(
     /**
      * Update properties of [CropState] and animate to valid intervals if required
      */
-    internal open suspend fun updateProperties(
+    open suspend fun updateProperties(
         cropProperties: CropProperties,
         forceUpdate: Boolean = false
     ) {
@@ -183,7 +183,7 @@ abstract class CropState internal constructor(
     /**
      * Animate overlay rectangle to target value
      */
-    internal suspend fun animateOverlayRectTo(
+    suspend fun animateOverlayRectTo(
         rect: Rect,
         animationSpec: AnimationSpec<Rect> = tween(400)
     ) {
@@ -196,7 +196,7 @@ abstract class CropState internal constructor(
     /**
      * Snap overlay rectangle to target value
      */
-    internal suspend fun snapOverlayRectTo(rect: Rect) {
+    suspend fun snapOverlayRectTo(rect: Rect) {
         animatableRectOverlay.snapTo(rect)
     }
 
@@ -225,7 +225,6 @@ abstract class CropState internal constructor(
 
     internal abstract suspend fun onGestureEnd(onBoundsCalculated: () -> Unit)
 
-    // Double Tap
     internal abstract suspend fun onDoubleTap(
         offset: Offset,
         zoom: Float = 1f,

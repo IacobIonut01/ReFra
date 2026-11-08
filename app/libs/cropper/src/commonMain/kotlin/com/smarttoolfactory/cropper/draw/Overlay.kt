@@ -34,7 +34,7 @@ import com.smarttoolfactory.cropper.util.scaleAndTranslatePath
  * is set draw handles for changing drawing rectangle
  */
 @Composable
-internal fun DrawingOverlay(
+fun DrawingOverlay(
     modifier: Modifier,
     drawOverlay: Boolean,
     rect: Rect,
