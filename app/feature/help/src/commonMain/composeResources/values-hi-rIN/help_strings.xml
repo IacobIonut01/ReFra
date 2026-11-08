@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">सहायता और सुझाव खोजें</string>
-    <string name="help_search_clear">खोज साफ़ करें</string>
     <string name="help_search_no_results">"%1$s" के लिए कोई सहायता नहीं मिली</string>
     <string name="help_search_section_tips">सुझाव और निर्देश</string>
     <string name="help_search_section_settings">सेटिंग</string>
     <string name="help_search_section_actions">त्वरित कार्रवाइयाँ</string>
     <string name="help_search_section_changelog">नया क्या है</string>
-    <string name="help_search_see_all">सभी %1$d परिणाम देखें</string>
-    <string name="help_tips_section_title">सहायता और सुझाव</string>
     <string name="help_quick_actions">त्वरित कार्रवाइयाँ</string>
     <string name="help_qa_open_timeline">समयरेखा खोलें</string>
     <string name="help_qa_open_albums">एल्बम खोलें</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">पसंदीदा खोलें</string>
     <string name="help_qa_open_locations">स्थान खोलें</string>
     <string name="help_qa_open_library">लाइब्रेरी खोलें</string>
-    <string name="help_qa_open_color_palette">रंग पैलेट खोलें</string>
-    <string name="help_qa_open_appearance">दिखावट की सेटिंग खोलें</string>
     <string name="help_tip_view_cutout_title">किसी विषय को काटें</string>
     <string name="help_tip_view_cutout_subtitle">पृष्ठभूमि से किसी व्यक्ति या वस्तु को उठाएँ</string>
     <string name="help_tip_view_cutout_p1_title">पहचाने गए विषय को उठाएँ</string>

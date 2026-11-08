@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Căutați în ajutor și sfaturi</string>
-    <string name="help_search_clear">Ștergeți căutarea</string>
     <string name="help_search_no_results">Nu s-a găsit ajutor pentru „%1$s”</string>
     <string name="help_search_section_tips">Sfaturi și instrucțiuni</string>
     <string name="help_search_section_settings">Setări</string>
     <string name="help_search_section_actions">Acțiuni rapide</string>
     <string name="help_search_section_changelog">Noutăți</string>
-    <string name="help_search_see_all">Vedeți toate cele %1$d rezultate</string>
-    <string name="help_tips_section_title">Ajutor și sfaturi</string>
     <string name="help_quick_actions">Acțiuni rapide</string>
     <string name="help_qa_open_timeline">Deschideți cronologia</string>
     <string name="help_qa_open_albums">Deschideți albumele</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Deschideți favoritele</string>
     <string name="help_qa_open_locations">Deschideți locațiile</string>
     <string name="help_qa_open_library">Deschideți biblioteca</string>
-    <string name="help_qa_open_color_palette">Deschideți paleta de culori</string>
-    <string name="help_qa_open_appearance">Deschideți setările de aspect</string>
     <string name="help_tip_view_cutout_title">Decupează un subiect</string>
     <string name="help_tip_view_cutout_subtitle">Ridică o persoană sau un obiect din fundal</string>
     <string name="help_tip_view_cutout_p1_title">Ridică subiectul detectat</string>

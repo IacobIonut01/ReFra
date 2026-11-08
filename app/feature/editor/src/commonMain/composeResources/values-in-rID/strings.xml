@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Ukuran</string>
     <string name="editor_brush_strength">Kekuatan</string>
     <string name="editor_blur_faces">Kaburkan wajah</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bit)</string>
+    <string name="raw_export_tiff16">TIFF (16-bit)</string>
+    <string name="raw_export_choose_format">Simpan salinan yang telah disempurnakan</string>
+    <string name="raw_export_choose_format_subtitle">Pilih format untuk file RAW hasil pemotretan Anda</string>
+    <string name="raw_export_tiff_unavailable">Format TIFF mempertahankan kedalaman bit penuh, tetapi tidak dapat menyertakan hasil pemotongan, filter, atau tanda — hapus semua itu untuk mengekspor berkas TIFF.</string>
+    <string name="editor_mosaic_faces">Wajah-wajah mosaik</string>
+    <string name="cutout_no_object">Tidak ada objek yang terdeteksi saat ditekan lama</string>
+    <string name="cutout_init_failed">Gagal menginisialisasi mesin pemotongan</string>
 </resources>

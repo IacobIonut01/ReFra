@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">ヘルプとヒントを検索</string>
-    <string name="help_search_clear">検索をクリア</string>
     <string name="help_search_no_results">「%1$s」に一致するヘルプは見つかりませんでした</string>
     <string name="help_search_section_tips">ヒントと使い方</string>
     <string name="help_search_section_settings">設定</string>
     <string name="help_search_section_actions">クイックアクション</string>
     <string name="help_search_section_changelog">新機能</string>
-    <string name="help_search_see_all">%1$d 件の結果をすべて表示</string>
-    <string name="help_tips_section_title">ヘルプとヒント</string>
     <string name="help_quick_actions">クイックアクション</string>
     <string name="help_qa_open_timeline">タイムラインを開く</string>
     <string name="help_qa_open_albums">アルバムを開く</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">お気に入りを開く</string>
     <string name="help_qa_open_locations">場所を開く</string>
     <string name="help_qa_open_library">ライブラリを開く</string>
-    <string name="help_qa_open_color_palette">カラーパレットを開く</string>
-    <string name="help_qa_open_appearance">外観設定を開く</string>
 
     <string name="help_tip_view_cutout_title">被写体を切り取る</string>
     <string name="help_tip_view_cutout_subtitle">背景から人や物体を持ち上げる</string>

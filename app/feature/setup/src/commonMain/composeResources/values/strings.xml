@@ -1,46 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ReFra</string>
-    <string name="version_name_format" translatable="false">v%1$s</string>
-    <string name="get_started">Get Started</string>
     <string name="granted">Granted</string>
     <string name="optional">Optional</string>
-    <string name="internet">Internet</string>
     <string name="back_cd">Back</string>
-    <string name="read_media_images">Read Media Images</string>
-    <string name="read_media_videos">Read Media Videos</string>
-    <string name="access_media_location">Access Media Location</string>
-    <string name="post_notifications">Notifications</string>
-    <string name="permission_local_network_title">Direct local network access</string>
-    <string name="permission_manage_media_title">Manage Media</string>
-    <string name="permission_manage_files_title">Manage All Files</string>
-    <string name="ai_models_manager">Intelligence Hub</string>
-    <string name="ai_models_downloading">Downloading AI Models…</string>
 
     <string name="setup_step_progress">Step %1$d of %2$d</string>
     <string name="setup_continue">Continue</string>
-    <string name="setup_grant_permissions">Grant Permissions</string>
-    <string name="setup_skip_for_now">Skip for now</string>
-    <string name="setup_finish">Finish</string>
     <string name="setup_open_app_settings">Open app settings</string>
     <string name="setup_permission_used_for">Used for:</string>
     <string name="setup_permission_not_granted">Not granted</string>
-    <string name="setup_permission_optional_not_granted">Optional · Not granted</string>
     <string name="setup_media_access_full">Full media access</string>
     <string name="setup_media_access_limited">Selected photos and videos</string>
 
-    <string name="setup_welcome_subtitle">Your private, on-device gallery</string>
 
     <string name="setup_permissions_title">Show me your photos</string>
     <string name="setup_permissions_subtitle">ReFra only asks for what it needs. The rest is optional.</string>
-    <string name="setup_reason_read_images">Displaying your photos in the timeline, albums and viewer. Without this, the gallery stays empty.</string>
-    <string name="setup_reason_read_videos">Showing and playing your videos in the timeline, albums and viewer.</string>
-    <string name="setup_reason_media_location_optional">Optional. Allows ReFra to read GPS data embedded in photos and videos for the Map and location details. Your gallery still works if you skip it.</string>
-    <string name="setup_reason_internet">Downloading map tiles for location previews, casting media to nearby devices, downloading optional AI models and syncing with cloud servers. Media never leaves your device unless you set up cloud sync.</string>
-    <string name="setup_reason_local_network">Optional. Grant this only when ReFra connects directly to a server on your current network.</string>
-    <string name="setup_reason_notifications">Showing progress for background tasks such as backups, encryption and downloads.</string>
-    <string name="setup_reason_manage_media">Skipping the extra system confirmation dialog when you favorite, trash or edit several items at once.</string>
-    <string name="setup_reason_manage_files">Creating albums outside the standard Pictures and DCIM folders, managing files anywhere on your storage, and showing extra photo formats the system doesn't recognize (such as JPEG XL, JPEG 2000 and Photoshop files).</string>
 
     <string name="setup_looks_title">Make it yours</string>
     <string name="setup_looks_subtitle">Pick a name and an icon for your home screen.</string>
@@ -49,14 +24,11 @@
     <string name="setup_looks_restart_note">ReFra restarts once when you finish, to apply a new name or icon.</string>
     <string name="setup_section_appearance">Theme &amp; colours</string>
     <string name="setup_appearance_summary">Light or dark mode, accent colours and more</string>
-    <string name="setup_open_appearance">Customize appearance</string>
 
     <string name="setup_cloud_title">Bring your server</string>
     <string name="setup_cloud_subtitle">Optional. Back up and browse on a server you run. ReFra has no cloud of its own.</string>
     <string name="setup_cloud_configured">Connected · %1$s</string>
-    <string name="setup_cloud_choose_provider">Choose a provider</string>
     <string name="setup_cloud_none">You have no cloud account connected. You can always set this up later from Settings.</string>
-    <string name="setup_cloud_add_another">Add another provider</string>
     <string name="setup_cap_remote_assets">Browse remote media</string>
     <string name="setup_cap_remote_albums">Remote albums</string>
     <string name="setup_cap_sync">Backup &amp; sync</string>
@@ -83,36 +55,7 @@
     <string name="setup_feature_not_installed">Not downloaded</string>
     <string name="setup_feature_downloading">Downloading · %1$d%</string>
     <string name="setup_ai_no_internet">An internet connection is required to download the AI models.</string>
-    <string name="setup_ai_download">Download AI models</string>
-    <string name="setup_ai_download_size">One-time download · works offline afterwards</string>
-    <string name="setup_ai_features_title">What you'll get</string>
-    <string name="setup_ai_feature_categories_title">Smart categories</string>
-    <string name="setup_ai_feature_categories_desc">Photos are automatically sorted into groups like nature, people and food.</string>
-    <string name="setup_ai_feature_search_title">Search by description</string>
-    <string name="setup_ai_feature_search_desc">Find shots using natural language — no manual tags or albums needed.</string>
-    <string name="setup_ai_feature_private_title">Private &amp; on-device</string>
-    <string name="setup_ai_feature_private_desc">Everything runs locally. Your photos never leave your device.</string>
-    <string name="setup_ai_extra_title">Extras</string>
-    <string name="setup_ai_extra_cutout_title">Subject Cutout</string>
-    <string name="setup_ai_extra_cutout_desc">Tap to isolate a subject and copy, share or save it — powered by MobileSAM.</string>
-    <string name="setup_ai_extra_cutout_ready">Subject cutout is ready.</string>
-    <string name="setup_ai_extra_cutout_download">Add Subject Cutout</string>
-    <string name="setup_ai_extra_cutout_size">Extra one-time download (~44 MB)</string>
-    <string name="setup_ai_faces_title">Faces &amp; People</string>
-    <string name="setup_ai_faces_blur_title">Blur faces</string>
-    <string name="setup_ai_faces_blur_desc">Automatically detect and blur faces in the photo editor.</string>
-    <string name="setup_ai_faces_blur_ready">Face blur is ready.</string>
-    <string name="setup_ai_faces_blur_download">Add face detection</string>
-    <string name="setup_ai_faces_blur_size">Extra one-time download (~1.3 MB)</string>
-    <string name="setup_ai_faces_people_title">People grouping</string>
-    <string name="setup_ai_faces_people_desc">Group photos by the people in them, fully on your device.</string>
-    <string name="setup_ai_faces_people_ready">People grouping is ready.</string>
-    <string name="setup_ai_faces_people_download">Add People grouping</string>
-    <string name="setup_ai_faces_people_size">Extra one-time download (~130 MB)</string>
 
-    <string name="setup_tips_title">Tips &amp; Tricks</string>
-    <string name="setup_tips_subtitle">You're all set!</string>
-    <string name="setup_tips_body">Open the Help page any time from Settings to discover tips and tricks for every feature, read what's new in each release and get the most out of the app.</string>
     <string name="setup_skip">Skip</string>
     <string name="setup_back">Back</string>
     <string name="setup_not_now">Not now</string>

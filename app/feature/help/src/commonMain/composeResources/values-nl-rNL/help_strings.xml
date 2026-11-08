@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Zoeken in hulp en tips</string>
-    <string name="help_search_clear">Zoekopdracht wissen</string>
     <string name="help_search_no_results">Geen hulp gevonden voor "%1$s"</string>
     <string name="help_search_section_tips">Tips en uitleg</string>
     <string name="help_search_section_settings">Instellingen</string>
     <string name="help_search_section_actions">Snelle acties</string>
     <string name="help_search_section_changelog">Wat is er nieuw</string>
-    <string name="help_search_see_all">Alle %1$d resultaten bekijken</string>
-    <string name="help_tips_section_title">Hulp en tips</string>
     <string name="help_quick_actions">Snelle acties</string>
     <string name="help_qa_open_timeline">Tijdlijn openen</string>
     <string name="help_qa_open_albums">Albums openen</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Favorieten openen</string>
     <string name="help_qa_open_locations">Locaties openen</string>
     <string name="help_qa_open_library">Bibliotheek openen</string>
-    <string name="help_qa_open_color_palette">Kleurenpalet openen</string>
-    <string name="help_qa_open_appearance">Instellingen voor uiterlijk openen</string>
 
     <string name="help_tip_view_cutout_title">Knip een onderwerp uit</string>
     <string name="help_tip_view_cutout_subtitle">Til een persoon of object van de achtergrond</string>

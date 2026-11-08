@@ -55,4 +55,14 @@
     <string name="editor_brush_size">साइज</string>
     <string name="editor_brush_strength">शक्ति</string>
     <string name="editor_blur_faces">धमिलो अनुहारहरू</string>
+    <string name="raw_export_jpeg">जेपेग</string>
+    <string name="raw_export_png">पीएनजी</string>
+    <string name="raw_export_tiff8">टिफ (८-बिट)</string>
+    <string name="raw_export_tiff16">टिफ (१६-बिट)</string>
+    <string name="raw_export_choose_format">विकसित प्रतिलिपि सुरक्षित गर्नुहोस्</string>
+    <string name="raw_export_choose_format_subtitle">तपाईंले विकास गरेको RAW को लागि एउटा ढाँचा छान्नुहोस्।</string>
+    <string name="raw_export_tiff_unavailable">TIFF ले पूर्ण बिट डेप्थ कायम राख्छ तर क्रप, फिल्टर वा मार्कअप समावेश गर्न सक्दैन — TIFF निर्यात गर्न तिनीहरूलाई हटाउनुहोस्।</string>
+    <string name="editor_mosaic_faces">मोसाइक अनुहारहरू</string>
+    <string name="cutout_no_object">लामो प्रेस गर्दा कुनै वस्तु पत्ता लागेन</string>
+    <string name="cutout_init_failed">कटआउट इन्जिन सुरु गर्न असफल</string>
 </resources>

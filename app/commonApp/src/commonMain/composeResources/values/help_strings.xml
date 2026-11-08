@@ -1146,7 +1146,6 @@
 
     <!-- HELP SEARCH -->
     <string name="help_search_hint">Search help &amp; tips</string>
-    <string name="help_search_clear">Clear search</string>
     <string name="help_search_no_results">No help found for "%1$s"</string>
     <string name="help_search_section_tips">Tips &amp; how-to</string>
     <string name="help_search_section_settings">Settings</string>
@@ -1172,8 +1171,6 @@
     <string name="help_qa_open_favorites">Open Favorites</string>
     <string name="help_qa_open_locations">Open Locations</string>
     <string name="help_qa_open_library">Open Library</string>
-    <string name="help_qa_open_color_palette">Open Color palette</string>
-    <string name="help_qa_open_appearance">Open Appearance settings</string>
 
     <!-- COVERAGE COMPLETION TIPS (100% audit) -->
     <string name="help_tip_view_cutout_title">Cut out a subject</string>
@@ -1366,7 +1363,6 @@
     <string name="help_tip_cloud_two_way_sync_p1_s1">Open an account's settings or Advanced settings</string>
     <string name="help_tip_cloud_two_way_sync_p1_s2">Enable Download remote media and optionally Download videos</string>
     <string name="help_tip_cloud_two_way_sync_p1_s3">Enable Sync remote deletions to remove app-owned local copies</string>
-    <string name="help_tip_cloud_two_way_sync_p1_s4">Use Download all remote media from Sync status for a full pull</string>
 
     <string name="help_tip_cloud_smart_search_title">Server-side smart search</string>
     <string name="help_tip_cloud_smart_search_subtitle">Let capable servers answer searches</string>

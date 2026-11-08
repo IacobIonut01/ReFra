@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">ସହାୟତା ଏବଂ ପରାମର୍ଶ ଖୋଜନ୍ତୁ</string>
-    <string name="help_search_clear">ସନ୍ଧାନ ସଫା କରନ୍ତୁ</string>
     <string name="help_search_no_results">“%1$s” ପାଇଁ କୌଣସି ସହାୟତା ମିଳିଲା ନାହିଁ</string>
     <string name="help_search_section_tips">ପରାମର୍ଶ ଏବଂ ମାର୍ଗଦର୍ଶିକା</string>
     <string name="help_search_section_settings">ସେଟିଂସ୍</string>
     <string name="help_search_section_actions">ଦ୍ରୁତ କାର୍ଯ୍ୟଗୁଡ଼ିକ</string>
     <string name="help_search_section_changelog">ନୂଆ କଣ ଅଛି</string>
-    <string name="help_search_see_all">ସମସ୍ତ %1$dଟି ଫଳାଫଳ ଦେଖନ୍ତୁ</string>
-    <string name="help_tips_section_title">ସହାୟତା ଏବଂ ପରାମର୍ଶ</string>
     <string name="help_quick_actions">ଦ୍ରୁତ କାର୍ଯ୍ୟଗୁଡ଼ିକ</string>
     <string name="help_qa_open_timeline">ଟାଇମଲାଇନ୍ ଖୋଲନ୍ତୁ</string>
     <string name="help_qa_open_albums">ଆଲବମ୍‌ଗୁଡ଼ିକ ଖୋଲନ୍ତୁ</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">ପସନ୍ଦଗୁଡ଼ିକ ଖୋଲନ୍ତୁ</string>
     <string name="help_qa_open_locations">ଅବସ୍ଥାନଗୁଡ଼ିକ ଖୋଲନ୍ତୁ</string>
     <string name="help_qa_open_library">ଲାଇବ୍ରେରୀ ଖୋଲନ୍ତୁ</string>
-    <string name="help_qa_open_color_palette">ରଙ୍ଗ ପ୍ୟାଲେଟ୍ ଖୋଲନ୍ତୁ</string>
-    <string name="help_qa_open_appearance">ଦୃଶ୍ୟ ସେଟିଂସ୍ ଖୋଲନ୍ତୁ</string>
     <!-- Odia coverage completion -->
     <string name="help_tip_view_cutout_title">ଏକ ବିଷୟବସ୍ତୁ କଡାଇ କାଟନ୍ତୁ</string>
     <string name="help_tip_view_cutout_subtitle">ପୃଷ୍ଠଭୂମିରୁ ଜଣେ ବ୍ୟକ୍ତି କିମ୍ବା ପଦାର୍ଥକୁ ଉଠାନ୍ତୁ</string>

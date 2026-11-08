@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Méret</string>
     <string name="editor_brush_strength">Erősség</string>
     <string name="editor_blur_faces">Arcok elmosása</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 bites)</string>
+    <string name="raw_export_tiff16">TIFF (16 bites)</string>
+    <string name="raw_export_choose_format">A kidolgozott példány mentése</string>
+    <string name="raw_export_choose_format_subtitle">Válasszon formátumot a feldolgozott RAW-fájlhoz</string>
+    <string name="raw_export_tiff_unavailable">A TIFF-fájl megőrzi a teljes bitmélységet, de nem tartalmazhat kivágást, szűrőket vagy jelöléseket — ezeket el kell távolítani a TIFF-fájl exportálásához.</string>
+    <string name="editor_mosaic_faces">Mozaikos arcok</string>
+    <string name="cutout_no_object">Hosszan tartó gombnyomáskor nem észlelt tárgyat</string>
+    <string name="cutout_init_failed">A kivágási motor inicializálása sikertelen volt</string>
 </resources>

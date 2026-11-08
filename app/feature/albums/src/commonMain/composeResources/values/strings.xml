@@ -5,7 +5,6 @@
     <string name="album_filter_device">On device</string>
     <string name="album_filter_collections">Collections</string>
     <string name="album_filter_cloud">Cloud</string>
-    <string name="pinned_albums_title">Pinned Albums</string>
     <string name="media_type_albums_section">Media types</string>
     <string name="albums_others_section">Others</string>
     <string name="arrange_albums_title">Arrange albums</string>
@@ -64,7 +63,6 @@
     <string name="new_collection">New collection</string>
     <string name="n_items_in_collection">%1$d items</string>
     <string name="sheet_cancel">Cancel</string>
-    <string name="sheet_done">Done</string>
     <string name="add_to_collection_body">Collections hold photos from any album without moving the files.</string>
     <string name="new_collection_summary">Create one and add these photos</string>
     <string name="add_to_group_body">Groups bundle albums into a single tile in Albums.</string>

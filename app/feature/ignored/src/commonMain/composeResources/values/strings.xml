@@ -1,54 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_cancel">Cancel</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_edit">Edit</string>
     <string name="action_save">Save</string>
     <string name="albums">Albums</string>
-    <string name="albums_and_timeline">Both Albums and Timeline</string>
-    <string name="apply">Apply</string>
     <string name="continue_string">Continue</string>
     <string name="go_back">Go back</string>
     <string name="ignored_albums">Ignored albums</string>
-    <string name="ignored_albums_text">Select what albums you would like to not see in the main Timeline, in the Albums tab or both.\n\nYou can either select individual albums or create a Regex pattern to automatically hide any folder or file path that matches it.</string>
-    <string name="matched_albums">Matched albums: %1$s</string>
     <string name="no_ignored_albums">Nothing is ignored</string>
-    <string name="setup_confirmation_matched">Matched Albums</string>
-    <string name="setup_confirmation_subtitle">Overview your ignore options and matches</string>
-    <string name="setup_confirmation_where">Where should be ignored</string>
-    <string name="setup_confirmation_who">Who should be ignored</string>
-    <string name="setup_location_location_title">Where should be ignored</string>
-    <string name="setup_location_title">Options</string>
-    <string name="setup_location_type_subtitle">You can select a single album, multiple albums, or create a Regex pattern to match folders by path</string>
-    <string name="setup_location_type_title">Who should be ignored</string>
-    <string name="setup_location_types_multiple">Multiple Albums</string>
-    <string name="setup_location_types_regex">Path Regex</string>
-    <string name="setup_location_types_single">Single Album</string>
-    <string name="setup_type_multiple_subtitle">Select albums to ignore</string>
-    <string name="setup_type_multiple_title">Multiple Selection</string>
-    <string name="setup_type_regex_error">Invalid pattern</string>
-    <string name="setup_type_regex_error_second">This pattern is already in use</string>
-    <string name="setup_type_regex_example_first_title">Match anything with "Screenshots" in its path:</string>
     <string name="setup_type_regex_example_second_subtitle">.*/WhatsApp/.*</string>
-    <string name="setup_type_regex_example_second_title">Match everything inside the WhatsApp folder:</string>
     <string name="setup_type_regex_example_third_subtitle">/storage/emulated/0/DCIM/.*</string>
-    <string name="setup_type_regex_example_third_title">Match everything under DCIM on internal storage:</string>
     <string name="setup_type_regex_example_title">Examples</string>
     <string name="setup_type_regex_first_subtitle">.*Screenshots.*</string>
-    <string name="setup_type_regex_label">Path regex</string>
-    <string name="setup_type_regex_subtitle">Match folders and files by path</string>
-    <string name="setup_type_regex_summary">The pattern is matched against the full path of each file and its containing folder, such as /storage/emulated/0/DCIM/Camera/photo.jpg or DCIM/Camera/ — not the album name.\n\nIt must match the entire path, so use .* where anything may appear.</string>
-    <string name="setup_type_regex_title">Path Regex</string>
-    <string name="setup_type_selection_subtitle">Select your to-be-ignored album</string>
-    <string name="setup_type_selection_title">Selection</string>
-    <string name="timeline">Timeline</string>
-    <string name="wildcard_summary_first">Path pattern: %1$s\nMatched albums: %2$s</string>
 
     <!-- Feature-local literals that were hardcoded in the app sources -->
     <string name="unknown_album">Unknown</string>
     <string name="no_matches">No matches</string>
-    <string name="selected_count">%1$d selected</string>
-    <string name="albums_count">%1$d albums</string>
     <string name="matched_more_count">+%1$d more</string>
     <string name="album_items_count">%1$d items</string>
     <string name="continue_with_count">%1$s · %2$d</string>

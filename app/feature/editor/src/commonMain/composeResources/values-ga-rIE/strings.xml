@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Méid</string>
     <string name="editor_brush_strength">Neart</string>
     <string name="editor_blur_faces">Lán aghaidh a mhíchlú</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">Pápua Nua-Ghuine</string>
+    <string name="raw_export_tiff8">TIFF (8-giotán)</string>
+    <string name="raw_export_tiff16">TIFF (16-giotán)</string>
+    <string name="raw_export_choose_format">Sábháil an chóip fhorbartha</string>
+    <string name="raw_export_choose_format_subtitle">Roghnaigh formáid do do RAW forbartha.</string>
+    <string name="raw_export_tiff_unavailable">Coinníonn TIFF an doimhneacht giotán iomlán ach ní féidir leis bearradh, scagairí ná marcáil a chuimsiú — bain iad chun TIFF a easpórtáil.</string>
+    <string name="editor_mosaic_faces">Aghaidheanna mósaice</string>
+    <string name="cutout_no_object">Níor braitheadh aon rud faoi bhrú fada.</string>
+    <string name="cutout_init_failed">Theip ar an inneall gearrtha a thúsú</string>
 </resources>

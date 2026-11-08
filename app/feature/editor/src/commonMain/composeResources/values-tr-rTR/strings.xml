@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Boyut</string>
     <string name="editor_brush_strength">Güç</string>
     <string name="editor_blur_faces">Yüzleri bulanıklaştır</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 bit)</string>
+    <string name="raw_export_tiff16">TIFF (16 bit)</string>
+    <string name="raw_export_choose_format">Geliştirilmiş kopyayı kaydet</string>
+    <string name="raw_export_choose_format_subtitle">İşlediğiniz RAW dosyası için bir format seçin</string>
+    <string name="raw_export_tiff_unavailable">TIFF, tam bit derinliğini korur ancak kırpma, filtreler veya işaretlemeleri içeremez — TIFF olarak dışa aktarmak için bunları kaldırın.</string>
+    <string name="editor_mosaic_faces">Mozaik yüzler</string>
+    <string name="cutout_no_object">Uzun basma sırasında herhangi bir nesne algılanmadı</string>
+    <string name="cutout_init_failed">Kesme motoru başlatılamadı</string>
 </resources>

@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Cerca a l’ajuda i els consells</string>
-    <string name="help_search_clear">Esborra la cerca</string>
     <string name="help_search_no_results">No s’ha trobat ajuda per a "%1$s"</string>
     <string name="help_search_section_tips">Consells i guies</string>
     <string name="help_search_section_settings">Configuració</string>
     <string name="help_search_section_actions">Accions ràpides</string>
     <string name="help_search_section_changelog">Novetats</string>
-    <string name="help_search_see_all">Mostra els %1$d resultats</string>
-    <string name="help_tips_section_title">Ajuda i consells</string>
     <string name="help_quick_actions">Accions ràpides</string>
     <string name="help_qa_open_timeline">Obre la cronologia</string>
     <string name="help_qa_open_albums">Obre els àlbums</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Obre els preferits</string>
     <string name="help_qa_open_locations">Obre les ubicacions</string>
     <string name="help_qa_open_library">Obre la biblioteca</string>
-    <string name="help_qa_open_color_palette">Obre la paleta de colors</string>
-    <string name="help_qa_open_appearance">Obre la configuració de l’aparença</string>
     <string name="help_tip_view_cutout_title">Retalla un tema</string>
     <string name="help_tip_view_cutout_subtitle">Aixecar una persona o objecte del fons</string>
     <string name="help_tip_view_cutout_p1_title">Aixeca el subjecte detectat</string>

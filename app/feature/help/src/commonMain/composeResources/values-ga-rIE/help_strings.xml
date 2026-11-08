@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Cuardaigh cabhair agus leideanna</string>
-    <string name="help_search_clear">Glan an cuardach</string>
     <string name="help_search_no_results">Níor aimsíodh aon chabhair do "%1$s"</string>
     <string name="help_search_section_tips">Leideanna agus treoracha</string>
     <string name="help_search_section_settings">Socruithe</string>
     <string name="help_search_section_actions">Gníomhartha tapa</string>
     <string name="help_search_section_changelog">Cad atá nua</string>
-    <string name="help_search_see_all">Féach ar na %1$d toradh go léir</string>
-    <string name="help_tips_section_title">Cabhair agus Leideanna</string>
     <string name="help_quick_actions">Gníomhartha tapa</string>
     <string name="help_qa_open_timeline">Oscail an amlíne</string>
     <string name="help_qa_open_albums">Oscail na halbaim</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Oscail na ceanáin</string>
     <string name="help_qa_open_locations">Oscail na suíomhanna</string>
     <string name="help_qa_open_library">Oscail an leabharlann</string>
-    <string name="help_qa_open_color_palette">Oscail an pailéad dathanna</string>
-    <string name="help_qa_open_appearance">Oscail na socruithe cuma</string>
     <string name="help_tip_view_cutout_title">Gearr amach ábhar</string>
     <string name="help_tip_view_cutout_subtitle">Déan duine nó rud a ardú ón gcúlra</string>
     <string name="help_tip_view_cutout_p1_title">Déan an t-ábhar a aithnítear a ardú</string>

@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Размер</string>
     <string name="editor_brush_strength">Сила</string>
     <string name="editor_blur_faces">Замъгляване на лица</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">Папуа-Нова Гвинея</string>
+    <string name="raw_export_tiff8">TIFF (8-битов)</string>
+    <string name="raw_export_tiff16">TIFF (16-битов)</string>
+    <string name="raw_export_choose_format">Запази разработеното копие</string>
+    <string name="raw_export_choose_format_subtitle">Изберете формат за вашите обработени RAW файлове</string>
+    <string name="raw_export_tiff_unavailable">Форматът TIFF запазва пълната битова дълбочина, но не може да включва изрязване, филтри или маркировки — премахнете ги, за да експортирате TIFF.</string>
+    <string name="editor_mosaic_faces">Мозаечни лица</string>
+    <string name="cutout_no_object">При продължително натискане не е открит никакъв обект</string>
+    <string name="cutout_init_failed">Не успях да инициализирам Cutout Engine</string>
 </resources>

@@ -64,8 +64,6 @@
 
     <!-- Metadata edit -->
     <string name="description">Description</string>
-    <string name="edit_metadata">Edit Metadata</string>
-    <string name="label">Label</string>
     <string name="edit_name_and_description">Name and description</string>
     <string name="media_name">Name</string>
     <string name="action_save">Save</string>

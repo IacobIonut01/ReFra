@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Yardım ve ipuçlarında ara</string>
-    <string name="help_search_clear">Aramayı temizle</string>
     <string name="help_search_no_results">“%1$s” için yardım bulunamadı</string>
     <string name="help_search_section_tips">İpuçları ve rehberler</string>
     <string name="help_search_section_settings">Ayarlar</string>
     <string name="help_search_section_actions">Hızlı işlemler</string>
     <string name="help_search_section_changelog">Yenilikler</string>
-    <string name="help_search_see_all">%1$d sonucun tümünü göster</string>
-    <string name="help_tips_section_title">Yardım ve İpuçları</string>
     <string name="help_quick_actions">Hızlı işlemler</string>
     <string name="help_qa_open_timeline">Zaman çizelgesini aç</string>
     <string name="help_qa_open_albums">Albümleri aç</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Favorileri aç</string>
     <string name="help_qa_open_locations">Konumları aç</string>
     <string name="help_qa_open_library">Kütüphaneyi aç</string>
-    <string name="help_qa_open_color_palette">Renk paletini aç</string>
-    <string name="help_qa_open_appearance">Görünüm ayarlarını aç</string>
     <string name="help_tip_view_cutout_title">Bir konuyu kes</string>
     <string name="help_tip_view_cutout_subtitle">Bir kişiyi veya nesneyi arka plandan kaldır</string>
     <string name="help_tip_view_cutout_p1_title">Tespit edilen konuyu kaldır</string>

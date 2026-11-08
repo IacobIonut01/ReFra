@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Hledat v nápovědě a tipech</string>
-    <string name="help_search_clear">Vymazat hledání</string>
     <string name="help_search_no_results">Pro "%1$s" nebyla nalezena žádná nápověda</string>
     <string name="help_search_section_tips">Tipy a návody</string>
     <string name="help_search_section_settings">Nastavení</string>
     <string name="help_search_section_actions">Rychlé akce</string>
     <string name="help_search_section_changelog">Co je nového</string>
-    <string name="help_search_see_all">Zobrazit všech %1$d výsledků</string>
-    <string name="help_tips_section_title">Nápověda a tipy</string>
     <string name="help_quick_actions">Rychlé akce</string>
     <string name="help_qa_open_timeline">Otevřít časovou osu</string>
     <string name="help_qa_open_albums">Otevřít alba</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Otevřít oblíbené</string>
     <string name="help_qa_open_locations">Otevřít místa</string>
     <string name="help_qa_open_library">Otevřít knihovnu</string>
-    <string name="help_qa_open_color_palette">Otevřít paletu barev</string>
-    <string name="help_qa_open_appearance">Otevřít nastavení vzhledu</string>
     <string name="help_tip_view_cutout_title">Vystřihněte předmět</string>
     <string name="help_tip_view_cutout_subtitle">Zvedněte osobu nebo předmět z pozadí</string>
     <string name="help_tip_view_cutout_p1_title">Zvedněte detekovaný předmět</string>

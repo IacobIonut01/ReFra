@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Cari bantuan dan tips</string>
-    <string name="help_search_clear">Hapus pencarian</string>
     <string name="help_search_no_results">Tidak ada bantuan yang ditemukan untuk "%1$s"</string>
     <string name="help_search_section_tips">Tips dan panduan</string>
     <string name="help_search_section_settings">Setelan</string>
     <string name="help_search_section_actions">Tindakan cepat</string>
     <string name="help_search_section_changelog">Yang baru</string>
-    <string name="help_search_see_all">Lihat semua %1$d hasil</string>
-    <string name="help_tips_section_title">Bantuan dan Tips</string>
     <string name="help_quick_actions">Tindakan cepat</string>
     <string name="help_qa_open_timeline">Buka linimasa</string>
     <string name="help_qa_open_albums">Buka album</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Buka favorit</string>
     <string name="help_qa_open_locations">Buka lokasi</string>
     <string name="help_qa_open_library">Buka perpustakaan</string>
-    <string name="help_qa_open_color_palette">Buka palet warna</string>
-    <string name="help_qa_open_appearance">Buka setelan tampilan</string>
     <string name="help_tip_view_cutout_title">Potong subjek</string>
     <string name="help_tip_view_cutout_subtitle">Angkat seseorang atau objek dari latar belakang</string>
     <string name="help_tip_view_cutout_p1_title">Angkat subjek yang terdeteksi</string>

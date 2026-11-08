@@ -58,7 +58,6 @@
     <string name="restore">Restore</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="open_with">Open with</string>
-    <string name="use_as">Use as</string>
     <string name="rename">Rename</string>
     <string name="visual_search">Visual search</string>
     <string name="action_desc_share_item">Share the current item with other apps</string>
@@ -132,9 +131,6 @@
     <string name="delete_scope_hint_cloud">Only the cloud copies will be removed</string>
     <string name="delete_scope_hint_both">Cloud copies will be removed too</string>
     <string name="delete_scope_hint_device">Cloud copies will be kept</string>
-    <string name="trash_deletion_warning">Photos and videos you delete will be removed after 30 days.</string>
-    <string name="trash_restore_all">Restore all</string>
-    <string name="action_delete_all_permanently">Delete all permanently</string>
     <string name="cutout_save_choice_title">Save cutout as</string>
     <string name="cutout_save_transparent_png">Transparent PNG</string>
     <string name="cutout_save_flatten_white">Flatten on white</string>

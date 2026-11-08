@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Пошук у даведцы і парадах</string>
-    <string name="help_search_clear">Ачысціць пошук</string>
     <string name="help_search_no_results">Па запыце "%1$s" нічога не знойдзена ў даведцы</string>
     <string name="help_search_section_tips">Парады і інструкцыі</string>
     <string name="help_search_section_settings">Налады</string>
     <string name="help_search_section_actions">Хуткія дзеянні</string>
     <string name="help_search_section_changelog">Што новага</string>
-    <string name="help_search_see_all">Паказаць усе вынікі: %1$d</string>
-    <string name="help_tips_section_title">Даведка і парады</string>
     <string name="help_quick_actions">Хуткія дзеянні</string>
     <string name="help_qa_open_timeline">Адкрыць храналогію</string>
     <string name="help_qa_open_albums">Адкрыць альбомы</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Адкрыць абранае</string>
     <string name="help_qa_open_locations">Адкрыць месцы</string>
     <string name="help_qa_open_library">Адкрыць бібліятэку</string>
-    <string name="help_qa_open_color_palette">Адкрыць колеравую палітру</string>
-    <string name="help_qa_open_appearance">Адкрыць налады выгляду</string>
     <string name="help_tip_view_cutout_title">Выразаць прадмет</string>
     <string name="help_tip_view_cutout_subtitle">Падніміце чалавека або прадмет з фону</string>
     <string name="help_tip_view_cutout_p1_title">Падніміце выяўлены прадмет</string>

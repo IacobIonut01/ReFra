@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">搜尋說明與提示</string>
-    <string name="help_search_clear">清除搜尋</string>
     <string name="help_search_no_results">找不到與「%1$s」相關的說明</string>
     <string name="help_search_section_tips">提示與操作說明</string>
     <string name="help_search_section_settings">設定</string>
     <string name="help_search_section_actions">快速操作</string>
     <string name="help_search_section_changelog">最新功能</string>
-    <string name="help_search_see_all">查看全部 %1$d 筆結果</string>
-    <string name="help_tips_section_title">說明與提示</string>
     <string name="help_quick_actions">快速操作</string>
     <string name="help_qa_open_timeline">開啟時間軸</string>
     <string name="help_qa_open_albums">開啟相簿</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">開啟收藏</string>
     <string name="help_qa_open_locations">開啟地點</string>
     <string name="help_qa_open_library">開啟媒體庫</string>
-    <string name="help_qa_open_color_palette">開啟調色盤</string>
-    <string name="help_qa_open_appearance">開啟外觀設定</string>
     <string name="help_tip_view_cutout_title">剪下主題</string>
     <string name="help_tip_view_cutout_subtitle">將人物或物體從背景中提取出來</string>
     <string name="help_tip_view_cutout_p1_title">提取已檢測的主題</string>

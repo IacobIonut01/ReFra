@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Tìm trong trợ giúp và mẹo</string>
-    <string name="help_search_clear">Xóa nội dung tìm kiếm</string>
     <string name="help_search_no_results">Không tìm thấy nội dung trợ giúp cho “%1$s”</string>
     <string name="help_search_section_tips">Mẹo và hướng dẫn</string>
     <string name="help_search_section_settings">Cài đặt</string>
     <string name="help_search_section_actions">Thao tác nhanh</string>
     <string name="help_search_section_changelog">Có gì mới</string>
-    <string name="help_search_see_all">Xem tất cả %1$d kết quả</string>
-    <string name="help_tips_section_title">Trợ giúp và mẹo</string>
     <string name="help_quick_actions">Thao tác nhanh</string>
     <string name="help_qa_open_timeline">Mở dòng thời gian</string>
     <string name="help_qa_open_albums">Mở album</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Mở mục yêu thích</string>
     <string name="help_qa_open_locations">Mở địa điểm</string>
     <string name="help_qa_open_library">Mở thư viện</string>
-    <string name="help_qa_open_color_palette">Mở bảng màu</string>
-    <string name="help_qa_open_appearance">Mở cài đặt giao diện</string>
     <string name="help_tip_view_cutout_title">Cắt bỏ một đối tượng</string>
     <string name="help_tip_view_cutout_subtitle">Nâng một người hoặc vật thể ra khỏi nền</string>
     <string name="help_tip_view_cutout_p1_title">Nâng đối tượng được phát hiện</string>

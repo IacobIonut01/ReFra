@@ -1074,14 +1074,11 @@
     <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Buscar en la ayuda y los consejos</string>
-    <string name="help_search_clear">Borrar la búsqueda</string>
     <string name="help_search_no_results">No se encontró ayuda para "%1$s"</string>
     <string name="help_search_section_tips">Consejos y guías</string>
     <string name="help_search_section_settings">Ajustes</string>
     <string name="help_search_section_actions">Acciones rápidas</string>
     <string name="help_search_section_changelog">Novedades</string>
-    <string name="help_search_see_all">Ver los %1$d resultados</string>
-    <string name="help_tips_section_title">Ayuda y consejos</string>
     <string name="help_quick_actions">Acciones rápidas</string>
     <string name="help_qa_open_timeline">Abrir la cronología</string>
     <string name="help_qa_open_albums">Abrir los álbumes</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">Abrir los favoritos</string>
     <string name="help_qa_open_locations">Abrir las ubicaciones</string>
     <string name="help_qa_open_library">Abrir la biblioteca</string>
-    <string name="help_qa_open_color_palette">Abrir la paleta de colores</string>
-    <string name="help_qa_open_appearance">Abrir los ajustes de apariencia</string>
     <string name="help_tip_view_cutout_title">Recortar un sujeto</string>
     <string name="help_tip_view_cutout_subtitle">Levantar una persona u objeto del fondo</string>
     <string name="help_tip_view_cutout_p1_title">Levantar el sujeto detectado</string>
