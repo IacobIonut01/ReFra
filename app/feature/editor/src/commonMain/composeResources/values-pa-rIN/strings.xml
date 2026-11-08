@@ -55,4 +55,14 @@
     <string name="editor_brush_size">ਸਾਈਜ਼</string>
     <string name="editor_brush_strength">ਮਜ਼ਬੂਤੀ</string>
     <string name="editor_blur_faces">ਚਿਹਰੇ ਧੁੰਦਲੇ ਕਰੋ</string>
+    <string name="raw_export_jpeg">ਜੇਪੀਈਜੀ</string>
+    <string name="raw_export_png">ਪੀਐਨਜੀ</string>
+    <string name="raw_export_tiff8">ਟਿਫ (8-ਬਿਟ)</string>
+    <string name="raw_export_tiff16">ਟਿਫ (16-ਬਿੱਟ)</string>
+    <string name="raw_export_choose_format">ਵਿਕਸਤ ਕਾਪੀ ਸੁਰੱਖਿਅਤ ਕਰੋ</string>
+    <string name="raw_export_choose_format_subtitle">ਤੁਹਾਡੇ ਵਿਕਸਤ ਕੀਤੇ RAW ਲਈ ਇੱਕ ਫਾਰਮੈਟ ਚੁਣੋ।</string>
+    <string name="raw_export_tiff_unavailable">TIFF ਪੂਰੀ ਬਿਟ ਡੈਪਥ ਬਰਕਰਾਰ ਰੱਖਦਾ ਹੈ ਪਰ ਇਸ ਵਿੱਚ ਕ੍ਰੌਪ, ਫਿਲਟਰ ਜਾਂ ਮਾਰਕਅੱਪ ਸ਼ਾਮਲ ਨਹੀਂ ਕੀਤੇ ਜਾ ਸਕਦੇ — TIFF ਐਕਸਪੋਰਟ ਕਰਨ ਲਈ ਇਹਨਾਂ ਨੂੰ ਹਟਾ ਦਿਓ।</string>
+    <string name="editor_mosaic_faces">ਮੋਜ਼ੇਕ ਚਿਹਰੇ</string>
+    <string name="cutout_no_object">ਲੰਬੇ ਦਬਾਅ ਹੇਠ ਕੋਈ ਵਸਤੂ ਨਹੀਂ ਮਿਲੀ।</string>
+    <string name="cutout_init_failed">ਕੱਟਆਊਟ ਇੰਜਣ ਨੂੰ ਸ਼ੁਰੂ ਕਰਨ ਵਿੱਚ ਅਸਫਲ</string>
 </resources>

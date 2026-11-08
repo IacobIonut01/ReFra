@@ -1,6 +1,6 @@
 ---
 title: Ignored albums
-summary: Hide chosen albums or file paths from the Timeline, the Albums tab, or both, with reversible rules.
+summary: Hide chosen albums or folder paths from the Timeline, Library, or both, with rules you can change or remove.
 area: organize-secure
 path:
   - Library
@@ -10,50 +10,50 @@ scenes: [ignored-rules]
 order: 10
 ---
 
-Ignoring removes albums from view without deleting or encrypting anything. Each entry under **Library › Ignored** is a rule with two decisions: **where** it hides media (the Timeline, the Albums tab, or both) and **who** it matches (a single album, several albums, or a path pattern). Rules are reversible; deleting one brings everything back.
+Ignoring removes albums from view without deleting, moving, or encrypting anything. Each entry under **Library › Ignored** is a rule with two decisions: **what** it matches (one album, several albums, or a path pattern) and **where** it hides them. Files stay where they are, so other apps and cloud backups still see them; use the [vault](/ReFra/features/vault) to lock photos away instead.
 
 ## Create a rule
 
-1. Open **Library › Ignored** and start a new rule. The same wizard opens when you touch and hold an album and choose **Add to ignored albums**.
-2. Under **Where should be ignored**, pick **Timeline**, **Albums**, or **Both Albums and Timeline**. A Timeline-only rule still leaves the album visible on the Albums tab.
-3. Under **Who should be ignored**, pick **Single Album**, **Multiple Albums**, or **Path Regex**.
-4. For album selections, tick the albums in the list; selected albums show as chips with a running count, and **Continue** moves on.
-5. For **Path Regex**, type the pattern (see below) and check the **albums matched** preview before continuing.
-6. The **Confirmation** step previews the type, the location, and the matched albums. Tap **Apply** to save the rule.
+1. Open **Library › Ignored** and tap **Ignore albums**. The same steps open when you touch and hold an album and choose **Add to ignored albums**.
+2. Under **Choose what to ignore**, pick **Albums** or **Path pattern**.
+3. For **Albums**, tick one or more albums; **Search albums** filters the list, and albums another rule already covers are marked **Already ignored**. For **Path pattern**, type the pattern (see below) and check the **Matches** list.
+4. Under **Where should they be hidden?**, pick what to **Hide from**:
+   - **Albums tab**: the album leaves Library; its photos stay in the Timeline.
+   - **Timeline**: its photos leave the Timeline; the album stays in Library.
+   - **Everywhere**: hidden from both.
+5. Optionally give the rule a name, then confirm.
 
 ## Path patterns
 
-A path pattern is matched against the **entire path** of each file and its folder, not the album's display name. For example a file lives at `/storage/emulated/0/DCIM/Camera/photo.jpg`, so a pattern must cover that whole string. Use `.*` where anything may appear.
+A path pattern is matched against the **whole folder path**, not the album's display name. A photo in `/storage/emulated/0/DCIM/Camera` only matches a pattern that covers that whole string, so use `.*` where anything may appear.
 
-The app suggests these examples:
+The app offers these examples; tap one to start from it:
 
 | Pattern | Matches |
 | --- | --- |
 | `.*Screenshots.*` | Anything with "Screenshots" in its path |
-| `.*/WhatsApp/.*` | Everything inside a WhatsApp folder |
+| `.*/WhatsApp/.*` | Everything inside the WhatsApp folder |
 | `/storage/emulated/0/DCIM/.*` | Everything under DCIM on internal storage |
 
-Two mistakes produce errors: an **Invalid pattern** that does not parse, and a pattern **already in use** by another rule. Always check the matched-albums preview before applying; a pattern that matches more than intended hides more than intended.
+A pattern that does not parse shows **Invalid pattern**, and one another rule already uses is refused. When nothing matches yet the rule can still be saved: matching folders created later are hidden too. Check the **Matches** list before confirming; a broad pattern hides more than you meant.
 
 ## Manage existing rules
 
 <PreviewCollection feature="ignored-albums" section="manage-existing-rules" />
 
-1. Open **Library › Ignored**.
-2. Tap a rule's options to **Edit Albums** (change which albums it covers), **Edit Location** (Timeline vs Albums scope), or **Delete** it.
-3. Save or cancel with **Save** / **Cancel**.
+**Library › Ignored** lists the rules grouped by where they hide albums, with filters for **All**, **Single album**, **Several albums**, and **Patterns**. Tap a rule to see its name, what it is **Hidden from**, and its albums or pattern, and to change them. **Stop ignoring** removes the rule; **Undo** on the confirmation brings it straight back.
 
-Deleting a rule makes its albums visible again where it had hidden them; nothing about the files changes in either direction.
+Removing a rule makes its albums visible again where it had hidden them; nothing about the files changes in either direction.
 
 ## Example: hide messaging clutter only from the Timeline
 
-1. Open **Library › Ignored** and start a rule.
-2. Choose **Timeline** for the location so the folders still exist on the Albums tab.
-3. Choose **Path Regex**, enter `.*/WhatsApp/.*`, and check the matched preview shows the media folders you expect.
-4. Tap **Continue**, review the confirmation, and **Apply**. WhatsApp media leaves the Timeline but the files and the album remain.
+1. Open **Library › Ignored** and tap **Ignore albums**.
+2. Choose **Path pattern**, tap the WhatsApp example, and check the **Matches** list shows the folders you expect.
+3. Hide from **Timeline** so the album stays in Library, and confirm.
+4. WhatsApp media leaves the Timeline, but the files and the album remain.
 
 ## If the wrong things disappear
 
-- Open **Library › Ignored** and check the matched albums on the rule; path patterns match more than one folder when they are broad.
-- A rule scoped to **Timeline** is the reason an album still shows on the Albums tab; that is by design, not a leak.
+- Open **Library › Ignored** and check the albums a rule matches; path patterns match more than one folder when they are broad.
+- A rule that hides from **Timeline** only is the reason an album still shows in Library; that is by design, not a leak.
 - Ignored media may still feed search and smart features if **Include ignored albums** is on under **Settings › Smart Features**.

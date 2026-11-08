@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Tamaño</string>
     <string name="editor_brush_strength">Forza</string>
     <string name="editor_blur_faces">Difuminar caras</string>
+    <string name="raw_export_jpeg">XePéG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 bits)</string>
+    <string name="raw_export_tiff16">TIFF (16 bits)</string>
+    <string name="raw_export_choose_format">Gardar copia desenvolvida</string>
+    <string name="raw_export_choose_format_subtitle">Escolle un formato para o teu RAW desenvolvido</string>
+    <string name="raw_export_tiff_unavailable">O TIFF mantén a profundidade de bits completa pero non pode incluír recorte, filtros nin marcaxe — elimínaos para exportar o TIFF.</string>
+    <string name="editor_mosaic_faces">Rostros de mosaico</string>
+    <string name="cutout_no_object">Non se detectou ningún obxecto durante a pulsación prolongada.</string>
+    <string name="cutout_init_failed">Fallou na inicialización do motor de recorte</string>
 </resources>

@@ -1,21 +1,30 @@
 files:
   # Master UI string catalog — consumed via com.dot.gallery.generated.resources.Res
+  # escape_quotes: 0 — Compose Multiplatform resources do NOT understand Android's \'
+  # escape (it renders literally); apostrophes must stay plain '.
   - source: /app/commonApp/src/commonMain/composeResources/values/strings.xml
     translation: /app/commonApp/src/commonMain/composeResources/values-%android_code%/%original_file_name%
+    escape_quotes: 0
   # English source stays in commonApp so the existing Crowdin file (and its stored
   # translations) keeps mapping; help tips render through feature/help's own Res
   # catalog, so translations must land in that module to be seen at runtime.
   - source: /app/commonApp/src/commonMain/composeResources/values/help_strings.xml
     translation: /app/feature/help/src/commonMain/composeResources/values-%android_code%/%original_file_name%
+    escape_quotes: 0
   # Manifest/widget/layout-referenced strings — platform XML resolves R.string only,
   # so these keep an Android res/ copy (same 9 keys also exist in composeResources
   # for Kotlin call sites; Crowdin TM keeps both translations consistent).
+  # escape_quotes: 2 keeps the required \' escaping for AAPT.
   - source: /app/commonApp/src/androidMain/res/values/strings.xml
     translation: /app/commonApp/src/androidMain/res/values-%android_code%/%original_file_name%
+    escape_quotes: 2
   # Feature-module catalogs that already ship translations
   - source: /app/feature/editor/src/commonMain/composeResources/values/strings.xml
     translation: /app/feature/editor/src/commonMain/composeResources/values-%android_code%/%original_file_name%
+    escape_quotes: 0
   - source: /app/feature/vault/src/commonMain/composeResources/values/strings.xml
     translation: /app/feature/vault/src/commonMain/composeResources/values-%android_code%/%original_file_name%
+    escape_quotes: 0
   - source: /app/feature/viewer/src/commonMain/composeResources/values/strings.xml
     translation: /app/feature/viewer/src/commonMain/composeResources/values-%android_code%/%original_file_name%
+    escape_quotes: 0

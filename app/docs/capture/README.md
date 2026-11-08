@@ -25,6 +25,14 @@ Ordinary scenes use `captureToImage()`. Scenes with `captureWindow=true`
 use a physical screenshot cropped to the measured frame, including modal
 windows and native video or map surfaces.
 
+The mount is a `Modifier.size` of the preset's logical size, so it coerces
+into the host window's constraints. Without a `device` filter the test runs
+every preset; on a phone-sized window (~412dp wide) the tablet and foldable
+presets can never reach their logical size, so each such job is skipped with
+a warning (8dp slack) and the run continues on the presets that fit. If no
+preset fits the window the test fails fast with the window size and a pointer
+to a matching emulator or an explicit `device=phone` filter.
+
 `DocsScene.recordedStates` lists states that exist only as recorded clips —
 `statesOf` excludes them from still capture and rejects them as explicit
 filters, so a still run can never overwrite a clip frame.

@@ -70,10 +70,7 @@ interface ClassifierDao {
 
     @Transaction
     suspend fun updateCategory(category: String, classifiedMediaList: List<ClassifiedMedia>) {
-        // Upsert the items in mediaList
         insertClassifiedMediaList(classifiedMediaList)
-
-        // Delete items from the database that are no longer classified
         deleteDeclassifiedImages(classifiedMediaList.map { it.id })
     }
 
@@ -93,8 +90,6 @@ interface ClassifierDao {
     suspend fun importData(data: String, fullMediaList: List<UriMedia>) {
         val classifiedMedia = Json.decodeFromString<List<ClassifiedMedia>>(data)
         insertClassifiedMediaList(classifiedMedia)
-
-        // Delete items from the database that are no longer classified or no longer exist
         deleteDeclassifiedImages(fullMediaList.fastMap { it.id })
     }
 

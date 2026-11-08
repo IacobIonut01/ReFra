@@ -12,7 +12,7 @@ fun isEncryptedVaultFile(file: File): Boolean =
 /**
  * Decrypts a vault file and returns bytes + mime type.
  * Handles both portable (VLTv1) and legacy (EncryptedFile) formats.
- * Reads from the canonical shared decrypted file managed by [VaultDecryptStore] (#1282).
+ * Reads from the canonical shared decrypted file managed by [VaultDecryptStore].
  */
 fun decryptVaultFile(file: File, context: Context): EncryptedMediaStream {
     val handle = VaultDecryptStore.acquire(KeychainHolder(context), file)

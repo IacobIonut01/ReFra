@@ -19,7 +19,7 @@
     <string name="help_tip_basics_view_media_p2_title">ניווט בין פריטי מדיה</string>
     <string name="help_tip_basics_view_media_p2_desc">החלק שמאלה או ימינה כדי לעבור בין תמונות וסרטונים מבלי לחזור לרשת. החלק למטה כדי לסגור את המציג ולחזור למקום שהיית בו. המציג זוכר את המיקום שלך, כך שלא תאבד את מקומך.</string>
     <string name="help_tip_basics_view_media_p3_title">זום והזזה</string>
-    <string name="help_tip_basics_view_media_p3_desc">צבוט בשתי אצבעות כדי לבצע זום לכל תמונה למבט מקרוב. בזמן זום, גרור כדי להזיז את התמונה. הקש פעמיים במהירות כדי לעבור במהירות בין מצב מוגדל למצב המקורי. טיפ: אם החלקת בטעות לתמונה אחרת בזמן זום, נסה את התכונה \"נעילת תמונה\" (לחיצה ארוכה על כותרת התאריך) כדי למנוע החלקות בזמן שאתה חוקר פרטים.</string>
+    <string name="help_tip_basics_view_media_p3_desc">צבוט בשתי אצבעות כדי לבצע זום לכל תמונה למבט מקרוב. בזמן זום, גרור כדי להזיז את התמונה. הקש פעמיים במהירות כדי לעבור במהירות בין מצב מוגדל למצב המקורי. טיפ: אם החלקת בטעות לתמונה אחרת בזמן זום, נסה את התכונה "נעילת תמונה" (לחיצה ארוכה על כותרת התאריך) כדי למנוע החלקות בזמן שאתה חוקר פרטים.</string>
     <string name="help_tip_basics_select_media_title">בחירה וניהול של מדיה</string>
     <string name="help_tip_basics_select_media_subtitle">לחץ לחיצה ארוכה כדי להתחיל לבחור, ואז הקש להוספת עוד</string>
     <string name="help_tip_basics_select_media_p1_title">בחירת תמונות וסרטונים</string>
@@ -59,7 +59,7 @@
     <string name="help_tip_nav_albums_p1_desc">אלבומים מציגים את התמונות שלך מאורגנות לפי התיקיות בהן הן מאוחסנות — מצלמה, צילומי מסך, הורדות, תמונות WhatsApp ועוד. כל אלבום מציג תצוגת תמונה ממוזערת ומספר הפריטים בתוכו. תוכל לעבור בין תצוגת רשת ורשימה כדי למצוא אלבומים במהירות.</string>
     <string name="help_tip_nav_albums_p2_title">חקירת האלבומים שלך</string>
     <string name="help_tip_nav_albums_p2_desc">הקש על כל אלבום כדי לראות את תוכנו. לחץ לחיצה ארוכה על אלבום לאפשרויות נוספות: הצמד אותו לראש לגישה מהירה, הסתר אותו מהרשימה, שנה את התמונה הממוזערת שלו או הוסף אותו לקבוצה או אוסף. טיפ: הצמד את האלבומים הכי בשימוש (כמו מצלמה) כדי שיהיו תמיד בראש הרשימה.</string>
-    <string name="help_tip_nav_albums_p2_s1">הקש על \"אלבומים\" בסרגל התחתון</string>
+    <string name="help_tip_nav_albums_p2_s1">הקש על "אלבומים" בסרגל התחתון</string>
     <string name="help_tip_nav_albums_p2_s2">עיין ברשת האלבומים שלך</string>
     <string name="help_tip_nav_albums_p2_s3">לחץ לחיצה ארוכה לאפשרויות אלבום</string>
     <string name="help_tip_nav_albums_p2_s4">הצמד את המועדפים שלך לראש</string>
@@ -68,13 +68,13 @@
     <string name="help_tip_nav_search_p1_title">חיפוש במדיה שלך</string>
     <string name="help_tip_nav_search_p1_desc">הקש על שורת החיפוש בראש ציר הזמן כדי למצוא תמונות. חיפוש בסיסי מתאים שמות קבצים באמצעות התאמה מטושטשת, כך שאינך צריך לזכור שמות מדויקים. החיפושים האחרונים שלך נשמרים לגישה מהירה. תוצאות מתעדכנות בזמן שאתה מקליד.</string>
     <string name="help_tip_nav_search_p2_title">חיפוש חזותי בבינה מלאכותית</string>
-    <string name="help_tip_nav_search_p2_desc">עם מודלי בינה מלאכותית מותקנים, החיפוש הופך לחזק הרבה יותר — תאר את מה שאתה מחפש בשפה פשוטה כמו \"שקיעה בחוף\", \"עוגת יום הולדת\" או \"כלב משחק בשלג\". הגלריה משתמשת במודלי CLIP במכשיר כדי להבין תוכן תמונה, כך שהתמונות שלך לעולם לא עוזבות את המכשיר. כדי להפעיל זאת, עבור להגדרות &gt; תכונות חכמות והתקן את מודלי הבינה המלאכותית.</string>
+    <string name="help_tip_nav_search_p2_desc">עם מודלי בינה מלאכותית מותקנים, החיפוש הופך לחזק הרבה יותר — תאר את מה שאתה מחפש בשפה פשוטה כמו "שקיעה בחוף", "עוגת יום הולדת" או "כלב משחק בשלג". הגלריה משתמשת במודלי CLIP במכשיר כדי להבין תוכן תמונה, כך שהתמונות שלך לעולם לא עוזבות את המכשיר. כדי להפעיל זאת, עבור להגדרות &gt; תכונות חכמות והתקן את מודלי הבינה המלאכותית.</string>
     <string name="help_tip_nav_old_navbar_title">סרגל ניווט קלאסי</string>
     <string name="help_tip_nav_old_navbar_subtitle">מעבר בין סגנונות ניווט מודרני וקלאסי</string>
     <string name="help_tip_nav_old_navbar_p1_title">סגנונות סרגל ניווט</string>
     <string name="help_tip_nav_old_navbar_p1_desc">הגלריה מציעה שני סגנונות סרגל ניווט. הסגנון המודרני מציג סמלים עם תוויות עבור ציר זמן, אלבומים וספרייה. הסגנון הקלאסי הקומפקטי משתמש בסמלים קטנים יותר ללא תוויות, ומספק לך יותר מקום על המסך לתמונות שלך. נסה את שניהם כדי לראות איזה אתה מעדיף.</string>
     <string name="help_tip_nav_old_navbar_p1_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_nav_old_navbar_p1_s2">החלף את \"סגנון סרגל ניווט ישן\"</string>
+    <string name="help_tip_nav_old_navbar_p1_s2">החלף את "סגנון סרגל ניווט ישן"</string>
     <string name="help_tip_nav_library_title">שימוש בספרייה</string>
     <string name="help_tip_nav_library_subtitle">גישה מהירה למועדפים, סל מיחזור, כספת ועוד</string>
     <string name="help_tip_nav_library_p1_title">הספרייה</string>
@@ -84,14 +84,14 @@
     <string name="help_tip_nav_launch_screen_p1_title">מסך פתיחה ברירת מחדל</string>
     <string name="help_tip_nav_launch_screen_p1_desc">בחר איזה מסך מקבל אותך כשאתה פותח את הגלריה. ציר זמן נהדר אם אתה בעיקר מעיין בתמונות אחרונות. אלבומים עובד טוב אם אתה מארגן לפי תיקייה. ספרייה אידיאלית אם אתה בעיקר משתמש במועדפים או בקטגוריות. יש גם אפשרות אוטומטית שזוכרת את המסך האחרון שהשתמשת בו.</string>
     <string name="help_tip_nav_launch_screen_p1_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_nav_launch_screen_p1_s2">הקש על \"מסך פתיחה ברירת מחדל\"</string>
+    <string name="help_tip_nav_launch_screen_p1_s2">הקש על "מסך פתיחה ברירת מחדל"</string>
     <string name="help_tip_nav_launch_screen_p1_s3">בחר אוטומטי, ציר זמן, אלבומים או ספרייה</string>
     <string name="help_tip_nav_auto_hide_bars_title">הסתרה אוטומטית של סרגלים בגלילה</string>
     <string name="help_tip_nav_auto_hide_bars_subtitle">הסתרת סרגלי החיפוש והניווט בעת גלילה</string>
     <string name="help_tip_nav_auto_hide_bars_p1_title">הסתרה אוטומטית של סרגלים</string>
     <string name="help_tip_nav_auto_hide_bars_p1_desc">לחוויית עיון סוחפת יותר, הפעל הסתרה אוטומטית עבור סרגל החיפוש ו/או סרגל הניווט. הם ייעלמו בעת גלילה למטה דרך התמונות שלך ויחזרו בעת גלילה חזרה למעלה. זה שימושי במיוחד במסכים קטנים בהם כל פיקסל חשוב. תוכל לשלוט בכל סרגל באופן עצמאי.</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_nav_auto_hide_bars_p1_s2">החלף את \"הסתרה אוטומטית של סרגל החיפוש\" ו/או \"הסתרה אוטומטית של סרגל הניווט\"</string>
+    <string name="help_tip_nav_auto_hide_bars_p1_s2">החלף את "הסתרה אוטומטית של סרגל החיפוש" ו/או "הסתרה אוטומטית של סרגל הניווט"</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s3">גלול למטה לראות אותם נעלמים, גלול למעלה כדי להחזיר אותם</string>
     <!-- GET STARTED: PERSONALIZATION -->
     <string name="help_tip_personalize_theme_title">שינוי ערכת הנושא</string>
@@ -102,7 +102,7 @@
     <string name="help_tip_personalize_theme_p2_desc">ברירת המחדל של המערכת עוקבת אחר המצב הנוכחי של הטלפון שלך. אילוץ מצב כהה שומר את הגלריה כהה ללא קשר להגדרות המערכת — נהדר לעיון בלילה. אם יש לך תצוגת OLED, הפעל את AMOLED שחור טהור לרקעים שחורים אמיתיים שחוסכים סוללה ונראים מדהימים.</string>
     <string name="help_tip_personalize_theme_p2_s1">עבור להגדרות &gt; מראה</string>
     <string name="help_tip_personalize_theme_p2_s2">בחר מערכת, בהיר או אילוץ כהה</string>
-    <string name="help_tip_personalize_theme_p2_s3">למסכי OLED, הפעל גם את \"AMOLED שחור טהור\"</string>
+    <string name="help_tip_personalize_theme_p2_s3">למסכי OLED, הפעל גם את "AMOLED שחור טהור"</string>
     <string name="help_tip_personalize_colors_title">התאמת לוח הצבעים</string>
     <string name="help_tip_personalize_colors_subtitle">בחר כל צבע כדי לעצב את האפליקציה כולה</string>
     <string name="help_tip_personalize_colors_p1_title">לוח הצבעים</string>
@@ -125,7 +125,7 @@
     <string name="help_tip_personalize_amoled_p1_desc">אם לטלפון שלך יש תצוגת OLED או AMOLED, מצב זה משתמש בפיקסלים שחורים אמיתיים שלמעשה מכובים — חוסך סוללה ויוצר מראה חזותי בולט. שלב עם אילוץ מצב כהה לתוצאות הטובות ביותר. הערה: הגדרה זו תיכנס לתוקף רק כאשר המצב הכהה פעיל.</string>
     <string name="help_tip_personalize_amoled_p1_s1">עבור להגדרות &gt; מראה</string>
     <string name="help_tip_personalize_amoled_p1_s2">הפעל תחילה אילוץ מצב כהה</string>
-    <string name="help_tip_personalize_amoled_p1_s3">החלף את \"AMOLED שחור טהור\"</string>
+    <string name="help_tip_personalize_amoled_p1_s3">החלף את "AMOLED שחור טהור"</string>
     <string name="help_tip_personalize_amoled_p1_s4">תהנה משחורים אמיתיים בתצוגת ה-OLED שלך</string>
     <string name="help_tip_personalize_dark_mode_title">מעבר בין בהיר לכהה</string>
     <string name="help_tip_personalize_dark_mode_subtitle">בחר את המצב שהכי קל לעיניים שלך</string>
@@ -136,21 +136,21 @@
     <string name="help_tip_personalize_blur_p1_title">אפקטי טשטוש</string>
     <string name="help_tip_personalize_blur_p1_desc">הפעל אפקטי טשטוש למראה מודרני של זכוכית מטושטשת על סרגל הניווט, שכבות-על וגיליון הבחירה. זה נותן לגלריה מראה מלוטש ושכבתי. דורש Android 12 ומעלה. אם אתה מבחין בהשפעה כלשהי על הביצועים במכשירים ישנים יותר, תוכל לכבות זאת.</string>
     <string name="help_tip_personalize_blur_p1_s1">עבור להגדרות &gt; מראה</string>
-    <string name="help_tip_personalize_blur_p1_s2">החלף את \"אפשור טשטוש מהודר\"</string>
+    <string name="help_tip_personalize_blur_p1_s2">החלף את "אפשור טשטוש מהודר"</string>
     <string name="help_tip_personalize_blur_p1_s3">הערה: דורש Android 12 ומעלה</string>
     <string name="help_tip_personalize_shared_elements_title">מעברי אלמנטים משותפים</string>
     <string name="help_tip_personalize_shared_elements_subtitle">אנימציות חלקות בעת פתיחת תמונות</string>
     <string name="help_tip_personalize_shared_elements_p1_title">מעברים חלקים</string>
     <string name="help_tip_personalize_shared_elements_p1_desc">כשמופעל, הקשה על תמונה ברשת יוצרת אנימציה חלקה שבה התמונה הממוזערת מתרחבת למציג במסך מלא, ומתכווצת חזרה כשאתה סוגר אותה. זה הופך את הניווט לנוזלי וטבעי. אם אתה מעדיף מעברים מיידיים או חווה תקלות אנימציה, תוכל לכבות זאת.</string>
     <string name="help_tip_personalize_shared_elements_p1_s1">עבור להגדרות &gt; מראה</string>
-    <string name="help_tip_personalize_shared_elements_p1_s2">החלף את \"מעברי אלמנטים משותפים\"</string>
+    <string name="help_tip_personalize_shared_elements_p1_s2">החלף את "מעברי אלמנטים משותפים"</string>
     <string name="help_tip_personalize_shared_elements_p1_s3">הקש על כל תמונה כדי לראות את האפקט</string>
     <string name="help_tip_personalize_app_name_title">שינוי שם האפליקציה</string>
-    <string name="help_tip_personalize_app_name_subtitle">להציג כ-\"Gallery\" או \"Refra\" במסך הבית שלך</string>
+    <string name="help_tip_personalize_app_name_subtitle">להציג כ-"Gallery" או "Refra" במסך הבית שלך</string>
     <string name="help_tip_personalize_app_name_p1_title">שם האפליקציה</string>
-    <string name="help_tip_personalize_app_name_p1_desc">בחר אם האפליקציה מוצגת כ-\"Gallery\" או \"Refra\" במסך הבית שלך ובמגירת האפליקציות. \"Refra\" הוא השם החלופי של האפליקציה. זה משנה רק את תווית הסמל — האפליקציה עצמה נשארת זהה. ייתכן שיהיה עליך להפעיל מחדש את המפעיל שלך או לחכות רגע עד שהשינוי יופיע במסך הבית שלך.</string>
+    <string name="help_tip_personalize_app_name_p1_desc">בחר אם האפליקציה מוצגת כ-"Gallery" או "Refra" במסך הבית שלך ובמגירת האפליקציות. "Refra" הוא השם החלופי של האפליקציה. זה משנה רק את תווית הסמל — האפליקציה עצמה נשארת זהה. ייתכן שיהיה עליך להפעיל מחדש את המפעיל שלך או לחכות רגע עד שהשינוי יופיע במסך הבית שלך.</string>
     <string name="help_tip_personalize_app_name_p1_s1">עבור להגדרות &gt; כללי</string>
-    <string name="help_tip_personalize_app_name_p1_s2">הקש על \"שם האפליקציה\"</string>
+    <string name="help_tip_personalize_app_name_p1_s2">הקש על "שם האפליקציה"</string>
     <string name="help_tip_personalize_app_name_p1_s3">בחר Gallery או Refra</string>
     <string name="help_tip_personalize_app_name_p1_s4">תווית סמל מסך הבית תתעדכן</string>
     <!-- TIMELINE &amp; ALBUMS -->
@@ -165,7 +165,7 @@
     <string name="help_tip_timeline_layout_type_p2_title">החלפת פריסות</string>
     <string name="help_tip_timeline_layout_type_p2_desc">נסה את שתי הפריסות כדי לראות איזו אתה מעדיף. רשת עובד הכי טוב עם תכונת הצביטה לזום. פסיפס יוצר תחושה של מגזין. הערה: פריסת פסיפס כרגע לא תומכת בצביטה לזום אך יש לה גלילה אופטימלית משלה.</string>
     <string name="help_tip_timeline_layout_type_p2_s1">עבור להגדרות &gt; ציר זמן ואלבומים</string>
-    <string name="help_tip_timeline_layout_type_p2_s2">הקש על \"סוג פריסה\"</string>
+    <string name="help_tip_timeline_layout_type_p2_s2">הקש על "סוג פריסה"</string>
     <string name="help_tip_timeline_layout_type_p2_s3">בחר רשת או פסיפס</string>
     <string name="help_tip_timeline_layout_type_p2_s4">עיין בציר הזמן שלך כדי לראות את ההבדל</string>
     <string name="help_tip_timeline_group_similar_title">קיבוץ מדיה דומה</string>
@@ -183,35 +183,35 @@
     <string name="help_tip_timeline_gif_animation_p1_title">GIF מונפשים</string>
     <string name="help_tip_timeline_gif_animation_p1_desc">כשמופעל, קבצי GIF מנגנים את האנימציה שלהם ישירות ברשת ציר הזמן כתמונות ממוזערות. זה מקל על זיהוי ועיון של GIFים חזותית. אם יש לך הרבה GIFים, כיבוי זה יכול לשפר את ביצועי הגלילה ולהפחית שימוש בסוללה מכיוון שהאנימציות לא ינוגנו עד שתקיש לצפייה בהן.</string>
     <string name="help_tip_timeline_gif_animation_p1_s1">עבור להגדרות &gt; ציר זמן ואלבומים</string>
-    <string name="help_tip_timeline_gif_animation_p1_s2">החלף את \"אפשור אנימציות GIF\"</string>
+    <string name="help_tip_timeline_gif_animation_p1_s2">החלף את "אפשור אנימציות GIF"</string>
     <string name="help_tip_timeline_gif_animation_p1_s3">GIFים ברשת ינועו כשמופעל</string>
     <string name="help_tip_albums_hide_timeline_title">הסתרת ציר זמן באלבומים</string>
     <string name="help_tip_albums_hide_timeline_subtitle">הסרת כותרות תאריכים בעת עיון באלבום</string>
     <string name="help_tip_albums_hide_timeline_p1_title">הסתרת כותרות ציר זמן</string>
     <string name="help_tip_albums_hide_timeline_p1_desc">כברירת מחדל, אלבומים מציגים כותרות תאריכים בדיוק כמו ציר הזמן. אם אתה מעדיף רשת רציפה ונקייה יותר בעת עיון באלבומים, הפעל אפשרות זו כדי להסיר את כותרות קיבוץ התאריכים בתוך אלבומים. התמונות עדיין ימוינו לפי תאריך, אך ללא המפרידים החזותיים. זה עניין של העדפה אישית — נסה את שניהם וראה מה מרגיש נכון.</string>
     <string name="help_tip_albums_hide_timeline_p1_s1">עבור להגדרות &gt; ציר זמן ואלבומים</string>
-    <string name="help_tip_albums_hide_timeline_p1_s2">החלף את \"הסתרת ציר זמן בתוך אלבומים\"</string>
+    <string name="help_tip_albums_hide_timeline_p1_s2">החלף את "הסתרת ציר זמן בתוך אלבומים"</string>
     <string name="help_tip_albums_hide_timeline_p1_s3">פתח אלבום כלשהו כדי לראות את ההבדל</string>
     <string name="help_tip_albums_merge_by_name_title">מיזוג אלבומים לפי שם</string>
     <string name="help_tip_albums_merge_by_name_subtitle">שילוב אלבומים ממיקומי אחסון שונים</string>
     <string name="help_tip_albums_merge_by_name_p1_title">מיזוג אלבומים</string>
     <string name="help_tip_albums_merge_by_name_p1_desc">אם יש לך אלבומים עם אותו שם במיקומי אחסון שונים (כמו אחסון פנימי וכרטיס SD), הגלריה יכולה למזג אותם לאלבום יחיד. לדוגמה, אם תיקיית המצלמה הפנימית שלך וגם תיקיית המצלמה בכרטיס SD מכילות תמונות, הן יופיעו כאלבום מצלמה אחד מאוחד. זה שימושי במיוחד אם הטלפון שלך שומר תמונות במיקומים שונים.</string>
     <string name="help_tip_albums_merge_by_name_p1_s1">עבור להגדרות &gt; ציר זמן ואלבומים</string>
-    <string name="help_tip_albums_merge_by_name_p1_s2">החלף את \"מיזוג אלבומים עם אותו שם\"</string>
+    <string name="help_tip_albums_merge_by_name_p1_s2">החלף את "מיזוג אלבומים עם אותו שם"</string>
     <string name="help_tip_albums_merge_by_name_p1_s3">אלבומים עם שמות תואמים ימוזגו</string>
     <string name="help_tip_timeline_date_header_title">התאמת כותרת תאריך</string>
     <string name="help_tip_timeline_date_header_subtitle">שינוי תבנית כותרת התאריך</string>
     <string name="help_tip_timeline_date_header_p1_title">תבנית כותרת תאריך</string>
     <string name="help_tip_timeline_date_header_p1_desc">התאם איך תאריכים מופיעים בכותרות ציר הזמן. בחר בין תבניות שונות שיתאימו להעדפה האזורית שלך או לסגנון האישי שלך. התבנית משפיעה על כל כותרות התאריכים בציר הזמן, בתצוגות האלבומים ובמציג המדיה.</string>
     <string name="help_tip_timeline_date_header_p1_s1">עבור להגדרות &gt; ציר זמן ואלבומים</string>
-    <string name="help_tip_timeline_date_header_p1_s2">הקש על \"תבנית כותרת תאריך\"</string>
+    <string name="help_tip_timeline_date_header_p1_s2">הקש על "תבנית כותרת תאריך"</string>
     <string name="help_tip_timeline_date_header_p1_s3">בחר את סגנון התאריך המועדף עליך</string>
     <string name="help_tip_timeline_fav_icon_title">מיקום סמל מועדף</string>
     <string name="help_tip_timeline_fav_icon_subtitle">שינוי המיקום שבו מופיע סמל המועדף על תמונות ממוזערות</string>
     <string name="help_tip_timeline_fav_icon_p1_title">מיקום סמל מועדף</string>
     <string name="help_tip_timeline_fav_icon_p1_desc">סמל הלב הקטן על תמונות מועדפות יכול להיות ממוקם בפינות שונות של התמונה הממוזערת, או מוסתר לחלוטין אם אתה מעדיף מראה נקי יותר. אם הסמל חופף עם חלקים חשובים של התמונות שלך, נסה להעביר אותו לפינה אחרת.</string>
     <string name="help_tip_timeline_fav_icon_p1_s1">עבור להגדרות &gt; ציר זמן ואלבומים</string>
-    <string name="help_tip_timeline_fav_icon_p1_s2">הקש על \"מיקום סמל מועדף\"</string>
+    <string name="help_tip_timeline_fav_icon_p1_s2">הקש על "מיקום סמל מועדף"</string>
     <string name="help_tip_timeline_fav_icon_p1_s3">בחר משמאל למעלה, מימין למעלה או מוסתר</string>
     <!-- VIEWING -->
     <string name="help_tip_view_zoom_title">זום והזזה של תמונות</string>
@@ -219,7 +219,7 @@
     <string name="help_tip_view_zoom_p1_title">זום לתוך פרטים</string>
     <string name="help_tip_view_zoom_p1_desc">השתמש במחוות צביטה בשתי אצבעות כדי לבצע זום לכל תמונה למבט מקרוב על פרטים עדינים. הקש פעמיים בכל מקום על התמונה כדי לעבור מיידית בין מצב מוגדל לגודל המקורי — נהדר לבדיקה מהירה של מיקוד או לקריאת טקסט קטן בתמונות.</string>
     <string name="help_tip_view_zoom_p2_title">הזזה</string>
-    <string name="help_tip_view_zoom_p2_desc">בזמן זום, גרור עם אצבע אחת כדי לחקור חלקים שונים של התמונה. הגלריה תומכת בזום ברזולוציה גבוהה כך שתוכל לראות כל פרט. אם אתה מוצא את עצמך מחליק בטעות לתמונה הבאה בזמן זום, השתמש בתכונת \"נעילת תמונה\" (לחיצה ארוכה על כותרת התאריך) כדי למנוע החלקות.</string>
+    <string name="help_tip_view_zoom_p2_desc">בזמן זום, גרור עם אצבע אחת כדי לחקור חלקים שונים של התמונה. הגלריה תומכת בזום ברזולוציה גבוהה כך שתוכל לראות כל פרט. אם אתה מוצא את עצמך מחליק בטעות לתמונה הבאה בזמן זום, השתמש בתכונת "נעילת תמונה" (לחיצה ארוכה על כותרת התאריך) כדי למנוע החלקות.</string>
     <string name="help_tip_view_video_title">ניגון וידאו</string>
     <string name="help_tip_view_video_subtitle">צפה בסרטונים עם פקדי ניגון מלאים</string>
     <string name="help_tip_view_video_p1_title">נגן וידאו</string>
@@ -227,15 +227,15 @@
     <string name="help_tip_view_video_p2_title">הגדרות וידאו</string>
     <string name="help_tip_view_video_p2_desc">התאם את חוויית הוידאו שלך. הפעלה אוטומטית מתחילה סרטונים אוטומטית כשאתה פותח אותם. מיקוד שמע משהה את המוזיקה שלך כשסרטון מתנגן. הסתרה אוטומטית של ממשק מנקה את הפקדים כשהניגון מתחיל לחוויה של קולנוע. את כל אלה ניתן להתאים להעדפה שלך.</string>
     <string name="help_tip_view_video_p2_s1">עבור להגדרות &gt; מציג מדיה</string>
-    <string name="help_tip_view_video_p2_s2">החלף את \"הפעלה אוטומטית של סרטונים\" לניגון אוטומטי</string>
-    <string name="help_tip_view_video_p2_s3">החלף את \"לקיחת מיקוד שמע\" כדי להשהות מוזיקת רקע</string>
-    <string name="help_tip_view_video_p2_s4">החלף את \"הסתרה אוטומטית של ממשק בניגון וידאו\" לצפייה סוחפת</string>
+    <string name="help_tip_view_video_p2_s2">החלף את "הפעלה אוטומטית של סרטונים" לניגון אוטומטי</string>
+    <string name="help_tip_view_video_p2_s3">החלף את "לקיחת מיקוד שמע" כדי להשהות מוזיקת רקע</string>
+    <string name="help_tip_view_video_p2_s4">החלף את "הסתרה אוטומטית של ממשק בניגון וידאו" לצפייה סוחפת</string>
     <string name="help_tip_view_details_title">צפייה בפרטי תמונה</string>
     <string name="help_tip_view_details_subtitle">צפייה בנתוני EXIF, מיקום ומטא-נתונים</string>
     <string name="help_tip_view_details_p1_title">גיליון מידע על תמונה</string>
     <string name="help_tip_view_details_p1_desc">החלק למעלה על כל תמונה במציג כדי לחשוף את גיליון המידע. הוא מציג פרטים מרכזיים במבט חטוף: מתי התמונה צולמה, גודל הקובץ, רזולוציה, דגם המצלמה ומיקום GPS (אם זמין). מכאן תוכל גם לערוך מטא-נתונים, להעתיק את התמונה, להגדיר אותה כטפט או להציג אותה על המפה.</string>
     <string name="help_tip_view_details_p2_title">מטא-נתונים מפורטים</string>
-    <string name="help_tip_view_details_p2_desc">לצלמים שרוצים את התמונה המלאה, הקש על \"הצג את כל המטא-נתונים\" כדי לראות כל פיסת מידע EXIF: מידע על עדשה, צמצם, מהירות תריס, ISO, איזון לבן, פלאש ועוד הרבה יותר. זה חשוב מאוד להבנת הגדרות המצלמה שלך ושיפור הצילום שלך.</string>
+    <string name="help_tip_view_details_p2_desc">לצלמים שרוצים את התמונה המלאה, הקש על "הצג את כל המטא-נתונים" כדי לראות כל פיסת מידע EXIF: מידע על עדשה, צמצם, מהירות תריס, ISO, איזון לבן, פלאש ועוד הרבה יותר. זה חשוב מאוד להבנת הגדרות המצלמה שלך ושיפור הצילום שלך.</string>
     <string name="help_tip_view_swipe_title">החלקה בין תמונות</string>
     <string name="help_tip_view_swipe_subtitle">ניווט דרך המדיה שלך עם מחוות החלקה</string>
     <string name="help_tip_view_swipe_p1_title">ניווט בהחלקה</string>
@@ -253,7 +253,7 @@
     <string name="help_tip_view_full_brightness_p1_title">בהירות מלאה</string>
     <string name="help_tip_view_full_brightness_p1_desc">כשמופעל, הגלריה מגבירה אוטומטית את המסך שלך לבהירות מקסימלית בעת צפייה בתמונות במציג במסך מלא. זה מבטיח שתראה צבעים ופרטים מדויקים, שימושי במיוחד בעת צפייה בתמונות בחוץ או בסביבות בהירות. הבהירות חוזרת לרמה הרגילה שלך כשאתה יוצא מהמציג.</string>
     <string name="help_tip_view_full_brightness_p1_s1">עבור להגדרות &gt; מציג מדיה</string>
-    <string name="help_tip_view_full_brightness_p1_s2">החלף את \"צפייה בבהירות מלאה\"</string>
+    <string name="help_tip_view_full_brightness_p1_s2">החלף את "צפייה בבהירות מלאה"</string>
     <string name="help_tip_view_full_brightness_p1_s3">הבהירות מוגברת רק בזמן צפייה, לא ברשת</string>
     <string name="help_tip_view_group_members_title">עיון במדיה מקובצת</string>
     <string name="help_tip_view_group_members_subtitle">צפייה בכל חברי הקבוצה של רצף או קבוצה דומה</string>
@@ -295,7 +295,7 @@
     <string name="help_tip_action_hide_vault_p2_desc">תוכל להסתיר תמונות בודדות מהמציג, או לבחור מספר תמונות ברשת ולהסתיר את כולן בבת אחת באמצעות גיליון פעולות הבחירה. אם יש לך מספר כספות, תתבקש לבחור באיזו להשתמש.</string>
     <string name="help_tip_action_hide_vault_p2_s1">פתח תמונה</string>
     <string name="help_tip_action_hide_vault_p2_s2">הקש על תפריט שלוש הנקודות</string>
-    <string name="help_tip_action_hide_vault_p2_s3">בחר \"הסתר בכספת\"</string>
+    <string name="help_tip_action_hide_vault_p2_s3">בחר "הסתר בכספת"</string>
     <string name="help_tip_action_hide_vault_p2_s4">בחר כספת אם יש לך יותר מאחת</string>
     <string name="help_tip_action_copy_to_album_title">העתקה לאלבום</string>
     <string name="help_tip_action_copy_to_album_subtitle">העתקת מדיה לאלבום אחר</string>
@@ -303,7 +303,7 @@
     <string name="help_tip_action_copy_to_album_p1_desc">צור כפיל של התמונה או הסרטון בתיקיית אלבום אחרת. המקור נשאר במקומו, ועותק חדש נוצר בתיקיית היעד. זה שימושי כשאתה רוצה שאותה תמונה תופיע במספר אלבומים מבלי להעביר את המקור. הערה: זה יוצר עותק קובץ אמיתי, שמשתמש באחסון נוסף.</string>
     <string name="help_tip_action_copy_to_album_p1_s1">פתח תמונה</string>
     <string name="help_tip_action_copy_to_album_p1_s2">הקש על תפריט שלוש הנקודות</string>
-    <string name="help_tip_action_copy_to_album_p1_s3">בחר \"העתק לאלבום\"</string>
+    <string name="help_tip_action_copy_to_album_p1_s3">בחר "העתק לאלבום"</string>
     <string name="help_tip_action_copy_to_album_p1_s4">בחר או צור את אלבום היעד</string>
     <string name="help_tip_action_add_collection_title">הוספה לאוסף</string>
     <string name="help_tip_action_add_collection_subtitle">ארגון מדיה באוספים מאורגנים</string>
@@ -317,9 +317,9 @@
     <string name="help_tip_viewer_default_editor_title">עורך תמונות ברירת מחדל</string>
     <string name="help_tip_viewer_default_editor_subtitle">בחירה בין עורך מובנה לעורך חיצוני</string>
     <string name="help_tip_viewer_default_editor_p1_title">עורך ברירת מחדל</string>
-    <string name="help_tip_viewer_default_editor_p1_desc">שלוט במה שקורה כשאתה מקיש על לחצן העריכה. בחר \"מובנה\" כדי תמיד להשתמש בעורך של הגלריה (נהדר לחיתוכים, מסננים וסימון מהירים). בחר \"חיצוני\" כדי להשתמש בעורך צד שלישי כמו Snapseed או Lightroom לעריכה מתקדמת יותר. תמיד תוכל לעבור ביניהם.</string>
+    <string name="help_tip_viewer_default_editor_p1_desc">שלוט במה שקורה כשאתה מקיש על לחצן העריכה. בחר "מובנה" כדי תמיד להשתמש בעורך של הגלריה (נהדר לחיתוכים, מסננים וסימון מהירים). בחר "חיצוני" כדי להשתמש בעורך צד שלישי כמו Snapseed או Lightroom לעריכה מתקדמת יותר. תמיד תוכל לעבור ביניהם.</string>
     <string name="help_tip_viewer_default_editor_p1_s1">עבור להגדרות &gt; מציג מדיה</string>
-    <string name="help_tip_viewer_default_editor_p1_s2">הקש על \"עורך תמונות ברירת מחדל\"</string>
+    <string name="help_tip_viewer_default_editor_p1_s2">הקש על "עורך תמונות ברירת מחדל"</string>
     <string name="help_tip_viewer_default_editor_p1_s3">בחר מובנה או חיצוני</string>
     <string name="help_tip_viewer_default_editor_p2_title">עורכים חיצוניים</string>
     <string name="help_tip_viewer_default_editor_p2_desc">כשמוגדר לחיצוני, הגלריה פותחת את בורר המערכת של Android שמציג את כל עורכי התמונות התואמים במכשירך. בחר את האהוב עליך פעם אחת והוא הופך לברירת המחדל. זה אידיאלי אם אתה מעדיף עורך ייעודי לדברים כמו התאמות HDR, עיבוד RAW או רטוש מתקדם.</string>
@@ -328,27 +328,27 @@
     <string name="help_tip_viewer_auto_play_p1_title">הפעלה אוטומטית</string>
     <string name="help_tip_viewer_auto_play_p1_desc">כשמופעל, סרטונים מתחילים להתנגן מיידית כשאתה מחליק אליהם או מקיש כדי לפתוח אותם. כבה זאת אם אתה מעדיף ללחוץ ידנית על נגן, לדוגמה בעת עיון בציבור או בחיבור נתונים מוגבל. סרטונים עדיין יציגו תצוגה מקדימה של תמונה ממוזערת כשההפעלה האוטומטית כבויה.</string>
     <string name="help_tip_viewer_auto_play_p1_s1">עבור להגדרות &gt; מציג מדיה</string>
-    <string name="help_tip_viewer_auto_play_p1_s2">החלף את \"הפעלה אוטומטית של סרטונים\"</string>
+    <string name="help_tip_viewer_auto_play_p1_s2">החלף את "הפעלה אוטומטית של סרטונים"</string>
     <string name="help_tip_viewer_auto_hide_video_title">הסתרה אוטומטית של ממשק בניגון וידאו</string>
     <string name="help_tip_viewer_auto_hide_video_subtitle">הסתרת פקדים כשסרטון מתחיל להתנגן</string>
     <string name="help_tip_viewer_auto_hide_video_p1_title">הסתרה אוטומטית של ממשק</string>
     <string name="help_tip_viewer_auto_hide_video_p1_desc">כשסרטון מתחיל להתנגן, סרגל הכלים והפקדים מתעמעמים אוטומטית לחוויית צפייה ללא הסחות דעת. הקש בכל מקום על המסך כדי להחזיר את הפקדים. זה יוצר תחושה של קולנוע, במיוחד לסרטונים ארוכים. כבה זאת אם אתה מעדיף שהפקדים תמיד יישארו גלויים.</string>
     <string name="help_tip_viewer_auto_hide_video_p1_s1">עבור להגדרות &gt; מציג מדיה</string>
-    <string name="help_tip_viewer_auto_hide_video_p1_s2">החלף את \"הסתרה אוטומטית של ממשק בניגון וידאו\"</string>
+    <string name="help_tip_viewer_auto_hide_video_p1_s2">החלף את "הסתרה אוטומטית של ממשק בניגון וידאו"</string>
     <string name="help_tip_viewer_auto_hide_video_p1_s3">הקש על המסך בכל עת כדי להציג את הפקדים שוב</string>
     <string name="help_tip_viewer_date_header_title">הצגת כותרת תאריך במציג</string>
     <string name="help_tip_viewer_date_header_subtitle">הצגת התאריך בעת החלקה בין תמונות</string>
     <string name="help_tip_viewer_date_header_p1_title">כותרת תאריך</string>
     <string name="help_tip_viewer_date_header_p1_desc">כותרת התאריך מציגה את תאריך הצילום בראש המציג בעוד אתה מחליק בין תמונות. זה עוזר לך להישאר מכוון בזמן בעת עיון. הסתר אותה אם אתה מעדיף מציג נקי יותר או אם אתה משתמש בגיליון המידע (החלק למעלה) כדי לבדוק תאריכים במקום. הערה: כותרת התאריך היא גם היעד לתכונת נעילת התמונה.</string>
     <string name="help_tip_viewer_date_header_p1_s1">עבור להגדרות &gt; מציג מדיה</string>
-    <string name="help_tip_viewer_date_header_p1_s2">החלף את \"הצגת כותרת תאריך\"</string>
+    <string name="help_tip_viewer_date_header_p1_s2">החלף את "הצגת כותרת תאריך"</string>
     <string name="help_tip_viewer_date_header_p1_s3">כותרת התאריך משמשת גם כיעד לנעילת תמונה</string>
     <string name="help_tip_viewer_fav_button_title">הצגת לחצן מועדף</string>
     <string name="help_tip_viewer_fav_button_subtitle">החלפת לחצן המועדף במציג</string>
     <string name="help_tip_viewer_fav_button_p1_title">לחצן מועדף</string>
     <string name="help_tip_viewer_fav_button_p1_desc">לחצן הלב בסרגל הכלים של המציג מאפשר לך לסמן או לבטל סימון של תמונה כמועדפת בהקשה אחת. אם אתה רק לעיתים רחוקות משתמש במועדפים, הסתרת לחצן זה מנקה את סרגל הכלים. תוכל עדיין להוסיף תמונות למועדפים מגיליון המידע (החלק למעלה) או מגיליון פעולות הבחירה.</string>
     <string name="help_tip_viewer_fav_button_p1_s1">עבור להגדרות &gt; מציג מדיה</string>
-    <string name="help_tip_viewer_fav_button_p1_s2">החלף את \"הצגת לחצן מועדף\"</string>
+    <string name="help_tip_viewer_fav_button_p1_s2">החלף את "הצגת לחצן מועדף"</string>
     <string name="help_tip_viewer_fav_button_p1_s3">תוכל עדיין להוסיף למועדפים דרך גיליון המידע גם אם מוסתר</string>
     <!-- EDITING -->
     <string name="help_tip_edit_crop_title">חיתוך ושינוי גודל</string>
@@ -412,7 +412,7 @@
     <string name="help_tip_edit_save_p2_title">היסטוריית עריכה</string>
     <string name="help_tip_edit_save_p2_desc">הגלריה מגבה אוטומטית את התמונה המקורית לפני כל עריכה, כך שתמיד תוכל לשחזר אותה מאוחר יותר. תוכל לצפות בכל גיבויי העריכה שלך במסך ייעודי המציג את הגרסה המקורית והערוכה זו לצד זו. רשת ביטחון זו אומרת שתוכל להתנסות בחופשיות עם עריכות.</string>
     <string name="help_tip_edit_save_p2_s1">עבור להגדרות &gt; תכונות חכמות</string>
-    <string name="help_tip_edit_save_p2_s2">הקש על \"מציג גיבויי עריכה\"</string>
+    <string name="help_tip_edit_save_p2_s2">הקש על "מציג גיבויי עריכה"</string>
     <string name="help_tip_edit_save_p2_s3">צפה במקורות לצד גרסאות ערוכות</string>
     <string name="help_tip_edit_save_p2_s4">שחזר כל מקור אם נדרש</string>
     <string name="help_tip_edit_backups_title">ניהול גיבויי עריכה</string>
@@ -422,7 +422,7 @@
     <string name="help_tip_edit_backups_p2_title">ניהול גיבויים</string>
     <string name="help_tip_edit_backups_p2_desc">מציג גיבויי העריכה מציג את כל המקורות שגובו. תוכל להשוות בין המקור לגרסה הערוכה, לשחזר מקור כדי להחליף את התמונה הערוכה, או למחוק גיבויים ישנים כדי לפנות שטח אחסון. אם האחסון מהווה דאגה, סקור ונקה מעת לעת גיבויים שאינך צריך עוד.</string>
     <string name="help_tip_edit_backups_p2_s1">עבור להגדרות &gt; תכונות חכמות</string>
-    <string name="help_tip_edit_backups_p2_s2">הקש על \"מציג גיבויי עריכה\"</string>
+    <string name="help_tip_edit_backups_p2_s2">הקש על "מציג גיבויי עריכה"</string>
     <string name="help_tip_edit_backups_p2_s3">עיין בהיסטוריית הגיבויים שלך</string>
     <string name="help_tip_edit_backups_p2_s4">שחזר מקורות או מחק כדי לפנות שטח</string>
     <!-- SEARCH -->
@@ -435,15 +435,15 @@
     <string name="help_tip_search_ai_title">חיפוש תמונות מבוסס בינה מלאכותית</string>
     <string name="help_tip_search_ai_subtitle">תאר את מה שאתה מחפש בשפה טבעית</string>
     <string name="help_tip_search_ai_p1_title">חיפוש חזותי</string>
-    <string name="help_tip_search_ai_p1_desc">חפש באמצעות תיאורים בשפה טבעית כמו \"שקיעה בחוף\", \"עוגת יום הולדת\", \"כלב משחק בשלג\" או \"מכונית אדומה\". הבינה המלאכותית מבינה תוכן תמונה, לא רק שמות קבצים, כך שתוכל למצוא תמונות בהתאם למה שבאמת בתוכן. כל העיבוד מתבצע במכשירך — התמונות שלך לעולם לא נשלחות לענן.</string>
+    <string name="help_tip_search_ai_p1_desc">חפש באמצעות תיאורים בשפה טבעית כמו "שקיעה בחוף", "עוגת יום הולדת", "כלב משחק בשלג" או "מכונית אדומה". הבינה המלאכותית מבינה תוכן תמונה, לא רק שמות קבצים, כך שתוכל למצוא תמונות בהתאם למה שבאמת בתוכן. כל העיבוד מתבצע במכשירך — התמונות שלך לעולם לא נשלחות לענן.</string>
     <string name="help_tip_search_ai_p2_title">איך זה עובד</string>
-    <string name="help_tip_search_ai_p2_desc">הגלריה משתמשת במודלי CLIP (Contrastive Language-Image Pretraining) שפועלים לחלוטין בטלפון שלך. כשהאינדוקס מופעל, הגלריה מנתחת כל תמונה ברקע ויוצרת \"הבנה\" קומפקטית של תוכנה. כשאתה מחפש, שאילתת הטקסט שלך מותאמת מול הבנות אלו כדי למצוא את התמונות הרלוונטיות ביותר.</string>
+    <string name="help_tip_search_ai_p2_desc">הגלריה משתמשת במודלי CLIP (Contrastive Language-Image Pretraining) שפועלים לחלוטין בטלפון שלך. כשהאינדוקס מופעל, הגלריה מנתחת כל תמונה ברקע ויוצרת "הבנה" קומפקטית של תוכנה. כשאתה מחפש, שאילתת הטקסט שלך מותאמת מול הבנות אלו כדי למצוא את התמונות הרלוונטיות ביותר.</string>
     <string name="help_tip_search_ai_p3_title">בואו נתחיל</string>
     <string name="help_tip_search_ai_p3_desc">חיפוש בינה מלאכותית דורש שמודלי ML יורדו תחילה (כ-150 מ״ב). לאחר ההתקנה, הגלריה מאנדקסת אוטומטית את התמונות שלך ברקע כשהמכשיר במצב לא פעיל. האינדוקס הראשוני עשוי לקחת קצת זמן בהתאם לכמות התמונות שיש לך, אך עדכונים הבאים מהירים.</string>
     <string name="help_tip_search_ai_p3_s1">עבור להגדרות &gt; תכונות חכמות</string>
     <string name="help_tip_search_ai_p3_s2">הורד את מודלי הבינה המלאכותית (כ-150 מ״ב)</string>
     <string name="help_tip_search_ai_p3_s3">המתן להשלמת אינדוקס הרקע</string>
-    <string name="help_tip_search_ai_p3_s4">חפש עם תיאורים כמו \"שקיעה\" או \"יום הולדת\"</string>
+    <string name="help_tip_search_ai_p3_s4">חפש עם תיאורים כמו "שקיעה" או "יום הולדת"</string>
     <string name="help_tip_search_history_title">היסטוריית חיפוש</string>
     <string name="help_tip_search_history_subtitle">גישה מהירה לחיפושים האחרונים שלך</string>
     <string name="help_tip_search_history_p1_title">היסטוריית חיפוש</string>
@@ -468,7 +468,7 @@
     <string name="help_tip_ai_create_category_title">יצירת קטגוריות מותאמות</string>
     <string name="help_tip_ai_create_category_subtitle">הגדרת קטגוריות תמונה משלך</string>
     <string name="help_tip_ai_create_category_p1_title">קטגוריות מותאמות</string>
-    <string name="help_tip_ai_create_category_p1_desc">מעבר לקטגוריות המובנות, תוכל ליצור משלך עם שמות וקריטריוני סיווג מותאמים. לדוגמה, צור קטגוריית \"חיות מחמד\", קטגוריית \"מסמכי עבודה\" או כל דבר ספציפי לאוסף התמונות שלך. הבינה המלאכותית תמיין אוטומטית תמונות תואמות לקטגוריות המותאמות שלך.</string>
+    <string name="help_tip_ai_create_category_p1_desc">מעבר לקטגוריות המובנות, תוכל ליצור משלך עם שמות וקריטריוני סיווג מותאמים. לדוגמה, צור קטגוריית "חיות מחמד", קטגוריית "מסמכי עבודה" או כל דבר ספציפי לאוסף התמונות שלך. הבינה המלאכותית תמיין אוטומטית תמונות תואמות לקטגוריות המותאמות שלך.</string>
     <string name="help_tip_ai_create_category_p2_title">איך ליצור</string>
     <string name="help_tip_ai_create_category_p2_desc">תן לקטגוריה שלך שם מתאר ובאופן אופציונלי התאם את סף הביטחון — סף גבוה יותר אומר התאמה קפדנית יותר (פחות תוצאות אך מדויקות יותר), בעוד שסף נמוך יותר סלחני יותר (יותר תוצאות אך חלקן עשויות להיות פחות רלוונטיות). התחל עם ברירת המחדל והתאם בהתאם לתוצאות.</string>
     <string name="help_tip_ai_create_category_p2_s1">עבור לספרייה &gt; קטגוריות</string>
@@ -484,7 +484,7 @@
     <string name="help_tip_ai_models_p2_desc">בדוק אם המודלים מותקנים, הורד אותם אם נדרש, או הסר אותם כדי לפנות שטח. לאחר ההורדה, הגלריה מתחילה אוטומטית לאנדקס את התמונות שלך ברקע. תוכל לעקוב אחר סטטוס המודלים בכל עת ממסך זה.</string>
     <string name="help_tip_ai_models_p2_s1">עבור להגדרות &gt; תכונות חכמות</string>
     <string name="help_tip_ai_models_p2_s2">בדוק את סטטוס מודלי הבינה המלאכותית</string>
-    <string name="help_tip_ai_models_p2_s3">הקש על \"הורדה\" אם עדיין לא הותקן</string>
+    <string name="help_tip_ai_models_p2_s3">הקש על "הורדה" אם עדיין לא הותקן</string>
     <string name="help_tip_ai_models_p2_s4">המתן להשלמת האינדוקס לאחר ההורדה</string>
     <string name="help_tip_ai_indexing_title">איך אינדוקס עובד</string>
     <string name="help_tip_ai_indexing_subtitle">עיבוד ברקע לתכונות בינה מלאכותית</string>
@@ -505,12 +505,12 @@
     <string name="help_tip_albums_pin_p1_desc">אלבומים מוצמדים תמיד מופיעים בראש ממש של רשת האלבומים שלך, ללא קשר לסדר המיון. זה מושלם לאלבומים הכי בשימוש שלך כמו מצלמה או תיקיית פרויקט ספציפית. תוכל להצמיד מספר אלבומים — כולם יופיעו במקטע העליון. בטל הצמדה בכל עת על-ידי לחיצה ארוכה שוב.</string>
     <string name="help_tip_albums_pin_p1_s1">עבור לאלבומים</string>
     <string name="help_tip_albums_pin_p1_s2">לחץ לחיצה ארוכה על אלבום</string>
-    <string name="help_tip_albums_pin_p1_s3">הקש על \"הצמד\" כדי לשמור אותו בראש</string>
-    <string name="help_tip_albums_pin_p1_s4">לחץ לחיצה ארוכה ועל \"בטל הצמדה\" כדי להסיר מהראש</string>
+    <string name="help_tip_albums_pin_p1_s3">הקש על "הצמד" כדי לשמור אותו בראש</string>
+    <string name="help_tip_albums_pin_p1_s4">לחץ לחיצה ארוכה ועל "בטל הצמדה" כדי להסיר מהראש</string>
     <string name="help_tip_albums_ignore_title">הסתרת אלבומים</string>
     <string name="help_tip_albums_ignore_subtitle">התעלם מאלבומים שאינך רוצה לראות</string>
     <string name="help_tip_albums_ignore_p1_title">הסתרת אלבומים</string>
-    <string name="help_tip_albums_ignore_p1_desc">התעלמות מאלבום מסתירה אותו לחלוטין — הוא לא יופיע בלשונית האלבומים, והתמונות שלו לא יופיעו בציר הזמן. זה שימושי לתיקיות מערכת (כמו \'.thumbnails\'), תיקיות שנוצרו ע״י אפליקציות, או אלבומים עם מדיה שאינך רוצה שיעמיסו את הגלריה שלך. הקבצים לא נמחקים, רק מוסתרים מהגלריה.</string>
+    <string name="help_tip_albums_ignore_p1_desc">התעלמות מאלבום מסתירה אותו לחלוטין — הוא לא יופיע בלשונית האלבומים, והתמונות שלו לא יופיעו בציר הזמן. זה שימושי לתיקיות מערכת (כמו '.thumbnails'), תיקיות שנוצרו ע״י אפליקציות, או אלבומים עם מדיה שאינך רוצה שיעמיסו את הגלריה שלך. הקבצים לא נמחקים, רק מוסתרים מהגלריה.</string>
     <string name="help_tip_albums_ignore_p1_s1">עבור להגדרות &gt; אלבומים שהוסתרו</string>
     <string name="help_tip_albums_ignore_p1_s2">בחר אלבומים להתעלם מהם</string>
     <string name="help_tip_albums_ignore_p1_s3">תמונות אלבום שהוסתר נעלמות גם מציר הזמן</string>
@@ -521,10 +521,10 @@
     <string name="help_tip_albums_groups_p1_title">קבוצות אלבומים</string>
     <string name="help_tip_albums_groups_p1_desc">אם יש לך הרבה אלבומים, קבוצות עוזרות לך לארגן אותם חזותית. לדוגמה, קבץ את כל תיקיות הרשתות החברתיות יחד, או שמור אלבומים הקשורים לעבודה בנפרד מאישיים. קבוצות מופיעות כמקטעים הניתנים לקיפול ברשימת האלבומים שלך, מה שמקל הרבה יותר על מציאת מה שאתה צריך.</string>
     <string name="help_tip_albums_groups_p2_title">יצירת קבוצה</string>
-    <string name="help_tip_albums_groups_p2_desc">לחץ לחיצה ארוכה על כל אלבום והקש על \"הוסף לקבוצה\". צור שם קבוצה חדש או הוסף לקיימת. תוכל להוסיף מספר אלבומים לאותה קבוצה. ניתן לקפל קבוצות כדי לחסוך מקום כשאינך צריך אותן.</string>
+    <string name="help_tip_albums_groups_p2_desc">לחץ לחיצה ארוכה על כל אלבום והקש על "הוסף לקבוצה". צור שם קבוצה חדש או הוסף לקיימת. תוכל להוסיף מספר אלבומים לאותה קבוצה. ניתן לקפל קבוצות כדי לחסוך מקום כשאינך צריך אותן.</string>
     <string name="help_tip_albums_groups_p2_s1">עבור לאלבומים</string>
     <string name="help_tip_albums_groups_p2_s2">לחץ לחיצה ארוכה על אלבום</string>
-    <string name="help_tip_albums_groups_p2_s3">הקש על \"הוסף לקבוצה\"</string>
+    <string name="help_tip_albums_groups_p2_s3">הקש על "הוסף לקבוצה"</string>
     <string name="help_tip_albums_groups_p2_s4">תן שם לקבוצה שלך או בחר קיימת</string>
     <string name="help_tip_albums_groups_p2_s5">הוסף עוד אלבומים לאותה קבוצה</string>
     <string name="help_tip_albums_collections_title">יצירת אוספים</string>
@@ -534,7 +534,7 @@
     <string name="help_tip_albums_collections_p2_title">יצירת אוסף</string>
     <string name="help_tip_albums_collections_p2_desc">התחל אוסף מכל אלבום או תמונה. הוסף תמונות מכל מקור — הן לא חייבות להיות באותה תיקייה. אותה תמונה יכולה להשתייך למספר אוספים מבלי ליצור עותקים, כך שאין עלות אחסון נוספת. עיין באוספים שלך ממסך הספרייה.</string>
     <string name="help_tip_albums_collections_p2_s1">לחץ לחיצה ארוכה על אלבום או בחר תמונות</string>
-    <string name="help_tip_albums_collections_p2_s2">הקש על \"הוסף לאוסף\"</string>
+    <string name="help_tip_albums_collections_p2_s2">הקש על "הוסף לאוסף"</string>
     <string name="help_tip_albums_collections_p2_s3">תן שם לאוסף שלך או בחר קיים</string>
     <string name="help_tip_albums_collections_p2_s4">גש לאוספים מהספרייה</string>
     <string name="help_tip_albums_thumbnails_title">תמונות ממוזערות מותאמות של אלבום</string>
@@ -542,18 +542,18 @@
     <string name="help_tip_albums_thumbnails_p1_title">תמונות ממוזערות מותאמות</string>
     <string name="help_tip_albums_thumbnails_p1_desc">כברירת מחדל, אלבומים מציגים את התמונה האחרונה שלהם ככריכה. תוכל לדרוס זאת עם כל תמונה מהאלבום כדי ליצור כריכה מייצגת או יפה יותר. זה נהדר להפיכת רשת האלבומים שלך למאורגנת ולקלה לסריקה במבט חטוף.</string>
     <string name="help_tip_albums_thumbnails_p2_title">איך לשנות</string>
-    <string name="help_tip_albums_thumbnails_p2_desc">פתח את האלבום, מצא את התמונה שתרצה ככריכה, ואז לחץ עליה לחיצה ארוכה ובחר \"הגדר ככריכת האלבום\". רשת האלבומים תתעדכן מיידית עם הכריכה שבחרת. כדי לאפס לברירת המחדל (התמונה האחרונה), תוכל להגדיר תמונה ממוזערת אחרת או לנקות אותה מאפשרויות האלבום.</string>
+    <string name="help_tip_albums_thumbnails_p2_desc">פתח את האלבום, מצא את התמונה שתרצה ככריכה, ואז לחץ עליה לחיצה ארוכה ובחר "הגדר ככריכת האלבום". רשת האלבומים תתעדכן מיידית עם הכריכה שבחרת. כדי לאפס לברירת המחדל (התמונה האחרונה), תוכל להגדיר תמונה ממוזערת אחרת או לנקות אותה מאפשרויות האלבום.</string>
     <string name="help_tip_albums_thumbnails_p2_s1">פתח אלבום</string>
     <string name="help_tip_albums_thumbnails_p2_s2">מצא את תמונת הכריכה הרצויה שלך</string>
     <string name="help_tip_albums_thumbnails_p2_s3">לחץ עליה לחיצה ארוכה</string>
-    <string name="help_tip_albums_thumbnails_p2_s4">הקש על \"הגדר ככריכת האלבום\"</string>
+    <string name="help_tip_albums_thumbnails_p2_s4">הקש על "הגדר ככריכת האלבום"</string>
     <!-- VAULT -->
     <string name="help_tip_vault_setup_title">הקמת הכספת</string>
     <string name="help_tip_vault_setup_subtitle">הצפנה והגנה על התמונות הפרטיות שלך</string>
     <string name="help_tip_vault_setup_p1_title">הכספת הפרטית שלך</string>
     <string name="help_tip_vault_setup_p1_desc">הכספת היא מרחב מאובטח ומוצפן לתמונות וסרטונים שתרצה לשמור פרטיים. קבצים בכספת מוצפנים באמצעות הצפנה חזקה וניתן לגשת אליהם רק לאחר אימות ביומטרי (טביעת אצבע או פנים) או PIN של המכשיר שלך. הם מוסתרים לחלוטין מהגלריה הרגילה שלך ולא יופיעו בציר הזמן, באלבומים או בכל אפליקציה אחרת.</string>
     <string name="help_tip_vault_setup_p2_title">הקמת הצפנה</string>
-    <string name="help_tip_vault_setup_p2_desc">הקמת הכספת מהירה — פשוט הקש על ספרייה &gt; כספת ועקוב אחר ההנחיות. תוכל ליצור מספר כספות למטרות שונות (למשל, \"אישי\" ו\"מסמכים\"). כל כספת דורשת אימות בכל פעם שאתה ניגש אליה.</string>
+    <string name="help_tip_vault_setup_p2_desc">הקמת הכספת מהירה — פשוט הקש על ספרייה &gt; כספת ועקוב אחר ההנחיות. תוכל ליצור מספר כספות למטרות שונות (למשל, "אישי" ו"מסמכים"). כל כספת דורשת אימות בכל פעם שאתה ניגש אליה.</string>
     <string name="help_tip_vault_setup_p2_s1">הקש על ספרייה &gt; כספת</string>
     <string name="help_tip_vault_setup_p2_s2">עקוב אחר הנחיות ההקמה</string>
     <string name="help_tip_vault_setup_p2_s3">אמת עם טביעת האצבע, הפנים או ה-PIN שלך</string>
@@ -565,10 +565,10 @@
     <string name="help_tip_vault_add_p1_title">הסתרת תמונות</string>
     <string name="help_tip_vault_add_p1_desc">העברת תמונה לכספת מצפינה אותה ומסירה אותה מהגלריה הגלויה שלך. הקובץ המוצפן מאוחסן באחסון המאובטח של האפליקציה, לא נגיש לאפליקציות אחרות או למנהלי קבצים. זו הדרך הבטוחה ביותר לשמור תמונות פרטיות במכשירך.</string>
     <string name="help_tip_vault_add_p2_title">איך להסתיר</string>
-    <string name="help_tip_vault_add_p2_desc">מהמציג: הקש על תפריט שלוש הנקודות ובחר \"הסתר בכספת\". מהרשת: בחר תמונה אחת או יותר, ואז השתמש בפעולת \"הסתר בכספת\" בגיליון הבחירה. תוכל להסתיר תמונות, סרטונים או שילוב של שניהם. אם יש לך מספר כספות, תתבקש לבחור באיזו להשתמש.</string>
+    <string name="help_tip_vault_add_p2_desc">מהמציג: הקש על תפריט שלוש הנקודות ובחר "הסתר בכספת". מהרשת: בחר תמונה אחת או יותר, ואז השתמש בפעולת "הסתר בכספת" בגיליון הבחירה. תוכל להסתיר תמונות, סרטונים או שילוב של שניהם. אם יש לך מספר כספות, תתבקש לבחור באיזו להשתמש.</string>
     <string name="help_tip_vault_add_p2_s1">פתח תמונה, או בחר מספר ברשת</string>
     <string name="help_tip_vault_add_p2_s2">הקש על התפריט או על פעולת הבחירה</string>
-    <string name="help_tip_vault_add_p2_s3">בחר \"הסתר בכספת\"</string>
+    <string name="help_tip_vault_add_p2_s3">בחר "הסתר בכספת"</string>
     <string name="help_tip_vault_add_p2_s4">בחר כספת אם יש לך יותר מאחת</string>
     <string name="help_tip_vault_restore_title">שחזור מהכספת</string>
     <string name="help_tip_vault_restore_subtitle">החזרת תמונות לגלריה הרגילה שלך</string>
@@ -602,7 +602,7 @@
     <string name="help_tip_trash_enable_p1_title">הגדרת סל מיחזור</string>
     <string name="help_tip_trash_enable_p1_desc">אם אתה מעדיף מחיקה לצמיתות ללא תקופת הסל של 30 הימים, תוכל לכבות את סל המיחזור לחלוטין. כשמכובה, תמונות שנמחקו מוסרות מיידית ולא ניתן לשחזרן. זה חוסך כמות קטנה של אחסון אך מסיר את רשת הביטחון. המלצה: שמור את סל המיחזור מופעל אלא אם יש לך סיבה ספציפית לכבות אותו.</string>
     <string name="help_tip_trash_enable_p1_s1">עבור להגדרות &gt; כללי</string>
-    <string name="help_tip_trash_enable_p1_s2">החלף את \"אפשור סל מיחזור\"</string>
+    <string name="help_tip_trash_enable_p1_s2">החלף את "אפשור סל מיחזור"</string>
     <string name="help_tip_trash_enable_p1_s3">כשמכובה: מחיקות מיידיות וקבועות</string>
     <string name="help_tip_trash_enable_p1_s4">כשמופעל: פריטים שנמחקו עוברים לסל למשך 30 יום</string>
     <!-- LOCATIONS -->
@@ -622,7 +622,7 @@
     <string name="help_tip_exif_view_p1_title">מטא-נתוני תמונה</string>
     <string name="help_tip_exif_view_p1_desc">החלק למעלה על כל תמונה במציג כדי לראות את המטא-נתונים שלה במבט חטוף: תאריך ושעת הצילום, רזולוציה, גודל קובץ, דגם המצלמה ומיקום GPS. הגלריה אוספת ושומרת במטמון מטא-נתונים אלו ברקע לגישה מהירה. מידע זה עוזר לך להבין מתי, היכן ואיך כל תמונה צולמה.</string>
     <string name="help_tip_exif_view_p2_title">תצוגת EXIF מלאה</string>
-    <string name="help_tip_exif_view_p2_desc">הקש על \"הצג את כל המטא-נתונים\" כדי לראות כל פרט המוטמע בקובץ התמונה: אורך מוקד, צמצם, מהירות תריס, ISO, איזון לבן, מצב מדידה, מרחב צבעים, גרסת תוכנה ועוד הרבה יותר. זה חשוב מאוד לצלמים שלומדים לשפר את הטכניקה שלהם או לאימות אותנטיות תמונה.</string>
+    <string name="help_tip_exif_view_p2_desc">הקש על "הצג את כל המטא-נתונים" כדי לראות כל פרט המוטמע בקובץ התמונה: אורך מוקד, צמצם, מהירות תריס, ISO, איזון לבן, מצב מדידה, מרחב צבעים, גרסת תוכנה ועוד הרבה יותר. זה חשוב מאוד לצלמים שלומדים לשפר את הטכניקה שלהם או לאימות אותנטיות תמונה.</string>
     <string name="help_tip_exif_edit_title">עריכת נתוני EXIF</string>
     <string name="help_tip_exif_edit_subtitle">שינוי תאריך, מיקום ומטא-נתונים אחרים</string>
     <string name="help_tip_exif_edit_p1_title">עריכת מטא-נתונים</string>
@@ -639,14 +639,14 @@
     <string name="help_tip_exif_delete_location_p1_desc">לפרטיות, תוכל להסיר קואורדינטות GPS מכל תמונה. זה מומלץ לפני שיתוף תמונות בפומבי או ברשתות חברתיות אם אינך רוצה לחשוף היכן הן צולמו. המחיקה היא קבועה — נתוני ה-GPS מוסרים ממטא-נתוני ה-EXIF של הקובץ ולא ניתן לשחזרם.</string>
     <string name="help_tip_exif_delete_location_p1_s1">פתח תמונה והחלק למעלה</string>
     <string name="help_tip_exif_delete_location_p1_s2">הקש על מקטע המיקום</string>
-    <string name="help_tip_exif_delete_location_p1_s3">הקש על \"מחק מיקום\"</string>
+    <string name="help_tip_exif_delete_location_p1_s3">הקש על "מחק מיקום"</string>
     <string name="help_tip_exif_delete_location_p1_s4">נתוני GPS מוסרים לצמיתות מהקובץ</string>
     <string name="help_tip_exif_refresh_title">רענון מטא-נתונים</string>
     <string name="help_tip_exif_refresh_subtitle">סריקה מחדש של מטא-נתונים לכל התמונות</string>
     <string name="help_tip_exif_refresh_p1_title">רענון מטא-נתונים</string>
     <string name="help_tip_exif_refresh_p1_desc">אם פרטי תמונה נראים מיושנים או חסרים (למשל, לאחר שחזור מגיבוי או עריכה מחוץ לגלריה), הפעל סריקה מחדש מלאה של מטא-נתונים. זה קורא מחדש את כל נתוני ה-EXIF מקובצי התמונה שלך ומעדכן את מטמון המטא-נתונים של הגלריה. הסריקה פועלת ברקע ועשויה לקחת מספר דקות לספריות גדולות.</string>
     <string name="help_tip_exif_refresh_p1_s1">עבור להגדרות &gt; תכונות חכמות</string>
-    <string name="help_tip_exif_refresh_p1_s2">הקש על \"רענן מטא-נתונים\"</string>
+    <string name="help_tip_exif_refresh_p1_s2">הקש על "רענן מטא-נתונים"</string>
     <string name="help_tip_exif_refresh_p1_s3">המתן להשלמת הסריקה ברקע</string>
     <string name="help_tip_exif_refresh_p1_s4">פרטי התמונה יתעדכנו כשהם נקראים מחדש</string>
     <!-- SETTINGS: APPEARANCE -->
@@ -664,7 +664,7 @@
     <string name="help_tip_settings_dark_mode_p1_title">אילוץ מצב כהה</string>
     <string name="help_tip_settings_dark_mode_p1_desc">דרוס את ערכת הנושא של המערכת שלך כדי לשמור את הגלריה במצב כהה כל הזמן, ללא קשר להגדרת המערכת בכל הטלפון. זה שימושי אם אתה מעדיף מצב כהה בגלריה אפילו כשהטלפון שלך במצב בהיר. שלב עם AMOLED שחור טהור לחוויה הכהה האולטימטיבית במסכי OLED.</string>
     <string name="help_tip_settings_dark_mode_p1_s1">עבור להגדרות &gt; מראה</string>
-    <string name="help_tip_settings_dark_mode_p1_s2">החלף את \"אילוץ מצב כהה\"</string>
+    <string name="help_tip_settings_dark_mode_p1_s2">החלף את "אילוץ מצב כהה"</string>
     <string name="help_tip_settings_dark_mode_p1_s3">הגלריה נשארת כהה גם כשהטלפון שלך במצב בהיר</string>
     <string name="help_tip_settings_amoled_title">AMOLED שחור טהור</string>
     <string name="help_tip_settings_amoled_subtitle">רקעים שחורים טהורים למסכי OLED</string>
@@ -672,7 +672,7 @@
     <string name="help_tip_settings_amoled_p1_desc">בתצוגות OLED ו-AMOLED, פיקסלים שחורים אמיתיים מכובים לחלוטין, חוסכים סוללה ויוצרים מראה ניגודיות גבוהה מדהים. הגדרה זו מחליפה רקעים אפורים כהים בשחור טהור. הערה: היא נכנסת לתוקף רק כשמצב כהה פעיל (מצב כהה של המערכת או אילוץ מצב כהה).</string>
     <string name="help_tip_settings_amoled_p1_s1">עבור להגדרות &gt; מראה</string>
     <string name="help_tip_settings_amoled_p1_s2">הפעל מצב כהה או אילוץ מצב כהה</string>
-    <string name="help_tip_settings_amoled_p1_s3">החלף את \"AMOLED שחור טהור\"</string>
+    <string name="help_tip_settings_amoled_p1_s3">החלף את "AMOLED שחור טהור"</string>
     <string name="help_tip_settings_amoled_p1_s4">תוצאות הטובות ביותר במסכי OLED/AMOLED</string>
     <!-- SETTINGS: GENERAL -->
     <string name="help_tip_settings_trash_toggle_title">הפעלה/כיבוי של סל מיחזור</string>
@@ -680,21 +680,21 @@
     <string name="help_tip_settings_trash_toggle_p1_title">מתג סל מיחזור</string>
     <string name="help_tip_settings_trash_toggle_p1_desc">שולט ברשת הביטחון למחיקות. כשמופעל (מומלץ), פריטים שנמחקו עוברים לסל למשך 30 יום לפני מחיקה לצמיתות, ונותנים לך זמן להחזיר טעויות. כשמכובה, כל המחיקות הן מיידיות וקבועות — השתמש בזהירות.</string>
     <string name="help_tip_settings_trash_toggle_p1_s1">עבור להגדרות &gt; כללי</string>
-    <string name="help_tip_settings_trash_toggle_p1_s2">החלף את \"אפשור סל מיחזור\"</string>
+    <string name="help_tip_settings_trash_toggle_p1_s2">החלף את "אפשור סל מיחזור"</string>
     <string name="help_tip_settings_trash_toggle_p1_s3">מומלץ: השאר מופעל לבטיחות</string>
     <string name="help_tip_settings_trash_confirm_title">אישור סל מיחזור</string>
     <string name="help_tip_settings_trash_confirm_subtitle">בקשת אישור לפני העברת פריטים לסל</string>
     <string name="help_tip_settings_trash_confirm_p1_title">אישור סל מיחזור</string>
     <string name="help_tip_settings_trash_confirm_p1_desc">מוסיף חלון אישור נוסף לפני העברת פריטים לסל. זה מונע מחיקות בטעות, שימושי במיוחד אם אתה לפעמים לוחץ בטעות על לחצן המחיקה. כשמכובה, פריטים מועברים לסל מיידית מבלי לשאול.</string>
     <string name="help_tip_settings_trash_confirm_p1_s1">עבור להגדרות &gt; כללי</string>
-    <string name="help_tip_settings_trash_confirm_p1_s2">החלף את \"אישור סל מיחזור\"</string>
+    <string name="help_tip_settings_trash_confirm_p1_s2">החלף את "אישור סל מיחזור"</string>
     <string name="help_tip_settings_trash_confirm_p1_s3">מומלץ אם אתה מוחק לעיתים בטעות</string>
     <string name="help_tip_settings_secure_mode_title">מצב מאובטח</string>
     <string name="help_tip_settings_secure_mode_subtitle">הסתרה מאחרונים וחסימת צילומי מסך</string>
     <string name="help_tip_settings_secure_mode_p1_title">מצב מאובטח</string>
     <string name="help_tip_settings_secure_mode_p1_desc">כשמופעל, הגלריה מוסתרת ממסך האפליקציות האחרונות (מחליף המשימות מציג תצוגה מקדימה ריקה) וצילומי מסך בתוך האפליקציה נחסמים. זוהי מידת פרטיות נוספת אם אינך רוצה שאחרים יראו במה עיינת כשהם מציצים באפליקציות האחרונות שלך. אידיאלי כששלוב עם הכספת לפרטיות מקסימלית.</string>
     <string name="help_tip_settings_secure_mode_p1_s1">עבור להגדרות &gt; כללי</string>
-    <string name="help_tip_settings_secure_mode_p1_s2">החלף את \"מצב מאובטח\"</string>
+    <string name="help_tip_settings_secure_mode_p1_s2">החלף את "מצב מאובטח"</string>
     <string name="help_tip_settings_secure_mode_p1_s3">הגלריה נעלמת מאפליקציות אחרונות</string>
     <string name="help_tip_settings_secure_mode_p1_s4">צילומי מסך נחסמים בתוך האפליקציה</string>
     <string name="help_tip_settings_vibrations_title">אפשור רטטים</string>
@@ -702,7 +702,7 @@
     <string name="help_tip_settings_vibrations_p1_title">רטטים</string>
     <string name="help_tip_settings_vibrations_p1_desc">שולט במשוב הפטי (רטט עדין) לאינטראקציות כמו לחיצה ארוכה לבחירה, החלפת מועדפים ופעולות אחרות. משוב הפטי הופך את האפליקציה לתחושה מגיבה יותר ומוחשית. כבה אם אתה מעדיף חוויה שקטה לחלוטין או אם רטטים מפריעים לך.</string>
     <string name="help_tip_settings_vibrations_p1_s1">עבור להגדרות &gt; כללי</string>
-    <string name="help_tip_settings_vibrations_p1_s2">החלף את \"אפשור רטטים\"</string>
+    <string name="help_tip_settings_vibrations_p1_s2">החלף את "אפשור רטטים"</string>
     <string name="help_tip_settings_vibrations_p1_s3">משפיע על לחיצה ארוכה, בחירה ואינטראקציות אחרות</string>
     <!-- SETTINGS: NAVIGATION -->
     <string name="help_tip_settings_launch_screen_title">מסך פתיחה ברירת מחדל</string>
@@ -710,21 +710,21 @@
     <string name="help_tip_settings_launch_screen_p1_title">מסך פתיחה</string>
     <string name="help_tip_settings_launch_screen_p1_desc">בחר איזה מסך מקבל אותך כשאתה פותח את הגלריה. אוטומטי זוכר את המסך האחרון שהשתמשת בו. ציר זמן נהדר לעיון בתמונות אחרונות. אלבומים אידיאלי אם אתה מארגן לפי תיקייה. ספרייה עובד היטב אם אתה בעיקר ניגש למועדפים, כספת או קטגוריות.</string>
     <string name="help_tip_settings_launch_screen_p1_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_settings_launch_screen_p1_s2">הקש על \"מסך פתיחה ברירת מחדל\"</string>
+    <string name="help_tip_settings_launch_screen_p1_s2">הקש על "מסך פתיחה ברירת מחדל"</string>
     <string name="help_tip_settings_launch_screen_p1_s3">בחר אוטומטי, ציר זמן, אלבומים או ספרייה</string>
     <string name="help_tip_settings_old_navbar_title">סרגל ניווט קלאסי</string>
     <string name="help_tip_settings_old_navbar_subtitle">שימוש בסגנון סרגל הניווט הקומפקטי</string>
     <string name="help_tip_settings_old_navbar_p1_title">סגנון סרגל ניווט</string>
     <string name="help_tip_settings_old_navbar_p1_desc">הסגנון המודרני מציג סמלים עם תוויות (ציר זמן, אלבומים, ספרייה) לבהירות. הסגנון הקלאסי הקומפקטי משתמש בסמלים קטנים יותר ללא תוויות, נותן לך יותר מקום על המסך אנכית לתמונות. נסה את שניהם כדי לראות איזה מרגיש נוח יותר לזרימת העבודה שלך.</string>
     <string name="help_tip_settings_old_navbar_p1_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_settings_old_navbar_p1_s2">החלף את \"סגנון סרגל ניווט ישן\"</string>
+    <string name="help_tip_settings_old_navbar_p1_s2">החלף את "סגנון סרגל ניווט ישן"</string>
     <string name="help_tip_settings_old_navbar_p1_s3">מודרני: סמלים עם תוויות, קלאסי: סמלים קומפקטיים</string>
     <string name="help_tip_settings_selection_titles_title">הצגת כותרות בחירה</string>
     <string name="help_tip_settings_selection_titles_subtitle">הצגת כותרות בגיליון פעולות הבחירה</string>
     <string name="help_tip_settings_selection_titles_p1_title">כותרות בחירה</string>
     <string name="help_tip_settings_selection_titles_p1_desc">כשאתה בוחר תמונות, גיליון הפעולות התחתון מציג סמלים לפעולות הזמינות. הפעלת כותרות מוסיפה תוויות טקסט מתחת לכל סמל (שיתוף, מחיקה, העתקה וכו׳) לבהירות. כיבוי כותרות נותן מראה נקי וקומפקטי יותר. אם אתה כבר יודע מה כל סמל עושה, הסתרת כותרות חוסכת מקום.</string>
     <string name="help_tip_settings_selection_titles_p1_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_settings_selection_titles_p1_s2">החלף את \"הצגת כותרות בחירה\"</string>
+    <string name="help_tip_settings_selection_titles_p1_s2">החלף את "הצגת כותרות בחירה"</string>
     <string name="help_tip_settings_selection_titles_p1_s3">עם כותרות: תוויות מתחת לכל סמל פעולה</string>
     <string name="help_tip_settings_selection_titles_p1_s4">ללא כותרות: תצוגה קומפקטית עם סמלים בלבד</string>
     <string name="help_tip_settings_selection_actions_title">התאמת פעולות בחירה</string>
@@ -732,9 +732,9 @@
     <string name="help_tip_settings_selection_actions_p1_title">פעולות בחירה</string>
     <string name="help_tip_settings_selection_actions_p1_desc">גיליון פעולות הבחירה מופיע בכל פעם שאתה בוחר תמונות. כברירת מחדל הוא מציג שיתוף, מחיקה, העתקה, העברה, הסתרה בכספת ועוד. תוכל להתאים אילו פעולות מופיעות ואת הסדר שלהן כדי להתאים לזרימות העבודה הנפוצות ביותר שלך.</string>
     <string name="help_tip_settings_selection_actions_p2_title">התאמה אישית</string>
-    <string name="help_tip_settings_selection_actions_p2_desc">גרור פעולות למעלה או למטה כדי לסדר אותן מחדש — שים את הפעולות הכי בשימוש שלך בראש לגישה מהירה. החלף פעולות מופעלות או מכובות כדי להציג או להסתיר אותן. לדוגמה, אם אתה אף פעם לא משתמש ב\"העתק לאלבום\", הסתר אותו כדי להפחית עומס. ההתאמה שלך נשמרת אוטומטית.</string>
+    <string name="help_tip_settings_selection_actions_p2_desc">גרור פעולות למעלה או למטה כדי לסדר אותן מחדש — שים את הפעולות הכי בשימוש שלך בראש לגישה מהירה. החלף פעולות מופעלות או מכובות כדי להציג או להסתיר אותן. לדוגמה, אם אתה אף פעם לא משתמש ב"העתק לאלבום", הסתר אותו כדי להפחית עומס. ההתאמה שלך נשמרת אוטומטית.</string>
     <string name="help_tip_settings_selection_actions_p2_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_settings_selection_actions_p2_s2">הקש על \"התאם פעולות בחירה\"</string>
+    <string name="help_tip_settings_selection_actions_p2_s2">הקש על "התאם פעולות בחירה"</string>
     <string name="help_tip_settings_selection_actions_p2_s3">גרור פעולות לסידור מחדש לפי עדיפות</string>
     <string name="help_tip_settings_selection_actions_p2_s4">החלף פעולות מופעלות/מכובות להצגה/הסתרה</string>
     <!-- SETTINGS: SMART -->
@@ -745,7 +745,7 @@
     <string name="help_tip_settings_ai_models_p2_title">ניהול מודלים</string>
     <string name="help_tip_settings_ai_models_p2_desc">הורד מודלים כדי לאפשר תכונות בינה מלאכותית, בדוק את הסטטוס שלהם או הסר אותם כדי לפנות אחסון. לאחר ההורדה, הגלריה מתחילה אוטומטית לאנדקס את התמונות שלך ברקע. אם המודלים כבר חבילה עם גרסת האפליקציה שלך, הם יועתקו מהנכסים בהפעלה הראשונה.</string>
     <string name="help_tip_settings_ai_models_p2_s1">עבור להגדרות &gt; תכונות חכמות</string>
-    <string name="help_tip_settings_ai_models_p2_s2">הקש על \"מנהל מודלי בינה מלאכותית\"</string>
+    <string name="help_tip_settings_ai_models_p2_s2">הקש על "מנהל מודלי בינה מלאכותית"</string>
     <string name="help_tip_settings_ai_models_p2_s3">הורד, אמת או הסר מודלים</string>
     <string name="help_tip_settings_edit_backups_title">מציג גיבויי עריכה</string>
     <string name="help_tip_settings_edit_backups_subtitle">צפייה וניהול אחסון גיבויי עריכה</string>
@@ -754,7 +754,7 @@
     <string name="help_tip_settings_edit_backups_p2_title">ניהול אחסון</string>
     <string name="help_tip_settings_edit_backups_p2_desc">גיבויים יכולים להצטבר עם הזמן, במיוחד אם אתה עורך הרבה תמונות. סקור את הגיבויים שלך מעת לעת ומחק כאלה שאינך צריך יותר כדי לפנות אחסון. תוכל למחוק גיבויים בודדים או לנקות את כולם בבת אחת. שחזור גיבוי מחליף את התמונה הערוכה עם המקור.</string>
     <string name="help_tip_settings_edit_backups_p2_s1">עבור להגדרות &gt; תכונות חכמות</string>
-    <string name="help_tip_settings_edit_backups_p2_s2">הקש על \"מציג גיבויי עריכה\"</string>
+    <string name="help_tip_settings_edit_backups_p2_s2">הקש על "מציג גיבויי עריכה"</string>
     <string name="help_tip_settings_edit_backups_p2_s3">עיין, השווה, שחזר או מחק גיבויים</string>
     <!-- GESTURES -->
     <string name="help_tip_gesture_pinch_grid_title">צביטה לזום ברשת</string>
@@ -770,7 +770,7 @@
     <string name="help_tip_gesture_long_press_title">לחיצה ארוכה לבחירה</string>
     <string name="help_tip_gesture_long_press_subtitle">התחלת מצב בחירה בלחיצה ארוכה</string>
     <string name="help_tip_gesture_long_press_p1_title">לחיצה ארוכה</string>
-    <string name="help_tip_gesture_long_press_p1_desc">לחץ לחיצה ארוכה (החזק את האצבע למטה כחצי שנייה) על כל תמונה כדי להיכנס למצב בחירה. סימן וי מופיע על הפריט הנבחר, ואז תוכל להקיש על תמונות נוספות כדי להוסיף אותן. כדי לצאת ממצב הבחירה, השתמש בלחצן החזרה או הקש על ה\"X\" כדי לבטל את הבחירה של הכל. אם משוב הפטי מופעל, תרגיש רטט עדין כשהבחירה מופעלת.</string>
+    <string name="help_tip_gesture_long_press_p1_desc">לחץ לחיצה ארוכה (החזק את האצבע למטה כחצי שנייה) על כל תמונה כדי להיכנס למצב בחירה. סימן וי מופיע על הפריט הנבחר, ואז תוכל להקיש על תמונות נוספות כדי להוסיף אותן. כדי לצאת ממצב הבחירה, השתמש בלחצן החזרה או הקש על ה"X" כדי לבטל את הבחירה של הכל. אם משוב הפטי מופעל, תרגיש רטט עדין כשהבחירה מופעלת.</string>
     <string name="help_tip_gesture_multi_select_title">גרירת בחירה מרובה</string>
     <string name="help_tip_gesture_multi_select_subtitle">גרירה על פני תמונות לבחירה מרובה</string>
     <string name="help_tip_gesture_multi_select_p1_title">בחירה בגרירה</string>
@@ -783,7 +783,7 @@
     <string name="help_tip_selection_sheet_p2_title">התאמת פעולות</string>
     <string name="help_tip_selection_sheet_p2_desc">גיליון הפעולות ניתן להתאמה מלאה. סדר מחדש פעולות כדי לשים את הפעולות הכי בשימוש שלך ראשונות, והסתר פעולות שאתה אף פעם לא משתמש. זה הופך את הגיליון לנקי יותר ומהיר יותר לשימוש. ההתאמה שלך נשמרת לצמיתות.</string>
     <string name="help_tip_selection_sheet_p2_s1">עבור להגדרות &gt; ניווט</string>
-    <string name="help_tip_selection_sheet_p2_s2">הקש על \"התאם פעולות בחירה\"</string>
+    <string name="help_tip_selection_sheet_p2_s2">הקש על "התאם פעולות בחירה"</string>
     <string name="help_tip_selection_sheet_p2_s3">גרור לסידור מחדש, החלף להצגה/הסתרה</string>
     <string name="help_tip_selection_sheet_p2_s4">פעולות הכי בשימוש צריכות להיות בראש</string>
     <string name="help_tip_selection_batch_share_title">שיתוף אצווה</string>
@@ -821,7 +821,7 @@
     <string name="help_tip_advanced_wallpaper_p1_desc">פתח כל תמונה והשתמש בתפריט הפעולות כדי להגדיר אותה כטפט המכשיר שלך. תוכל לבחור להגדיר אותה למסך הבית, מסך הנעילה או שניהם. הגלריה פותחת ממשק חיתוך כך שתוכל למקם ולשנות גודל של התמונה כדי להתאים למסך שלך באופן מושלם לפני ההחלה.</string>
     <string name="help_tip_advanced_wallpaper_p1_s1">פתח תמונה במציג</string>
     <string name="help_tip_advanced_wallpaper_p1_s2">הקש על תפריט שלוש הנקודות</string>
-    <string name="help_tip_advanced_wallpaper_p1_s3">בחר \"הגדר כטפט\"</string>
+    <string name="help_tip_advanced_wallpaper_p1_s3">בחר "הגדר כטפט"</string>
     <string name="help_tip_advanced_wallpaper_p1_s4">חתוך ומקם את התמונה</string>
     <string name="help_tip_advanced_wallpaper_p1_s5">בחר מסך בית, מסך נעילה או שניהם</string>
     <!-- ACTION LABELS -->
@@ -843,7 +843,7 @@
     <string name="help_tip_viewer_auto_contrast_p1_title">התאמת ניגודיות חכמה</string>
     <string name="help_tip_viewer_auto_contrast_p1_desc">כשמופעל, הגלריה מנתחת את הבהירות של כל תמונה בזמן אמת ומתאימה אוטומטית את ניגודיות התצוגה כדי להפוך תמונות כהות לקלות יותר לראייה ותמונות בהירות לחיות יותר. ההתאמה היא עדינה וקורית מיידית בעת החלקה בין תמונות. זה משפיע רק על איך התמונות נראות על המסך — קבצי המקור שלך לעולם לא משתנים. תכונה זו כרגע בשלב בטא.</string>
     <string name="help_tip_viewer_auto_contrast_p1_s1">עבור להגדרות &gt; מראה</string>
-    <string name="help_tip_viewer_auto_contrast_p1_s2">החלף את \"ניגודיות אוטומטית\"</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s2">החלף את "ניגודיות אוטומטית"</string>
     <string name="help_tip_viewer_auto_contrast_p1_s3">החלק בין תמונות כדי לראות התאמות בזמן אמת</string>
     <!-- SELECTION: Right-Align Actions -->
     <string name="help_tip_selection_right_align_title">יישור פעולות עליונות לימין</string>
@@ -851,7 +851,7 @@
     <string name="help_tip_selection_right_align_p1_title">פעולות מיושרות לימין</string>
     <string name="help_tip_selection_right_align_p1_desc">כשמופעל, לחצני הפעולות העליונים בסרגל הבחירה (בחר הכל, פרטים) נדחפים לקצה הימני של המסך בעוד שלחצן הסגירה נשאר משמאל. זה הופך את הפעולות לקלות יותר להושיט יד אליהן ביד אחת, במיוחד בטלפונים גדולים. הלחצנים ממוקמים בשורה ניתנת לגלילה כדי למנוע גלישה.</string>
     <string name="help_tip_selection_right_align_p1_s1">עבור להגדרות &gt; ניווט &gt; פעולות בחירה</string>
-    <string name="help_tip_selection_right_align_p1_s2">החלף את \"יישור פעולות עליונות לימין\"</string>
+    <string name="help_tip_selection_right_align_p1_s2">החלף את "יישור פעולות עליונות לימין"</string>
     <string name="help_tip_selection_right_align_p1_s3">בחר פריטים כדי לראות את הפריסה החדשה</string>
     <!-- VAULT: Overhaul -->
     <string name="help_tip_vault_overhaul_title">אבטחת כספת מעוצבת מחדש</string>
@@ -921,7 +921,7 @@
     <string name="help_tip_video_subtitles_p2_desc">הקש על לחצן הכתוביות במהלך ניגון וידאו כדי לפתוח את בורר הכתוביות. תוכל לעבור בין ערוצים זמינים, לטעון קובץ כתוביות חיצוני או לכבות כתוביות לחלוטין. קבצי כתוביות חיצוניים ניתנים גם למחיקה מהגיליון התחתון.</string>
     <string name="help_tip_video_subtitles_p2_s1">הקש על סמל הכתוביות בנגן הוידאו</string>
     <string name="help_tip_video_subtitles_p2_s2">בחר ערוץ מוטמע או טען קובץ חיצוני</string>
-    <string name="help_tip_video_subtitles_p2_s3">הקש על \"כבוי\" כדי להשבית כתוביות</string>
+    <string name="help_tip_video_subtitles_p2_s3">הקש על "כבוי" כדי להשבית כתוביות</string>
     <!-- Video Pinch-to-Zoom (4.2.3) -->
     <string name="help_tip_video_zoom_title">צביטה לזום בוידאו</string>
     <string name="help_tip_video_zoom_subtitle">זום לסרטונים עם מחוות צביטה והקשה כפולה</string>
@@ -957,7 +957,7 @@
     <string name="help_tip_video_options_popup_title">חלון קופץ של אפשרויות וידאו</string>
     <string name="help_tip_video_options_popup_subtitle">חלון קופץ קומפקטי ומונפש לפקדי וידאו</string>
     <string name="help_tip_video_options_popup_p1_title">פקדי וידאו נקיים יותר</string>
-    <string name="help_tip_video_options_popup_p1_desc">לחצני בקרת וידאו (כתוביות, מהירות, עוצמת קול, סיבוב) אוחדו ללחצן \"אפשרויות נוספות\" יחיד שמתרחב לחלון קופץ מטושטש ומונפש. החלון הקופץ משתמש בפריסת שורה בנוף ובעמודה בדיוקן, ושומר על תצוגת הוידאו לא מועמסת בעוד שעדיין מספק גישה מהירה לכל הפקדים.</string>
+    <string name="help_tip_video_options_popup_p1_desc">לחצני בקרת וידאו (כתוביות, מהירות, עוצמת קול, סיבוב) אוחדו ללחצן "אפשרויות נוספות" יחיד שמתרחב לחלון קופץ מטושטש ומונפש. החלון הקופץ משתמש בפריסת שורה בנוף ובעמודה בדיוקן, ושומר על תצוגת הוידאו לא מועמסת בעוד שעדיין מספק גישה מהירה לכל הפקדים.</string>
     <!-- RELEASE NOTES: 4.3.0 -->
     <!-- RELEASE NOTES: 4.2.3 -->
     <!-- RELEASE NOTES: 4.2.2 -->
@@ -978,10 +978,10 @@
     <string name="help_tip_action_save_motion_video_title">Save motion photo as video</string>
     <string name="help_tip_action_save_motion_video_subtitle">Export the embedded clip from a motion photo as a standalone video</string>
     <string name="help_tip_action_save_motion_video_p1_title">Extract the motion clip</string>
-    <string name="help_tip_action_save_motion_video_p1_desc">Motion photos store a short video alongside the still image. When you open one, Gallery shows a \'Save as video\' action that exports the embedded clip as a regular MP4 in your Movies folder — perfect for sharing the moment as a video. This works on local, non-encrypted motion photos.</string>
+    <string name="help_tip_action_save_motion_video_p1_desc">Motion photos store a short video alongside the still image. When you open one, Gallery shows a 'Save as video' action that exports the embedded clip as a regular MP4 in your Movies folder — perfect for sharing the moment as a video. This works on local, non-encrypted motion photos.</string>
     <string name="help_tip_action_save_motion_video_p1_s1">Open a motion photo</string>
     <string name="help_tip_action_save_motion_video_p1_s2">Open the action menu</string>
-    <string name="help_tip_action_save_motion_video_p1_s3">Tap \'Save as video\'</string>
+    <string name="help_tip_action_save_motion_video_p1_s3">Tap 'Save as video'</string>
     <string name="help_tip_action_save_motion_video_p1_s4">Find the new clip in your Movies folder</string>
     <!-- EDITING: EFFECTS TAB (5.0.0) -->
     <string name="help_tip_edit_effects_title">Effects &amp; colour tools</string>
@@ -998,12 +998,12 @@
     <string name="help_tip_albums_sections_title">Organize albums into sections</string>
     <string name="help_tip_albums_sections_subtitle">Group albums into collapsible categories like Common, Apps, and Other</string>
     <string name="help_tip_albums_sections_p1_title">Album sections</string>
-    <string name="help_tip_albums_sections_p1_desc">When enabled, Gallery automatically sorts your albums into collapsible sections — Common (Camera, Pictures, Downloads), Apps (media from other apps), and Other — based on where they\'re stored. Collapse the sections you don\'t need to keep the Albums screen tidy. This is off by default and can be enabled in album settings.</string>
+    <string name="help_tip_albums_sections_p1_desc">When enabled, Gallery automatically sorts your albums into collapsible sections — Common (Camera, Pictures, Downloads), Apps (media from other apps), and Other — based on where they're stored. Collapse the sections you don't need to keep the Albums screen tidy. This is off by default and can be enabled in album settings.</string>
     <string name="help_tip_albums_sections_p2_title">Move an album to a section</string>
-    <string name="help_tip_albums_sections_p2_desc">Sections are auto-detected, but you can override them. Long press an album and choose \'Move to section\' to place it exactly where you want. Your manual choices are remembered.</string>
+    <string name="help_tip_albums_sections_p2_desc">Sections are auto-detected, but you can override them. Long press an album and choose 'Move to section' to place it exactly where you want. Your manual choices are remembered.</string>
     <string name="help_tip_albums_sections_p2_s1">Enable album sections in settings</string>
     <string name="help_tip_albums_sections_p2_s2">Long press an album</string>
-    <string name="help_tip_albums_sections_p2_s3">Tap \'Move to section\'</string>
+    <string name="help_tip_albums_sections_p2_s3">Tap 'Move to section'</string>
     <string name="help_tip_albums_sections_p2_s4">Pick the section for that album</string>
     <!-- SETTINGS: BACKUP &amp; RESTORE WIZARD (5.0.0) -->
     <string name="help_tip_settings_backup_restore_title">Back up &amp; restore app data</string>
@@ -1037,7 +1037,7 @@
     <string name="help_tip_cloud_connect_p1_title">Your photos, from your server</string>
     <string name="help_tip_cloud_connect_p1_desc">Gallery can connect to your self-hosted Immich server so your remote library lives right alongside your device photos. Sign in with your email and password or an API key — credentials are stored encrypted on your device. You can connect more than one server and switch between them.</string>
     <string name="help_tip_cloud_connect_p2_title">Add your server</string>
-    <string name="help_tip_cloud_connect_p2_desc">You\'ll need your server URL and either your account password or an API key. Once connected, Gallery validates the session and keeps it signed in, reconnecting automatically when needed.</string>
+    <string name="help_tip_cloud_connect_p2_desc">You'll need your server URL and either your account password or an API key. Once connected, Gallery validates the session and keeps it signed in, reconnecting automatically when needed.</string>
     <string name="help_tip_cloud_connect_p2_s1">Open Cloud accounts from settings or Library</string>
     <string name="help_tip_cloud_connect_p2_s2">Add a server and enter its URL</string>
     <string name="help_tip_cloud_connect_p2_s3">Sign in with password or API key</string>
@@ -1045,7 +1045,7 @@
     <string name="help_tip_cloud_timeline_title">Cloud photos in your timeline</string>
     <string name="help_tip_cloud_timeline_subtitle">Remote and local media merge into one unified timeline</string>
     <string name="help_tip_cloud_timeline_p1_title">One unified timeline</string>
-    <string name="help_tip_cloud_timeline_p1_desc">Once a server is connected, your cloud assets are merged into the same timeline as your device photos, sorted by date. Photos that exist both locally and on the server are intelligently grouped so you don\'t see duplicates. A small icon on each thumbnail shows its sync status.</string>
+    <string name="help_tip_cloud_timeline_p1_desc">Once a server is connected, your cloud assets are merged into the same timeline as your device photos, sorted by date. Photos that exist both locally and on the server are intelligently grouped so you don't see duplicates. A small icon on each thumbnail shows its sync status.</string>
     <string name="help_tip_cloud_timeline_p2_title">View remote media</string>
     <string name="help_tip_cloud_timeline_p2_desc">Open any cloud photo or video to view it full quality, streamed from your server. You can see its full EXIF metadata — camera, lens, GPS, exposure — and favorite or unfavorite it just like local media.</string>
     <string name="help_tip_cloud_backup_title">Back up to your server</string>
@@ -1061,7 +1061,7 @@
     <string name="help_tip_cloud_explore_title">People, places &amp; smart search</string>
     <string name="help_tip_cloud_explore_subtitle">Browse cloud people, map, smart search, and shared links</string>
     <string name="help_tip_cloud_explore_p1_title">Explore your cloud library</string>
-    <string name="help_tip_cloud_explore_p1_desc">A connected server unlocks more ways to browse: see recognized people and open all their photos, explore geo-tagged media on a map, and view albums shared with you. You can even edit a person\'s name and birthday right from Gallery.</string>
+    <string name="help_tip_cloud_explore_p1_desc">A connected server unlocks more ways to browse: see recognized people and open all their photos, explore geo-tagged media on a map, and view albums shared with you. You can even edit a person's name and birthday right from Gallery.</string>
     <string name="help_tip_cloud_explore_p2_title">Smart search &amp; shared links</string>
     <string name="help_tip_cloud_explore_p2_desc">Use CLIP-based smart search to find photos by describing them in natural language. You can also create shareable links for assets and albums, then list, edit, or delete them — all from within Gallery.</string>
     <!-- RELEASE NOTES: 5.0.0 -->
@@ -1071,17 +1071,14 @@
     <string name="help_tip_video_fix_black_title">Fix black video on hide</string>
     <string name="help_tip_video_fix_black_subtitle">Stop video blacking out when the bars hide</string>
     <string name="help_tip_video_fix_black_p1_title">Keep video visible</string>
-    <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › \'Fix black video on hide\' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don\'t need it.</string>
+    <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">חיפוש בעזרה ובטיפים</string>
-    <string name="help_search_clear">ניקוי החיפוש</string>
-    <string name="help_search_no_results">לא נמצאה עזרה עבור \"%1$s\"</string>
+    <string name="help_search_no_results">לא נמצאה עזרה עבור "%1$s"</string>
     <string name="help_search_section_tips">טיפים ומדריכים</string>
     <string name="help_search_section_settings">הגדרות</string>
     <string name="help_search_section_actions">פעולות מהירות</string>
     <string name="help_search_section_changelog">מה חדש</string>
-    <string name="help_search_see_all">הצגת כל %1$d התוצאות</string>
-    <string name="help_tips_section_title">עזרה וטיפים</string>
     <string name="help_quick_actions">פעולות מהירות</string>
     <string name="help_qa_open_timeline">פתיחת ציר הזמן</string>
     <string name="help_qa_open_albums">פתיחת האלבומים</string>
@@ -1092,8 +1089,6 @@
     <string name="help_qa_open_favorites">פתיחת המועדפים</string>
     <string name="help_qa_open_locations">פתיחת המיקומים</string>
     <string name="help_qa_open_library">פתיחת הספרייה</string>
-    <string name="help_qa_open_color_palette">פתיחת לוח הצבעים</string>
-    <string name="help_qa_open_appearance">פתיחת הגדרות המראה</string>
 
     <string name="help_tip_view_cutout_title">גזרו נושא</string>
     <string name="help_tip_view_cutout_subtitle">הרם אדם או חפץ מהרקע</string>

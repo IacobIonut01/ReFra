@@ -19,6 +19,7 @@ import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.feature.settings.ui.CategoriesSettingsActions
 import com.dot.gallery.feature.settings.ui.CategoriesSettingsContent
 import com.dot.gallery.feature.settings.ui.CategoriesSettingsState
+import com.dot.gallery.handover.HandoverConfig
 import kotlinx.coroutines.launch
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.injection.injectViewModel
@@ -35,6 +36,14 @@ fun CategoriesSettingsScreen() {
     val categoryWorkerProgress by viewModel.categoryWorkerProgress.collectAsStateWithLifecycle()
     val categoriesWithCount by viewModel.categoriesWithCount.collectAsStateWithLifecycle()
     val modelStatus by viewModel.modelStatus.collectAsStateWithLifecycle()
+    val matchedCount by viewModel.distinctClassifiedMediaCount.collectAsStateWithLifecycle()
+    val embeddedCount by viewModel.imageEmbeddingCount.collectAsStateWithLifecycle()
+    val lastScanAt by viewModel.lastCategoryScanAt.collectAsStateWithLifecycle()
+    // Classification runs on stored image_embeddings — a configured remote
+    // inference server produces them without local models.
+    val handoverReady by remember {
+        HandoverConfig.configuredFlow(context)
+    }.collectAsStateWithLifecycle(initialValue = false)
     var videoPurgeCount by remember { mutableStateOf<Int?>(null) }
 
     CategoriesSettingsContent(
@@ -42,8 +51,12 @@ fun CategoriesSettingsScreen() {
             categoryScan = categoryScan,
             workerProgress = categoryWorkerProgress,
             hasCategories = categoriesWithCount.isNotEmpty(),
-            modelsReady = modelStatus == ModelStatus.READY,
+            modelsReady = modelStatus == ModelStatus.READY || handoverReady,
             videoPurgeCount = videoPurgeCount,
+            categoryCount = categoriesWithCount.size,
+            matchedCount = matchedCount,
+            unmatchedCount = (embeddedCount - matchedCount).coerceAtLeast(0),
+            lastScanAt = lastScanAt,
         ),
         actions = CategoriesSettingsActions(
             onStartScan = viewModel::startCategoryClassification,

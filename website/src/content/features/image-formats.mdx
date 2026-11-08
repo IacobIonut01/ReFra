@@ -19,11 +19,11 @@ The viewer handles the common formats plus a long tail of camera and design form
 | Camera / modern | HEIC/HEIF, AVIF, JPEG XL, TIFF, RAW formats |
 | Design / misc | PSD, JP2/J2K, SVG |
 
-Opening is flattened viewing: a PSD shows its final image rather than editable layers, and a RAW file opens as a processed preview. The dedicated RAW tools live in the editor; see [RAW development](/ReFra/features/raw-development). Animated GIFs animate in place; the **Animate GIFs** switch in [timeline and albums settings](/ReFra/features/timeline-albums) controls whether their thumbnails move in the grid. SVG is rendered as an image; it is not editable as vectors.
+Opening is flattened viewing: a PSD shows its final image rather than editable layers, and a RAW file opens as a processed preview. The editor develops RAW files with its **Develop** tool; see [RAW development](/ReFra/features/raw-development). Animated GIFs animate in place; the **Animate GIFs** switch in [timeline and albums settings](/ReFra/features/timeline-albums) controls whether their thumbnails move in the grid. SVG is rendered as an image; it is not editable as vectors.
 
 <PreviewCollection feature="image-formats" section="what-opens" />
 
-Editing is another matter: pixel formats like JPEG and PNG support the full editor, while less common formats can have limits. See [saving edits](/ReFra/features/save-edits) for when a copy is produced instead of overwriting. Some photos carry HDR colour; whether they display in HDR depends on the device, and editing may flatten it, so check the saved copy. Video HDR has its own toggle in [viewer settings](/ReFra/features/viewer-settings).
+Editing is another matter: the [ReFra editor](/ReFra/features/editor) opens JPEG, PNG, and camera RAW files and always saves a new copy; see [saving copies](/ReFra/features/save-edits). Other formats open in the [built-in editor](/ReFra/features/legacy-editor), which has its own limits. Some photos carry HDR colour; whether they display in HDR depends on the device, and editing may flatten it, so check the saved copy. Video HDR has its own toggle in [viewer settings](/ReFra/features/viewer-settings).
 
 This page covers still images. Video playback depends on the device's codecs rather than this list; a container or codec the phone lacks can refuse to play even though the file browses fine; see [video playback](/ReFra/features/video-playback) and [troubleshooting](/ReFra/features/troubleshooting).
 
@@ -33,4 +33,4 @@ A file that never reached Android's media index (one you only have in a file man
 
 1. Open a small-pixel-art PNG; pinch to zoom.
 2. If the pixels look smeared, turn on **Disable smoothing** in [media viewer settings](/ReFra/features/viewer-settings) so scaling stays sharp.
-3. Any crop or save then uses the editor as usual; keep the original with **Save a copy**.
+3. Any crop or other edit in the ReFra editor saves a new copy, so the original stays as it was.

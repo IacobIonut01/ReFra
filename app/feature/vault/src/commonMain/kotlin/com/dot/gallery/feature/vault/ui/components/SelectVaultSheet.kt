@@ -38,7 +38,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.OptionItem
-import com.dot.gallery.core.presentation.components.OptionLayout
+import androidx.compose.material.icons.outlined.Lock
 import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.domain.model.Vault
@@ -174,7 +174,7 @@ fun SelectVaultSheet(
                     state.hide()
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 0.dp,
             dragHandle = { DragHandle() },
             contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
@@ -284,10 +284,21 @@ fun SelectVaultSheet(
                         )
                     }
                 } else {
-                    OptionLayout(
-                        modifier = Modifier.fillMaxWidth(),
-                        optionList = vaultOptions
-                    )
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        vaults.forEachIndexed { index, vault ->
+                            VaultRow(
+                                icon = androidx.compose.material.icons.Icons.Outlined.Lock,
+                                title = vault.name,
+                                position = vaultRowPosition(index, vaults.size),
+                                trailing = VaultRowTrailing.Chevron,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                onClick = {
+                                    onVaultSelected(vault)
+                                    scope.launch { state.hide() }
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }

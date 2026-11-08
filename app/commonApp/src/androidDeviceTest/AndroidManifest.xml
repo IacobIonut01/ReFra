@@ -4,6 +4,7 @@
          uiAutomation.grantRuntimePermission / pm grant to take effect — grants cannot
          apply to permissions the package never requested. Without them every test gated
          on Context.hasMediaAccess() silently skips. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission

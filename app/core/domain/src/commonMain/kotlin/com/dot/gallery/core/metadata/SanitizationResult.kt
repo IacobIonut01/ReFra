@@ -4,7 +4,6 @@ import com.dot.gallery.domain.uri.Uri
 
 sealed interface SanitizationResult {
     data class Success(
-        val mode: MetadataRemovalMode,
         val format: MediaContainerFormat,
         val removedCategories: Set<MetadataCategory>,
         val retainedRequiredMetadata: Set<MetadataCategory>,

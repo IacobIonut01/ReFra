@@ -7,6 +7,7 @@ package com.dot.gallery.feature.library.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -28,6 +29,7 @@ import com.dot.gallery.feature.library.generated.resources.Res
 import com.dot.gallery.feature.library.generated.resources.cloud_accounts
 import com.dot.gallery.feature.library.generated.resources.cloud_archive
 import com.dot.gallery.feature.library.generated.resources.cloud_backup_and_sync
+import com.dot.gallery.feature.library.generated.resources.memories
 import com.dot.gallery.feature.library.generated.resources.cloud_shared_links
 import com.dot.gallery.feature.library.generated.resources.favorites
 import com.dot.gallery.feature.library.generated.resources.ignored
@@ -98,6 +100,17 @@ fun rememberLibraryRuntimeShortcuts(
         useIndicator = false,
         indicatorCounter = 0,
         route = routes.ignored,
+        available = true
+    )
+    // Memories come from the device library, and from a photo server when one provides them.
+    map[LibraryShortcut.MEMORIES] = RuntimeShortcut(
+        shortcut = LibraryShortcut.MEMORIES,
+        title = stringResource(Res.string.memories),
+        icon = Icons.Outlined.AutoAwesome,
+        contentColor = colorScheme.tertiary,
+        useIndicator = false,
+        indicatorCounter = 0,
+        route = routes.memories,
         available = true
     )
     if (privateFolderUri.isNotEmpty()) {

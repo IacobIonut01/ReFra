@@ -55,6 +55,7 @@ import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.uri.path
 import com.dot.gallery.domain.uri.query
 import com.dot.gallery.core.logging.printWarning
+import com.dot.gallery.core.logging.printWarn
 
 
 @RequiresApi(Build.VERSION_CODES.R)
@@ -242,6 +243,34 @@ suspend fun ContentResolver.overrideImageStreaming(
             ).use { output -> write(output.fd) }
         }.getOrDefault(false)
         if (!encoded || stagingFile.length() == 0L) return@withContext false
+
+        replaceImageFromStaging(uri, stagingFile, originalDates)
+    } finally {
+        stagingFile.delete()
+    }
+}
+
+/**
+ * In-place rewrite of [uri] by editing a staged copy of its current bytes — for metadata-only
+ * changes that need no re-encode. [edit] receives the closed staging file (editable by path) and
+ * returns false to abort; the replacement then goes through the same rollback and date-column
+ * restore as [overrideImageStreaming]. The source is only written once the edit succeeded.
+ */
+suspend fun ContentResolver.overrideImageFromEditedCopy(
+    uri: Uri,
+    stagingFile: File,
+    edit: (File) -> Boolean,
+): Boolean = withContext(Dispatchers.IO) {
+    try {
+        val originalDates = queryDateColumns(uri)
+        val edited = runCatching {
+            copyUriToFile(uri, stagingFile)
+            edit(stagingFile)
+        }.getOrElse { error ->
+            printWarn("media-ops.override", "Staged edit failed", ctx = mapOf("error" to "${error.message}"))
+            false
+        }
+        if (!edited || stagingFile.length() == 0L) return@withContext false
 
         replaceImageFromStaging(uri, stagingFile, originalDates)
     } finally {

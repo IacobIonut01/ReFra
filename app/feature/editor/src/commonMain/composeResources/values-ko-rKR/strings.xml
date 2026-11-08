@@ -55,4 +55,14 @@
     <string name="editor_brush_size">크기</string>
     <string name="editor_brush_strength">힘</string>
     <string name="editor_blur_faces">얼굴을 흐리게 하다</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8비트)</string>
+    <string name="raw_export_tiff16">TIFF (16비트)</string>
+    <string name="raw_export_choose_format">개발된 사본 저장</string>
+    <string name="raw_export_choose_format_subtitle">현상된 RAW 파일의 형식을 선택하세요</string>
+    <string name="raw_export_tiff_unavailable">TIFF는 전체 비트 심도를 유지하지만, 자르기, 필터 또는 마크업은 포함할 수 없습니다. TIFF로 내보내려면 해당 요소를 제거하십시오.</string>
+    <string name="editor_mosaic_faces">모자이크 얼굴들</string>
+    <string name="cutout_no_object">길게 눌렀을 때 감지된 객체가 없음</string>
+    <string name="cutout_init_failed">컷아웃 엔진 초기화에 실패했습니다.</string>
 </resources>

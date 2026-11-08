@@ -17,7 +17,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import kotlin.math.ceil
 import kotlin.math.floor
 
 /**
@@ -70,15 +69,6 @@ internal fun rememberGridScrollbarController(
         }
     }
 
-    val isStickyHeaderInAction = remember {
-        derivedStateOf {
-            val realIndex = realFirstVisibleItem.value?.index ?: return@derivedStateOf false
-            val firstVisibleIndex = state.layoutInfo.visibleItemsInfo.firstOrNull()?.index
-                ?: return@derivedStateOf false
-            realIndex != firstVisibleIndex
-        }
-    }
-
     // NOTE: upstream divided by size.width for the vertical axis (a latent bug that
     // only worked for square cells). We correctly use the height here.
     fun LazyGridItemInfo.fractionHiddenTop(firstItemOffset: Int): Float =
@@ -87,18 +77,35 @@ internal fun rememberGridScrollbarController(
     fun LazyGridItemInfo.fractionVisibleBottom(viewportEndOffset: Int): Float =
         if (size.height == 0) 0f else (viewportEndOffset - offset.y).toFloat() / size.height.toFloat()
 
+    /**
+     * Scroll progress in item units: the first visible row's index plus the hidden share of
+     * that row, spread over the items in it. Unlike a row count derived from `index / columns`,
+     * this keeps rising smoothly past full-width headers and mosaic tiles, which break the row
+     * alignment and made the thumb jump back and change size.
+     */
+    fun rowProgress(item: LazyGridItemInfo, hiddenOrVisible: Float): Float {
+        val rowItems = state.layoutInfo.visibleItemsInfo.count { it.offset.y == item.offset.y }
+            .coerceAtLeast(1)
+        val rowStart = state.layoutInfo.visibleItemsInfo
+            .filter { it.offset.y == item.offset.y }
+            .minOfOrNull { it.index } ?: item.index
+        return rowStart + hiddenOrVisible.coerceIn(0f, 1f) * rowItems
+    }
+
+    val visibleStartProgress = remember {
+        derivedStateOf {
+            val firstItem = realFirstVisibleItem.value ?: return@derivedStateOf 0f
+            rowProgress(firstItem, firstItem.fractionHiddenTop(state.firstVisibleItemScrollOffset))
+        }
+    }
+
     val thumbSizeNormalizedReal = remember {
         derivedStateOf {
             state.layoutInfo.let {
-                if (it.totalItemsCount == 0) return@let 0f
-                val firstItem = realFirstVisibleItem.value ?: return@let 0f
-                val firstPartial = firstItem.fractionHiddenTop(state.firstVisibleItemScrollOffset)
-                val lastPartial =
-                    1f - it.visibleItemsInfo.last().fractionVisibleBottom(it.viewportEndOffset)
-                val rows = ceil(it.visibleItemsInfo.size.toFloat() / nElementsMainAxis.value) -
-                        if (isStickyHeaderInAction.value) 1f else 0f
-                val realVisibleSize = rows - firstPartial - lastPartial
-                realVisibleSize / ceil(it.totalItemsCount.toFloat() / nElementsMainAxis.value)
+                if (it.totalItemsCount == 0 || it.visibleItemsInfo.isEmpty()) return@let 0f
+                val lastItem = it.visibleItemsInfo.last()
+                val end = rowProgress(lastItem, lastItem.fractionVisibleBottom(it.viewportEndOffset))
+                ((end - visibleStartProgress.value) / it.totalItemsCount).coerceIn(0f, 1f)
             }
         }
     }
@@ -129,12 +136,7 @@ internal fun rememberGridScrollbarController(
         derivedStateOf {
             state.layoutInfo.let {
                 if (it.totalItemsCount == 0 || it.visibleItemsInfo.isEmpty()) return@let 0f
-                val firstItem = realFirstVisibleItem.value ?: return@let 0f
-                val top = firstItem.run {
-                    ceil(index.toFloat() / nElementsMainAxis.value) +
-                            fractionHiddenTop(state.firstVisibleItemScrollOffset)
-                } / ceil(it.totalItemsCount.toFloat() / nElementsMainAxis.value)
-                offsetCorrection(top)
+                offsetCorrection(visibleStartProgress.value / it.totalItemsCount)
             }
         }
     }
@@ -165,6 +167,7 @@ internal fun rememberGridScrollbarController(
         GridScrollbarController(
             thumbSizeNormalized = thumbSizeNormalized,
             thumbSizeNormalizedReal = thumbSizeNormalizedReal,
+            visibleStartProgress = visibleStartProgress,
             thumbOffsetNormalized = thumbOffsetNormalized,
             thumbIsInAction = thumbIsInAction,
             isSelected = isSelected,
@@ -190,6 +193,7 @@ internal class GridScrollbarController(
     val thumbIsInAction: State<Boolean>,
     val isSelected: MutableState<Boolean>,
     private val thumbSizeNormalizedReal: State<Float>,
+    private val visibleStartProgress: State<Float>,
     private val dragOffset: MutableFloatState,
     private val dragTargetIndex: MutableIntState,
     private val selectionMode: State<ScrollbarSelectionMode>,
@@ -202,7 +206,7 @@ internal class GridScrollbarController(
     private val onSnap: State<() -> Unit>,
     private val state: LazyGridState,
 ) {
-    /** Month start the drag last snapped the grid to, used to fire one haptic per crossing. */
+    /** Month start the thumb was last over, used to fire one haptic per month crossing. */
     private var lastSnappedIndex = -1
     /**
      * Latest coalesced scroll request, consumed by the owning composable via
@@ -215,6 +219,12 @@ internal class GridScrollbarController(
      * *intended* target (computed from the drag offset) so the label updates instantly
      * without waiting for the list to scroll/lay out; otherwise the real first item.
      */
+    /** The grid's real position, in the same item units as [GridScrollTarget.progress]. */
+    fun currentProgress(): Float = visibleStartProgress.value
+
+    /** How many items' worth of progress the viewport shows; converts progress to pixels. */
+    fun visibleSpan(): Float = thumbSizeNormalizedReal.value * state.layoutInfo.totalItemsCount
+
     fun indicatorValue(): Int =
         if (isSelected.value) dragTargetIndex.intValue else state.firstVisibleItemIndex
 
@@ -259,10 +269,12 @@ internal class GridScrollbarController(
             ScrollbarSelectionMode.Disabled -> Unit
         }
 
-        // Seed the snap origin so the first month crossing (not the grab itself) triggers haptics.
-        if (isSelected.value && snapIndices.value.isNotEmpty()) {
-            lastSnappedIndex = monthStartAtOrBelow(state.firstVisibleItemIndex)
-            dragTargetIndex.intValue = lastSnappedIndex
+        // Seed the month origin so the first month crossing (not the grab itself) triggers haptics.
+        if (isSelected.value) {
+            dragTargetIndex.intValue = state.firstVisibleItemIndex
+            if (snapIndices.value.isNotEmpty()) {
+                lastSnappedIndex = monthStartAtOrBelow(state.firstVisibleItemIndex)
+            }
         }
     }
 
@@ -275,32 +287,26 @@ internal class GridScrollbarController(
     private fun setScrollOffset(newOffset: Float) {
         // Keep the thumb tracking the finger 1:1 regardless of snapping.
         setDragOffset(newOffset)
-        val columns = nElementsMainAxis.value
         val totalItems = state.layoutInfo.totalItemsCount
-        val totalRows = ceil(totalItems.toFloat() / columns)
-        val exactIndex = offsetCorrectionInverse(totalRows * dragOffset.floatValue)
-        val continuousIndex = (floor(exactIndex).toInt() * columns)
-            .coerceIn(0, (totalItems - 1).coerceAtLeast(0))
+        if (totalItems == 0) return
+        // The inverse of the thumb's item-space progress, so letting go leaves the thumb where
+        // the finger put it instead of jumping to a differently computed position.
+        val exactIndex = (offsetCorrectionInverse(dragOffset.floatValue) * totalItems)
+            .coerceIn(0f, (totalItems - 1).toFloat())
+        val continuousIndex = floor(exactIndex).toInt()
 
-        // Month-snapping mode: jump the grid to the start of the month under the thumb and
-        // commit a scroll (plus one haptic) only when the thumb crosses into a different month.
+        // The grid follows the thumb continuously; month starts only mark where a haptic tick
+        // fires, once each time the thumb crosses into a different month.
         if (snapIndices.value.isNotEmpty()) {
-            val snapIndex = monthStartAtOrBelow(continuousIndex)
-            dragTargetIndex.intValue = snapIndex
-            if (snapIndex != lastSnappedIndex) {
-                lastSnappedIndex = snapIndex
-                scrollTarget.value = GridScrollTarget(index = snapIndex, scrollOffset = snapScrollOffset.value)
+            val monthStart = monthStartAtOrBelow(continuousIndex)
+            if (monthStart != lastSnappedIndex) {
+                lastSnappedIndex = monthStart
                 onSnap.value()
             }
-            return
         }
 
-        val remainder = exactIndex - floor(exactIndex)
-        val rowHeight = realFirstVisibleItem.value?.size?.height ?: 0
-        val scrollOffset = (rowHeight * remainder).toInt()
-
         dragTargetIndex.intValue = continuousIndex
-        scrollTarget.value = GridScrollTarget(index = continuousIndex, scrollOffset = scrollOffset)
+        scrollTarget.value = GridScrollTarget(progress = exactIndex)
     }
 
     /** Greatest month-start index that is &lt;= [target] (the month the thumb currently points at). */

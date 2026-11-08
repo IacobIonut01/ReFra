@@ -12,10 +12,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DragHandle(
-    alpha: Float = 1f
+    alpha: Float = 1f,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .padding(vertical = 11.dp)
             .alpha(alpha),
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),

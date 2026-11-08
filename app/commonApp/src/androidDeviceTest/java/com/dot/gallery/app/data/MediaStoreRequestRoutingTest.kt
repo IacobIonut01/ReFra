@@ -55,7 +55,7 @@ import com.dot.gallery.core.MediaRepositoryRuntimeImpl
 
 
 /**
- * Issue #1263: on API 30+ supported media must always route through the
+ * on API 30+ supported media must always route through the
  * MediaStore request APIs (createTrashRequest / createDeleteRequest /
  * createFavoriteRequest), even when all-files access is granted — the grant
  * does not guarantee ContentResolver write access on every platform, and the
@@ -213,7 +213,7 @@ class MediaStoreRequestRoutingTest {
 
     @Test
     fun externalAliasUriResolvesToCanonicalVolumeUri() = runBlocking<Unit> {
-        // Issue #1314: external editors (e.g. the system screenshot "Edit" action)
+        // external editors (e.g. the system screenshot "Edit" action)
         // hand the app an `external` alias URI. The resolved media carries the real
         // volume (`external_primary`), so write-access requests must target the
         // resolved URI — framework URI grants only cover the exact URI string they

@@ -56,3 +56,15 @@ data class LocalCopyUiState(
     val targetMediaId: Long? = null,
     val message: String = ""
 )
+
+/** True once a copy state can no longer change. */
+fun CopyWorkState.isTerminalCopyState(): Boolean =
+    this == CopyWorkState.SUCCEEDED || this == CopyWorkState.FAILED || this == CopyWorkState.CANCELLED
+
+/**
+ * Whether the copy sheet should be open for a transfer: only one this screen started and is still
+ * running, or whose result has not been dismissed yet. Background copy work left over from an
+ * earlier session (a failed copy, or one interrupted by closing the app) never opens it.
+ */
+fun copySheetOperationVisible(local: LocalCopyUiState, cloud: CloudCopyUiState): Boolean =
+    local.active || cloud.active || local.finished || cloud.finished

@@ -89,10 +89,12 @@ function assertNotUniform(png, label) {
 async function main() {
   /* 1 — build the wasmJs distribution */
   console.log('publish-live: building :app:docs:showcase:wasmJsBrowserDistribution …');
-  execFileSync('./gradlew', [':app:docs:showcase:wasmJsBrowserDistribution'], {
-    cwd: REPO_ROOT,
-    stdio: 'inherit',
-  });
+  // Windows runs the batch wrapper by absolute path through cmd.exe.
+  const task = ':app:docs:showcase:wasmJsBrowserDistribution';
+  const [cmd, args] = process.platform === 'win32'
+    ? ['cmd.exe', ['/d', '/c', join(REPO_ROOT, 'gradlew.bat'), task]]
+    : ['./gradlew', [task]];
+  execFileSync(cmd, args, { cwd: REPO_ROOT, stdio: 'inherit' });
   if (!existsSync(join(DIST, 'index.html')) || !existsSync(join(DIST, 'docs-showcase.js'))) {
     fail(`Gradle distribution incomplete under ${DIST}`);
   }
@@ -126,7 +128,16 @@ async function main() {
 
     const { chromium } = await import('@playwright/test');
     const { PNG } = await import('pngjs');
-    browser = await chromium.launch();
+    // Like check-ui.mjs: the bundled Chromium first, an installed Chrome when it is missing.
+    // GPU-less CI runners need --enable-unsafe-swiftshader or Chrome refuses the
+    // software WebGL context Skiko renders through and the bundle never boots.
+    const launchArgs = ['--enable-unsafe-swiftshader'];
+    try {
+      browser = await chromium.launch({ args: launchArgs });
+    } catch (err) {
+      if (!/executable/i.test(String(err))) throw err;
+      browser = await chromium.launch({ channel: 'chrome', args: launchArgs });
+    }
     const page = await browser.newPage({ viewport: { width: PROBE_W, height: PROBE_H } });
 
     await page.addInitScript(() => {
@@ -143,7 +154,7 @@ async function main() {
     await page.waitForFunction(
       () => window.__docsMessages?.some((m) => m?.type === 'docs:ready'),
       undefined,
-      { timeout: 90_000 },
+      { timeout: 180_000 },
     );
     const captured = await page.evaluate(() => window.__docsMessages);
 

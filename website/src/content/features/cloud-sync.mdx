@@ -6,7 +6,7 @@ path:
   - Settings
   - Cloud Accounts
 related: [cloud-accounts, cloud-backup, cloud-downloads]
-scenes: [cloud-account-settings, cloud-account-dialog, cloud-sync-status]
+scenes: [cloud-account-settings, cloud-account-dialog, cloud-backup-dashboard]
 order: 9
 ---
 
@@ -23,16 +23,9 @@ Per account, under its settings:
 
 <PreviewCollection feature="cloud-sync" section="controls" />
 
-## Sync Status
+## Sync status
 
-The **Sync Status** card counts what the account currently knows:
-
-- **Total cached**: items whose listing the app holds.
-- **Synced**: items fully synced.
-- **Remote only**: items not downloaded to this device.
-- **Pending upload**: local items still waiting to be backed up.
-
-These counts describe the index, not the files: a large **Synced** number does not mean originals sit on the phone. To pull originals, use **Download all remote media** on the same screen; it targets every remote-only item of the account, so check [cloud downloads](/ReFra/features/cloud-downloads) before running it.
+Sync progress shows on the **Backup & Sync** dashboard (**Library › Backup & Sync**). Its summary card reports a running sync or status check, and offers **Retry** when an account is in error. Synced items are listings, not files: a remote-only item stays on the server until you download it, as described in [cloud downloads](/ReFra/features/cloud-downloads).
 
 <PreviewCollection feature="cloud-sync" section="status" />
 

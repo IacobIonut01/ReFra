@@ -55,4 +55,14 @@
     <string name="editor_brush_size">الحجم</string>
     <string name="editor_brush_strength">القوة</string>
     <string name="editor_blur_faces">طمس الوجوه</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">بابوا غينيا الجديدة</string>
+    <string name="raw_export_tiff8">TIFF (8 بت)</string>
+    <string name="raw_export_tiff16">TIFF (16 بت)</string>
+    <string name="raw_export_choose_format">حفظ النسخة المعدلة</string>
+    <string name="raw_export_choose_format_subtitle">اختر تنسيقًا لملف RAW الذي قمت بتحويله</string>
+    <string name="raw_export_tiff_unavailable">يحتفظ تنسيق TIFF بعمق البت الكامل، لكنه لا يدعم تضمين عمليات القص أو المرشحات أو العلامات — لذا يجب إزالتها لتصدير ملف TIFF.</string>
+    <string name="editor_mosaic_faces">وجوه الفسيفساء</string>
+    <string name="cutout_no_object">لم يتم الكشف عن أي كائن عند الضغط لفترة طويلة</string>
+    <string name="cutout_init_failed">فشل تهيئة محرك القص</string>
 </resources>

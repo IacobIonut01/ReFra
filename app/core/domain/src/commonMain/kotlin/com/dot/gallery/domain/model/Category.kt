@@ -12,19 +12,23 @@ import kotlinx.serialization.Serializable
 
 /**
  * Represents a category for organizing media.
- * Categories can be either system-generated (using CLIP embeddings for semantic matching)
- * or user-created (using text search terms).
+ * Categories can be either system-generated (using the active search model's
+ * embeddings for semantic matching) or user-created (using text search terms).
  *
  * @param id Unique identifier for the category
  * @param name Display name of the category
  * @param searchTerms Comma-separated search terms used for matching (e.g., "sunset, sunrise, golden hour")
  * @param embedding Optional pre-computed text embedding for the category (for faster matching)
  * @param referenceImageIds List of media IDs used as image-to-image reference for matching
- * @param threshold Minimum similarity score (0-1) for media to be included in this category
+ * @param threshold Match sensitivity (0-1): 0 admits the model's noise floor, 1 only
+ *   near-exact matches. Model-agnostic — the active [com.dot.gallery.core.ml.SearchModel]
+ *   maps it onto its own cosine band before scoring, so the same value stays meaningful
+ *   after switching search engines.
  * @param isUserCreated Whether this category was created by the user or auto-generated
  * @param isPinned Whether this category is pinned/favorited by the user
  * @param createdAt Timestamp when the category was created
  * @param updatedAt Timestamp when the category was last updated
+ * @param coverMediaId Media the user picked as the cover; null uses the best-scored member
  */
 @Entity(tableName = "categories")
 @Serializable
@@ -40,7 +44,9 @@ data class Category(
     val isUserCreated: Boolean = false,
     val isPinned: Boolean = false,
     val createdAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
-    val updatedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
+    val updatedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+    @ColumnInfo(defaultValue = "NULL")
+    val coverMediaId: Long? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -59,6 +65,7 @@ data class Category(
         if (isPinned != other.isPinned) return false
         if (createdAt != other.createdAt) return false
         if (updatedAt != other.updatedAt) return false
+        if (coverMediaId != other.coverMediaId) return false
 
         return true
     }
@@ -74,13 +81,18 @@ data class Category(
         result = 31 * result + isPinned.hashCode()
         result = 31 * result + createdAt.hashCode()
         result = 31 * result + updatedAt.hashCode()
+        result = 31 * result + (coverMediaId?.hashCode() ?: 0)
         return result
     }
 
     companion object {
-        const val DEFAULT_THRESHOLD = 0.20f
-        const val MIN_THRESHOLD = 0.15f
-        const val MAX_THRESHOLD = 0.8f
+        // `threshold` is a normalized sensitivity, not a cosine score: each search
+        // engine maps it onto its own similarity band (SearchModel.thresholdFromSensitivity),
+        // which keeps one stored value meaningful across CLIP and EmbeddingGemma 2.
+        // 0.25 gives EG2's 0.60 operating point and a mid-low CLIP cutoff (~0.31).
+        const val DEFAULT_THRESHOLD = 0.25f
+        const val MIN_THRESHOLD = 0.0f
+        const val MAX_THRESHOLD = 1.0f
 
         // Default system categories
         val DEFAULT_CATEGORIES = listOf(

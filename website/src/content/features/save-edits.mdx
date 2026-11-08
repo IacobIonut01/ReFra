@@ -1,38 +1,46 @@
 ---
-title: Saving edits
-summary: Save a new copy, overwrite a supported original, or restore an edit backup.
+title: Saving copies
+summary: How the ReFra editor saves a new copy, which formats it writes, and where the file goes.
 area: edit
 path:
   - Media viewer
   - Edit
-related: [editor, edit-backups, raw-development]
-scenes: [editor-photo]
+  - Save
+related: [editor, raw-development, image-formats, metadata-privacy, legacy-save-edits]
+scenes: []
 order: 8
 ---
 
-The [editor](/ReFra/features/editor)'s toolbar keeps saving explicit: **Save Copy** writes a new file, and **More › Overwrite** replaces the original with real limits on when each is allowed.
+The ReFra editor never changes the file you opened. Every save writes a new copy, and the original stays where it was.
 
-## Save copy versus overwrite
+## The save menu
 
-<PreviewCollection feature="save-edits" section="save-copy-versus-overwrite" />
+**Save** in the header opens the save menu:
 
-- **Save Copy**: writes a new file in `Pictures/Edited` and leaves the original untouched.
-- **Overwrite**: offered only when the item is a local image the app can write and the format allows it. If **Overwrite** fails or Android refuses permission, choose **Save Copy**. If saving still fails, keep the editor open and resolve the permission or storage problem; do not discard your only unsaved work.
-- Cloud items and read-only opens often cannot be opened in the editor at all; download the original first, or use **Save Copy** where the editor does open. Nothing silently becomes a copy.
-- Closing with unsaved changes asks first: **Save Copy**, **Keep Editing**, or **Discard**.
+- **Save copy** writes the copy in the format chosen under **Copy format** in the editor's settings.
+- **Export as JPEG**, **PNG**, **WebP**, **HEIF**, or **JPEG XL** writes the copy in that format once. HEIF and JPEG XL appear only on devices where their encoders are available.
+- **Save and open** saves the copy and opens it.
 
-## What a copy preserves
+For a RAW file the button reads **Export** and asks for a format each time; see [RAW development](/ReFra/features/raw-development).
 
-The copy keeps the image format when the encoder supports writing it; otherwise it falls back to PNG. Animation, layers, and HDR are not blanket guarantees; check the result's details on formats that matter to you. JPEG quality for manual saves follows **Save quality** in [viewer settings](/ReFra/features/viewer-settings).
+## Which format a copy uses
 
-There is no "save as JPEG" chooser for ordinary images; format selection exists only for developed RAW exports; see [RAW development](/ReFra/features/raw-development).
+**Copy format** in the editor's settings is **Original** by default. With **Original**, a JPEG photo is saved as a JPEG at the source's own quality, and a PNG stays a lossless PNG. Pick **WebP**, **HEIF**, or **JPEG XL** to write every copy in that format instead.
 
-## Revert to original
+A photo edited with **Remove background** is saved as a PNG so the transparent background survives.
 
-When **Overwrite** runs, the original file is kept as an edit backup first (see [edit backups](/ReFra/features/edit-backups)). **More › Revert to original** restores it, with a confirmation since all edits are discarded. Revert exists only while that backup exists.
+## Where copies go
 
-## Example: overwrite, then change your mind
+Photos are saved to `Pictures/ReFra` and videos to `Movies/ReFra`. The copy keeps the start of the original's file name with `-edited-` and a short random code added, so `IMG_2041.jpg` becomes something like `IMG_2041-edited-3f9a1c2e.jpg`. Copies show up in the timeline and in a **ReFra** album like any other media.
 
-1. Edit and **More › Overwrite** a photo; a backup of the original is created silently.
-2. Later, reopen it in the editor, **More › Revert to original**, and confirm; the pre-edit file returns.
-3. If the backup was already cleaned up, Revert is not offered; the edit stands.
+While a copy is written the editor shows its progress with a cancel button, and a notification tracks it too. Closing the editor before it finishes asks whether to cancel the export. When it finishes, the notification reads **Photo saved** or **Video saved**; tap it to open the copy. If saving fails, the notification says so and the editor keeps your edits so you can try again.
+
+## When the editor was opened by another app
+
+If another app sent the photo or video to the editor, the saved copy is handed back to that app when you close the editor. The copy is still saved in `Pictures/ReFra` or `Movies/ReFra`.
+
+## Example: share a smaller file
+
+1. Edit the photo as usual.
+2. Open the **Save** menu and pick **Export as WebP**.
+3. Open the copy from the notification and share it.

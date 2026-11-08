@@ -23,4 +23,8 @@ data class PeopleListActions(
     val confirmMerge: (PersonMergeSuggestion) -> Unit = {},
     val rejectMerge: (PersonMergeSuggestion) -> Unit = {},
     val renamePerson: (PersonInfo, String) -> Unit = { _, _ -> },
+    /** Opens the Face grouping preview when the face models are not installed yet. */
+    val setupFaceGrouping: () -> Unit = {},
+    /** Turns a People source (on-device people or an account) on or off. */
+    val setSourceVisible: (String, Boolean) -> Unit = { _, _ -> },
 )

@@ -3,6 +3,9 @@ package com.dot.gallery.core.decoder.glide
 import android.content.ContentResolver
 import android.net.Uri
 import com.dot.gallery.core.decoder.format.HeifBitstreamProbe
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.io.SequenceInputStream
 import com.dot.gallery.cloud.core.matches
 import com.dot.gallery.core.util.and
 import com.dot.gallery.core.util.or
@@ -21,9 +24,6 @@ import com.dot.gallery.core.util.or
  */
 // public: app-side Glide loaders + SmartThumbnailLoader call needsSoftwareDecode
 object HeifUriProbe {
-
-    /** Header bytes read for the >10-bit probe (matches HeifBitstreamProbe's usable window). */
-    private const val PROBE_BYTES = 256 * 1024
 
     /** Head bytes read for the ISO-BMFF `ftyp` brand sniff (matches HeifSniffer's window). */
     private const val SNIFF_BYTES = 512
@@ -50,7 +50,7 @@ object HeifUriProbe {
     ): Boolean = when {
         mime in HEIF_MIMETYPES -> probesAboveSafeDepth(resolver, uri)
         isUsableMime(mime) -> false
-        else -> sniffsAsHeif(resolver, uri) && probesAboveSafeDepth(resolver, uri)
+        else -> sniffsAsDeepHeif(resolver, uri)
     }
 
     /** MIME values that carry usable format information (platform decode is trustworthy). */
@@ -62,24 +62,27 @@ object HeifUriProbe {
                 lower.substringAfter('/') !in setOf("octet-stream", "binary", "x-binary", "unknown")
     }
 
-    /** Reads up to [PROBE_BYTES] of [uri]'s head and reports whether the declared depth is >10-bit. */
-    private fun probesAboveSafeDepth(resolver: ContentResolver, uri: Uri): Boolean {
-        val header = ByteArray(PROBE_BYTES)
-        var read = 0
+    /** Streams [uri]'s box headers up to `meta` and reports whether the declared depth is >10-bit. */
+    private fun probesAboveSafeDepth(resolver: ContentResolver, uri: Uri): Boolean =
+        resolver.openInputStream(uri)?.use { stream -> metaDeclaresUnsafeDepth(stream) } ?: false
+
+    /**
+     * Brand sniff and depth probe over a single open: the sniffed head is replayed in front of
+     * the rest of the stream, so slow storage pays one open instead of two.
+     */
+    private fun sniffsAsDeepHeif(resolver: ContentResolver, uri: Uri): Boolean =
         resolver.openInputStream(uri)?.use { stream ->
-            while (read < PROBE_BYTES) {
-                val n = stream.read(header, read, PROBE_BYTES - read)
+            val head = ByteArray(SNIFF_BYTES)
+            var read = 0
+            while (read < SNIFF_BYTES) {
+                val n = stream.read(head, read, SNIFF_BYTES - read)
                 if (n <= 0) break
                 read += n
             }
-        }
-        return read > 0 && HeifBitstreamProbe.needsSoftwareDecode(header.copyOf(read))
-    }
+            read > 0 && HeifSniffer.findBrand(head, read) != null &&
+                    metaDeclaresUnsafeDepth(SequenceInputStream(ByteArrayInputStream(head, 0, read), stream))
+        } ?: false
 
-    /** True when [uri]'s first bytes carry a HEIF-family `ftyp` brand (heic/heif/avif/…). */
-    private fun sniffsAsHeif(resolver: ContentResolver, uri: Uri): Boolean {
-        val head = ByteArray(SNIFF_BYTES)
-        val read = resolver.openInputStream(uri)?.use { stream -> stream.read(head) } ?: -1
-        return read > 0 && HeifSniffer.findBrand(head, read) != null
-    }
+    private fun metaDeclaresUnsafeDepth(stream: InputStream): Boolean =
+        HeifBitstreamProbe.readMetaBox(stream)?.let(HeifBitstreamProbe::needsSoftwareDecode) == true
 }

@@ -5,6 +5,15 @@
 
 package com.dot.gallery.cloud.ui.space
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -195,11 +204,10 @@ fun FreeUpSpaceContent(
         settingsList = settingsList,
         listState = rememberLazyListState(initialFirstVisibleItemIndex = initialScrollIndex),
         topContent = {
-            Text(
-                text = stringResource(Res.string.cloud_free_space_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+            FreeUpSpaceSummaryCard(
+                description = stringResource(Res.string.cloud_free_space_description),
+                itemCount = state.backedUpItems.size,
+                isScanning = state.isScanning,
             )
         },
         bottomContent = {
@@ -219,17 +227,16 @@ fun FreeUpSpaceContent(
                 if (state.backedUpItems.isNotEmpty()) {
                     Button(
                         onClick = onBeginDeletion,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp),
                         enabled = !state.isDeleting,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
                     ) {
                         if (state.isDeleting) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(18.dp),
                                 strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onError
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
                             Icon(
@@ -253,4 +260,50 @@ fun FreeUpSpaceContent(
             }
         }
     )
+}
+
+/**
+ * Summary card that opens Free up space: a round badge, what the page does and, once a scan
+ * found backed-up items, how many can leave the phone. A progress line shows while scanning.
+ */
+@Composable
+internal fun FreeUpSpaceSummaryCard(
+    description: String,
+    itemCount: Int,
+    isScanning: Boolean,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Outlined.CleaningServices, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        }
+        if (itemCount > 0) {
+            Text(
+                text = stringResource(Res.string.cloud_free_space_remove_count, itemCount),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        if (isScanning) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+    }
 }

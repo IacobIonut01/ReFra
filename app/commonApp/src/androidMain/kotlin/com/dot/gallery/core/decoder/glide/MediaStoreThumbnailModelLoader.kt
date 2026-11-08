@@ -29,7 +29,7 @@ import com.dot.gallery.core.logging.printError
 import java.io.IOException
 
 /**
- * Phase 4 (#1076): dedicated local MediaStore motion-tier fast path.
+ * dedicated local MediaStore motion-tier fast path.
  *
  * Baseline device telemetry showed the entire slow (>750ms) thumbnail tail was fresh full-size
  * `LOCAL` decodes, while disk-cached loads were fast. Instead of decoding the full-size original
@@ -87,7 +87,7 @@ class MediaStoreThumbnailModelLoader(
         val shouldBypass = runCatching {
             val mime = contentResolver.getType(uri)
             when {
-                // #1276: the platform thumbnailer has no decoder for software-only formats
+                // the platform thumbnailer has no decoder for software-only formats
                 // (JXL/PSD/JP2/TIFF/RAW, >10-bit HEIF) — attempting it is a guaranteed
                 // IOException plus a per-cell error log, once per miss forever. classify() is
                 // memoized per Uri, so URIs already claimed by the persistent thumbnail loader
@@ -102,12 +102,9 @@ class MediaStoreThumbnailModelLoader(
                         )
                     } ?: false
                 }
-                else -> {
-                    // The platform thumbnailer corrupts >10-bit AVIF exactly like ImageDecoder.
-                    // A confident >10-bit probe on a bounded head chunk bypasses to the app's own
-                    // HEIF decoders; anything less keeps the fast platform path.
-                    HeifUriProbe.needsSoftwareDecode(contentResolver, uri, mime)
-                }
+                // >10-bit HEIF/AVIF (which the platform thumbnailer corrupts) is already
+                // classified HEIF_SW above — re-probing here doubled the header read per file.
+                else -> false
             }
         }.getOrDefault(false)
         bypassCache.put(key, shouldBypass)
@@ -184,7 +181,7 @@ class MediaStoreThumbnailModelLoader(
          * Upper bound (px) for either dimension. Larger requests use the full pipeline.
          * Platform thumbnails are typically generated at ~512 px, so requests above
          * this size would receive an upscaled thumbnail instead of a real decode —
-         * the #1119 wide-tile pixelation. Keep the fast path for the MOTION tier
+         * wide-tile pixelation. Keep the fast path for the MOTION tier
          * (256 px) and small cells only.
          */
         private const val MAX_DIMENSION = 512

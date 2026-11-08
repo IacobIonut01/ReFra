@@ -1,0 +1,63 @@
+{
+  "fileKey": "UagS4q8hC0lpqw3SMGRu08",
+  "pageId": "9:1425",
+  "status": "Audited Figma design revision; native implementation not verified",
+  "sectionId": "3369:45788",
+  "sectionUrl": "https://www.figma.com/design/UagS4q8hC0lpqw3SMGRu08/GlitchOS--Copy-?node-id=3369-45788",
+  "proofBoardId": "3393:46253",
+  "proofBoardUrl": "https://www.figma.com/design/UagS4q8hC0lpqw3SMGRu08/GlitchOS--Copy-?node-id=3393-46253",
+  "inventory": {"screens": 90, "phoneScreens": 84, "desktopScreens": 4, "landscapeScreens": 2, "interactionGuides": 1, "v2KeysCovered": 81, "missingV2Keys": []},
+  "surfaceHierarchyRevision": {
+    "beforeSection": "3400:46164",
+    "convertedSurfaces": 38,
+    "effectStackId": "3404:46200",
+    "checks": {"directTextOverflow": 0, "targetsBelow48": 0, "overlappingSiblingTargets": 0, "transportTimelinePanelCollisions": 0},
+    "timelineMedia": "Illustrative sample posters and waveform data; not production-decoded media",
+    "evidence": ["surface-toolbar.png", "surface-layer-menu.png", "timeline-phone.png", "timeline-desktop.png", "timeline-landscape.png", "clip-effects-inline.png"]
+  },
+  "previousPassAudit": {
+    "scope": "Six revised v3 sections; excludes guide, archives and evidence board",
+    "before": {"screens": 83, "directParentTextOverflows": 21, "overlappingSiblingTargets": 8, "autoLayoutContainers": 35, "prototypeControls": 1},
+    "after": {"directParentTextOverflows": 0, "overlappingSiblingTargets": 0, "targetsBelow48": 0, "textBelow12": 0, "autoLayoutContainers": 1550, "prototypeControls": 285, "obscuredVideoTransport": 0, "scrollViewports": 5}
+  },
+  "beforeArchives": ["3384:45789", "3384:46515", "3384:47650", "3384:48091", "3384:49469", "3384:49998"],
+  "sections": [
+    {"id": "3369:45788", "name": "ReFra v3 · Phone — neutral sheets & precision", "screenCount": 14, "x": 34600, "y": 0},
+    {"id": "3375:45851", "name": "ReFra v3 · Photo — adjustments & finish", "screenCount": 15, "x": 37680, "y": 0},
+    {"id": "3375:46956", "name": "ReFra v3 · Photo — masks, retouch & composition", "screenCount": 8, "x": 37680, "y": 3370},
+    {"id": "3375:47365", "name": "ReFra v3 · Video — timeline, picture & delivery", "screenCount": 23, "x": 40280, "y": 0},
+    {"id": "3375:48589", "name": "ReFra v3 · Audio — recording, mixer & routing", "screenCount": 8, "x": 42880, "y": 0},
+    {"id": "3376:45881", "name": "ReFra v3 · Focus, desktop & delivery states", "screenCount": 22, "x": 42880, "y": 2420}
+  ],
+  "tokenCollection": {"id": "VariableCollectionId:3368:45788", "name": "ReFra/Editor v3", "modes": ["Dark", "Light"]},
+  "screens": {
+    "p-home": "3369:45789",
+    "p-toolbar-pull-up": "3369:45834",
+    "p-tools-modal": "3369:45884",
+    "p-light-collapsed": "3369:45969",
+    "p-light-expanded": "3369:46043",
+    "p-light-zero": "3391:46097",
+    "p-crop-perspective": "3369:46139",
+    "p-perspective": "3390:46094",
+    "p-tool-settings": "3369:46177",
+    "p-pin-tools": "3369:46226",
+    "p-pins-reordered": "3393:46123",
+    "p-home-custom": "3393:46194",
+    "p-home-light": "3369:46295",
+    "x-large-text": "3369:46340",
+    "interaction-guide": "3369:46417",
+    "p-colour": "3375:45852",
+    "p-curves": "3375:45935",
+    "p-layers": "3375:47193",
+    "p-export": "3375:46752",
+    "v-home": "3375:47366",
+    "v-mixer": "3375:48702",
+    "x-photo-desktop": "3376:46079",
+    "x-video-desktop": "3376:46110",
+    "x-mixer-desktop": "3376:46136",
+    "x-keyboard": "3389:46903",
+    "x-photo-light": "3389:46979"
+  },
+  "histogramEvidence": {"samplePixels": 117612, "width": 396, "height": 297, "binsPerChannel": 32, "exposureEV": 0.7, "liveRuntime": false, "adjustedImageHash": "d9144fdd3057afcfed584a9ff0be9660ea1053d7"},
+  "evidence": ["proof-before-after.png", "verified-white.png", "verified-light.png", "verified-photo.png", "verified-composition.png", "verified-audio.png", "verified-speed.png", "verified-video-desktop.png"]
+}

@@ -5,6 +5,35 @@
 
 package com.dot.gallery.cloud.ui.sharing
 
+import com.dot.gallery.core.presentation.components.ConfirmationSheetContent
+import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.ExpressiveSheetColumn
+import com.dot.gallery.core.presentation.components.ExpressiveSheetShape
+import com.dot.gallery.core.presentation.components.SheetDismissConfirmActions
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetOptionRow
+import com.dot.gallery.core.presentation.components.SheetRowTrailing
+import com.dot.gallery.core.presentation.components.SheetSectionLabel
+import com.dot.gallery.core.presentation.components.SheetSummaryTile
+import com.dot.gallery.core.presentation.components.SheetTextField
+import com.dot.gallery.core.presentation.components.SheetTone
+import com.dot.gallery.core.presentation.components.sheetRowPosition
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
+import com.dot.gallery.generated.resources.cloud_shared_links_edit_allow_download_desc
+import com.dot.gallery.generated.resources.cloud_shared_links_edit_allow_upload_desc
+import com.dot.gallery.generated.resources.cloud_shared_links_edit_show_metadata_desc
+import com.dot.gallery.generated.resources.cloud_shared_links_save
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,36 +58,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LinkOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -66,7 +84,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import org.jetbrains.compose.resources.stringResource
@@ -78,11 +95,9 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.cloud.core.SharedLinkInfo
 import com.dot.gallery.cloud.core.ThumbnailSize
 import com.dot.gallery.core.presentation.components.LoadingMedia
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -92,13 +107,11 @@ import com.dot.gallery.feature.editor.adjustments.Crop
 import com.dot.gallery.feature.help.domain.displayTitle
 import com.dot.gallery.core.presentation.util.add
 import com.dot.gallery.cloud.image.CloudMediaFetcher
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.action_cancel
 import com.dot.gallery.generated.resources.action_delete
 import com.dot.gallery.generated.resources.cancel
 import com.dot.gallery.generated.resources.cloud_shared_links
-import com.dot.gallery.generated.resources.cloud_shared_links_confirm
 import com.dot.gallery.generated.resources.cloud_shared_links_delete_message
 import com.dot.gallery.generated.resources.cloud_shared_links_delete_title
 import com.dot.gallery.generated.resources.cloud_shared_links_edit_allow_download
@@ -125,6 +138,10 @@ import com.dot.gallery.generated.resources.cloud_shared_links_filter_individual
 import com.dot.gallery.generated.resources.cloud_shared_links_link_copied
 import com.dot.gallery.generated.resources.cloud_shared_links_no_expiry
 import com.dot.gallery.generated.resources.cloud_shared_links_public_album
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 
 
@@ -135,9 +152,7 @@ fun SharedLinksContent(
     actions: SharedLinksContentActions,
     initialEditLinkId: String? = null,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = rememberTopAppBarState()
-    )
+    val listState = rememberLazyListState()
 
     var linkToDelete by remember { mutableStateOf<SharedLinkInfo?>(null) }
     var linkToEdit by remember {
@@ -145,19 +160,11 @@ fun SharedLinksContent(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                modifier = Modifier.hazeEffectScaled(
-                    state = LocalHazeState.current,
-                    style = LocalHazeBlurStyle.current
-                ),
-                title = { Text(stringResource(Res.string.cloud_shared_links)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                ),
+            GalleryPageTopBar(
+                title = stringResource(Res.string.cloud_shared_links),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { innerPadding ->
@@ -179,7 +186,8 @@ fun SharedLinksContent(
             }
             else -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    state = listState,
+                    modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
                     contentPadding = PaddingValues(
                         start = innerPadding.calculateStartPadding(layoutDir),
                         end = innerPadding.calculateEndPadding(layoutDir),
@@ -220,34 +228,35 @@ fun SharedLinksContent(
 
     // Delete confirmation dialog
     linkToDelete?.let { link ->
-        AlertDialog(
+        androidx.compose.material3.ModalBottomSheet(
             onDismissRequest = { linkToDelete = null },
-            icon = {
-                Icon(
-                    Icons.Outlined.Link,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
+            sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            dragHandle = {
+                com.dot.gallery.core.presentation.components.DragHandle(modifier = Modifier.padding(vertical = 5.dp))
             },
-            title = { Text(stringResource(Res.string.cloud_shared_links_delete_title)) },
-            text = { Text(stringResource(Res.string.cloud_shared_links_delete_message)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        actions.deleteLink(link)
-                        linkToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 0.dp,
+            shape = com.dot.gallery.core.presentation.components.ExpressiveSheetShape,
+        ) {
+            com.dot.gallery.core.presentation.components.ExpressiveSheetColumn {
+                run {
+                    ConfirmationSheetContent(
+                        title = stringResource(Res.string.cloud_shared_links_delete_title),
+                        summary = stringResource(Res.string.cloud_shared_links_delete_message),
+                        confirmText = stringResource(Res.string.action_delete),
+                        dismissText = stringResource(Res.string.action_cancel),
+                        icon = Icons.Outlined.Link,
+                        tone = SheetTone.Error,
+                        details = { SheetSummaryTile(title = link.displayTitle) },
+                        onDismiss = { linkToDelete = null },
+                        onConfirm = {
+                            actions.deleteLink(link)
+                            linkToDelete = null
+                        },
                     )
-                ) { Text(stringResource(Res.string.action_delete)) }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { linkToDelete = null }) {
-                    Text(stringResource(Res.string.action_cancel))
                 }
             }
-        )
+        }
     }
 
     // Edit bottom sheet
@@ -274,56 +283,64 @@ fun SharedLinksContent(
 }
 
 @Composable
-private fun SharedLinksFilterRow(
+internal fun SharedLinksFilterRow(
     currentFilter: SharedLinksFilter,
     onFilterSelected: (SharedLinksFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier,
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            SharedLinksFilter.entries.forEach { filter ->
-                val label = when (filter) {
-                    SharedLinksFilter.ALL -> stringResource(Res.string.cloud_shared_links_filter_all)
-                    SharedLinksFilter.ALBUMS -> stringResource(Res.string.cloud_shared_links_filter_albums)
-                    SharedLinksFilter.INDIVIDUAL -> stringResource(Res.string.cloud_shared_links_filter_individual)
-                }
-                val selected = currentFilter == filter
-                val backgroundColor by animateColorAsState(
-                    targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-                    label = "pillTabBg"
-                )
-                val textColor by animateColorAsState(
-                    targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                    label = "pillTabText"
-                )
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(CircleShape)
-                        .clickable { onFilterSelected(filter) },
-                    shape = CircleShape,
-                    color = backgroundColor
-                ) {
-                    Text(
-                        text = label,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = textColor,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+        SharedLinksFilter.entries.forEach { filter ->
+            val label = when (filter) {
+                SharedLinksFilter.ALL -> stringResource(Res.string.cloud_shared_links_filter_all)
+                SharedLinksFilter.ALBUMS -> stringResource(Res.string.cloud_shared_links_filter_albums)
+                SharedLinksFilter.INDIVIDUAL -> stringResource(Res.string.cloud_shared_links_filter_individual)
             }
+            SharedLinksChip(
+                label = label,
+                selected = currentFilter == filter,
+                onClick = { onFilterSelected(filter) },
+            )
         }
+    }
+}
+
+/** 40 dp choice chip of the shared links page and edit sheet: tonal when selected, grey pill otherwise. */
+@Composable
+private fun SharedLinksChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceContainerHighest,
+        label = "sharedLinksChipBg"
+    )
+    val textColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "sharedLinksChipText"
+    )
+    val shape = if (selected) RoundedCornerShape(12.dp) else CircleShape
+    Box(
+        modifier = Modifier
+            .heightIn(min = 40.dp)
+            .clip(shape)
+            .background(backgroundColor)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -340,14 +357,17 @@ private fun SharedLinkItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 1.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Thumbnail
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .size(56.dp)
+                .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
@@ -518,243 +538,158 @@ private fun EditSharedLinkSheet(
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded))
 
     var description by rememberSaveable { mutableStateOf(link.description ?: "") }
+    var passwordEnabled by rememberSaveable { mutableStateOf(false) }
     var password by rememberSaveable { mutableStateOf("") }
-    var expiresAt by rememberSaveable { mutableLongStateOf(link.expiresAt ?: 0L) }
-    var hasExpiry by rememberSaveable { mutableStateOf(link.expiresAt != null) }
+    // Null keeps the link's current expiry; 0 is Never; otherwise days from now.
+    var expiryDays by rememberSaveable { mutableStateOf(if (link.expiresAt == null) 0 else null) }
+    var changeExpiration by rememberSaveable { mutableStateOf(false) }
     var allowDownload by rememberSaveable { mutableStateOf(link.allowDownload) }
     var allowUpload by rememberSaveable { mutableStateOf(link.allowUpload) }
     var showMetadata by rememberSaveable { mutableStateOf(link.showMetadata) }
-    var changeExpiration by rememberSaveable { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
+        dragHandle = { DragHandle(modifier = Modifier.padding(vertical = 5.dp)) },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 0.dp,
+        shape = ExpressiveSheetShape,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
-        ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Outlined.Link,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(Res.string.cloud_shared_links_edit_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-
-            // Link type label
-            if (link.isAlbumLink && link.albumName != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "${stringResource(Res.string.cloud_shared_links_public_album)} | ${link.albumName}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Description
-            Text(
-                text = stringResource(Res.string.cloud_shared_links_edit_description),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password
-            Text(
-                text = stringResource(Res.string.cloud_shared_links_edit_password),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = stringResource(Res.string.cloud_shared_links_edit_password_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Expire after
-            Text(
-                text = stringResource(Res.string.cloud_shared_links_edit_expire),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                data class ExpiryChip(val label: String, val daysFromNow: Int?)
-
-                val chips = listOf(
-                    ExpiryChip(stringResource(Res.string.cloud_shared_links_edit_expire_never), null),
-                    ExpiryChip(stringResource(Res.string.cloud_shared_links_edit_expire_1day), 1),
-                    ExpiryChip(stringResource(Res.string.cloud_shared_links_edit_expire_7days), 7),
-                    ExpiryChip(stringResource(Res.string.cloud_shared_links_edit_expire_30days), 30),
-                    ExpiryChip(stringResource(Res.string.cloud_shared_links_edit_expire_3months), 90),
-                    ExpiryChip(stringResource(Res.string.cloud_shared_links_edit_expire_1year), 365)
-                )
-
-                chips.forEach { chip ->
-                    val isSelected = if (chip.daysFromNow == null) !hasExpiry else false
-                    val chipBg by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
-                            else MaterialTheme.colorScheme.surfaceContainerHigh,
-                        label = "expiryChipBg"
-                    )
-                    val chipText by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "expiryChipText"
-                    )
-                    Surface(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .clickable {
-                                changeExpiration = true
-                                if (chip.daysFromNow == null) {
-                                    hasExpiry = false
-                                    expiresAt = 0L
-                                } else {
-                                    hasExpiry = true
-                                    val cal = Calendar.getInstance()
-                                    cal.add(Calendar.DAY_OF_YEAR, chip.daysFromNow)
-                                    expiresAt = cal.timeInMillis
-                                }
-                            },
-                        shape = CircleShape,
-                        color = chipBg
-                    ) {
-                        Text(
-                            text = chip.label,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = chipText
-                        )
+        ExpressiveSheetColumn {
+            EditSharedLinkSheetContent(
+                subtitle = link.albumName?.takeIf { link.isAlbumLink }
+                    ?.let { "${stringResource(Res.string.cloud_shared_links_public_album)} · $it" },
+                description = description,
+                onDescriptionChange = { description = it },
+                expiryDays = expiryDays,
+                onExpiryDays = {
+                    expiryDays = it
+                    changeExpiration = true
+                },
+                passwordEnabled = passwordEnabled,
+                onPasswordEnabled = { passwordEnabled = it },
+                password = password,
+                onPasswordChange = { password = it },
+                showMetadata = showMetadata,
+                onShowMetadata = { showMetadata = it },
+                allowDownload = allowDownload,
+                onAllowDownload = { allowDownload = it },
+                allowUpload = allowUpload,
+                onAllowUpload = { allowUpload = it },
+                canSave = !isUpdating,
+                onDismiss = onDismiss,
+                onSave = {
+                    val days = expiryDays
+                    val expiresAt = when {
+                        days == null -> link.expiresAt
+                        days == 0 -> null
+                        else -> Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, days) }.timeInMillis
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Show metadata toggle
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(Res.string.cloud_shared_links_edit_show_metadata),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Switch(
-                    checked = showMetadata,
-                    onCheckedChange = { showMetadata = it }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Allow download toggle
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(Res.string.cloud_shared_links_edit_allow_download),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Switch(
-                    checked = allowDownload,
-                    onCheckedChange = { allowDownload = it }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Allow upload toggle
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(Res.string.cloud_shared_links_edit_allow_upload),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Switch(
-                    checked = allowUpload,
-                    onCheckedChange = { allowUpload = it }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Action buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(Res.string.action_cancel))
-                }
-                Button(
-                    onClick = {
-                        onConfirm(
-                            description.ifBlank { null },
-                            password.ifBlank { null },
-                            if (hasExpiry && expiresAt > 0L) expiresAt else null,
-                            allowDownload,
-                            allowUpload,
-                            showMetadata,
-                            changeExpiration
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !isUpdating
-                ) {
-                    Text(stringResource(Res.string.cloud_shared_links_confirm))
-                }
-            }
+                    onConfirm(
+                        description.ifBlank { null },
+                        password.takeIf { passwordEnabled }?.ifBlank { null },
+                        expiresAt,
+                        allowDownload,
+                        allowUpload,
+                        showMetadata,
+                        changeExpiration
+                    )
+                },
+            )
         }
     }
+}
+
+/**
+ * Body of the shared link edit sheet: description, expiry chips and the grouped password,
+ * metadata, download and upload switches. [expiryDays] is null when the link keeps its current
+ * expiry, 0 for Never and otherwise the number of days from now.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ColumnScope.EditSharedLinkSheetContent(
+    subtitle: String?,
+    description: String,
+    onDescriptionChange: (String) -> Unit,
+    expiryDays: Int?,
+    onExpiryDays: (Int) -> Unit,
+    passwordEnabled: Boolean,
+    onPasswordEnabled: (Boolean) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    showMetadata: Boolean,
+    onShowMetadata: (Boolean) -> Unit,
+    allowDownload: Boolean,
+    onAllowDownload: (Boolean) -> Unit,
+    allowUpload: Boolean,
+    onAllowUpload: (Boolean) -> Unit,
+    canSave: Boolean,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
+) {
+    SheetHeader(title = stringResource(Res.string.cloud_shared_links_edit_title), body = subtitle)
+    SheetTextField(
+        value = description,
+        onValueChange = onDescriptionChange,
+        label = stringResource(Res.string.cloud_shared_links_edit_description),
+    )
+    SheetSectionLabel(text = stringResource(Res.string.cloud_shared_links_edit_expire))
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(
+            0 to Res.string.cloud_shared_links_edit_expire_never,
+            1 to Res.string.cloud_shared_links_edit_expire_1day,
+            7 to Res.string.cloud_shared_links_edit_expire_7days,
+            30 to Res.string.cloud_shared_links_edit_expire_30days,
+            90 to Res.string.cloud_shared_links_edit_expire_3months,
+            365 to Res.string.cloud_shared_links_edit_expire_1year,
+        ).forEach { (days, label) ->
+            SharedLinksChip(
+                label = stringResource(label),
+                selected = expiryDays == days,
+                onClick = { onExpiryDays(days) },
+            )
+        }
+    }
+    Spacer(Modifier.height(16.dp))
+    val rows = listOf(
+        Triple(Icons.Outlined.Lock, Res.string.cloud_shared_links_edit_password, Res.string.cloud_shared_links_edit_password_desc) to
+            (passwordEnabled to onPasswordEnabled),
+        Triple(Icons.Outlined.Info, Res.string.cloud_shared_links_edit_show_metadata, Res.string.cloud_shared_links_edit_show_metadata_desc) to
+            (showMetadata to onShowMetadata),
+        Triple(Icons.Outlined.Download, Res.string.cloud_shared_links_edit_allow_download, Res.string.cloud_shared_links_edit_allow_download_desc) to
+            (allowDownload to onAllowDownload),
+        Triple(Icons.Outlined.CloudUpload, Res.string.cloud_shared_links_edit_allow_upload, Res.string.cloud_shared_links_edit_allow_upload_desc) to
+            (allowUpload to onAllowUpload),
+    )
+    rows.forEachIndexed { index, (labels, toggle) ->
+        val (icon, title, summary) = labels
+        val (checked, onToggle) = toggle
+        SheetOptionRow(
+            title = stringResource(title),
+            summary = stringResource(summary),
+            icon = icon,
+            position = sheetRowPosition(index, rows.size),
+            trailing = SheetRowTrailing.Switch(checked),
+            onClick = { onToggle(!checked) },
+        )
+        if (index == 0 && passwordEnabled) {
+            SheetTextField(
+                value = password,
+                onValueChange = onPasswordChange,
+                label = stringResource(Res.string.cloud_shared_links_edit_password),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
+        }
+    }
+    SheetDismissConfirmActions(
+        dismissText = stringResource(Res.string.action_cancel),
+        onDismiss = onDismiss,
+        confirmText = stringResource(Res.string.cloud_shared_links_save),
+        onConfirm = onSave,
+        confirmEnabled = canSave,
+    )
 }

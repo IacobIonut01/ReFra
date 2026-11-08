@@ -10,4 +10,13 @@
     <string name="widget_grid_label">Photo Grid</string>
     <string name="widget_grid_description">Display a grid of photos on your home screen (2×2, 4×4, or 6×6 depending on size)</string>
     <string name="editor_crop">Crop</string>
+    <string name="editor_export_channel_progress">Saving copies</string>
+    <string name="editor_export_channel_done">Saved copies</string>
+    <string name="editor_export_saving_photo">Saving photo…</string>
+    <string name="editor_export_saving_video">Exporting video…</string>
+    <string name="editor_export_photo_saved">Photo saved</string>
+    <string name="editor_export_video_saved">Video saved</string>
+    <string name="editor_export_tap_to_open">Tap to open</string>
+    <string name="editor_export_failed_photo">Saving photo failed</string>
+    <string name="editor_export_failed_video">Exporting video failed</string>
 </resources>

@@ -5,9 +5,10 @@
 
 package com.dot.gallery.cloud.ui.people
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import com.dot.gallery.core.Settings
 import androidx.lifecycle.viewModelScope
-import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.core.ProviderType
@@ -59,7 +60,7 @@ data class PeopleListUiState(
     /** Unnamed on-device people ("New people"), most photos first. */
     val newPeople: List<PersonInfo> = emptyList(),
     /** Hidden on-device people — populated while [showHidden] is on, or when hidden
-     *  people are the only content so they never become unreachable (#1262). */
+     * people are the only content so they never become unreachable. */
     val hiddenPeople: List<PersonInfo> = emptyList(),
     /** Hidden person count — tracked unconditionally for the empty-state gate. */
     val hiddenPeopleCount: Int = 0,
@@ -70,6 +71,10 @@ data class PeopleListUiState(
     /** Distinct photos containing at least one assigned face. */
     val scannedPhotoCount: Int = 0,
     val showHidden: Boolean = false,
+    /** Every hidden on-device person, for the People settings sheet (independent of [showHidden]). */
+    val allHiddenPeople: List<PersonInfo> = emptyList(),
+    /** Source keys the user turned off (see [LOCAL_PEOPLE_SOURCE]). */
+    val hiddenSources: Set<String> = emptySet(),
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -80,19 +85,23 @@ class PeopleListViewModel @Inject constructor(
     private val registry: ProviderRegistry,
     private val modelManager: ModelManager,
     private val smartScanScheduler: SmartScanScheduler,
-    smartScanDao: SmartScanDao
+    smartScanDao: SmartScanDao,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PeopleListUiState())
     val uiState: StateFlow<PeopleListUiState> = _uiState.asStateFlow()
 
-    /** Whether an on-device face scan can be started (face detector model installed). */
+    /** Whether an on-device face scan can be started (the active face tier is installed). */
     val localScanAvailable: Boolean
-        get() = modelManager.isReady(ModelGroup.FACE_DETECT) &&
-            modelManager.isReady(ModelGroup.FACE_RECOGNITION) &&
+        get() = modelManager.isReady(modelManager.activeFaceModel) &&
             registry.getPeopleProviders().any {
                 it.providerType == ProviderType.LOCAL_PEOPLE && it.isAvailable
             }
+
+    /** Face models are missing but can be installed, so the empty state offers the setup preview. */
+    val faceSetupAvailable: Boolean
+        get() = !modelManager.isReady(modelManager.activeFaceModel) && modelManager.canInstallModels
 
     // Registered unconditionally under the local config id — merges and corrections are
     // pure database writes that must keep working while the face model is unavailable.
@@ -207,11 +216,27 @@ class PeopleListViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            Settings.PeoplePage.hiddenSources(context).collect { sources ->
+                _uiState.value = _uiState.value.copy(hiddenSources = sources)
+            }
+        }
+        // The settings sheet manages every hidden person, whatever the Hidden chip shows.
+        viewModelScope.launch {
+            _uiState
+                .map { it.hiddenPeopleCount > 0 }
+                .distinctUntilChanged()
+                .flatMapLatest { any ->
+                    if (any) localProvider()?.observeHiddenPeople() ?: flowOf(emptyList())
+                    else flowOf(emptyList())
+                }
+                .collect { hidden -> _uiState.value = _uiState.value.copy(allHiddenPeople = hidden) }
+        }
+        viewModelScope.launch {
             _uiState
                 .map {
                     // Load hidden people when the toggle is on — and also when they
                     // are the only content, so hiding the last visible person cannot
-                    // strand them behind an empty page (#1262).
+                    // strand them behind an empty page.
                     it.showHidden || (
                         it.namedPeople.isEmpty() && it.newPeople.isEmpty() &&
                             it.providerSections.isEmpty() && it.hiddenPeopleCount > 0
@@ -224,6 +249,14 @@ class PeopleListViewModel @Inject constructor(
                 }
                 .collect { hidden -> _uiState.value = _uiState.value.copy(hiddenPeople = hidden) }
         }
+    }
+
+    /** Turns a People source on or off. The last visible source cannot be turned off. */
+    fun setSourceVisible(key: String, visible: Boolean) {
+        val state = _uiState.value
+        val visibleCount = peopleSources(state).count { it.key !in state.hiddenSources }
+        if (!visible && visibleCount <= 1 && key !in state.hiddenSources) return
+        viewModelScope.launch { Settings.PeoplePage.setSourceVisible(context, key, visible) }
     }
 
     fun setShowHidden(show: Boolean) {

@@ -6,14 +6,11 @@
 package com.dot.gallery.feature.picker.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -22,47 +19,55 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Cloud
-import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.EnhancedEncryption
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -79,10 +84,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -93,21 +94,32 @@ import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.image.thumbnail.LocalThumbnailMotion
 import com.dot.gallery.core.image.thumbnail.rememberThumbnailMotionState
 import com.dot.gallery.core.presentation.components.DragHandle
-import com.dot.gallery.core.presentation.components.SetupButton
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
+import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.selectedMedia
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.core.ui.util.rememberPlatformToast
-import com.dot.gallery.core.ui.util.rememberedDerivedState
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.Vault
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.util.getUri
+import com.dot.gallery.feature.picker.ui.components.PickerDock
+import com.dot.gallery.feature.picker.ui.components.PickerInfoBanner
+import com.dot.gallery.feature.picker.ui.components.PickerSectionTitle
+import com.dot.gallery.feature.picker.ui.components.PickerSourceTile
+import com.dot.gallery.feature.picker.ui.components.PickerVaultTile
 import com.dot.gallery.ui.theme.Dimens
+import com.dot.gallery.ui.theme.GalleryChrome
+import com.dot.gallery.ui.theme.Spacing
+import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.picker.generated.resources.Res
 import com.dot.gallery.feature.picker.generated.resources.action_add
@@ -119,15 +131,39 @@ import com.dot.gallery.feature.picker.generated.resources.close
 import com.dot.gallery.feature.picker.generated.resources.cloud
 import com.dot.gallery.feature.picker.generated.resources.locked
 import com.dot.gallery.feature.picker.generated.resources.locked_album_security_error
-import com.dot.gallery.feature.picker.generated.resources.navigate_up
+import com.dot.gallery.feature.picker.generated.resources.photos
+import com.dot.gallery.feature.picker.generated.resources.picker_album_items
+import com.dot.gallery.feature.picker.generated.resources.picker_cloud_notice
+import com.dot.gallery.feature.picker.generated.resources.picker_empty_source
+import com.dot.gallery.feature.picker.generated.resources.picker_empty_summary
+import com.dot.gallery.feature.picker.generated.resources.picker_empty_title
+import com.dot.gallery.feature.picker.generated.resources.picker_locked_title
 import com.dot.gallery.feature.picker.generated.resources.picker_prepare_failed
 import com.dot.gallery.feature.picker.generated.resources.picker_preparing
 import com.dot.gallery.feature.picker.generated.resources.picker_preparing_generic
+import com.dot.gallery.feature.picker.generated.resources.picker_preparing_title
+import com.dot.gallery.feature.picker.generated.resources.picker_selected_count
+import com.dot.gallery.feature.picker.generated.resources.picker_vault_count
+import com.dot.gallery.feature.picker.generated.resources.picker_vault_intro
+import com.dot.gallery.feature.picker.generated.resources.picker_vault_intro_title
+import com.dot.gallery.feature.picker.generated.resources.picker_vault_notice
 import com.dot.gallery.feature.picker.generated.resources.preview
 import com.dot.gallery.feature.picker.generated.resources.security_private_folder
-import com.dot.gallery.feature.picker.generated.resources.timeline
 import com.dot.gallery.feature.picker.generated.resources.vault
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import com.dot.gallery.core.presentation.components.galleryDetailTopBarHeight
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.HazePerformanceMode
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.LocalHazePerformanceMode
 
+
+/** Identity of a destination's grid: album and vault pages keep theirs across data updates. */
+private fun PickerNavState.gridKey(): Any = when (this) {
+    is PickerNavState.AlbumDetail -> "album/${album.id}"
+    is PickerNavState.VaultDetail -> "vault/${vault.uuid}"
+    else -> this
+}
 
 private sealed class PickerNavState {
     data class Tabs(val tabIndex: Int) : PickerNavState()
@@ -138,16 +174,28 @@ private sealed class PickerNavState {
     data object CloudMedia : PickerNavState()
 }
 
+private const val TAB_PHOTOS = 0
+private const val TAB_ALBUMS = 1
+
+/** Dock height plus its 16 dp gap above the navigation bar, kept clear at the foot of grids. */
+private val DockClearance = GalleryChrome.ToolbarButtonSize + Spacing.Small * 2 + Spacing.Medium * 2
+
+/** Widest the floating dock grows on tablets and unfolded phones. */
+private val DockMaxWidth = 400.dp
+
 /**
- * The whole media-picker body — tab bar, timeline/album/private-folder/cloud/
- * vault drill-ins, selection FAB and the preview overlay host. State in via
- * [state], events out via [actions]; the app shell supplies the two platform
- * slots:
+ * The whole media-picker body — top bar, timeline/album/private-folder/cloud/
+ * vault drill-ins, the floating source dock with the Add action, and the
+ * preview overlay host. State in via [state], events out via [actions]; the app
+ * shell supplies the two platform slots:
  * - [albumImage]: the album tile (`AlbumImage` lives in `:feature:albums`).
  * - [previewContent]: the standalone media viewer (`MediaViewScreenRoute`
  *   app-side) that previews the current selection. It receives the grid's
  *   shared-transition scopes so cells morph into the viewer, plus [onDismiss]
  *   to leave preview mode.
+ *
+ * In a short window (phone landscape) the dock moves into the top bar row so
+ * the grid keeps its height.
  */
 @Suppress("LABEL_NAME_CLASH")
 @OptIn(
@@ -175,7 +223,7 @@ fun PickerContent(
     val pickerPrepareFailedText = stringResource(Res.string.picker_prepare_failed)
     val addMediaContentDescription = stringResource(Res.string.add_media)
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var selectedTabIndex by remember { mutableIntStateOf(TAB_PHOTOS) }
     var selectedAlbum by remember { mutableStateOf<Album?>(null) }
     var showPreview by remember { mutableStateOf(false) }
     val securitySheetState = rememberAppBottomSheetState()
@@ -221,6 +269,16 @@ fun PickerContent(
         }
     }
 
+    // Leaves every drill-in and lands on [tab]; the dock's source switch.
+    fun openTab(tab: Int) {
+        selectedPickerVault = null
+        showVaultChooser = false
+        showCloud = false
+        showPrivateFolder = false
+        selectedAlbum = null
+        selectedTabIndex = tab
+    }
+
     val navState: PickerNavState = when {
         selectedPickerVault != null -> PickerNavState.VaultDetail(selectedPickerVault!!)
         showVaultChooser -> PickerNavState.VaultChooser
@@ -251,6 +309,59 @@ fun PickerContent(
     }
     val vaultMediaForSelection = visitedVaultMedia.values.toList()
 
+    val collectedMediaState by mediaFlow.collectAsStateWithLifecycle()
+    val privateFolderState by state.privateFolderMediaState.collectAsStateWithLifecycle()
+    val cloudState by state.cloudMediaState.collectAsStateWithLifecycle()
+    // Selection is shared across sources (MediaSelector). Resolve ids against the union of every
+    // loaded source (including all vaults visited this session) so cross-source picks are honored.
+    val allSourceMedia = remember(
+        collectedMediaState.media, privateFolderState.media,
+        cloudState.media, vaultMediaForSelection
+    ) {
+        (collectedMediaState.media + privateFolderState.media +
+                cloudState.media + vaultMediaForSelection)
+            .distinctBy { it.id }
+    }
+
+    val selectionCount = selectedMedia.value.size
+    val addLabel = if (state.allowSelection && selectionCount > 0) {
+        stringResource(Res.string.action_add_count, selectionCount)
+    } else stringResource(Res.string.action_add)
+
+    val selectedMediaList = allSourceMedia.selectedMedia(selectedMedia)
+
+    fun confirmPick() {
+        if (selectedMedia.value.isEmpty() || materializing != null) return
+        scope.launch {
+            materializing = 0 to selectedMediaList.size
+            val delivered = try {
+                actions.onPickConfirmed(selectedMediaList) { done, total ->
+                    materializing = done to total
+                }
+            } finally {
+                materializing = null
+            }
+            if (!delivered) {
+                toast(pickerPrepareFailedText)
+            }
+        }
+    }
+
+    val navigateUp: () -> Unit = {
+        when (navState) {
+            is PickerNavState.PrivateFolder -> showPrivateFolder = false
+            is PickerNavState.CloudMedia -> showCloud = false
+            is PickerNavState.VaultChooser -> showVaultChooser = false
+            is PickerNavState.VaultDetail -> selectedPickerVault = null
+            is PickerNavState.AlbumDetail -> selectedAlbum = null
+            is PickerNavState.Tabs -> actions.onClose()
+        }
+    }
+
+    val emptyTitle = stringResource(Res.string.picker_empty_title)
+    val emptySourceTitle = stringResource(Res.string.picker_empty_source)
+    val emptySummary = stringResource(Res.string.picker_empty_summary)
+
     SharedTransitionLayout {
         AnimatedContent(
             targetState = showPreview,
@@ -262,326 +373,139 @@ fun PickerContent(
         ) { isPreview ->
             val previewScope = this@AnimatedContent
             if (!isPreview) {
-                Scaffold(
-                    topBar = {
-                        AnimatedContent(
-                            targetState = navState,
-                            transitionSpec = {
-                                (slideInVertically { -it } + fadeIn())
-                                    .togetherWith(slideOutVertically { -it } + fadeOut())
-                                    .using(SizeTransform(clip = false))
-                            },
-                            label = "topBarAnimation"
-                        ) { currentNavState ->
-                            if (currentNavState !is PickerNavState.Tabs) {
-                                val detailTitle = when (currentNavState) {
-                                    is PickerNavState.AlbumDetail -> currentNavState.album.label
-                                    is PickerNavState.PrivateFolder -> stringResource(Res.string.security_private_folder)
-                                    is PickerNavState.CloudMedia -> stringResource(Res.string.cloud)
-                                    is PickerNavState.VaultChooser -> stringResource(Res.string.vault)
-                                    is PickerNavState.VaultDetail -> currentNavState.vault.name
-                                    is PickerNavState.Tabs -> ""
-                                }
-                                TopAppBar(
-                                    title = {
-                                        Text(
-                                            text = detailTitle,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    },
-                                    navigationIcon = {
-                                        IconButton(onClick = {
-                                            when (currentNavState) {
-                                                is PickerNavState.PrivateFolder -> showPrivateFolder = false
-                                                is PickerNavState.CloudMedia -> showCloud = false
-                                                is PickerNavState.VaultChooser -> showVaultChooser = false
-                                                is PickerNavState.VaultDetail -> selectedPickerVault = null
-                                                else -> selectedAlbum = null
-                                            }
-                                        }) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                                contentDescription = stringResource(Res.string.navigate_up)
-                                            )
-                                        }
-                                    },
-                                    actions = {
-                                        if (selectedMedia.value.isNotEmpty()) {
-                                            TextButton(onClick = { showPreview = true }) {
-                                                Icon(
-                                                    imageVector = Icons.Outlined.Visibility,
-                                                    contentDescription = null
-                                                )
-                                                Text(
-                                                    text = stringResource(Res.string.preview),
-                                                    modifier = Modifier.padding(start = 4.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                )
-                            } else {
-                                Column {
-                                    TopAppBar(
-                                        title = { Text(text = state.title) },
-                                        navigationIcon = {
-                                            IconButton(onClick = actions.onClose) {
-                                                Icon(
-                                                    imageVector = Icons.Outlined.Close,
-                                                    contentDescription = stringResource(Res.string.close)
-                                                )
-                                            }
-                                        },
-                                        actions = {
-                                            if (selectedMedia.value.isNotEmpty()) {
-                                                TextButton(onClick = { showPreview = true }) {
-                                                    Icon(
-                                                        imageVector = Icons.Outlined.Visibility,
-                                                        contentDescription = null
-                                                    )
-                                                    Text(
-                                                        text = stringResource(Res.string.preview),
-                                                        modifier = Modifier.padding(start = 4.dp)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    )
-                                    Surface(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 24.dp, vertical = 8.dp),
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(4.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            PillTab(
-                                                selected = selectedTabIndex == 0,
-                                                text = stringResource(Res.string.timeline),
-                                                onClick = { selectedTabIndex = 0 }
-                                            )
-                                            PillTab(
-                                                selected = selectedTabIndex == 1,
-                                                text = stringResource(Res.string.albums),
-                                                onClick = { selectedTabIndex = 1 }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                val hazeState = LocalHazeState.current
+                // One grid state per destination, so the bar knows when the shown grid has
+                // scrolled under it.
+                val gridStates = remember { mutableMapOf<Any, LazyGridState>() }
+                val gridStateFor: (PickerNavState) -> LazyGridState = { nav ->
+                    gridStates.getOrPut(nav.gridKey()) { LazyGridState() }
+                }
+                val barScrolled = rememberScrolledUnderTopBar(gridStateFor(navState))
+                val topBarHeight = galleryDetailTopBarHeight()
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                ) {
+                    val compactHeight = maxHeight < GalleryChrome.DetailMinWindowHeight
+                    val navigationBarBottom = WindowInsets.navigationBars.asPaddingValues()
+                        .calculateBottomPadding()
+                    val bottomClearance =
+                        navigationBarBottom + if (compactHeight) Spacing.Medium else DockClearance
+                    // The media grid stays edge to edge like the gallery timeline; card grids inset.
+                    val mediaGridPadding = PaddingValues(top = topBarHeight, bottom = bottomClearance)
+                    val gridPadding = PaddingValues(
+                        start = Spacing.ScreenHorizontal,
+                        end = Spacing.ScreenHorizontal,
+                        top = topBarHeight,
+                        bottom = bottomClearance,
+                    )
+                    val dock: @Composable (Modifier) -> Unit = { modifier ->
+                        PickerDock(
+                            modifier = modifier,
+                            photosSelected = navState == PickerNavState.Tabs(TAB_PHOTOS),
+                            photosLabel = stringResource(Res.string.photos),
+                            albumsLabel = stringResource(Res.string.albums),
+                            onPhotos = { openTab(TAB_PHOTOS) },
+                            onAlbums = { openTab(TAB_ALBUMS) },
+                            addLabel = addLabel,
+                            addEnabled = selectionCount > 0 && materializing == null,
+                            onAdd = ::confirmPick,
+                            addContentDescription = addMediaContentDescription,
+                        )
                     }
-                ) { paddingValues ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = paddingValues.calculateTopPadding())
-                    ) {
-                        AnimatedContent(
-                            targetState = navState,
-                            transitionSpec = {
-                                when (targetState) {
-                                    is PickerNavState.AlbumDetail if initialState is PickerNavState.Tabs -> {
-                                        (slideInHorizontally { it } + fadeIn())
-                                            .togetherWith(slideOutHorizontally { -it / 3 } + fadeOut())
-                                    }
 
-                                    is PickerNavState.Tabs if initialState is PickerNavState.AlbumDetail -> {
-                                        (slideInHorizontally { -it / 3 } + fadeIn())
-                                            .togetherWith(slideOutHorizontally { it } + fadeOut())
-                                    }
-
-                                    is PickerNavState.Tabs if initialState is PickerNavState.Tabs -> {
-                                        val targetTab = (targetState as PickerNavState.Tabs).tabIndex
-                                        val initialTab = (initialState as PickerNavState.Tabs).tabIndex
-                                        val direction = if (targetTab > initialTab) 1 else -1
-                                        (slideInHorizontally { direction * it } + fadeIn())
-                                            .togetherWith(slideOutHorizontally { -direction * it } + fadeOut())
-                                    }
-
-                                    else -> fadeIn() togetherWith fadeOut()
-                                }.using(SizeTransform(clip = false))
-                            },
-                            label = "contentAnimation"
-                        ) { nav ->
-                            val contentScope = this@AnimatedContent
-                            when (nav) {
-                                is PickerNavState.AlbumDetail -> {
-                                    PickerMediaContent(
-                                        mediaState = mediaFlow,
-                                        metadataState = state.metadataState,
-                                        allowSelection = state.allowSelection,
-                                        sharedTransitionScope = this@SharedTransitionLayout,
-                                        animatedVisibilityScope = previewScope,
-                                    )
-                                }
-                                is PickerNavState.PrivateFolder -> {
-                                    PickerMediaContent<Media>(
-                                        mediaState = state.privateFolderMediaState,
-                                        metadataState = state.metadataState,
-                                        allowSelection = state.allowSelection,
-                                        sharedTransitionScope = this@SharedTransitionLayout,
-                                        animatedVisibilityScope = previewScope,
-                                    )
-                                }
-                                is PickerNavState.CloudMedia -> {
-                                    PickerMediaContent<Media>(
-                                        mediaState = state.cloudMediaState,
-                                        metadataState = state.metadataState,
-                                        allowSelection = state.allowSelection,
-                                        sharedTransitionScope = this@SharedTransitionLayout,
-                                        animatedVisibilityScope = previewScope,
-                                    )
-                                }
-                                is PickerNavState.VaultDetail -> {
-                                    PickerMediaContent<Media>(
-                                        mediaState = vaultMediaFlow,
-                                        metadataState = state.metadataState,
-                                        allowSelection = state.allowSelection,
-                                        sharedTransitionScope = this@SharedTransitionLayout,
-                                        animatedVisibilityScope = previewScope,
-                                    )
-                                }
-                                is PickerNavState.VaultChooser -> {
-                                    PickerVaultChooserGrid(
-                                        vaults = state.vaultState.value.vaults,
-                                        onVaultClick = { vault ->
-                                            actions.onVault(vault) {
-                                                showVaultChooser = false
-                                                selectedPickerVault = vault
-                                            }
+                    // The content scrolls under the bar, which turns into the blur bar once it does.
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .hazeSource(hazeState)
+                            ) {
+                                PickerNavContent(
+                                    navState = navState,
+                                    state = state,
+                                    gridStateFor = gridStateFor,
+                                    gridPadding = gridPadding,
+                                    mediaGridPadding = mediaGridPadding,
+                                    mediaFlow = mediaFlow,
+                                    vaultMediaFlow = vaultMediaFlow,
+                                    emptyTitle = emptyTitle,
+                                    emptySourceTitle = emptySourceTitle,
+                                    emptySummary = emptySummary,
+                                    showPrivateFolderSource = privateFolderUri.isNotEmpty(),
+                                    onAlbumClick = onAlbumClickWithLock,
+                                    onPrivateFolderClick = {
+                                        actions.onPrivateFolder { showPrivateFolder = true }
+                                    },
+                                    onCloudClick = { showCloud = true },
+                                    onVaultSourceClick = { actions.onVaultGate { revealVaults() } },
+                                    onVaultClick = { vault ->
+                                        actions.onVault(vault) {
+                                            showVaultChooser = false
+                                            selectedPickerVault = vault
                                         }
-                                    )
-                                }
-                                is PickerNavState.Tabs -> {
-                                    when (nav.tabIndex) {
-                                        0 -> {
-                                            PickerMediaContent(
-                                                mediaState = mediaFlow,
-                                                metadataState = state.metadataState,
-                                                allowSelection = state.allowSelection,
-                                                sharedTransitionScope = this@SharedTransitionLayout,
-                                                animatedVisibilityScope = previewScope,
-                                            )
-                                        }
-                                        1 -> {
-                                            PickerAlbumsGrid(
-                                                albums = state.albumsState.value.albums.filter { it.id != -1L },
-                                                onAlbumClick = onAlbumClickWithLock,
-                                                showPrivateFolder = privateFolderUri.isNotEmpty(),
-                                                onPrivateFolderClick = {
-                                                    actions.onPrivateFolder { showPrivateFolder = true }
-                                                },
-                                                showCloud = state.cloudAvailable,
-                                                onCloudClick = { showCloud = true },
-                                                showVault = state.vaultState.value.vaults.isNotEmpty(),
-                                                onVaultClick = {
-                                                    actions.onVaultGate { revealVaults() }
-                                                },
-                                                albumImage = albumImage,
-                                                sharedTransitionScope = this@SharedTransitionLayout,
-                                                animatedContentScope = contentScope
-                                            )
-                                        }
-                                    }
-                                }
+                                    },
+                                    albumImage = albumImage,
+                                    sharedTransitionScope = this@SharedTransitionLayout,
+                                    animatedVisibilityScope = previewScope,
+                                )
+                            }
+                            if (!compactHeight) {
+                                dock(
+                                    Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .navigationBarsPadding()
+                                        .padding(
+                                            start = Spacing.ScreenHorizontal,
+                                            end = Spacing.ScreenHorizontal,
+                                            bottom = Spacing.Medium,
+                                        )
+                                        .widthIn(max = DockMaxWidth)
+                                        .fillMaxWidth()
+                                )
                             }
                         }
-
-                        AnimatedVisibility(
+                        Row(
                             modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(32.dp),
-                            visible = state.allowSelection || selectedMedia.value.isNotEmpty(),
-                            enter = slideInVertically { it * 2 },
-                            exit = slideOutVertically { it * 2 }
+                                .fillMaxWidth()
+                                // The compact dock shares this row; keep it on the page colour at rest.
+                                .then(
+                                    if (compactHeight && !barScrolled) {
+                                        Modifier.background(MaterialTheme.colorScheme.surface)
+                                    } else Modifier
+                                ),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            val enabled by rememberedDerivedState {
-                                selectedMedia.value.isNotEmpty()
+                            CompositionLocalProvider(LocalHazePerformanceMode provides HazePerformanceMode.Performance) {
+                                PickerTopBar(
+                                    modifier = Modifier.weight(1f),
+                                    navState = navState,
+                                    title = state.title,
+                                    allowSelection = state.allowSelection,
+                                    selectionCount = selectionCount,
+                                    onNavigate = navigateUp,
+                                    onPreview = { showPreview = true },
+                                    hazeState = hazeState,
+                                    scrolled = barScrolled,
+                                )
                             }
-                            val containerColor by animateColorAsState(
-                                targetValue = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                label = "containerColor"
-                            )
-                            val contentColor by animateColorAsState(
-                                targetValue = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                label = "contentColor"
-                            )
-                            val mediaState by mediaFlow.collectAsStateWithLifecycle()
-                            val privateFolderState by state.privateFolderMediaState.collectAsStateWithLifecycle()
-                            val cloudState by state.cloudMediaState.collectAsStateWithLifecycle()
-                            // Selection is shared across sources (MediaSelector). Resolve ids against
-                            // the union of every loaded source (including all vaults visited this
-                            // session) so cross-source picks are honored.
-                            val allSourceMedia = remember(
-                                mediaState.media, privateFolderState.media,
-                                cloudState.media, vaultMediaForSelection
-                            ) {
-                                (mediaState.media + privateFolderState.media +
-                                        cloudState.media + vaultMediaForSelection)
-                                    .distinctBy { it.id }
-                            }
-                            val selectedMediaList = allSourceMedia.selectedMedia(selectedMedia)
-                            ExtendedFloatingActionButton(
-                                text = {
-                                    if (state.allowSelection)
-                                        Text(
-                                            text = stringResource(
-                                                Res.string.action_add_count,
-                                                selectedMedia.value.size,
-                                            )
-                                        )
-                                    else
-                                        Text(text = stringResource(Res.string.action_add))
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Add,
-                                        contentDescription = null
-                                    )
-                                },
-                                containerColor = containerColor,
-                                contentColor = contentColor,
-                                expanded = true,
-                                onClick = {
-                                    if (enabled && materializing == null) {
-                                        scope.launch {
-                                            materializing = 0 to selectedMediaList.size
-                                            val delivered = try {
-                                                actions.onPickConfirmed(selectedMediaList) { done, total ->
-                                                    materializing = done to total
-                                                }
-                                            } finally {
-                                                materializing = null
-                                            }
-                                            if (!delivered) {
-                                                toast(pickerPrepareFailedText)
-                                            }
-                                        }
-                                    }
-                                },
-                                modifier = Modifier
-                                    .semantics {
-                                        contentDescription = addMediaContentDescription
-                                    }
-                            )
-                            BackHandler(selectedMedia.value.isNotEmpty()) {
-                                selector.clearSelection()
+                            if (compactHeight) {
+                                dock(
+                                    Modifier
+                                        .windowInsetsPadding(WindowInsets.statusBars)
+                                        .padding(end = Spacing.ScreenHorizontal)
+                                )
                             }
                         }
                     }
                 }
             } else {
-                val collectedMediaState by mediaFlow.collectAsStateWithLifecycle()
-                val collectedPrivateFolderState by state.privateFolderMediaState.collectAsStateWithLifecycle()
-                val collectedCloudState by state.cloudMediaState.collectAsStateWithLifecycle()
-                val sourceMedia = (collectedMediaState.media + collectedPrivateFolderState.media +
-                        collectedCloudState.media + vaultMediaForSelection).distinctBy { it.id }
-                val previewMediaList = sourceMedia.selectedMedia(selectedMedia)
+                val previewMediaList = selectedMediaList
                 if (previewMediaList.isNotEmpty()) {
                     val previewMediaState = remember(previewMediaList) {
                         mutableStateOf(
@@ -605,33 +529,12 @@ fun PickerContent(
     }
 
     materializing?.let { (done, total) ->
-        Dialog(
-            onDismissRequest = {},
-            properties = DialogProperties(
-                dismissOnBackPress = false,
-                dismissOnClickOutside = false
-            )
-        ) {
-            Surface(
-                shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh
-            ) {
-                Row(
-                    modifier = Modifier.padding(24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    CircularProgressIndicator()
-                    Text(
-                        text = if (total > 0) {
-                            stringResource(Res.string.picker_preparing, done, total)
-                        } else stringResource(Res.string.picker_preparing_generic),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
+        PickerPreparingDialog(done = done, total = total)
+    }
+
+    // Registered before the drill-in handlers so going up a level wins over clearing the picks.
+    BackHandler(selectedMedia.value.isNotEmpty() && !showPreview) {
+        selector.clearSelection()
     }
 
     BackHandler(selectedPickerVault != null) {
@@ -656,35 +559,233 @@ fun PickerContent(
 }
 
 @Composable
-private fun RowScope.PillTab(
-    selected: Boolean,
-    text: String,
-    onClick: () -> Unit
+private fun PickerTopBar(
+    navState: PickerNavState,
+    title: String,
+    allowSelection: Boolean,
+    selectionCount: Int,
+    onNavigate: () -> Unit,
+    onPreview: () -> Unit,
+    hazeState: HazeState,
+    scrolled: Boolean,
+    modifier: Modifier = Modifier,
 ) {
-    val backgroundColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-        label = "pillTabBg"
+    val isRoot = navState is PickerNavState.Tabs
+    val barTitle = when (navState) {
+        is PickerNavState.Tabs -> if (allowSelection && selectionCount > 0) {
+            stringResource(Res.string.picker_selected_count, selectionCount)
+        } else title
+        is PickerNavState.AlbumDetail -> navState.album.label
+        is PickerNavState.PrivateFolder -> stringResource(Res.string.security_private_folder)
+        is PickerNavState.CloudMedia -> stringResource(Res.string.cloud)
+        is PickerNavState.VaultChooser -> stringResource(Res.string.vault)
+        is PickerNavState.VaultDetail -> navState.vault.name
+    }
+    GalleryPageTopBar(
+        modifier = modifier,
+        title = barTitle,
+        count = (navState as? PickerNavState.AlbumDetail)?.album?.count?.toString(),
+        onBack = onNavigate,
+        navigationIcon = if (isRoot) Icons.Outlined.Close else Icons.AutoMirrored.Filled.ArrowBack,
+        navigationContentDescription = if (isRoot) stringResource(Res.string.close) else null,
+        hazeState = hazeState,
+        scrolled = scrolled,
+        actions = if (selectionCount > 0) {
+            {
+                GalleryPageTopBarAction(
+                    icon = Icons.Outlined.Visibility,
+                    contentDescription = stringResource(Res.string.preview),
+                    onClick = onPreview,
+                )
+            }
+        } else null,
     )
-    val textColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "pillTabText"
-    )
-    Surface(
-        modifier = Modifier
-            .weight(1f)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        shape = CircleShape,
-        color = backgroundColor
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.labelLarge,
-            color = textColor,
-            textAlign = TextAlign.Center
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun PickerNavContent(
+    navState: PickerNavState,
+    state: PickerState,
+    gridStateFor: (PickerNavState) -> LazyGridState,
+    gridPadding: PaddingValues,
+    mediaGridPadding: PaddingValues,
+    mediaFlow: StateFlow<MediaState<Media>>,
+    vaultMediaFlow: StateFlow<MediaState<Media>>,
+    emptyTitle: String,
+    emptySourceTitle: String,
+    emptySummary: String,
+    showPrivateFolderSource: Boolean,
+    onAlbumClick: (Album) -> Unit,
+    onPrivateFolderClick: () -> Unit,
+    onCloudClick: () -> Unit,
+    onVaultSourceClick: () -> Unit,
+    onVaultClick: (Vault) -> Unit,
+    albumImage: @Composable (album: Album, onClick: (Album) -> Unit) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+) {
+    AnimatedContent(
+        targetState = navState,
+        transitionSpec = {
+            val target = targetState
+            val initial = initialState
+            when {
+                target is PickerNavState.Tabs && initial is PickerNavState.Tabs -> {
+                    val direction = if (target.tabIndex > initial.tabIndex) 1 else -1
+                    (slideInHorizontally { direction * it } + fadeIn())
+                        .togetherWith(slideOutHorizontally { -direction * it } + fadeOut())
+                }
+                initial is PickerNavState.Tabs -> {
+                    (slideInHorizontally { it } + fadeIn())
+                        .togetherWith(slideOutHorizontally { -it / 3 } + fadeOut())
+                }
+                target is PickerNavState.Tabs -> {
+                    (slideInHorizontally { -it / 3 } + fadeIn())
+                        .togetherWith(slideOutHorizontally { it } + fadeOut())
+                }
+                else -> fadeIn() togetherWith fadeOut()
+            }.using(SizeTransform(clip = false))
+        },
+        label = "contentAnimation"
+    ) { nav ->
+        when (nav) {
+            is PickerNavState.AlbumDetail -> PickerMediaContent(
+                mediaState = mediaFlow,
+                metadataState = state.metadataState,
+                allowSelection = state.allowSelection,
+                contentPadding = mediaGridPadding,
+                gridState = gridStateFor(nav),
+                emptyTitle = emptySourceTitle,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+            )
+            is PickerNavState.PrivateFolder -> PickerMediaContent(
+                mediaState = state.privateFolderMediaState,
+                metadataState = state.metadataState,
+                allowSelection = state.allowSelection,
+                contentPadding = mediaGridPadding,
+                gridState = gridStateFor(nav),
+                emptyTitle = emptySourceTitle,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+            )
+            is PickerNavState.CloudMedia -> PickerMediaContent(
+                mediaState = state.cloudMediaState,
+                metadataState = state.metadataState,
+                allowSelection = state.allowSelection,
+                contentPadding = mediaGridPadding,
+                gridState = gridStateFor(nav),
+                emptyTitle = emptySourceTitle,
+                header = {
+                    PickerInfoBanner(
+                        modifier = Modifier.padding(horizontal = Spacing.ScreenHorizontal),
+                        icon = Icons.Outlined.Download,
+                        text = stringResource(Res.string.picker_cloud_notice),
+                    )
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+            )
+            is PickerNavState.VaultDetail -> PickerMediaContent(
+                mediaState = vaultMediaFlow,
+                metadataState = state.metadataState,
+                allowSelection = state.allowSelection,
+                contentPadding = mediaGridPadding,
+                gridState = gridStateFor(nav),
+                emptyTitle = emptySourceTitle,
+                header = {
+                    PickerInfoBanner(
+                        modifier = Modifier.padding(horizontal = Spacing.ScreenHorizontal),
+                        icon = Icons.Outlined.EnhancedEncryption,
+                        text = stringResource(Res.string.picker_vault_notice),
+                    )
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+            )
+            is PickerNavState.VaultChooser -> PickerVaultChooserGrid(
+                vaults = state.vaultState.value.vaults,
+                contentPadding = gridPadding,
+                gridState = gridStateFor(nav),
+                onVaultClick = onVaultClick,
+            )
+            is PickerNavState.Tabs -> when (nav.tabIndex) {
+                TAB_PHOTOS -> PickerMediaContent(
+                    mediaState = mediaFlow,
+                    metadataState = state.metadataState,
+                    allowSelection = state.allowSelection,
+                    contentPadding = mediaGridPadding,
+                    gridState = gridStateFor(nav),
+                    emptyTitle = emptyTitle,
+                    emptySummary = emptySummary,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                )
+                else -> PickerAlbumsGrid(
+                    albums = state.albumsState.value.albums.filter { it.id != -1L },
+                    contentPadding = gridPadding,
+                    gridState = gridStateFor(nav),
+                    onAlbumClick = onAlbumClick,
+                    showPrivateFolder = showPrivateFolderSource,
+                    onPrivateFolderClick = onPrivateFolderClick,
+                    showCloud = state.cloudAvailable,
+                    onCloudClick = onCloudClick,
+                    vaultCount = state.vaultState.value.vaults.size,
+                    onVaultClick = onVaultSourceClick,
+                    albumImage = albumImage,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PickerPreparingDialog(done: Int, total: Int) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
         )
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh
+        ) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 312.dp)
+                    .padding(Spacing.Large),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Medium)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Download,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(Res.string.picker_preparing_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = if (total > 0) {
+                        stringResource(Res.string.picker_preparing, done, total)
+                    } else stringResource(Res.string.picker_preparing_generic),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (total > 0) {
+                    LinearProgressIndicator(
+                        progress = { done.toFloat() / total },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+            }
+        }
     }
 }
 
@@ -700,208 +801,201 @@ private fun PickerSecurityInfoSheet(
             onDismissRequest = {
                 scope.launch { sheetState.hide() }
             },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 0.dp,
             dragHandle = { DragHandle() },
             contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 32.dp, vertical = 16.dp)
+                    .navigationBarsPadding()
+                    .padding(start = Spacing.Large, end = Spacing.Large, top = Spacing.Small, bottom = Spacing.ExtraLarge)
             ) {
-                Text(
-                    text = stringResource(Res.string.locked),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                Box(
                     modifier = Modifier
-                        .padding(bottom = 16.dp)
-                        .fillMaxWidth()
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.errorContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = stringResource(Res.string.locked),
+                        tint = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+                Text(
+                    text = stringResource(Res.string.picker_locked_title),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.errorContainer,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     text = stringResource(Res.string.locked_album_security_error),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
-                SetupButton(
-                    onClick = {
-                        scope.launch { sheetState.hide() }
-                    },
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    text = stringResource(Res.string.action_ok)
-                )
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = Spacing.Small),
+                    onClick = { scope.launch { sheetState.hide() } },
+                ) {
+                    Text(text = stringResource(Res.string.action_ok))
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PickerAlbumsGrid(
     albums: List<Album>,
+    contentPadding: PaddingValues,
     onAlbumClick: (Album) -> Unit,
-    showPrivateFolder: Boolean = false,
-    onPrivateFolderClick: () -> Unit = {},
-    showCloud: Boolean = false,
-    onCloudClick: () -> Unit = {},
-    showVault: Boolean = false,
-    onVaultClick: () -> Unit = {},
+    showPrivateFolder: Boolean,
+    onPrivateFolderClick: () -> Unit,
+    showCloud: Boolean,
+    onCloudClick: () -> Unit,
+    vaultCount: Int,
+    onVaultClick: () -> Unit,
     albumImage: @Composable (album: Album, onClick: (Album) -> Unit) -> Unit,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope
+    gridState: LazyGridState = rememberLazyGridState(),
 ) {
-    // Phase 3 (#1076): album covers (RenderImage) load the cheap MOTION tier while scrolling.
-    val gridState = rememberLazyGridState()
+    // album covers (RenderImage) load the cheap MOTION tier while scrolling.
     val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })
+    val showVault = vaultCount > 0
     CompositionLocalProvider(LocalThumbnailMotion provides thumbnailMotion) {
-    with(sharedTransitionScope) {
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Adaptive(Dimens.Album()),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp),
-            contentPadding = PaddingValues(bottom = 96.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (showPrivateFolder || showVault || showCloud) {
+                item(key = "sources", span = { GridItemSpan(maxLineSpan) }) {
+                    Row(
+                        modifier = Modifier.padding(top = Spacing.Small),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
+                    ) {
+                        if (showPrivateFolder) {
+                            PickerSourceTile(
+                                modifier = Modifier.weight(1f),
+                                icon = Icons.Outlined.Shield,
+                                label = stringResource(Res.string.security_private_folder),
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                onClick = onPrivateFolderClick,
+                            )
+                        }
+                        if (showVault) {
+                            PickerSourceTile(
+                                modifier = Modifier.weight(1f),
+                                icon = Icons.Outlined.EnhancedEncryption,
+                                label = stringResource(Res.string.vault),
+                                meta = pluralStringResource(Res.plurals.picker_vault_count, vaultCount, vaultCount),
+                                showLock = true,
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                onClick = onVaultClick,
+                            )
+                        }
+                        if (showCloud) {
+                            PickerSourceTile(
+                                modifier = Modifier.weight(1f),
+                                icon = Icons.Outlined.Cloud,
+                                label = stringResource(Res.string.cloud),
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                                onClick = onCloudClick,
+                            )
+                        }
+                        // Keep tile widths stable when a source isn't set up.
+                        repeat(listOf(showPrivateFolder, showVault, showCloud).count { !it }) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+            if (albums.isNotEmpty()) {
+                item(key = "albums_header", span = { GridItemSpan(maxLineSpan) }) {
+                    PickerSectionTitle(title = stringResource(Res.string.albums))
+                }
+            }
             items(
                 items = albums,
                 key = { it.toString() }
             ) { album ->
-                Column(
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .sharedBounds(
-                                sharedContentState = rememberSharedContentState(key = "album_${album.id}"),
-                                animatedVisibilityScope = animatedContentScope,
-                                enter = fadeIn(),
-                                exit = fadeOut()
-                            )
-                    ) {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.Small)) {
+                    Box(modifier = Modifier.aspectRatio(1f)) {
                         albumImage(album, onAlbumClick)
                     }
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .padding(horizontal = 16.dp),
-                        text = album.label,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
-                    )
-                }
-            }
-            if (showPrivateFolder) {
-                item(key = "private_folder") {
-                    PickerSourceCard(
-                        icon = Icons.Outlined.FolderOff,
-                        label = stringResource(Res.string.security_private_folder),
-                        onClick = onPrivateFolderClick
-                    )
-                }
-            }
-            if (showCloud) {
-                item(key = "cloud_source") {
-                    PickerSourceCard(
-                        icon = Icons.Outlined.Cloud,
-                        label = stringResource(Res.string.cloud),
-                        onClick = onCloudClick
-                    )
-                }
-            }
-            if (showVault) {
-                item(key = "vault_source") {
-                    PickerSourceCard(
-                        icon = Icons.Outlined.Lock,
-                        label = stringResource(Res.string.vault),
-                        onClick = onVaultClick
-                    )
+                    Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+                        Text(
+                            text = album.label,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = if (album.isLocked) stringResource(Res.string.locked)
+                            else pluralStringResource(
+                                Res.plurals.picker_album_items,
+                                album.count.toInt(),
+                                album.count.toInt()
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
         }
-    }
-    }
-}
-
-@Composable
-private fun PickerSourceCard(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onClick() }
-    ) {
-        Box(
-            modifier = Modifier
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
-        Text(
-            modifier = Modifier
-                .padding(top = 12.dp)
-                .padding(horizontal = 16.dp),
-            text = label,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1
-        )
     }
 }
 
 @Composable
 private fun PickerVaultChooserGrid(
     vaults: List<Vault>,
-    onVaultClick: (Vault) -> Unit
+    contentPadding: PaddingValues,
+    onVaultClick: (Vault) -> Unit,
+    gridState: LazyGridState = rememberLazyGridState(),
 ) {
     LazyVerticalGrid(
+        state = gridState,
         columns = GridCells.Adaptive(Dimens.Album()),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 8.dp),
-        contentPadding = PaddingValues(bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(
+        item(key = "intro", span = { GridItemSpan(maxLineSpan) }) {
+            PickerSectionTitle(
+                title = stringResource(Res.string.picker_vault_intro_title),
+                description = stringResource(Res.string.picker_vault_intro),
+            )
+        }
+        itemsIndexed(
             items = vaults,
-            key = { it.uuid.toString() }
-        ) { vault ->
-            PickerSourceCard(
-                icon = Icons.Outlined.Lock,
-                label = vault.name,
-                onClick = { onVaultClick(vault) }
+            key = { _, vault -> vault.uuid.toString() }
+        ) { index, vault ->
+            PickerVaultTile(
+                name = vault.name,
+                containerColor = if (index == 0) MaterialTheme.colorScheme.tertiaryContainer
+                else MaterialTheme.colorScheme.primaryContainer,
+                contentColor = if (index == 0) MaterialTheme.colorScheme.onTertiaryContainer
+                else MaterialTheme.colorScheme.onPrimaryContainer,
+                onClick = { onVaultClick(vault) },
             )
         }
     }

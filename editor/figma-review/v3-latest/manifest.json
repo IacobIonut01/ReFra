@@ -1,0 +1,220 @@
+{
+  "capturedAtUtc": "2026-10-11T16:36:12Z",
+  "fileKey": "UagS4q8hC0lpqw3SMGRu08",
+  "pageId": "9:1425",
+  "source": "Live Figma MCP screenshots after the surface-hierarchy/timeline revision",
+  "sectionsFolder": "sections",
+  "screensFolder": "screens",
+  "files": [
+    {
+      "path": "sections/01-phone-neutral-sheets.png",
+      "nodeId": "3369:45788",
+      "width": 2940,
+      "height": 3280,
+      "sha256": "375c88684e5f3db707507909c0b8a9be78af9ea67e241c80a4d295f1588a1a2d"
+    },
+    {
+      "path": "sections/02-photo-adjustments-finish.png",
+      "nodeId": "3375:45851",
+      "width": 2480,
+      "height": 3230,
+      "sha256": "0d9baa10d6a45dac0271670485282f3b102eaec010e334eb83b7ccd2129e5100"
+    },
+    {
+      "path": "sections/03-photo-composition.png",
+      "nodeId": "3375:46956",
+      "width": 2480,
+      "height": 2230,
+      "sha256": "05838ff51c7db9e96b5bd9484d8c80c22e1266e6f5e4624a8cb99d45adacebc1"
+    },
+    {
+      "path": "sections/04-video-timeline-delivery.png",
+      "nodeId": "3375:47365",
+      "width": 2480,
+      "height": 5230,
+      "sha256": "5f8110b7b6ad1d9b552a1c9ecb4eb361ff088c6d315169b04bd9cbe0657aea6f"
+    },
+    {
+      "path": "sections/05-audio-mixer-routing.png",
+      "nodeId": "3375:48589",
+      "width": 2480,
+      "height": 2230,
+      "sha256": "19f0edaac48addaf6dbbd3aabc21ee955101d372eafe6bc149f77de29056c3af"
+    },
+    {
+      "path": "sections/06-focus-desktop-delivery.png",
+      "nodeId": "3376:45881",
+      "width": 6000,
+      "height": 3793,
+      "sha256": "14bd914e8c24695d933433713ef2d2861617c57aab521632553abb9a8362e534"
+    },
+    {
+      "path": "screens/p-home.png",
+      "nodeId": "3369:45789",
+      "width": 412,
+      "height": 892,
+      "sha256": "159165a1111740a4f905f95254afb23ce786ace5935b108c84c0890aa0364f47"
+    },
+    {
+      "path": "screens/p-toolbar-inline.png",
+      "nodeId": "3369:45834",
+      "width": 412,
+      "height": 892,
+      "sha256": "d0661f3b6e669cf129d7ec5671b303610e2fdb4e99baf2eacba3b2533e6118db"
+    },
+    {
+      "path": "screens/p-tools-modal.png",
+      "nodeId": "3369:45884",
+      "width": 412,
+      "height": 892,
+      "sha256": "666dd489474fa1bd89f8a5a645aa0780d4e617eb3536852fd62f9c0458519111"
+    },
+    {
+      "path": "screens/p-light-expanded.png",
+      "nodeId": "3369:46043",
+      "width": 412,
+      "height": 892,
+      "sha256": "155f2dcddfcfc953b38aa59a27a3c750fd0b8e2da204e0b0690b05367ce425ca"
+    },
+    {
+      "path": "screens/p-crop-inline.png",
+      "nodeId": "3369:46139",
+      "width": 412,
+      "height": 892,
+      "sha256": "6b72de08ff872ca08f49240bb0473f459ed3ed0d1c2603a18fc88d801a6f0a53"
+    },
+    {
+      "path": "screens/p-settings-inline.png",
+      "nodeId": "3369:46177",
+      "width": 412,
+      "height": 892,
+      "sha256": "1220922109377a7a5b210af42746066233703feac946857b15798fbd1ebbdee0"
+    },
+    {
+      "path": "screens/p-layers-inline.png",
+      "nodeId": "3375:47193",
+      "width": 412,
+      "height": 892,
+      "sha256": "564a9fee96e39272fbf2f48a54e1ac6cecc48194c4358a5e4f191b5ba2895a46"
+    },
+    {
+      "path": "screens/p-layer-menu.png",
+      "nodeId": "3376:46059",
+      "width": 412,
+      "height": 892,
+      "sha256": "652cb38072338fe6a945f7fb0fc54f5ef21cc3742e0147b92913308070421fb9"
+    },
+    {
+      "path": "screens/v-home-timeline.png",
+      "nodeId": "3375:47366",
+      "width": 412,
+      "height": 892,
+      "sha256": "e6619872423adedda3b073ca498de61f6081c7b71bf6e3ad1ad4b55da4a7a1dc"
+    },
+    {
+      "path": "screens/v-effects-inline.png",
+      "nodeId": "3404:46200",
+      "width": 412,
+      "height": 892,
+      "sha256": "fb885e92550811c4a696a6814125afc3e100cf5f2d3a1b7c4f9182c645005514"
+    },
+    {
+      "path": "screens/v-mixer-inline.png",
+      "nodeId": "3375:48702",
+      "width": 412,
+      "height": 892,
+      "sha256": "2d91b6ca9ddb3813c824bad39c45221e624613f7df38401760b738dae13f345d"
+    },
+    {
+      "path": "screens/x-photo-desktop.png",
+      "nodeId": "3376:46079",
+      "width": 1440,
+      "height": 960,
+      "sha256": "b03c749f6761fe27d37e5799bde17182560fc21ab7d3af77f4bf0e3b3367bbbd"
+    },
+    {
+      "path": "screens/x-video-desktop.png",
+      "nodeId": "3376:46110",
+      "width": 1440,
+      "height": 960,
+      "sha256": "56ec3e719d629b8465c23ea863578a93d3d0823e73f0df829ba700bdd8bb3250"
+    },
+    {
+      "path": "screens/x-video-landscape.png",
+      "nodeId": "3376:46177",
+      "width": 892,
+      "height": 412,
+      "sha256": "86a9f140e45b2ad662259cada6b4cef6cda4015d8e575e7ccf6cf3cb2963b4a2"
+    },
+    {
+      "path": "screens/p-curves-inline.png",
+      "nodeId": "3375:45935",
+      "width": 412,
+      "height": 892,
+      "sha256": "bad6cf912a1da3f228299dfe94c95cc3161f65a49c1706c3c313c59847457914"
+    },
+    {
+      "path": "screens/p-white-balance-inline.png",
+      "nodeId": "3375:45972",
+      "width": 412,
+      "height": 892,
+      "sha256": "8cb69136427947f00d1af50d7a4c859f1e274af244a11b9c32c7b6a72875e603"
+    },
+    {
+      "path": "screens/p-details-inline.png",
+      "nodeId": "3375:46054",
+      "width": 412,
+      "height": 892,
+      "sha256": "5038f660371644be65addc373105591548c121e8630780e68f289d2d6e6964f9"
+    },
+    {
+      "path": "screens/p-vignette-inline.png",
+      "nodeId": "3375:46137",
+      "width": 412,
+      "height": 892,
+      "sha256": "ced0740e34e2a6c01762eec330dae9e2af396936958e57758867126990e51bd5"
+    },
+    {
+      "path": "screens/p-blur-inline.png",
+      "nodeId": "3375:46219",
+      "width": 412,
+      "height": 892,
+      "sha256": "958a1a9cfc12863cf8d46433539b2e4846de41e290c293b27f58ce344a8899a8"
+    },
+    {
+      "path": "screens/p-grain-inline.png",
+      "nodeId": "3375:46301",
+      "width": 412,
+      "height": 892,
+      "sha256": "3f1f3e0485148251f4e92c75767ad98e4c44f6ea964c77d2f6c40b9a2cced79e"
+    },
+    {
+      "path": "screens/p-looks-inline.png",
+      "nodeId": "3375:46384",
+      "width": 412,
+      "height": 892,
+      "sha256": "a776bace23cb1ea7a2feb7e1f2998c3701db873df30df98de8caa90328f1e190"
+    },
+    {
+      "path": "screens/p-history-inline.png",
+      "nodeId": "3375:46670",
+      "width": 412,
+      "height": 892,
+      "sha256": "3bccdf62409d67387c329b4fb6fe9ba628b1cb2cf2e00461024b5ffc421efbe5"
+    },
+    {
+      "path": "screens/p-export-modal.png",
+      "nodeId": "3375:46752",
+      "width": 412,
+      "height": 892,
+      "sha256": "688e79b1b9f138d99f84acbe8b2a2f57e940e88a9c6223ce0d3142a9f1d46c8b"
+    },
+    {
+      "path": "screens/p-frames-inline.png",
+      "nodeId": "3375:46917",
+      "width": 412,
+      "height": 892,
+      "sha256": "182cb5492228ac70d6d42292462b941fcfc386ae81aee717c6494e772198dc27"
+    }
+  ]
+}

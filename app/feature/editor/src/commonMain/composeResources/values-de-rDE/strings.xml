@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Größe</string>
     <string name="editor_brush_strength">Stärke</string>
     <string name="editor_blur_faces">Gesichter unscharf machen</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 Bit)</string>
+    <string name="raw_export_tiff16">TIFF (16 Bit)</string>
+    <string name="raw_export_choose_format">Entwickelte Kopie speichern</string>
+    <string name="raw_export_choose_format_subtitle">Wählen Sie ein Format für Ihre entwickelte RAW-Datei aus</string>
+    <string name="raw_export_tiff_unavailable">Das TIFF-Format behält die volle Bittiefe bei, kann jedoch keine Ausschnitte, Filter oder Markierungen enthalten – entfernen Sie diese, um das TIFF-Format zu exportieren.</string>
+    <string name="editor_mosaic_faces">Mosaikgesichter</string>
+    <string name="cutout_no_object">Beim langen Drücken wurde kein Objekt erkannt</string>
+    <string name="cutout_init_failed">Die Initialisierung der Cutout-Engine ist fehlgeschlagen</string>
 </resources>

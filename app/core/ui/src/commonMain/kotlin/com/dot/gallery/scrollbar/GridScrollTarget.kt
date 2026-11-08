@@ -14,4 +14,7 @@ import androidx.compose.runtime.Stable
  * queuing a `scrollToItem` per pointer event (the root cause of fast-scroll lag).
  */
 @Stable
-internal data class GridScrollTarget(val index: Int, val scrollOffset: Int)
+internal data class GridScrollTarget(
+    /** Where the drag wants the top of the viewport, in item units (see the controller). */
+    val progress: Float,
+)

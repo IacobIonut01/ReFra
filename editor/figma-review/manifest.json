@@ -1,0 +1,57 @@
+{
+  "fileKey": "UagS4q8hC0lpqw3SMGRu08",
+  "page": "9:1425",
+  "baseUrl": "https://www.figma.com/design/UagS4q8hC0lpqw3SMGRu08/GlitchOS--Copy-",
+  "created": "2026-10-09",
+  "lastRender": "2026-10-09",
+  "reviewStatus": "Awaiting user approval",
+  "note": "Final bindings/layout/prototype Cancel links repaired by lead directly in Figma; screenshots regenerated against those node IDs.",
+  "variableCollection": {
+    "id": "VariableCollectionId:3211:44405",
+    "name": "ReFra/Editor proposal",
+    "modes": {"Dark": "3211:0", "Light": "3211:1"},
+    "variables": 16
+  },
+  "textStyles": {
+    "Title": "S:8263aafcbce0e96f2d3c73cf7e6a27bb8664e510,",
+    "Body": "S:f4372e19c95eba15a50e17a342e5ab11bb42d4e0,",
+    "Label": "S:64f375f7e462e1297f960e116a118e98e3f7c483,",
+    "Caption": "S:9a0147afbf7cc745e50377d1ade4b8e986769f99,",
+    "Value": "S:84cc79d738710fa327984b9bb1e69a53fc21b701,"
+  },
+  "sections": {
+    "photo": {"id": "3211:44427", "name": "ReFra · Photo editor · Proposal", "nodeParam": "3211-44427"},
+    "video": {"id": "3211:44428", "name": "ReFra · Video editor · Proposal", "nodeParam": "3211-44428"}
+  },
+  "construction": {
+    "iconStage": "3210:38452",
+    "components": {
+      "precisionRuler": "3211:44429",
+      "toolDestination": "3211:44456",
+      "clipCell": "3211:44460"
+    }
+  },
+  "frames": {
+    "photoOverviewDark": {"id": "3213:44408", "png": "photo-overview-dark.png"},
+    "photoAdjustDark": {"id": "3213:44473", "png": "photo-adjust-dark.png"},
+    "photoToolsDark": {"id": "3215:44497", "png": "photo-tools-dark.png"},
+    "photoCropDark": {"id": "3215:44620", "png": "photo-crop-dark.png"},
+    "photoCurvesDark": {"id": "3217:44556", "png": "photo-curves-dark.png"},
+    "photoAdjustLight": {"id": "3225:44823", "png": "photo-adjust-light.png"},
+    "photoDesktopDark": {"id": "3217:44628", "png": "photo-desktop-dark.png"},
+    "photoLandscapeDark": {"id": "3217:44786", "png": "photo-landscape-dark.png"},
+    "videoTimelineDark": {"id": "3218:44661", "png": "video-timeline-dark.png"},
+    "videoClipSelectedDark": {"id": "3218:44779", "png": "video-clip-selected-dark.png"},
+    "videoTextDark": {"id": "3219:44717", "png": "video-text-dark.png"},
+    "videoExportDark": {"id": "3219:44875", "png": "video-export-dark.png"},
+    "videoTimelineLight": {"id": "3227:44809", "png": "video-timeline-light.png"},
+    "videoDesktopDark": {"id": "3220:44769", "png": "video-desktop-dark.png"},
+    "videoLandscapeDark": {"id": "3220:44961", "png": "video-landscape-dark.png"}
+  },
+  "prototypeLinks": [
+    "p1.dock/Tools -> tools sheet", "p1.tool/Adjust -> adjust", "p1.tool/Crop -> crop",
+    "p3.tool/Curves -> curves", "p2/p4/p5 btn/Apply -> overview", "p2/p3 back -> overview",
+    "v1 clip/2 -> clip selected", "v1 clip/text -> text", "v1 btn/Export -> export",
+    "v2 back -> timeline", "v3 btn/Apply -> timeline", "v4 close -> timeline"
+  ]
+}

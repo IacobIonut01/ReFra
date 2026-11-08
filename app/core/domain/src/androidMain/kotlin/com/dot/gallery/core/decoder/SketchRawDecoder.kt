@@ -48,7 +48,7 @@ class SketchRawDecoder(
             val realMime = requestContext.request.extras?.get("realMimeType") as String?
             val mime = realMime ?: fetchResult.mimeType ?: return null
             if (!isCameraRawMime(mime)) return null
-            // #1054: MediaStore sometimes reports a RAW MIME (image/x-* / image/vnd.*) for a file
+            // MediaStore sometimes reports a RAW MIME (image/x-* / image/vnd.*) for a file
             // that is really a standard JPEG/PNG/WebP/GIF/BMP. Routing it here extracts only the
             // small embedded/EXIF thumbnail. Peek the header and defer to Sketch's native decoder
             // when the bytes are a natively-decodable image.

@@ -20,7 +20,7 @@ import com.dot.gallery.core.workers.updateDatabase
 /**
  * Regression tests for [DefaultEventHandler].
  *
- * See bug #918: the back gesture was ignored on videos when controls were hidden.
+ * the back gesture was ignored on videos when controls were hidden.
  * The media viewer's back handler pushes a [UIEvent.NavigationUpEvent] through the
  * event handler. The handler previously used a zero-capacity (rendezvous) channel,
  * whose `trySend` only succeeds when a receiver is suspended at that exact moment.

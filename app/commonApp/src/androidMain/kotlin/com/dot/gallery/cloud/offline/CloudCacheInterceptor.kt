@@ -95,6 +95,7 @@ class CloudCacheInterceptor(
             .code(200)
             .message("OK (cache)")
             .header("Content-Length", file.length().toString())
+            .apply { if (contentType != null) header("Content-Type", contentType) }
             .body(FileResponseBody(file, contentType))
             .build()
 

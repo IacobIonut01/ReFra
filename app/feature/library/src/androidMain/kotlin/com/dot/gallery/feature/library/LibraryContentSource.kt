@@ -797,7 +797,7 @@ class LibraryContentSource public constructor(
         try {
             supervisorScope {
                 // Hidden people live outside the partitions: the count keeps the People
-                // section reachable when every visible person is hidden (#1262), and it
+                // section reachable when every visible person is hidden, and it
                 // must be DB-driven rather than provider-driven so it survives the face
                 // model being uninstalled (isAvailable == false skips the provider).
                 launch {
@@ -828,7 +828,7 @@ class LibraryContentSource public constructor(
                         if (provider == null || !provider.isAvailable) {
                             // The local provider goes unavailable when its face model is
                             // deleted — drop its stale partition so the People section hides
-                            // immediately instead of after a restart (issue #1229). A model
+                            // immediately instead of after a restart. A model
                             // that is merely unavailable (still copying/downloading or in an
                             // error state) keeps the cached partition so the section does not
                             // flicker until it reports READY again.
@@ -890,7 +890,7 @@ class LibraryContentSource public constructor(
                 cloud = cur.cloud.copy(
                     people = people,
                     // Hidden people keep the section flag alive: the header must stay
-                    // reachable even after the last visible person is hidden (#1262).
+                    // reachable even after the last visible person is hidden.
                     hasPeople = cur.cloud.hasPeople || people.isNotEmpty() ||
                         hiddenPeopleCount.value > 0,
                     hiddenPeopleCount = hiddenPeopleCount.value

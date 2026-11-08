@@ -19,7 +19,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 
 /**
- * #1244: software decoders for >10-bit HEIF/AVIF on the Drawable-producing resource paths.
+ * software decoders for >10-bit HEIF/AVIF on the Drawable-producing resource paths.
  *
  * `decode(Drawable)` requests (what the grid uses for `.avif`) never consult `Bitmap` resource
  * decoders — Glide picks a `* -> Drawable`/`BitmapDrawable` decode path first, whose built-in

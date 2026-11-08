@@ -281,7 +281,6 @@ class IsolatedMetadataService : Service() {
         // XMP + feature flags
         val xmps = meta.getDirectoriesOfType(XmpDirectory::class.java)
 
-        // Night mode
         val isNightMode = meta.getDirectoriesOfType(ExifSubIFDDirectory::class.java).any { dir ->
             dir.containsTag(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT) &&
                     dir.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_TIME) &&
@@ -312,7 +311,6 @@ class IsolatedMetadataService : Service() {
         } && !isPhotosphere
         result.putBoolean(KEY_IS_PANORAMA, isPanorama)
 
-        // Long exposure
         val isLongExposure = xmps.any { xmp ->
             xmp.xmpProperties.any { prop ->
                 LONG_EXPOSURE_KEYS.any { key -> prop.key.contains(key, true) }
@@ -320,7 +318,6 @@ class IsolatedMetadataService : Service() {
         }
         result.putBoolean(KEY_IS_LONG_EXPOSURE, isLongExposure)
 
-        // Motion photo
         val isMotionPhoto = xmps.any { xmp ->
             xmp.xmpProperties.any { prop ->
                 (prop.key == "GCamera:MotionPhoto" && prop.value == "1") ||

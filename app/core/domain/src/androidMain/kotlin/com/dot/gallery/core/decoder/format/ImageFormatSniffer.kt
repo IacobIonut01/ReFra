@@ -113,7 +113,7 @@ object ImageFormatSniffer {
      * True when the header is a standard raster the platform decodes directly
      * ([android.graphics.BitmapFactory] / [android.graphics.ImageDecoder] / [android.graphics.BitmapRegionDecoder]):
      * JPEG, PNG, WebP, GIF, BMP. Used to keep such files on the native decode path even when
-     * MediaStore mislabels them with a RAW/TIFF MIME (#1054). HEIF/AVIF are deliberately excluded
+     * MediaStore mislabels them with a RAW/TIFF MIME. HEIF/AVIF are deliberately excluded
      * so they keep their dedicated hardware-first decoders.
      */
     fun isNativelyDecodable(header: ByteArray, length: Int = header.size): Boolean =
@@ -122,7 +122,7 @@ object ImageFormatSniffer {
 
     /**
      * The canonical `image/<type>` MIME for a natively-decodable header, or `null` when the header is
-     * not one of [isNativelyDecodable]'s formats. Used to rewrite a bogus reported MIME (#1054).
+     * not one of [isNativelyDecodable]'s formats. Used to rewrite a bogus reported MIME.
      */
     fun standardMimeFor(header: ByteArray, length: Int = header.size): String? = when {
         isJpeg(header, length) -> "image/jpeg"

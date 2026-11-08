@@ -425,7 +425,7 @@ class IsolatedMetadataParser(private val context: Context) {
      *
      * For videos, an entirely empty reply is rebuilt with [probeVideoDirectories] — the
      * service-side retriever can take the isolated process down before metadata-extractor
-     * runs (Android 12, #1267), which otherwise leaves the screen blank.
+     * runs (Android 12), which otherwise leaves the screen blank.
      */
     private fun augmentWithProbeSize(
         uri: Uri,

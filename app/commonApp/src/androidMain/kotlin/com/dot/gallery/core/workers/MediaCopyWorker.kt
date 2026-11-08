@@ -195,11 +195,14 @@ class MediaCopyWorker @Inject constructor(
                 } else {
                     cr.getType(src) ?: return@withContext null
                 }
-                val displayName = if (isCloudUri) {
-                    labelHint ?: src.pathSegments.firstOrNull()?.take(12) ?: "cloud_media"
-                } else {
-                    src.lastPathSegment ?: "media"
-                }
+                val displayName = copyDisplayName(
+                    labelHint = labelHint,
+                    uriSegmentFallback = if (isCloudUri) {
+                        src.pathSegments.firstOrNull()?.take(12)
+                    } else {
+                        src.lastPathSegment
+                    }
+                )
                 val isVideo = mediaType.startsWith("video")
                 val sourceDateModified = if (isCloudUri) 0L else cr.mediaDateModified(src)
                 val sourceSize = if (isCloudUri) -1L else cr.mediaSize(src)
@@ -269,6 +272,15 @@ class MediaCopyWorker @Inject constructor(
         CloudMediaDownloader.downloadCloudMediaExact(cloudUri)
 }
 
+
+/**
+ * Display name for a copied media row. `content://` URIs expose only the MediaStore row
+ * id via [Uri.getLastPathSegment] — using it named every copy "123456". The
+ * media's real [Media.label] travels in the work input, so prefer it; fall back to the
+ * URI segment only for cloud URIs that arrive without a label.
+ */
+internal fun copyDisplayName(labelHint: String?, uriSegmentFallback: String?): String =
+    labelHint ?: uriSegmentFallback ?: "media"
 
 @Worker(name = MediaCopyWorker.WORKER_NAME)
 class MediaCopyWorkerAdapter : GalleryWorkerAdapter(MediaCopyWorker.WORKER_NAME) {

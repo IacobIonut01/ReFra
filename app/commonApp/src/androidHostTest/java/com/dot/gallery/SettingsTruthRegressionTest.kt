@@ -14,6 +14,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.dot.gallery.core.ui.components.settings
 import com.dot.gallery.domain.model.Album
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_NONE
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
+import com.dot.gallery.domain.settings.resolveLongPressAction
 
 
 
@@ -55,6 +59,15 @@ class SettingsTruthRegressionTest {
         assertFalse(Settings.Album.resolveAlbumGroupByDate(null, legacyHideTimeline = true))
         assertTrue(Settings.Album.resolveAlbumGroupByDate(null, legacyHideTimeline = false))
         assertTrue(Settings.Album.resolveAlbumGroupByDate(true, legacyHideTimeline = true))
+    }
+
+    @Test
+    fun longPressActionFallsBackToLegacyCutoutSwitchUntilChosen() {
+        assertEquals(LONG_PRESS_ACTION_ROTATE, resolveLongPressAction("", legacyCutout = false))
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction(null, legacyCutout = true))
+        assertEquals(LONG_PRESS_ACTION_NONE, resolveLongPressAction(LONG_PRESS_ACTION_NONE, legacyCutout = true))
+        assertEquals(LONG_PRESS_ACTION_ROTATE, resolveLongPressAction(LONG_PRESS_ACTION_ROTATE, legacyCutout = true))
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction("bogus", legacyCutout = true))
     }
 
     @Test

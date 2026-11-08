@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.core.backup.ConfigBackupManager.ExportResult
 import com.dot.gallery.core.backup.ConfigBackupManager.ImportIssue
@@ -95,7 +96,22 @@ class ConfigBackupManagerImpl @Inject constructor(
     private val pendingCloudFavoriteStore: PendingCloudFavoriteStore,
     private val providerInitializer: CloudProviderInitializer,
     private val syncScheduler: CloudSyncScheduler
-) : ConfigBackupManager {
+) : ConfigBackupManager, BackupLegacyBridge {
+
+    private val v3Engine: BackupV3Engine by lazy {
+        BackupV3Engine(
+            context = context,
+            database = database,
+            keychainHolder = keychainHolder,
+            cloudMediaDao = cloudMediaDao,
+            cloudServerConfigDao = cloudServerConfigDao,
+            mediaRepository = mediaRepository,
+            pendingCloudFavoriteStore = pendingCloudFavoriteStore,
+            providerInitializer = providerInitializer,
+            syncScheduler = syncScheduler,
+            legacy = this
+        )
+    }
 
     private val json = Json {
         prettyPrint = true
@@ -121,31 +137,11 @@ class ConfigBackupManagerImpl @Inject constructor(
         password: String?,
         onProgress: BackupProgressListener
     ): Result<ExportResult> = withContext(Dispatchers.IO) {
-        var tempZip: File? = null
         try {
-            val result: ExportResult
-            if (password.isNullOrEmpty()) {
-                val output = context.contentResolver.openOutputStream(destination)
-                    ?: return@withContext Result.failure(IOException("Unable to open output stream"))
-                output.use { result = buildArchive(it, selection, onProgress) }
-            } else {
-                // Build the plaintext ZIP into a temp file, then stream-encrypt into the destination.
-                tempZip = File(context.cacheDir, "backup_export_${System.currentTimeMillis()}.zip")
-                result = tempZip.outputStream().use { buildArchive(it, selection, onProgress) }
-                val output = context.contentResolver.openOutputStream(destination)
-                    ?: return@withContext Result.failure(IOException("Unable to open output stream"))
-                output.use { out ->
-                    tempZip.inputStream().use { input ->
-                        BackupCrypto.encrypt(input, out, password)
-                    }
-                }
-            }
-            Result.success(result)
+            Result.success(exportV3(destination, selection, password, onProgress))
         } catch (e: Exception) {
             printError("ConfigBackupManager: export failed: ${e.message}")
             Result.failure(e)
-        } finally {
-            tempZip?.delete()
         }
     }
 
@@ -349,15 +345,141 @@ class ConfigBackupManagerImpl @Inject constructor(
     // ---------------------------------------------------------------------------------------------
 
     /** Returns true if [source] points to a password-encrypted backup. */
-    override suspend fun isEncryptedBackup(source: Uri): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun isEncryptedBackup(source: Uri): Boolean =
+        probeBackup(source).getOrNull()?.encrypted ?: false
+
+    /**
+     * Reads the archive header. A schema-v3 archive starts with a plaintext preview header, so
+     * this never needs a password and never guesses from the file name or selected sections.
+     */
+    override suspend fun probeBackup(source: Uri): Result<BackupProbe> = withContext(Dispatchers.IO) {
         try {
-            context.contentResolver.openInputStream(source)?.use { input ->
-                BackupCrypto.isEncrypted(BackupCrypto.readHeader(input))
-            } ?: false
+            val input = context.contentResolver.openInputStream(source)
+                ?: return@withContext Result.failure<BackupProbe>(
+                    IOException("Unable to open input stream")
+                )
+            val probe = input.use { stream ->
+                val buffered = BufferedInputStream(stream)
+                val header = BackupCrypto.readHeader(buffered, BackupCrypto.MAGIC_V2_SIZE)
+                when {
+                    header.startsWith(BackupPreviewHeader.MAGIC.toByteArray()) -> {
+                        // The 7th byte was consumed into `header`; rewind is impossible, so read
+                        // the remaining header bytes from the buffered stream after accounting
+                        // for the extra byte when the magic is exactly 6 bytes.
+                        val preview = readPreviewHeader(buffered, prefetched = header)
+                        BackupProbe(
+                            format = BackupFormat.SECTIONED,
+                            encrypted = preview?.encrypted ?: false,
+                            preview = preview
+                        )
+                    }
+                    BackupCrypto.isEncrypted(header) -> BackupProbe(
+                        format = BackupFormat.LEGACY_ENCRYPTED,
+                        encrypted = true
+                    )
+                    else -> BackupProbe(
+                        format = BackupFormat.LEGACY_ZIP,
+                        encrypted = false
+                    )
+                }
+            }
+            Result.success(probe)
         } catch (e: Exception) {
-            printError("app.backup", "backup encryption probe failed", e)
-            false
+            printError("app.backup", "backup probe failed", e)
+            Result.failure<BackupProbe>(e)
         }
+    }
+
+    /** Advances [input] past a schema-v3 preview header. Returns false for a malformed header. */
+    private fun skipPreviewHeader(input: InputStream): Boolean {
+        val magic = ByteArray(BackupPreviewHeader.MAGIC_SIZE)
+        if (readFully(input, magic) < magic.size) return false
+        if (!magic.contentEquals(BackupPreviewHeader.MAGIC.toByteArray())) return false
+        val lengthBytes = ByteArray(4)
+        if (readFully(input, lengthBytes) < 4) return false
+        val length = java.nio.ByteBuffer.wrap(lengthBytes).int
+        if (length < 0 || length > maxManifestBytes) return false
+        var remaining = length
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        while (remaining > 0) {
+            val read = input.read(buffer, 0, minOf(buffer.size, remaining))
+            if (read < 0) return false
+            remaining -= read
+        }
+        return true
+    }
+
+    private fun readFully(input: InputStream, buffer: ByteArray): Int {
+        var total = 0
+        while (total < buffer.size) {
+            val read = input.read(buffer, total, buffer.size - total)
+            if (read < 0) break
+            total += read
+        }
+        return total
+    }
+
+    private fun ByteArray.startsWith(magic: ByteArray): Boolean =
+        size >= magic.size && copyOf(magic.size).contentEquals(magic)
+
+    /**
+     * Reads the schema-v3 preview header. [prefetched] holds bytes already consumed while looking
+     * for the magic; when the magic is shorter than the prefetch, the remainder is part of the
+     * 4-byte length prefix.
+     */
+    private fun readPreviewHeader(
+        input: InputStream,
+        prefetched: ByteArray? = null
+    ): BackupPreviewHeader? {
+        val lengthBytes = ByteArray(4)
+        var offset = 0
+        val magicSize = BackupPreviewHeader.MAGIC_SIZE
+        if (prefetched != null && prefetched.size > magicSize) {
+            val extra = prefetched.copyOfRange(magicSize, prefetched.size)
+            val copy = minOf(extra.size, lengthBytes.size)
+            extra.copyInto(lengthBytes, 0, 0, copy)
+            offset = copy
+        }
+        while (offset < lengthBytes.size) {
+            val read = input.read(lengthBytes, offset, lengthBytes.size - offset)
+            if (read < 0) return null
+            offset += read
+        }
+        val length = java.nio.ByteBuffer.wrap(lengthBytes).int
+        if (length <= 0 || length > maxManifestBytes) return null
+        val bytes = ByteArray(length)
+        var total = 0
+        while (total < length) {
+            val read = input.read(bytes, total, length - total)
+            if (read < 0) return null
+            total += read
+        }
+        return runCatching {
+            backupJson.decodeFromString(BackupPreviewHeader.serializer(), bytes.decodeToString())
+        }.getOrNull()
+    }
+
+    private fun contentsFromPreview(preview: BackupPreviewHeader): BackupContents {
+        val counts = preview.sections.mapNotNull { (name, count) ->
+            runCatching { BackupSection.valueOf(name) }.getOrNull()?.let { it to count }
+        }.toMap()
+        return BackupContents(
+            schemaVersion = preview.schemaVersion,
+            appVersionName = preview.appVersionName,
+            exportedAt = preview.exportedAt,
+            encrypted = preview.encrypted,
+            settingsCount = counts[BackupSection.SETTINGS] ?: 0,
+            localFavoritesCount = counts[BackupSection.LOCAL_FAVORITES] ?: 0,
+            cloudFavoritesCount = counts[BackupSection.CLOUD_FAVORITES] ?: 0,
+            cloudConfigsCount = counts[BackupSection.CLOUD_CONFIGS] ?: 0,
+            vaultCount = preview.vaults.size,
+            vaultMediaCount = preview.vaults.sumOf { it.mediaCount },
+            vaults = preview.vaults.map { VaultSummary(it.uuid, it.name, it.mediaCount) },
+            sectionCounts = counts,
+            credentialIncluded = preview.credentialIncluded,
+            formatVersion = preview.schemaVersion,
+            payloadBytes = preview.payloadBytes
+        )
     }
 
     /** Sentinel used to stop decryption early once the manifest has been recovered. */
@@ -374,7 +496,21 @@ class ConfigBackupManagerImpl @Inject constructor(
         password: String?
     ): Result<BackupContents> = withContext(Dispatchers.IO) {
         try {
-            val encrypted = isEncryptedBackup(source)
+            val probe = probeBackup(source).getOrElse { return@withContext Result.failure(it) }
+            if (probe.format == BackupFormat.SECTIONED) {
+                val preview = probe.preview
+                    ?: return@withContext Result.failure(IOException("Invalid backup: preview header missing"))
+                BackupManifest.requireSupportedSchema(preview.schemaVersion)
+                if (preview.encrypted && !password.isNullOrEmpty()) {
+                    val verified = context.contentResolver.openInputStream(source)?.use { raw ->
+                        val buffered = BufferedInputStream(raw)
+                        skipPreviewHeader(buffered) && BackupCrypto.verifyPassword(buffered, password)
+                    } ?: false
+                    if (!verified) return@withContext Result.failure(BackupPasswordException())
+                }
+                return@withContext Result.success(contentsFromPreview(preview))
+            }
+            val encrypted = probe.encrypted
             val manifest: BackupManifest = if (!encrypted) {
                 context.contentResolver.openInputStream(source)?.use { input ->
                     readManifestFromZipStream(input)
@@ -472,7 +608,17 @@ class ConfigBackupManagerImpl @Inject constructor(
         val dataDir = File(tmpDir, "data")
         dataDir.mkdirs()
         try {
-            val encrypted = isEncryptedBackup(source)
+            val probe = probeBackup(source).getOrElse {
+                return@withContext Result.failure(it)
+            }
+            if (probe.format == BackupFormat.SECTIONED) {
+                return@withContext try {
+                    Result.success(importV3(source, probe, selection, password, onProgress))
+                } catch (e: BackupPasswordException) {
+                    Result.failure(e)
+                }
+            }
+            val encrypted = probe.encrypted
             if (encrypted) {
                 if (password.isNullOrEmpty()) {
                     return@withContext Result.failure(BackupPasswordException())
@@ -519,11 +665,11 @@ class ConfigBackupManagerImpl @Inject constructor(
             var accountMappings = matchExistingAccounts(manifest.cloudConfigs, existingConfigs)
 
             if (selection.settings) {
-                settingsResult = restoreSettings(manifest, issues)
+                settingsResult = restoreSettings(manifest.settings, issues)
                 onProgress(BackupSection.SETTINGS, settingsResult.restored, manifest.settings.size)
             }
             if (selection.cloudConfigs) {
-                cloudConfigResult = restoreCloudConfigs(manifest, existingConfigs, issues)
+                cloudConfigResult = restoreCloudConfigs(manifest.cloudConfigs, existingConfigs, issues)
                 accountMappings = accountMappings.mergedWith(cloudConfigResult.accountMappings)
                 onProgress(
                     BackupSection.CLOUD_CONFIGS,
@@ -532,7 +678,7 @@ class ConfigBackupManagerImpl @Inject constructor(
                 )
             }
             if (selection.cloudFavorites) {
-                cloudFavoriteResult = restoreCloudFavorites(manifest, accountMappings, issues)
+                cloudFavoriteResult = restoreCloudFavorites(manifest.cloudFavorites, accountMappings, issues)
                 onProgress(
                     BackupSection.CLOUD_FAVORITES,
                     cloudFavoriteResult.restored,
@@ -547,7 +693,7 @@ class ConfigBackupManagerImpl @Inject constructor(
                 }
             }
             if (selection.localFavorites) {
-                pendingLocalFavoriteUris = matchLocalFavorites(manifest)
+                pendingLocalFavoriteUris = matchLocalFavorites(manifest.localFavorites)
                 onProgress(
                     BackupSection.LOCAL_FAVORITES,
                     pendingLocalFavoriteUris.size,
@@ -761,14 +907,14 @@ class ConfigBackupManagerImpl @Inject constructor(
     }
 
     private suspend fun restoreSettings(
-        manifest: BackupManifest,
+        settings: Map<String, SettingValue>,
         issues: MutableList<ImportIssue>
     ): RestoreCount {
         var restored = 0
         var skipped = 0
-        if (manifest.settings.isEmpty()) return RestoreCount()
+        if (settings.isEmpty()) return RestoreCount()
         context.activeDataStore.edit { prefs ->
-            manifest.settings.forEach { (name, value) ->
+            settings.forEach { (name, value) ->
                 if (applySetting(prefs, name, value)) {
                     restored++
                 } else {
@@ -791,6 +937,9 @@ class ConfigBackupManagerImpl @Inject constructor(
                 PortableSettingType.BOOLEAN -> prefs[booleanPreferencesKey(name)] = decoded.value as Boolean
                 PortableSettingType.INT -> prefs[intPreferencesKey(name)] = decoded.value as Int
                 PortableSettingType.STRING -> prefs[stringPreferencesKey(name)] = decoded.value as String
+                PortableSettingType.STRING_SET -> prefs[stringSetPreferencesKey(name)] =
+                    @Suppress("UNCHECKED_CAST")
+                    (decoded.value as Set<String>)
                 else -> return false
             }
             true
@@ -824,7 +973,7 @@ class ConfigBackupManagerImpl @Inject constructor(
     }
 
     private suspend fun restoreCloudConfigs(
-        manifest: BackupManifest,
+        entries: List<CloudConfigEntry>,
         existingConfigs: List<CloudServerConfigEntity>,
         issues: MutableList<ImportIssue>
     ): CloudConfigRestoreResult {
@@ -834,7 +983,7 @@ class ConfigBackupManagerImpl @Inject constructor(
         val bySource = mutableMapOf<String, Long>()
         val byProvider = mutableMapOf<String, MutableSet<Long>>()
         val knownConfigs = existingConfigs.toMutableList()
-        manifest.cloudConfigs.forEach { entry ->
+        entries.forEach { entry ->
             val providerType = runCatching { ProviderType.valueOf(entry.providerType) }.getOrNull()
             if (providerType == null) {
                 skipped++
@@ -904,14 +1053,14 @@ class ConfigBackupManagerImpl @Inject constructor(
     }
 
     private suspend fun restoreCloudFavorites(
-        manifest: BackupManifest,
+        favorites: List<CloudFavoriteEntry>,
         mappings: BackupAccountMappings,
         issues: MutableList<ImportIssue>
     ): RestoreCount {
         var restored = 0
         var skipped = 0
         val pending = mutableSetOf<PendingCloudFavorite>()
-        manifest.cloudFavorites.forEach { favorite ->
+        favorites.forEach { favorite ->
             val providerType = runCatching { ProviderType.valueOf(favorite.providerType) }.getOrNull()
             val destinationConfigId = providerType?.let {
                 mappings.resolveDestination(
@@ -984,6 +1133,11 @@ class ConfigBackupManagerImpl @Inject constructor(
         vaults.forEach { vaultEntry ->
             val uuid = Uuid.parse(vaultEntry.uuid)
             val vault = Vault(uuid = uuid, name = vaultEntry.name)
+            // Never let a legacy archive inherit a stale credential for the same UUID.
+            runCatching {
+                com.dot.gallery.feature.vault.utils.VaultPasswordManager
+                    .clearVaultSecrets(context, uuid)
+            }
             try {
                 // Portable vault encryption allows the staged plaintext to be re-encrypted safely.
                 var keychainFailure: String? = null
@@ -1050,8 +1204,8 @@ class ConfigBackupManagerImpl @Inject constructor(
         if (serverConfigId > 0L) backupSourceAccountId(providerType, serverConfigId) else ""
     }
 
-    private suspend fun matchLocalFavorites(manifest: BackupManifest): List<Uri> {
-        if (manifest.localFavorites.isEmpty()) return emptyList()
+    private suspend fun matchLocalFavorites(favorites: List<LocalFavoriteEntry>): List<Uri> {
+        if (favorites.isEmpty()) return emptyList()
         val deviceMedia = mediaRepository.getMedia()
             .first { it is Resource.Success || it is Resource.Error }
             .data.orEmpty()
@@ -1059,12 +1213,12 @@ class ConfigBackupManagerImpl @Inject constructor(
 
         val byPathName = deviceMedia.associateBy { it.relativePath + "/" + it.label }
         val result = LinkedHashSet<Uri>()
-        manifest.localFavorites.forEach { fav ->
+        favorites.forEach { fav ->
             val match = byPathName[fav.relativePath + "/" + fav.displayName]
                 ?: deviceMedia.firstOrNull { it.label == fav.displayName && it.size == fav.size }
             if (match != null) result.add(match.uri)
         }
-        printInfo("ConfigBackupManager: matched ${result.size}/${manifest.localFavorites.size} local favorites")
+        printInfo("ConfigBackupManager: matched ${result.size}/${favorites.size} local favorites")
         return result.toList()
     }
 
@@ -1196,6 +1350,67 @@ class ConfigBackupManagerImpl @Inject constructor(
         size = size,
         duration = duration
     )
+
+    // ---------------------------------------------------------------------------------------------
+    // Schema v3 bridge
+    // ---------------------------------------------------------------------------------------------
+
+    private suspend fun exportV3(
+        destination: Uri,
+        selection: BackupSelection,
+        password: String?,
+        onProgress: BackupProgressListener
+    ): ExportResult = v3Engine.export(destination, selection, password, onProgress)
+
+    private suspend fun importV3(
+        source: Uri,
+        probe: BackupProbe,
+        selection: BackupSelection,
+        password: String?,
+        onProgress: BackupProgressListener
+    ): ImportResult = v3Engine.importSectioned(source, probe, selection, password, onProgress)
+
+    override suspend fun bridgeExportSettings() = exportSettings()
+
+    override suspend fun bridgeExportLocalFavorites() = exportLocalFavorites()
+
+    override suspend fun bridgeExportCloudFavorites() = exportCloudFavorites()
+
+    override suspend fun bridgeExportCloudConfigs() = exportCloudConfigs()
+
+    override suspend fun bridgeRestoreSettings(
+        settings: Map<String, SettingValue>,
+        issues: MutableList<ImportIssue>
+    ): BridgeCount = restoreSettings(settings, issues).let { BridgeCount(it.restored, it.skipped) }
+
+    override suspend fun bridgeRestoreCloudConfigs(
+        entries: List<CloudConfigEntry>,
+        existing: List<CloudServerConfigEntity>,
+        issues: MutableList<ImportIssue>
+    ): BridgeCloudConfigResult = restoreCloudConfigs(entries, existing, issues).let {
+        BridgeCloudConfigResult(
+            restored = it.restored,
+            skipped = it.skipped,
+            reauthenticationRequired = it.reauthenticationRequired,
+            accountMappings = it.accountMappings
+        )
+    }
+
+    override suspend fun bridgeRestoreCloudFavorites(
+        favorites: List<CloudFavoriteEntry>,
+        mappings: BackupAccountMappings,
+        issues: MutableList<ImportIssue>
+    ): BridgeCount = restoreCloudFavorites(favorites, mappings, issues).let {
+        BridgeCount(it.restored, it.skipped)
+    }
+
+    override suspend fun bridgeMatchLocalFavorites(favorites: List<LocalFavoriteEntry>) =
+        matchLocalFavorites(favorites)
+
+    override suspend fun bridgeMatchExistingAccounts(
+        entries: List<CloudConfigEntry>,
+        existing: List<CloudServerConfigEntity>
+    ) = matchExistingAccounts(entries, existing)
 
     private fun appVersionName(): String = try {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: ""

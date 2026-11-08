@@ -20,7 +20,7 @@ fun Long.getDate(
     // Calendar-day difference (not raw time division) so photos from the same
     // day land in one group regardless of hour-of-day.
     return dateBucket(
-        mediaDate, today, mediaDate.daysUntil(today),
+        mediaDate, today,
         format, weeklyFormat, extendedFormat, stringToday, stringYesterday,
     )
 }
@@ -28,20 +28,17 @@ fun Long.getDate(
 private fun Long.dateBucket(
     mediaDate: LocalDate,
     today: LocalDate,
-    daysDifference: Int,
     format: String,
     weeklyFormat: String,
     extendedFormat: String,
     stringToday: String,
     stringYesterday: String,
-): String = when {
-    daysDifference <= 0 -> stringToday
-    daysDifference == 1 -> stringYesterday
-    daysDifference in 2..6 -> formatEpochSec(weeklyFormat)
-    else -> {
-        if (today.year > mediaDate.year) formatEpochSec(extendedFormat)
-        else formatEpochSec(format)
-    }
+): String = when (dateBucketOf(mediaDate, today)) {
+    DateBucket.TODAY -> stringToday
+    DateBucket.YESTERDAY -> stringYesterday
+    DateBucket.WEEKDAY -> formatEpochSec(weeklyFormat)
+    DateBucket.EXTENDED_DATE -> formatEpochSec(extendedFormat)
+    DateBucket.DATE -> formatEpochSec(format)
 }
 
 /**
@@ -60,7 +57,7 @@ class DateGrouper(
     fun classify(timestampSec: Long): String {
         val mediaDate = timestampSec.epochSecToLocalDate()
         return timestampSec.dateBucket(
-            mediaDate, today, mediaDate.daysUntil(today),
+            mediaDate, today,
             format, weeklyFormat, extendedFormat, stringToday, stringYesterday,
         )
     }

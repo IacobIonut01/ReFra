@@ -94,7 +94,7 @@ object FaceClusterer {
 
     /**
      * A media+box region that must never enter a person group — written when a
-     * person is deleted (#1262). Matched to live faces by [LINK_MATCH_IOU], the
+     * person is deleted. Matched to live faces by [LINK_MATCH_IOU], the
      * same rule as [FaceAssertion], so it survives re-detected face ids.
      */
     class Suppression(

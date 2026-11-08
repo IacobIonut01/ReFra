@@ -1,0 +1,19 @@
+Start testing: Oct 10 04:23 EEST
+----------------------------------------------------------
+1/1 Testing: color_rgba_f32
+1/1 Test: color_rgba_f32
+Command: "/Users/ionut.iacob/Documents/Gallery/editor/native/build-p1-sanitized/refra_editor_color_test"
+Directory: /Users/ionut.iacob/Documents/Gallery/editor/native/build-p1-sanitized
+"color_rgba_f32" start time: Oct 10 04:23 EEST
+Output:
+----------------------------------------------------------
+color_test: all checks passed
+<end of output>
+Test time =   0.52 sec
+----------------------------------------------------------
+Test Passed.
+"color_rgba_f32" end time: Oct 10 04:23 EEST
+"color_rgba_f32" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 10 04:23 EEST

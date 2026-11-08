@@ -4,21 +4,21 @@ import com.dot.gallery.domain.trash.TrashDialogAction
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.setFollowTheme
+import com.dot.gallery.core.ui.mediaview.ViewerQuickAction
 import com.dot.gallery.core.ui.mediaview.VisualSearchTarget
 import com.dot.gallery.core.ui.mediaview.icon
+import com.dot.gallery.core.ui.mediaview.rememberViewerActionBarConfig
 import com.dot.gallery.core.ui.mediaview.tintIcon
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.core.ui.util.rememberedDerivedState
@@ -33,7 +33,6 @@ import com.dot.gallery.domain.util.isTrashed
 import com.dot.gallery.domain.util.isVideo
 import com.dot.gallery.domain.util.readUriOnly
 import com.dot.gallery.ui.theme.isDarkTheme
-import org.jetbrains.compose.resources.stringResource
 
 
 /**
@@ -106,6 +105,11 @@ fun <T : Media> MediaViewQuickBottomBar(
     LaunchedEffect(followTheme) {
         eventHandler.setFollowTheme(followTheme)
     }
+    // User-arranged quick actions; each one is still gated by the item's capabilities.
+    val actionBarConfig by rememberViewerActionBarConfig()
+    val quickActions = remember(actionBarConfig) { actionBarConfig.sanitized().actions }
+    val showFavoriteButton by rememberPreference(SettingsKeys.showFavoriteButton)
+    val trashEnabled by rememberPreference(SettingsKeys.trashEnabled)
     CompositionLocalProvider(LocalContentColor provides contentColor) {
     if (currentMedia != null) {
         val capabilities = currentMedia.viewerActionCapabilities(
@@ -124,111 +128,118 @@ fun <T : Media> MediaViewQuickBottomBar(
                 trashedActions(currentMedia, followTheme)
             }
         } else {
-            if (capabilities.share) {
-                ShareButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    onShare = onShare
-                )
-            }
-            if (capabilities.visualSearch && visualSearchTarget != null) {
-                VisualSearchButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    icon = visualSearchTarget.icon,
-                    tintIcon = visualSearchTarget.tintIcon,
-                    title = visualSearchTitle,
-                    onItemClick = onVisualSearch,
-                )
-            }
-            if (capabilities.copyToClipboard) {
-                CopyToClipboardButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    onCopyToClipboard = onCopyToClipboard
-                )
-            }
-            // Favorite Component
-            val showFavoriteButton by rememberPreference(SettingsKeys.showFavoriteButton)
-            if (showFavoriteButton && capabilities.favorite) {
-                FavoriteButton(
-                    media = currentMedia,
-                    isFavorite = isFavorite,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    onToggleFavorite = onToggleFavorite
-                )
-            }
-            if (currentMedia.readUriOnly && capabilities.openExternally) {
-                OpenAsButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    onOpenAs = onOpenAs
-                )
-            }
-            // Restore
-            if (capabilities.restoreFromVault && restoreMedia != null && currentVault != null) {
-                RestoreButton(
-                    media = currentMedia,
-                    currentVault = currentVault,
-                    restoreMedia = restoreMedia,
-                    followTheme = followTheme
-                )
-            }
-            // Download (cloud only)
-            if (capabilities.download) {
-                DownloadButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    onDownload = onDownload
-                )
-            }
-            // Rename
-            if (capabilities.rename) {
-                RenameButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    onRename = onRename
-                )
-            }
-            // Edit
-            if (capabilities.edit) {
-                EditButton(
-                    media = currentMedia,
-                    enabled = enabled,
-                    followTheme = followTheme,
-                    onEdit = onEdit
-                )
-            }
-            // Trash Component
-            if (capabilities.trash) {
-                // Private-folder items are SAF documents; deleting them via a
-                // MediaStore request crashes (#1015). Route them through a
-                // SAF-only delete instead of the regular TrashButton.
-                if (isPrivateFolderItem) {
-                    PrivateFolderDeleteButton(
-                        media = currentMedia,
-                        enabled = enabled,
-                        followTheme = followTheme,
-                        dialog = privateFolderDeleteDialog
-                    )
-                } else {
-                    val trashEnabled by rememberPreference(SettingsKeys.trashEnabled)
-                    TrashButton(
-                        media = currentMedia,
-                        enabled = enabled,
-                        followTheme = followTheme,
-                        trashEnabled = trashEnabled,
-                        trashSupported = trashSupported,
-                        cloudSupportsTrash = cloudSupportsTrash,
-                        dialog = trashDialog
-                    )
+            quickActions.forEach { action ->
+                key(action) {
+                    when (action) {
+                        ViewerQuickAction.SHARE -> if (capabilities.share) {
+                            ShareButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onShare = onShare
+                            )
+                        }
+                        ViewerQuickAction.VISUAL_SEARCH -> if (
+                            capabilities.visualSearch && visualSearchTarget != null
+                        ) {
+                            VisualSearchButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                icon = visualSearchTarget.icon,
+                                tintIcon = visualSearchTarget.tintIcon,
+                                title = visualSearchTitle,
+                                onItemClick = onVisualSearch,
+                            )
+                        }
+                        ViewerQuickAction.COPY_TO_CLIPBOARD -> if (capabilities.copyToClipboard) {
+                            CopyToClipboardButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onCopyToClipboard = onCopyToClipboard
+                            )
+                        }
+                        ViewerQuickAction.FAVORITE -> if (
+                            showFavoriteButton && capabilities.favorite
+                        ) {
+                            FavoriteButton(
+                                media = currentMedia,
+                                isFavorite = isFavorite,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onToggleFavorite = onToggleFavorite
+                            )
+                        }
+                        ViewerQuickAction.OPEN_AS -> if (
+                            currentMedia.readUriOnly && capabilities.openExternally
+                        ) {
+                            OpenAsButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onOpenAs = onOpenAs
+                            )
+                        }
+                        ViewerQuickAction.RESTORE -> if (
+                            capabilities.restoreFromVault && restoreMedia != null &&
+                            currentVault != null
+                        ) {
+                            RestoreButton(
+                                media = currentMedia,
+                                currentVault = currentVault,
+                                restoreMedia = restoreMedia,
+                                followTheme = followTheme
+                            )
+                        }
+                        ViewerQuickAction.DOWNLOAD -> if (capabilities.download) {
+                            DownloadButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onDownload = onDownload
+                            )
+                        }
+                        ViewerQuickAction.RENAME -> if (capabilities.rename) {
+                            RenameButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onRename = onRename
+                            )
+                        }
+                        ViewerQuickAction.EDIT -> if (capabilities.edit) {
+                            EditButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onEdit = onEdit
+                            )
+                        }
+                        ViewerQuickAction.TRASH -> if (capabilities.trash) {
+                            // Private-folder items are SAF documents; deleting them via a
+                            // MediaStore request crashes. Route them through a
+                            // SAF-only delete instead of the regular TrashButton.
+                            if (isPrivateFolderItem) {
+                                PrivateFolderDeleteButton(
+                                    media = currentMedia,
+                                    enabled = enabled,
+                                    followTheme = followTheme,
+                                    dialog = privateFolderDeleteDialog
+                                )
+                            } else {
+                                TrashButton(
+                                    media = currentMedia,
+                                    enabled = enabled,
+                                    followTheme = followTheme,
+                                    trashEnabled = trashEnabled,
+                                    trashSupported = trashSupported,
+                                    cloudSupportsTrash = cloudSupportsTrash,
+                                    dialog = trashDialog
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

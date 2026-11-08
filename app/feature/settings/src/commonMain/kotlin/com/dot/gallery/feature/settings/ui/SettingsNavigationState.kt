@@ -5,7 +5,6 @@
 
 package com.dot.gallery.feature.settings.ui
 
-import com.dot.gallery.domain.settings.LAUNCH_ROUTE_ALBUMS
 import com.dot.gallery.domain.settings.LAUNCH_ROUTE_LIBRARY
 import com.dot.gallery.domain.settings.LAUNCH_ROUTE_TIMELINE
 
@@ -15,6 +14,5 @@ import com.dot.gallery.domain.settings.LAUNCH_ROUTE_TIMELINE
  */
 data class SettingsNavigationState(
     val timelineRoute: String = LAUNCH_ROUTE_TIMELINE,
-    val albumsRoute: String = LAUNCH_ROUTE_ALBUMS,
     val libraryRoute: String = LAUNCH_ROUTE_LIBRARY,
 )

@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Storlek</string>
     <string name="editor_brush_strength">Styrka</string>
     <string name="editor_blur_faces">Blurriga ansikten</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bitars)</string>
+    <string name="raw_export_tiff16">TIFF (16-bitars)</string>
+    <string name="raw_export_choose_format">Spara den färdigställda kopian</string>
+    <string name="raw_export_choose_format_subtitle">Välj ett format för din framkallade RAW-bild</string>
+    <string name="raw_export_tiff_unavailable">TIFF-formatet behåller fullt bitdjup men kan inte innehålla beskärningar, filter eller markeringar – ta bort dessa för att exportera till TIFF.</string>
+    <string name="editor_mosaic_faces">Mosaikansikten</string>
+    <string name="cutout_no_object">Inget objekt upptäcktes vid långt tryck</string>
+    <string name="cutout_init_failed">Det gick inte att initialisera utskärningsmotorn</string>
 </resources>

@@ -16,6 +16,7 @@ manifestConfig {
         stripPermissions.set(
             listOf(
                 "android.permission.INTERNET",
+                "android.permission.ACCESS_LOCAL_NETWORK",
                 "android.permission.ACCESS_WIFI_STATE",
                 "android.permission.ACCESS_NETWORK_STATE",
                 "android.permission.CHANGE_WIFI_MULTICAST_STATE",
@@ -82,17 +83,36 @@ val nativeSourceOverrides = listOf(
     "LIBTIFF_SOURCE_DIR",
     "JP2FORANDROID_SOURCE_DIR"
 )
+// On Windows a bare "bash" resolves to C:\Windows\System32\bash.exe (the WSL launcher),
+// which cannot open a script at a Windows path. Prefer a real POSIX shell, and let
+// REFRA_BASH override the pick.
+val nativeBashExecutable: String = run {
+    System.getenv("REFRA_BASH")?.takeIf { it.isNotBlank() }?.let { return@run it }
+    if (!System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) return@run "bash"
+    listOf(
+        "C:/Program Files/Git/bin/bash.exe",
+        "C:/Program Files/Git/usr/bin/bash.exe",
+        "C:/cygwin64/bin/bash.exe",
+        "C:/cygwin/bin/bash.exe",
+        "C:/msys64/usr/bin/bash.exe"
+    ).firstOrNull { File(it).isFile } ?: "bash"
+}
 val nativeTasksByAbi = nativeAbiTaskSuffixes.mapValues { (abi, suffix) ->
     nativeStacks.map { (stack, scriptName, outputName) ->
         val script = rootProject.file("scripts/native/$scriptName")
         tasks.register<Exec>("build${stack}Native$suffix") {
             group = "build"
             workingDir(rootProject.projectDir)
-            commandLine("bash", script.absolutePath, abi)
+            // bash parses backslashes as escapes, so a Windows absolutePath (D:\...) loses
+            // its separators and bash reports the script as missing. Forward slashes work
+            // in every shell and on every platform.
+            commandLine(nativeBashExecutable, script.invariantSeparatorsPath, abi)
             environment("NATIVE_OFFLINE", "0")
             environment("NATIVE_SOURCE_ARCHIVES_DIR", "")
-            environment("NATIVE_DOWNLOAD_CACHE", nativeDownloadCache.absolutePath)
-            environment("NATIVE_OUTPUT_BASE", file("src/main/cpp").absolutePath)
+            // The scripts are POSIX shell; backslashes in these paths make GNU sha256sum
+            // escape its output, so hand them over with forward slashes on every platform.
+            environment("NATIVE_DOWNLOAD_CACHE", nativeDownloadCache.invariantSeparatorsPath)
+            environment("NATIVE_OUTPUT_BASE", file("src/main/cpp").invariantSeparatorsPath)
             nativeSourceOverrides.forEach { environment(it, "") }
             inputs.file(script)
             inputs.file(nativeCommonScript)
@@ -135,6 +155,15 @@ tasks.configureEach {
     }
 }
 
+// Every build type is signed with the release key when its secrets are available. The
+// fallbacks below only apply on machines that do not export them, so local builds keep
+// working; CI exports the secrets and never takes the fallback path.
+val releaseSigningAvailable = listOf(
+    "SIGNING_STORE_PASSWORD",
+    "SIGNING_KEY_ALIAS",
+    "SIGNING_KEY_PASSWORD"
+).all { !System.getenv(it).isNullOrBlank() }
+
 android {
     // The app shell's namespace — the bulk `com.dot.gallery` namespace (and its
     // R class) lives in :app:commonApp, which owns the app's sources and res.
@@ -160,7 +189,9 @@ android {
         val offlinePrefix = if (isOffline) "-offline" else ""
         base.archivesName.set("ReFra-${versionName}-$versionCode$offlinePrefix")
         val cartoBasemapKey = if (includeMaps) {
-            providers.environmentVariable("CARTO_BASEMAP_KEY").orNull.orEmpty()
+            providers.environmentVariable("CARTO_BASEMAP_KEY").orNull
+                ?.takeIf(String::isNotBlank)
+                ?: committedCartoBasemapKey
         } else {
             ""
         }
@@ -218,6 +249,9 @@ android {
             )
             buildConfigField("Boolean", "ENABLE_INDEXING", "false")
             buildConfigField("Boolean", "ALLOW_INSECURE_TLS", "true")
+            if (releaseSigningAvailable) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         getByName("release") {
             manifestPlaceholders += mapOf(
@@ -269,6 +303,12 @@ android {
             buildConfigField("Boolean", "SMB_ENABLED", "$includeSmb")
             buildConfigField("Boolean", "NFS_ENABLED", "$includeNfs")
             buildConfigField("Boolean", "ALLOW_INSECURE_TLS", "true")
+            // Staging is a local-only variant (CI builds the Release build types), so it can
+            // fall back to the auto-generated debug key when the release signing secrets are
+            // not exported. Release/GPlay builds stay strict.
+            if (!releaseSigningAvailable) {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
         create("gplay") {
             initWith(getByName("release"))
@@ -370,6 +410,9 @@ kotlin {
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(project(":app:commonApp"))
+    // Standalone photo editor host (GalleryEditorActivity).
+    implementation(project(":editor:android"))
+    implementation(project(":app:ml-models"))
     "baselineProfile"(project(mapOf("path" to ":app:baselineprofile")))
 
     // Entry-point code (GalleryApp / MainActivity) — everything else lives in
@@ -423,6 +466,22 @@ val isOffline: Boolean
 
 val includeMaps: Boolean
     get() = !isOffline
+
+// The CARTO basemap key is a public client-side token: it ships inside the APK and is
+// sent in tile URL queries. Keeping a copy in the repo (app.properties) makes the
+// embedded key identical in every build environment, which F-Droid's reproducible
+// build verification requires; the env var still wins when set (CI, local overrides).
+val committedCartoBasemapKey: String
+    get() {
+        val fl = rootProject.file("app.properties")
+        return try {
+            val properties = Properties()
+            properties.load(FileInputStream(fl))
+            properties.getProperty("CARTO_BASEMAP_KEY", "").trim().removeSurrounding("\"")
+        } catch (_: Exception) {
+            ""
+        }
+    }
 
 val allowAllFilesAccess: Boolean
     get() {

@@ -18,6 +18,12 @@ import androidx.compose.ui.Modifier
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import androidx.compose.foundation.gestures.scrollBy
+import kotlin.math.abs
+import kotlin.math.floor
+
+/** Targets further than this many screens away jump by index instead of scrolling. */
+private const val FarJumpViewports = 3f
 
 /**
  * Draws a fast-scroll scrollbar over a vertical [androidx.compose.foundation.lazy.grid.LazyVerticalGrid].
@@ -82,7 +88,17 @@ fun InternalLazyVerticalGridScrollbar(
             .filterNotNull()
             .distinctUntilChanged()
             .collectLatest { target ->
-                state.scrollToItem(target.index, target.scrollOffset)
+                // Close targets are reached with a relative pixel scroll measured from the real
+                // layout, so a drag moves the grid steadily even where headers and mosaic tiles
+                // make rows uneven. Only a far jump (a fast flick of the thumb) goes by index.
+                val delta = target.progress - controller.currentProgress()
+                val span = controller.visibleSpan()
+                val viewport = state.layoutInfo.let { it.viewportEndOffset - it.viewportStartOffset }
+                if (span > 0f && viewport > 0 && abs(delta) <= span * FarJumpViewports) {
+                    state.scrollBy(delta * viewport / span)
+                } else {
+                    state.scrollToItem(floor(target.progress).toInt().coerceAtLeast(0))
+                }
             }
     }
 

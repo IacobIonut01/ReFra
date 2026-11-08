@@ -26,8 +26,7 @@ import com.dot.gallery.data.data_source.KeychainHolder
  *
  * Before this store existed, every consumer (Glide thumbnail fetcher, ExoPlayer, Sketch
  * decoders, metadata probes) ran its own full decrypt into its own temp file — a single
- * vault video could occupy 2–3 plaintext copies per request, and error paths leaked them
- * (#1282).
+ * vault video could occupy 2–3 plaintext copies per request, and error paths leaked them.
  *
  * Now each vault file has at most one decrypted file on disk:
  * `cacheDir/vault_tmp/<sha256(path|size|mtime)>.bin`, produced by a single-flight decrypt

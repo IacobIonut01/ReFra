@@ -6,20 +6,18 @@
 package com.dot.gallery.app.presentation.mediaview.components
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -31,11 +29,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.work.workScheduler
@@ -46,7 +42,7 @@ import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.cloud.ui.people.PersonAvatar
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationResult
 import com.dot.gallery.core.presentation.components.ConfirmationSheet
@@ -60,7 +56,10 @@ import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.domain.model.Vault
 import com.dot.gallery.domain.model.VaultState
 import com.dot.gallery.domain.util.getUri
-import com.dot.gallery.feature.viewer.MediaInfoRow
+import com.dot.gallery.feature.viewer.ViewerSheetGroup
+import com.dot.gallery.feature.viewer.ViewerSheetRow
+import com.dot.gallery.feature.viewer.ViewerSheetSectionLabel
+import com.dot.gallery.feature.viewer.viewerSheetPosition
 import com.dot.gallery.feature.viewer.MediaInfoSheetCard
 import com.dot.gallery.feature.viewer.MediaViewSheetDetails as FeatureMediaViewSheetDetails
 import com.dot.gallery.feature.viewer.MetadataSanitizationUiPhase
@@ -87,7 +86,6 @@ import com.dot.gallery.app.presentation.exif.MoveMediaSheet
 import com.dot.gallery.core.ui.util.rememberedDerivedState
 import com.dot.gallery.domain.util.readUriOnly
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
-import com.dot.gallery.feature.viewer.rememberMediaInfoIconBackgroundModifier
 import com.dot.gallery.core.logging.printDebug
 import com.dot.gallery.core.logging.printError
 import com.dot.gallery.core.presentation.util.effectiveCartoBasemapKey
@@ -99,6 +97,7 @@ import com.dot.gallery.feature.viewer.components.LocationAccessItem
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_backed_up_tap_hint
 import com.dot.gallery.generated.resources.cloud_backed_up_title
+import com.dot.gallery.generated.resources.cloud_people
 import com.dot.gallery.generated.resources.cloud_people_unknown
 import com.dot.gallery.generated.resources.cloud_person_photo_count
 import com.dot.gallery.generated.resources.cloud_person_remove_media
@@ -132,7 +131,7 @@ fun <T : Media> MediaViewSheetDetails(
     metadataSanitizationState: MediaViewViewModel.MetadataSanitizationUiState =
         MediaViewViewModel.MetadataSanitizationUiState.Idle,
     probeMetadataSanitization: (Media) -> Unit = {},
-    sanitizeMetadata: (Media, MetadataRemovalMode, MetadataSaveMode) -> Unit = { _, _, _ -> },
+    sanitizeMetadata: (Media, Set<MetadataCategory>, MetadataSaveMode) -> Unit = { _, _, _ -> },
     resetMetadataSanitization: () -> Unit = {},
 ) {
     val metadata by rememberedDerivedState(metadataState.value, currentMedia) {
@@ -244,8 +243,6 @@ fun <T : Media> MediaViewSheetDetails(
         }
     )
 
-    val iconBackgroundModifier = rememberMediaInfoIconBackgroundModifier()
-
     FeatureMediaViewSheetDetails(
         metadata = metadata,
         currentMedia = currentMedia,
@@ -278,7 +275,7 @@ fun <T : Media> MediaViewSheetDetails(
         moveSheetState = moveSheetState,
         sanitizationPhase = sanitizationPhase,
         probeMetadataSanitization = { media -> probeMetadataSanitization(media) },
-        sanitizeMetadata = { media, mode, saveMode -> sanitizeMetadata(media, mode, saveMode) },
+        sanitizeMetadata = { media, categories, saveMode -> sanitizeMetadata(media, categories, saveMode) },
         onSanitizationComplete = { _ ->
             val result = (metadataSanitizationState as?
                 MediaViewViewModel.MetadataSanitizationUiState.Complete)?.result
@@ -340,9 +337,9 @@ fun <T : Media> MediaViewSheetDetails(
         categoryThumbnail = mediaCategoryThumbnail?.uri,
         mapPreview = mapPreview,
         onOpenMap = { lat, lng -> context.launchMap(lat, lng) },
-        locationAccessPrompt = { iconModifier ->
+        locationAccessPrompt = { rowModifier ->
             LocationAccessItem(
-                iconBackgroundModifier = iconModifier,
+                modifier = rowModifier,
                 onGranted = {
                     scope.launch {
                         runCatching { currentMedia?.let { handler.collectMetadataFor(it) } }
@@ -377,95 +374,74 @@ fun <T : Media> MediaViewSheetDetails(
         preInfoItems = {
             if (cloudBackups.isNotEmpty()) {
                 item(key = "cloud_backup") {
-                    MediaInfoSheetCard(innerPadding = Modifier.padding(vertical = 16.dp)) {
-                        val backupProviders = remember(cloudBackups) {
-                            cloudBackups
-                                .mapNotNull {
-                                    CloudUri.parse(it.uri.toString())?.providerType
-                                }
-                                .distinct()
-                        }
-                        MediaInfoRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            label = stringResource(Res.string.cloud_backed_up_title),
-                            content = stringResource(Res.string.cloud_backed_up_tap_hint),
-                            icon = Icons.Outlined.CloudDone,
-                            iconBackgroundModifier = iconBackgroundModifier,
-                            trailingContent = {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    backupProviders.forEach { providerType ->
-                                        ProviderBrandIcon(
-                                            providerType = providerType,
-                                            modifier = Modifier.size(22.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            },
-                            onClick = {
-                                scope.launch { backupSheetState.show() }
+                    val backupProviders = remember(cloudBackups) {
+                        cloudBackups
+                            .mapNotNull {
+                                CloudUri.parse(it.uri.toString())?.providerType
                             }
-                        )
+                            .distinct()
                     }
+                    ViewerSheetRow(
+                        title = stringResource(Res.string.cloud_backed_up_title),
+                        summary = stringResource(Res.string.cloud_backed_up_tap_hint),
+                        icon = Icons.Outlined.CloudDone,
+                        onClick = {
+                            scope.launch { backupSheetState.show() }
+                        },
+                        trailing = {
+                            Row(
+                                modifier = Modifier.padding(end = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                backupProviders.forEach { providerType ->
+                                    ProviderBrandIcon(
+                                        providerType = providerType,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    )
                 }
             }
             if (mediaPeople.isNotEmpty()) {
                 item(key = "people") {
-                    MediaInfoSheetCard(innerPadding = Modifier.padding(vertical = 16.dp)) {
-                        mediaPeople.forEach { person ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable { onOpenPersonTimeline(person) }
-                                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                PersonAvatar(person = person, size = 40.dp)
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
-                                    Text(
-                                        text = person.name.ifBlank { unknownPersonText },
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = personPhotoCountFormat.format(
-                                            person.assetCount
-                                        ),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                Icon(
-                                    imageVector = Icons.Outlined.PersonRemove,
-                                    contentDescription = stringResource(
-                                        Res.string.cloud_person_remove_media
-                                    ),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .clickable {
-                                            pendingPerson = person
-                                            scope.launch {
-                                                removePersonConfirmState.show()
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        ViewerSheetSectionLabel(
+                            text = stringResource(Res.string.cloud_people),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        ViewerSheetGroup {
+                            mediaPeople.forEachIndexed { index, person ->
+                                ViewerSheetRow(
+                                    title = person.name.ifBlank { unknownPersonText },
+                                    summary = personPhotoCountFormat.format(person.assetCount),
+                                    position = viewerSheetPosition(index, mediaPeople.size),
+                                    summaryMaxLines = 1,
+                                    onClick = { onOpenPersonTimeline(person) },
+                                    leading = {
+                                        PersonAvatar(person = person, size = 40.dp)
+                                    },
+                                    trailing = {
+                                        IconButton(
+                                            onClick = {
+                                                pendingPerson = person
+                                                scope.launch {
+                                                    removePersonConfirmState.show()
+                                                }
                                             }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.PersonRemove,
+                                                contentDescription = stringResource(
+                                                    Res.string.cloud_person_remove_media
+                                                ),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         }
-                                        .padding(8.dp)
+                                    }
                                 )
                             }
                         }

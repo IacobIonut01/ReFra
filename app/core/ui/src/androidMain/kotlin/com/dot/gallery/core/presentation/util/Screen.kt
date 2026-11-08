@@ -48,9 +48,13 @@ sealed class Screen(val route: String) {
 
         fun idAndCategoryId(id: Long, categoryId: Long) = "$route?mediaId=$id&categoryId=$categoryId"
 
-        fun idAndCollection() = "$route?mediaId={mediaId}&collectionId={collectionId}"
+        fun idAndCollection() = "$route?mediaId={mediaId}&collectionId={collectionId}&slideshow={slideshow}"
 
-        fun idAndCollection(id: Long, collectionId: Long) = "$route?mediaId=$id&collectionId=$collectionId"
+        fun idAndCollection(id: Long, collectionId: Long) =
+            "$route?mediaId=$id&collectionId=$collectionId&slideshow=false"
+
+        fun idAndCollectionSlideshow(id: Long, collectionId: Long) =
+            "$route?mediaId=$id&collectionId=$collectionId&slideshow=true"
 
         fun idAndPerson() = "$route?mediaId={mediaId}&configId={configId}&personId={personId}"
 
@@ -58,7 +62,8 @@ sealed class Screen(val route: String) {
             "$route?mediaId=$id&configId=$configId&personId=${Uri.encode(personId)}"
 
         fun idAndLocation() = "$route?mediaId={mediaId}&gpsLocationNameCity={gpsLocationNameCity}" +
-                "&gpsLocationNameCountry={gpsLocationNameCountry}&latitude={latitude}&longitude={longitude}"
+                "&gpsLocationNameCountry={gpsLocationNameCountry}&latitude={latitude}&longitude={longitude}" +
+                "&slideshow={slideshow}"
 
         fun idAndLocation(
             id: Long,
@@ -66,9 +71,11 @@ sealed class Screen(val route: String) {
             gpsLocationNameCountry: String,
             latitude: Double? = null,
             longitude: Double? = null,
+            slideshow: Boolean = false,
         ) = "$route?mediaId=$id&gpsLocationNameCity=${Uri.encode(gpsLocationNameCity)}" +
                 "&gpsLocationNameCountry=${Uri.encode(gpsLocationNameCountry)}" +
-                "&latitude=${latitude?.toString().orEmpty()}&longitude=${longitude?.toString().orEmpty()}"
+                "&latitude=${latitude?.toString().orEmpty()}&longitude=${longitude?.toString().orEmpty()}" +
+                "&slideshow=$slideshow"
     }
 
     data object LocationTimelineScreen : Screen("location_timeline_screen") {
@@ -95,8 +102,18 @@ sealed class Screen(val route: String) {
     data object SettingsGeneralScreen : Screen("settings_general_screen")
     data object SettingsSmartFeaturesScreen : Screen("settings_smart_features_screen")
     data object SettingsCloudIndexingScreen : Screen("settings_cloud_indexing_screen")
+    data object SettingsHandoverScreen : Screen("settings_handover_screen")
     data object SmartScanPreferenceDetailScreen : Screen("smart_scan_preference_detail_screen")
     data object AIModelsManagerScreen : Screen("ai_models_manager_screen")
+
+    /**
+     * Preview and management page of one Intelligence Hub feature (`IntelligenceFeature` name).
+     * `offer` marks pages offered from setup or People, which show a "Not now" action.
+     */
+    data object IntelligenceFeatureScreen : Screen("intelligence_feature_screen") {
+        fun feature() = "$route?feature={feature}&offer={offer}"
+        fun feature(name: String, offer: Boolean = false) = "$route?feature=${Uri.encode(name)}&offer=$offer"
+    }
     data object EditBackupsViewerScreen : Screen("edit_backups_viewer_screen")
     data object SettingsAppearanceScreen : Screen("settings_appearance_screen")
     data object SettingsTimelineAlbumsScreen : Screen("settings_timeline_albums_screen")
@@ -109,6 +126,7 @@ sealed class Screen(val route: String) {
     data object SettingsBackupExportScreen : Screen("settings_backup_export_screen")
     data object SettingsBackupImportScreen : Screen("settings_backup_import_screen")
     data object SettingsSelectionActionsScreen : Screen("settings_selection_actions_screen")
+    data object SettingsViewerActionsScreen : Screen("settings_viewer_actions_screen")
     data object SlideshowSettingsScreen : Screen("slideshow_settings_screen")
 
     data object IgnoredScreen : Screen("ignored_screen")
@@ -149,13 +167,6 @@ sealed class Screen(val route: String) {
     data object CategoryEditScreen : Screen("category_edit_screen") {
         fun categoryId() = "$route?categoryId={categoryId}"
         
-        fun categoryId(id: Long) = "$route?categoryId=$id"
-    }
-
-    data object AddCategoryScreen : Screen("add_category_screen")
-    
-    data object EditCategoryScreen : Screen("edit_category_screen") {
-        fun route() = "$route?categoryId={categoryId}"
         fun categoryId(id: Long) = "$route?categoryId=$id"
     }
 
@@ -278,7 +289,6 @@ sealed class Screen(val route: String) {
     }
 
     // Phase 4 – Sync Status
-    data object SyncStatusScreen : Screen("sync_status_screen")
 
     // Phase 5 – Notifications
     data object CloudNotificationSettingsScreen : Screen("cloud_notification_settings_screen") {

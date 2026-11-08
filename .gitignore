@@ -26,7 +26,9 @@ new_release.jks
 
 # others
 skills-lock.json
-.agents/
+.*/
+opencode.json
+**/.stignore
 yolo_vs_sam/
 
 app/ml-models-pack/segment/
@@ -36,13 +38,15 @@ app/ml-models-pack/src/main/assets/textual_quant.onnx
 app/ml-models-pack/src/main/assets/vocab.json
 app/ml-models-pack/src/main/assets/merges.txt
 
-# >>> ml-models split (managed) — reassembled at build time, do not commit
-app/ml-models-pack/src/main/assets/arcface.onnx
-# <<< ml-models split (managed)
-
 /scripts/native/sources/
 /testing
 
 # docs-capture generated frames
 /docs-out/
 app/commonApp/src/androidDeviceTest/assets/com.dot.gallery.data.InternalDatabase
+
+# >>> ml-models split (managed) — reassembled at build time, do not commit
+app/ml-models-pack/src/main/assets/arcface.onnx
+app/ml-models-pack/src/main/assets/model_q4.onnx_data
+app/ml-models-pack/src/main/assets/vision_encoder_q4.onnx_data
+# <<< ml-models split (managed)

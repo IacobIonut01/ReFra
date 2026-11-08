@@ -12,6 +12,7 @@ const AREA = z.enum([
   'cloud',
   'customize',
   'utilities',
+  'edit-legacy',
 ]);
 
 const features = defineCollection({

@@ -5,10 +5,19 @@
 
 package com.dot.gallery.feature.albums.ui.components
 
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import com.dot.gallery.feature.albums.ui.util.bleedHorizontally
+import com.dot.gallery.ui.theme.BlackScrim
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,8 +32,6 @@ import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,10 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -65,11 +69,83 @@ import com.dot.gallery.feature.albums.generated.resources.show_combined_timeline
 import com.dot.gallery.feature.albums.generated.resources.unmerge_subfolders
 import com.dot.gallery.feature.albums.generated.resources.unpin
 
+private val PinnedCardShape = RoundedCornerShape(28.dp)
+private val PinnedLabelScrim = Brush.verticalGradient(listOf(Color.Transparent, BlackScrim))
+
+@Composable
+private fun PinnedAlbumCard(
+    album: Album,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(width = 164.dp, height = 208.dp)
+            .clip(PinnedCardShape)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+    ) {
+        when (albumThumbnailPresentation(album.isLocked)) {
+            AlbumThumbnailPresentation.LOCKED_PLACEHOLDER -> LockedAlbumThumbnail(
+                modifier = Modifier.fillMaxSize(),
+                iconModifier = Modifier.size(36.dp),
+                shape = PinnedCardShape
+            )
+            AlbumThumbnailPresentation.MEDIA -> LocalMediaImageRenderer.current.RenderImage(
+                modifier = Modifier.fillMaxSize(),
+                model = album.uri,
+                contentDescription = album.label,
+                contentScale = ContentScale.Crop,
+                signature = album
+            )
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(10.dp)
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(BlackScrim),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.PushPin,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomStart)
+                .background(PinnedLabelScrim)
+                .padding(start = 14.dp, end = 14.dp, top = 28.dp, bottom = 12.dp),
+        ) {
+            Text(
+                text = album.label,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = pluralStringResource(
+                    Res.plurals.item_count,
+                    album.count.toInt(),
+                    album.count
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
 /**
- * Pinned albums shown as a Material3 multi-browse carousel. Pure-Compose port
- * of the original Material `CarouselLayoutManager` + RecyclerView
- * implementation — masking, label fade-out on item shrink and the long-click
- * option sheet are preserved.
+ * Pinned albums as a row of portrait cards, sharing the Timeline story cards' look: a pin badge, and
+ * the name over a scrim. A plain lazy row, since a masked carousel relayouts its items every frame.
+ * [bleed] lets the row scroll to the screen edge from inside the page's side padding.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +157,8 @@ fun CarouselPinnedAlbums(
     mergedSubfolderIds: Set<Long> = emptySet(),
     subGalleryIds: Set<Long> = emptySet(),
     onToggleMergeSubfolders: ((Album) -> Unit)? = null,
-    onToggleMergedSubfolderDisplayMode: ((Album) -> Unit)? = null
+    onToggleMergedSubfolderDisplayMode: ((Album) -> Unit)? = null,
+    bleed: Dp = 0.dp,
 ) {
     val scope = rememberCoroutineScope()
     val appBottomSheetState = rememberAppBottomSheetState()
@@ -89,108 +166,24 @@ fun CarouselPinnedAlbums(
     val selectedAlbum = currentAlbum?.let { selected ->
         albumList.firstOrNull { it.id == selected.id } ?: selected
     }
-    val density = LocalDensity.current
-    val windowInfo = LocalWindowInfo.current
-    // Match the legacy adapter item width: screen width / 2.75.
-    val preferredItemWidth = remember(density, windowInfo) {
-        with(density) { windowInfo.containerSize.width.toDp() / 2.75f }
-    }
-    val carouselState = rememberCarouselState(itemCount = { albumList.size })
-
-    HorizontalMultiBrowseCarousel(
-        state = carouselState,
+    val feedbackManager = rememberFeedbackManager()
+    LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .height(196.dp),
-        preferredItemWidth = preferredItemWidth,
-        itemSpacing = 0.dp,
-        contentPadding = PaddingValues(0.dp)
-    ) { index ->
-        val album = albumList[index]
-        val feedbackManager = rememberFeedbackManager()
-        val interactionSource = remember { MutableInteractionSource() }
-        // Legacy behavior: the label/summary slide and fade out as the item gets
-        // masked down to its small edge form (maskRect.left grows from 0).
-        val maskLeft = carouselItemDrawInfo.maskRect.left
-        val labelAlpha = (1f - maskLeft / 80f).coerceIn(0f, 1f)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .maskClip(Shapes.large)
-        ) {
-            when (albumThumbnailPresentation(album.isLocked)) {
-                AlbumThumbnailPresentation.LOCKED_PLACEHOLDER -> LockedAlbumThumbnail(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .combinedClickable(
-                            interactionSource = interactionSource,
-                            indication = LocalIndication.current,
-                            onClick = { onAlbumClick(album) },
-                            onLongClick = {
-                                feedbackManager.vibrate()
-                                currentAlbum = album
-                                scope.launch { appBottomSheetState.show() }
-                            }
-                        ),
-                    iconModifier = Modifier.size(36.dp),
-                    shape = Shapes.large
-                )
-                AlbumThumbnailPresentation.MEDIA -> {
-                    val renderer = LocalMediaImageRenderer.current
-                    renderer.RenderImage(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .combinedClickable(
-                                interactionSource = interactionSource,
-                                indication = LocalIndication.current,
-                                onClick = { onAlbumClick(album) },
-                                onLongClick = {
-                                    feedbackManager.vibrate()
-                                    currentAlbum = album
-                                    scope.launch { appBottomSheetState.show() }
-                                }
-                            ),
-                        model = album.uri,
-                        contentDescription = album.label,
-                        contentScale = ContentScale.Crop,
-                        signature = album
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomStart)
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color.Transparent,
-                            1f to MaterialTheme.colorScheme.surface
-                        )
-                    )
-                    .graphicsLayer {
-                        alpha = labelAlpha
-                        translationX = maskLeft
-                    }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                Text(
-                    text = album.label,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
-                )
-                Text(
-                    text = pluralStringResource(
-                        Res.plurals.item_count,
-                        album.count.toInt(),
-                        album.count
-                    ),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
+            .bleedHorizontally(bleed),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(items = albumList, key = { it.id }) { album ->
+            PinnedAlbumCard(
+                album = album,
+                onClick = { onAlbumClick(album) },
+                onLongClick = {
+                    feedbackManager.vibrate()
+                    currentAlbum = album
+                    scope.launch { appBottomSheetState.show() }
+                },
+            )
         }
     }
 

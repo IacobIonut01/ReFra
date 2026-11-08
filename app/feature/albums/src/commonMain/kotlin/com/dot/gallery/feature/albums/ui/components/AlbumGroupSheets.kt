@@ -5,50 +5,43 @@
 
 package com.dot.gallery.feature.albums.ui.components
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Collections
+import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.ModalSheet
-import com.dot.gallery.core.presentation.components.OptionButton
-import com.dot.gallery.core.presentation.components.OptionItem
-import com.dot.gallery.core.presentation.components.OptionLayout
-import com.dot.gallery.core.presentation.components.OptionPosition
-import com.dot.gallery.core.presentation.components.SetupButton
+import com.dot.gallery.core.presentation.components.ConfirmationSheet
+import com.dot.gallery.core.presentation.components.ExpressiveSheet
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetNameInputContent
+import com.dot.gallery.core.presentation.components.SheetOptionRow
+import com.dot.gallery.core.presentation.components.SheetRowTrailing
+import com.dot.gallery.core.presentation.components.SheetTone
+import com.dot.gallery.core.presentation.components.sheetRowPosition
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.domain.model.AlbumGroupWithAlbums
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.albums.generated.resources.Res
 import com.dot.gallery.feature.albums.generated.resources.add_to_group
+import com.dot.gallery.feature.albums.generated.resources.add_to_group_body
 import com.dot.gallery.feature.albums.generated.resources.create_album_group
 import com.dot.gallery.feature.albums.generated.resources.create_new_group
 import com.dot.gallery.feature.albums.generated.resources.delete_group
 import com.dot.gallery.feature.albums.generated.resources.delete_group_confirm
+import com.dot.gallery.feature.albums.generated.resources.group_album_count
 import com.dot.gallery.feature.albums.generated.resources.group_name
 import com.dot.gallery.feature.albums.generated.resources.group_name_hint
+import com.dot.gallery.feature.albums.generated.resources.new_group_summary
 import com.dot.gallery.feature.albums.generated.resources.rename_group
+import com.dot.gallery.feature.albums.generated.resources.sheet_cancel
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AlbumGroupSheet(
@@ -63,98 +56,70 @@ fun AlbumGroupSheet(
     val scope = rememberCoroutineScope()
     var groupName by remember(initialName) { mutableStateOf(initialName) }
     var showCreateNew by remember(mode) { mutableStateOf(mode == "create" || mode == "rename") }
-    val focusRequester = remember { FocusRequester() }
-
-    ModalSheet(
-        sheetState = sheetState,
-        title = when (mode) {
-            "rename" -> stringResource(Res.string.rename_group)
-            "addToGroup" -> stringResource(Res.string.add_to_group)
-            else -> stringResource(Res.string.create_album_group)
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        content = {
-            if (mode == "addToGroup" && existingGroups.isNotEmpty() && !showCreateNew) {
-                val groupOptions = remember(existingGroups) {
-                    existingGroups.map { group ->
-                        OptionItem(
-                            icon = Icons.Outlined.Collections,
-                            text = group.group.label,
-                            summary = "${group.albums.size} albums",
-                            onClick = {
-                                scope.launch {
-                                    sheetState.hide()
-                                    onAddToExistingGroup(group.group.id)
-                                }
-                            }
-                        )
-                    }.toMutableStateList()
-                }
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    optionList = groupOptions
-                )
-                Spacer(Modifier.height(8.dp))
-                SetupButton(
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    text = stringResource(Res.string.create_new_group),
-                    onClick = { showCreateNew = true }
-                )
-            } else {
-                OutlinedTextField(
-                    value = groupName,
-                    onValueChange = { groupName = it },
-                    label = { Text(stringResource(Res.string.group_name)) },
-                    placeholder = { Text(stringResource(Res.string.group_name_hint)) },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester)
-                        .imePadding(),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            if (groupName.isNotBlank()) {
-                                scope.launch {
-                                    sheetState.hide()
-                                    when (mode) {
-                                        "rename" -> onRenameGroup(groupName.trim())
-                                        else -> onCreateGroup(groupName.trim())
-                                    }
-                                }
-                            }
-                        }
-                    )
-                )
-                Spacer(Modifier.height(16.dp))
-                SetupButton(
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    enabled = groupName.isNotBlank(),
-                    text = when (mode) {
-                        "rename" -> stringResource(Res.string.rename_group)
-                        else -> stringResource(Res.string.create_new_group)
-                    },
-                    onClick = {
-                        if (groupName.isNotBlank()) {
-                            scope.launch {
-                                sheetState.hide()
-                                when (mode) {
-                                    "rename" -> onRenameGroup(groupName.trim())
-                                    else -> onCreateGroup(groupName.trim())
-                                }
-                            }
-                        }
-                    }
-                )
-                LaunchedEffect(Unit) {
-                    focusRequester.requestFocus()
-                }
-            }
+    val title = when (mode) {
+        "rename" -> stringResource(Res.string.rename_group)
+        "addToGroup" -> stringResource(Res.string.add_to_group)
+        else -> stringResource(Res.string.create_album_group)
+    }
+    val close: (suspend () -> Unit) -> Unit = { then -> scope.launch { sheetState.hide(); then() } }
+    ExpressiveSheet(sheetState = sheetState, paneTitle = title) {
+        if (mode == "addToGroup" && existingGroups.isNotEmpty() && !showCreateNew) {
+            AddToGroupSheetContent(
+                groups = existingGroups.map { AlbumGroupOption(it.group.id, it.group.label, it.albums.size) },
+                onGroup = { id -> close { onAddToExistingGroup(id) } },
+                onNewGroup = { showCreateNew = true },
+            )
+        } else {
+            SheetNameInputContent(
+                title = title,
+                value = groupName,
+                onValueChange = { groupName = it },
+                label = stringResource(Res.string.group_name),
+                placeholder = stringResource(Res.string.group_name_hint),
+                confirmText = if (mode == "rename") stringResource(Res.string.rename_group)
+                else stringResource(Res.string.create_new_group),
+                dismissText = stringResource(Res.string.sheet_cancel),
+                onDismiss = { close {} },
+                onConfirm = { name ->
+                    close { if (mode == "rename") onRenameGroup(name) else onCreateGroup(name) }
+                },
+            )
         }
+    }
+}
+
+/** One existing group offered by [AddToGroupSheetContent]. */
+data class AlbumGroupOption(val id: Long, val label: String, val albumCount: Int)
+
+/** Stateless body of the "Add to group" sheet: existing groups, then New group. */
+@Composable
+fun ColumnScope.AddToGroupSheetContent(
+    groups: List<AlbumGroupOption>,
+    onGroup: (Long) -> Unit,
+    onNewGroup: () -> Unit,
+) {
+    SheetHeader(
+        title = stringResource(Res.string.add_to_group),
+        body = stringResource(Res.string.add_to_group_body),
+    )
+    val count = groups.size + 1
+    groups.forEachIndexed { index, group ->
+        SheetOptionRow(
+            title = group.label,
+            summary = pluralStringResource(Res.plurals.group_album_count, group.albumCount, group.albumCount),
+            icon = Icons.Outlined.Folder,
+            position = sheetRowPosition(index, count),
+            trailing = SheetRowTrailing.Chevron,
+            onClick = { onGroup(group.id) },
+        )
+    }
+    SheetOptionRow(
+        title = stringResource(Res.string.create_new_group),
+        summary = stringResource(Res.string.new_group_summary),
+        icon = Icons.Outlined.CreateNewFolder,
+        position = sheetRowPosition(count - 1, count),
+        trailing = SheetRowTrailing.Chevron,
+        onClick = onNewGroup,
     )
 }
 
@@ -163,29 +128,13 @@ fun DeleteGroupSheet(
     sheetState: AppBottomSheetState,
     onConfirmDelete: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-
-    ModalSheet(
-        sheetState = sheetState,
+    ConfirmationSheet(
+        state = sheetState,
         title = stringResource(Res.string.delete_group),
-        subtitle = stringResource(Res.string.delete_group_confirm),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        content = {
-            OptionButton(
-                icon = Icons.Outlined.Delete,
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                textContainer = {
-                    Text(stringResource(Res.string.delete_group))
-                },
-                position = OptionPosition.ALONE,
-                onClick = {
-                    scope.launch {
-                        sheetState.hide()
-                        onConfirmDelete()
-                    }
-                }
-            )
-        }
+        summary = stringResource(Res.string.delete_group_confirm),
+        confirmText = stringResource(Res.string.delete_group),
+        icon = Icons.Outlined.Delete,
+        tone = SheetTone.Error,
+        onConfirm = onConfirmDelete,
     )
 }

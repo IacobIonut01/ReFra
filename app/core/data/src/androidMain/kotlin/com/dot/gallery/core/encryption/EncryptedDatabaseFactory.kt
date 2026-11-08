@@ -71,7 +71,6 @@ object EncryptedDatabaseFactory {
             getOrCreatePassphrase(context)
         }
 
-        // Migrate existing unencrypted DB to encrypted if needed
         StartupTracer.trace("EncryptedDB.migrateIfNeeded") {
             migrateUnencryptedDbIfNeeded(context, passphrase)
         }
@@ -82,8 +81,7 @@ object EncryptedDatabaseFactory {
         val hexString = String(passphrase, Charsets.UTF_8)
         val rawKeyPassphrase = "x'$hexString'".toByteArray(Charsets.UTF_8)
 
-        // Migrate existing databases from passphrase-based KDF to raw key.
-        // This must happen before Room opens the database.
+        // Must happen before Room opens the database.
         StartupTracer.trace("EncryptedDB.rekeyIfNeeded") {
             migrateToRawKeyIfNeeded(context, passphrase, hexString)
         }
@@ -152,7 +150,6 @@ object EncryptedDatabaseFactory {
 
         val dbFile = context.getDatabasePath(InternalDatabase.NAME)
         if (!dbFile.exists() || dbFile.length() == 0L) {
-            // New database — will be created with raw key directly
             prefs.edit { putBoolean(PREF_RAW_KEY_MIGRATED, true) }
             return
         }
@@ -168,7 +165,6 @@ object EncryptedDatabaseFactory {
                 null
             )
             try {
-                // Verify the old passphrase works
                 oldDb.rawQuery("SELECT COUNT(*) FROM sqlite_schema", null)
                     .use { it.moveToFirst() }
                 // Rekey to raw-key format — rewrites the file header so future
@@ -203,14 +199,12 @@ object EncryptedDatabaseFactory {
 
         val dbFile = context.getDatabasePath(InternalDatabase.NAME)
         if (!dbFile.exists() || dbFile.length() == 0L) {
-            // No existing DB — mark as encrypted (will be created encrypted by Room)
             flags.edit {putBoolean(FLAG_DB_ENCRYPTED, true)}
             return
         }
 
         val backupFile = File(dbFile.parentFile, "${InternalDatabase.NAME}_plaintext_backup")
         try {
-            // Move plaintext DB + journal files to backup
             dbFile.renameTo(backupFile)
             File(dbFile.absolutePath + "-wal").let {
                 if (it.exists()) it.renameTo(File(backupFile.absolutePath + "-wal"))
@@ -269,7 +263,6 @@ object EncryptedDatabaseFactory {
                 plainDb.close()
             }
 
-            // Clean up backup
             File(backupFile.absolutePath + "-wal").delete()
             File(backupFile.absolutePath + "-shm").delete()
             backupFile.delete()
@@ -285,7 +278,6 @@ object EncryptedDatabaseFactory {
             dbFile.delete()
             File(dbFile.absolutePath + "-wal").delete()
             File(dbFile.absolutePath + "-shm").delete()
-            // Restore plaintext backup
             if (backupFile.exists()) {
                 backupFile.renameTo(dbFile)
                 File(backupFile.absolutePath + "-wal").let {
@@ -359,7 +351,6 @@ object EncryptedDatabaseFactory {
         return if (stored != null) {
             unwrapPassphrase(key, stored)
         } else {
-            // Generate 32 random bytes → 64 hex chars (ASCII-safe)
             val random = ByteArray(32).also { SecureRandom().nextBytes(it) }
             val passphrase = random.joinToString("") { "%02x".format(it) }
                 .toByteArray(Charsets.UTF_8)

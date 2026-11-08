@@ -1,127 +1,75 @@
 package com.dot.gallery.core.presentation.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import com.dot.gallery.core.presentation.components.SetupButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.DragHandle
-import com.dot.gallery.core.ui.util.AppBottomSheetState
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.dot.gallery.core.ui.generated.resources.Res
 import com.dot.gallery.core.ui.generated.resources.action_cancel
 import com.dot.gallery.core.ui.generated.resources.yes
+import com.dot.gallery.core.ui.util.AppBottomSheetState
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
-
-
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Confirmation in the redesigned sheet style: an optional icon badge in [tone], a centred title
+ * and body, an optional [details] tile showing what is affected, then Cancel and the action.
+ * A [SheetTone.Error] tone makes the action button the error style.
+ */
 @Composable
 fun ConfirmationSheet(
     state: AppBottomSheetState,
     title: String,
     summary: String,
     confirmText: String = stringResource(Res.string.yes),
+    icon: ImageVector? = null,
+    tone: SheetTone = SheetTone.Primary,
+    confirmIcon: ImageVector? = null,
+    details: (@Composable ColumnScope.() -> Unit)? = null,
     onConfirm: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-
-    if (state.isVisible) {
-        ModalBottomSheet(
-            sheetState = state.sheetState,
-            onDismissRequest = {
-                scope.launch {
-                    state.hide()
-                }
+    ExpressiveSheet(sheetState = state, paneTitle = title) {
+        ConfirmationSheetContent(
+            title = title,
+            summary = summary,
+            confirmText = confirmText,
+            dismissText = stringResource(Res.string.action_cancel),
+            icon = icon,
+            tone = tone,
+            confirmIcon = confirmIcon,
+            details = details,
+            onDismiss = { scope.launch { state.hide() } },
+            onConfirm = {
+                onConfirm()
+                scope.launch { state.hide() }
             },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            tonalElevation = 0.dp,
-            dragHandle = { DragHandle() },
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 32.dp, vertical = 16.dp)
-            ) {
-                Text(
-                    text = title,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .padding(bottom = 16.dp)
-                        .fillMaxWidth()
-                )
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp),
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SetupButton(
-                        onClick = {
-                            scope.launch {
-                                state.hide()
-                            }
-                        },
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        applyHorizontalPadding = false,
-                        applyBottomPadding = false,
-                        applyInsets = false,
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(Res.string.action_cancel)
-                    )
-
-                    SetupButton(
-                        onClick = {
-                            onConfirm()
-                            scope.launch {
-                                state.hide()
-                            }
-                        },
-                        applyHorizontalPadding = false,
-                        applyBottomPadding = false,
-                        applyInsets = false,
-                        modifier = Modifier.weight(1f),
-                        text = confirmText
-                    )
-                }
-            }
-        }
+        )
     }
+}
+
+/** Stateless body of [ConfirmationSheet]. */
+@Composable
+fun ColumnScope.ConfirmationSheetContent(
+    title: String,
+    summary: String,
+    confirmText: String,
+    dismissText: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    icon: ImageVector? = null,
+    tone: SheetTone = SheetTone.Primary,
+    confirmIcon: ImageVector? = null,
+    details: (@Composable ColumnScope.() -> Unit)? = null,
+) {
+    SheetHeader(title = title, body = summary, icon = icon, tone = tone, centered = true)
+    details?.invoke(this)
+    SheetDismissConfirmActions(
+        dismissText = dismissText,
+        onDismiss = onDismiss,
+        confirmText = confirmText,
+        onConfirm = onConfirm,
+        confirmStyle = if (tone == SheetTone.Error) SheetButtonStyle.Error else SheetButtonStyle.Filled,
+        confirmIcon = confirmIcon,
+    )
 }

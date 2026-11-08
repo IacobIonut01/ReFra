@@ -210,7 +210,11 @@ fun MarkupPainter(
                         path,
                         currentPathProperty.copy(
                             eraseMode = false,
-                            brush = MarkupBrush.Blur,
+                            brush = if (currentPathProperty.brush == MarkupBrush.Solid) {
+                                MarkupBrush.Blur
+                            } else {
+                                currentPathProperty.brush
+                            },
                             fillRegion = true
                         )
                     )

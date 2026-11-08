@@ -18,6 +18,7 @@ import com.dot.gallery.domain.model.ImageEmbedding
 import com.dot.gallery.data.repository.MediaRepository
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.app.presentation.search.helpers.SearchVisionHelper
+import com.dot.gallery.core.smart.VideoFrameSampler
 import com.dot.gallery.core.logging.withLogScope
 import com.github.panpf.sketch.asBitmapOrNull
 import com.github.panpf.sketch.decode.BitmapColorSpace
@@ -47,6 +48,7 @@ class SearchIndexerUpdaterWorker @Inject constructor(
     private val repository: MediaRepository,
     private val modelManager: ModelManager,
     private val cloudMediaDao: CloudMediaDao,
+    private val videoFrameSampler: VideoFrameSampler,
     private val appContext: Context,
 ) : GalleryWorker {
 
@@ -57,10 +59,12 @@ class SearchIndexerUpdaterWorker @Inject constructor(
             runCatching {
                 WorkSignals.reportProgress(INDEXER_WORK_NAME, workData("progress" to -1f))
                 if (!BuildConfig.ENABLE_INDEXING) return@withLogScope WorkerResult.Success()
-                if (!modelManager.isReady(ModelGroup.SEARCH)) {
+                val searchModel = modelManager.activeSearchModel
+                if (!modelManager.isReady(searchModel)) {
                     printInfo("ML models not installed, skipping indexing")
                     return@withLogScope WorkerResult.Success()
                 }
+                val decodeSize = searchModel.indexDecodeSize
                 if (!currentCoroutineContext().isActive) return@withLogScope WorkerResult.Success()
                 printInfo("Starting indexing media items")
                 val media = repository.getCompleteMedia().map { it.data ?: emptyList() }.firstOrNull()
@@ -93,15 +97,28 @@ class SearchIndexerUpdaterWorker @Inject constructor(
                         val startMillis = System.currentTimeMillis()
                         val pct = if (totalItems <= 1) 100f else ((index.toFloat() / (totalItems - 1).toFloat()) * 100f)
                         WorkSignals.reportProgress(INDEXER_WORK_NAME, workData("progress" to pct))
-                        val request = ImageRequest(appContext, mediaItem.getUri().toString()) {
-                            colorSpace(BitmapColorSpace(ColorSpace.Named.SRGB))
-                            size(224, 224)
-                            setExtra("realMimeType", mediaItem.mimeType)
+                        val embedding = if (mediaItem.mimeType.startsWith("video/") && searchModel.supportsVideo) {
+                            val frames = videoFrameSampler.sampleFrames(mediaItem.getUri())
+                            if (frames.isNotEmpty()) {
+                                try {
+                                    visionHelper.getVideoEmbedding(session, frames)
+                                } finally {
+                                    frames.forEach { it.recycle() }
+                                }
+                            } else null
+                        } else {
+                            val request = ImageRequest(appContext, mediaItem.getUri().toString()) {
+                                colorSpace(BitmapColorSpace(ColorSpace.Named.SRGB))
+                                size(decodeSize, decodeSize)
+                                setExtra("realMimeType", mediaItem.mimeType)
+                            }
+                            val result = appContext.sketch.execute(request)
+                            // Sketch bitmaps come from the shared pool — do NOT recycle.
+                            result.image?.asBitmapOrNull()?.let { bitmap ->
+                                visionHelper.getImageEmbedding(session, bitmap)
+                            }
                         }
-                        val result = appContext.sketch.execute(request)
-                        val bitmap = result.image?.asBitmapOrNull()
-                        if (bitmap != null) {
-                            val embedding = visionHelper.getImageEmbedding(session, bitmap)
+                        if (embedding != null) {
                             printInfo("Indexed local media $index/${totalItems - 1} in ${System.currentTimeMillis() - startMillis} ms")
                             repository.addImageEmbedding(
                                 ImageEmbedding(
@@ -111,7 +128,7 @@ class SearchIndexerUpdaterWorker @Inject constructor(
                                 )
                             )
                         } else {
-                            printInfo("Failed to decode bitmap for media: ${mediaItem.id} at ${mediaItem.getUri()}")
+                            printInfo("Failed to produce embedding for media: ${mediaItem.id} at ${mediaItem.getUri()}")
                         }
                         yield()
                     }
@@ -140,7 +157,7 @@ class SearchIndexerUpdaterWorker @Inject constructor(
                         val cloudMedia = entity.toUriMedia()
                         val request = ImageRequest(appContext, cloudMedia.getUri().toString()) {
                             colorSpace(BitmapColorSpace(ColorSpace.Named.SRGB))
-                            size(224, 224)
+                            size(decodeSize, decodeSize)
                         }
                         val result = appContext.sketch.execute(request)
                         val bitmap = result.image?.asBitmapOrNull()

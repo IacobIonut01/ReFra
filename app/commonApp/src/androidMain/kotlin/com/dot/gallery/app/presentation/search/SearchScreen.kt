@@ -3,13 +3,43 @@ package com.dot.gallery.app.presentation.search
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import com.dot.gallery.ui.theme.Spacing
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.LocalEventHandler
@@ -32,6 +62,9 @@ import com.dot.gallery.feature.search.SearchViewModel
 import com.dot.gallery.domain.uri.query
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.help_search_see_all
+import com.dot.gallery.generated.resources.help_tips_hide
+import com.dot.gallery.generated.resources.help_tips_matches
+import com.dot.gallery.generated.resources.help_tips_show
 import com.dot.gallery.generated.resources.help_tips_section_title
 
 
@@ -62,6 +95,7 @@ fun SearchScreen(
     val topLensModels by viewModel.topLensModels.collectAsStateWithLifecycle()
     val topMediaModes by viewModel.topMediaModes.collectAsStateWithLifecycle()
     val topGroupTypes by viewModel.topGroupTypes.collectAsStateWithLifecycle()
+    val typedSuggestions by viewModel.typedSuggestions.collectAsStateWithLifecycle()
 
     SearchContent(
         state = SearchState(
@@ -84,6 +118,7 @@ fun SearchScreen(
             topLensModels = topLensModels,
             topMediaModes = topMediaModes,
             topGroupTypes = topGroupTypes,
+            typedSuggestions = typedSuggestions,
         ),
         actions = SearchActions(
             onBack = { eventHandler.navigateUp() },
@@ -122,6 +157,16 @@ fun SearchScreen(
             onOpenSearchResult = { mediaId ->
                 eventHandler.navigate(Screen.MediaViewScreen.idAndQuery(mediaId))
             },
+            onClearHistory = viewModel::clearHistory,
+            onOpenAlbum = { albumId, label ->
+                eventHandler.navigate(Screen.AlbumViewScreen.album(albumId, label))
+            },
+            onFavoritesFilter = viewModel::setFavoritesQuery,
+            onSetUpSmartSearch = {
+                eventHandler.navigate(Screen.IntelligenceFeatureScreen.feature("SMART_SEARCH"))
+            },
+            onSeeAllCategories = { eventHandler.navigate(Screen.CategoriesScreen()) },
+            onSeeAllPlaces = { eventHandler.navigate(Screen.LocationsScreen()) },
         ),
         isScrolling = isScrolling,
         sharedTransitionScope = sharedTransitionScope,
@@ -148,9 +193,10 @@ fun SearchScreen(
 }
 
 /**
- * Compact "Help & Tips" section shown above the media results in the timeline
- * search. Renders the top matching tips; a "See all" row opens the full Help
- * screen. Tapping a tip navigates to its detail (never mutates search state).
+ * "Help & Tips" for the current query, shown above the media results. It starts as a single
+ * compact row with the match count, since tips are rarely what a search is for; tapping it
+ * expands the top matching tips and a "See all" row that opens the full Help screen. Tapping
+ * a tip navigates to its detail (never mutates search state).
  */
 @Composable
 private fun HelpTipsSearchSection(
@@ -159,11 +205,74 @@ private fun HelpTipsSearchSection(
     onSeeAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Build the same settings-DSL structure the search history uses: a section
-    // Header followed by slim Preference rows, rendered through SettingsItem so the
-    // grouping, corners and typography match history exactly.
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val chevronRotation by animateFloatAsState(if (expanded) 180f else 0f, label = "helpTipsChevron")
+    val toggleLabel = stringResource(if (expanded) Res.string.help_tips_hide else Res.string.help_tips_show)
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.ScreenHorizontal, vertical = Spacing.Small)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .clickable(onClickLabel = toggleLabel, role = Role.Button) { expanded = !expanded }
+                .padding(start = 12.dp, end = Spacing.Medium, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.tertiaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Lightbulb,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(Res.string.help_tips_section_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = pluralStringResource(Res.plurals.help_tips_matches, tips.size, tips.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                imageVector = Icons.Outlined.ExpandMore,
+                contentDescription = null,
+                modifier = Modifier.rotate(chevronRotation),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            HelpTipsList(tips = tips, onTipClick = onTipClick, onSeeAll = onSeeAll)
+        }
+    }
+}
+
+@Composable
+private fun HelpTipsList(
+    tips: List<HelpSearchItem>,
+    onTipClick: (HelpSearchItem) -> Unit,
+    onSeeAll: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // Slim Preference rows rendered through SettingsItem so the grouping, corners and
+    // typography match the rest of the app's grouped lists.
     val entities = buildList {
-        add(SettingsEntity.Header(stringResource(Res.string.help_tips_section_title)))
         tips.take(3).forEach { tip ->
             add(
                 SettingsEntity.Preference(
@@ -187,27 +296,13 @@ private fun HelpTipsSearchSection(
         modifier = modifier.fillMaxWidth()
     ) {
         entities.forEachIndexed { index, item ->
-            val position = when (index) {
-                0 -> if (entities.size == 1) Position.Alone else Position.Top
-                entities.lastIndex ->
-                    if (entities[index - 1] is SettingsEntity.Header) Position.Alone
-                    else Position.Bottom
-
-                else -> {
-                    val previous = entities[index - 1]
-                    val next = entities[index + 1]
-                    when {
-                        previous is SettingsEntity.Header && next is SettingsEntity.Header -> Position.Alone
-                        previous is SettingsEntity.Header -> Position.Top
-                        next is SettingsEntity.Header -> Position.Bottom
-                        else -> Position.Middle
-                    }
-                }
+            val position = when {
+                entities.size == 1 -> Position.Alone
+                index == 0 -> Position.Top
+                index == entities.lastIndex -> Position.Bottom
+                else -> Position.Middle
             }
-            val newItem = when (item) {
-                is SettingsEntity.Preference -> item.copy(screenPosition = position)
-                else -> item
-            }
+            val newItem = item.copy(screenPosition = position)
             SettingsItem(
                 item = newItem,
                 slimLayout = true,

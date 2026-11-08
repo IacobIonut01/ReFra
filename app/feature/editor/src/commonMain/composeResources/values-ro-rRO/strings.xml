@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Dimensiune</string>
     <string name="editor_brush_strength">Putere</string>
     <string name="editor_blur_faces">Estompează fețele</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 biți)</string>
+    <string name="raw_export_tiff16">TIFF (16 biți)</string>
+    <string name="raw_export_choose_format">Salvează copia elaborată</string>
+    <string name="raw_export_choose_format_subtitle">Alegeți un format pentru fișierul RAW pe care l-ați prelucrat</string>
+    <string name="raw_export_tiff_unavailable">Formatul TIFF păstrează adâncimea de biți completă, dar nu poate include decupaje, filtre sau marcaje — eliminați-le pentru a exporta în format TIFF.</string>
+    <string name="editor_mosaic_faces">Fețe mozaicate</string>
+    <string name="cutout_no_object">Nu s-a detectat niciun obiect la apăsarea îndelungată</string>
+    <string name="cutout_init_failed">Nu s-a reușit inițializarea motorului de decupare</string>
 </resources>

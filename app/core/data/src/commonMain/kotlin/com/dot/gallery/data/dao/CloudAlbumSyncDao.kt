@@ -20,6 +20,9 @@ interface CloudAlbumSyncDao {
     @Query("SELECT * FROM cloud_album_sync")
     fun getAll(): Flow<List<CloudAlbumSyncEntity>>
 
+    @Query("SELECT * FROM cloud_album_sync")
+    suspend fun getAllAsync(): List<CloudAlbumSyncEntity>
+
     @Query("SELECT * FROM cloud_album_sync WHERE serverConfigId = :configId")
     fun getByServer(configId: Long): Flow<List<CloudAlbumSyncEntity>>
 

@@ -1075,17 +1075,17 @@
 
     <!-- SETTINGS: BACKUP &amp; RESTORE WIZARD (5.0.0) -->
     <string name="help_tip_settings_backup_restore_title">Back up &amp; restore app data</string>
-    <string name="help_tip_settings_backup_restore_subtitle">Export and import settings, favorites, cloud configs, and vaults</string>
+    <string name="help_tip_settings_backup_restore_subtitle">Back up settings, library data, cloud accounts, and vaults</string>
     <string name="help_tip_settings_backup_restore_p1_title">Back up your setup</string>
-    <string name="help_tip_settings_backup_restore_p1_desc">The backup &amp; restore wizard lets you export your settings, favorites, cloud server configs, and vaults into a single archive you can move to a new device or keep safe. You can optionally protect the whole archive with a password. Vault backup is off by default and requires your vault credential before any vault is included.</string>
+    <string name="help_tip_settings_backup_restore_p1_desc">Backup &amp; restore exports your settings, favorites, cloud accounts, albums and collections, categories and classifications, metadata, search history, people corrections, cloud preferences, edit-backup originals, and vaults into one archive. Derived data such as thumbnails and embeddings is rebuilt instead of copied. You can optionally protect the whole archive with a password; vault lock credentials are included only when you do. Vault backup is off by default and requires your vault credential before any vault is included.</string>
     <string name="help_tip_settings_backup_restore_p2_title">Export a backup</string>
-    <string name="help_tip_settings_backup_restore_p2_desc">Choose exactly what to include. If you enable vaults, you select which ones, and each is authenticated with its own credential at export time so nothing leaves your device unlocked by accident.</string>
+    <string name="help_tip_settings_backup_restore_p2_desc">Choose exactly what to include. If you enable vaults, you select which ones, and each is authenticated with its own credential at export time so nothing leaves your device unlocked by accident. The export runs in the background, so you can leave the screen.</string>
     <string name="help_tip_settings_backup_restore_p2_s1">Go to Settings &gt; Backup &amp; restore</string>
     <string name="help_tip_settings_backup_restore_p2_s2">Choose Export and pick what to include</string>
     <string name="help_tip_settings_backup_restore_p2_s3">Optionally set an archive password</string>
     <string name="help_tip_settings_backup_restore_p2_s4">Save the backup file to a safe place</string>
     <string name="help_tip_settings_backup_restore_p3_title">Restore from a backup</string>
-    <string name="help_tip_settings_backup_restore_p3_desc">Importing lets you pick which parts of the archive to restore. Select the backup file, enter the password if one was set, then choose the data and vaults to bring back.</string>
+    <string name="help_tip_settings_backup_restore_p3_desc">Restoring previews the archive first, asking for a password only when the file is actually encrypted. Pick the sections and vaults to bring back; existing data is kept and conflicts are reported. The restore runs in the background and resumes if the app restarts.</string>
     <string name="help_tip_settings_backup_restore_p3_s1">Choose Import and select your backup file</string>
     <string name="help_tip_settings_backup_restore_p3_s2">Enter the password if the archive is encrypted</string>
     <string name="help_tip_settings_backup_restore_p3_s3">Pick the data and vaults to restore</string>
@@ -1147,14 +1147,11 @@
 
     <!-- HELP SEARCH -->
     <string name="help_search_hint">Search help &amp; tips</string>
-    <string name="help_search_clear">Clear search</string>
     <string name="help_search_no_results">No help found for "%1$s"</string>
     <string name="help_search_section_tips">Tips &amp; how-to</string>
     <string name="help_search_section_settings">Settings</string>
     <string name="help_search_section_actions">Quick actions</string>
     <string name="help_search_section_changelog">What's new</string>
-    <string name="help_search_see_all">See all %1$d results</string>
-    <string name="help_tips_section_title">Help &amp; Tips</string>
     <string name="help_quick_actions">Quick actions</string>
 
     <!-- HELP QUICK-ACTION LABELS -->
@@ -1167,8 +1164,6 @@
     <string name="help_qa_open_favorites">Open Favorites</string>
     <string name="help_qa_open_locations">Open Locations</string>
     <string name="help_qa_open_library">Open Library</string>
-    <string name="help_qa_open_color_palette">Open Color palette</string>
-    <string name="help_qa_open_appearance">Open Appearance settings</string>
 
     <!-- COVERAGE COMPLETION TIPS (100% audit) -->
     <string name="help_tip_view_cutout_title">Cut out a subject</string>
@@ -1361,7 +1356,6 @@
     <string name="help_tip_cloud_two_way_sync_p1_s1">Open an account's settings or Advanced settings</string>
     <string name="help_tip_cloud_two_way_sync_p1_s2">Enable Download remote media and optionally Download videos</string>
     <string name="help_tip_cloud_two_way_sync_p1_s3">Enable Sync remote deletions to remove app-owned local copies</string>
-    <string name="help_tip_cloud_two_way_sync_p1_s4">Use Download all remote media from Sync status for a full pull</string>
 
     <string name="help_tip_cloud_smart_search_title">Server-side smart search</string>
     <string name="help_tip_cloud_smart_search_subtitle">Let capable servers answer searches</string>
@@ -1511,6 +1505,7 @@
     <string name="change_app_name">App name</string>
     <string name="show_favorite_button">Favorite button in viewer</string>
     <string name="default_image_editor">Default image editor</string>
+    <string name="default_video_editor">Default video editor</string>
     <string name="settings_title">Settings</string>
     <string name="settings_trash_title">Use trash can</string>
     <string name="map_appearance_title">Map appearance</string>
@@ -1536,7 +1531,7 @@
     <string name="disable_smoothing_title">Disable smoothing</string>
     <string name="auto_hide_on_video_play">Hide UI on Video Play</string>
     <string name="dark_media_viewer_title">Dark viewer background</string>
-    <string name="ai_models_manager">AI Models Manager</string>
+    <string name="ai_models_manager">Intelligence Hub</string>
     <string name="categories_exclude_videos">Exclude videos</string>
     <string name="date_header">Date Formats</string>
     <string name="categories">Categories</string>
@@ -1559,7 +1554,6 @@
     <string name="settings_trash_confirmation_title">Require confirmation on trash</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="dismiss">Dismiss</string>
-    <string name="pinned_albums_as_grid_title">Pinned albums as tiles</string>
     <string name="media_type_albums_setting_title">Show media type albums</string>
     <string name="location_categories_title">Location categories</string>
     <string name="album_sections_title">Organize albums by sections</string>
@@ -1610,7 +1604,7 @@
     <string name="group_method_title">Media grouping</string>
     <string name="cloud_free_space_auto">Run automatically</string>
     <string name="change_app_logo">App logo</string>
-    <string name="long_press_cutout_title">Long-press to cut out</string>
+    <string name="long_press_action_title">Long-press action</string>
     <string name="slideshow_interval">Interval</string>
     <string name="slideshow_random">Shuffle</string>
     <string name="slideshow_reverse">Reverse order</string>

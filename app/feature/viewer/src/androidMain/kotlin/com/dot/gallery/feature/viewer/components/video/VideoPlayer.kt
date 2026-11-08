@@ -158,7 +158,7 @@ fun <T : Media> VideoPlayer(
     // HDR classification rides onTracksChanged, which fires before the renderer is ready and
     // stays set even when decoding fails — so it must be reported outside the `ready`-gated
     // controller below or failed/unsupported clips (e.g. profile-5 Dolby Vision) would never
-    // reach the details sheet (#1274).
+    // reach the details sheet.
     LaunchedEffect(playback.videoHdr) {
         onVideoHdrChanged(playback.videoHdr)
     }
@@ -274,13 +274,13 @@ fun <T : Media> VideoPlayer(
     // shared compose root for every pager page, so a pre-composed or disposing
     // neighbour writing keepScreenOn=false to it races with and can clobber
     // the playing page's request — the screen then times out mid-playback
-    // (#1005, #1067). The framework ORs keepScreenOn across the view tree, so
+    //The framework ORs keepScreenOn across the view tree, so
     // scoping it to this page's surface view makes it truly per-page; it also
     // clears itself when the page's view detaches, no onDispose needed.
     LaunchedEffect(isPlayingState.value, surfaceViewRef) {
         surfaceViewRef?.keepScreenOn = isPlayingState.value
     }
-    // Workaround for #967: on some devices (notably Samsung) the video SurfaceView
+    // Workaround: on some devices (notably Samsung) the video SurfaceView
     // blacks out when the system bars are toggled while playing — the player keeps
     // decoding but its output surface stops presenting. When enabled we re-bind the
     // player to the surface on every system-bar visibility change. Read via
@@ -465,7 +465,7 @@ fun <T : Media> VideoPlayer(
                         } else {
                             SurfaceView(ctx).also { sv ->
                                 surfaceViewRef = sv
-                                // #967 workaround: re-bind the player surface whenever the
+                                // workaround: re-bind the player surface whenever the
                                 // system bars are shown/hidden, so the video keeps presenting
                                 // through immersive transitions on affected devices.
                                 var lastBarsVisible: Boolean? = null
@@ -543,7 +543,7 @@ fun <T : Media> VideoPlayer(
             // content yet (e.g. when swiping to the next video). The viewer forces
             // a black background when blur is enabled, so painting the cover with
             // MaterialTheme.colorScheme.background (white in a light theme) caused a
-            // white flash between videos (#1021).
+            // white flash between videos.
             Box(
                 Modifier
                     .fillMaxSize()

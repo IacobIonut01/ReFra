@@ -1,0 +1,47 @@
+---
+title: Markup (legacy)
+summary: Draw, highlight, blur, and add text on top of a photo in the editor.
+area: edit-legacy
+path:
+  - Media viewer
+  - Edit
+  - Markup
+related: [legacy-editor, legacy-save-edits]
+scenes: [editor-photo, markup-text]
+order: 5
+---
+
+The **Markup** tab in the [editor](/ReFra/features/legacy-editor) draws on top of the photo. While a markup session is open, **Apply markup** commits it and **Cancel markup** throws it away; **Save** stays disabled until the session is finished.
+
+## The tools
+
+<PreviewCollection feature="legacy-markup" section="tools" />
+
+- **Stylus / Pen** and **Highlighter**: freehand drawing; the highlighter lays translucent strokes.
+- **Marker**: a bolder freehand stroke.
+- **Blur** and **Mosaic**: paint over areas to soften or pixelate them.
+- **Text**: tap to place, type into **Type something**, pick a colour dot, **Done**; an existing text can be **Remove**d.
+- **Eraser**: removes strokes you made.
+- **Pan**: moves around the zoomed image without drawing.
+
+Ink tools get a colour picker (hue, vibrancy, and saturation controls) plus a **Size** slider. The brush size runs 15 to 150 and blur/mosaic strength shows as a percentage.
+
+## Working with text
+
+<PreviewCollection feature="legacy-markup" section="text" />
+
+1. Tap **Text**, type into **Type something**, pick a colour dot, and tap **Done**.
+2. Tap the placed text to select it. Drag its body to move it; the top-left **X** deletes it, the top-right curved arrow rotates it, and the bottom corners resize it.
+3. Two fingers on the selected text rotate and resize it together; two fingers anywhere else zoom and pan the canvas underneath.
+4. **Apply markup** keeps it; **Cancel markup** throws the whole session away.
+
+## Blur or mosaic faces
+
+When the **Face Detection** model is installed (see [AI models](/ReFra/features/ai-models)), the Blur and Mosaic tools each get an automatic faces action: **Blur faces** under Blur, **Mosaic faces** under Mosaic. Tapping it finds faces and stamps each one with the active effect; you can still paint over the revealed regions to touch up. Automatic obscuring is a visual step, not a privacy guarantee; zoom the result and check it before sharing.
+
+## Example: hide an address label
+
+1. Open the parcel photo, **Edit › Markup**.
+2. Choose **Mosaic**, set a generous size and strength, and paint until every letter of the address is covered.
+3. **Apply markup**, then **Save Copy**.
+4. Open the saved copy and zoom into the label area to confirm nothing readable leaks before sharing.

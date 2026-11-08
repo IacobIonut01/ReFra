@@ -108,10 +108,13 @@ fun GridPinchZoomLayout(
     state: GridPinchZoomState,
     modifier: Modifier = Modifier,
     indicatorTopPadding: Dp = 32.dp,
+    /** Called when a pinch out goes past the widest grid; null keeps the widest grid as the end. */
+    onPinchOutPastMin: (() -> Unit)? = null,
     content: @Composable GridPinchZoomScope.() -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
+    val pinchOutPastMin by androidx.compose.runtime.rememberUpdatedState(onPinchOutPastMin)
     val pinchScope = remember(state) {
         GridPinchZoomScopeImpl(state)
     }
@@ -120,7 +123,7 @@ fun GridPinchZoomLayout(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(state) {
+                .pointerInput(state, onPinchOutPastMin != null) {
                     val touchSlop = viewConfiguration.touchSlop
                     awaitEachGesture {
                         awaitFirstDown(requireUnconsumed = false)
@@ -163,7 +166,7 @@ fun GridPinchZoomLayout(
                                     // Determine current snap zone and vibrate on transitions
                                     val snapZone = when {
                                         s > 1.15f && state.currentCellsIndex < state.cellsList.lastIndex -> 1
-                                        s < 0.85f && state.currentCellsIndex > 0 -> -1
+                                        s < 0.85f && (state.currentCellsIndex > 0 || onPinchOutPastMin != null) -> -1
                                         else -> 0
                                     }
                                     if (snapZone != lastSnapZone) {
@@ -176,7 +179,17 @@ fun GridPinchZoomLayout(
                             }
                         } while (!canceled && event.changes.any { it.pressed })
 
-                        if (pastTouchSlop) {
+                        if (pastTouchSlop && onPinchOutPastMin != null &&
+                            state.accumulatedScale < 0.85f && state.currentCellsIndex == 0
+                        ) {
+                            state.zoomProgress = 0f
+                            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                            pinchOutPastMin?.invoke()
+                            scope.launch {
+                                state.scaleAnimatable.animateTo(1f, spring(stiffness = Spring.StiffnessMedium))
+                                state.isZooming = false
+                            }
+                        } else if (pastTouchSlop) {
                             val scale = state.accumulatedScale
                             val targetIndex = if (scale > 1.15f) {
                                 (state.currentCellsIndex + 1).coerceAtMost(state.cellsList.lastIndex)

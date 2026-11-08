@@ -1,5 +1,7 @@
 package com.dot.gallery.core.util
 
+import com.dot.gallery.core.presentation.components.LocalFloatingProgressRegistry
+import com.dot.gallery.core.presentation.components.LocalMediaRotationTracker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -39,7 +41,6 @@ import com.github.panpf.sketch.request.ImageRequest
 import com.github.panpf.sketch.request.ImageResult
 import com.github.panpf.sketch.request.Listener
 import com.github.panpf.sketch.request.disallowAnimatedImage
-import com.github.panpf.sketch.resize.Precision
 import com.github.panpf.sketch.sketch
 import com.github.panpf.sketch.state.IntColorDrawableStateImage
 import com.dot.gallery.domain.util.getUri
@@ -50,11 +51,10 @@ import com.dot.gallery.domain.util.EventHandler
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.core.image.thumbnail.LocalThumbnailMotion
-import com.dot.gallery.domain.util.isEncrypted
 import com.dot.gallery.domain.util.isGif
-import com.dot.gallery.domain.model.idLessKey
 import com.dot.gallery.core.presentation.components.MediaPrefetcher
 import com.dot.gallery.feature.viewer.LocalViewerRuntime
+import com.dot.gallery.feature.viewer.components.media.mediaPreviewOptions
 import com.dot.gallery.injection.ComponentOwner
 
 
@@ -69,12 +69,27 @@ private val HEAVY_CODEC_EXTENSIONS = listOf(
 )
 
 /**
- * Pixel bound for the cheap MOTION tier loaded during a fling (#1076 Phase 3). Small enough to
+ * Pixel bound for the cheap MOTION tier loaded during a fling. Small enough to
  * decode quickly (and to be served by the platform MediaStore thumbnail fast path) yet crisp
  * enough to avoid obvious blur on dense grids. Reused as the REFINED request's placeholder.
  */
 private const val THUMBNAIL_MOTION_PX = 256
-private val refinedThumbnailLoadTracker = RefinedThumbnailLoadTracker(capacity = 2_048)
+private val refinedThumbnailLoadTracker = SynchronizedRefinedThumbnailLoadTracker(capacity = 2_048)
+
+/**
+ * Glide Compose delivers [RequestListener] callbacks on its decode threads while composition
+ * reads on the main thread, and [RefinedThumbnailLoadTracker]'s LRU map is not thread-safe, so
+ * every access is serialised here.
+ */
+internal class SynchronizedRefinedThumbnailLoadTracker(capacity: Int) {
+    private val tracker = RefinedThumbnailLoadTracker(capacity)
+
+    @Synchronized
+    fun hasLoaded(key: RefinedThumbnailKey): Boolean = tracker.hasLoaded(key)
+
+    @Synchronized
+    fun markLoaded(key: RefinedThumbnailKey) = tracker.markLoaded(key)
+}
 
 private fun refinedThumbnailListener(onLoaded: () -> Unit) = object : RequestListener<Drawable> {
     override fun onLoadFailed(
@@ -124,7 +139,7 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
         signature: Any?
     ) {
         val allowGifAnimation by Settings.Misc.rememberAllowGifAnimation()
-        // Phase 3 (#1076): scroll-aware tier. Completed refined loads never downgrade during motion.
+        // scroll-aware tier. Completed refined loads never downgrade during motion.
         val isMoving = LocalThumbnailMotion.current?.value == true
         val signatureStr = signature?.toString() ?: ""
         val thumbnailKey = remember(model, signatureStr) {
@@ -158,7 +173,7 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
             loading = placeholder(0x4D444444.toDrawable()),
             failure = placeholder(0x33444444.toDrawable()),
             requestBuilderTransform = {
-                // #1276: AUTOMATIC, not ALL — ALL also source-caches the fetched InputStream for
+                // AUTOMATIC, not ALL — ALL also source-caches the fetched InputStream for
                 // LOCAL fetchers, copying each multi-MB original into the bounded disk cache and
                 // evicting the decoded thumbnails it just wrote. Remote models still cache source.
                 val base = it.centerCrop().diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
@@ -179,7 +194,7 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
                     if (!isHeavyCodec) refined = refined.thumbnail(motion)
                     refined
                 }
-                // Phase 1 (#1076): attach the bounded telemetry listener (staging/debug only;
+                // attach the bounded telemetry listener (staging/debug only;
                 // null in release so this is a no-op there).
                 ThumbnailTelemetry.listener(surface = "grid", tier = tier)?.let {
                     request = request.addListener(it)
@@ -216,7 +231,7 @@ val SketchMediaImageRenderer = object : MediaImageRenderer {
     ) {
         val context = LocalContext.current
         val allowGifAnimation by Settings.Misc.rememberAllowGifAnimation()
-        // Phase 3 (#1076): scroll-aware tier. Completed refined loads never downgrade during motion.
+        // scroll-aware tier. Completed refined loads never downgrade during motion.
         val isMoving = LocalThumbnailMotion.current?.value == true
         val signatureStr = signature?.toString() ?: ""
         val thumbnailKey = remember(model, signatureStr) {
@@ -272,7 +287,7 @@ val SketchMediaImageRenderer = object : MediaImageRenderer {
                         )
                     }
                 }
-                // Phase 1 (#1076): attach the bounded telemetry listener (staging/debug only;
+                // attach the bounded telemetry listener (staging/debug only;
                 // null in release so this is a no-op there).
                 ThumbnailTelemetry.sketchListener(surface = "grid", tier = tier)?.let {
                     addListener(it)
@@ -284,18 +299,15 @@ val SketchMediaImageRenderer = object : MediaImageRenderer {
 
 
 /**
- * Sketch-backed [MediaPrefetcher]: warms the full-size cache before the viewer opens.
- * Cache key extras match the viewer's request so the prefetch stays valid (#1004).
+ * Sketch-backed [MediaPrefetcher]: warms the viewer's low-res preview cache before the viewer
+ * opens. The request comes from the same builder the viewer uses ([mediaPreviewOptions]), so the
+ * prefetched entry is a cache hit for the shared-element thumbnail *and* the blurred backdrop
+ * that the viewer derives from it.
  */
 private fun sketchMediaPrefetcher(context: Context) = MediaPrefetcher { media ->
     context.sketch.enqueue(
         ImageRequest(context, media.getUri().toString()) {
-            resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
-            setExtra("realMimeType", media.mimeType)
-            setExtra(key = "mediaVersion", value = "${media.timestamp}:${media.size}")
-            if (media.isEncrypted) {
-                setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
-            }
+            mediaPreviewOptions(media)
         }
     )
 }
@@ -310,6 +322,7 @@ fun SetupMediaProviders(
     content: @Composable () -> Unit
 ): Unit {
     val context = LocalContext.current
+    val component = (context.applicationContext as ComponentOwner).component
     CompositionLocalProvider(
     LocalEventHandler provides eventHandler,
     LocalMediaDistributor provides mediaDistributor,
@@ -317,7 +330,9 @@ fun SetupMediaProviders(
     LocalMediaSelector provides mediaSelector,
     LocalMediaImageRenderer provides mediaImageRenderer,
         LocalMediaPrefetcher provides sketchMediaPrefetcher(context),
-        LocalViewerRuntime provides (context.applicationContext as ComponentOwner).component,
+        LocalViewerRuntime provides component,
+        LocalFloatingProgressRegistry provides component.floatingProgressRegistry,
+        LocalMediaRotationTracker provides component.mediaRotationTracker,
         content = content
     )
 }

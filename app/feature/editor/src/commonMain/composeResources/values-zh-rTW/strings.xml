@@ -55,4 +55,14 @@
     <string name="editor_brush_size">大小</string>
     <string name="editor_brush_strength">強度</string>
     <string name="editor_blur_faces">模糊人臉</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">巴布亞新幾內亞</string>
+    <string name="raw_export_tiff8">TIFF（8 位元）</string>
+    <string name="raw_export_tiff16">TIFF（16 位元）</string>
+    <string name="raw_export_choose_format">儲存已沖印的底片</string>
+    <string name="raw_export_choose_format_subtitle">為您沖洗完成的 RAW 檔案選擇一個格式</string>
+    <string name="raw_export_tiff_unavailable">TIFF 會保留完整的位元深度，但無法包含裁切、濾鏡或標記 — 請先移除這些內容，再匯出為 TIFF 檔案。</string>
+    <string name="editor_mosaic_faces">馬賽克面孔</string>
+    <string name="cutout_no_object">長按時未偵測到任何物件</string>
+    <string name="cutout_init_failed">無法初始化剪裁引擎</string>
 </resources>

@@ -55,7 +55,11 @@ class MediaViewBackendImpl @Inject constructor(
                 .transformWhile { info ->
                     if (!info.isFinished) {
                         val status = info.progress.getInt(RotateMediaWorker.KEY_STATUS, -1)
-                        if (status >= 0) emit(RotateUpdate.Stage(stageForStatus(status)))
+                        // Terminal statuses land in progress just before the task finishes;
+                        // they are not stages and must not flash "Preparing…".
+                        if (status >= 0 && status != RotateMediaWorker.Status.COMPLETED &&
+                            status != RotateMediaWorker.Status.FAILED
+                        ) emit(RotateUpdate.Stage(stageForStatus(status)))
                         true
                     } else {
                         emit(

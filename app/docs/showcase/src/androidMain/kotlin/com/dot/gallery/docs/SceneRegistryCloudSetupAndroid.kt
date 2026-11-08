@@ -36,7 +36,8 @@ val cloudSetupScenes: List<DocsScene> = listOf(
         id = "cloud-accounts",
         title = "Cloud accounts",
         pathTrace = listOf("Settings", "Cloud accounts"),
-        states = listOf("empty", "connected", "error"),
+        states = listOf("empty", "connected", "error", "scrolled"),
+        swipedStates = listOf("scrolled"),
     ) { state -> DocsCloudAccountsScene(state) },
     DocsScene(
         id = "cloud-setup-immich",

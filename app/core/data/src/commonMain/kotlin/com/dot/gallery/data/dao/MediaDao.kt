@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MediaDao {
 
-    /** UriMedia */
     @Query("SELECT * FROM media ORDER BY timestamp DESC")
     suspend fun getMedia(): List<UriMedia>
 
@@ -44,13 +43,8 @@ interface MediaDao {
             return
         }
 
-        // Upsert the items in mediaList
         addMediaList(mediaList)
-
-        // Get the IDs of the media items in mediaList
         val mediaIds = mediaList.map { it.id }
-
-        // Delete items from the database that are not in mediaList
         deleteMediaNotInList(mediaIds)
     }
 
@@ -63,7 +57,6 @@ interface MediaDao {
     @Query("DELETE FROM media WHERE id IN (:mediaIds)")
     suspend fun deleteMediaByIds(mediaIds: List<Long>)
 
-    /** MediaVersion */
     @Upsert(entity = MediaVersion::class)
     suspend fun setMediaVersion(version: MediaVersion)
 
@@ -73,9 +66,11 @@ interface MediaDao {
     @Query("DELETE FROM media_version")
     suspend fun invalidateMediaVersion()
 
-    /** Timeline Settings */
     @Query("SELECT * FROM timeline_settings LIMIT 1")
     fun getTimelineSettings(): Flow<TimelineSettings?>
+
+    @Query("SELECT * FROM timeline_settings LIMIT 1")
+    suspend fun getTimelineSettingsOnce(): TimelineSettings?
 
     @Upsert(entity = TimelineSettings::class)
     suspend fun setTimelineSettings(settings: TimelineSettings)

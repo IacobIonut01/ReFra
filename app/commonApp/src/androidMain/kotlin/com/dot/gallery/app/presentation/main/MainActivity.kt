@@ -5,6 +5,11 @@
 
 package com.dot.gallery.app.presentation.main
 
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.WindowInsets
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -14,6 +19,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,6 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
@@ -44,6 +53,9 @@ import com.dot.gallery.core.ScrollToTopController
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.presentation.components.util.permissionGranted
 import com.dot.gallery.core.presentation.components.AppBarContainer
+import com.dot.gallery.core.presentation.components.LocalGalleryDetailPane
+import com.dot.gallery.core.presentation.components.LocalGalleryPaneChrome
+import com.dot.gallery.core.presentation.components.LocalGalleryRailEdge
 import com.dot.gallery.core.presentation.components.NavigationComp
 import com.dot.gallery.core.startup.LocalStartupWorkGate
 import com.dot.gallery.core.startup.StartupContentEffect
@@ -113,7 +125,7 @@ class MainActivity : AppCompatActivity() {
     private var startupContentInstalled = false
 
     /**
-     * Pending home-screen widget tap → photo deep link (#1268). Widget
+     * Pending home-screen widget tap → photo deep link. Widget
      * PendingIntents carry the media id in [WidgetDeepLink.EXTRA_WIDGET_MEDIA_ID];
      * the value is held here until the composition's navigation actions exist.
      */
@@ -224,6 +236,8 @@ class MainActivity : AppCompatActivity() {
                                     ) {
                                         retainedStoryViewerSnapshot.value = null
                                     } else {
+                                        // Main-pane controls remain usable while a wide-screen viewer is open.
+                                        mediaViewerOverlayController.dismiss()
                                         navController.navigate(route) {
                                             launchSingleTop = true
                                             restoreState = true
@@ -322,6 +336,12 @@ class MainActivity : AppCompatActivity() {
                                             bottomBarState = bottomBarState.value,
                                             isScrolling = isScrolling.value,
                                             overlayVisible = appOverlayVisible,
+                                            // Stories open beside the gallery too; their retained
+                                            // snapshot keeps the pane through the exit fade.
+                                            mediaOverlayPresent = storyViewerSnapshot != null ||
+                                                retainedStoryViewerSnapshot.value != null ||
+                                                mediaViewerOverlayController.route != null ||
+                                                mediaViewerOverlayController.retainedRoute != null,
                                             overlayContent = { sharedTransitionScope, animatedVisibilityScope, dismissBridge ->
                                                 // One call site per overlay content type so the
                                                 // composition (and each viewer's ViewerDismissState)
@@ -336,7 +356,9 @@ class MainActivity : AppCompatActivity() {
                                                         route = mediaRoute,
                                                         controller = mediaViewerOverlayController,
                                                         navController = navController,
-                                                        paddingValues = paddingValues,
+                                                        paddingValues = if (LocalGalleryDetailPane.current) {
+                                                            PaddingValues(bottom = paddingValues.calculateBottomPadding())
+                                                        } else paddingValues,
                                                         allowBlur = allowBlur,
                                                         toggleRotate = ::toggleOrientation,
                                                         sharedTransitionScope = sharedTransitionScope,
@@ -359,14 +381,43 @@ class MainActivity : AppCompatActivity() {
                                                         animatedVisibilityScope = animatedVisibilityScope,
                                                         sessionKey = storyViewerOpenCount,
                                                         dismissBridge = dismissBridge,
+                                                        onOpenAllMemories = {
+                                                            storyCardsViewModel.clearViewerSnapshot()
+                                                            navController.navigate(Screen.MemoriesScreen())
+                                                        }.takeUnless {
+                                                            navBackStackEntry?.destination?.route == Screen.MemoriesScreen()
+                                                        },
                                                     )
                                                 }
                                             },
                                         ) { sharedTransitionScope ->
+                                            val layoutDirection = LocalLayoutDirection.current
+                                            val paneChrome = LocalGalleryPaneChrome.current
+                                            val railEdge = LocalGalleryRailEdge.current
+                                            val navEnd = with(LocalDensity.current) {
+                                                (if (layoutDirection == LayoutDirection.Ltr) {
+                                                    WindowInsets.navigationBars.getRight(this, layoutDirection)
+                                                } else {
+                                                    WindowInsets.navigationBars.getLeft(this, layoutDirection)
+                                                }).toDp()
+                                            }
                                             NavigationComp(
                                                 navController = navController,
                                                 sharedTransitionScope = sharedTransitionScope,
-                                                paddingValues = paddingValues,
+                                                // Inset panes already sit below the status bar, and a
+                                                // start-edge rail already keeps clear of the cutout. The
+                                                // far edge keeps only the navigation bar: a cutout band
+                                                // there would waste its full height for a small hole.
+                                                paddingValues = if (paneChrome || railEdge) {
+                                                    PaddingValues(
+                                                        start = if (railEdge) 0.dp
+                                                            else paddingValues.calculateStartPadding(layoutDirection),
+                                                        end = if (railEdge) navEnd
+                                                            else paddingValues.calculateEndPadding(layoutDirection),
+                                                        top = if (paneChrome) 0.dp else paddingValues.calculateTopPadding(),
+                                                        bottom = paddingValues.calculateBottomPadding(),
+                                                    )
+                                                } else paddingValues,
                                                 bottomBarState = bottomBarState,
                                                 systemBarFollowThemeState = systemBarFollowThemeState,
                                                 toggleRotate = ::toggleOrientation,
@@ -404,10 +455,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        // Phase 1 (#1076): flush bounded thumbnail telemetry when backgrounding so a scroll/soak
+        // flush bounded thumbnail telemetry when backgrounding so a scroll/soak
         // session's latency + cache-source distribution can be read from logcat (staging/debug only).
         ThumbnailTelemetry.logDump()
-        // #1276: disk-cache occupancy + persistent-thumbnail-store counters alongside the dump.
+        // disk-cache occupancy + persistent-thumbnail-store counters alongside the dump.
         ThumbnailTelemetry.logStorageStats(this)
     }
 

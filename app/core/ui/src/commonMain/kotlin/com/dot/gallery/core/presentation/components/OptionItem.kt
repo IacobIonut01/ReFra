@@ -15,6 +15,8 @@ data class OptionItem(
     val summary: String? = null,
     val onClick: (summary: String) -> Unit,
     val enabled: Boolean = true,
+    /** Marks an option as needing attention, mirroring the header's unread badge. */
+    val attention: Boolean = false,
     val containerColor: Color? = null,
     val contentColor: Color? = null,
 )

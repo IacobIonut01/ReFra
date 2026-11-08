@@ -31,8 +31,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.ModalSheet
-import com.dot.gallery.core.presentation.components.SetupButton
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Schedule
+import com.dot.gallery.core.Position
+import com.dot.gallery.core.presentation.components.ExpressiveSheet
+import com.dot.gallery.core.presentation.components.SheetDismissConfirmActions
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetOptionRow
+import com.dot.gallery.core.presentation.components.SheetRowTrailing
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.domain.date.formatEpochSec
 import com.dot.gallery.domain.date.systemDatePattern
@@ -95,61 +103,23 @@ fun CaptureDateEditSheetContent(
     var showDatePicker by rememberSaveable(media.id) { mutableStateOf(false) }
     var showTimePicker by rememberSaveable(media.id) { mutableStateOf(false) }
 
-    ModalSheet(
-        sheetState = state,
-        title = stringResource(
-            if (needsEmbeddedCaptureDate) Res.string.set_capture_date else Res.string.edit_capture_date
-        ),
-        subtitle = stringResource(Res.string.capture_date_may_move),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        content = {
-            val dateTime = remember(selectedTimestamp, zoneId) {
-                Instant.fromEpochMilliseconds(selectedTimestamp).toLocalDateTime(zoneId)
-            }
-            val datePattern = remember { systemDatePattern("yMMMd") }
-            val timePattern = remember { systemDatePattern("jm") }
-            CaptureDateValueRow(
-                title = stringResource(Res.string.capture_date_date),
-                value = (selectedTimestamp / 1000L).formatEpochSec(datePattern),
-                onClick = { showDatePicker = true }
-            )
-            CaptureDateValueRow(
-                title = stringResource(Res.string.capture_date_time),
-                value = (selectedTimestamp / 1000L).formatEpochSec(timePattern),
-                onClick = { showTimePicker = true }
-            )
-            Text(
-                text = zoneId.offsetAt(Instant.fromEpochMilliseconds(selectedTimestamp)).toString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SetupButton(
-                    modifier = Modifier.weight(1f),
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    text = stringResource(Res.string.action_cancel),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    onClick = onDismiss
-                )
-                SetupButton(
-                    modifier = Modifier.weight(1f),
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    enabled = !busy && (selectedTimestamp != initialTimestamp || needsEmbeddedCaptureDate),
-                    text = stringResource(Res.string.save_date),
-                    onClick = { onSave(selectedTimestamp) }
-                )
-            }
-        }
-    )
+    val datePattern = remember { systemDatePattern("yMMMd") }
+    val timePattern = remember { systemDatePattern("jm") }
+    ExpressiveSheet(sheetState = state) {
+        CaptureDateEditorBody(
+            title = stringResource(
+                if (needsEmbeddedCaptureDate) Res.string.set_capture_date else Res.string.edit_capture_date
+            ),
+            date = (selectedTimestamp / 1000L).formatEpochSec(datePattern),
+            time = (selectedTimestamp / 1000L).formatEpochSec(timePattern),
+            offset = zoneId.offsetAt(Instant.fromEpochMilliseconds(selectedTimestamp)).toString(),
+            canSave = !busy && (selectedTimestamp != initialTimestamp || needsEmbeddedCaptureDate),
+            onDate = { showDatePicker = true },
+            onTime = { showTimePicker = true },
+            onDismiss = onDismiss,
+            onSave = { onSave(selectedTimestamp) },
+        )
+    }
 
     if (showDatePicker) {
         val selectedDate = Instant.fromEpochMilliseconds(selectedTimestamp)
@@ -262,25 +232,49 @@ fun CaptureDateEditSheetContent(
     }
 }
 
+/** Stateless body of the capture date sheet: header, date and time rows, zone offset, actions. */
 @Composable
-private fun CaptureDateValueRow(
+fun ColumnScope.CaptureDateEditorBody(
     title: String,
-    value: String,
-    onClick: () -> Unit,
+    date: String,
+    time: String,
+    offset: String,
+    canSave: Boolean,
+    onDate: () -> Unit,
+    onTime: () -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
 ) {
-    Row(
+    SheetHeader(title = title, body = stringResource(Res.string.capture_date_may_move))
+    SheetOptionRow(
+        title = stringResource(Res.string.capture_date_date),
+        summary = date,
+        icon = Icons.Outlined.CalendarToday,
+        position = Position.Top,
+        trailing = SheetRowTrailing.Chevron,
+        onClick = onDate,
+    )
+    SheetOptionRow(
+        title = stringResource(Res.string.capture_date_time),
+        summary = time,
+        icon = Icons.Outlined.Schedule,
+        position = Position.Bottom,
+        trailing = SheetRowTrailing.Chevron,
+        onClick = onTime,
+    )
+    Text(
+        text = offset,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(title, style = MaterialTheme.typography.titleSmall)
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
+            .padding(start = 8.dp, top = 8.dp)
+    )
+    SheetDismissConfirmActions(
+        dismissText = stringResource(Res.string.action_cancel),
+        onDismiss = onDismiss,
+        confirmText = stringResource(Res.string.save_date),
+        onConfirm = onSave,
+        confirmEnabled = canSave,
+    )
 }

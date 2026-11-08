@@ -19,6 +19,9 @@ interface MergedSubfolderDao {
     @Query("SELECT * FROM merged_subfolder_table")
     fun getMergedSubfolderAlbums(): Flow<List<MergedSubfolderAlbum>>
 
+    @Query("SELECT * FROM merged_subfolder_table")
+    suspend fun getAllAsync(): List<MergedSubfolderAlbum>
+
     @Upsert
     suspend fun insertMergedSubfolderAlbum(mergedSubfolderAlbum: MergedSubfolderAlbum)
 

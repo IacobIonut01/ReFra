@@ -1,0 +1,44 @@
+---
+title: Built-in editor (legacy)
+summary: Crop, tune, filter, and mark up photos, with RAW development and a safe save model.
+area: edit-legacy
+path:
+  - Media viewer
+  - Edit
+related: [media-viewer, legacy-crop-rotate, legacy-filters-effects, legacy-raw-development, legacy-save-edits]
+scenes: [editor-photo]
+order: 1
+---
+
+To make **Edit** always open it, set **Default image editor** to **Built-in editor** in [media viewer settings](/ReFra/features/viewer-settings). The **More** tab inside the editor lists external editors installed on the device.
+
+## The layout
+
+<PreviewCollection feature="legacy-editor" section="layout" />
+
+- **Toolbar**: **Close** on the left; **Undo**, **Redo**, **Save Copy**, and **More** (with **Overwrite** and, when a backup exists, **Revert to original**) on the right.
+- **Center**: the live preview of the image with your edits applied.
+- **Bottom**: a crop strip that is always reachable, then the tool tabs.
+
+## The tool tabs
+
+For an ordinary photo the tabs are **Smart**, **Lighting**, **Filters**, **Markup**, **Colour**, **Effects**, and **More**. A RAW file instead shows **Smart** (where available), **White balance**, **Tone**, **Detail**, **Colour**, **Output**, **Filters**, **Markup**, and **More**; the regular Lighting and Effects tabs are hidden because RAW gets its own set of development tools; see [RAW development](/ReFra/features/legacy-raw-development).
+
+Where each tool is covered:
+
+- Crop, rotate, mirror: [crop and rotate](/ReFra/features/legacy-crop-rotate)
+- Lighting and Colour sliders: [lighting and colour](/ReFra/features/legacy-lighting-colour)
+- Filters and Effects: [filters and effects](/ReFra/features/legacy-filters-effects)
+- Drawing, text, blur: [markup](/ReFra/features/legacy-markup)
+- Smart cutout / background removal: [subject cutout](/ReFra/features/subject-cutout)
+
+## Saving rules
+
+While a markup tool is active you must finish or cancel it before **Save** is enabled, and tools that are still processing wait until they apply. Closing with unsaved changes asks first: **Save Copy**, **Keep Editing**, or **Discard**. What **Save Copy** versus **Overwrite** actually does (and where files land) is covered in [saving edits](/ReFra/features/legacy-save-edits); restoring an original is in [edit backups](/ReFra/features/legacy-edit-backups).
+
+## Example: fix and keep the original
+
+1. Open a crooked backlit photo and tap **Edit**.
+2. Crop tighter and rotate it level.
+3. In **Lighting**, raise **Shadows** and pull **Highlights** down.
+4. Tap **Save Copy**; the edit lands as a new file and the original stays untouched.

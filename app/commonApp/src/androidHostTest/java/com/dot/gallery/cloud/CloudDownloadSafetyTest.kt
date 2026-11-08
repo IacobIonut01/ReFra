@@ -28,7 +28,7 @@ import com.dot.gallery.domain.model.Album
 
 
 /**
- * JVM guards for the download-safety fixes behind #1270: no remote asset-store
+ * JVM guards for the download-safety fixes behind no remote asset-store
  * layout may leak into user-visible MediaStore folders, and a REMOTE_ONLY row is
  * only re-downloaded when no verified identical local copy exists.
  */

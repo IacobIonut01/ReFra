@@ -22,7 +22,7 @@ import com.dot.gallery.feature.viewer.generated.resources.action_delete_permanen
  * Delete button for items shown from the private folder. Private-folder media
  * are SAF documents, not MediaStore entries, so deletion must go through the
  * document provider rather than a MediaStore delete request — the latter
- * crashes on tree document URIs (#1015). The confirmation dialog is supplied by
+ * crashes on tree document URIs. The confirmation dialog is supplied by
  * the app via [dialog].
  */
 @Composable

@@ -1,0 +1,1 @@
+/usr/bin/cc  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names -L/opt/homebrew/opt/ruby/lib CMakeFiles/refra_editor_color_test.dir/tests/color_test.c.o -o refra_editor_color_test  librefra_editor.a -lm

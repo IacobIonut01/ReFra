@@ -1,44 +1,77 @@
 ---
-title: Image editor
-summary: Crop, tune, filter, and mark up photos, with RAW development and a safe save model.
+title: ReFra editor
+summary: The photo and video editor that opens from Edit, with a tool catalogue, pinned tools, layers, and saved copies.
 area: edit
 path:
   - Media viewer
   - Edit
-related: [media-viewer, crop-rotate, filters-effects, raw-development, save-edits]
-scenes: [editor-photo]
+related: [lighting-colour, crop-rotate, filters-effects, save-edits, video-editor, legacy-editor]
+scenes: [studio-photo]
 order: 1
 ---
 
-The built-in editor opens from the viewer's **Edit** action. If **Edit** sends you to a different app, open **Settings › Media Viewer** and set **Default editor** to the built-in one first; see [media viewer settings](/ReFra/features/viewer-settings). The **More** tab inside the editor is the opposite direction: it lists external editors installed on the device.
+**Edit** in the viewer opens the ReFra editor by default. Photos open in the photo editor and videos in the [video editor](/ReFra/features/video-editor); both save a new copy and leave the original untouched.
+
+The photo editor opens JPEG, PNG, and camera RAW files (DNG, CR2, CR3, NEF, NRW, ARW, RAF, ORF, RW2, PEF, and SRW). Other image formats open in the [built-in editor](/ReFra/features/legacy-editor) instead. To choose a different editor, open **Settings › Media Viewer** and change **Default image editor** or **Default video editor**; see [media viewer settings](/ReFra/features/viewer-settings).
+
+Other apps can open the editor too: it accepts Android's edit request for JPEG and PNG photos and for videos, and returns the saved copy to the app that asked.
 
 ## The layout
 
-<PreviewCollection feature="editor" section="layout" />
+<PreviewCollection feature="editor" section="the-layout" />
 
-- **Toolbar**: **Close** on the left; **Undo**, **Redo**, **Save Copy**, and **More** (with **Overwrite** and, when a backup exists, **Revert to original**) on the right.
-- **Center**: the live preview of the image with your edits applied.
-- **Bottom**: a crop strip that is always reachable, then the tool tabs.
+- **Header**: **Close**, **Undo**, **Redo**, **Compare**, and **Save**, which opens the save menu; see [saving copies](/ReFra/features/save-edits). Under it, the histogram shows the tones of the current preview.
+- **Canvas**: the photo with your edits. Pinch to zoom and drag to pan. Touch and hold the photo to see the original; release to return to the edit.
+- **Toolbar**: your pinned tools, **Colour**, and **Tools**, which opens the full catalogue.
 
-## The tool tabs
+Selecting a tool opens its controls above the toolbar. While the tool is open, **Save** becomes **Apply**, which adds the change to the recipe as one undo step, and **Reset** under the header clears what the tool changed. Selecting another tool applies the open one first; **Close** leaves the tool without its change.
 
-For an ordinary photo the tabs are **Smart**, **Lighting**, **Filters**, **Markup**, **Colour**, **Effects**, and **More**. A RAW file instead shows **Smart** (where available), **White balance**, **Tone**, **Detail**, **Colour**, **Output**, **Filters**, **Markup**, and **More**; the regular Lighting and Effects tabs are hidden because RAW gets its own set of development tools; see [RAW development](/ReFra/features/raw-development).
+**Compare** splits the canvas: the original sits left of a divider you can drag, the edit to its right. Once a crop, rotation, flip, or perspective change is in the recipe, the two no longer line up, so Compare shows the whole original instead.
 
-Where each tool is covered:
+## The tool catalogue
 
-- Crop, rotate, mirror: [crop and rotate](/ReFra/features/crop-rotate)
-- Lighting and Colour sliders: [lighting and colour](/ReFra/features/lighting-colour)
-- Filters and Effects: [filters and effects](/ReFra/features/filters-effects)
-- Drawing, text, blur: [markup](/ReFra/features/markup)
-- Smart cutout / background removal: [subject cutout](/ReFra/features/subject-cutout)
+<PreviewCollection feature="editor" section="the-tool-catalogue" />
 
-## Saving rules
+**Tools** opens every tool as a grid with a search field and four filters: **All**, **Adjust**, **Retouch**, and **Compose**.
 
-While a markup tool is active you must finish or cancel it before **Save** is enabled, and tools that are still processing wait until they apply. Closing with unsaved changes asks first: **Save Copy**, **Keep Editing**, or **Discard**. What **Save Copy** versus **Overwrite** actually does (and where files land) is covered in [saving edits](/ReFra/features/save-edits); restoring an original is in [edit backups](/ReFra/features/edit-backups).
+| Group | Tools | Covered in |
+| --- | --- | --- |
+| Adjust | Light, Colour, Curves, White balance | [Light and colour](/ReFra/features/lighting-colour) |
+| Adjust | Looks, Details, Vignette, Lens blur, Grain, Colour tone, Posterize, Edges, Borders | [Looks and effects](/ReFra/features/filters-effects) |
+| Adjust | Develop (RAW files only) | [RAW development](/ReFra/features/raw-development) |
+| Retouch | Markup | [Markup](/ReFra/features/markup) |
+| Retouch | Cutout, Remove background | [Subject cutout](/ReFra/features/subject-cutout) |
+| Compose | Double exposure, Transform, Blend and opacity | [Layers](/ReFra/features/editor-layers) |
+| All only | Crop and straighten, Perspective | [Crop, straighten, and perspective](/ReFra/features/crop-rotate) |
 
-## Example: fix and keep the original
+The grid also holds **Layers**, **Source** (the original and its file details), **Edits** (every change in the recipe, with **Reset edits**), and **Settings**. **Cutout** and **Remove background** appear only once the Subject Cutout model is installed; see [AI models](/ReFra/features/ai-models).
 
-1. Open a crooked backlit photo and tap **Edit**.
-2. Crop tighter and rotate it level.
-3. In **Lighting**, raise **Shadows** and pull **Highlights** down.
-4. Tap **Save Copy**; the edit lands as a new file and the original stays untouched.
+## Pinned tools
+
+<PreviewCollection feature="editor" section="pinned-tools" />
+
+The toolbar starts with **Crop**, **Light**, **Markup**, and **Looks** pinned. In the catalogue, tap a tool's pin to add or remove it. The pin beside **All tools** opens **Edit pins**, where the arrows reorder the pinned list. You can pin up to four tools or the **Layers** workspace; **Colour** and **Tools** always stay on the toolbar.
+
+## Editor settings
+
+**Settings** in the catalogue opens the photo editor's own options:
+
+- **Histogram**: the channel the histogram shows (RGB, red, green, blue, or luminance).
+- **Show clipping**: marks crushed shadows and blown highlights on the canvas.
+- **Show grid**: draws a grid while you straighten and correct perspective.
+- **Pinned tools**: the toolbar list described above.
+- **Copy format** and **RAW export**: where a saved copy goes and in which format; see [saving copies](/ReFra/features/save-edits).
+
+## Leaving the editor
+
+Back and **Close** first close an open tool, then the catalogue or panel. With unsaved changes, closing asks **Discard these edits?** with **Discard** or **Keep editing**. If the editor is closed while a copy is still saving, it asks before cancelling the export.
+
+The editor keeps your recipe while it is open. If Android stops the app in the background, reopening the editor restores the photo and the edits you had committed.
+
+## Example: straighten and brighten a photo
+
+1. Open a crooked, underexposed photo and tap **Edit**.
+2. Tap **Crop**, drag **Straighten** until the horizon is level, and tap **Apply**.
+3. Tap **Light**, raise **Exposure** and **Shadows**, then tap **Apply**.
+4. Touch and hold the photo to check it against the original.
+5. Tap **Save**. The copy lands in `Pictures/ReFra` and the original stays as it was.

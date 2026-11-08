@@ -15,6 +15,11 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.dot.gallery.core.work.WorkComponentHolder
+import com.dot.gallery.core.workers.EditorExportBridgeHolder
+import com.dot.gallery.editor.GalleryEditorExportBridge
+import com.dot.gallery.editor.GalleryRawDecoder
+import com.dot.gallery.editor.android.EditorExportDispatch
+import com.dot.gallery.editor.android.EditorRawDispatch
 import com.dot.gallery.core.work.workScheduler
 import dev.brewkits.kmpworkmanager.KmpWorkManager
 import dev.brewkits.kmpworkmanager.generated.AndroidWorkerFactoryGenerated
@@ -102,6 +107,7 @@ import com.dot.gallery.cloud.sync.CloudSyncScheduler
 import com.dot.gallery.cloud.sync.FreeUpSpaceAutoScheduler
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.smart.SmartScanScheduler
+import com.dot.gallery.core.workers.scheduleDataHealthPeriodic
 import com.dot.gallery.core.startup.StartupWorkGate
 import com.dot.gallery.core.workers.TempVaultCleanupWorker
 import com.dot.gallery.core.presentation.util.StaticMapDefaults
@@ -270,6 +276,15 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
         StartupTracer.trace("KmpWorkManager.initialize") {
             KmpWorkManager.initialize(this@GalleryApp, AndroidWorkerFactoryGenerated())
             WorkComponentHolder.install(component)
+            // Editor exports run as workers with a live notification —
+            // the bridge is both the sessions' dispatch hook and the
+            // worker-side executor.
+            GalleryEditorExportBridge(this@GalleryApp).also { bridge ->
+                EditorExportBridgeHolder.bridge = bridge
+                EditorExportDispatch.photo = bridge
+                EditorExportDispatch.video = bridge
+                EditorRawDispatch.decoder = GalleryRawDecoder
+            }
         }
         appScope.launch {
             Settings.Misc.getDeveloperModeFlow(this@GalleryApp).collectLatest {
@@ -384,13 +399,19 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
             if (!smartScanScheduler.resumeActiveRun()) {
                 smartScanScheduler.automaticIfNeeded(SmartScanFeature.ALL_MASK)
             }
+            runCatching { component.backupJobRuntime.recoverActiveJob() }
+                .onFailure { if (it is CancellationException) throw it }
+            runCatching {
+                com.dot.gallery.core.work.workScheduler()
+                    .scheduleDataHealthPeriodic()
+            }.onFailure { if (it is CancellationException) throw it }
         }
 
         // Re-resolve auto-switching URLs and renew route-sensitive connections when the network
         // changes (e.g. moving between local Wi-Fi, mobile data, and a VPN).
         registerNetworkChangeReconfigure()
 
-        // "Sync when app is opened" (#1241): on every foreground transition enqueue
+        // "Sync when app is opened": on every foreground transition enqueue
         // a one-time sync/upload/download pass for sync-enabled accounts so local
         // photo changes and remote changes land immediately. Throttled + gated by
         // the setting inside the scheduler.

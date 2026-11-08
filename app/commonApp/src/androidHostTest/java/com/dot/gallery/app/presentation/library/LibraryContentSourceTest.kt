@@ -369,7 +369,7 @@ class LibraryContentSourceTest {
 
     @Test
     fun hiddenPeopleCountKeepsThePeopleSectionAlive() = runTest {
-        // #1262: hiding the last visible person must not remove the People
+        // hiding the last visible person must not remove the People
         // section — the hidden count alone keeps the header reachable.
         val h = harness(this)
         h.restoreVisibleDrawn(); runCurrent()

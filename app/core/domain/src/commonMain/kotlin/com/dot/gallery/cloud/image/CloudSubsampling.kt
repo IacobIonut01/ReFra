@@ -20,11 +20,14 @@ fun resolveCloudSubsamplingMode(
     isHeif: Boolean,
     isSpecialFormat: Boolean,
     isAnimated: Boolean,
-    isAnimatedRaster: Boolean
+    isAnimatedRaster: Boolean,
+    isAvif: Boolean = false,
 ): CloudSubsamplingMode = when {
     isJxl -> CloudSubsamplingMode.JXL
     hasCustomRegionDecoder -> CloudSubsamplingMode.CUSTOM
-    isHeif && !isAnimated -> CloudSubsamplingMode.HEIF
+    // Still AVIF uses the same ISO-BMFF region decoder as HEIC. A sequence stays on the
+    // animated painter, so it must not take this branch.
+    (isHeif || isAvif) && !isAnimated -> CloudSubsamplingMode.HEIF
     isSpecialFormat -> CloudSubsamplingMode.NONE
     !isAnimated && !isAnimatedRaster -> CloudSubsamplingMode.PLATFORM
     else -> CloudSubsamplingMode.NONE

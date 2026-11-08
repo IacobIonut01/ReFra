@@ -25,6 +25,7 @@ data class LibraryRoutes(
     val vault: String,
     val ignored: String,
     val privateFolder: String,
+    val memories: String,
     val cloudArchive: String,
     val cloudSharedLinks: String,
     val cloudBackup: String,

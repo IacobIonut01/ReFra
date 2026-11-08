@@ -5,6 +5,7 @@
 
 package com.dot.gallery.feature.setup.ui
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.dot.gallery.cloud.core.ProviderType
 
@@ -17,4 +18,8 @@ data class SetupProviderUi(
     val type: ProviderType,
     val icon: ImageVector,
     val capabilities: Set<SetupProviderCapability> = emptySet(),
+    /** One-line description, the same copy the add-account provider list uses. */
+    val description: String? = null,
+    /** The provider's tinted badge from the add-account list; replaces [icon] when set. */
+    val badge: (@Composable () -> Unit)? = null,
 )

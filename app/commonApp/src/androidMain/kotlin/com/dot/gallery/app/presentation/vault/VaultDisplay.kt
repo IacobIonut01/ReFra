@@ -29,7 +29,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.Settings
-import com.dot.gallery.core.presentation.components.EmptyMedia
+import com.dot.gallery.feature.vault.ui.VaultEmptyState
 import com.dot.gallery.core.presentation.components.GridPinchZoomLayout
 import com.dot.gallery.core.presentation.components.MediaGridView
 import com.dot.gallery.core.presentation.components.SelectionSheet
@@ -57,6 +57,7 @@ import com.dot.gallery.core.Settings.Misc.rememberVaultGroupByDate
 import com.dot.gallery.core.Settings.Misc.rememberVaultGroupMethod
 import com.dot.gallery.core.presentation.components.rememberGridPinchZoomState
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
 
 /**
  * Vault media display screen. Chrome (top bar, FAB, progress + management sheets)
@@ -88,6 +89,8 @@ fun VaultDisplay(
     pendingDeletions: Flow<List<Uri>> = emptyFlow(),
     userMessage: Flow<String>? = null,
     onMediaClick: (Long) -> Unit = {},
+    requestAddMedia: Boolean = false,
+    onAddMediaRequestHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -151,6 +154,14 @@ fun VaultDisplay(
     }
     val postEncryptLauncher = rememberActivityResult()
 
+    // The setup's Ready page asked to add photos: open the picker once the vault is shown.
+    LaunchedEffect(requestAddMedia, currentVaultValue) {
+        if (requestAddMedia && currentVaultValue != null) {
+            onAddMediaRequestHandled()
+            pickerLauncher.launch(currentVaultValue?.uuid?.toString())
+        }
+    }
+
     LaunchedEffect(Unit) {
         pendingDeletions.collect { leftovers ->
             if (leftovers.isNotEmpty()) {
@@ -183,6 +194,8 @@ fun VaultDisplay(
         pendingEncryptCount = toAddMedia.size,
         hasCustomPassword = hasCustomPassword,
         canScroll = canScroll,
+        scrolled = rememberScrolledUnderTopBar(pinchState.gridState),
+        mediaCount = mediaState.value.media.size.takeUnless { mediaState.value.isLoading },
         userMessage = userMessage,
         onNavigateUp = globalNavigateUp,
         onVaultDeleted = onVaultDeleted,
@@ -200,7 +213,7 @@ fun VaultDisplay(
             VaultPasswordManager.removePassword(context, uuid)
             hasCustomPassword = false
         },
-        onAddMediaClick = { pickerLauncher.launch(Unit) },
+        onAddMediaClick = { pickerLauncher.launch(currentVaultValue?.uuid?.toString()) },
         onEncryptSheetCancel = { dropCount ->
             toAddMedia = toAddMedia.dropLast(dropCount)
         },
@@ -223,12 +236,18 @@ fun VaultDisplay(
                         showSearchBar = false,
                         allowSelection = true,
                         allowHeaders = vaultGroupByDate,
-                        enableStickyHeaders = vaultGroupByDate,
+                        // Sticky date headers clash with the blur bar.
+                        enableStickyHeaders = false,
                         groupMethod = if (vaultGroupByDate) vaultGroupMethod else Settings.Misc.GROUP_NORMAL,
                         canScroll = canScroll,
                         aboveGridContent = {},
                         isScrolling = remember { mutableStateOf(false) },
-                        emptyContent = ::EmptyMedia,
+                        emptyContent = {
+                            VaultEmptyState(
+                                vaultName = currentVaultValue?.name.orEmpty(),
+                                onAddMedia = { pickerLauncher.launch(currentVaultValue?.uuid?.toString()) },
+                            )
+                        },
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
                         onMediaClick = { encryptedMedia ->
@@ -249,6 +268,8 @@ fun VaultDisplay(
 
             AddToVaultSheet(
                 state = addToVaultSheetState,
+                itemCount = pickedUris.size,
+                vaultName = currentVaultValue?.name,
                 onEncryptAndDelete = {
                     val vault = currentVaultValue ?: return@AddToVaultSheet
                     toAddMedia = pickedUris

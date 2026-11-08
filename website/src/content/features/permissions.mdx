@@ -30,7 +30,7 @@ ReFra asks for Android permissions at the moment a feature needs them. Everythin
 ## Network
 
 - **Internet**: declared for cloud providers, model downloads, map tiles, and casting; there is no runtime prompt. An offline build of ReFra never uses it; that says nothing about other apps, which have their own access.
-- **Local network access**: newer Android versions ask before an app reaches devices on your LAN; it appears the first time you add or reach a local server such as an SMB share. Denying it blocks LAN servers only; internet-hosted providers still work.
+- **Local network access**: newer Android versions ask before an app reaches devices on your LAN; it appears the first time you add or reach a local server such as an SMB share. Denying it blocks LAN servers only; internet-hosted providers still work. Offline builds do not request it at all.
 
 ## Denied by accident?
 

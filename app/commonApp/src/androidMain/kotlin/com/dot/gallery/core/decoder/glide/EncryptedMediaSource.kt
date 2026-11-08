@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Large files are backed by the canonical decrypted file in [VaultDecryptStore] (shared,
  * refcounted, budget-evicted) — callers must invoke [release] when done so the store can
- * reclaim the entry (#1282).
+ * reclaim the entry.
  */
 data class EncryptedMediaSource(
     val file: File,
@@ -81,7 +81,7 @@ internal fun createEncryptedMediaSource(context: Context, file: File): Encrypted
     }.getOrElse { FALLBACK_SMALL_DECRYPT_THRESHOLD }
 
     // Large files: one canonical decrypted copy shared via VaultDecryptStore — refcounted,
-    // budget-evicted, reused by every consumer instead of a private copy per request (#1282).
+    // budget-evicted, reused by every consumer instead of a private copy per request.
     if (file.length() > adaptiveThreshold) {
         val handle = VaultDecryptStore.acquire(KeychainHolder(context), file)
         try {

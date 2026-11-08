@@ -39,6 +39,12 @@
         "title": "Viewer options",
         "caption": "See the photo and video controls described below.",
         "section": "media-view"
+      },
+      {
+        "scene": "long-press-action",
+        "title": "Long-press action",
+        "caption": "Pick what a long-press on an image does in the viewer.",
+        "section": "long-press-action"
       }
     ],
     "security": [
@@ -114,6 +120,30 @@
       }
     ],
     "categories": [
+      {
+        "scene": "categories-browse",
+        "title": "Categories",
+        "caption": "Pinned categories above the others, with the sorted summary and filters.",
+        "section": "browse-categories",
+        "interactive": false,
+        "state": "sorted"
+      },
+      {
+        "scene": "categories-browse",
+        "title": "While sorting",
+        "caption": "Progress while photos are checked, with Pause.",
+        "section": "browse-categories",
+        "interactive": false,
+        "state": "sorting"
+      },
+      {
+        "scene": "categories-browse",
+        "title": "Start with a suggestion",
+        "caption": "The empty state with Create a category and suggested categories.",
+        "section": "create-a-category",
+        "interactive": false,
+        "state": "empty"
+      },
       {
         "scene": "settings-categories",
         "state": "idle",
@@ -237,7 +267,7 @@
         "scene": "navigation-bar",
         "state": "floating",
         "title": "Floating navigation bar",
-        "caption": "The default bar \u2014 tap a tab to switch in the live preview.",
+        "caption": "The default bar — tap a tab to switch in the live preview.",
         "section": "the-navigation-bar"
       },
       {
@@ -588,7 +618,7 @@
         "scene": "settings-ai-models",
         "title": "Model downloads",
         "caption": "Each model group with its download state.",
-        "section": "the-model-groups"
+        "section": "the-hub"
       }
     ],
     "selection-actions": [
@@ -606,7 +636,7 @@
         "section": "the-actions-and-their-zones"
       }
     ],
-    "editor": [
+    "legacy-editor": [
       {
         "scene": "editor-photo",
         "state": "lighting",
@@ -616,7 +646,7 @@
         "interactive": false
       }
     ],
-    "crop-rotate": [
+    "legacy-crop-rotate": [
       {
         "scene": "editor-photo",
         "state": "crop",
@@ -626,7 +656,7 @@
         "interactive": false
       }
     ],
-    "lighting-colour": [
+    "legacy-lighting-colour": [
       {
         "scene": "editor-photo",
         "state": "lighting",
@@ -644,7 +674,7 @@
         "interactive": false
       }
     ],
-    "filters-effects": [
+    "legacy-filters-effects": [
       {
         "scene": "editor-photo",
         "state": "filters",
@@ -657,12 +687,12 @@
         "scene": "editor-photo",
         "state": "effects",
         "title": "Effects",
-        "caption": "The Effects tab \u2014 vignette and texture controls.",
+        "caption": "The Effects tab — vignette and texture controls.",
         "section": "effects",
         "interactive": false
       }
     ],
-    "markup": [
+    "legacy-markup": [
       {
         "scene": "editor-photo",
         "state": "markup",
@@ -674,12 +704,12 @@
       {
         "scene": "markup-text",
         "title": "Adding text",
-        "caption": "The text overlay with its colour picker \u2014 an example caption in blue.",
+        "caption": "The text overlay with its colour picker — an example caption in blue.",
         "section": "text",
         "interactive": false
       }
     ],
-    "raw-development": [
+    "legacy-raw-development": [
       {
         "scene": "editor-raw",
         "state": "white-balance",
@@ -737,7 +767,7 @@
         "interactive": false
       }
     ],
-    "save-edits": [
+    "legacy-save-edits": [
       {
         "scene": "editor-photo",
         "state": "save-menu",
@@ -757,7 +787,7 @@
       {
         "scene": "cutout-tools",
         "title": "The cutout tools",
-        "caption": "Copy, Share, and Save act on the cut subject \u2014 Save writes a transparent PNG.",
+        "caption": "Copy, Share, and Save act on the cut subject — Save writes a transparent PNG.",
         "section": "use-the-result"
       }
     ],
@@ -846,15 +876,15 @@
         "scene": "metadata-removal",
         "state": "location-supported",
         "title": "Remove metadata",
-        "caption": "Only the removal modes this format supports are enabled.",
-        "section": "what-location-only-removes"
+        "caption": "A JPEG with location, dates, device and camera settings, ready to clean.",
+        "section": "choose-what-to-remove"
       },
       {
         "scene": "metadata-removal",
         "state": "unsupported-format",
         "title": "Unsupported format",
-        "caption": "A format with no removable metadata disables every mode.",
-        "section": "what-location-only-removes"
+        "caption": "An unsupported video container shows why it can't be cleaned.",
+        "section": "choose-what-to-remove"
       }
     ],
     "cloud-overview": [
@@ -870,7 +900,7 @@
         "scene": "cloud-accounts",
         "state": "connected",
         "title": "Connected accounts",
-        "caption": "Two sample accounts \u2014 an Immich server and an SMB share \u2014 each reporting Connected.",
+        "caption": "Two sample accounts — an Immich server and an SMB share — each reporting Connected.",
         "section": "accounts",
         "interactive": false
       }
@@ -888,7 +918,7 @@
         "scene": "cloud-accounts",
         "state": "connected",
         "title": "Connected accounts",
-        "caption": "Two sample accounts \u2014 an Immich server and an SMB share \u2014 each reporting Connected.",
+        "caption": "Two sample accounts — an Immich server and an SMB share — each reporting Connected.",
         "section": "list",
         "interactive": false
       },
@@ -914,7 +944,7 @@
         "scene": "cloud-setup-immich",
         "state": "credentials",
         "title": "Credentials step",
-        "caption": "API key or email/password, the display name field, and Test connection \u2014 sample values only.",
+        "caption": "API key or email/password, the display name field, and Test connection — sample values only.",
         "section": "wizard",
         "interactive": false
       }
@@ -1056,7 +1086,7 @@
         "scene": "cloud-backup-options",
         "state": "immich",
         "title": "Backup options (Immich)",
-        "caption": "Cellular, charging and album-sync options on a sample Immich account \u2014 no upload-folder rows.",
+        "caption": "Cellular, charging and album-sync options on a sample Immich account — no upload-folder rows.",
         "section": "options",
         "interactive": false
       },
@@ -1080,7 +1110,7 @@
         "scene": "cloud-upload-details",
         "state": "uploading",
         "title": "Upload details",
-        "caption": "What the Upload Details screen shows mid-run \u2014 live progress and the pending queue grouped by account and album. Switch to the queued state for the idle queue view.",
+        "caption": "What the Upload Details screen shows mid-run — live progress and the pending queue grouped by account and album. Switch to the queued state for the idle queue view.",
         "section": "dashboard",
         "interactive": false
       }
@@ -1090,7 +1120,7 @@
         "scene": "cloud-account-settings",
         "state": "overview",
         "title": "Account settings",
-        "caption": "A connected sample account's page \u2014 status card, sync and download switches, and the section links.",
+        "caption": "A connected sample account's page — status card, sync and download switches, and the section links.",
         "section": "overview",
         "interactive": false
       },
@@ -1122,7 +1152,7 @@
         "scene": "cloud-account-settings",
         "state": "syncing",
         "title": "Sync running",
-        "caption": "Sync now mid-run on a sample account \u2014 the row shows progress and disables itself.",
+        "caption": "Sync now mid-run on a sample account — the row shows progress and disables itself.",
         "section": "controls",
         "interactive": false
       },
@@ -1135,9 +1165,10 @@
         "interactive": false
       },
       {
-        "scene": "cloud-sync-status",
-        "title": "Sync Status card",
-        "caption": "A sample account's index counts \u2014 cached listings, synced, remote-only and pending-upload items \u2014 plus the Download all remote media and Sync now actions.",
+        "scene": "cloud-backup-dashboard",
+        "state": "overview",
+        "title": "Backup & Sync dashboard",
+        "caption": "The summary card on a sample account, where sync progress and Retry appear.",
         "section": "status",
         "interactive": false
       }
@@ -1147,7 +1178,7 @@
         "scene": "cloud-account-dialog",
         "state": "download",
         "title": "Download confirmation",
-        "caption": "The confirmation shown before downloading remote media \u2014 example count and size; nothing downloads.",
+        "caption": "The confirmation shown before downloading remote media — example count and size; nothing downloads.",
         "section": "download",
         "interactive": false
       },
@@ -1155,7 +1186,7 @@
         "scene": "cloud-account-dialog",
         "state": "remove-copies",
         "title": "Remove downloaded copies",
-        "caption": "The confirmation for removing app-downloaded copies \u2014 an example only; nothing is removed.",
+        "caption": "The confirmation for removing app-downloaded copies — an example only; nothing is removed.",
         "section": "remove",
         "interactive": false
       }
@@ -1199,7 +1230,7 @@
         "scene": "cloud-offline-cache",
         "state": "account-cache",
         "title": "Cached data by account",
-        "caption": "The per-account sheet lists cache by album with per-album clear actions and the account-wide clear \u2014 sample numbers only.",
+        "caption": "The per-account sheet lists cache by album with per-album clear actions and the account-wide clear — sample numbers only.",
         "section": "cache",
         "interactive": false
       }
@@ -1293,6 +1324,22 @@
         "title": "Story viewer",
         "caption": "A memory card playing full screen, first of three items.",
         "section": "the-story-viewer"
+      },
+      {
+        "scene": "memories-page",
+        "title": "The Memories screen",
+        "caption": "On this day memories above earlier years, from example photos.",
+        "section": "the-memories-screen",
+        "interactive": false,
+        "state": "memories"
+      },
+      {
+        "scene": "memories-page",
+        "title": "No memories yet",
+        "caption": "What the screen shows before there is anything to recall.",
+        "section": "the-memories-screen",
+        "interactive": false,
+        "state": "empty"
       }
     ],
     "trash": [
@@ -1346,7 +1393,7 @@
         "section": "work-with-a-person"
       }
     ],
-    "edit-backups": [
+    "legacy-edit-backups": [
       {
         "scene": "edit-backups-viewer",
         "state": "edited",
@@ -1375,6 +1422,13 @@
         "title": "Photos on the map",
         "caption": "Photos with coordinates appear as markers. The panel groups example photos by date and lists a named location.",
         "section": "using-the-map"
+      },
+      {
+        "scene": "places-list",
+        "title": "Places",
+        "caption": "Example places grouped by city, with the location banner and filters.",
+        "section": "places",
+        "interactive": false
       }
     ],
     "accessibility": [
@@ -1432,6 +1486,212 @@
         "title": "Seek through a video",
         "caption": "Drag the seek bar to move forward or back through the clip.",
         "section": "viewer"
+      }
+    ],
+    "editor": [
+      {
+        "scene": "studio-photo",
+        "state": "home",
+        "title": "The editor",
+        "caption": "The header, the histogram, and the toolbar over an example photo.",
+        "section": "the-layout",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "light",
+        "title": "A tool open",
+        "caption": "Light open above the toolbar, with Apply in the header and Reset under it.",
+        "section": "the-layout",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "tools",
+        "title": "All tools",
+        "caption": "The catalogue with search, the four filters, and a pin on each tool.",
+        "section": "the-tool-catalogue",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "pins",
+        "title": "Edit pins",
+        "caption": "The pinned tools with arrows to reorder them.",
+        "section": "pinned-tools",
+        "interactive": false
+      }
+    ],
+    "lighting-colour": [
+      {
+        "scene": "studio-photo",
+        "state": "light",
+        "title": "Light",
+        "caption": "Exposure selected, with its ruler.",
+        "section": "light",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "colour",
+        "title": "Colour",
+        "caption": "The Basics, HSL, and Wheels tabs.",
+        "section": "colour",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "curves",
+        "title": "Curves",
+        "caption": "The tone curve with its channels and presets.",
+        "section": "curves",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "white-balance",
+        "title": "White balance",
+        "caption": "Temperature, tint, the presets, and Pick neutral.",
+        "section": "white-balance",
+        "interactive": false
+      }
+    ],
+    "crop-rotate": [
+      {
+        "scene": "studio-photo",
+        "state": "crop",
+        "title": "Crop & straighten",
+        "caption": "The crop frame, ratio menu, rotate and flip, and the straighten ruler.",
+        "section": "crop",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "perspective",
+        "title": "Keystone",
+        "caption": "The same tool opened on its Vertical ruler.",
+        "section": "straighten-and-keystone",
+        "interactive": false
+      }
+    ],
+    "filters-effects": [
+      {
+        "scene": "studio-photo",
+        "state": "looks",
+        "title": "Looks",
+        "caption": "The look grid with its filters.",
+        "section": "looks",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "detail",
+        "title": "Details",
+        "caption": "Texture, clarity, sharpening, and noise reduction.",
+        "section": "details-and-lens-blur",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "lens-blur",
+        "title": "Lens blur",
+        "caption": "Radial or linear blur around a focus area.",
+        "section": "details-and-lens-blur",
+        "interactive": false
+      },
+      {
+        "scene": "studio-photo",
+        "state": "borders",
+        "title": "Borders",
+        "caption": "The effects tool on its Borders tab.",
+        "section": "posterize-edges-and-borders",
+        "interactive": false
+      }
+    ],
+    "markup": [
+      {
+        "scene": "studio-photo",
+        "state": "markup",
+        "title": "Markup",
+        "caption": "The brush tabs, swatches, size ruler, and the draw, move, and erase modes.",
+        "section": "brushes-and-modes",
+        "interactive": false
+      }
+    ],
+    "video-editor": [
+      {
+        "scene": "studio-video",
+        "state": "timeline",
+        "title": "The video editor",
+        "caption": "Preview, transport, timeline, and toolbar on an example clip.",
+        "section": "the-layout",
+        "interactive": false
+      },
+      {
+        "scene": "studio-video",
+        "state": "tools",
+        "title": "All tools",
+        "caption": "The video tools grouped as Edit, Picture, Audio, and Deliver.",
+        "section": "the-layout",
+        "interactive": false
+      },
+      {
+        "scene": "studio-video",
+        "state": "trim",
+        "title": "Trim",
+        "caption": "In and out points with frame-by-frame nudges.",
+        "section": "cut-and-arrange-clips",
+        "interactive": false
+      },
+      {
+        "scene": "studio-video",
+        "state": "transform",
+        "title": "Transform & crop",
+        "caption": "Content mode, scale, rotation, and position for the selected clip.",
+        "section": "picture",
+        "interactive": false
+      },
+      {
+        "scene": "studio-video",
+        "state": "colour",
+        "title": "Clip colour",
+        "caption": "Light, colour, and curves for the selected clip.",
+        "section": "picture",
+        "interactive": false
+      },
+      {
+        "scene": "studio-video",
+        "state": "export",
+        "title": "Export video",
+        "caption": "What the exporter will write before you start.",
+        "section": "export",
+        "interactive": false
+      },
+      {
+        "scene": "studio-video",
+        "state": "settings",
+        "title": "Video editor settings",
+        "caption": "Timeline, audio, and export options.",
+        "section": "editor-settings",
+        "interactive": false
+      }
+    ],
+    "video-audio": [
+      {
+        "scene": "studio-video",
+        "state": "add-audio",
+        "title": "Add audio",
+        "caption": "Import a file, record a voice-over, or extract a clip's sound.",
+        "section": "add-audio",
+        "interactive": false
+      },
+      {
+        "scene": "studio-video",
+        "state": "mixer",
+        "title": "Mixer",
+        "caption": "Faders for the source sound and the master, with the limiter.",
+        "section": "mixer",
+        "interactive": false
       }
     ]
   }

@@ -21,6 +21,7 @@ enum class SetupProviderCapability {
     SHARE_MANAGE,
     SYNC,
     ALBUM_WRITE,
+    ALBUM_MEMBERSHIP,
     REMOTE_ALBUMS,
     REMOTE_ASSETS,
     OCR,

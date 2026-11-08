@@ -5,13 +5,8 @@
 
 package com.dot.gallery.core.ui.components
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,9 +23,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -48,21 +47,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.ui.util.LocalAppBuildInfo
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.core.ui.generated.resources.Res
 import com.dot.gallery.core.ui.generated.resources.action_cancel
@@ -77,16 +70,21 @@ import com.dot.gallery.core.ui.generated.resources.donate_button_cd
 import com.dot.gallery.core.ui.generated.resources.github
 import com.dot.gallery.core.ui.generated.resources.github_button_cd
 import com.dot.gallery.core.ui.generated.resources.github_url
-import com.dot.gallery.core.ui.generated.resources.ic_donate
-import com.dot.gallery.core.ui.generated.resources.ic_github
 import com.dot.gallery.core.ui.generated.resources.restore_banner_confirm
 import com.dot.gallery.core.ui.generated.resources.restore_banner_message
 import com.dot.gallery.core.ui.generated.resources.restore_banner_title
 import com.dot.gallery.core.ui.generated.resources.version_build_format
 
+/**
+ * The app card that opens the Settings hub: a [SummaryCard] with the chosen launcher icon
+ * ([appIcon], else a generic badge), the app name with its version beside it, the author, and
+ * white Tonal Donate / GitHub buttons. Tapping the card offers to dismiss it (the compact footer
+ * takes over); holding the version unlocks the developer menu.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsAppHeader(
+    appIcon: Painter? = null,
     onDismiss: (() -> Unit)? = null,
     onSupportClick: () -> Unit = {},
     developerModeEnabled: Boolean = false,
@@ -101,31 +99,14 @@ fun SettingsAppHeader(
     )
     val appDeveloper = stringResource(Res.string.app_dev, stringResource(Res.string.app_dev_name))
 
-    val donateImage = painterResource(Res.drawable.ic_donate)
     val donateTitle = stringResource(Res.string.donate)
     val donateContentDesc = stringResource(Res.string.donate_button_cd)
-
-    val githubImage = painterResource(Res.drawable.ic_github)
     val githubTitle = stringResource(Res.string.github)
     val githubContentDesc = stringResource(Res.string.github_button_cd)
     val githubUrl = stringResource(Res.string.github_url)
 
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
-
-    val colorPrimary = MaterialTheme.colorScheme.primaryContainer
-    val colorTertiary = MaterialTheme.colorScheme.tertiaryContainer
-
-    val transition = rememberInfiniteTransition()
-    val fraction by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 8_000),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-    val cornerRadius = 24.dp
 
     val dismissSheetState = rememberAppBottomSheetState()
     val dismissTitle = stringResource(Res.string.dismiss_banner_title)
@@ -189,139 +170,71 @@ fun SettingsAppHeader(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .widthIn(max = 600.dp)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(cornerRadius))
-                .clickable(enabled = onDismiss != null) {
-                    scope.launch { dismissSheetState.show() }
-                }
-                .drawWithCache {
-                    val cx = size.width - size.width * fraction
-                    val cy = size.height * fraction
-
-                    val gradient = Brush.radialGradient(
-                        colors = listOf(colorPrimary, colorTertiary),
-                        center = Offset(cx, cy),
-                        radius = 800f
-                    )
-
-                    onDrawBehind {
-                        drawRoundRect(
-                            brush = gradient,
-                            cornerRadius = CornerRadius(
-                                cornerRadius.toPx(),
-                                cornerRadius.toPx()
-                            )
-                        )
-                    }
-                }
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
-                    shape = RoundedCornerShape(cornerRadius)
+    var unlockProgress by remember { mutableFloatStateOf(0f) }
+    SummaryCard(
+        icon = Icons.Outlined.PhotoLibrary,
+        title = appName,
+        body = appDeveloper,
+        badge = appIcon?.let { icon ->
+            {
+                Image(
+                    painter = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
                 )
-                .padding(all = 24.dp)
-                .fillMaxWidth()
-        ) {
-            Row(
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Text(
-                    text = appName,
-                    fontSize = 22.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Column {
-                    var unlockProgress by remember { mutableFloatStateOf(0f) }
-                    Text(
-                        text = appVersion,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp,
-                        modifier = Modifier
-                            .graphicsLayer {
-                                translationX = 6.0f
-                            }
-                            .holdToUnlock(
-                                enabled = developerModeEnabled,
-                                onUnlocked = onDeveloperUnlocked,
-                                onProgress = { unlockProgress = it },
-                            )
-                    )
-                    if (unlockProgress > 0f) {
-                        LinearProgressIndicator(
-                            progress = { unlockProgress },
-                            modifier = Modifier
-                                .graphicsLayer { translationX = 6.0f }
-                                .padding(top = 2.dp)
-                                .width(96.dp)
-                                .height(3.dp),
-                        )
-                    }
-                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+        },
+        titleTrailing = {
             Text(
-                text = appDeveloper,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = appVersion,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .holdToUnlock(
+                        enabled = developerModeEnabled,
+                        onUnlocked = onDeveloperUnlocked,
+                        onProgress = { unlockProgress = it },
+                    ),
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { onSupportClick() },
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = .12f),
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = .12f),
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 52.dp)
-                        .weight(1f)
-                        .semantics {
-                            contentDescription = donateContentDesc
-                        }
-                ) {
-                    Icon(painter = donateImage, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = donateTitle)
-                }
-                Button(
-                    onClick = { uriHandler.openUri(githubUrl) },
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.onTertiary,
-                        disabledContentColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = .12f),
-                        containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
-                        disabledContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = .12f)
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .heightIn(min = 52.dp)
-                        .semantics {
-                            contentDescription = githubContentDesc
-                        }
-                ) {
-                    Icon(painter = githubImage, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = githubTitle)
-                }
-            }
+        },
+        modifier = Modifier
+            .padding(bottom = 8.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .clickable(enabled = onDismiss != null) {
+                scope.launch { dismissSheetState.show() }
+            },
+    ) {
+        if (unlockProgress > 0f) {
+            LinearProgressIndicator(
+                progress = { unlockProgress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SummaryCardButton(
+                label = donateTitle,
+                icon = Icons.Outlined.VolunteerActivism,
+                onClick = onSupportClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = donateContentDesc },
+            )
+            SummaryCardButton(
+                label = githubTitle,
+                icon = Icons.Outlined.Code,
+                onClick = { uriHandler.openUri(githubUrl) },
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = githubContentDesc },
+            )
         }
     }
 }
@@ -341,11 +254,9 @@ fun SettingsAppHeaderCompact(
         buildInfo.versionCode,
     )
 
-    val donateImage = painterResource(Res.drawable.ic_donate)
     val donateTitle = stringResource(Res.string.donate)
     val donateContentDesc = stringResource(Res.string.donate_button_cd)
 
-    val githubImage = painterResource(Res.drawable.ic_github)
     val githubTitle = stringResource(Res.string.github)
     val githubContentDesc = stringResource(Res.string.github_button_cd)
     val githubUrl = stringResource(Res.string.github_url)
@@ -419,7 +330,7 @@ fun SettingsAppHeaderCompact(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 8.dp, bottom = 16.dp),
+            .padding(top = 24.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -435,7 +346,7 @@ fun SettingsAppHeaderCompact(
             ) {
                 FilledTonalButton(
                     onClick = { onSupportClick() },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(24.dp),
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp)
@@ -444,7 +355,7 @@ fun SettingsAppHeaderCompact(
                         }
                 ) {
                     Icon(
-                        painter = donateImage,
+                        imageVector = Icons.Outlined.VolunteerActivism,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
@@ -453,7 +364,7 @@ fun SettingsAppHeaderCompact(
                 }
                 FilledTonalButton(
                     onClick = { uriHandler.openUri(githubUrl) },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(24.dp),
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp)
@@ -462,7 +373,7 @@ fun SettingsAppHeaderCompact(
                         }
                 ) {
                     Icon(
-                        painter = githubImage,
+                        imageVector = Icons.Outlined.Code,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )

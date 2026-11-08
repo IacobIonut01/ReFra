@@ -65,7 +65,7 @@ class PrivateFolderViewModel @Inject constructor(
                 // SAF documents carry no duration, but Media.isVideo requires a
                 // non-null duration; a null here made private-folder videos count
                 // as images so the viewer showed a still frame instead of playing
-                // them (#1003). Use a placeholder for videos so isVideo is true.
+                // them. Use a placeholder for videos so isVideo is true.
                 duration = if (pm.isVideo) "" else null
             )
         }

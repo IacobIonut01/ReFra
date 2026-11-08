@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import com.dot.gallery.core.util.rememberFeedbackManager
@@ -36,14 +35,18 @@ import com.dot.gallery.core.util.rememberFeedbackManager
 fun VaultPatternLock(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
+    onProgress: (connected: Int) -> Unit = {},
     onPatternComplete: (pattern: String) -> Unit
 ) {
     val feedbackManager = rememberFeedbackManager()
-    val dotColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val dotColor = MaterialTheme.colorScheme.outline
     val activeColor = MaterialTheme.colorScheme.primary
+    val haloColor = MaterialTheme.colorScheme.primaryContainer
     val errorColor = MaterialTheme.colorScheme.error
+    val errorHaloColor = MaterialTheme.colorScheme.errorContainer
 
     var selectedNodes by remember { mutableStateOf(listOf<Int>()) }
+    LaunchedEffect(selectedNodes.size) { onProgress(selectedNodes.size) }
     var currentDragPos by remember { mutableStateOf<Offset?>(null) }
     var dragFingerX by remember { mutableFloatStateOf(0f) }
     var dragFingerY by remember { mutableFloatStateOf(0f) }
@@ -60,6 +63,7 @@ fun VaultPatternLock(
 
     val lineColor = if (errorAnim.value > 0f) errorColor else activeColor
     val selectedDotColor = if (errorAnim.value > 0f) errorColor else activeColor
+    val selectedHaloColor = if (errorAnim.value > 0f) errorHaloColor else haloColor
 
     Box(
         modifier = modifier
@@ -116,8 +120,16 @@ fun VaultPatternLock(
         ) {
             val w = size.width
             val h = size.height
-            val dotRadius = w / 30f
-            val activeDotRadius = w / 20f
+            // Proportions of the 288 dp design pad: 12 dp dots, 16 dp picked dots on a 48 dp halo,
+            // and a 6 dp trace.
+            val dotRadius = w / 48f
+            val activeDotRadius = w / 36f
+            val haloRadius = w / 12f
+            val traceWidth = w / 48f
+
+            for (node in selectedNodes) {
+                drawCircle(color = selectedHaloColor, radius = haloRadius, center = nodeCenter(node, w, h))
+            }
 
             // Draw connection lines
             for (i in 0 until selectedNodes.size - 1) {
@@ -127,7 +139,7 @@ fun VaultPatternLock(
                     color = lineColor,
                     start = from,
                     end = to,
-                    strokeWidth = dotRadius * 0.8f,
+                    strokeWidth = traceWidth,
                     cap = StrokeCap.Round
                 )
             }
@@ -139,7 +151,7 @@ fun VaultPatternLock(
                     color = lineColor.copy(alpha = 0.5f),
                     start = lastNode,
                     end = Offset(dragFingerX, dragFingerY),
-                    strokeWidth = dotRadius * 0.6f,
+                    strokeWidth = traceWidth,
                     cap = StrokeCap.Round
                 )
             }
@@ -149,17 +161,10 @@ fun VaultPatternLock(
                 val center = nodeCenter(i, w, h)
                 val isSelected = i in selectedNodes
                 drawCircle(
-                    color = if (isSelected) selectedDotColor else dotColor.copy(alpha = 0.4f),
+                    color = if (isSelected) selectedDotColor else dotColor,
                     radius = if (isSelected) activeDotRadius else dotRadius,
                     center = center
                 )
-                if (isSelected) {
-                    drawCircle(
-                        color = Color.White.copy(alpha = 0.3f),
-                        radius = dotRadius * 0.5f,
-                        center = center
-                    )
-                }
             }
         }
     }

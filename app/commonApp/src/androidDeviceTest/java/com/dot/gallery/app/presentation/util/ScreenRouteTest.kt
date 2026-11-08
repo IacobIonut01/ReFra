@@ -81,6 +81,15 @@ class ScreenRouteTest {
     }
 
     @Test
+    fun locationViewerRouteCarriesSlideshowFlag() {
+        val plain = Uri.parse(Screen.MediaViewScreen.idAndLocation(7L, "Banff", "Canada"))
+        val slideshow = Uri.parse(Screen.MediaViewScreen.idAndLocation(7L, "Banff", "Canada", slideshow = true))
+
+        assertEquals("false", plain.getQueryParameter("slideshow"))
+        assertEquals("true", slideshow.getQueryParameter("slideshow"))
+    }
+
+    @Test
     fun coordinateOnlyLocationRouteKeepsZeroCoordinates() {
         val route = Screen.LocationTimelineScreen.location("", "", 0.0, 0.0)
         val parsed = Uri.parse(route)

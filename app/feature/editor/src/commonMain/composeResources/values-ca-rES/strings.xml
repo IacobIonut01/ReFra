@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Mida</string>
     <string name="editor_brush_strength">Força</string>
     <string name="editor_blur_faces">Desdibuixa les cares</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 bits)</string>
+    <string name="raw_export_tiff16">TIFF (16 bits)</string>
+    <string name="raw_export_choose_format">Desa la còpia desenvolupada</string>
+    <string name="raw_export_choose_format_subtitle">Tria un format per al teu RAW desenvolupat</string>
+    <string name="raw_export_tiff_unavailable">El TIFF conserva tota la profunditat de bits però no pot incloure retall, filtres ni marcatge — elimina'ls per exportar el TIFF.</string>
+    <string name="editor_mosaic_faces">Mosaic de cares</string>
+    <string name="cutout_no_object">No es detecta cap objecte amb la premsa llarga.</string>
+    <string name="cutout_init_failed">Inicialització fallida del motor de retall</string>
 </resources>

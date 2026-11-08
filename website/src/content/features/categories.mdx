@@ -6,7 +6,7 @@ path:
   - Library
   - Categories
 related: [smart-features, ai-models, search, smart-scan]
-scenes: [settings-categories]
+scenes: [categories-browse, settings-categories]
 order: 5
 ---
 
@@ -14,24 +14,34 @@ Categories group photos by what they contain rather than where they are stored. 
 
 ## Browse categories
 
-1. Open **Library**. The **Categories** section shows a row of cards with a match count each.
-2. Tap a category to open its grid, which behaves like any album view.
-3. An empty section means either no models are installed or no scan has matched anything yet.
+<PreviewCollection feature="categories" section="browse-categories" />
+
+1. Open **Library › Categories**. The summary at the top shows how many photos are sorted, or the progress while sorting runs, with **Pause**.
+2. The filters narrow the list: **All**, **Pinned**, **Made by you**, and **Suggested**. Pinned categories sit at the top; the rest are under **Other categories**.
+3. Tap a category to open its grid, which behaves like any album view. A tile that reads **Sorting…** is still filling in; **No matches yet** means nothing has matched so far.
+
+Categories need the Smart search model. Until it is installed, the screen shows **Turn on Smart search first** with **Set up Smart search**; see [AI models](/ReFra/features/ai-models).
 
 ## Create a category
 
-1. In the Categories section, tap **Add category**.
-2. Give it a **name**, for example "Receipts" or "Dog".
-3. Under **Describe what to include**, write a plain sentence describing the photos it should contain, such as "photos of my dog at the beach". Or tap a **Quick start** suggestion to fill this in.
-4. Set the **Sensitivity**: **Broad** includes loosely related photos, **Balanced** is the default mix, **Strict** keeps only strong matches, and **Exact** keeps near-perfect matches only. A **Fine-tune** slider adjusts within the choice, trading more results against more accuracy; it is a matching preference, not a confidence guarantee.
-5. Optionally add **Reference photos**: tap **Add photos** and pick examples so the category can match visually similar ones.
-6. The **Preview** shows the best matches; tap **See all matches** for the full list before committing.
-7. Tap **Create**. The category is saved and classification starts; its photos fill in as the scan runs.
+<PreviewCollection feature="categories" section="create-a-category" />
 
-## Edit or delete a category
+Tap **Create a category**, or start from one of the suggestions under **Or start with a suggestion** (**Add all suggestions** adds every one). Creating takes three steps:
 
-- Open the category and tap **Edit category** to change the name, description, sensitivity, or reference photos, then **Save**. Saving re-runs classification for the category.
-- **Delete category** removes the grouping and asks for confirmation that the action cannot be undone. Deleting the group leaves the photos themselves in the library.
+1. **Describe**: give it a **name**, for example "Receipts", and under **Describe what to include** write a plain sentence such as "photos of my dog at the beach". **Quick start** suggestions fill in both fields. A count of photos that already look like it updates as you type.
+2. **Examples** (optional): pick a few photos that clearly show what you mean. Close-ups where the subject fills the frame work best.
+3. **Strictness**: **Broad** includes loosely related photos, **Balanced** is a good mix, **Strict** keeps only strong matches, and **Exact** keeps near-perfect matches only. **Fine-tune** slides between more results and more accuracy; it is a matching preference, not a confidence guarantee. **See all matches** shows the full list before you save.
+
+The category is saved and sorting starts; its photos fill in as photos are checked.
+
+## Edit, pin, or delete a category
+
+Open a category for its options:
+
+- **Pin** or **Unpin**: show it at the top of Categories, or move it back to **Other categories**.
+- **Edit**: change the name, description, example photos, and strictness. When nothing matches, **Loosen strictness** and **Add example photos** are offered directly.
+- **Change cover**: pick one of the category's photos for its tile, or **Use best match** to go back to the automatic cover.
+- **Delete**: removes the category and its settings. The photos stay in your library and in other categories.
 
 ## Categories settings
 
@@ -41,21 +51,21 @@ Under **Categories Settings**:
 
 - **Scan for new categories**: runs a scan over the library, showing "Scanning media…" while it works.
 - **Stop scan**: ends the current scan while keeping completed results.
-- **Exclude videos**: restricts matching to photos. Turning it on asks whether to remove video matches that already exist.
+- **Exclude videos**: restricts matching to photos (categories can otherwise include videos, which the index embeds from sampled frames). Turning it on asks whether to remove video matches that already exist.
 - **Reset categories**: deletes all categories and reinitializes the defaults. This is destructive to custom categories; it does not touch photos.
 
 If the models are missing, the page says so and points at **Settings › Smart Features** to download them.
 
 ## Example: a receipts category for tax season
 
-1. **Library › Categories › Add category**, name it **Receipts**.
+1. Open **Library › Categories** and tap **Create a category**; name it **Receipts**.
 2. Describe it as "photos of receipts, invoices, and order confirmations".
-3. Add two or three real receipts as **Reference photos**.
-4. Set sensitivity to **Balanced**, check the preview, and tap **Create**.
-5. New receipts you photograph get classified into it on the next scan.
+3. Add two or three real receipts as example photos.
+4. Choose **Balanced**, check **See all matches**, and save.
+5. New receipts you photograph are sorted into it as they are checked.
 
 ## If matches look wrong
 
-- Too much noise: raise the sensitivity toward **Strict** or add more reference photos.
+- Too much noise: raise the strictness toward **Strict** or add more example photos.
 - Too few matches: drop toward **Broad**, or loosen the description.
-- A scan that produced nothing at all does not prove the models are missing; it can also mean no match above the sensitivity bar or a scan still in progress. Check model and scan status under **Settings › Smart Features**.
+- A category with nothing in it does not prove the model is missing; it can also mean no match above the strictness bar or sorting still in progress. Check model and scan status under **Settings › Smart Features**.

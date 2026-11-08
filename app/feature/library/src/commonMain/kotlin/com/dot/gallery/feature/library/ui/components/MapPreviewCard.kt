@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
 import com.dot.gallery.domain.model.UriMedia
@@ -44,11 +46,15 @@ fun MapPreviewCard(
     latitude: Double?,
     longitude: Double?,
     mapContent: (@Composable BoxScope.(latitude: Double, longitude: Double) -> Unit)? = null,
+    /** Null lets [modifier] size the card. */
+    height: Dp? = 200.dp,
+    thumbnailSize: Dp = 72.dp,
+    thumbnailBottomInset: Dp = 0.dp,
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .then(if (height != null) Modifier.height(height) else Modifier)
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
@@ -69,9 +75,10 @@ fun MapPreviewCard(
         if (latestMedia != null) {
             LocalMediaImageRenderer.current.RenderImage(
                 modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .align(Alignment.Center),
+                    .align(Alignment.Center)
+                    .padding(bottom = thumbnailBottomInset)
+                    .size(thumbnailSize)
+                    .clip(CircleShape),
                 model = latestMedia.getUri(),
                 contentScale = ContentScale.Crop,
                 contentDescription = null,

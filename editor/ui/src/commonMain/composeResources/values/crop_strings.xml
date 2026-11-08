@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_crop_free">Free</string>
+    <string name="editor_crop_ratio_desc">Aspect %1$s</string>
+    <string name="editor_crop_swap_orientation">Swap orientation</string>
+    <string name="editor_crop_swap_to_portrait">Switch to portrait</string>
+    <string name="editor_crop_swap_to_landscape">Switch to landscape</string>
+    <string name="editor_crop_tab_straighten">Straighten</string>
+    <string name="editor_crop_reset_value">Reset %1$s to 0</string>
+    <string name="editor_crop_value_hint">Double-tap to reset, tap to type</string>
+    <string name="editor_crop_frame">Crop frame</string>
+    <string name="editor_crop_frame_state">%1$s × %2$s px</string>
+    <string name="editor_crop_handle_left">Left edge</string>
+    <string name="editor_crop_handle_right">Right edge</string>
+    <string name="editor_crop_handle_top">Top edge</string>
+    <string name="editor_crop_handle_bottom">Bottom edge</string>
+    <string name="editor_crop_reset">Reset</string>
+    <string name="editor_crop_guided_upright">Guided upright</string>
+    <string name="editor_crop_guided_hint">Draw along lines that should be straight</string>
+    <string name="editor_crop_guided_count">%1$d of 4 guides</string>
+    <string name="editor_crop_guides_clear">Clear guides</string>
+    <string name="editor_crop_guide">Guide %1$d</string>
+</resources>

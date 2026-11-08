@@ -63,7 +63,7 @@ import com.dot.gallery.domain.uri.query
 
 
 /**
- * End-to-end download regression for #1270, run against real on-device pieces:
+ * End-to-end download regression, run against real on-device pieces:
  * a real [ImmichProvider] (MockWebServer or the seeded test lab), a real
  * in-memory Room database, the real [CloudDownloadWorker] via
  * `GalleryWorker.doWork` directly, and real MediaStore writes. Asserts that an

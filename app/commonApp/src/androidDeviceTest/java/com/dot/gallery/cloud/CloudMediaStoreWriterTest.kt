@@ -22,7 +22,7 @@ import com.dot.gallery.domain.uri.query
 
 
 /**
- * On-device regression for #1270: writes go through real MediaStore, so the
+ * On-device regression: writes go through real MediaStore, so the
  * resulting RELATIVE_PATH is the truth — a remote asset-store shard path must
  * never become a user-visible folder, whatever the provider handed us.
  */

@@ -43,6 +43,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.ModelStatus
+import com.dot.gallery.feature.settings.subsettings.SmartFeaturesViewModel
+import com.dot.gallery.injection.injectViewModel
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -86,6 +91,7 @@ import com.dot.gallery.app.presentation.mediaview.discoverVisualSearchTargets
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.app.presentation.util.getEditImageCapableApps
+import com.dot.gallery.app.presentation.util.getEditVideoCapableApps
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.launch
@@ -95,6 +101,7 @@ import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.R
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.default_image_editor_builtin
+import com.dot.gallery.generated.resources.default_image_editor_studio
 import com.dot.gallery.generated.resources.image_sample_2
 
 /**
@@ -104,8 +111,11 @@ import com.dot.gallery.generated.resources.image_sample_2
  * [SettingsMediaViewerContent] in `:feature:settings`.
  */
 @Composable
-fun SettingsMediaViewerScreen() {
+fun SettingsMediaViewerScreen(
+    smartFeatures: SmartFeaturesViewModel = injectViewModel { smartFeaturesViewModel }
+) {
     val context = LocalContext.current
+    val cutoutStatus by smartFeatures.modelStatus(ModelGroup.CUTOUT).collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val eventHandler = LocalEventHandler.current
 
@@ -116,6 +126,12 @@ fun SettingsMediaViewerScreen() {
             supportsFavorites = SdkCompat.supportsFavorites,
             surfaceRebindDefault = SdkCompat.isSamsung,
             editApps = rawEditApps.map {
+                EditAppEntry(
+                    packageName = it.activityInfo.packageName,
+                    label = it.loadLabel(context.packageManager).toString(),
+                )
+            },
+            videoEditApps = context.getEditVideoCapableApps().map {
                 EditAppEntry(
                     packageName = it.activityInfo.packageName,
                     label = it.loadLabel(context.packageManager).toString(),
@@ -139,10 +155,13 @@ fun SettingsMediaViewerScreen() {
     }
 
     SettingsMediaViewerContent(
-        state = state,
+        state = state.copy(cutoutModelAvailable = cutoutStatus == ModelStatus.READY),
         previews = previews,
         actions = SettingsMediaViewerActions(
             onOpenSlideshow = { eventHandler.navigate(Screen.SlideshowSettingsScreen()) },
+            onOpenViewerActions = {
+                eventHandler.navigate(Screen.SettingsViewerActionsScreen())
+            },
             onTapSidesChanged = {
                 scope.launch { Settings.Misc.markTapSidesToNavigatePromptShown(context) }
             },
@@ -376,7 +395,7 @@ private fun EditorPreview(
 
     // Auto-scroll to selected item when selection changes
     val allEditors = remember(editApps) {
-        val list = mutableListOf(Settings.Misc.EDITOR_BUILTIN)
+        val list = mutableListOf(Settings.Misc.EDITOR_BUILTIN, Settings.Misc.EDITOR_STUDIO)
         editApps.forEach { list.add(it.activityInfo.packageName) }
         list
     }
@@ -409,6 +428,21 @@ private fun EditorPreview(
                             drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
                         ),
                         contentDescription = stringResource(Res.string.default_image_editor_builtin),
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                    )
+                }
+            )
+            EditorOptionCard(
+                label = stringResource(Res.string.default_image_editor_studio),
+                selected = currentEditor == Settings.Misc.EDITOR_STUDIO,
+                icon = {
+                    Image(
+                        painter = rememberDrawablePainter(
+                            drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
+                        ),
+                        contentDescription = stringResource(Res.string.default_image_editor_studio),
                         modifier = Modifier
                             .size(64.dp)
                             .clip(CircleShape)

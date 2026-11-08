@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Μέγεθος</string>
     <string name="editor_brush_strength">Ισχύς</string>
     <string name="editor_blur_faces">Θόλωσε πρόσωπα</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bit)</string>
+    <string name="raw_export_tiff16">TIFF (16-bit)</string>
+    <string name="raw_export_choose_format">Αποθήκευση του επεξεργασμένου αντιγράφου</string>
+    <string name="raw_export_choose_format_subtitle">Επιλέξτε μια μορφή για το αρχείο RAW που έχετε επεξεργαστεί</string>
+    <string name="raw_export_tiff_unavailable">Το TIFF διατηρεί το πλήρες βάθος bit, αλλά δεν μπορεί να περιλαμβάνει περικοπή, φίλτρα ή σήμανση — αφαιρέστε τα για να εξαγάγετε το αρχείο TIFF.</string>
+    <string name="editor_mosaic_faces">Πρόσωπα σε μωσαϊκό</string>
+    <string name="cutout_no_object">Δεν εντοπίστηκε αντικείμενο κατά τη διάρκεια παρατεταμένου πατήματος</string>
+    <string name="cutout_init_failed">Αποτυχία αρχικοποίησης του μηχανισμού αποκοπής</string>
 </resources>

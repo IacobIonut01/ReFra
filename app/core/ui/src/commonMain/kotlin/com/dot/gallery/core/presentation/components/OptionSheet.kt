@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,21 +48,20 @@ fun OptionSheet(
     style: OptionLayoutStyle = OptionLayoutStyle.Column,
     vararg optionList: SnapshotStateList<OptionItem>
 ) {
-    ModalSheet(
+    ExpressiveSheet(
         sheetState = state,
         onDismissRequest = { onDismiss?.invoke() },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        content = {
-            headerContent?.invoke(this)
-            optionList.forEach { list ->
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    style = style,
-                    optionList = list
-                )
-            }
+    ) {
+        headerContent?.invoke(this)
+        optionList.forEachIndexed { index, list ->
+            if (index > 0) Spacer(Modifier.height(12.dp))
+            OptionLayout(
+                modifier = Modifier.fillMaxWidth(),
+                style = style,
+                optionList = list
+            )
         }
-    )
+    }
 }
 
 fun LazyListScope.SettingsOptionLayout(
@@ -133,6 +134,11 @@ fun LazyListScope.SettingsOptionLayout(
                     .animateItem(),
                 enableDismissFromStartToEnd = false,
                 backgroundContent = {
+                    // Rows are width-capped on large screens while this background spans the
+                    // list, so it is drawn only while a swipe is actually revealing it.
+                    if (swipeToDismissBoxState.dismissDirection == SwipeToDismissBoxValue.Settled) {
+                        return@SwipeToDismissBox
+                    }
                     val shape by rememberedDerivedState(position) {
                         when (position) {
                             Position.Alone -> RoundedCornerShape(24.dp)

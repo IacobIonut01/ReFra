@@ -11,4 +11,6 @@ import com.dot.gallery.core.ml.ModelGroup
 data class SetupAiModelsActions(
     /** Kicks off the download/copy pipeline for one model group. */
     val onDownload: (ModelGroup) -> Unit = {},
+    /** Opens a feature's preview page by its Intelligence Hub feature name. */
+    val onOpenFeature: (String) -> Unit = {},
 )

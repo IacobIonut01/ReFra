@@ -22,7 +22,7 @@ import kotlin.concurrent.thread
 
 /**
  * JVM tests for [VaultDecryptCache] — the refcount/single-flight/eviction mechanics behind
- * [VaultDecryptStore] (#1282). The materializer fakes decrypt by writing dummy bytes to
+ * [VaultDecryptStore]. The materializer fakes decrypt by writing dummy bytes to
  * `dir/<key>.bin`, mirroring the production contract.
  */
 class VaultDecryptCacheTest {

@@ -24,14 +24,11 @@ import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,12 +40,10 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.logging.LogEntry
 import com.dot.gallery.core.logging.LogLevel
 import com.dot.gallery.core.presentation.components.ConfirmationSheet
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.presentation.components.OptionLayout
 import com.dot.gallery.core.presentation.components.OptionLayoutStyle
@@ -82,6 +77,11 @@ import com.dot.gallery.feature.settings.generated.resources.dev_session_logs_sum
 import com.dot.gallery.feature.settings.generated.resources.dev_test_error
 import com.dot.gallery.feature.settings.generated.resources.dev_test_error_summary
 import com.dot.gallery.feature.settings.generated.resources.dev_tools_header
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 private sealed interface PendingConfirm {
     data object Clear : PendingConfirm
@@ -107,8 +107,7 @@ fun DeveloperScreenContent(
         scope.launch { detailSheet.show() }
     }
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
 
     // Resolved here because the settings{} DSL scope is not composable
     val logsHeader = stringResource(Res.string.dev_logs_header)
@@ -128,20 +127,17 @@ fun DeveloperScreenContent(
     val disableSummary = stringResource(Res.string.dev_disable_summary)
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.dev_menu_title)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(Res.string.dev_menu_title),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             contentPadding = PaddingValues(
                 top = padding.calculateTopPadding(),
                 bottom = padding.calculateBottomPadding() + 32.dp

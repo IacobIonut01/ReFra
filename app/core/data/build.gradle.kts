@@ -15,6 +15,7 @@ kotlin {
         namespace = "com.dot.gallery.core.data"
         compileSdk = 37
         minSdk = 29
+        withHostTest {}
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -45,6 +46,11 @@ kotlin {
     }
 
     sourceSets {
+        named("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+            }
+        }
         commonMain.dependencies {
             implementation(project(":app:core:domain"))
             implementation(libs.kotlin.inject.runtime)

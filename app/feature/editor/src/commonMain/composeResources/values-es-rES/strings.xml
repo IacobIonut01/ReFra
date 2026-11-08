@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Tamaño</string>
     <string name="editor_brush_strength">Intensidad</string>
     <string name="editor_blur_faces">Desenfocar rostros</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">Papúa Nueva Guinea</string>
+    <string name="raw_export_tiff8">TIFF (8 bits)</string>
+    <string name="raw_export_tiff16">TIFF (16 bits)</string>
+    <string name="raw_export_choose_format">Guardar copia revelada</string>
+    <string name="raw_export_choose_format_subtitle">Elige un formato para tu archivo RAW revelado</string>
+    <string name="raw_export_tiff_unavailable">El formato TIFF conserva toda la profundidad de bits, pero no admite recortes, filtros ni marcas; elimínalos para exportar el archivo TIFF.</string>
+    <string name="editor_mosaic_faces">Caras de mosaico</string>
+    <string name="cutout_no_object">No se ha detectado ningún objeto al mantener pulsado</string>
+    <string name="cutout_init_failed">No se ha podido inicializar el motor de recorte</string>
 </resources>

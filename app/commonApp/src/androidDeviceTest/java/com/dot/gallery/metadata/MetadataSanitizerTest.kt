@@ -3,7 +3,7 @@ package com.dot.gallery.metadata
 import android.os.Environment
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataPolicy
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationResult
 import com.dot.gallery.core.util.ext.saveImageStreaming
@@ -50,7 +50,7 @@ class MetadataSanitizerTest {
             val media = media(target, original.size.toLong(), "image/png")
             val result = AndroidMetadataSanitizer(context).sanitize(
                 media,
-                MetadataRemovalMode.LOCATION,
+                MetadataPolicy.LOCATION,
                 MetadataSaveMode.REPLACE_ORIGINAL
             ) as SanitizationResult.Success
             val replacementUri = result.outputUri
@@ -86,7 +86,7 @@ class MetadataSanitizerTest {
         try {
             val result = AndroidMetadataSanitizer(context).sanitize(
                 media(target, original.size.toLong(), "image/png"),
-                MetadataRemovalMode.LOCATION,
+                MetadataPolicy.LOCATION,
                 MetadataSaveMode.SAVE_COPY
             )
             val success = result as SanitizationResult.Success
@@ -122,7 +122,7 @@ class MetadataSanitizerTest {
         try {
             val result = AndroidMetadataSanitizer(context).sanitize(
                 media(target, original.size.toLong(), "image/jpeg"),
-                MetadataRemovalMode.LOCATION,
+                MetadataPolicy.LOCATION,
                 MetadataSaveMode.REPLACE_ORIGINAL
             )
 

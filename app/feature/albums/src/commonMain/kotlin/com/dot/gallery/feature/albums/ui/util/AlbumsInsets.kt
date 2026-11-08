@@ -40,7 +40,7 @@ fun rememberNavigationBarOnSides(): Boolean {
     val navBarsPadding = WindowInsets.navigationBars.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
     // Key on the resolved Dp primitives (see ProvideInsets) so this recomputes on
-    // rotation instead of caching the initial-orientation result (#929).
+    // rotation instead of caching the initial-orientation result.
     val bottom = navBarsPadding.calculateBottomPadding()
     val start = navBarsPadding.calculateStartPadding(layoutDirection)
     val end = navBarsPadding.calculateEndPadding(layoutDirection)

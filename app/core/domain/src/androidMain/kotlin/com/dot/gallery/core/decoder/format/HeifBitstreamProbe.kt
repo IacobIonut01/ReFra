@@ -7,6 +7,7 @@ package com.dot.gallery.core.decoder.format
 
 import com.dot.gallery.core.util.and
 import com.dot.gallery.core.util.or
+import java.io.InputStream
 
 
 
@@ -33,6 +34,9 @@ object HeifBitstreamProbe {
 
     /** Bit depth above which the platform codec must not be trusted (12-bit and beyond). */
     const val MAX_SAFE_PLATFORM_BIT_DEPTH = 10
+
+    /** Default head window for [readMetaBox]; matches the historical fixed-size probe read. */
+    const val HEADER_PROBE_LIMIT = 256 * 1024
 
     /** True when the declared bit depth of [bytes] exceeds what the platform decodes correctly. */
     fun needsSoftwareDecode(bytes: ByteArray): Boolean =
@@ -63,6 +67,77 @@ object HeifBitstreamProbe {
             }
         }
         return max
+    }
+
+    /**
+     * Streams the top-level boxes of [stream] and returns the bytes of the first `meta` box, or
+     * null when none ends within the first [limit] bytes of the stream.
+     *
+     * Equivalent to running [maxBitDepth] on a [limit]-byte head prefix, but only the box headers
+     * and the `meta` payload are read — every other box (`ftyp` payload, `mdat`, `free`) is
+     * skipped, which on a seekable descriptor is an lseek instead of a read. On slow, FUSE-backed
+     * storage such as SD cards that turns a fixed 256 KB read per file into a few KB.
+     */
+    fun readMetaBox(stream: InputStream, limit: Int = HEADER_PROBE_LIMIT): ByteArray? {
+        val header = ByteArray(16)
+        var pos = 0L
+        while (pos + 8 <= limit) {
+            if (stream.readFully(header, 0, 8) < 8) return null
+            val type = String(header, 4, 4, Charsets.US_ASCII)
+            var headerLength = 8
+            val size = when (val size32 = readU32(header, 0)) {
+                1L -> {
+                    if (pos + 16 > limit || stream.readFully(header, 8, 8) < 8) return null
+                    headerLength = 16
+                    readU64(header, 8)
+                }
+                // size==0 runs to end of file: only a trailing 'meta' is still readable.
+                0L -> if (type == "meta") limit - pos else return null
+                else -> size32
+            }
+            if (size < headerLength || pos + size > limit) return null
+            if (type == "meta") {
+                val box = ByteArray(size.toInt())
+                System.arraycopy(header, 0, box, 0, headerLength)
+                val read = stream.readFully(box, headerLength, box.size - headerLength)
+                return when {
+                    read == box.size - headerLength -> box
+                    size32IsZero(box) -> box.copyOf(headerLength + read)
+                    else -> null
+                }
+            }
+            if (!stream.skipFully(size - headerLength)) return null
+            pos += size
+        }
+        return null
+    }
+
+    private fun size32IsZero(box: ByteArray): Boolean = readU32(box, 0) == 0L
+
+    /** Reads up to [length] bytes into [buffer] at [offset]; returns the count actually read. */
+    private fun InputStream.readFully(buffer: ByteArray, offset: Int, length: Int): Int {
+        var total = 0
+        while (total < length) {
+            val n = read(buffer, offset + total, length - total)
+            if (n <= 0) break
+            total += n
+        }
+        return total
+    }
+
+    /** Skips exactly [count] bytes; false on end of stream. `skip` may return 0 before EOF. */
+    private fun InputStream.skipFully(count: Long): Boolean {
+        var remaining = count
+        while (remaining > 0) {
+            val skipped = skip(remaining)
+            if (skipped > 0) {
+                remaining -= skipped
+            } else {
+                if (read() < 0) return false
+                remaining--
+            }
+        }
+        return true
     }
 
     /**

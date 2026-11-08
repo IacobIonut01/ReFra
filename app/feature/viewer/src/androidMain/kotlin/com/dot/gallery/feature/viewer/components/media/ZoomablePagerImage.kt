@@ -11,6 +11,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -22,6 +23,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -59,7 +61,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
@@ -102,12 +103,15 @@ import com.dot.gallery.core.decoder.RawDevelopStore
 import com.dot.gallery.core.decoder.RawRegionDecoder
 import com.dot.gallery.core.decoder.format.ImageFormatSniffer
 import com.dot.gallery.core.decoder.format.TiffImageDecoder
+import com.dot.gallery.core.decoder.isAnimatedAvif
 import com.dot.gallery.core.decoder.isAnimatedWebp
 import com.dot.gallery.core.ml.CutoutHelper
 import com.dot.gallery.core.presentation.components.util.LocalBatteryStatus
 import com.dot.gallery.core.presentation.components.util.ProvideBatteryStatus
 import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.domain.model.Media
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
 import com.dot.gallery.domain.util.asSubsamplingImage
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.feature.viewer.LocalMediaViewerVisualPolicy
@@ -153,7 +157,6 @@ import com.dot.gallery.core.presentation.util.add
 import com.dot.gallery.core.presentation.util.clear
 import com.dot.gallery.core.presentation.util.remove
 import com.dot.gallery.data.data_source.KeychainHolder
-import com.dot.gallery.core.Constants.DEFAULT_TOP_BAR_ANIMATION_DURATION
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.domain.util.isApng
 import com.dot.gallery.domain.util.isCloud
@@ -180,7 +183,7 @@ private const val EXTENDED_MAX_NATIVE_SCALE = 50f
 
 // Frame-animated raster formats (GIF/animated WebP/APNG) can't be tiled/subsampled, so their base
 // painter is decoded at native resolution for crisp zoom — clamped to this long-edge to bound the
-// per-frame bitmap memory on pathologically large files (#1056).
+// per-frame bitmap memory on pathologically large files.
 private const val ANIMATED_MAX_DIM = 4096
 
 /**
@@ -248,43 +251,41 @@ fun <T : Media> BlurredMediaBackground(
         val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
         val isPowerSavingMode = LocalBatteryStatus.current.isPowerSavingMode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && allowBlur && !isPowerSavingMode) {
-            val isEncrypted = remember(media) {
-                media.isEncrypted
+            // Derived once from the preview the grid already prefetched, blurred on the CPU and
+            // down to a few dozen pixels: the backdrop is one stretched textured quad, not a
+            // fullscreen `.blur(100.dp)` RenderEffect pass per frame. That is what lets it stay
+            // on screen while the shared-element open transition re-measures this box every
+            // frame — the pass it replaces used to be skipped for the whole transition, which
+            // made the blur fade in only after the photo was already there.
+            val backdrop = rememberMediaBackdrop(media)
+            // Already available on the first composition (the common case): start at full alpha
+            // so the backdrop arrives together with the media, no fade. A backdrop that lands a
+            // frame or two late — a cold preview, or cloud media still being fetched — fades in.
+            val backdropAlpha = remember(media.id) {
+                Animatable(if (backdrop != null) BACKDROP_ALPHA else 0f)
             }
-            var backgroundVisible by remember(media.id) { mutableStateOf(false) }
-            LaunchedEffect(media.id) {
-                backgroundVisible = true
-            }
-            val blurAlpha by animateFloatAsState(
+            LaunchedEffect(uiEnabled, backdrop) {
+                val target = if (uiEnabled) BACKDROP_ALPHA else 0f
                 // "Animate media items" off — the backdrop fades in/out instantly.
-                animationSpec = if (animationsEnabled) {
-                    tween(DEFAULT_TOP_BAR_ANIMATION_DURATION)
+                if (animationsEnabled) {
+                    backdropAlpha.animateTo(target, tween(BACKDROP_FADE_MILLIS))
                 } else {
-                    snap()
-                },
-                targetValue = if (uiEnabled && backgroundVisible) 0.7f else 0f,
-                label = "blurAlpha"
-            )
-            AsyncImage(
-                request = ComposableImageRequest(media.getUri().toString()) {
-                    resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
-                    crossfade(false)
-                    if (!media.isVideo) setExtra("realMimeType", media.mimeType)
-                    // Bust the cache when the underlying file changes (#1004).
-                    setExtra(key = "mediaVersion", value = "${media.timestamp}:${media.size}")
-                    if (isEncrypted) {
-                        setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = blurAlpha * gestureAlpha
-                    }
-                    .blur(100.dp),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-            )
+                    backdropAlpha.snapTo(target)
+                }
+            }
+            if (backdrop != null) {
+                Image(
+                    bitmap = backdrop,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.Low,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            alpha = backdropAlpha.value * gestureAlpha
+                        },
+                )
+            }
         }
     }
 }
@@ -293,13 +294,35 @@ fun <T : Media> BlurredMediaBackground(
 // (GIF/APNG/animated WebP, which BitmapRegionDecoder genuinely cannot tile), JXL still
 // subsamples through JxlRegionDecoder — which self-rejects animated codestreams — and an
 // animated painter animates under the canvas-drawn pixel-perfect path just like under
-// ZoomImage, because the painter owns its frames, not the renderer (#1311).
+// ZoomImage, because the painter owns its frames, not the renderer.
 fun resolveUsePixelPerfect(
     disableSmoothing: Boolean,
     isJxl: Boolean,
     isAnimated: Boolean,
     isAnimatedRaster: Boolean,
 ): Boolean = disableSmoothing && !isAnimatedRaster && (isJxl || !isAnimated)
+
+/**
+ * A still AVIF and an AVIF sequence share `image/avif`. Only `image/avis` or a sniffed
+ * `avis` brand is a sequence, and the platform animates those on API 31+. APNG and JXL
+ * stay animated on every API, matching the painters that already play them.
+ */
+fun viewerMarksAnimated(
+    isApng: Boolean,
+    isJxl: Boolean,
+    isAvisMime: Boolean,
+    sniffedAnimatedAvif: Boolean,
+    isHeifSequenceMime: Boolean,
+    apiAtLeast31: Boolean,
+): Boolean = isApng || isJxl ||
+    ((isAvisMime || sniffedAnimatedAvif || isHeifSequenceMime) && apiAtLeast31)
+
+/**
+ * Still HEIC/HEIF and still AVIF share one region decoder. A sequence must stay on the
+ * base painter: tiling it would freeze a high-resolution layer over the animation.
+ */
+fun viewerUsesHeifTiles(isHeif: Boolean, isAvif: Boolean, isAnimated: Boolean): Boolean =
+    (isHeif || isAvif) && !isAnimated
 
 @Stable
 @Composable
@@ -366,7 +389,7 @@ fun <T : Media> ZoomablePagerImage(
     // disk result caches are tied to the current file bytes. After editing or
     // overwriting an image its URI is unchanged, so without this the viewer kept
     // serving the stale original from cache while the Glide grid (keyed on
-    // media.toString()) had already refreshed (#1004).
+    // media.toString) had already refreshed.
     val mediaVersion = remember(media) { "${media.timestamp}:${media.size}" }
     val isEncrypted = remember(media) {
         media.isEncrypted
@@ -376,14 +399,38 @@ fun <T : Media> ZoomablePagerImage(
     // so the feature can never work for them and running it just wastes work (and, for large 16-bit
     // TIFFs, greedily reads metadata → OOM). Disable it for those formats.
     val cutoutSupported = remember(media) { !(media.isTiff || media.isPsd || media.isJp2) }
-    val isAnimated = remember(media) {
-        media.isApng || media.isJxl || (media.isAvif && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ||
-                (media.isHeif && media.mimeType.endsWith("-sequence") &&
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    // image/avif covers stills and sequences. Sniff the ftyp brand the way animated WebP
+    // does; cloud and encrypted files stay on the mime type, because sniffing would mean
+    // a download or a decrypt. image/avis is a sequence without a sniff.
+    var sniffedAnimatedAvif by remember(media) { mutableStateOf(false) }
+    LaunchedEffect(media) {
+        if (!media.isAvif || media.mimeType == "image/avis" || media.isEncrypted || media.isCloud) {
+            sniffedAnimatedAvif = false
+            return@LaunchedEffect
+        }
+        sniffedAnimatedAvif = withContext(Dispatchers.IO) {
+            runCatching {
+                context.contentResolver.openInputStream(media.getUri())?.use { ins ->
+                    val head = ByteArray(256)
+                    val n = ins.read(head)
+                    n > 0 && isAnimatedAvif(head.copyOf(n))
+                } ?: false
+            }.getOrDefault(false)
+        }
+    }
+    val isAnimated = remember(media, sniffedAnimatedAvif) {
+        viewerMarksAnimated(
+            isApng = media.isApng,
+            isJxl = media.isJxl,
+            isAvisMime = media.mimeType == "image/avis",
+            sniffedAnimatedAvif = sniffedAnimatedAvif,
+            isHeifSequenceMime = media.isHeif && media.mimeType.endsWith("-sequence"),
+            apiAtLeast31 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+        )
     }
     // Frame-animated raster formats that CANNOT be tiled/subsampled: GIF, animated WebP, APNG.
     // BitmapRegionDecoder can't decode GIF, and tiling a moving image would freeze a hi-res layer
-    // over the animation. The fix is a full-resolution (capped) base decode per frame (#1056).
+    // over the animation. The fix is a full-resolution (capped) base decode per frame.
     // Animated WebP shares mime image/webp with static WebP, so it needs a cheap header sniff;
     // cloud/encrypted webp default to false (sniffing would require download/decrypt).
     var isAnimatedWebpState by remember(media) { mutableStateOf(false) }
@@ -408,7 +455,7 @@ fun <T : Media> ZoomablePagerImage(
     // blur. ZoomImage scales via a GPU graphicsLayer (always linearly filtered), so the setting is
     // honored through a dedicated canvas-transform draw path (see PixelPerfectZoomImage) rather than
     // ZoomImage. Animated images keep the default smooth path — except JXL (see
-    // resolveUsePixelPerfect), whose blanket "animated" flag used to hide it forever (#1311).
+    // resolveUsePixelPerfect), whose blanket "animated" flag used to hide it forever.
     val disableSmoothing by Settings.Misc.rememberDisableSmoothing()
     val usePixelPerfect = resolveUsePixelPerfect(
         disableSmoothing = disableSmoothing,
@@ -417,7 +464,7 @@ fun <T : Media> ZoomablePagerImage(
         isAnimatedRaster = isAnimatedRaster,
     )
     val filterQuality = if (disableSmoothing) FilterQuality.None else DrawScope.DefaultFilterQuality
-    // #1054: MediaStore sometimes mislabels a standard JPEG/PNG/WebP/GIF/BMP as RAW/TIFF/PSD/JP2,
+    // MediaStore sometimes mislabels a standard JPEG/PNG/WebP/GIF/BMP as RAW/TIFF/PSD/JP2,
     // so media.isRaw/isTiff/… are true and a custom region decoder would be attached that can't
     // decode the real bytes — leaving zoom stuck on the low-res base ("magnified thumbnail"). Only
     // for those already-special formats, sniff the header once (cached per media) on IO; if the
@@ -493,11 +540,11 @@ fun <T : Media> ZoomablePagerImage(
     val fullPainter = rememberAsyncImagePainter(
         request = ComposableImageRequest(mediaUri) {
             if (isEncrypted || isAnimated || isAnimatedRaster) {
-                crossfade(durationMillis = if (animationsEnabled) 200 else 0)
+                transitionFactory(viewerCrossfadeTransition(animationsEnabled))
             }
             // Animated raster (GIF/animated WebP/APNG) can't be subsampled, so decode the base frame
             // at native resolution (capped) instead of the default layout/screen size — otherwise a
-            // hi-res GIF looks blurry when zoomed (#1056). LESS_PIXELS precision never upscales, so
+            // hi-res GIF looks blurry when zoomed. LESS_PIXELS precision never upscales, so
             // small GIFs still decode at native size and only oversized ones are downsampled.
             if (isAnimatedRaster) {
                 resize(width = ANIMATED_MAX_DIM, height = ANIMATED_MAX_DIM, precision = Precision.LESS_PIXELS)
@@ -569,7 +616,8 @@ fun <T : Media> ZoomablePagerImage(
             isHeif = media.isHeif,
             isSpecialFormat = mightBeSpecial,
             isAnimated = isAnimated,
-            isAnimatedRaster = isAnimatedRaster
+            isAnimatedRaster = isAnimatedRaster,
+            isAvif = media.isAvif,
         )
     }
 
@@ -580,11 +628,20 @@ fun <T : Media> ZoomablePagerImage(
     LaunchedEffect(media) {
         HeifDebug.d(
             "viewer media='${media.label}' mime='${media.mimeType}' isHeif=${media.isHeif} " +
-                "isJxl=$isJxl isAnimated=$isAnimated isAnimatedRaster=$isAnimatedRaster " +
+                "isAvif=${media.isAvif} isJxl=$isJxl isAnimated=$isAnimated " +
+                "isAnimatedRaster=$isAnimatedRaster " +
                 "customRegion=${customRegionFactory != null} " +
                 "encrypted=$isEncrypted cloud=$isCloudMedia usePixelPerfect=$usePixelPerfect " +
                 "isFullImageLoaded=$isFullImageLoaded"
         )
+    }
+    // A local image/avif file can still be an `avis` sequence. The sniff starts false, so
+    // the still path attaches tiles, then flips. Drop those tiles once the brand is known.
+    // image/avis never enters that path, and cloud/encrypted files are not sniffed.
+    LaunchedEffect(media.id, sniffedAnimatedAvif) {
+        if (sniffedAnimatedAvif) {
+            zoomState.setSubsamplingImage(null as SubsamplingImage?)
+        }
     }
     if (isEncrypted) {
         val keychainHolder = remember { KeychainHolder(context) }
@@ -663,11 +720,11 @@ fun <T : Media> ZoomablePagerImage(
         LaunchedEffect(zoomState.subsampling, media) {
             zoomState.subsampling.setRegionDecoders(listOf(customRegionFactory))
         }
-    } else if (media.isHeif && !isAnimated) {
-        // HEIC/HEIF: dedicated hardware-first (platform BitmapRegionDecoder) / software-fallback
-        // (libheif full-decode-then-crop) region decoder so zoom stays sharp. The generic branch
-        // below relies on the platform decoder alone with no fallback, which fails on HDR/10-bit/
-        // grid HEICs and devices without HEIF region support.
+    } else if (viewerUsesHeifTiles(media.isHeif, media.isAvif, isAnimated)) {
+        // HEIC/HEIF and still AVIF share one container. Hardware BitmapRegionDecoder, then
+        // libheif full-decode-then-crop, keeps zoom at the file's pixel size. The generic
+        // branch has no software fallback and fails on HDR, 10-bit, and grid HEICs.
+        // Sequences stay on the base painter.
         LaunchedEffect(media, isFullImageLoaded, zoomState.subsampling) {
             HeifDebug.d("HEIF branch: setSubsamplingImage for '${media.label}' (isFullImageLoaded=$isFullImageLoaded)")
             zoomState.setSubsamplingImage(media.asSubsamplingImage(context))
@@ -681,7 +738,7 @@ fun <T : Media> ZoomablePagerImage(
     } else if (!isAnimated && !isAnimatedRaster) {
         // Animated raster (GIF/animated WebP/APNG) is intentionally excluded: BitmapRegionDecoder
         // can't tile a moving image, so subsampling would do nothing but waste work. Their crisp
-        // zoom comes from the native-resolution base decode above (#1056).
+        // zoom comes from the native-resolution base decode above.
         LaunchedEffect(media, isFullImageLoaded, zoomState.subsampling) {
             zoomState.setSubsamplingImage(media.asSubsamplingImage(context))
         }
@@ -750,9 +807,8 @@ fun <T : Media> ZoomablePagerImage(
 
     // --- Subject cutout (on-device MobileSAM) ---
     val modelManager = remember { viewerRuntime.modelManager }
-    // When true, long-press starts a cutout session and Rotate is offered as an on-screen pill.
-    // When false (default), long-press rotates the image.
-    val longPressStartsCutout by Settings.Misc.rememberLongPressCutout()
+    // User-chosen long-press action. When it is cutout, Rotate is offered as an on-screen pill.
+    val longPressAction = Settings.Misc.rememberLongPressAction()
 
     // Pulsing glow for the cutout contour. The infinite animation is only created while it's
     // actually needed (a cutout is active). An unconditional rememberInfiniteTransition would run a
@@ -889,8 +945,12 @@ fun <T : Media> ZoomablePagerImage(
     // (e.g. during a slideshow).
     val onImageLongPress: (Offset) -> Unit = { offset ->
         if (cutoutEnabled) {
-            // Cut-out can't run on TIFF/PSD/JP2 (BitmapFactory can't decode them); rotate instead.
-            if (longPressStartsCutout && cutoutSupported) startCutoutAt(offset) else rotateImage()
+            when (longPressAction) {
+                // Cut-out can't run on TIFF/PSD/JP2 (BitmapFactory can't decode them); rotate instead.
+                LONG_PRESS_ACTION_CUTOUT -> if (cutoutSupported) startCutoutAt(offset) else rotateImage()
+                LONG_PRESS_ACTION_ROTATE -> rotateImage()
+                else -> Unit
+            }
         }
     }
 
@@ -1021,7 +1081,7 @@ fun <T : Media> ZoomablePagerImage(
 
         val chromeVisible = isSelected && uiVisible && !cutoutState.isActive && !cutoutState.isProcessing
 
-        if (longPressStartsCutout) {
+        if (longPressAction == LONG_PRESS_ACTION_CUTOUT) {
             // Long-press does cutout → offer Rotate as a pill.
             AnimatedVisibility(
                 visible = chromeVisible && !rotationDisabled,

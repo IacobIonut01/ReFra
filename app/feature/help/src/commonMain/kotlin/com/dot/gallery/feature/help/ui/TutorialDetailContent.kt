@@ -28,23 +28,24 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.core.Position
+import com.dot.gallery.core.presentation.components.SheetIconBadge
+import com.dot.gallery.core.presentation.components.sheetGroupedShape
+import com.dot.gallery.core.presentation.components.sheetRowPosition
 import com.dot.gallery.feature.help.domain.HelpRepository
 import com.dot.gallery.feature.help.domain.HelpRoute
 import com.dot.gallery.feature.help.domain.PreviewType
@@ -55,6 +56,10 @@ import com.dot.gallery.feature.help.generated.resources.help_not_found
 import com.dot.gallery.feature.help.generated.resources.help_open_settings
 import com.dot.gallery.feature.help.generated.resources.help_quick_actions
 import com.dot.gallery.feature.help.generated.resources.help_tips_fallback
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.rememberHazeState
+import dev.chrisbanes.haze.hazeSource
 
 /**
  * Step-by-step detail for a single [com.dot.gallery.feature.help.domain.HelpTip].
@@ -70,19 +75,15 @@ fun TutorialDetailContent(
     onNavigate: (HelpRoute) -> Unit,
     preview: @Composable (PreviewType) -> Unit = {},
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollState = rememberScrollState()
+    // Tip previews render real app chrome that may blur LocalHazeState; the bar keeps its own state.
+    val hazeState = rememberHazeState()
 
     val tip = remember(tipId) { HelpRepository.getTip(tipId) }
 
     if (tip == null) {
         Scaffold(
-            topBar = {
-                LargeTopAppBar(
-                    title = { Text(stringResource(Res.string.help_tips_fallback)) },
-                    navigationIcon = { NavigationBackButton() },
-                    scrollBehavior = scrollBehavior
-                )
-            }
+            topBar = { GalleryPageTopBar(title = stringResource(Res.string.help_tips_fallback)) }
         ) { padding ->
             Box(
                 modifier = Modifier
@@ -97,41 +98,42 @@ fun TutorialDetailContent(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(tip.title)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(tip.title),
+                hazeState = hazeState,
+                scrolled = rememberScrolledUnderTopBar(scrollState),
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .hazeSource(hazeState)
+                .verticalScroll(scrollState)
                 .padding(
                     start = padding.calculateStartPadding(LocalLayoutDirection.current),
                     end = padding.calculateEndPadding(LocalLayoutDirection.current),
                     top = padding.calculateTopPadding(),
                     bottom = padding.calculateBottomPadding()
                 )
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            TutorialHeader(
+                icon = tip.icon.vector,
+                subtitle = stringResource(tip.subtitle)
+            )
             tip.pages.forEach { page ->
                 TutorialPageContent(page = page, preview = preview)
             }
 
             if (tip.quickActions.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
                 Text(
                     text = stringResource(Res.string.help_quick_actions),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.semantics { heading() }
                 )
                 tip.quickActions.forEach { action ->
                     FilledTonalButton(
@@ -148,7 +150,6 @@ fun TutorialDetailContent(
                     }
                 }
             } else if (tip.deepLink != null) {
-                Spacer(Modifier.height(8.dp))
                 Button(
                     onClick = { onNavigate(tip.deepLink) },
                     modifier = Modifier.fillMaxWidth()
@@ -181,25 +182,29 @@ private fun TutorialPageContent(
         // Page title
         Text(
             text = stringResource(page.title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.semantics { heading() }
         )
 
         // Description
         Text(
             text = stringResource(page.description),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         // Steps
         if (page.steps.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
-            page.steps.forEachIndexed { index, step ->
-                StepItem(
-                    stepNumber = index + 1,
-                    text = stringResource(step)
-                )
+            Spacer(Modifier.height(8.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                page.steps.forEachIndexed { index, step ->
+                    StepItem(
+                        stepNumber = index + 1,
+                        text = stringResource(step),
+                        position = sheetRowPosition(index, page.steps.size)
+                    )
+                }
             }
         }
 
@@ -253,37 +258,66 @@ private fun MultiStepPreview(
     }
 }
 
+/** Tip badge and one-line summary under the large title. */
 @Composable
-private fun StepItem(
-    stepNumber: Int,
-    text: String,
+private fun TutorialHeader(
+    icon: ImageVector?,
+    subtitle: String,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) SheetIconBadge(icon = icon)
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+/** One numbered step, drawn as a row of a grouped list. */
+@Composable
+private fun StepItem(
+    stepNumber: Int,
+    text: String,
+    position: Position,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(sheetGroupedShape(position))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .semantics(mergeDescendants = true) {}
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .size(32.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "$stepNumber",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 4.dp)
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
         )
     }
 }

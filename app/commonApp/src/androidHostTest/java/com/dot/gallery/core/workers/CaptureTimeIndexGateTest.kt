@@ -11,7 +11,7 @@ import org.junit.Test
 
 
 /**
- * The remote byte range used to resolve capture times for cloud media (#1277)
+ * The remote byte range used to resolve capture times for cloud media
  * must respect the same network policy as other cloud transfers: never while
  * effectively offline, and on metered networks only for accounts that did not
  * restrict transfers to unmetered.

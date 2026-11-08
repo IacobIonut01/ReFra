@@ -39,7 +39,7 @@ class TrashDialogTest {
      * With the trash confirmation disabled, showing the dialog auto-confirms —
      * and must do so on every show, not just the first. The confirmed latch
      * used to stay set because its reset lived only inside the rendered-sheet
-     * branch, so a second delete silently did nothing (#1321).
+     * branch, so a second delete silently did nothing.
      */
     @Test
     fun noConfirmationTrashFiresConfirmOnEveryShow() {

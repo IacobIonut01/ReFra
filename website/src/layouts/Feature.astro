@@ -34,6 +34,18 @@ const editUrl = `${REPO_BLOB}/website/src/content/features/${entry.id}.mdx`;
   </div>
 
   <div class="prose">
+    {
+      area === 'edit-legacy' && (
+        <div class="note" role="note">
+          <p>
+            This page covers the older built-in editor. <strong>Edit</strong> now opens the{' '}
+            <a href={withBase('/features/editor')}>ReFra editor</a> by default; the built-in
+            editor still opens formats the ReFra editor cannot, or when you pick it as the
+            default image editor. This page stays until the built-in editor is removed.
+          </p>
+        </div>
+      )
+    }
     <slot />
   </div>
 

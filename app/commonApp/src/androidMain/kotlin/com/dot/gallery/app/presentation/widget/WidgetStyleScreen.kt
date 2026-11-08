@@ -89,7 +89,7 @@ import com.dot.gallery.generated.resources.widget_style_title
 
 
 /**
- * Second step of widget configuration (#1269): pick how the chosen photos are
+ * Second step of widget configuration: pick how the chosen photos are
  * drawn on the home screen — in colour, black & white, or replaced by an
  * emoji/label that still deep-links to the photo on tap.
  */

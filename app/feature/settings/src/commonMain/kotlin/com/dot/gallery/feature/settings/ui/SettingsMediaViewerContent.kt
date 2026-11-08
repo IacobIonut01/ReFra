@@ -5,6 +5,29 @@
 
 package com.dot.gallery.feature.settings.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
+import com.dot.gallery.core.ui.components.PreviewPhoto
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BrightnessHigh
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Grain
+import androidx.compose.material.icons.outlined.HdrOn
+import androidx.compose.material.icons.outlined.HighQuality
+import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.PanTool
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Slideshow
+import androidx.compose.material.icons.outlined.SmartButton
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.VideoSettings
+import androidx.compose.material.icons.outlined.Videocam
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,6 +86,10 @@ import com.dot.gallery.core.ui.mediaview.resolveVisualSearchTarget
 import com.dot.gallery.core.ui.mediaview.icon
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.EDITOR_BUILTIN
+import com.dot.gallery.domain.settings.EDITOR_STUDIO
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_NONE
+import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
 import com.dot.gallery.domain.settings.REENCODE_MODE_AUTO
 import com.dot.gallery.domain.settings.REENCODE_MODE_MANUAL
 import com.dot.gallery.domain.settings.SettingsKeys
@@ -75,6 +102,7 @@ import com.dot.gallery.domain.settings.VISUAL_SEARCH_FORMAT_WEBP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_BOTTOM
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_TOP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_PROVIDER_AUTO
+import com.dot.gallery.domain.settings.resolveLongPressAction
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 import com.dot.gallery.ui.core.icons.VisualSearch
 import kotlin.math.roundToInt
@@ -92,7 +120,12 @@ import com.dot.gallery.feature.settings.generated.resources.dark_media_viewer_su
 import com.dot.gallery.feature.settings.generated.resources.dark_media_viewer_title
 import com.dot.gallery.feature.settings.generated.resources.default_editor_description
 import com.dot.gallery.feature.settings.generated.resources.default_image_editor
+import com.dot.gallery.feature.settings.generated.resources.default_video_editor
+import com.dot.gallery.feature.settings.generated.resources.default_video_editor_ask
+import com.dot.gallery.feature.settings.generated.resources.default_video_editor_description
+import com.dot.gallery.feature.settings.generated.resources.default_video_editor_studio
 import com.dot.gallery.feature.settings.generated.resources.default_image_editor_builtin
+import com.dot.gallery.feature.settings.generated.resources.default_image_editor_studio
 import com.dot.gallery.feature.settings.generated.resources.disable_smoothing_description
 import com.dot.gallery.feature.settings.generated.resources.disable_smoothing_summary
 import com.dot.gallery.feature.settings.generated.resources.disable_smoothing_title
@@ -102,9 +135,12 @@ import com.dot.gallery.feature.settings.generated.resources.full_brightness_view
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback_description
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback_summary
-import com.dot.gallery.feature.settings.generated.resources.long_press_cutout_description
-import com.dot.gallery.feature.settings.generated.resources.long_press_cutout_summary
-import com.dot.gallery.feature.settings.generated.resources.long_press_cutout_title
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_cutout
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_cutout_unavailable
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_description
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_none
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_rotate
+import com.dot.gallery.feature.settings.generated.resources.long_press_action_title
 import com.dot.gallery.feature.settings.generated.resources.media_view
 import com.dot.gallery.feature.settings.generated.resources.reencode_quality_jxl_effort
 import com.dot.gallery.feature.settings.generated.resources.reencode_quality_lossy
@@ -121,9 +157,6 @@ import com.dot.gallery.feature.settings.generated.resources.show_favorite_button
 import com.dot.gallery.feature.settings.generated.resources.show_favorite_button_summary
 import com.dot.gallery.feature.settings.generated.resources.slideshow
 import com.dot.gallery.feature.settings.generated.resources.slideshow_settings_summary
-import com.dot.gallery.feature.settings.generated.resources.swipe_up_to_trash_description
-import com.dot.gallery.feature.settings.generated.resources.swipe_up_to_trash_summary
-import com.dot.gallery.feature.settings.generated.resources.swipe_up_to_trash_title
 import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_description
 import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_summary
 import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_title
@@ -131,6 +164,8 @@ import com.dot.gallery.feature.settings.generated.resources.video_playback
 import com.dot.gallery.feature.settings.generated.resources.video_surface_rebind
 import com.dot.gallery.feature.settings.generated.resources.video_surface_rebind_description
 import com.dot.gallery.feature.settings.generated.resources.video_surface_rebind_summary
+import com.dot.gallery.feature.settings.generated.resources.viewer_action_bar
+import com.dot.gallery.feature.settings.generated.resources.viewer_action_bar_summary
 import com.dot.gallery.feature.settings.generated.resources.visual_search_convert_always
 import com.dot.gallery.feature.settings.generated.resources.visual_search_convert_always_summary
 import com.dot.gallery.feature.settings.generated.resources.visual_search_convert_ask
@@ -166,16 +201,16 @@ import com.dot.gallery.feature.settings.generated.resources.visual_search_with
 private const val DETAIL_BRIGHTNESS = "brightness"
 private const val DETAIL_DATE_HEADER = "date_header"
 private const val DETAIL_TAP_NAVIGATION = "tap_navigation"
-private const val DETAIL_SWIPE_UP_TO_TRASH = "swipe_up_to_trash"
 private const val DETAIL_FAV_BUTTON = "fav_button"
 private const val DETAIL_EDITOR = "editor"
+private const val DETAIL_VIDEO_EDITOR = "video_editor"
 private const val DETAIL_AUTO_HIDE_VIDEO = "auto_hide_video"
 private const val DETAIL_AUTO_PLAY = "auto_play"
 private const val DETAIL_SURFACE_REBIND = "surface_rebind"
 private const val DETAIL_HDR_VIDEO = "hdr_video"
 private const val DETAIL_DISABLE_SMOOTHING = "disable_smoothing"
 private const val DETAIL_DARK_BACKGROUND = "dark_background"
-private const val DETAIL_LONG_PRESS_CUTOUT = "long_press_cutout"
+private const val DETAIL_LONG_PRESS_ACTION = "long_press_action"
 private const val DETAIL_VISUAL_SEARCH = "visual_search"
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -191,9 +226,9 @@ fun SettingsMediaViewerContent(
     var fullBrightnessView by rememberPreference(SettingsKeys.fullBrightnessView)
     var showMediaDateHeader by rememberPreference(SettingsKeys.mediaViewDateHeader)
     var tapSidesToNavigate by rememberPreference(SettingsKeys.tapSidesToNavigate)
-    var swipeUpToTrash by rememberPreference(SettingsKeys.swipeUpToTrash)
     var showFavoriteButton by rememberPreference(SettingsKeys.showFavoriteButton)
     var defaultEditor by rememberPreference(SettingsKeys.defaultImageEditor)
+    var defaultVideoEditor by rememberPreference(SettingsKeys.defaultVideoEditor)
     var autoHideOnVideoPlay by rememberPreference(SettingsKeys.autoHideOnVideoPlay)
     var autoPlayVideo by rememberPreference(SettingsKeys.videoAutoplay)
     var videoSurfaceRebind by rememberPreference(
@@ -202,7 +237,9 @@ fun SettingsMediaViewerContent(
     var hdrVideoPlayback by rememberPreference(SettingsKeys.videoHdrPlayback)
     var disableSmoothing by rememberPreference(SettingsKeys.disableSmoothing)
     var darkMediaViewer by rememberPreference(SettingsKeys.darkMediaViewer)
-    var longPressCutout by rememberPreference(SettingsKeys.longPressCutout)
+    val legacyLongPressCutout by rememberPreference(SettingsKeys.longPressCutout)
+    var storedLongPressAction by rememberPreference(SettingsKeys.longPressAction)
+    val longPressAction = resolveLongPressAction(storedLongPressAction, legacyLongPressCutout)
     var reencodeMode by rememberPreference(SettingsKeys.reencodeQualityMode)
     var reencodeLossyQuality by rememberPreference(SettingsKeys.reencodeLossyQuality)
     var reencodeJxlEffort by rememberPreference(SettingsKeys.reencodeJxlEffort)
@@ -251,15 +288,6 @@ fun SettingsMediaViewerContent(
                 previewBelowSwitch = true,
             )
         }
-        DETAIL_SWIPE_UP_TO_TRASH -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.swipe_up_to_trash_title),
-                isChecked = swipeUpToTrash,
-                onCheckedChange = { swipeUpToTrash = it },
-                description = stringResource(Res.string.swipe_up_to_trash_description),
-            )
-        }
         DETAIL_FAV_BUTTON -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -274,9 +302,11 @@ fun SettingsMediaViewerContent(
         DETAIL_EDITOR -> {
             BackHandler { detailKey = null }
             val builtinEditorLabel = stringResource(Res.string.default_image_editor_builtin)
-            val editorOptions = remember(defaultEditor, state.editApps, builtinEditorLabel) {
+            val studioEditorLabel = stringResource(Res.string.default_image_editor_studio)
+            val editorOptions = remember(defaultEditor, state.editApps, builtinEditorLabel, studioEditorLabel) {
                 val options = mutableListOf(
-                    PreferenceOption(EDITOR_BUILTIN, builtinEditorLabel, defaultEditor == EDITOR_BUILTIN)
+                    PreferenceOption(EDITOR_BUILTIN, builtinEditorLabel, defaultEditor == EDITOR_BUILTIN),
+                    PreferenceOption(EDITOR_STUDIO, studioEditorLabel, defaultEditor == EDITOR_STUDIO),
                 )
                 state.editApps.forEach { app ->
                     options.add(PreferenceOption(app.packageName, app.label, defaultEditor == app.packageName))
@@ -289,6 +319,28 @@ fun SettingsMediaViewerContent(
                 preview = { previews.editor(defaultEditor, state.editApps) },
                 options = editorOptions,
                 onOptionSelected = { defaultEditor = it },
+            )
+        }
+        DETAIL_VIDEO_EDITOR -> {
+            BackHandler { detailKey = null }
+            val studioVideoLabel = stringResource(Res.string.default_video_editor_studio)
+            val askVideoLabel = stringResource(Res.string.default_video_editor_ask)
+            val videoEditorOptions = remember(defaultVideoEditor, state.videoEditApps, studioVideoLabel, askVideoLabel) {
+                val options = mutableListOf(
+                    PreferenceOption(EDITOR_STUDIO, studioVideoLabel, defaultVideoEditor == EDITOR_STUDIO),
+                    PreferenceOption(EDITOR_BUILTIN, askVideoLabel, defaultVideoEditor == EDITOR_BUILTIN),
+                )
+                state.videoEditApps.forEach { app ->
+                    options.add(PreferenceOption(app.packageName, app.label, defaultVideoEditor == app.packageName))
+                }
+                options.toList()
+            }
+            ChooserPreferenceDetailScreen(
+                title = stringResource(Res.string.default_video_editor),
+                description = stringResource(Res.string.default_video_editor_description),
+                preview = {},
+                options = videoEditorOptions,
+                onOptionSelected = { defaultVideoEditor = it },
             )
         }
         DETAIL_DISABLE_SMOOTHING -> {
@@ -310,13 +362,27 @@ fun SettingsMediaViewerContent(
                 description = stringResource(Res.string.dark_media_viewer_description),
             )
         }
-        DETAIL_LONG_PRESS_CUTOUT -> {
+        DETAIL_LONG_PRESS_ACTION -> {
             BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.long_press_cutout_title),
-                isChecked = longPressCutout,
-                onCheckedChange = { longPressCutout = it },
-                description = stringResource(Res.string.long_press_cutout_description),
+            val labels = longPressActionLabels()
+            val cutoutUnavailableSummary = stringResource(Res.string.long_press_action_cutout_unavailable)
+            val options = remember(longPressAction, labels, state.cutoutModelAvailable) {
+                labels.map { (value, label) ->
+                    val unavailable = value == LONG_PRESS_ACTION_CUTOUT && !state.cutoutModelAvailable
+                    PreferenceOption(
+                        value = value,
+                        label = label,
+                        isSelected = longPressAction == value,
+                        description = if (unavailable) cutoutUnavailableSummary else null,
+                        enabled = !unavailable,
+                    )
+                }
+            }
+            ChooserPreferenceDetailScreen(
+                title = stringResource(Res.string.long_press_action_title),
+                description = stringResource(Res.string.long_press_action_description),
+                options = options,
+                onOptionSelected = { storedLongPressAction = it },
             )
         }
         DETAIL_AUTO_HIDE_VIDEO -> {
@@ -400,17 +466,15 @@ fun SettingsMediaViewerContent(
                 onDateHeaderChange = { showMediaDateHeader = it },
                 tapSidesToNavigate = tapSidesToNavigate,
                 onTapNavigationChange = onTapNavigationChange,
-                swipeUpToTrash = swipeUpToTrash,
-                onSwipeUpToTrashChange = { swipeUpToTrash = it },
                 showFavoriteButton = showFavoriteButton,
                 onFavButtonChange = { showFavoriteButton = it },
                 defaultEditor = defaultEditor,
+                defaultVideoEditor = defaultVideoEditor,
                 disableSmoothing = disableSmoothing,
                 onDisableSmoothingChange = { disableSmoothing = it },
                 darkMediaViewer = darkMediaViewer,
                 onDarkMediaViewerChange = { darkMediaViewer = it },
-                longPressCutout = longPressCutout,
-                onLongPressCutoutChange = { longPressCutout = it },
+                longPressAction = longPressAction,
                 autoHideOnVideoPlay = autoHideOnVideoPlay,
                 onAutoHideChange = { autoHideOnVideoPlay = it },
                 autoPlayVideo = autoPlayVideo,
@@ -436,6 +500,7 @@ fun SettingsMediaViewerContent(
                         ?: stringResource(Res.string.visual_search_summary)
                 },
                 onOpenSlideshow = actions.onOpenSlideshow,
+                onOpenViewerActions = actions.onOpenViewerActions,
                 onDetailClick = { detailKey = it },
                 searchSink = actions.searchSink,
                 searchRoute = actions.searchRoute,
@@ -454,17 +519,15 @@ private fun MediaViewerListContent(
     onDateHeaderChange: (Boolean) -> Unit,
     tapSidesToNavigate: Boolean,
     onTapNavigationChange: (Boolean) -> Unit,
-    swipeUpToTrash: Boolean,
-    onSwipeUpToTrashChange: (Boolean) -> Unit,
     showFavoriteButton: Boolean,
     onFavButtonChange: (Boolean) -> Unit,
     defaultEditor: String,
+    defaultVideoEditor: String,
     disableSmoothing: Boolean,
     onDisableSmoothingChange: (Boolean) -> Unit,
     darkMediaViewer: Boolean,
     onDarkMediaViewerChange: (Boolean) -> Unit,
-    longPressCutout: Boolean,
-    onLongPressCutoutChange: (Boolean) -> Unit,
+    longPressAction: String,
     autoHideOnVideoPlay: Boolean,
     onAutoHideChange: (Boolean) -> Unit,
     autoPlayVideo: Boolean,
@@ -483,6 +546,7 @@ private fun MediaViewerListContent(
     onVisualSearchChange: (Boolean) -> Unit,
     visualSearchSummary: String,
     onOpenSlideshow: () -> Unit,
+    onOpenViewerActions: () -> Unit,
     onDetailClick: (String) -> Unit,
     searchSink: ((String, List<String>) -> Unit)?,
     searchRoute: String?,
@@ -498,6 +562,7 @@ private fun MediaViewerListContent(
         val fullBrightnessViewPref = rememberSwitchPreference(
             fullBrightnessView,
             title = stringResource(Res.string.full_brightness_view_title),
+            icon = Icons.Outlined.BrightnessHigh,
             summary = stringResource(Res.string.full_brightness_view_summary),
             isChecked = fullBrightnessView,
             onCheck = onBrightnessChange,
@@ -508,6 +573,7 @@ private fun MediaViewerListContent(
         val showMediaDateHeaderPref = rememberSwitchPreference(
             showMediaDateHeader,
             title = stringResource(Res.string.show_date_header),
+            icon = Icons.Outlined.CalendarToday,
             summary = stringResource(Res.string.show_date_header_summary),
             isChecked = showMediaDateHeader,
             onCheck = onDateHeaderChange,
@@ -518,6 +584,7 @@ private fun MediaViewerListContent(
         val tapNavigationPref = rememberSwitchPreference(
             tapSidesToNavigate,
             title = stringResource(Res.string.tap_sides_to_navigate_title),
+            icon = Icons.Outlined.TouchApp,
             summary = stringResource(Res.string.tap_sides_to_navigate_summary),
             isChecked = tapSidesToNavigate,
             onCheck = onTapNavigationChange,
@@ -525,19 +592,10 @@ private fun MediaViewerListContent(
             screenPosition = Position.Middle,
         )
 
-        val swipeUpToTrashPref = rememberSwitchPreference(
-            swipeUpToTrash,
-            title = stringResource(Res.string.swipe_up_to_trash_title),
-            summary = stringResource(Res.string.swipe_up_to_trash_summary),
-            isChecked = swipeUpToTrash,
-            onCheck = onSwipeUpToTrashChange,
-            onClick = { onDetailClick(DETAIL_SWIPE_UP_TO_TRASH) },
-            screenPosition = Position.Middle,
-        )
-
         val showFavoriteButtonPref = rememberSwitchPreference(
             showFavoriteButton,
             title = stringResource(Res.string.show_favorite_button),
+            icon = Icons.Outlined.FavoriteBorder,
             summary = stringResource(Res.string.show_favorite_button_summary),
             isChecked = showFavoriteButton,
             onCheck = onFavButtonChange,
@@ -545,10 +603,29 @@ private fun MediaViewerListContent(
             screenPosition = Position.Middle
         )
 
+        val viewerActionBarTitle = stringResource(Res.string.viewer_action_bar)
+        val viewerActionBarSummary = stringResource(Res.string.viewer_action_bar_summary)
+        val viewerActionBarPref = remember(
+            viewerActionBarTitle,
+            viewerActionBarSummary,
+            onOpenViewerActions
+        ) {
+            SettingsEntity.Preference(
+                title = viewerActionBarTitle,
+                icon = Icons.Outlined.SmartButton,
+                summary = viewerActionBarSummary,
+                onClick = onOpenViewerActions,
+                screenPosition = Position.Middle
+            )
+        }
+
         val builtinEditorLabel = stringResource(Res.string.default_image_editor_builtin)
-        val editorSummary = remember(defaultEditor, state.editApps, builtinEditorLabel) {
+        val studioEditorLabel = stringResource(Res.string.default_image_editor_studio)
+        val editorSummary = remember(defaultEditor, state.editApps, builtinEditorLabel, studioEditorLabel) {
             if (defaultEditor == EDITOR_BUILTIN) {
                 builtinEditorLabel
+            } else if (defaultEditor == EDITOR_STUDIO) {
+                studioEditorLabel
             } else {
                 state.editApps.find { it.packageName == defaultEditor }?.label
                     ?: builtinEditorLabel
@@ -557,14 +634,35 @@ private fun MediaViewerListContent(
         val defaultEditorPref = rememberPreference(
             defaultEditor,
             title = stringResource(Res.string.default_image_editor),
+            icon = Icons.Outlined.Edit,
             summary = editorSummary,
             onClick = { onDetailClick(DETAIL_EDITOR) },
+            screenPosition = Position.Middle
+        )
+
+        val studioVideoLabel = stringResource(Res.string.default_video_editor_studio)
+        val askVideoLabel = stringResource(Res.string.default_video_editor_ask)
+        val videoEditorSummary = remember(defaultVideoEditor, state.videoEditApps, studioVideoLabel, askVideoLabel) {
+            when (defaultVideoEditor) {
+                EDITOR_STUDIO -> studioVideoLabel
+                EDITOR_BUILTIN -> askVideoLabel
+                else -> state.videoEditApps.find { it.packageName == defaultVideoEditor }?.label
+                    ?: askVideoLabel
+            }
+        }
+        val defaultVideoEditorPref = rememberPreference(
+            defaultVideoEditor,
+            title = stringResource(Res.string.default_video_editor),
+            icon = Icons.Outlined.VideoSettings,
+            summary = videoEditorSummary,
+            onClick = { onDetailClick(DETAIL_VIDEO_EDITOR) },
             screenPosition = Position.Middle
         )
 
         val disableSmoothingPref = rememberSwitchPreference(
             disableSmoothing,
             title = stringResource(Res.string.disable_smoothing_title),
+            icon = Icons.Outlined.Grain,
             summary = stringResource(Res.string.disable_smoothing_summary),
             isChecked = disableSmoothing,
             onCheck = onDisableSmoothingChange,
@@ -575,6 +673,7 @@ private fun MediaViewerListContent(
         val darkMediaViewerPref = rememberSwitchPreference(
             darkMediaViewer,
             title = stringResource(Res.string.dark_media_viewer_title),
+            icon = Icons.Outlined.DarkMode,
             summary = stringResource(Res.string.dark_media_viewer_summary),
             isChecked = darkMediaViewer,
             onCheck = onDarkMediaViewerChange,
@@ -582,19 +681,21 @@ private fun MediaViewerListContent(
             screenPosition = Position.Middle
         )
 
-        val longPressCutoutPref = rememberSwitchPreference(
-            longPressCutout,
-            title = stringResource(Res.string.long_press_cutout_title),
-            summary = stringResource(Res.string.long_press_cutout_summary),
-            isChecked = longPressCutout,
-            onCheck = onLongPressCutoutChange,
-            onClick = { onDetailClick(DETAIL_LONG_PRESS_CUTOUT) },
+        val longPressActionSummary = longPressActionLabels()
+            .firstOrNull { it.first == longPressAction }?.second.orEmpty()
+        val longPressActionPref = rememberPreference(
+            longPressAction,
+            title = stringResource(Res.string.long_press_action_title),
+            icon = Icons.Outlined.PanTool,
+            summary = longPressActionSummary,
+            onClick = { onDetailClick(DETAIL_LONG_PRESS_ACTION) },
             screenPosition = Position.Middle
         )
 
         val visualSearchPref = rememberSwitchPreference(
             visualSearchEnabled,
             title = stringResource(Res.string.visual_search_title),
+            icon = Icons.Outlined.ImageSearch,
             summary = visualSearchSummary,
             isChecked = visualSearchEnabled,
             onCheck = onVisualSearchChange,
@@ -607,6 +708,7 @@ private fun MediaViewerListContent(
         val slideshowPref = remember(slideshowTitle, slideshowSummary, onOpenSlideshow) {
             SettingsEntity.Preference(
                 title = slideshowTitle,
+                icon = Icons.Outlined.Slideshow,
                 summary = slideshowSummary,
                 onClick = onOpenSlideshow,
                 screenPosition = Position.Bottom
@@ -622,6 +724,7 @@ private fun MediaViewerListContent(
         val manualQualityPref = rememberSwitchPreference(
             reencodeMode,
             title = stringResource(Res.string.reencode_quality_mode_manual),
+            icon = Icons.Outlined.Tune,
             summary = stringResource(
                 if (isManualQuality) Res.string.reencode_quality_summary
                 else Res.string.reencode_quality_mode_auto_summary
@@ -637,6 +740,7 @@ private fun MediaViewerListContent(
         )
         val lossyQualityPref = SettingsEntity.SeekPreference(
             title = stringResource(Res.string.reencode_quality_lossy),
+            icon = Icons.Outlined.HighQuality,
             currentValue = reencodeLossyQuality.toFloat(),
             minValue = 1f,
             maxValue = 100f,
@@ -647,6 +751,7 @@ private fun MediaViewerListContent(
         )
         val jxlEffortPref = SettingsEntity.SeekPreference(
             title = stringResource(Res.string.reencode_quality_jxl_effort),
+            icon = Icons.Outlined.Speed,
             currentValue = reencodeJxlEffort.toFloat(),
             minValue = 1f,
             maxValue = 9f,
@@ -664,6 +769,7 @@ private fun MediaViewerListContent(
         val autoHideOnVideoPlayPref = rememberSwitchPreference(
             autoHideOnVideoPlay,
             title = stringResource(Res.string.auto_hide_on_video_play),
+            icon = Icons.Outlined.VisibilityOff,
             summary = stringResource(Res.string.auto_hide_on_video_play_summary),
             isChecked = autoHideOnVideoPlay,
             onCheck = onAutoHideChange,
@@ -674,6 +780,7 @@ private fun MediaViewerListContent(
         val autoPlayVideoPref = rememberSwitchPreference(
             autoPlayVideo,
             title = stringResource(Res.string.auto_play_video),
+            icon = Icons.Outlined.PlayCircle,
             summary = stringResource(Res.string.auto_play_video_summary),
             isChecked = autoPlayVideo,
             onCheck = onAutoPlayChange,
@@ -684,6 +791,7 @@ private fun MediaViewerListContent(
         val videoSurfaceRebindPref = rememberSwitchPreference(
             videoSurfaceRebind,
             title = stringResource(Res.string.video_surface_rebind),
+            icon = Icons.Outlined.Videocam,
             summary = stringResource(Res.string.video_surface_rebind_summary),
             isChecked = videoSurfaceRebind,
             onCheck = onSurfaceRebindChange,
@@ -694,6 +802,7 @@ private fun MediaViewerListContent(
         val hdrVideoPlaybackPref = rememberSwitchPreference(
             hdrVideoPlayback, state.hdrDisplayCapable,
             title = stringResource(Res.string.hdr_video_playback),
+            icon = Icons.Outlined.HdrOn,
             summary = stringResource(Res.string.hdr_video_playback_summary),
             isChecked = hdrVideoPlayback,
             onCheck = onHdrVideoPlaybackChange,
@@ -704,9 +813,9 @@ private fun MediaViewerListContent(
 
         return remember(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
-            swipeUpToTrashPref,
-            showFavoriteButtonPref, defaultEditorPref, disableSmoothingPref, darkMediaViewerPref,
-            longPressCutoutPref,
+            showFavoriteButtonPref, viewerActionBarPref, defaultEditorPref, disableSmoothingPref,
+            darkMediaViewerPref,
+            longPressActionPref,
             visualSearchPref, slideshowPref,
             saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
             videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref,
@@ -717,14 +826,15 @@ private fun MediaViewerListContent(
                 add(fullBrightnessViewPref)
                 add(showMediaDateHeaderPref)
                 add(tapNavigationPref)
-                add(swipeUpToTrashPref)
                 if (state.supportsFavorites) {
                     add(showFavoriteButtonPref)
                 }
+                add(viewerActionBarPref)
                 add(defaultEditorPref)
+                add(defaultVideoEditorPref)
                 add(disableSmoothingPref)
                 add(darkMediaViewerPref)
-                add(longPressCutoutPref)
+                add(longPressActionPref)
                 add(visualSearchPref)
                 add(slideshowPref)
 
@@ -754,32 +864,47 @@ private fun MediaViewerListContent(
 }
 
 @Composable
+private fun longPressActionLabels(): List<Pair<String, String>> = listOf(
+    LONG_PRESS_ACTION_ROTATE to stringResource(Res.string.long_press_action_rotate),
+    LONG_PRESS_ACTION_CUTOUT to stringResource(Res.string.long_press_action_cutout),
+    LONG_PRESS_ACTION_NONE to stringResource(Res.string.long_press_action_none),
+)
+
+@Composable
 fun FullBrightnessPreview(isChecked: Boolean) {
-    val bgBrightness = if (isChecked) 1f else 0.5f
+    // The viewer on black: dimmed at the phone's own brightness, full with the setting on.
     Box(
         modifier = Modifier
-            .padding(24.dp)
-            .size(width = 140.dp, height = 120.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = bgBrightness),
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = bgBrightness)
-                    )
-                )
-            ),
-        contentAlignment = Alignment.Center
+            .size(width = 104.dp, height = 184.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.Black)
     ) {
-        // Sun/brightness indicator
+        PreviewPhoto(
+            index = 0,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .height(68.dp)
+        )
+        if (!isChecked) {
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)))
+        }
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 12.dp)
                 .clip(CircleShape)
-                .background(
-                    Color.White.copy(alpha = if (isChecked) 0.9f else 0.3f)
-                )
-        )
+                .background(Color.White.copy(alpha = if (isChecked) 0.6f else 0.25f))
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.BrightnessHigh,
+                contentDescription = null,
+                tint = Color.Black.copy(alpha = if (isChecked) 0.8f else 0.5f),
+                modifier = Modifier.size(16.dp)
+            )
+        }
     }
 }
 
@@ -865,6 +990,7 @@ fun VisualSearchSettingsContent(
             SettingsItem(
                 item = SettingsEntity.Preference(
                     title = stringResource(Res.string.visual_search_provider_title),
+                    icon = Icons.Outlined.ImageSearch,
                     summary = resolvedProvider?.displayName
                         ?: stringResource(Res.string.visual_search_provider_auto),
                     onClick = { showProviderSheet = true },
@@ -879,6 +1005,7 @@ fun VisualSearchSettingsContent(
         SettingsItem(
             item = SettingsEntity.SwitchPreference(
                 title = stringResource(Res.string.visual_search_vault_title),
+                icon = Icons.Outlined.Lock,
                 summary = stringResource(Res.string.visual_search_vault_summary),
                 isChecked = allowVault,
                 onCheck = onAllowVaultChange,

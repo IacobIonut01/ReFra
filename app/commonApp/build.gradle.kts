@@ -196,6 +196,7 @@ kotlin {
                 implementation(libs.junit)
                 implementation(libs.mockwebserver)
                 implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotlinx.datetime)
             }
         }
 
@@ -254,6 +255,13 @@ val syncDeviceTestSchemaAssets = tasks.register<Sync>("syncDeviceTestSchemaAsset
 }
 tasks.matching { it.name == "mergeAndroidDeviceTestAssets" }.configureEach {
     dependsOn(syncDeviceTestSchemaAssets)
+}
+
+// CMP's copyAndroidDeviceTestComposeResourcesToAndroidAssets writes into the shared
+// build/generated/assets tree that mergeAndroidMainAssets consumes; Gradle 9 rejects
+// the implicit dependency, so the ordering must be declared explicitly.
+tasks.matching { it.name == "mergeAndroidMainAssets" }.configureEach {
+    mustRunAfter("copyAndroidDeviceTestComposeResourcesToAndroidAssets")
 }
 
 // kotlin-inject graph codegen + Glide @GlideModule codegen on the Android target
@@ -317,7 +325,12 @@ buildkonfig {
         buildConfigField(
             FieldSpec.Type.STRING,
             "CARTO_BASEMAP_KEY",
-            if (includeMaps) System.getenv("CARTO_BASEMAP_KEY").orEmpty() else ""
+            if (includeMaps) {
+                System.getenv("CARTO_BASEMAP_KEY")?.takeIf(String::isNotBlank)
+                    ?: committedCartoBasemapKey
+            } else {
+                ""
+            }
         )
     }
 }
@@ -336,6 +349,22 @@ val isOffline: Boolean
 
 val includeMaps: Boolean
     get() = !isOffline
+
+// The CARTO basemap key is a public client-side token: it ships inside the APK and is
+// sent in tile URL queries. Keeping a copy in the repo (app.properties) makes the
+// embedded key identical in every build environment, which F-Droid's reproducible
+// build verification requires; the env var still wins when set (CI, local overrides).
+val committedCartoBasemapKey: String
+    get() {
+        val fl = rootProject.file("app.properties")
+        return try {
+            val properties = Properties()
+            properties.load(FileInputStream(fl))
+            properties.getProperty("CARTO_BASEMAP_KEY", "").trim().removeSurrounding("\"")
+        } catch (_: Exception) {
+            ""
+        }
+    }
 
 val includeImmich: Boolean
     get() {

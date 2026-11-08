@@ -1,22 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="timeline">Timeline</string>
+    <string name="photos">Photos</string>
     <string name="albums">Albums</string>
-    <string name="navigate_up">Navigate up</string>
     <string name="preview">Preview</string>
     <string name="close">Close</string>
     <string name="security_private_folder">Private folder</string>
     <string name="cloud">Cloud</string>
     <string name="vault">Vault</string>
     <string name="action_add">Add</string>
-    <string name="action_add_count">Add (%1$d)</string>
+    <string name="action_add_count">Add %1$d</string>
     <string name="action_ok">OK</string>
     <string name="add_media">Add media</string>
+    <string name="picker_selected_count">%1$d selected</string>
+    <string name="picker_preparing_title">Getting your items ready</string>
     <string name="picker_preparing">Preparing %1$d of %2$d…</string>
     <string name="picker_preparing_generic">Preparing…</string>
     <string name="picker_prepare_failed">Some items could not be prepared</string>
+    <string name="picker_locked_title">Set up a screen lock</string>
     <string name="locked">Locked</string>
     <string name="locked_album_security_error">Please set up a phone security measure (PIN, pattern, password or biometrics) before locking or unlocking albums.</string>
+    <plurals name="picker_album_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <plurals name="picker_vault_count">
+        <item quantity="one">%1$d vault</item>
+        <item quantity="other">%1$d vaults</item>
+    </plurals>
+    <string name="picker_vault_intro_title">Choose a vault</string>
+    <string name="picker_vault_intro">Unlock a vault to pick from it. Only the items you add are decrypted.</string>
+    <string name="picker_vault_notice">Only the items you add are decrypted, when you tap Add.</string>
+    <string name="picker_cloud_notice">Items you add are downloaded first, so large videos can take a while.</string>
+    <string name="picker_empty_title">Nothing to pick yet</string>
+    <string name="picker_empty_summary">Photos and videos show up here. Try Albums for your private folder, vaults and cloud.</string>
+    <string name="picker_empty_source">There's nothing here yet.</string>
     <string name="header_today">Today</string>
     <string name="header_yesterday">Yesterday</string>
 </resources>

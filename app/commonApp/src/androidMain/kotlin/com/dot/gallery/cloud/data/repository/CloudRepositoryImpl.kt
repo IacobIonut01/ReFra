@@ -358,7 +358,6 @@ class CloudRepositoryImpl @Inject constructor(
         return provider.getPersonMedia(personId)
     }
 
-    // === Map Markers ===
 
     override fun getAllMapMarkers(): Flow<Resource<List<CloudMapMarker>>> {
         val providers = registry.getMapProviders().filter { it.isAvailable }
@@ -366,7 +365,6 @@ class CloudRepositoryImpl @Inject constructor(
         return combineResources(providers.map { it.getMapMarkers() })
     }
 
-    // === Smart Search ===
 
     override suspend fun smartSearch(query: String): Result<List<Media>> {
         val providers = registry.getSmartSearchProviders().filter { it.isAvailable }
@@ -697,9 +695,7 @@ class CloudRepositoryImpl @Inject constructor(
             configId = configId,
             capabilityName = "people"
         ).getOrElse { return Result.failure(it) }
-        return provider.updatePersonBirthDate(personId, birthDate).also { result ->
-            if (result.isSuccess) _peopleInvalidation.tryEmit(Unit)
-        }
+        return provider.updatePersonBirthDate(personId, birthDate)
     }
 
     // === Trash Bulk Operations ===

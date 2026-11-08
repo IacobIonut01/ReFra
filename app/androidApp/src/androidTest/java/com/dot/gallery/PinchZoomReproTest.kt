@@ -23,7 +23,7 @@ import com.dot.gallery.domain.uri.query
 
 
 /**
- * #1119: pinch-zoom on the mosaic grid crashes ~50% of the time.
+ * pinch-zoom on the mosaic grid crashes ~50% of the time.
  * Drives real two-pointer pinch gestures on the timeline grid and
  * asserts the app stays in the foreground through repeated column changes.
  */
@@ -77,7 +77,7 @@ class PinchZoomReproTest {
     }
 
     /**
-     * #962: pending rotation must apply to the media it was created on, not to
+     * pending rotation must apply to the media it was created on, not to
      * whatever item currentPage happens to point at mid-swipe.
      * Rotates the first image, drags partway toward the neighbour, releases,
      * then confirms via the pending-rotate chip.
@@ -143,7 +143,7 @@ class PinchZoomReproTest {
     }
 
     /**
-     * #1048: crash on a held predictive-back gesture while the editor's
+     * crash on a held predictive-back gesture while the editor's
      * overflow menu is open. The popup owns its own back dispatch, so the
      * gesture is driven as real injected motion events: edge down, drag
      * inward, hold to keep the back preview armed, then release.

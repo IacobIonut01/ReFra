@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.targets.wasm.binaryen.BinaryenExec
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -60,10 +61,9 @@ kotlin {
             implementation(libs.haze.blur)
             implementation(libs.haze.blur.materials)
         }
-        // Android-only scenes (editor, frame picker, widgets) render real
-        // commonApp components — capture-only, never part of the wasm bundle.
         androidMain.dependencies {
             implementation(project(":app:commonApp"))
+            implementation(project(":editor:android"))
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
@@ -95,3 +95,27 @@ val packageAndroidComposeResources by tasks.registering(Copy::class) {
 kotlin.sourceSets.getByName("androidMain").resources.srcDir(
     packageAndroidComposeResources.map { it.destinationDir.parentFile.parentFile }
 )
+
+// The default production pipeline (repeated -O3 with --gufa and --type-ssa) needs over 14 GB
+// for this bundle and fails on a 32 GB machine. The docs host keeps Kotlin 2.4.10's feature
+// flags and replaces only the pass list with -O2 -Oz: about 2.3 GB, 19.6 MB of wasm.
+tasks.withType<BinaryenExec>().configureEach {
+    binaryenArguments.set(
+        listOf(
+            "--enable-gc",
+            "--enable-reference-types",
+            "--enable-exception-handling",
+            "--enable-bulk-memory",
+            "--enable-nontrapping-float-to-int",
+            "--no-inline=kotlin.wasm.internal.throwValue",
+            "--no-inline=kotlin.wasm.internal.getKotlinException",
+            "--no-inline=kotlin.wasm.internal.jsToKotlinStringAdapter",
+            "--inline-functions-with-loops",
+            "--traps-never-happen",
+            "--fast-math",
+            "--closed-world",
+            "-O2",
+            "-Oz",
+        )
+    )
+}

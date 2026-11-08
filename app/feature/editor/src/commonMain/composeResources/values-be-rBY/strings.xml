@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Памер</string>
     <string name="editor_brush_strength">Сіла</string>
     <string name="editor_blur_faces">Размыць твары</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">ТЫФ (8-біт)</string>
+    <string name="raw_export_tiff16">ТЫФ (16-біт)</string>
+    <string name="raw_export_choose_format">Захаваць распрацаваны тэкст</string>
+    <string name="raw_export_choose_format_subtitle">Выберыце фармат для вашага апрацаванага RAW</string>
+    <string name="raw_export_tiff_unavailable">TIFF захоўвае поўную глыбіню біта, але не можа ўключаць абрэзку, фільтры ці пазнакі — выдаліце іх, каб экспартаваць TIFF.</string>
+    <string name="editor_mosaic_faces">Мазаічныя твары</string>
+    <string name="cutout_no_object">Падчас доўгага націску аб'ект не выяўлены</string>
+    <string name="cutout_init_failed">Не ўдалося ініцыялізаваць рухавік высякання</string>
 </resources>

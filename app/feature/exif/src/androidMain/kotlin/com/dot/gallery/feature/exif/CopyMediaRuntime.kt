@@ -15,9 +15,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface CopyMediaRuntime {
 
-    /** Every `MediaCopyWorker`-tagged work item (state + progress). */
-    val mediaCopyWork: Flow<List<LocalCopySnapshot>>
-
     /** Enqueues media copies; returns the task ids (one per chunked request). */
     suspend fun <T : Media> enqueueMediaCopy(items: List<Pair<T, String>>): List<String>
 

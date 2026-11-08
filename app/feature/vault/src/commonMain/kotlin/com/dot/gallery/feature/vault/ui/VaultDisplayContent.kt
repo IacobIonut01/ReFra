@@ -6,8 +6,11 @@
 package com.dot.gallery.feature.vault.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -15,53 +18,40 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Restore
-import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastCoerceAtLeast
-import com.dot.gallery.core.Constants.Animation.enterAnimation
-import com.dot.gallery.core.Constants.Animation.exitAnimation
+import androidx.compose.ui.util.fastCoerceIn
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
 import com.dot.gallery.core.presentation.components.ModalSheet
-import com.dot.gallery.core.presentation.components.NavigationBackButton
-import com.dot.gallery.core.presentation.components.OptionItem
-import com.dot.gallery.core.presentation.components.OptionSheet
-import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.domain.model.Vault
@@ -71,7 +61,16 @@ import com.dot.gallery.feature.vault.ui.components.DeleteVaultSheet
 import com.dot.gallery.feature.vault.ui.components.RemovePasswordSheet
 import com.dot.gallery.feature.vault.ui.components.RestoreVaultSheet
 import com.dot.gallery.feature.vault.ui.components.SelectVaultSheet
+import com.dot.gallery.feature.vault.ui.components.VaultButton
+import com.dot.gallery.feature.vault.ui.components.VaultButtonStyle
+import com.dot.gallery.feature.vault.ui.components.VaultHero
 import com.dot.gallery.feature.vault.ui.components.VaultPasswordSetupSheet
+import com.dot.gallery.feature.vault.ui.components.VaultRow
+import com.dot.gallery.feature.vault.ui.components.VaultRowTrailing
+import com.dot.gallery.feature.vault.ui.components.vaultContentWidth
+import com.dot.gallery.feature.vault.ui.components.vaultRowPosition
+import com.dot.gallery.ui.core.Icons as GalleryIcons
+import com.dot.gallery.ui.core.icons.Encrypted
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -79,32 +78,46 @@ import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.vault.generated.resources.Res
 import com.dot.gallery.feature.vault.generated.resources.action_cancel
 import com.dot.gallery.feature.vault.generated.resources.add_media_to_vault_cd
-import com.dot.gallery.feature.vault.generated.resources.decrypt_vault
 import com.dot.gallery.feature.vault.generated.resources.delete_vault
-import com.dot.gallery.feature.vault.generated.resources.encrypting_media
 import com.dot.gallery.feature.vault.generated.resources.more_options
 import com.dot.gallery.feature.vault.generated.resources.switch_vault_cd
 import com.dot.gallery.feature.vault.generated.resources.unknown_vault
-import com.dot.gallery.feature.vault.generated.resources.vault_actions
+import com.dot.gallery.feature.vault.generated.resources.vault_add_photos
 import com.dot.gallery.feature.vault.generated.resources.vault_change_custom_password
+import com.dot.gallery.feature.vault.generated.resources.vault_change_security_summary
 import com.dot.gallery.feature.vault.generated.resources.vault_custom_password
+import com.dot.gallery.feature.vault.generated.resources.vault_empty_body
+import com.dot.gallery.feature.vault.generated.resources.vault_empty_title
+import com.dot.gallery.feature.vault.generated.resources.vault_encrypting_percent
+import com.dot.gallery.feature.vault.generated.resources.vault_encrypting_progress
+import com.dot.gallery.feature.vault.generated.resources.encrypting_media
+import com.dot.gallery.feature.vault.generated.resources.vault_method_device
 import com.dot.gallery.feature.vault.generated.resources.vault_password_removed
 import com.dot.gallery.feature.vault.generated.resources.vault_password_set
 import com.dot.gallery.feature.vault.generated.resources.vault_remove_custom_password
+import com.dot.gallery.feature.vault.generated.resources.vault_remove_custom_security_summary
+import com.dot.gallery.feature.vault.generated.resources.vault_restore_summary
+import com.dot.gallery.feature.vault.generated.resources.vault_restore_title
+import com.dot.gallery.feature.vault.generated.resources.vault_unlocks_with
+import androidx.compose.runtime.CompositionLocalProvider
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.HazePerformanceMode
+import dev.chrisbanes.haze.LocalHazePerformanceMode
 
 /**
- * Vault media display chrome: top bar (vault switcher + actions), add-media FAB,
- * encryption-progress sheet and the vault management sheets.
+ * Vault media display chrome: the Library-style top bar (vault name with the switcher when there
+ * is more than one vault, item count, Add and More), an inline encryption progress card, and the
+ * vault menu and management sheets.
  *
  * The media grid itself is supplied by the host through [gridContent]
  * (pinch-zoom + [com.dot.gallery.core.presentation.components.MediaGridView]
  * wiring, haze source), and the selection toolbar through [selectionContent]
- * — both stay app-side while the shared grid chrome settles.
+ * — both stay app-side while the shared grid chrome settles. Use [VaultEmptyState] as the
+ * grid's empty content.
  *
  * Platform operations are callbacks: media picking ([onAddMediaClick]), credential
  * persistence ([onSecretSet]/[onRemovePassword]), and vault mutations.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultDisplayContent(
     vaultState: VaultState,
@@ -116,6 +129,9 @@ fun VaultDisplayContent(
     hasCustomPassword: Boolean,
     canScroll: Boolean,
     modifier: Modifier = Modifier,
+    /** The grid has scrolled under the top bar, which then turns into the blur bar. */
+    scrolled: Boolean = false,
+    mediaCount: Int? = null,
     userMessage: Flow<String>? = null,
     onNavigateUp: () -> Unit,
     onVaultDeleted: () -> Unit,
@@ -146,13 +162,6 @@ fun VaultDisplayContent(
             onNavigateUp()
         }
     }
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
-        state = rememberTopAppBarState(),
-        canScroll = { canScroll },
-    )
-
-    val bottomSheetState = rememberAppBottomSheetState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(userMessage) {
@@ -189,6 +198,7 @@ fun VaultDisplayContent(
     val decryptVaultSheetState = rememberAppBottomSheetState()
     val deleteVaultSheetState = rememberAppBottomSheetState()
     val actionsSheetState = rememberAppBottomSheetState()
+    val switcherSheetState = rememberAppBottomSheetState()
 
     LaunchedEffect(vaultState) {
         if (vaultState.isLoading) return@LaunchedEffect
@@ -196,161 +206,82 @@ fun VaultDisplayContent(
         onNavigateUp()
     }
 
-    LaunchedEffect(workerIsRunning) {
-        if (workerIsRunning) {
-            bottomSheetState.show()
-        } else {
-            bottomSheetState.hide()
-        }
-    }
-
-    ModalSheet(
-        sheetState = bottomSheetState,
-        onDismissRequest = {},
-        title = stringResource(Res.string.encrypting_media),
-        content = {
-            Box(
-                modifier = Modifier
-                    .padding(32.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .padding(bottom = 48.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    progress = {
-                        workerProgress.fastCoerceAtLeast(0f)
-                    },
-                    strokeWidth = 4.dp,
-                    strokeCap = StrokeCap.Round,
-                    modifier = Modifier.size(128.dp),
-                )
-                Text(text = "${workerProgress.roundToInt()}%")
-            }
-
-            SetupButton(
-                onClick = {
-                    scope.launch {
-                        val indexesToDrop =
-                            (workerProgress * pendingEncryptCount / 100).roundToInt()
-                        onEncryptSheetCancel(indexesToDrop)
-                        bottomSheetState.hide()
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                applyHorizontalPadding = false,
-                applyBottomPadding = false,
-                applyInsets = false,
-                text = stringResource(Res.string.action_cancel)
-            )
-        }
-    )
-
-    Box(
-        modifier = modifier
-    ) {
+    val canSwitch = vaultState.vaults.size > 1
+    Box(modifier = modifier) {
         Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier.fillMaxSize(),
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            floatingActionButton = {
-                AnimatedVisibility(
-                    visible = !isSelectionActive,
-                    enter = enterAnimation,
-                    exit = exitAnimation
-                ) {
-                    FloatingActionButton(
-                        onClick = {
-                            onAddMediaClick()
-                        }
+            topBar = {
+                // Opaque at rest; once the grid scrolls the bar blurs it and the encrypting card
+                // floats over it.
+                Column(modifier = if (scrolled) Modifier else Modifier.background(MaterialTheme.colorScheme.surface)) {
+                    CompositionLocalProvider(LocalHazePerformanceMode provides HazePerformanceMode.Performance) {
+                    GalleryPageTopBar(
+                        title = currentVault?.name ?: stringResource(Res.string.unknown_vault),
+                        count = mediaCount?.takeIf { it > 0 }?.toString(),
+                        onBack = onNavigateUp,
+                        hazeState = LocalHazeState.current,
+                        scrolled = scrolled,
+                        onTitleClick = if (canSwitch) {
+                            { scope.launch { switcherSheetState.show() } }
+                        } else null,
+                        titleTrailing = if (canSwitch) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Outlined.KeyboardArrowDown,
+                                    contentDescription = stringResource(Res.string.switch_vault_cd),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        } else null,
+                        actions = {
+                            if (!isSelectionActive) {
+                                GalleryPageTopBarAction(
+                                    icon = Icons.Outlined.AddPhotoAlternate,
+                                    contentDescription = stringResource(Res.string.add_media_to_vault_cd),
+                                    onClick = onAddMediaClick,
+                                )
+                            }
+                            GalleryPageTopBarAction(
+                                icon = Icons.Outlined.MoreVert,
+                                contentDescription = stringResource(Res.string.more_options),
+                                onClick = { scope.launch { actionsSheetState.show() } },
+                            )
+                        },
+                    )
+                    }
+                    AnimatedVisibility(
+                        visible = workerIsRunning,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically(),
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Add,
-                            contentDescription = stringResource(Res.string.add_media_to_vault_cd)
+                        EncryptingCard(
+                            progress = workerProgress,
+                            total = pendingEncryptCount,
+                            onCancel = {
+                                val indexesToDrop = (workerProgress * pendingEncryptCount / 100).roundToInt()
+                                onEncryptSheetCancel(indexesToDrop)
+                            },
                         )
                     }
                 }
-            },
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Column {
-                            val sheetState = rememberAppBottomSheetState()
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable(
-                                        enabled = vaultState.vaults.size > 1,
-                                    ) {
-                                        scope.launch {
-                                            sheetState.show()
-                                        }
-                                    },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Text(
-                                    text = currentVault?.name
-                                        ?: stringResource(Res.string.unknown_vault)
-                                )
-                                AnimatedVisibility(
-                                    visible = vaultState.vaults.size > 1,
-                                    enter = enterAnimation,
-                                    exit = exitAnimation
-                                ) {
-                                    Icon(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .background(
-                                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                                shape = CircleShape
-                                            ),
-                                        imageVector = Icons.Rounded.ArrowDropDown,
-                                        contentDescription = stringResource(Res.string.switch_vault_cd),
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                            }
-                            SelectVaultSheet(
-                                state = sheetState,
-                                vaultState = vaultState,
-                                excludeVault = currentVault,
-                                requireGateAuth = false
-                            ) { vault ->
-                                onAuthenticateVault(vault)
-                            }
-                        }
-                    },
-                    navigationIcon = {
-                        NavigationBackButton(
-                            forcedAction = onNavigateUp,
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            scope.launch { actionsSheetState.show() }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.MoreVert,
-                                contentDescription = stringResource(Res.string.more_options)
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior
-                )
             }
         ) { scaffoldPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 gridContent(scaffoldPadding)
             }
         }
 
         selectionContent()
 
+        SelectVaultSheet(
+            state = switcherSheetState,
+            vaultState = vaultState,
+            excludeVault = currentVault,
+            requireGateAuth = false
+        ) { vault ->
+            onAuthenticateVault(vault)
+        }
         DeleteVaultSheet(
             state = deleteVaultSheetState,
             vaultName = currentVault?.name
@@ -366,97 +297,180 @@ fun VaultDisplayContent(
         }
         VaultActionsSheet(
             state = actionsSheetState,
+            vaultName = currentVault?.name ?: stringResource(Res.string.unknown_vault),
             hasCustomPassword = hasCustomPassword,
             onDecryptVault = { scope.launch { decryptVaultSheetState.show() } },
-            onCustomPassword = {
-                if (hasCustomPassword) {
-                    scope.launch { removePasswordSheetState.show() }
-                } else {
-                    scope.launch { passwordSetupSheetState.show() }
-                }
-            },
-            onChangePassword = { scope.launch { passwordSetupSheetState.show() } },
+            onSetPassword = { scope.launch { passwordSetupSheetState.show() } },
+            onRemovePassword = { scope.launch { removePasswordSheetState.show() } },
             onDeleteVault = { scope.launch { deleteVaultSheetState.show() } }
         )
+    }
+}
+
+/** Non-blocking encryption progress shown under the top bar while the encrypt worker runs. */
+@Composable
+private fun EncryptingCard(progress: Float, total: Int, onCancel: () -> Unit) {
+    val fraction = (progress / 100f).fastCoerceIn(0f, 1f)
+    Column(
+        modifier = Modifier
+            .vaultContentWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 16.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(
+                imageVector = GalleryIcons.Encrypted,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = if (total > 0) {
+                        val done = (fraction * total).roundToInt().coerceIn(0, total)
+                        stringResource(Res.string.vault_encrypting_progress, done, total)
+                    } else stringResource(Res.string.encrypting_media),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = stringResource(Res.string.vault_encrypting_percent, (fraction * 100).roundToInt()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            TextButton(onClick = onCancel) {
+                Text(text = stringResource(Res.string.action_cancel), style = MaterialTheme.typography.labelLarge)
+            }
+        }
+        LinearProgressIndicator(
+            progress = { fraction },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 8.dp),
+            strokeCap = StrokeCap.Round,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        )
+    }
+}
+
+/**
+ * Empty grid content of an unlocked vault: badge, title naming the vault and an Add photos
+ * button wired to the media picker.
+ */
+@Composable
+fun VaultEmptyState(
+    vaultName: String,
+    onAddMedia: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        VaultHero(
+            icon = Icons.Outlined.AddPhotoAlternate,
+            title = stringResource(Res.string.vault_empty_title, vaultName),
+            body = stringResource(Res.string.vault_empty_body),
+            badgeIconSize = 40.dp,
+        )
+        VaultButton(text = stringResource(Res.string.vault_add_photos), onClick = onAddMedia)
     }
 }
 
 @Composable
 private fun VaultActionsSheet(
     state: AppBottomSheetState,
+    vaultName: String,
     hasCustomPassword: Boolean,
     onDecryptVault: () -> Unit,
-    onCustomPassword: () -> Unit,
-    onChangePassword: () -> Unit,
+    onSetPassword: () -> Unit,
+    onRemovePassword: () -> Unit,
     onDeleteVault: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val decryptLabel = stringResource(Res.string.decrypt_vault)
-    val customPasswordLabel = stringResource(
-        if (hasCustomPassword) Res.string.vault_remove_custom_password
-        else Res.string.vault_custom_password
-    )
-    val changePasswordLabel = stringResource(Res.string.vault_change_custom_password)
-    val deleteVaultLabel = stringResource(Res.string.delete_vault)
-
-    val options = remember(
-        hasCustomPassword,
-        decryptLabel,
-        customPasswordLabel,
-        changePasswordLabel,
-        deleteVaultLabel
-    ) {
-        buildList {
-            add(
-                OptionItem(
-                    icon = Icons.Outlined.Restore,
-                    text = decryptLabel,
-                    onClick = {
-                        scope.launch { state.hide() }
-                        onDecryptVault()
-                    }
-                ))
-            if (hasCustomPassword) {
-                add(
-                    OptionItem(
-                        icon = Icons.Outlined.Lock,
-                        text = changePasswordLabel,
-                        onClick = {
-                            scope.launch { state.hide() }
-                            onChangePassword()
-                        }
-                    ))
-            }
-            add(
-                OptionItem(
-                    icon = if (hasCustomPassword) Icons.Outlined.LockOpen else Icons.Outlined.Lock,
-                    text = customPasswordLabel,
-                    onClick = {
-                        scope.launch { state.hide() }
-                        onCustomPassword()
-                    }
-                ))
-            add(
-                OptionItem(
-                    icon = Icons.Filled.DeleteOutline,
-                    text = deleteVaultLabel,
-                    onClick = {
-                        scope.launch { state.hide() }
-                        onDeleteVault()
-                    }
-                ))
-        }.toMutableStateList()
+    fun run(action: () -> Unit) {
+        scope.launch { state.hide() }
+        action()
     }
-
-    OptionSheet(
-        state = state,
-        headerContent = {
-            Text(
-                text = stringResource(Res.string.vault_actions),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+    val lockLabel = if (hasCustomPassword) stringResource(Res.string.vault_custom_password)
+    else stringResource(Res.string.vault_method_device)
+    ModalSheet(
+        sheetState = state,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        content = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = vaultName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = stringResource(Res.string.vault_unlocks_with, lockLabel),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Column(modifier = Modifier.fillMaxWidth()) {
+                val rows = buildList<@Composable (Int, Int) -> Unit> {
+                    add { index, size ->
+                        VaultRow(
+                            icon = Icons.Outlined.Key,
+                            title = stringResource(
+                                if (hasCustomPassword) Res.string.vault_change_custom_password
+                                else Res.string.vault_custom_password
+                            ),
+                            summary = if (hasCustomPassword) null else stringResource(Res.string.vault_change_security_summary),
+                            position = vaultRowPosition(index, size),
+                            trailing = VaultRowTrailing.Chevron,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            onClick = { run(onSetPassword) },
+                        )
+                    }
+                    if (hasCustomPassword) add { index, size ->
+                        VaultRow(
+                            icon = Icons.Outlined.LockOpen,
+                            title = stringResource(Res.string.vault_remove_custom_password),
+                            summary = stringResource(Res.string.vault_remove_custom_security_summary),
+                            position = vaultRowPosition(index, size),
+                            trailing = VaultRowTrailing.Chevron,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            onClick = { run(onRemovePassword) },
+                        )
+                    }
+                    add { index, size ->
+                        VaultRow(
+                            icon = Icons.Outlined.Restore,
+                            title = stringResource(Res.string.vault_restore_title),
+                            summary = stringResource(Res.string.vault_restore_summary),
+                            position = vaultRowPosition(index, size),
+                            trailing = VaultRowTrailing.Chevron,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            onClick = { run(onDecryptVault) },
+                        )
+                    }
+                }
+                rows.forEachIndexed { index, row -> row(index, rows.size) }
+            }
+            VaultButton(
+                text = stringResource(Res.string.delete_vault),
+                style = VaultButtonStyle.Error,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                onClick = { run(onDeleteVault) },
             )
         },
-        optionList = arrayOf(options)
     )
 }

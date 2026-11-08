@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Размер</string>
     <string name="editor_brush_strength">Сила</string>
     <string name="editor_blur_faces">Размыть лица</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">Папуа-Новая Гвинея</string>
+    <string name="raw_export_tiff8">TIFF (8-битный)</string>
+    <string name="raw_export_tiff16">TIFF (16-разрядный)</string>
+    <string name="raw_export_choose_format">Сохранить отредактированную копию</string>
+    <string name="raw_export_choose_format_subtitle">Выберите формат для обработанного файла RAW</string>
+    <string name="raw_export_tiff_unavailable">Формат TIFF сохраняет полную битовую глубину, но не может содержать обрезку, фильтры или разметку — удалите их перед экспортом в формат TIFF.</string>
+    <string name="editor_mosaic_faces">Мозаичные лица</string>
+    <string name="cutout_no_object">При длительном нажатии объект не обнаружен</string>
+    <string name="cutout_init_failed">Не удалось инициализировать модуль вырезания</string>
 </resources>

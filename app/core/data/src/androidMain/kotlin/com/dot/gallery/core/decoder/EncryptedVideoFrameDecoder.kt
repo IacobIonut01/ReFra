@@ -106,7 +106,7 @@ private class EncryptedVideoFrameDecodeHelper(
 
     private val keychainHolder = KeychainHolder(request.context)
 
-    // Not lazy-backed properties: close() must not trigger a decrypt on an unused helper (#1282).
+    // Not lazy-backed properties: close must not trigger a decrypt on an unused helper.
     private var decryptedHandle: VaultDecryptCache.Handle? = null
     private var decryptedFileResolved = false
     private val tempFile: File?

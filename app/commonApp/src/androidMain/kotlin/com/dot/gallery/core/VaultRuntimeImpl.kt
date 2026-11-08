@@ -76,27 +76,44 @@ class VaultRuntimeImpl @Inject constructor(
         uniqueKey: String,
         deleteOriginals: Boolean,
     ): VaultOpOutcome {
-        val id = scheduler.enqueueVaultOperationWithId(
+        // Large batches arrive as multiple tasks — a single WorkManager-sized input
+        // payload can't hold hundreds of URIs. Await every chunk and merge.
+        val ids = scheduler.enqueueVaultOperationWithId(
             operation = operation.wireName,
             media = media,
             vault = vault,
             uniqueKey = uniqueKey,
             deleteOriginals = deleteOriginals,
         )
-        val info = WorkSignals.observe(id, VaultOperationWorker.WORKER_NAME)
-            .filter { it.isFinished }
-            .first()
-        return when (info.state) {
-            is TaskState.Succeeded -> VaultOpOutcome.Succeeded(
-                succeededCount = info.output
-                    ?.takeIf { it.hasKeyWithValueOfType<Int>(VaultOperationWorker.KEY_SUCCEEDED_COUNT) }
-                    ?.getInt(VaultOperationWorker.KEY_SUCCEEDED_COUNT, 0),
-                leftoverUris = info.output?.getString(VaultOperationWorker.KEY_LEFTOVER_URIS)
-                    ?.let { Json.decodeFromString<List<String>>(it).map { s -> s.toUri() } }
-                    .orEmpty(),
+        var succeeded = 0
+        var failedChunks = 0
+        var cancelled = false
+        val leftovers = mutableListOf<Uri>()
+        for (id in ids) {
+            val info = WorkSignals.observe(id, VaultOperationWorker.WORKER_NAME)
+                .filter { it.isFinished }
+                .first()
+            when (info.state) {
+                is TaskState.Succeeded -> {
+                    succeeded += info.output
+                        ?.takeIf { it.hasKeyWithValueOfType<Int>(VaultOperationWorker.KEY_SUCCEEDED_COUNT) }
+                        ?.getInt(VaultOperationWorker.KEY_SUCCEEDED_COUNT, 0) ?: 0
+                    info.output?.getString(VaultOperationWorker.KEY_LEFTOVER_URIS)
+                        ?.let { Json.decodeFromString<List<String>>(it).map { s -> s.toUri() } }
+                        ?.let { leftovers += it }
+                }
+                is TaskState.Failed -> failedChunks++
+                else -> cancelled = true
+            }
+        }
+        return when {
+            succeeded > 0 -> VaultOpOutcome.Succeeded(
+                succeededCount = succeeded,
+                leftoverUris = leftovers,
             )
-            is TaskState.Failed -> VaultOpOutcome.Failed
-            else -> VaultOpOutcome.Cancelled
+            failedChunks > 0 -> VaultOpOutcome.Failed
+            cancelled -> VaultOpOutcome.Cancelled
+            else -> VaultOpOutcome.Failed
         }
     }
 

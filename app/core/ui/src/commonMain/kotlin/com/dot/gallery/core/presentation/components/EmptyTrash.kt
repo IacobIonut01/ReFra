@@ -29,20 +29,9 @@ fun EmptyTrash(
     modifier: Modifier = Modifier,
     title: String = stringResource(Res.string.trash_empty_state_title),
 ) {
-    Column(
-        modifier = modifier.padding(top = 64.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
-    ) {
-        Icon(
-            modifier = Modifier.size(128.dp),
-            imageVector = Icons.Outlined.Delete,
-            contentDescription = stringResource(Res.string.empty_trash_cd),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge
-        )
-    }
+    ExpressiveEmptyState(
+        icon = Icons.Outlined.Delete,
+        title = title,
+        modifier = modifier.padding(top = 32.dp),
+    )
 }

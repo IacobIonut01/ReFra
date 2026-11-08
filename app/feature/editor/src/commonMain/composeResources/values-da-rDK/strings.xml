@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Størrelse</string>
     <string name="editor_brush_strength">Styrke</string>
     <string name="editor_blur_faces">Slør ansigter</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bit)</string>
+    <string name="raw_export_tiff16">TIFF (16-bit)</string>
+    <string name="raw_export_choose_format">Gem den færdigudviklede kopi</string>
+    <string name="raw_export_choose_format_subtitle">Vælg et format til dine fremkaldte RAW-billeder</string>
+    <string name="raw_export_tiff_unavailable">TIFF-filer bevarer den fulde bitdybde, men kan ikke indeholde beskæringer, filtre eller markeringer — fjern disse for at eksportere som TIFF.</string>
+    <string name="editor_mosaic_faces">Mosaikansigter</string>
+    <string name="cutout_no_object">Der blev ikke registreret noget objekt ved langt tryk</string>
+    <string name="cutout_init_failed">Det lykkedes ikke at initialisere udskæringsmotoren</string>
 </resources>

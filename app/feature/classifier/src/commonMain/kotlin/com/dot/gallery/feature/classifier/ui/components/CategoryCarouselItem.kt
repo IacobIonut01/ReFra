@@ -10,7 +10,7 @@ import com.dot.gallery.domain.model.UriMedia
 
 
 /**
- * Flat, renderer-agnostic view of a category tile for [CategoryCarousel] —
+ * Flat, renderer-agnostic view of a category tile on the search screen —
  * the app shell maps its category-plus-thumbnail model into this.
  */
 @Stable

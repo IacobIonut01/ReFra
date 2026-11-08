@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Velikost</string>
     <string name="editor_brush_strength">Síla</string>
     <string name="editor_blur_faces">Rozostření obličejů</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 bitů)</string>
+    <string name="raw_export_tiff16">TIFF (16bitový)</string>
+    <string name="raw_export_choose_format">Uložit vyvolanou kopii</string>
+    <string name="raw_export_choose_format_subtitle">Vyberte formát pro své zpracované soubory RAW</string>
+    <string name="raw_export_tiff_unavailable">Formát TIFF zachovává plnou bitovou hloubku, ale nelze do něj zahrnout oříznutí, filtry ani značky – pro export do formátu TIFF je nutné je odstranit.</string>
+    <string name="editor_mosaic_faces">Mozaikové tváře</string>
+    <string name="cutout_no_object">Při dlouhém stisknutí nebyl detekován žádný objekt</string>
+    <string name="cutout_init_failed">Nepodařilo se inicializovat modul pro výřez</string>
 </resources>

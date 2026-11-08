@@ -1,40 +1,24 @@
 package com.dot.gallery.core.metadata
 
+/**
+ * Category presets for metadata removal. A removal request is a set of [MetadataCategory]
+ * values; [COLOR_HDR][MetadataCategory.COLOR_HDR] and
+ * [STRUCTURAL_FUNCTIONAL][MetadataCategory.STRUCTURAL_FUNCTIONAL] are never removable because
+ * dropping them changes how the media renders or breaks embedded linkage.
+ */
+object MetadataPolicy {
+    val alwaysPreserved: Set<MetadataCategory> = setOf(
+        MetadataCategory.COLOR_HDR,
+        MetadataCategory.STRUCTURAL_FUNCTIONAL
+    )
 
+    /** Every category that may be removed. Selecting all of them is "Remove all". */
+    val ALL: Set<MetadataCategory> = MetadataCategory.entries.toSet() - alwaysPreserved
 
+    val LOCATION: Set<MetadataCategory> = setOf(MetadataCategory.LOCATION)
 
+    fun removesEverything(categories: Set<MetadataCategory>): Boolean = categories.containsAll(ALL)
 
-data class MetadataPolicy(
-    val mode: MetadataRemovalMode,
-    val removedCategories: Set<MetadataCategory>,
-    val preservedCategories: Set<MetadataCategory>
-) {
-    companion object {
-        private val alwaysPreserved = setOf(
-            MetadataCategory.COLOR_HDR,
-            MetadataCategory.STRUCTURAL_FUNCTIONAL
-        )
-
-        fun forMode(mode: MetadataRemovalMode): MetadataPolicy {
-            val removed = when (mode) {
-                MetadataRemovalMode.LOCATION -> setOf(MetadataCategory.LOCATION)
-                MetadataRemovalMode.PRIVACY -> setOf(
-                    MetadataCategory.LOCATION,
-                    MetadataCategory.TIMESTAMPS,
-                    MetadataCategory.IDENTITY_DEVICE,
-                    MetadataCategory.PEOPLE,
-                    MetadataCategory.DESCRIPTION_AUTHORSHIP,
-                    MetadataCategory.EDIT_HISTORY,
-                    MetadataCategory.PROVENANCE
-                )
-                MetadataRemovalMode.EVERYTHING -> MetadataCategory.entries
-                    .toSet() - alwaysPreserved
-            }
-            return MetadataPolicy(
-                mode = mode,
-                removedCategories = removed,
-                preservedCategories = MetadataCategory.entries.toSet() - removed
-            )
-        }
-    }
+    /** Drops categories that can never be removed, so callers can pass any selection. */
+    fun normalize(categories: Set<MetadataCategory>): Set<MetadataCategory> = categories - alwaysPreserved
 }

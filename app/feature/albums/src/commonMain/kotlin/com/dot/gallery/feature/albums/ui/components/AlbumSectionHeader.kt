@@ -38,7 +38,6 @@ import com.dot.gallery.domain.model.AlbumSectionWithAlbums
 import com.dot.gallery.domain.model.sectionType
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.albums.generated.resources.Res
-import com.dot.gallery.feature.albums.generated.resources.n_albums
 
 @Composable
 fun AlbumSectionHeader(
@@ -100,7 +99,7 @@ fun AlbumSectionHeader(
                 .padding(horizontal = 8.dp, vertical = 2.dp)
         ) {
             Text(
-                text = stringResource(Res.string.n_albums, sectionWithAlbums.albums.size),
+                text = sectionWithAlbums.albums.size.toString(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )

@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AlbumGroupDao {
 
-    // Group CRUD
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGroup(group: AlbumGroup): Long
 
@@ -38,7 +37,6 @@ interface AlbumGroupDao {
     @Query("SELECT * FROM album_groups WHERE id = :groupId")
     suspend fun getGroupAsync(groupId: Long): AlbumGroup?
 
-    // Group members
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addAlbumToGroup(member: AlbumGroupMember)
 
@@ -56,6 +54,12 @@ interface AlbumGroupDao {
 
     @Query("SELECT * FROM album_group_members")
     fun getAllGroupMembers(): Flow<List<AlbumGroupMember>>
+
+    @Query("SELECT * FROM album_groups ORDER BY timestamp DESC")
+    suspend fun getAllGroupsAsync(): List<AlbumGroup>
+
+    @Query("SELECT * FROM album_group_members")
+    suspend fun getAllGroupMembersAsync(): List<AlbumGroupMember>
 
     @Query("SELECT groupId FROM album_group_members WHERE albumId = :albumId LIMIT 1")
     suspend fun getGroupIdForAlbum(albumId: Long): Long?

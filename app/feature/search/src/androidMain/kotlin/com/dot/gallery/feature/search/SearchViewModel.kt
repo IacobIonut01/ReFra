@@ -3,7 +3,7 @@ package com.dot.gallery.feature.search
 import android.content.Context
 import com.github.panpf.sketch.asBitmapOrNull
 import com.github.panpf.sketch.request.ImageRequest
-import com.github.panpf.sketch.resize.Scale
+import com.dot.gallery.core.smart.VideoFrameSampler
 import com.github.panpf.sketch.sketch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -35,6 +35,8 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,12 +60,17 @@ import com.dot.gallery.core.presentation.util.clear
 import com.dot.gallery.core.presentation.util.selectedMedia
 import com.dot.gallery.cloud.offline.OfflineModeManager
 import com.dot.gallery.core.ml.ModelManager
+import com.dot.gallery.feature.classifier.ui.search.RemoteSearchProvider
 import com.dot.gallery.feature.classifier.ui.search.SearchHelper
 import com.dot.gallery.feature.classifier.ui.search.SearchIndexerState
 import com.dot.gallery.feature.classifier.ui.search.SearchMediaItem
 import com.dot.gallery.feature.classifier.ui.search.SearchResultsState
+import com.dot.gallery.feature.classifier.ui.search.TypedSearchSuggestion
+import com.dot.gallery.feature.classifier.ui.search.matchTypedSuggestions
+import com.dot.gallery.feature.classifier.ui.components.CategoryCarouselItem
 import com.dot.gallery.feature.library.location.MapGeoMediaSource
 import com.dot.gallery.domain.util.isCloud
+import com.dot.gallery.domain.util.isFavorite
 import com.dot.gallery.domain.uri.query
 import com.dot.gallery.feature.classifier.ui.search.deriveSearchIndexerState
 import com.dot.gallery.feature.classifier.ui.search.toReadableMimeType
@@ -91,7 +98,8 @@ import org.jetbrains.compose.resources.getString
 
 
 
-private const val VISUAL_SEARCH_INPUT_SIZE = 224
+/** Typing debounce before running a text embedding for each keystroke burst. */
+private const val TEXT_EMBED_DEBOUNCE_MS = 350L
 
 fun <T, K> reconcileSearchResults(
     previousResults: List<T>,
@@ -142,18 +150,20 @@ class SearchViewModel @Inject constructor(
     smartScanDao: SmartScanDao,
     private val searchHelper: SearchHelper,
     repository: MediaRepository,
-    modelManager: ModelManager,
+    private val modelManager: ModelManager,
     private val cloudRepository: CloudRepository,
     private val offlineModeManager: OfflineModeManager,
+    private val videoFrameSampler: VideoFrameSampler,
+    private val remoteSearchProvider: RemoteSearchProvider,
     private val context: Context
 ) : ViewModel() {
 
-    val isModelAvailable: StateFlow<Boolean> = modelManager.status(ModelGroup.SEARCH)
+    val isModelAvailable: StateFlow<Boolean> = modelManager.activeSearchModelStatus()
         .map { it == ModelStatus.READY }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = modelManager.isReady(ModelGroup.SEARCH)
+            initialValue = modelManager.isReady(modelManager.activeSearchModel)
         )
 
     private val imageRecords = mediaDistributor.imageEmbeddingsFlow
@@ -215,15 +225,62 @@ class SearchViewModel @Inject constructor(
         localGeoMedia = mediaDistributor.geoMediaFlow,
         timelineMedia = mediaDistributor.timelineMediaFlow,
     )
-    val topLocations: StateFlow<ImmutableList<LocationMedia>> = mapGeoMediaSource.mergedLocations(
+    private val allLocations: StateFlow<List<LocationMedia>> = mapGeoMediaSource.mergedLocations(
         localLocations = mediaDistributor.locationsMediaFlow,
         geoMedia = geoMedia,
         timelineMedia = mediaDistributor.timelineMediaFlow,
-    ).map { it.take(10).toImmutableList() }
+    ).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    val topLocations: StateFlow<ImmutableList<LocationMedia>> = allLocations
+        .map { it.take(10).toImmutableList() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = persistentListOf()
+        )
+
+    private val allCategories: StateFlow<List<CategoryCarouselItem>> = combine(
+        repository.getCategoriesWithMediaCount(),
+        mediaDistributor.timelineMediaFlow
+    ) { categories, mediaState ->
+        val mediaMap = mediaState.media.associateBy { it.id }
+        categories.filter { it.mediaCount > 0 }.map { category ->
+            CategoryCarouselItem(
+                id = category.id,
+                name = category.name,
+                mediaCount = category.mediaCount,
+                thumbnailMedia = category.thumbnailMediaId?.let { mediaMap[it] },
+            )
+        }
+    }.flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    /** Categories, places and albums matching what is being typed, before a search runs. */
+    val typedSuggestions: StateFlow<List<TypedSearchSuggestion>> = combine(
+        _query,
+        allCategories,
+        allLocations,
+        mediaDistributor.albumsFlow
+    ) { query, categories, locations, albumState ->
+        matchTypedSuggestions(
+            query = query,
+            categories = categories,
+            locations = locations,
+            albums = albumState.albums,
+        )
+    }.flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
         )
 
     // Top MIME types carousel – grouped by mimeType, readable labels
@@ -463,6 +520,12 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    fun clearHistory() {
+        viewModelScope.launch {
+            Settings.Search.clearHistory(context)
+        }
+    }
+
     fun addImageHistory(media: UriMedia) {
         viewModelScope.launch {
             Settings.Search.addImageHistory(context, media.id, media.label, media.getUri().toString())
@@ -537,8 +600,13 @@ class SearchViewModel @Inject constructor(
                             ?.mapNotNull { it as? UriMedia }
                             ?.filterNot { it.id == media.id }
                     }
+                // Handover "more like this" — the item must already be in the
+                // server index (indexed via sink=server|both during Smart Scan).
+                val handoverHits = if (allowRemoteSearch) {
+                    remoteSearchProvider.similarTo(media.id.toString())
+                } else null
 
-                if (remoteHits == null && !searchHelper.isAvailable) {
+                if (remoteHits == null && handoverHits == null && !searchHelper.isAvailable) {
                     _searchResultsState.tryEmit(
                         SearchResultsState(
                             hasSearched = true,
@@ -550,16 +618,32 @@ class SearchViewModel @Inject constructor(
                     return@launch
                 }
                 val localHits = if (searchHelper.isAvailable) {
-                    val request = ImageRequest(
-                        context.applicationContext, uri.toString()
-                    ) {
-                        size(VISUAL_SEARCH_INPUT_SIZE, VISUAL_SEARCH_INPUT_SIZE)
-                        scale(Scale.CENTER_CROP)
-                    }
-                    val bitmap = context.sketch.execute(request).image?.asBitmapOrNull()
-                        ?: throw IllegalStateException("Sketch returned no bitmap for $uri")
                     searchHelper.setupVisionSession().use { session ->
-                        val imageEmbedding = searchHelper.getImageEmbedding(session, bitmap)
+                        // Bound to the engine that opened the session — a model switch
+                        // mid-flight can't leave this path inconsistent.
+                        val searchModel = session.model
+                        val mediaEmbedding = if (media.mimeType.startsWith("video/") && searchModel.supportsVideo) {
+                            // Videos get a real multi-frame embedding; fall back to a
+                            // poster-frame image embed when frames can't be decoded.
+                            val frames = videoFrameSampler.sampleFrames(uri)
+                            if (frames.isNotEmpty()) {
+                                try {
+                                    searchHelper.getVideoEmbedding(session, frames)
+                                } finally {
+                                    frames.forEach { it.recycle() }
+                                }
+                            } else null
+                        } else null
+                        val imageEmbedding = mediaEmbedding ?: run {
+                            val request = ImageRequest(
+                                context.applicationContext, uri.toString()
+                            ) {
+                                size(searchModel.visualSearchInputSize, searchModel.visualSearchInputSize)
+                            }
+                            val bitmap = context.sketch.execute(request).image?.asBitmapOrNull()
+                                ?: throw IllegalStateException("Sketch returned no bitmap for $uri")
+                            searchHelper.getImageEmbedding(session, bitmap)
+                        }
                         val searchResultsPair = searchHelper.sortByCosineDistance(
                             searchEmbedding = imageEmbedding,
                             imageEmbeddingsList = imageRecords.value.map { it.embedding },
@@ -577,6 +661,15 @@ class SearchViewModel @Inject constructor(
                 results.mergeWithHighestScore(localHits)
                 val resolvedRemote = remoteHits?.let { resolveRemoteHits(it, allMedia.value.media) }
                 resolvedRemote?.let { results.mergeWithHighestScore(rankedRemoteHits(it)) }
+                handoverHits?.let { hits ->
+                    val pool = allMedia.value.media
+                    results.mergeWithHighestScore(
+                        hits.mapNotNull { (id, score) ->
+                            if (id == media.id.toString()) return@mapNotNull null
+                            pool.find { it.id.toString() == id }?.let { score to it }
+                        }
+                    )
+                }
                 val remoteById = resolvedRemote?.associateBy { it.id }.orEmpty()
                 val (mediaState, dateMediaState) = mapRelevanceResults(
                     currentlySearchable(results.map { it.second }, remoteById)
@@ -734,6 +827,30 @@ class SearchViewModel @Inject constructor(
             val filteredMedia = allMedia.filter { it.mimeType.startsWith(searchQuery) }
             val mediaState = mapMediaToItem(
                 data = filteredMedia,
+                error = "",
+                albumId = -1L,
+                defaultDateFormat = dateFormats.value.first,
+                extendedDateFormat = dateFormats.value.second,
+                weeklyDateFormat = dateFormats.value.third
+            )
+            _searchResultsState.tryEmit(
+                SearchResultsState(
+                    hasSearched = true,
+                    isSearching = false,
+                    progress = 1f,
+                    results = mediaState
+                )
+            )
+        }
+    }
+
+    /** Shows the favourites among the searchable media, with [label] as the visible query. */
+    fun setFavoritesQuery(label: String) {
+        _query.value = label
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            val mediaState = mapMediaToItem(
+                data = allMedia.value.media.filter { it.isFavorite },
                 error = "",
                 albumId = -1L,
                 defaultDateFormat = dateFormats.value.first,
@@ -914,6 +1031,10 @@ class SearchViewModel @Inject constructor(
             val remoteSearch = if (allowRemoteSearch) {
                 async { cloudRepository.smartSearch(query) }
             } else null
+            // Handover server-side index — text embedding + cosine run remotely.
+            val handoverSearch = if (allowRemoteSearch) {
+                async { remoteSearchProvider.search(query) }
+            } else null
             val metadataMatchIds = metadata.value.metadata
                 .filter { it.searchableText.contains(query, ignoreCase = true) }
                 .mapTo(HashSet()) { it.mediaId }
@@ -931,6 +1052,11 @@ class SearchViewModel @Inject constructor(
                 )
             }
             if (searchHelper.isAvailable) {
+                // One backbone inference takes ~1s+ — far longer than a keystroke
+                // interval. Let typing settle first; a cancelled job skips the run
+                // entirely instead of queueing wasted inferences on the warm session.
+                delay(TEXT_EMBED_DEBOUNCE_MS)
+                ensureActive()
                 searchHelper.setupTextSession().use { session ->
                     val textEmbedding = searchHelper.getTextEmbedding(session, query)
                     val searchResultsPair = searchHelper.sortByCosineDistance(
@@ -966,6 +1092,14 @@ class SearchViewModel @Inject constructor(
                 .orEmpty()
             val resolvedRemoteHits = resolveRemoteHits(remoteHits, allMedia)
             results.mergeWithHighestScore(rankedRemoteHits(resolvedRemoteHits))
+            val handoverHits = handoverSearch?.await().orEmpty()
+            if (handoverHits.isNotEmpty()) {
+                results.mergeWithHighestScore(
+                    handoverHits.mapNotNull { (id, score) ->
+                        allMedia.find { it.id.toString() == id }?.let { score to it }
+                    }
+                )
+            }
             val remoteById = resolvedRemoteHits.associateBy { it.id }
             val mergedMedia = currentlySearchable(results.map { it.second }, remoteById)
             val (mediaState, dateMediaState) = mapRelevanceResults(mergedMedia)

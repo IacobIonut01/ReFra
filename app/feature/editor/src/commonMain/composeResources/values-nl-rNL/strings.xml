@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Grootte</string>
     <string name="editor_brush_strength">Sterkte</string>
     <string name="editor_blur_faces">Gezichten vervagen</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8-bits)</string>
+    <string name="raw_export_tiff16">TIFF (16-bits)</string>
+    <string name="raw_export_choose_format">Opgeslagen kopie bewaren</string>
+    <string name="raw_export_choose_format_subtitle">Kies een bestandsformaat voor je ontwikkelde RAW-foto’s</string>
+    <string name="raw_export_tiff_unavailable">TIFF behoudt de volledige bitdiepte, maar kan geen uitsneden, filters of markeringen bevatten — verwijder deze om het bestand als TIFF te exporteren.</string>
+    <string name="editor_mosaic_faces">Mozaïekgezichten</string>
+    <string name="cutout_no_object">Er is geen object gedetecteerd bij lang indrukken</string>
+    <string name="cutout_init_failed">Het initialiseren van de cutout-engine is mislukt</string>
 </resources>

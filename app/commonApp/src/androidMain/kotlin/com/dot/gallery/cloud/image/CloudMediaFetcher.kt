@@ -13,6 +13,7 @@ import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.ConnectionState
 import com.dot.gallery.cloud.core.resolveRemote
+import com.dot.gallery.core.decoder.format.ImageFormatSniffer
 import com.dot.gallery.core.logging.printWarn
 import com.github.panpf.sketch.ComponentRegistry
 import com.github.panpf.sketch.fetch.FetchResult
@@ -239,6 +240,15 @@ internal fun isClearlyTruncatedJpeg(contentType: String?, bytes: ByteArray): Boo
 }
 
 /**
+ * The image MIME type of a cloud response, or null for a non-image payload. A declared
+ * `image/` type wins; otherwise the type is sniffed from the bytes, because offline-cache hits
+ * and some servers report no type or `application/octet-stream` for valid images.
+ */
+internal fun resolveImageMimeType(contentType: String?, bytes: ByteArray): String? =
+    contentType?.takeIf { it.startsWith("image/", ignoreCase = true) }
+        ?: ImageFormatSniffer.standardMimeFor(bytes)
+
+/**
  * Executes the authenticated GET for a cloud image and packages the body as a [FetchResult].
  * Extracted so the fetch pipeline is unit-testable without a [RequestContext].
  * Reads the body eagerly — the response is closed before returning.
@@ -273,21 +283,22 @@ internal fun fetchBytes(
             return Result.failure(Exception("Truncated JPEG response"))
         }
 
-        val mimeType = it.header("Content-Type")
+        val contentType = it.body.contentType()?.toString() ?: it.header("Content-Type")
         // Servers sometimes answer a preview request with a non-image payload (HTML
         // login/redirect page, JSON error, or an SVG mimetype icon when no real preview
         // exists). Feeding those bytes to the decoder produces a long chain of useless
         // decode failures, so reject them up front.
-        if (mimeType?.startsWith("image/", ignoreCase = true) != true) {
+        val mimeType = resolveImageMimeType(contentType, bytes)
+        if (mimeType == null) {
             val snippet = String(bytes.copyOf(minOf(bytes.size, 180)))
                 .replace('\n', ' ').replace('\r', ' ').trim()
             printWarn(
                 "cloud.fetch",
-                "Non-image preview response: url=$url contentType=$mimeType " +
+                "Non-image preview response: url=$url contentType=$contentType " +
                     "bytes=${bytes.size} snippet=\"$snippet\""
             )
             return Result.failure(
-                Exception("Server returned non-image content (Content-Type=$mimeType)")
+                Exception("Server returned non-image content (Content-Type=$contentType)")
             )
         }
 

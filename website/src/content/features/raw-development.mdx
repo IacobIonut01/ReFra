@@ -1,61 +1,39 @@
 ---
 title: RAW development
-summary: White balance, tone, detail, and output controls for RAW files, exported as a developed copy.
+summary: Develop camera RAW files in the ReFra editor with white balance, tone, detail, colour space, and highlight recovery.
 area: edit
 path:
-  - Media viewer
+  - RAW photo
   - Edit
-related: [editor, lighting-colour, save-edits, image-formats]
-scenes: [editor-raw, raw-export]
-order: 6
+  - Develop
+related: [editor, save-edits, image-formats, legacy-raw-development]
+scenes: []
+order: 9
 ---
 
-A RAW file in the [editor](/ReFra/features/editor) gets its own tab set: **Smart** (where available), **White balance**, **Tone**, **Detail**, **Colour**, **Output**, **Filters**, **Markup**, and **More**. Ordinary photos never show the RAW-only tabs, and RAW files do not show the regular Lighting/Effects tabs.
+The ReFra editor opens camera RAW files (DNG, CR2, CR3, NEF, NRW, ARW, RAF, ORF, RW2, PEF, and SRW) and adds a **Develop** tool to the catalogue for them. Develop decides how the sensor data becomes a picture; every other tool then works on that result as usual.
 
-## White balance
+## Develop
 
-<PreviewCollection feature="raw-development" section="white-balance" />
+**Develop** has five tabs. The option tiles show a real develop of your photo, and every change lands in the recipe like any other tool.
 
-- **Camera**: use the white balance the camera recorded.
-- **Auto**: the app estimates a correction.
-- **Daylight**: a fixed daylight preset.
-- **Custom**: reveals **Temperature** (2000–12000 K) and **Tint** sliders for manual control.
+- **White balance**: **Camera** (the setting recorded in the file), **Auto**, **Daylight**, or **Custom**, which unlocks **Temperature** and **Tint**.
+- **Tone**: **Exposure**, **Brightness**, **Contrast**, **Shadows**, and **Highlights**.
+- **Detail**: **Sharpen**, the **Demosaic** method (**Linear**, **VNG**, **PPG**, **AHD**, or **DCB**), **Noise reduction** (**Off**, **Low**, **Medium**, or **High**), and **Half resolution (faster)**, which develops at half size to save time.
+- **Colour**: **Saturation**, **Vibrance**, and the **Colour space**: **sRGB**, **Adobe RGB**, **Wide**, or **ProPhoto**.
+- **Output**: **Highlight recovery**, which treats blown highlights as **Clip**, **Blend**, or **Rebuild**.
 
-## Tone
-
-<PreviewCollection feature="raw-development" section="tone" />
-
-- **Exposure** (-3 to 3): brighten or darken the whole image in stops.
-- **Brightness** (-2 to 2): overall lightness.
-- **Contrast**, **Shadows**, and **Highlights** (-1 to 1 each): contrast strength, and how the darkest and brightest areas render.
-
-## Detail
-
-<PreviewCollection feature="raw-development" section="detail" />
-
-- **Demosaic**: chooses how the RAW sensor data is turned into pixels; **Linear**, **VNG**, **PPG**, **AHD**, or **DCB**. They render the file differently; preview each on your photo.
-- **Sharpen** (0 to 2): edge definition.
-- **Noise Reduction**: **Off**, **Low**, **Medium**, **High**.
-- **Half resolution**: renders and exports at reduced resolution for faster processing; leave it off for full detail.
-
-## Colour and output
-
-<PreviewCollection feature="raw-development" section="colour" />
-<PreviewCollection feature="raw-development" section="output" />
-
-- **Colour › Saturation** shifts every colour equally; **Vibrance** lifts muted colours more gently than already-strong ones.
-- **Colour › Colour space**: **sRGB**, **Adobe RGB**, **Wide**, or **ProPhoto**. sRGB is the safe choice for sharing.
-- **Output › Highlight recovery**: **Clip**, **Blend**, or **Rebuild** control how blown-out areas render; they can soften clipped highlights but cannot recover detail the sensor never captured.
+**Reset develop** returns every tab to the neutral develop: camera white balance, sRGB, and AHD.
 
 ## Saving a developed copy
 
-<PreviewCollection feature="raw-development" section="saving" />
+On a RAW file the header button reads **Export**. It opens **Save developed copy**, with **JPEG**, **PNG**, **TIFF (8-bit)**, and **TIFF (16-bit)**. TIFF keeps the full bit depth but only holds the develop itself: any other edit, such as a crop, a look, or markup, makes TIFF unavailable until you remove it.
 
-Tap **Save Copy** in the toolbar to open the **Save developed copy** sheet, which offers **JPEG**, **PNG**, **TIFF (8-bit)**, or **TIFF (16-bit)**. TIFF keeps full bit depth but cannot include your crop, filters, or markup; remove them to export TIFF. JPEG and PNG include everything you applied. The developed copy lands in `Pictures/Edited` with a `_developed` suffix, and the original RAW is never overwritten.
+To skip the question, set **RAW export** in the editor's settings to a fixed format. When that format is TIFF and the recipe has edits TIFF cannot hold, the editor asks again. See [saving copies](/ReFra/features/save-edits).
 
-## Example: rescue a bright-window RAW
+## Example: recover a bright sky
 
-1. Open the RAW, tap **Edit**.
-2. **White balance › Camera**, then **Tone › Highlights** down and **Shadows** up slightly.
-3. **Colour › Colour space › sRGB**, and **Output › Highlight recovery › Rebuild** to soften the window.
-4. Tap **Save Copy**, then choose **JPEG** in the sheet; a shareable photo appears in `Pictures/Edited` and the RAW stays untouched.
+1. Open the RAW file and tap **Tools**, then **Develop**.
+2. In **Output**, set **Highlight recovery** to **Blend**.
+3. In **Tone**, lower **Highlights** and lift **Shadows**.
+4. Tap **Export** and pick **TIFF (16-bit)** to keep the most detail for another app.

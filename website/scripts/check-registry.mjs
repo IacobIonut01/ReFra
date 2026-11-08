@@ -36,6 +36,7 @@ const AREAS = new Set([
   'cloud',
   'customize',
   'utilities',
+  'edit-legacy',
 ]);
 
 const failures = [];

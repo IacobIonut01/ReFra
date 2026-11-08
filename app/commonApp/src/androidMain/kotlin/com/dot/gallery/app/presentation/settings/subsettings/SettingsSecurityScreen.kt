@@ -11,11 +11,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.dot.gallery.core.encryption.EncryptionStateMonitor
+import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.navigate
 import com.dot.gallery.core.sandbox.PrivateFolderManager
+import com.dot.gallery.core.sandbox.PrivateFolderRepository
+import com.dot.gallery.feature.settings.ui.PrivateFolderStats
 import com.dot.gallery.core.security.AdvancedProtectionMonitor
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.feature.settings.ui.SettingsSecurityActions
@@ -30,6 +36,7 @@ import com.dot.gallery.core.ui.settings.rememberPreference
 fun SettingsSecurityScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val eventHandler = LocalEventHandler.current
 
     var privateFolderUri by rememberPreference(SettingsKeys.privateFolderUri)
     val encryptionState by EncryptionStateMonitor.state.collectAsState()
@@ -59,8 +66,27 @@ fun SettingsSecurityScreen() {
             onClearPrivateFolderAndReveal = {
                 scope.launch { PrivateFolderManager.clearFolderAndReveal(context) }
             },
+            onOpenPrivateFolder = { eventHandler.navigate(Screen.PrivateFolderScreen()) },
+            privateFolderStats = { treeUri -> rememberPrivateFolderStats(treeUri) },
         ),
         searchRoute = Screen.SettingsSecurityScreen(),
         searchSink = SettingsSearchRegistry::register,
     )
+}
+
+/** Count and total size of the private folder, refreshed as the SAF scan progresses. */
+@Composable
+private fun rememberPrivateFolderStats(treeUri: String): PrivateFolderStats? {
+    val context = LocalContext.current
+    val repository = remember(context) { PrivateFolderRepository(context.applicationContext) }
+    val stats by produceState<PrivateFolderStats?>(initialValue = null, treeUri, repository) {
+        repository.listMediaProgressive().collect { scan ->
+            value = PrivateFolderStats(
+                itemCount = scan.media.size,
+                totalBytes = scan.media.sumOf { it.size.coerceAtLeast(0L) },
+                scanning = scan.isLoading,
+            )
+        }
+    }
+    return stats
 }

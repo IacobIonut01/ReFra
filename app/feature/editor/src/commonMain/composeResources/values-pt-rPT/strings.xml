@@ -55,4 +55,14 @@
     <string name="editor_brush_size">Tamanho</string>
     <string name="editor_brush_strength">Força</string>
     <string name="editor_blur_faces">Desfocar rostos</string>
+    <string name="raw_export_jpeg">JPEG</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">TIFF (8 bits)</string>
+    <string name="raw_export_tiff16">TIFF (16 bits)</string>
+    <string name="raw_export_choose_format">Guardar cópia revelada</string>
+    <string name="raw_export_choose_format_subtitle">Escolha um formato para o seu ficheiro RAW revelado</string>
+    <string name="raw_export_tiff_unavailable">O formato TIFF mantém a profundidade de bits total, mas não permite incluir recortes, filtros ou marcações — remova-os para exportar em TIFF.</string>
+    <string name="editor_mosaic_faces">Rostos em mosaico</string>
+    <string name="cutout_no_object">Não foi detetado nenhum objeto ao manter premido</string>
+    <string name="cutout_init_failed">Falha na inicialização do motor de recorte</string>
 </resources>

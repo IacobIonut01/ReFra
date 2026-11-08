@@ -42,10 +42,10 @@ class StartupDestinationTest {
     }
 
     @Test
-    fun `stored albums route resolves to albums`() {
+    fun `stored albums route resolves to library since they merged`() {
         val prefs = prefsWithSetupDone(lastScreen to Screen.AlbumsScreen())
         assertEquals(
-            Screen.AlbumsScreen(),
+            Screen.LibraryScreen(),
             Settings.Misc.startupDestination(prefs, permissionGranted = true)
         )
     }

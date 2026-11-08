@@ -5,12 +5,16 @@
 
 package com.dot.gallery.core.presentation.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,11 +49,31 @@ import com.dot.gallery.core.ui.generated.resources.Res
 import com.dot.gallery.core.ui.generated.resources.toggle_view_type
 
 @Composable
+private fun SortSegment(
+    shape: Shape,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .height(40.dp)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+        content = { content() }
+    )
+}
+
+@Composable
 fun FilterButton(
     modifier: Modifier = Modifier,
     filterOptions: Array<FilterOption> = emptyArray(),
     viewType: AlbumViewType,
-    onViewTypeChange: (AlbumViewType) -> Unit
+    onViewTypeChange: (AlbumViewType) -> Unit,
+    /** Replaces the leading view toggle; the toggle then joins the trailing controls. */
+    title: (@Composable RowScope.() -> Unit)? = null,
+    actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     var lastSort by rememberPreference(SettingsKeys.albumLastSort)
     var expanded by remember { mutableStateOf(false) }
@@ -66,23 +91,78 @@ fun FilterButton(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(
-                onClick = {
-                    if (viewType == AlbumViewType.GRID) {
-                        onViewTypeChange(AlbumViewType.LIST)
-                    } else {
-                        onViewTypeChange(AlbumViewType.GRID)
+            val viewToggle: @Composable () -> Unit = {
+                IconButton(
+                    onClick = {
+                        if (viewType == AlbumViewType.GRID) {
+                            onViewTypeChange(AlbumViewType.LIST)
+                        } else {
+                            onViewTypeChange(AlbumViewType.GRID)
+                        }
                     }
+                ) {
+                    Icon(
+                        imageVector = if (viewType == AlbumViewType.GRID) Icons.Outlined.GridView else Icons.Outlined.HorizontalSplit,
+                        contentDescription = stringResource(Res.string.toggle_view_type),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
-            ) {
-                Icon(
-                    imageVector = if (viewType == AlbumViewType.GRID) Icons.Outlined.GridView else Icons.Outlined.HorizontalSplit,
-                    contentDescription = stringResource(Res.string.toggle_view_type),
-                    tint = MaterialTheme.colorScheme.primary
-                )
             }
+            if (title != null) title() else viewToggle()
 
-            Row(
+            if (title != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // A connected group: outer corners fully round, inner corners tight.
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        SortSegment(
+                            shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                            onClick = { expanded = true },
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(start = 16.dp, end = 12.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                text = stringResource(selectedFilter.titleRes)
+                            )
+                        }
+                        SortSegment(
+                            shape = RoundedCornerShape(4.dp),
+                            onClick = {
+                                order = if (order == OrderType.Ascending) OrderType.Descending else OrderType.Ascending
+                                lastSort = lastSort.copy(orderType = order)
+                            },
+                        ) {
+                            Icon(
+                                modifier = Modifier.padding(horizontal = 8.dp).size(20.dp),
+                                imageVector = if (order == OrderType.Descending) {
+                                    Icons.Outlined.KeyboardDoubleArrowDown
+                                } else Icons.Outlined.KeyboardDoubleArrowUp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                contentDescription = null
+                            )
+                        }
+                        SortSegment(
+                            shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 20.dp, bottomEnd = 20.dp),
+                            onClick = {
+                                onViewTypeChange(
+                                    if (viewType == AlbumViewType.GRID) AlbumViewType.LIST else AlbumViewType.GRID
+                                )
+                            },
+                        ) {
+                            Icon(
+                                modifier = Modifier.padding(start = 8.dp, end = 12.dp).size(20.dp),
+                                imageVector = if (viewType == AlbumViewType.GRID) Icons.Outlined.GridView else Icons.Outlined.HorizontalSplit,
+                                contentDescription = stringResource(Res.string.toggle_view_type),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    actions?.invoke(this)
+                }
+            } else Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(

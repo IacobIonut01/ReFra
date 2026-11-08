@@ -29,6 +29,7 @@ data class SearchState(
     val topLensModels: List<SearchMediaItem> = emptyList(),
     val topMediaModes: List<SearchMediaItem> = emptyList(),
     val topGroupTypes: List<SearchMediaItem> = emptyList(),
+    val typedSuggestions: List<TypedSearchSuggestion> = emptyList(),
 )
 
 

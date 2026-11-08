@@ -151,7 +151,7 @@ class LibraryShortcutTest {
 
     @Test
     fun hiddenOnlyPeopleKeepTheHeaderKeyWithoutAListKey() {
-        // #1262: every person hidden → PeopleHeader stays (entry to PeopleListScreen
+        // every person hidden → PeopleHeader stays (entry to PeopleListScreen
         // where the hidden section lives) but no PeopleList row is emitted.
         val keys = libraryGridSectionKeys(
             hasLocations = false,

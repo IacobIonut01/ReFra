@@ -4,18 +4,18 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
-import androidx.exifinterface.media.ExifInterface
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.core.logging.printError
+import com.dot.gallery.core.logging.printWarn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.channels.Channels
 import java.security.MessageDigest
 import java.util.Properties
 import java.util.UUID
@@ -33,27 +33,15 @@ class AndroidMetadataSanitizer @Inject constructor(
 
     override suspend fun probe(media: Media): SanitizationCapability = withContext(Dispatchers.IO) {
         try {
-            val uri = media.getUri()
-            val format = resolver.openInputStream(uri)?.use {
-                MediaFormatDetector.detect(it, media.mimeType, media.label)
-            } ?: MediaContainerFormat.UNKNOWN
-            if (format == MediaContainerFormat.JPEG && isMotionPhoto(uri)) {
-                return@withContext SanitizationCapability(
-                    format = format,
-                    supportedModes = emptySet(),
-                    limitation = "Motion Photo sanitization is unavailable until its embedded video and linkage can be preserved."
-                )
+            val descriptor = resolver.openFileDescriptor(media.getUri(), "r")
+                ?: throw IOException("Unable to open source media")
+            descriptor.use {
+                FileInputStream(it.fileDescriptor).use { input ->
+                    val channel = input.channel
+                    val format = MediaFormatDetector.detect(Channels.newInputStream(channel.position(0)), media.mimeType, media.label)
+                    MetadataEngine.capability(format, channel.position(0))
+                }
             }
-            val base = MetadataCapabilities.forFormat(format)
-            if (format in setOf(MediaContainerFormat.JPEG, MediaContainerFormat.PNG, MediaContainerFormat.WEBP) &&
-                (hasOpaqueSelectiveMetadata(uri, format) || hasEmbeddedExifThumbnail(uri))
-            ) {
-                return@withContext base.copy(
-                    supportedModes = emptySet(),
-                    limitation = "This file contains nested or opaque metadata that cannot currently be removed safely."
-                )
-            }
-            base
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (_: SecurityException) {
@@ -62,6 +50,8 @@ class AndroidMetadataSanitizer @Inject constructor(
                 emptySet(),
                 limitation = "Permission to read this media is unavailable."
             )
+        } catch (e: UnsupportedMetadataException) {
+            SanitizationCapability(MediaContainerFormat.UNKNOWN, emptySet(), limitation = e.message)
         } catch (e: Exception) {
             printError("media-ops.metadata", "sanitizer probe failed", e)
             SanitizationCapability(
@@ -74,14 +64,15 @@ class AndroidMetadataSanitizer @Inject constructor(
 
     override suspend fun sanitize(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
     ): SanitizationResult = withContext(Dispatchers.IO) {
+        val selection = MetadataSelection(categories)
         val capability = probe(media)
-        if (!capability.supports(mode)) {
+        if (selection.isEmpty || !capability.supports(selection.categories)) {
             return@withContext SanitizationResult.Unsupported(
                 capability.format,
-                capability.limitation ?: "The selected metadata mode is not supported."
+                capability.limitation ?: "The selected metadata cannot be removed from this file."
             )
         }
         transactionDirectory.mkdirs()
@@ -108,42 +99,18 @@ class AndroidMetadataSanitizer @Inject constructor(
             if (format != capability.format) {
                 return@withContext SanitizationResult.MalformedInput("Media format changed while preparing sanitization.")
             }
-            if (format == MediaContainerFormat.JPEG && isMotionPhoto(backup)) {
-                return@withContext SanitizationResult.Unsupported(
-                    format,
-                    "Motion Photo sanitization is unavailable until its embedded video and linkage can be preserved."
-                )
-            }
-            if (format in setOf(MediaContainerFormat.JPEG, MediaContainerFormat.PNG, MediaContainerFormat.WEBP) &&
-                (hasOpaqueSelectiveMetadata(backup, format) || hasEmbeddedExifThumbnail(backup))
-            ) {
-                return@withContext SanitizationResult.Unsupported(
-                    format,
-                    "This file contains nested or opaque metadata that cannot currently be removed safely."
-                )
-            }
             val sourceSha256 = sha256(backup)
-            val beforeFingerprint = MediaEssenceFingerprint.calculate(backup, format)
-            LosslessMetadataRewriter.rewrite(backup, candidate, format, mode)
-            FileOutputStream(candidate, true).use { it.fd.sync() }
-            if (!MetadataVerifier.verify(candidate, format, mode)) {
-                return@withContext SanitizationResult.VerificationFailed("The sanitized candidate still contains selected metadata.")
+            val present = FileInputStream(backup).use { MetadataEngine.inspect(format, it.channel).present.toSet() }
+            MetadataEngine.scrub(format, backup, candidate, selection)
+            coroutineContext.ensureActive()
+            MetadataEngine.verify(format, backup, candidate, selection)?.let { reason ->
+                printError("media-ops.metadata", "sanitized candidate failed verification", ctx = mapOf("format" to format.name, "reason" to reason))
+                return@withContext SanitizationResult.VerificationFailed(reason)
             }
-            val afterFingerprint = MediaEssenceFingerprint.calculate(candidate, format)
-            if (beforeFingerprint != afterFingerprint) {
-                return@withContext SanitizationResult.VerificationFailed("Encoded media payload changed during sanitization.")
-            }
-            val outputUri = saveCandidateCopy(
-                candidate = candidate,
-                media = media,
-                format = format,
-                mode = mode,
-                expectedFingerprint = afterFingerprint
-            )
+            val outputUri = saveCandidateCopy(candidate, backup, media, format, selection)
             SanitizationResult.Success(
-                mode = mode,
                 format = format,
-                removedCategories = MetadataPolicy.forMode(mode).removedCategories,
+                removedCategories = selection.categories intersect present,
                 retainedRequiredMetadata = capability.retainedRequiredMetadata,
                 bytesBefore = backup.length(),
                 bytesAfter = candidate.length(),
@@ -156,7 +123,14 @@ class AndroidMetadataSanitizer @Inject constructor(
             SanitizationResult.Cancelled
         } catch (_: SecurityException) {
             SanitizationResult.PermissionDenied
+        } catch (error: MalformedMetadataException) {
+            printWarn("media-ops.metadata", "metadata removal rejected malformed input: ${error.message}")
+            SanitizationResult.MalformedInput(error.message ?: "The file structure is invalid.")
+        } catch (error: UnsupportedMetadataException) {
+            printWarn("media-ops.metadata", "metadata removal unsupported: ${error.message}")
+            SanitizationResult.Unsupported(capability.format, error.message ?: "This file is not supported.")
         } catch (error: Exception) {
+            printError("media-ops.metadata", "metadata removal failed", error)
             SanitizationResult.CommitFailed(error.message ?: error.javaClass.simpleName, false)
         } finally {
             backup.delete()
@@ -194,10 +168,10 @@ class AndroidMetadataSanitizer @Inject constructor(
 
     private fun saveCandidateCopy(
         candidate: File,
+        source: File,
         media: Media,
         format: MediaContainerFormat,
-        mode: MetadataRemovalMode,
-        expectedFingerprint: String
+        selection: MetadataSelection
     ): Uri {
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, sanitizedCopyName(media.label))
@@ -205,16 +179,16 @@ class AndroidMetadataSanitizer @Inject constructor(
             put(MediaStore.MediaColumns.RELATIVE_PATH, media.relativePath)
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
-        val copyUri = resolver.insert(imageCollection(media.getUri()), values)
+        val copyUri = resolver.insert(collection(media.getUri(), media.mimeType), values)
             ?: throw IOException("Unable to create sanitized copy")
         try {
             writeFileToUri(candidate, copyUri)
-            verifyOutput(copyUri, candidate, media, format, mode, expectedFingerprint)
+            verifyOutput(copyUri, candidate, source, media, format, selection)
             restoreMediaColumns(copyUri, media.timestamp, media.takenTimestamp)
-            verifyOutput(copyUri, candidate, media, format, mode, expectedFingerprint)
             return copyUri
         } catch (error: Exception) {
             runCatching { resolver.delete(copyUri, null, null) }
+                .onFailure { printWarn("media-ops.metadata", "could not delete a failed sanitized copy: ${it.message}") }
             throw error
         }
     }
@@ -222,16 +196,23 @@ class AndroidMetadataSanitizer @Inject constructor(
     private fun verifyOutput(
         uri: Uri,
         candidate: File,
+        source: File,
         media: Media,
         format: MediaContainerFormat,
-        mode: MetadataRemovalMode,
-        expectedFingerprint: String
+        selection: MetadataSelection
     ) {
         if (sha256(uri) != sha256(candidate)) {
             throw IOException("Saved file does not match the verified candidate")
         }
-        if (!verifyCommitted(uri, media, format, mode, expectedFingerprint)) {
-            throw IOException("Saved file failed metadata or payload verification")
+        val verification = File.createTempFile("metadata-verify", ".tmp", transactionDirectory)
+        try {
+            copyUriToFile(uri, verification)
+            val savedFormat = FileInputStream(verification).use { MediaFormatDetector.detect(it, media.mimeType, media.label) }
+            if (savedFormat != format || MetadataEngine.verify(format, source, verification, selection) != null) {
+                throw IOException("Saved file failed metadata or payload verification")
+            }
+        } finally {
+            verification.delete()
         }
     }
 
@@ -280,116 +261,22 @@ class AndroidMetadataSanitizer @Inject constructor(
         if (cursor.moveToFirst()) cursor.getInt(0) != 0 else null
     }
 
-    private fun imageCollection(sourceUri: Uri): Uri = runCatching {
-        MediaStore.Images.Media.getContentUri(MediaStore.getVolumeName(sourceUri))
-    }.getOrDefault(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+    private fun collection(sourceUri: Uri, mimeType: String): Uri {
+        val video = mimeType.startsWith("video/")
+        return runCatching {
+            val volume = MediaStore.getVolumeName(sourceUri)
+            if (video) MediaStore.Video.Media.getContentUri(volume) else MediaStore.Images.Media.getContentUri(volume)
+        }.getOrElse {
+            printWarn("media-ops.metadata", "falling back to the primary volume for the sanitized copy: ${it.message}")
+            if (video) MediaStore.Video.Media.EXTERNAL_CONTENT_URI else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+    }
 
     private fun sanitizedCopyName(label: String): String {
         val extensionIndex = label.lastIndexOf('.').takeIf { it > 0 } ?: label.length
         val baseName = label.substring(0, extensionIndex)
         val extension = label.substring(extensionIndex)
         return "${baseName}_sanitized$extension"
-    }
-
-    private fun verifyCommitted(
-        uri: Uri,
-        media: Media,
-        format: MediaContainerFormat,
-        mode: MetadataRemovalMode,
-        expectedFingerprint: String
-    ): Boolean {
-        val verification = File.createTempFile("metadata-verify", ".tmp", transactionDirectory)
-        return try {
-            copyUriToFile(uri, verification)
-            FileInputStream(verification).use {
-                MediaFormatDetector.detect(it, media.mimeType, media.label)
-            } == format &&
-                MetadataVerifier.verify(verification, format, mode) &&
-                MediaEssenceFingerprint.calculate(verification, format) == expectedFingerprint
-        } finally {
-            verification.delete()
-        }
-    }
-
-    private fun hasEmbeddedExifThumbnail(uri: Uri): Boolean = runCatching {
-        val input = resolver.openInputStream(uri) ?: return@runCatching true
-        input.use { ExifInterface(it).hasThumbnail() }
-    }.getOrDefault(true)
-
-    private fun hasEmbeddedExifThumbnail(file: File): Boolean = runCatching {
-        ExifInterface(file.absolutePath).hasThumbnail()
-    }.getOrDefault(true)
-
-    private fun hasOpaqueSelectiveMetadata(uri: Uri, format: MediaContainerFormat): Boolean = runCatching {
-        val input = resolver.openInputStream(uri) ?: return@runCatching true
-        input.buffered().use { hasOpaqueSelectiveMetadata(it, format) }
-    }.getOrDefault(true)
-
-    private fun hasOpaqueSelectiveMetadata(file: File, format: MediaContainerFormat): Boolean = runCatching {
-        file.inputStream().buffered().use { hasOpaqueSelectiveMetadata(it, format) }
-    }.getOrDefault(true)
-
-    private fun hasOpaqueSelectiveMetadata(
-        input: BufferedInputStream,
-        format: MediaContainerFormat
-    ): Boolean {
-        val tokens = when (format) {
-            MediaContainerFormat.JPEG -> listOf(
-                "http://ns.adobe.com/xap/1.0/".toByteArray(),
-                "http://ns.adobe.com/xmp/extension/".toByteArray(),
-                "Photoshop 3.0".toByteArray()
-            )
-            MediaContainerFormat.PNG -> listOf(
-                "iTXt".toByteArray(),
-                "tEXt".toByteArray(),
-                "zTXt".toByteArray()
-            )
-            MediaContainerFormat.WEBP -> listOf("XMP ".toByteArray())
-            else -> emptyList()
-        }
-        if (tokens.isEmpty()) return false
-        val longest = tokens.maxOf { it.size }
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE + longest)
-        var carried = 0
-        while (true) {
-            val count = input.read(buffer, carried, DEFAULT_BUFFER_SIZE)
-            if (count < 0) return false
-            val total = carried + count
-            if (tokens.any { token -> buffer.contains(token, total) }) return true
-            carried = minOf(longest - 1, total)
-            buffer.copyInto(buffer, 0, total - carried, total)
-        }
-    }
-
-    private fun ByteArray.contains(token: ByteArray, length: Int): Boolean {
-        if (token.isEmpty() || token.size > length) return false
-        for (start in 0..length - token.size) {
-            if (token.indices.all { this[start + it] == token[it] }) return true
-        }
-        return false
-    }
-
-    private fun isMotionPhoto(uri: Uri): Boolean = resolver.openInputStream(uri)?.buffered()?.use(
-        ::containsMotionPhotoSignature
-    ) ?: false
-
-    private fun isMotionPhoto(file: File): Boolean = file.inputStream().buffered().use(
-        ::containsMotionPhotoSignature
-    )
-
-    private fun containsMotionPhotoSignature(input: BufferedInputStream): Boolean {
-        val bytes = ByteArray(MOTION_PHOTO_SNIFF_BYTES)
-        var count = 0
-        while (count < bytes.size) {
-            val read = input.read(bytes, count, bytes.size - count)
-            if (read <= 0) break
-            count += read
-        }
-        val header = bytes.copyOf(count).toString(Charsets.ISO_8859_1)
-        return "GCamera:MotionPhoto" in header ||
-            "Camera:MotionPhoto" in header ||
-            "GCamera:MicroVideo" in header ||
-            "MotionPhoto_Data" in header
     }
 
     private fun copyUriToFile(uri: Uri, target: File) {
@@ -444,6 +331,5 @@ class AndroidMetadataSanitizer @Inject constructor(
 
     private companion object {
         const val MINIMUM_FREE_MARGIN = 16L * 1024L * 1024L
-        const val MOTION_PHOTO_SNIFF_BYTES = 1024 * 1024
     }
 }

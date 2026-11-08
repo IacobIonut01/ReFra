@@ -35,7 +35,7 @@ import com.dot.gallery.core.presentation.components.util.hasMediaAccess
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.Resource
 import com.dot.gallery.core.decoder.format.ImageReencoder
-import com.dot.gallery.core.metadata.MetadataRemovalMode
+import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.MetadataSanitizer
 import com.dot.gallery.core.metadata.SanitizationCapability
@@ -63,6 +63,7 @@ import com.dot.gallery.core.util.ext.updateMedia
 import com.dot.gallery.core.util.ext.updateMediaExif
 import com.dot.gallery.core.security.AdvancedProtectionMonitor
 import com.dot.gallery.data.dao.CategoryWithMediaCount
+import com.dot.gallery.data.dao.ImageEmbeddingHeader
 import com.dot.gallery.data.InternalDatabase
 import com.dot.gallery.data.entity.SmartScanFeature
 import com.dot.gallery.data.mediastore.MediaQuery
@@ -75,6 +76,7 @@ import com.dot.gallery.domain.model.AlbumGroupMember
 import com.dot.gallery.domain.model.AlbumSection
 import com.dot.gallery.domain.model.AlbumSectionMember
 import com.dot.gallery.domain.model.Collection
+import com.dot.gallery.domain.model.CollectionExcludedMedia
 import com.dot.gallery.domain.model.CollectionMedia
 import com.dot.gallery.domain.model.CollectionWithCount
 import com.dot.gallery.domain.model.AlbumThumbnail
@@ -654,7 +656,7 @@ class MediaRepositoryImpl(
         }
         // Supported media always goes through the MediaStore request, which
         // performs the mutation itself — direct writes can be denied even when
-        // all-files access is granted (#1263).
+        // all-files access is granted.
         val intentSender = try {
             MediaStore.createTrashRequest(
                 contentResolver,
@@ -715,7 +717,7 @@ class MediaRepositoryImpl(
             return if (allSucceeded) MediaMutationResult.COMPLETED else MediaMutationResult.FAILED
         }
         // Supported media always goes through the MediaStore request — same
-        // rationale as trashMedia (#1263).
+        // rationale as trashMedia.
         return try {
             val intentSender = MediaStore.createDeleteRequest(
                 contentResolver,
@@ -916,9 +918,9 @@ class MediaRepositoryImpl(
 
     override suspend fun sanitizeMediaMetadata(
         media: Media,
-        mode: MetadataRemovalMode,
+        categories: Set<MetadataCategory>,
         saveMode: MetadataSaveMode
-    ): SanitizationResult = metadataSanitizer.sanitize(media, mode, saveMode)
+    ): SanitizationResult = metadataSanitizer.sanitize(media, categories, saveMode)
 
     override suspend fun refreshMetadataFor(media: Media) {
         database.getMetadataDao().deleteForMedia(media.id)
@@ -1193,7 +1195,7 @@ class MediaRepositoryImpl(
                         printInfo("Skipping duplicate: ${media.label} already in vault ${vault.name}")
                         return@withContext true
                     }
-                    // Stale row: DB says it's vaulted but the .enc file is gone (#1282). Drop
+                    // Stale row: DB says it's vaulted but the.enc file is gone. Drop
                     // the row and fall through so the media actually gets encrypted.
                     printWarning("Vault row for ${media.id} has no backing file; re-encrypting")
                     database.getVaultDao().deleteMediaFromVault(vault.uuid, media.id)
@@ -1597,6 +1599,9 @@ class MediaRepositoryImpl(
     override fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>> =
         categoryDao.getCategoriesWithMediaCount()
 
+    override fun getImageEmbeddingCount(): Flow<Int> =
+        database.getImageEmbeddingDao().observeCount()
+
     override fun getDistinctClassifiedMediaCount(): Flow<Int> =
         categoryDao.getDistinctClassifiedMediaCount()
 
@@ -1614,6 +1619,9 @@ class MediaRepositoryImpl(
 
     override suspend fun toggleCategoryPinned(categoryId: Long, isPinned: Boolean) =
         categoryDao.updateCategoryPinned(categoryId, isPinned)
+
+    override suspend fun updateCategoryCover(categoryId: Long, mediaId: Long?) =
+        categoryDao.updateCategoryCover(categoryId, mediaId)
 
     override fun getMediaIdsInCategory(categoryId: Long): Flow<List<Long>> =
         categoryDao.getMediaIdsInCategory(categoryId)
@@ -1856,6 +1864,12 @@ class MediaRepositoryImpl(
         return database.getImageEmbeddingDao().getRecords()
     }
 
+    override suspend fun getImageEmbeddings(ids: List<Long>): List<ImageEmbedding> =
+        database.getImageEmbeddingDao().getRecords(ids)
+
+    override fun getImageEmbeddingHeaders(): Flow<List<ImageEmbeddingHeader>> =
+        database.getImageEmbeddingDao().getHeaderFlow()
+
     // ============ Album Groups ============
 
     override suspend fun insertAlbumGroup(group: AlbumGroup): Long =
@@ -1944,16 +1958,29 @@ class MediaRepositoryImpl(
     override suspend fun updateCollectionCover(collectionId: Long, mediaId: Long?) =
         collectionDao.updateCollectionCover(collectionId, mediaId)
 
-    override suspend fun addMediaToCollection(collectionId: Long, mediaId: Long) =
-        collectionDao.addMediaToCollection(CollectionMedia(collectionId, mediaId))
+    override suspend fun addMediaToCollection(collectionId: Long, mediaId: Long) {
+        database.withWriteTransaction {
+            collectionDao.addMediaToCollection(CollectionMedia(collectionId, mediaId))
+            collectionDao.clearExcludedMedia(collectionId, listOf(mediaId))
+        }
+    }
 
-    override suspend fun addMediaListToCollection(collectionId: Long, mediaIds: List<Long>) =
-        collectionDao.addMediaListToCollection(
-            mediaIds.map { CollectionMedia(collectionId, it) }
-        )
+    override suspend fun addMediaListToCollection(collectionId: Long, mediaIds: List<Long>) {
+        if (mediaIds.isEmpty()) return
+        database.withWriteTransaction {
+            collectionDao.addMediaListToCollection(
+                mediaIds.map { CollectionMedia(collectionId, it) }
+            )
+            collectionDao.clearExcludedMedia(collectionId, mediaIds)
+        }
+    }
 
-    override suspend fun removeMediaFromCollection(collectionId: Long, mediaId: Long) =
-        collectionDao.removeMediaFromCollection(collectionId, mediaId)
+    override suspend fun removeMediaFromCollection(collectionId: Long, mediaId: Long) {
+        database.withWriteTransaction {
+            collectionDao.removeMediaFromCollection(collectionId, mediaId)
+            collectionDao.excludeMedia(CollectionExcludedMedia(collectionId, mediaId))
+        }
+    }
 
     override fun getMediaIdsInCollection(collectionId: Long): Flow<List<Long>> =
         collectionDao.getMediaIdsInCollection(collectionId)
@@ -1987,6 +2014,9 @@ class MediaRepositoryImpl(
 
     override fun getAlbumIdsInCollection(collectionId: Long): Flow<List<Long>> =
         collectionDao.getAlbumIdsInCollection(collectionId)
+
+    override fun getExcludedMediaIdsInCollection(collectionId: Long): Flow<List<Long>> =
+        collectionDao.getExcludedMediaIds(collectionId)
 
     // ============ Album Sections ============
 

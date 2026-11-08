@@ -22,7 +22,7 @@ data class CloudLibraryState(
     val people: List<PersonInfo> = emptyList(),
     /**
      * Hidden local people — kept outside [people] so the Library row stays
-     * visible-only while the section header remains reachable (#1262).
+     * visible-only while the section header remains reachable.
      */
     val hiddenPeopleCount: Int = 0,
     val hasArchive: Boolean = false,

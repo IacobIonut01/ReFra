@@ -55,4 +55,14 @@
     <string name="editor_brush_size">আকার</string>
     <string name="editor_brush_strength">শক্তি</string>
     <string name="editor_blur_faces">ঝাপসা মুখ</string>
+    <string name="raw_export_jpeg">জেপেগ</string>
+    <string name="raw_export_png">PNG</string>
+    <string name="raw_export_tiff8">টিআইএফএফ (৮-বিট)</string>
+    <string name="raw_export_tiff16">টিআইএফএফ (১৬-বিট)</string>
+    <string name="raw_export_choose_format">উন্নত অনুলিপি সংরক্ষণ করুন</string>
+    <string name="raw_export_choose_format_subtitle">আপনার ডেভেলপ করা RAW-এর জন্য একটি ফরম্যাট নির্বাচন করুন।</string>
+    <string name="raw_export_tiff_unavailable">TIFF পূর্ণ বিট ডেপথ বজায় রাখে, তবে এতে ক্রপ, ফিল্টার বা মার্কআপ অন্তর্ভুক্ত করা যায় না — TIFF রপ্তানি করতে এগুলো সরিয়ে ফেলুন।</string>
+    <string name="editor_mosaic_faces">মোজাইক মুখ</string>
+    <string name="cutout_no_object">দীর্ঘ চাপের সময় কোনো বস্তু সনাক্ত হয়নি</string>
+    <string name="cutout_init_failed">কাটআউট ইঞ্জিন ইনিশিয়ালাইজ করতে ব্যর্থ</string>
 </resources>

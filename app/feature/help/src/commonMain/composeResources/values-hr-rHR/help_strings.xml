@@ -59,7 +59,7 @@
     <string name="help_tip_nav_albums_p1_desc">Albumi prikazuju tvoje fotografije organizirane po mapama u kojima su pohranjene — Fotoaparat, Snimke zaslona, Preuzimanja, WhatsApp slike i više. Svaki album prikazuje pregled sličice i broj stavki unutra. Možeš se prebacivati između prikaza mreže i popisa kako bi brzo pronašao albume.</string>
     <string name="help_tip_nav_albums_p2_title">Istraži svoje albume</string>
     <string name="help_tip_nav_albums_p2_desc">Dodirni bilo koji album da vidiš njegov sadržaj. Dugo pritisni album za više opcija: pribodi ga na vrh za brzi pristup, sakrij ga s popisa, promijeni njegovu sličicu ili ga dodaj u grupu ili zbirku. Savjet: pribodi svoje najčešće korištene albume (poput Fotoaparata) kako bi uvijek bili na vrhu popisa.</string>
-    <string name="help_tip_nav_albums_p2_s1">Dodirni \'Albumi\' na donjoj traci</string>
+    <string name="help_tip_nav_albums_p2_s1">Dodirni 'Albumi' na donjoj traci</string>
     <string name="help_tip_nav_albums_p2_s2">Pregledavaj svoju mrežu albuma</string>
     <string name="help_tip_nav_albums_p2_s3">Dugo pritisni za opcije albuma</string>
     <string name="help_tip_nav_albums_p2_s4">Pribodi svoje omiljene na vrh</string>
@@ -68,13 +68,13 @@
     <string name="help_tip_nav_search_p1_title">Pretražuj svoje medije</string>
     <string name="help_tip_nav_search_p1_desc">Dodirni traku za pretraživanje na vrhu vremenske crte kako bi pronašao fotografije. Osnovno pretraživanje usklađuje nazive datoteka pomoću približnog podudaranja (fuzzy matching), pa ne moraš pamtiti točne nazive. Tvoja nedavna pretraživanja spremaju se radi brzog pristupa. Rezultati se ažuriraju dok tipkaš.</string>
     <string name="help_tip_nav_search_p2_title">AI vizualno pretraživanje</string>
-    <string name="help_tip_nav_search_p2_desc">S instaliranim AI modelima, pretraživanje postaje mnogo moćnije — opiši ono što tražiš jednostavnim jezikom poput \"zalazak sunca na plaži\", \"rođendanska torta\" ili \"pas koji se igra na snijegu\". Galerija koristi CLIP modele na uređaju za razumijevanje sadržaja slika, tako da tvoje fotografije nikada ne napuštaju tvoj uređaj. Da omogućiš ovo, idi na Postavke &gt; Pametne značajke i instaliraj AI modele.</string>
+    <string name="help_tip_nav_search_p2_desc">S instaliranim AI modelima, pretraživanje postaje mnogo moćnije — opiši ono što tražiš jednostavnim jezikom poput "zalazak sunca na plaži", "rođendanska torta" ili "pas koji se igra na snijegu". Galerija koristi CLIP modele na uređaju za razumijevanje sadržaja slika, tako da tvoje fotografije nikada ne napuštaju tvoj uređaj. Da omogućiš ovo, idi na Postavke &gt; Pametne značajke i instaliraj AI modele.</string>
     <string name="help_tip_nav_old_navbar_title">Klasična navigacijska traka</string>
     <string name="help_tip_nav_old_navbar_subtitle">Prebacuj se između modernog i klasičnog stila navigacije</string>
     <string name="help_tip_nav_old_navbar_p1_title">Stilovi navigacijske trake</string>
     <string name="help_tip_nav_old_navbar_p1_desc">Galerija nudi dva stila navigacijske trake. Moderni stil prikazuje označene ikone za Vremensku crtu, Albume i Knjižnicu. Klasični kompaktni stil koristi manje ikone bez oznaka, pružajući ti više prostora na zaslonu za tvoje fotografije. Isprobaj oba stila kako bi vidio koji ti više odgovara.</string>
     <string name="help_tip_nav_old_navbar_p1_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_nav_old_navbar_p1_s2">Uključi/isključi \'Stari stil navigacijske trake\'</string>
+    <string name="help_tip_nav_old_navbar_p1_s2">Uključi/isključi 'Stari stil navigacijske trake'</string>
     <string name="help_tip_nav_library_title">Koristi knjižnicu</string>
     <string name="help_tip_nav_library_subtitle">Brzi pristup omiljenim stavkama, smeću, trezoru i još mnogo toga</string>
     <string name="help_tip_nav_library_p1_title">Knjižnica</string>
@@ -84,14 +84,14 @@
     <string name="help_tip_nav_launch_screen_p1_title">Zadani početni zaslon</string>
     <string name="help_tip_nav_launch_screen_p1_desc">Odaberi koji te zaslon dočekuje kada otvoriš Galeriju. Vremenska crta je izvrsna ako uglavnom pregledavaš nedavne fotografije. Albumi dobro funkcioniraju ako organiziraš prema mapama. Knjižnica je idealna ako prvenstveno koristiš omiljene stavke ili kategorije. Postoji i opcija Automatski koja pamti posljednji zaslon koji si koristio.</string>
     <string name="help_tip_nav_launch_screen_p1_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_nav_launch_screen_p1_s2">Dodirni \'Zadani početni zaslon\'</string>
+    <string name="help_tip_nav_launch_screen_p1_s2">Dodirni 'Zadani početni zaslon'</string>
     <string name="help_tip_nav_launch_screen_p1_s3">Odaberi Automatski, Vremenska crta, Albumi ili Knjižnica</string>
     <string name="help_tip_nav_auto_hide_bars_title">Automatski sakrij trake pri pomicanju</string>
     <string name="help_tip_nav_auto_hide_bars_subtitle">Sakrij trake za pretraživanje i navigaciju tijekom pomicanja</string>
     <string name="help_tip_nav_auto_hide_bars_p1_title">Automatski sakrij trake</string>
     <string name="help_tip_nav_auto_hide_bars_p1_desc">Za impresivnije iskustvo pregledavanja, omogući automatsko skrivanje trake za pretraživanje i/ili navigacijske trake. One će skliznuti sa zaslona dok se pomičeš prema dolje kroz svoje fotografije i ponovno se pojaviti kada se pomakneš prema gore. Ovo je osobito korisno na manjim zaslonima gdje je svaki piksel važan. Možeš upravljati svakom trakom neovisno.</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_nav_auto_hide_bars_p1_s2">Uključi/isključi \'Automatski sakrij traku za pretraživanje\' i/ili \'Automatski sakrij navigacijsku traku\'</string>
+    <string name="help_tip_nav_auto_hide_bars_p1_s2">Uključi/isključi 'Automatski sakrij traku za pretraživanje' i/ili 'Automatski sakrij navigacijsku traku'</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s3">Pomiči se prema dolje da se sakriju, pomiči se prema gore da ih vratiš</string>
     <!-- GET STARTED: PERSONALIZATION -->
     <string name="help_tip_personalize_theme_title">Promijeni svoju temu</string>
@@ -102,7 +102,7 @@
     <string name="help_tip_personalize_theme_p2_desc">Zadano za sustav prati trenutni način rada tvog telefona. Prisilni tamni način rada zadržava Galeriju tamnom bez obzira na postavke sustava — izvrsno za noćno pregledavanje. Ako imaš OLED zaslon, omogući AMOLED čistu crnu za istinske crne pozadine koje štede bateriju i izgledaju sjajno.</string>
     <string name="help_tip_personalize_theme_p2_s1">Idi na Postavke &gt; Izgled</string>
     <string name="help_tip_personalize_theme_p2_s2">Odaberi Sustav, Svijetla ili Prisili tamnu</string>
-    <string name="help_tip_personalize_theme_p2_s3">Za OLED zaslone također omogući \'AMOLED čista crna\'</string>
+    <string name="help_tip_personalize_theme_p2_s3">Za OLED zaslone također omogući 'AMOLED čista crna'</string>
     <string name="help_tip_personalize_colors_title">Prilagodi paletu boja</string>
     <string name="help_tip_personalize_colors_subtitle">Odaberi bilo koju boju za temu cijele aplikacije</string>
     <string name="help_tip_personalize_colors_p1_title">Paleta boja</string>
@@ -125,7 +125,7 @@
     <string name="help_tip_personalize_amoled_p1_desc">Ako tvoj telefon ima OLED ili AMOLED zaslon, ovaj način rada koristi istinske crne piksele koji su zapravo isključeni — čime se štedi baterija i stvara upečatljiv vizualni efekt. Kombiniraj s Prisilnim tamnim načinom rada za najbolje rezultate. Napomena: ova postavka stupa na snagu samo kada je tamni način rada aktivan.</string>
     <string name="help_tip_personalize_amoled_p1_s1">Idi na Postavke &gt; Izgled</string>
     <string name="help_tip_personalize_amoled_p1_s2">Najprije omogući Prisilni tamni način rada</string>
-    <string name="help_tip_personalize_amoled_p1_s3">Uključi/isključi \'AMOLED čista crna\'</string>
+    <string name="help_tip_personalize_amoled_p1_s3">Uključi/isključi 'AMOLED čista crna'</string>
     <string name="help_tip_personalize_amoled_p1_s4">Uživaj u istinskim crnim tonovima na svom OLED zaslonu</string>
     <string name="help_tip_personalize_dark_mode_title">Prebacuj se između svijetlog i tamnog</string>
     <string name="help_tip_personalize_dark_mode_subtitle">Odaberi način rada koji ti najviše odgovara očima</string>
@@ -136,21 +136,21 @@
     <string name="help_tip_personalize_blur_p1_title">Efekti zamućenja</string>
     <string name="help_tip_personalize_blur_p1_desc">Omogući efekte zamućenja za moderan izgled mutnog stakla na navigacijskoj traci, prekrivnim slojevima i listu za odabir. To daje Galeriji uglađen, slojevit izgled. Zahtijeva Android 12 ili noviji. Ako primijetiš bilo kakav utjecaj na performanse na starijim uređajima, možeš ovo onemogućiti.</string>
     <string name="help_tip_personalize_blur_p1_s1">Idi na Postavke &gt; Izgled</string>
-    <string name="help_tip_personalize_blur_p1_s2">Uključi/isključi \'Dopusti napredno zamućenje\'</string>
+    <string name="help_tip_personalize_blur_p1_s2">Uključi/isključi 'Dopusti napredno zamućenje'</string>
     <string name="help_tip_personalize_blur_p1_s3">Napomena: zahtijeva Android 12+</string>
     <string name="help_tip_personalize_shared_elements_title">Prijelazi zajedničkih elemenata</string>
     <string name="help_tip_personalize_shared_elements_subtitle">Glatke animacije pri otvaranju fotografija</string>
     <string name="help_tip_personalize_shared_elements_p1_title">Glatki prijelazi</string>
     <string name="help_tip_personalize_shared_elements_p1_desc">Kada je omogućeno, dodirivanje fotografije u mreži stvara besprijekornu animaciju u kojoj se sličica proširuje u preglednik preko cijelog zaslona i skuplja se natrag kada ga zatvoriš. To čini navigaciju fluidnom i prirodnom. Ako više voliš trenutne prijelaze ili naiđeš na probleme s animacijom, možeš ovo onemogućiti.</string>
     <string name="help_tip_personalize_shared_elements_p1_s1">Idi na Postavke &gt; Izgled</string>
-    <string name="help_tip_personalize_shared_elements_p1_s2">Uključi/isključi \'Prijelazi zajedničkih elemenata\'</string>
+    <string name="help_tip_personalize_shared_elements_p1_s2">Uključi/isključi 'Prijelazi zajedničkih elemenata'</string>
     <string name="help_tip_personalize_shared_elements_p1_s3">Dodirni bilo koju fotografiju da vidiš efekt</string>
     <string name="help_tip_personalize_app_name_title">Promijeni naziv aplikacije</string>
-    <string name="help_tip_personalize_app_name_subtitle">Prikaži kao \'Galerija\' ili \'Refra\' na početnom zaslonu</string>
+    <string name="help_tip_personalize_app_name_subtitle">Prikaži kao 'Galerija' ili 'Refra' na početnom zaslonu</string>
     <string name="help_tip_personalize_app_name_p1_title">Naziv aplikacije</string>
-    <string name="help_tip_personalize_app_name_p1_desc">Odaberi hoće li se aplikacija prikazivati kao \'Galerija\' ili \'Refra\' na tvom početnom zaslonu i u izborniku s aplikacijama. \'Refra\' je alternativni naziv aplikacije. Ovo mijenja samo oznaku ikone — sama aplikacija ostaje ista. Možda ćeš morati ponovno pokrenuti pokretač (launcher) ili pričekati trenutak da se promjena pojavi na početnom zaslonu.</string>
+    <string name="help_tip_personalize_app_name_p1_desc">Odaberi hoće li se aplikacija prikazivati kao 'Galerija' ili 'Refra' na tvom početnom zaslonu i u izborniku s aplikacijama. 'Refra' je alternativni naziv aplikacije. Ovo mijenja samo oznaku ikone — sama aplikacija ostaje ista. Možda ćeš morati ponovno pokrenuti pokretač (launcher) ili pričekati trenutak da se promjena pojavi na početnom zaslonu.</string>
     <string name="help_tip_personalize_app_name_p1_s1">Idi na Postavke &gt; Općenito</string>
-    <string name="help_tip_personalize_app_name_p1_s2">Dodirni \'Naziv aplikacije\'</string>
+    <string name="help_tip_personalize_app_name_p1_s2">Dodirni 'Naziv aplikacije'</string>
     <string name="help_tip_personalize_app_name_p1_s3">Odaberi Galerija ili Refra</string>
     <string name="help_tip_personalize_app_name_p1_s4">Oznaka ikone na početnom zaslonu će se ažurirati</string>
     <!-- TIMELINE &amp; ALBUMS -->
@@ -165,7 +165,7 @@
     <string name="help_tip_timeline_layout_type_p2_title">Promijeni raspored</string>
     <string name="help_tip_timeline_layout_type_p2_desc">Isprobaj oba rasporeda kako bi vidio koji ti više odgovara. Mreža najbolje funkcionira sa značajkom približavanja/razmicanja prstiju (pinch-to-zoom). Mozaik stvara osjećaj časopisa. Napomena: raspored mozaika trenutačno ne podržava približavanje/razmicanje prstiju, ali ima vlastito optimizirano pomicanje.</string>
     <string name="help_tip_timeline_layout_type_p2_s1">Idi na Postavke &gt; Vremenska crta &amp; albumi</string>
-    <string name="help_tip_timeline_layout_type_p2_s2">Dodirni \'Vrsta rasporeda\'</string>
+    <string name="help_tip_timeline_layout_type_p2_s2">Dodirni 'Vrsta rasporeda'</string>
     <string name="help_tip_timeline_layout_type_p2_s3">Odaberi Mreža ili Mozaik</string>
     <string name="help_tip_timeline_layout_type_p2_s4">Pregledaj svoju vremensku crtu da vidiš razliku</string>
     <string name="help_tip_timeline_group_similar_title">Grupiraj slične medije</string>
@@ -183,35 +183,35 @@
     <string name="help_tip_timeline_gif_animation_p1_title">Animirani GIF-ovi</string>
     <string name="help_tip_timeline_gif_animation_p1_desc">Kada je omogućeno, GIF datoteke reproduciraju svoju animaciju izravno u mreži vremenske crte kao sličice. To olakšava vizualno uočavanje i pregledavanje GIF-ova. Ako imaš puno GIF-ova, onemogućavanje ove opcije može poboljšati performanse pomicanja i smanjiti potrošnju baterije jer se animacije neće reproducirati dok ih ne dodirneš za pregled.</string>
     <string name="help_tip_timeline_gif_animation_p1_s1">Idi na Postavke &gt; Vremenska crta &amp; albumi</string>
-    <string name="help_tip_timeline_gif_animation_p1_s2">Uključi/isključi \'Dopusti GIF animacije\'</string>
+    <string name="help_tip_timeline_gif_animation_p1_s2">Uključi/isključi 'Dopusti GIF animacije'</string>
     <string name="help_tip_timeline_gif_animation_p1_s3">GIF-ovi u mreži će se animirati kada je opcija omogućena</string>
     <string name="help_tip_albums_hide_timeline_title">Sakrij vremensku crtu u albumima</string>
     <string name="help_tip_albums_hide_timeline_subtitle">Ukloni zaglavlja datuma prilikom pregledavanja albuma</string>
     <string name="help_tip_albums_hide_timeline_p1_title">Sakrij zaglavlja vremenske crte</string>
     <string name="help_tip_albums_hide_timeline_p1_desc">Prema zadanim postavkama, albumi prikazuju zaglavlja datuma baš kao i vremenska crta. Ako više voliš čišću, neprekidnu mrežu prilikom pregledavanja albuma, omogući ovu opciju za uklanjanje zaglavlja mjesečnog grupiranja unutar albuma. Fotografije će i dalje biti razvrstane po datumu, ali bez vizualnih separatora. To je stvar osobnog izbora — isprobaj oboje i vidi što ti odgovara.</string>
     <string name="help_tip_albums_hide_timeline_p1_s1">Idi na Postavke &gt; Vremenska crta &amp; albumi</string>
-    <string name="help_tip_albums_hide_timeline_p1_s2">Uključi/isključi \'Sakrij vremensku crtu unutar albuma\'</string>
+    <string name="help_tip_albums_hide_timeline_p1_s2">Uključi/isključi 'Sakrij vremensku crtu unutar albuma'</string>
     <string name="help_tip_albums_hide_timeline_p1_s3">Otvori bilo koji album da vidiš razliku</string>
     <string name="help_tip_albums_merge_by_name_title">Spoji albume prema nazivu</string>
     <string name="help_tip_albums_merge_by_name_subtitle">Kombiniraj albume s različitih lokacija pohrane</string>
     <string name="help_tip_albums_merge_by_name_p1_title">Spoji albume</string>
     <string name="help_tip_albums_merge_by_name_p1_desc">Ako imaš albume s istim nazivom na različitim lokacijama pohrane (kao što su interna pohrana i SD kartica), Galerija ih može spojiti u jedan album. Na primjer, ako i tvoja interna mapa Fotoaparat i mapa Fotoaparat na SD kartici sadrže fotografije, one će se prikazati kao jedan objedinjeni album Fotoaparat. Ovo je osobito korisno ako tvoj telefon sprema fotografije na različita mjesta.</string>
     <string name="help_tip_albums_merge_by_name_p1_s1">Idi na Postavke &gt; Vremenska crta &amp; albumi</string>
-    <string name="help_tip_albums_merge_by_name_p1_s2">Uključi/isključi \'Spoji albume s istim nazivom\'</string>
+    <string name="help_tip_albums_merge_by_name_p1_s2">Uključi/isključi 'Spoji albume s istim nazivom'</string>
     <string name="help_tip_albums_merge_by_name_p1_s3">Albumi s odgovarajućim nazivima će se kombinirati</string>
     <string name="help_tip_timeline_date_header_title">Prilagodi zaglavlje datuma</string>
     <string name="help_tip_timeline_date_header_subtitle">Promijeni format zaglavlja datuma</string>
     <string name="help_tip_timeline_date_header_p1_title">Format zaglavlja datuma</string>
     <string name="help_tip_timeline_date_header_p1_desc">Prilagodi kako se datumi pojavljuju u zaglavljima vremenske crte. Odaberi između različitih formata kako bi odgovarali tvojim regionalnim preferencama ili osobnom stilu. Format utječe na sva zaglavlja datuma na vremenskoj crti, prikazima albuma i pregledniku medija.</string>
     <string name="help_tip_timeline_date_header_p1_s1">Idi na Postavke &gt; Vremenska crta &amp; albumi</string>
-    <string name="help_tip_timeline_date_header_p1_s2">Dodirni \'Format zaglavlja datuma\'</string>
+    <string name="help_tip_timeline_date_header_p1_s2">Dodirni 'Format zaglavlja datuma'</string>
     <string name="help_tip_timeline_date_header_p1_s3">Odaberi željeni stil datuma</string>
     <string name="help_tip_timeline_fav_icon_title">Položaj ikone omiljenih stavki</string>
     <string name="help_tip_timeline_fav_icon_subtitle">Promijeni mjesto na kojem se ikona omiljenih stavki pojavljuje na sličicama</string>
     <string name="help_tip_timeline_fav_icon_p1_title">Položaj ikone omiljenih stavki</string>
     <string name="help_tip_timeline_fav_icon_p1_desc">Mala ikona srca na omiljenim fotografijama može se postaviti u različite kutove sličice ili potpuno sakriti ako više voliš čišći izgled. Ako se ikona preklapa s važnim dijelovima tvojih fotografija, pokušaj je premjestiti u drugi kut.</string>
     <string name="help_tip_timeline_fav_icon_p1_s1">Idi na Postavke &gt; Vremenska crta &amp; albumi</string>
-    <string name="help_tip_timeline_fav_icon_p1_s2">Dodirni \'Položaj ikone omiljenih stavki\'</string>
+    <string name="help_tip_timeline_fav_icon_p1_s2">Dodirni 'Položaj ikone omiljenih stavki'</string>
     <string name="help_tip_timeline_fav_icon_p1_s3">Odaberi gore lijevo, gore desno ili skriveno</string>
     <!-- VIEWING -->
     <string name="help_tip_view_zoom_title">Zumiraj i pomiči fotografije</string>
@@ -227,15 +227,15 @@
     <string name="help_tip_view_video_p2_title">Postavke videozapisa</string>
     <string name="help_tip_view_video_p2_desc">Prilagodi svoje iskustvo gledanja videozapisa. Automatska reprodukcija pokreće videozapise automatski čim ih otvoriš. Audio fokus pauzira tvoju glazbu kada se videozapis reproducira. Automatsko skrivanje sučelja uklanja kontrole kada reprodukcija započne za doživljaj poput onog u kinu. Sve se to može prilagoditi tvojim željama.</string>
     <string name="help_tip_view_video_p2_s1">Idi na Postavke &gt; Preglednik medija</string>
-    <string name="help_tip_view_video_p2_s2">Uključi/isključi \'Automatski reproduciraj videozapise\' za automatsko pokretanje</string>
-    <string name="help_tip_view_video_p2_s3">Uključi/isključi \'Preuzmi audio fokus\' za pauziranje pozadinske glazbe</string>
-    <string name="help_tip_view_video_p2_s4">Uključi/isključi \'Automatski sakrij sučelje pri reprodukciji videozapisa\' za prožimajući prikaz</string>
+    <string name="help_tip_view_video_p2_s2">Uključi/isključi 'Automatski reproduciraj videozapise' za automatsko pokretanje</string>
+    <string name="help_tip_view_video_p2_s3">Uključi/isključi 'Preuzmi audio fokus' za pauziranje pozadinske glazbe</string>
+    <string name="help_tip_view_video_p2_s4">Uključi/isključi 'Automatski sakrij sučelje pri reprodukciji videozapisa' za prožimajući prikaz</string>
     <string name="help_tip_view_details_title">Pregledaj detalje fotografije</string>
     <string name="help_tip_view_details_subtitle">Pregledaj EXIF podatke, lokaciju i metapodatke</string>
     <string name="help_tip_view_details_p1_title">List s informacijama o fotografiji</string>
     <string name="help_tip_view_details_p1_desc">Prijeđi prstom prema gore na bilo kojoj fotografiji u pregledniku kako bi otkrio list s informacijama. Prikazuje ključne detalje na prvi pogled: kada je fotografija snimljena, veličinu datoteke, razlučivost, model fotoaparata i GPS lokaciju (ako je dostupna). Odavde također možeš uređivati metapodatke, kopirati fotografiju, postaviti je kao pozadinu ili je pregledati na karti.</string>
     <string name="help_tip_view_details_p2_title">Detaljni metapodaci</string>
-    <string name="help_tip_view_details_p2_desc">Za fotografe koji žele potpunu sliku, dodirni \'Prikaži sve metapodatke\' kako bi vidio svaki dio EXIF podataka: informacije o objektivu, otvor blende, brzinu zatvarača, ISO, balans bijele boje, bljeskalicu i još mnogo toga. Ovo je neprocjenjivo za razumijevanje postavki tvog fotoaparata i poboljšanje tvoje fotografije.</string>
+    <string name="help_tip_view_details_p2_desc">Za fotografe koji žele potpunu sliku, dodirni 'Prikaži sve metapodatke' kako bi vidio svaki dio EXIF podataka: informacije o objektivu, otvor blende, brzinu zatvarača, ISO, balans bijele boje, bljeskalicu i još mnogo toga. Ovo je neprocjenjivo za razumijevanje postavki tvog fotoaparata i poboljšanje tvoje fotografije.</string>
     <string name="help_tip_view_swipe_title">Prijeđi prstom između fotografija</string>
     <string name="help_tip_view_swipe_subtitle">Kreći se kroz svoje medije gestama povlačenja prsta</string>
     <string name="help_tip_view_swipe_p1_title">Navigacija povlačenjem prsta</string>
@@ -253,7 +253,7 @@
     <string name="help_tip_view_full_brightness_p1_title">Puna svjetlina</string>
     <string name="help_tip_view_full_brightness_p1_desc">Kada je omogućeno, Galerija automatski povećava svjetlinu zaslona na maksimum dok pregledavaš fotografije u pregledniku preko cijelog zaslona. To osigurava da vidiš točne boje i detalje, što je osobito korisno kada pregledavaš fotografije na otvorenom ili u svijetlim okruženjima. Svjetlina se vraća na tvoju uobičajenu razinu kada napustiš preglednik.</string>
     <string name="help_tip_view_full_brightness_p1_s1">Idi na Postavke &gt; Preglednik medija</string>
-    <string name="help_tip_view_full_brightness_p1_s2">Uključi/isključi \'Prikaz pri punoj svjetlini\'</string>
+    <string name="help_tip_view_full_brightness_p1_s2">Uključi/isključi 'Prikaz pri punoj svjetlini'</string>
     <string name="help_tip_view_full_brightness_p1_s3">Svjetlina se povećava samo tijekom pregledavanja, ne i u mreži</string>
     <string name="help_tip_view_group_members_title">Pregledaj grupirane medije</string>
     <string name="help_tip_view_group_members_subtitle">Pogledaj sve članove rafalne ili slične grupe</string>
@@ -295,7 +295,7 @@
     <string name="help_tip_action_hide_vault_p2_desc">Možeš sakriti pojedinačne fotografije iz preglednika ili odabrati više fotografija u mreži i sakriti ih sve odjednom putem izbornika radnji za odabir. Ako imaš više trezora, od tebe će se tražiti da odabereš koji želiš upotrijebiti.</string>
     <string name="help_tip_action_hide_vault_p2_s1">Otvori fotografiju</string>
     <string name="help_tip_action_hide_vault_p2_s2">Dodirni izbornik s tri točke</string>
-    <string name="help_tip_action_hide_vault_p2_s3">Odaberi \'Sakrij u trezor\'</string>
+    <string name="help_tip_action_hide_vault_p2_s3">Odaberi 'Sakrij u trezor'</string>
     <string name="help_tip_action_hide_vault_p2_s4">Odaberi trezor ako ih imaš više od jednog</string>
     <string name="help_tip_action_copy_to_album_title">Kopiraj u album</string>
     <string name="help_tip_action_copy_to_album_subtitle">Kopiraj medije u drugi album</string>
@@ -303,7 +303,7 @@
     <string name="help_tip_action_copy_to_album_p1_desc">Izradi duplikat fotografije ili videozapisa u drugoj mapi albuma. Original ostaje tamo gdje jest, a nova kopija se stvara u odredišnoj mapi. Ovo je korisno kada želiš da se ista fotografija pojavi u više albuma bez premještanja originala. Napomena: ovo stvara stvarnu kopiju datoteke, što troši dodatni prostor za pohranu.</string>
     <string name="help_tip_action_copy_to_album_p1_s1">Otvori fotografiju</string>
     <string name="help_tip_action_copy_to_album_p1_s2">Dodirni izbornik s tri točke</string>
-    <string name="help_tip_action_copy_to_album_p1_s3">Odaberi \'Kopiraj u album\'</string>
+    <string name="help_tip_action_copy_to_album_p1_s3">Odaberi 'Kopiraj u album'</string>
     <string name="help_tip_action_copy_to_album_p1_s4">Odaberi ili izradi odredišni album</string>
     <string name="help_tip_action_add_collection_title">Dodaj u kolekciju</string>
     <string name="help_tip_action_add_collection_subtitle">Organiziraj medije u odabrane kolekcije</string>
@@ -317,9 +317,9 @@
     <string name="help_tip_viewer_default_editor_title">Zadani uređivač slika</string>
     <string name="help_tip_viewer_default_editor_subtitle">Odaberi između ugrađenog ili vanjskog uređivača</string>
     <string name="help_tip_viewer_default_editor_p1_title">Zadani uređivač</string>
-    <string name="help_tip_viewer_default_editor_p1_desc">Upravljaj onim što se događa kada dodirneš gumb za uređivanje. Odaberi \'Ugrađeni\' kako bi uvijek koristio uređivač Galerije (izvrstan za brzo obrezivanje, filtre i označavanje). Odaberi \'Vanjski\' za korištenje aplikacije treće strane poput Snapseeda ili Lightrooma za naprednije uređivanje. Uvijek se možeš prebacivati između njih.</string>
+    <string name="help_tip_viewer_default_editor_p1_desc">Upravljaj onim što se događa kada dodirneš gumb za uređivanje. Odaberi 'Ugrađeni' kako bi uvijek koristio uređivač Galerije (izvrstan za brzo obrezivanje, filtre i označavanje). Odaberi 'Vanjski' za korištenje aplikacije treće strane poput Snapseeda ili Lightrooma za naprednije uređivanje. Uvijek se možeš prebacivati između njih.</string>
     <string name="help_tip_viewer_default_editor_p1_s1">Idi na Postavke &gt; Preglednik medija</string>
-    <string name="help_tip_viewer_default_editor_p1_s2">Dodirni \'Zadani uređivač slika\'</string>
+    <string name="help_tip_viewer_default_editor_p1_s2">Dodirni 'Zadani uređivač slika'</string>
     <string name="help_tip_viewer_default_editor_p1_s3">Odaberi ugrađeni ili vanjski</string>
     <string name="help_tip_viewer_default_editor_p2_title">Vanjski uređivači</string>
     <string name="help_tip_viewer_default_editor_p2_desc">Kada je postavljen na vanjski, Galerija otvara Androidov sustavni izbornik koji prikazuje sve kompatibilne uređivače fotografija na tvom uređaju. Odaberi svoj omiljeni jednom i on postaje zadani. Ovo je idealno ako preferiraš namjenski uređivač za stvari poput HDR prilagodbi, RAW obrade ili naprednog retuširanja.</string>
@@ -328,27 +328,27 @@
     <string name="help_tip_viewer_auto_play_p1_title">Automatska reprodukcija</string>
     <string name="help_tip_viewer_auto_play_p1_desc">Kada je omogućeno, videozapisi se počinju reproducirati odmah kada prijeđeš prstom do njih ili ih dodirneš za otvaranje. Onemogući ovo ako radije ručno pokrećeš reprodukciju, na primjer kada pregledavaš na javnom mjestu ili uz ograničenu podatkovnu vezu. Videozapisi će i dalje prikazivati sličicu pregleda kada je automatska reprodukcija isključena.</string>
     <string name="help_tip_viewer_auto_play_p1_s1">Idi na Postavke &gt; Preglednik medija</string>
-    <string name="help_tip_viewer_auto_play_p1_s2">Uključi/isključi \'Automatski reproduciraj videozapise\'</string>
+    <string name="help_tip_viewer_auto_play_p1_s2">Uključi/isključi 'Automatski reproduciraj videozapise'</string>
     <string name="help_tip_viewer_auto_hide_video_title">Automatski sakrij sučelje pri reprodukciji videozapisa</string>
     <string name="help_tip_viewer_auto_hide_video_subtitle">Sakrij kontrole kada videozapis započne s reprodukcijom</string>
     <string name="help_tip_viewer_auto_hide_video_p1_title">Automatsko skrivanje sučelja</string>
     <string name="help_tip_viewer_auto_hide_video_p1_desc">Kada videozapis započne s reprodukcijom, alatna traka i kontrole automatski nestaju za prožimajući doživljaj gledanja bez ometanja. Dodirni bilo gdje na zaslonu kako bi vratio kontrole natrag. To stvara osjećaj kao u kinu, osobito za duže videozapise. Onemogući ovo ako želiš da kontrole uvijek ostanu vidljive.</string>
     <string name="help_tip_viewer_auto_hide_video_p1_s1">Idi na Postavke &gt; Preglednik medija</string>
-    <string name="help_tip_viewer_auto_hide_video_p1_s2">Uključi/isključi \'Automatski sakrij sučelje pri reprodukciji videozapisa\'</string>
+    <string name="help_tip_viewer_auto_hide_video_p1_s2">Uključi/isključi 'Automatski sakrij sučelje pri reprodukciji videozapisa'</string>
     <string name="help_tip_viewer_auto_hide_video_p1_s3">Dodirni zaslon bilo kada za ponovni prikaz kontrola</string>
     <string name="help_tip_viewer_date_header_title">Prikaži zaglavlje datuma u pregledniku</string>
     <string name="help_tip_viewer_date_header_subtitle">Prikaži datum prilikom prebacivanja fotografija prstom</string>
     <string name="help_tip_viewer_date_header_p1_title">Zaglavlje datuma</string>
     <string name="help_tip_viewer_date_header_p1_desc">Zaglavlje datuma prikazuje datum snimanja na vrhu preglednika dok prelaziš prstom s jedne fotografije na drugu. Pomaže ti da ostaneš vremenski orijentiran tijekom pregledavanja. Sakrij ga ako više voliš čišći izgled preglednika ili ako umjesto toga koristiš list s informacijama (povlačenje prstom prema gore) za provjeru datuma. Napomena: zaglavlje datuma ujedno je i meta za značajku Zaključaj sliku.</string>
     <string name="help_tip_viewer_date_header_p1_s1">Idi na Postavke &gt; Preglednik medija</string>
-    <string name="help_tip_viewer_date_header_p1_s2">Uključi/isključi \'Prikaži zaglavlje datuma\'</string>
+    <string name="help_tip_viewer_date_header_p1_s2">Uključi/isključi 'Prikaži zaglavlje datuma'</string>
     <string name="help_tip_viewer_date_header_p1_s3">Zaglavlje datuma služi i kao meta za zaključavanje slike</string>
     <string name="help_tip_viewer_fav_button_title">Prikaži gumb za favorite</string>
     <string name="help_tip_viewer_fav_button_subtitle">Uključi/isključi gumb za favorite u pregledniku</string>
     <string name="help_tip_viewer_fav_button_p1_title">Gumb za favorite</string>
     <string name="help_tip_viewer_fav_button_p1_desc">Gumb u obliku srca na alatnoj traci preglednika omogućuje ti da jednim dodirom brzo označiš ili ukloniš fotografiju iz omiljenih. Ako rijetko koristiš favorite, skrivanje ovog gumba rasterećuje alatnu traku. I dalje možeš dodati fotografije u favorite putem lista s informacijama (povlačenje prstom prema gore) ili izbornika radnji za odabir.</string>
     <string name="help_tip_viewer_fav_button_p1_s1">Idi na Postavke &gt; Preglednik medija</string>
-    <string name="help_tip_viewer_fav_button_p1_s2">Uključi/isključi \'Prikaži gumb za favorite\'</string>
+    <string name="help_tip_viewer_fav_button_p1_s2">Uključi/isključi 'Prikaži gumb za favorite'</string>
     <string name="help_tip_viewer_fav_button_p1_s3">I dalje možeš dodati u favorite putem lista s informacijama, čak i ako je gumb skriven</string>
     <!-- EDITING -->
     <string name="help_tip_edit_crop_title">Obreži i promijeni veličinu</string>
@@ -412,7 +412,7 @@
     <string name="help_tip_edit_save_p2_title">Povijest uređivanja</string>
     <string name="help_tip_edit_save_p2_desc">Galerija automatski izrađuje sigurnosnu kopiju izvorne fotografije prije bilo kakvog uređivanja, tako da je uvijek možeš vratiti kasnije. Možeš pregledati sve tvoje sigurnosne kopije uređivanja na namjenskom zaslonu koji prikazuje izvornu i uređenu verziju jednu pored druge. Ova sigurnosna mreža znači da možeš slobodno eksperimentirati s uređivanjem.</string>
     <string name="help_tip_edit_save_p2_s1">Idi na Postavke &gt; Pametne značajke</string>
-    <string name="help_tip_edit_save_p2_s2">Dodirni \'Preglednik sigurnosnih kopija uređivanja\'</string>
+    <string name="help_tip_edit_save_p2_s2">Dodirni 'Preglednik sigurnosnih kopija uređivanja'</string>
     <string name="help_tip_edit_save_p2_s3">Pregledaj originale uz uređene verzije</string>
     <string name="help_tip_edit_save_p2_s4">Vrati bilo koji original ako je potrebno</string>
     <string name="help_tip_edit_backups_title">Upravljanje sigurnosnim kopijama uređivanja</string>
@@ -422,7 +422,7 @@
     <string name="help_tip_edit_backups_p2_title">Upravljaj sigurnosnim kopijama</string>
     <string name="help_tip_edit_backups_p2_desc">Preglednik sigurnosnih kopija uređivanja prikazuje sve tvoje sigurnosno kopirane originale. Možeš usporediti original s uređenom verzijom, vratiti original kako bi zamijenio uređenu fotografiju ili izbrisati stare sigurnosne kopije kako bi oslobodio prostor za pohranu. Ako ti je prostor problem, povremeno pregledaj i očisti sigurnosne kopije koje ti više ne trebaju.</string>
     <string name="help_tip_edit_backups_p2_s1">Idi na Postavke &gt; Pametne značajke</string>
-    <string name="help_tip_edit_backups_p2_s2">Dodirni \'Preglednik sigurnosnih kopija uređivanja\'</string>
+    <string name="help_tip_edit_backups_p2_s2">Dodirni 'Preglednik sigurnosnih kopija uređivanja'</string>
     <string name="help_tip_edit_backups_p2_s3">Pregledaj povijest sigurnosnih kopija</string>
     <string name="help_tip_edit_backups_p2_s4">Vrati originale ili ih izbriši za oslobađanje prostora</string>
     <!-- SEARCH -->
@@ -435,15 +435,15 @@
     <string name="help_tip_search_ai_title">Pretraživanje slika uz pomoć AI-ja</string>
     <string name="help_tip_search_ai_subtitle">Opiši ono što tražiš prirodnim jezikom</string>
     <string name="help_tip_search_ai_p1_title">Vizualno pretraživanje</string>
-    <string name="help_tip_search_ai_p1_desc">Pretražuj koristeći opise na prirodnom jeziku poput \"zalazak sunca na plaži\", \"rođendanska torta\", \"pas se igra na snijegu\" ili \"crveni automobil\". AI razumije sadržaj slike, a ne samo nazive datoteka, pa možeš pronaći fotografije na temelju onoga što se stvarno nalazi na njima. Sva obrada odvija se na tvom uređaju — tvoje se fotografije nikada ne šalju u oblak.</string>
+    <string name="help_tip_search_ai_p1_desc">Pretražuj koristeći opise na prirodnom jeziku poput "zalazak sunca na plaži", "rođendanska torta", "pas se igra na snijegu" ili "crveni automobil". AI razumije sadržaj slike, a ne samo nazive datoteka, pa možeš pronaći fotografije na temelju onoga što se stvarno nalazi na njima. Sva obrada odvija se na tvom uređaju — tvoje se fotografije nikada ne šalju u oblak.</string>
     <string name="help_tip_search_ai_p2_title">Kako to funkcionira</string>
-    <string name="help_tip_search_ai_p2_desc">Galerija koristi modele CLIP (Contrastive Language-Image Pretraining) koji se u potpunosti izvode na tvom telefonu. Kada je indeksiranje omogućeno, Galerija analizira svaku fotografiju u pozadini i stvara sažeto \'razumijevanje\' njezinog sadržaja. Kada pretražuješ, tvoj tekstualni upit uspoređuje se s tim razumijevanjima kako bi se pronašle najrelevantnije fotografije.</string>
+    <string name="help_tip_search_ai_p2_desc">Galerija koristi modele CLIP (Contrastive Language-Image Pretraining) koji se u potpunosti izvode na tvom telefonu. Kada je indeksiranje omogućeno, Galerija analizira svaku fotografiju u pozadini i stvara sažeto 'razumijevanje' njezinog sadržaja. Kada pretražuješ, tvoj tekstualni upit uspoređuje se s tim razumijevanjima kako bi se pronašle najrelevantnije fotografije.</string>
     <string name="help_tip_search_ai_p3_title">Prvi koraci</string>
     <string name="help_tip_search_ai_p3_desc">Za pretraživanje AI-jem potrebno je najprije preuzeti ML modele (oko 150 MB). Nakon što se instaliraju, Galerija automatski indeksira tvoje fotografije u pozadini kada se uređaj ne koristi. Početno indeksiranje može potrajati ovisno o tome koliko fotografija imaš, ali naknadna ažuriranja su brza.</string>
     <string name="help_tip_search_ai_p3_s1">Idi na Postavke &gt; Pametne značajke</string>
     <string name="help_tip_search_ai_p3_s2">Preuzmi AI modele (~150 MB)</string>
     <string name="help_tip_search_ai_p3_s3">Pričekaj da završi indeksiranje u pozadini</string>
-    <string name="help_tip_search_ai_p3_s4">Pretražuj s opisima poput \'zalazak sunca\' ili \'rođendan\'</string>
+    <string name="help_tip_search_ai_p3_s4">Pretražuj s opisima poput 'zalazak sunca' ili 'rođendan'</string>
     <string name="help_tip_search_history_title">Povijest pretraživanja</string>
     <string name="help_tip_search_history_subtitle">Brzo pristupi svojim nedavnim pretraživanjima</string>
     <string name="help_tip_search_history_p1_title">Povijest pretraživanja</string>
@@ -468,7 +468,7 @@
     <string name="help_tip_ai_create_category_title">Stvori prilagođene kategorije</string>
     <string name="help_tip_ai_create_category_subtitle">Definiraj vlastite kategorije fotografija</string>
     <string name="help_tip_ai_create_category_p1_title">Prilagođene kategorije</string>
-    <string name="help_tip_ai_create_category_p1_desc">Osim ugrađenih kategorija, možeš stvoriti i vlastite s prilagođenim nazivima i kriterijima klasifikacije. Na primjer, stvori kategoriju \'Ljubimci\', kategoriju \'Poslovni dokumenti\' ili bilo što specifično za tvoju zbirku fotografija. AI će automatski razvrstati odgovarajuće fotografije u tvoje prilagođene kategorije.</string>
+    <string name="help_tip_ai_create_category_p1_desc">Osim ugrađenih kategorija, možeš stvoriti i vlastite s prilagođenim nazivima i kriterijima klasifikacije. Na primjer, stvori kategoriju 'Ljubimci', kategoriju 'Poslovni dokumenti' ili bilo što specifično za tvoju zbirku fotografija. AI će automatski razvrstati odgovarajuće fotografije u tvoje prilagođene kategorije.</string>
     <string name="help_tip_ai_create_category_p2_title">Kako stvoriti</string>
     <string name="help_tip_ai_create_category_p2_desc">Dodijeli svojoj kategoriji opisni naziv i po želji prilagodi prag pouzdanosti — viši prag znači strože podudaranje (manje rezultata, ali točniji), dok je niži prag popustljiviji (više rezultata, ali neki mogu biti manje relevantni). Započni sa zadanim postavkama i prilagodi ih na temelju rezultata.</string>
     <string name="help_tip_ai_create_category_p2_s1">Idi na Zbirka &gt; Kategorije</string>
@@ -484,7 +484,7 @@
     <string name="help_tip_ai_models_p2_desc">Provjeri jesu li modeli instalirani, preuzmi ih ako je potrebno ili ih ukloni kako bi oslobodio prostor. Nakon preuzimanja, Galerija automatski pokreće indeksiranje tvojih fotografija u pozadini. Status modela možeš pratiti u bilo kojem trenutku s ovog zaslonu.</string>
     <string name="help_tip_ai_models_p2_s1">Idi na Postavke &gt; Pametne značajke</string>
     <string name="help_tip_ai_models_p2_s2">Provjeri status AI modela</string>
-    <string name="help_tip_ai_models_p2_s3">Dodirni \'Preuzmi\' ako još nisu instalirani</string>
+    <string name="help_tip_ai_models_p2_s3">Dodirni 'Preuzmi' ako još nisu instalirani</string>
     <string name="help_tip_ai_models_p2_s4">Pričekaj da završi indeksiranje nakon preuzimanja</string>
     <string name="help_tip_ai_indexing_title">Kako indeksiranje funkcionira</string>
     <string name="help_tip_ai_indexing_subtitle">Pozadinska obrada za AI značajke</string>
@@ -505,12 +505,12 @@
     <string name="help_tip_albums_pin_p1_desc">Prikvačeni albumi uvijek se pojavljuju na samom vrhu mreže albuma, bez obzira na redoslijed sortiranja. Ovo je savršeno za tvoje najčešće korištene albume poput Kamere ili određene mape s projektom. Možeš prikvačiti više albuma — svi će se pojaviti u gornjem odjeljku. Otprikvači ih u bilo kojem trenutku ponovnim dugim pritiskom.</string>
     <string name="help_tip_albums_pin_p1_s1">Idi na Albume</string>
     <string name="help_tip_albums_pin_p1_s2">Dugo pritisni album</string>
-    <string name="help_tip_albums_pin_p1_s3">Dodirni \'Prikvači\' kako bi ga zadržao na vrhu</string>
-    <string name="help_tip_albums_pin_p1_s4">Dugo pritisni i odaberi \'Otprikvači\' za uklanjanje s vrha</string>
+    <string name="help_tip_albums_pin_p1_s3">Dodirni 'Prikvači' kako bi ga zadržao na vrhu</string>
+    <string name="help_tip_albums_pin_p1_s4">Dugo pritisni i odaberi 'Otprikvači' za uklanjanje s vrha</string>
     <string name="help_tip_albums_ignore_title">Sakrij albume</string>
     <string name="help_tip_albums_ignore_subtitle">Zanemari albume koje ne želiš vidjeti</string>
     <string name="help_tip_albums_ignore_p1_title">Sakrij albume</string>
-    <string name="help_tip_albums_ignore_p1_desc">Zanemarivanje albuma potpuno ga skriva — neće se pojaviti u kartici Albumi, a njegove se fotografije neće prikazivati na vremenskoj crti. Ovo je korisno za sistemske mape (poput \'.thumbnails\'), mape koje generiraju aplikacije ili albume s medijima za koje ne želiš da ti zatrpavaju galeriju. Datoteke se ne brišu, samo su skrivene u Galeriji.</string>
+    <string name="help_tip_albums_ignore_p1_desc">Zanemarivanje albuma potpuno ga skriva — neće se pojaviti u kartici Albumi, a njegove se fotografije neće prikazivati na vremenskoj crti. Ovo je korisno za sistemske mape (poput '.thumbnails'), mape koje generiraju aplikacije ili albume s medijima za koje ne želiš da ti zatrpavaju galeriju. Datoteke se ne brišu, samo su skrivene u Galeriji.</string>
     <string name="help_tip_albums_ignore_p1_s1">Idi na Postavke &gt; Zanemareni albumi</string>
     <string name="help_tip_albums_ignore_p1_s2">Odaberi albume koje želiš zanemariti</string>
     <string name="help_tip_albums_ignore_p1_s3">Fotografije iz zanemarenih albuma također nestaju s vremenske crte</string>
@@ -521,10 +521,10 @@
     <string name="help_tip_albums_groups_p1_title">Grupe albuma</string>
     <string name="help_tip_albums_groups_p1_desc">Ako imaš mnogo albuma, grupe ti pomažu da ih vizualno organiziraš. Na primjer, grupiraj sve mape društvenih mreža zajedno ili drži albume povezane s poslom odvojenima od osobnih. Grupe se pojavljuju kao sklopivi odjeljci na tvom popisu albuma, što znatno olakšava pronalaženje onoga što ti treba.</string>
     <string name="help_tip_albums_groups_p2_title">Stvori grupu</string>
-    <string name="help_tip_albums_groups_p2_desc">Dugo pritisni bilo koji album i dodirni \'Dodaj u grupu\'. Stvori novi naziv grupe ili ga dodaj u postojeću. Možeš dodati više albuma u istu grupu. Grupe se mogu sklopiti kako bi se uštedio prostor kada ti ne trebaju.</string>
+    <string name="help_tip_albums_groups_p2_desc">Dugo pritisni bilo koji album i dodirni 'Dodaj u grupu'. Stvori novi naziv grupe ili ga dodaj u postojeću. Možeš dodati više albuma u istu grupu. Grupe se mogu sklopiti kako bi se uštedio prostor kada ti ne trebaju.</string>
     <string name="help_tip_albums_groups_p2_s1">Idi na Albume</string>
     <string name="help_tip_albums_groups_p2_s2">Dugo pritisni album</string>
-    <string name="help_tip_albums_groups_p2_s3">Dodirni \'Dodaj u grupu\'</string>
+    <string name="help_tip_albums_groups_p2_s3">Dodirni 'Dodaj u grupu'</string>
     <string name="help_tip_albums_groups_p2_s4">Imenuj svoju grupu ili odaberi postojeću</string>
     <string name="help_tip_albums_groups_p2_s5">Dodaj još albuma u istu grupu</string>
     <string name="help_tip_albums_collections_title">Stvori zbirke</string>
@@ -534,7 +534,7 @@
     <string name="help_tip_albums_collections_p2_title">Stvori zbirku</string>
     <string name="help_tip_albums_collections_p2_desc">Započni zbirku iz bilo kojeg albuma ili fotografije. Dodaj fotografije iz bilo kojeg izvora — ne moraju biti u istoj mapi. Ista fotografija može pripadati više zbirki bez stvaranja kopija, tako da nema dodatnog troška pohrane. Pregledaj svoje zbirke na zaslonu Zbirka.</string>
     <string name="help_tip_albums_collections_p2_s1">Dugo pritisni album ili odaberi fotografije</string>
-    <string name="help_tip_albums_collections_p2_s2">Dodirni \'Dodaj u zbirku\'</string>
+    <string name="help_tip_albums_collections_p2_s2">Dodirni 'Dodaj u zbirku'</string>
     <string name="help_tip_albums_collections_p2_s3">Imenuj svoju zbirku ili odaberi postojeću</string>
     <string name="help_tip_albums_collections_p2_s4">Pristupi zbirkama iz Zbirke</string>
     <string name="help_tip_albums_thumbnails_title">Prilagođene sličice albuma</string>
@@ -542,18 +542,18 @@
     <string name="help_tip_albums_thumbnails_p1_title">Prilagođene sličice</string>
     <string name="help_tip_albums_thumbnails_p1_desc">Prema zadanim postavkama, albumi prikazuju svoju najnoviju fotografiju kao naslovnicu. To možeš nadjačati bilo kojom fotografijom iz albuma kako bi stvorio reprezentativniju ili vizualno privlačniju naslovnicu. Ovo je izvrsno za postizanje organiziranog izgleda mreže albuma koji je lak za brz pregled.</string>
     <string name="help_tip_albums_thumbnails_p2_title">Kako promijeniti</string>
-    <string name="help_tip_albums_thumbnails_p2_desc">Otvori album, pronađi fotografiju koju želiš kao naslovnicu, zatim je dugo pritisni i odaberi \'Postavi kao sličicu albuma\'. Mreža albuma odmah će se ažurirati s tvojom odabranom naslovnicom. Za vraćanje na zadano (najnovija fotografija), možeš postaviti drugu sličicu ili je ukloniti u opcijama albuma.</string>
+    <string name="help_tip_albums_thumbnails_p2_desc">Otvori album, pronađi fotografiju koju želiš kao naslovnicu, zatim je dugo pritisni i odaberi 'Postavi kao sličicu albuma'. Mreža albuma odmah će se ažurirati s tvojom odabranom naslovnicom. Za vraćanje na zadano (najnovija fotografija), možeš postaviti drugu sličicu ili je ukloniti u opcijama albuma.</string>
     <string name="help_tip_albums_thumbnails_p2_s1">Otvori album</string>
     <string name="help_tip_albums_thumbnails_p2_s2">Pronađi željenu naslovnu fotografiju</string>
     <string name="help_tip_albums_thumbnails_p2_s3">Dugo je pritisni</string>
-    <string name="help_tip_albums_thumbnails_p2_s4">Dodirni \'Postavi kao sličicu albuma\'</string>
+    <string name="help_tip_albums_thumbnails_p2_s4">Dodirni 'Postavi kao sličicu albuma'</string>
     <!-- VAULT -->
     <string name="help_tip_vault_setup_title">Postavljanje sefa</string>
     <string name="help_tip_vault_setup_subtitle">Šifriraj i zaštiti svoje privatne fotografije</string>
     <string name="help_tip_vault_setup_p1_title">Tvoj privatni sef</string>
     <string name="help_tip_vault_setup_p1_desc">Sef je siguran, šifrirani prostor za fotografije i videozapise koje želiš zadržati privatnima. Datoteke u sefu šifrirane su snažnom kriptografijom i može im se pristupiti samo nakon biometrijske provjere autentičnosti (otisak prsta ili lice) ili PIN-a tvojeg uređaja. Potpuno su skrivene iz tvoje uobičajene galerije i neće se pojavljivati na vremenskoj crti, u albumima ili bilo kojoj drugoj aplikaciji.</string>
     <string name="help_tip_vault_setup_p2_title">Postavi šifriranje</string>
-    <string name="help_tip_vault_setup_p2_desc">Postavljanje sefa je brzo — samo dodirni Zbirka &gt; Sef i prati upute. Možeš stvoriti više sefova za različite svrhe (npr. \'Osobno\' i \'Dokumenti\'). Svaki sef zahtijeva provjeru autentičnosti prilikom svakog pristupa.</string>
+    <string name="help_tip_vault_setup_p2_desc">Postavljanje sefa je brzo — samo dodirni Zbirka &gt; Sef i prati upute. Možeš stvoriti više sefova za različite svrhe (npr. 'Osobno' i 'Dokumenti'). Svaki sef zahtijeva provjeru autentičnosti prilikom svakog pristupa.</string>
     <string name="help_tip_vault_setup_p2_s1">Dodirni Zbirka &gt; Sef</string>
     <string name="help_tip_vault_setup_p2_s2">Prati upute za postavljanje</string>
     <string name="help_tip_vault_setup_p2_s3">Potvrdi identitet otiskom prsta, licem ili PIN-om</string>
@@ -565,10 +565,10 @@
     <string name="help_tip_vault_add_p1_title">Sakrij fotografije</string>
     <string name="help_tip_vault_add_p1_desc">Premještanje fotografije u sef je šifrira i uklanja iz tvoje vidljive galerije. Šifrirana datoteka pohranjuje se u sigurnu pohranu aplikacije, nedostupnu drugim aplikacijama ili upraviteljima datoteka. Ovo je najsigurniji način za čuvanje privatnih fotografija na tvom uređaju.</string>
     <string name="help_tip_vault_add_p2_title">Kako sakriti</string>
-    <string name="help_tip_vault_add_p2_desc">Iz preglednika: dodirni izbornik s tri točke i odaberi \'Sakrij u sefu\'. Iz mreže: odaberi jednu ili više fotografija, a zatim upotrijebi radnju \'Sakrij u sefu\' na listu s odabirom. Možeš sakriti fotografije, videozapise ili kombinaciju obojega. Ako imaš više sefova, bit ćeš upitan koji želiš koristiti.</string>
+    <string name="help_tip_vault_add_p2_desc">Iz preglednika: dodirni izbornik s tri točke i odaberi 'Sakrij u sefu'. Iz mreže: odaberi jednu ili više fotografija, a zatim upotrijebi radnju 'Sakrij u sefu' na listu s odabirom. Možeš sakriti fotografije, videozapise ili kombinaciju obojega. Ako imaš više sefova, bit ćeš upitan koji želiš koristiti.</string>
     <string name="help_tip_vault_add_p2_s1">Otvori fotografiju ili odaberi više njih u mreži</string>
     <string name="help_tip_vault_add_p2_s2">Dodirni izbornik ili radnju odabira</string>
-    <string name="help_tip_vault_add_p2_s3">Odaberi \'Sakrij u sefu\'</string>
+    <string name="help_tip_vault_add_p2_s3">Odaberi 'Sakrij u sefu'</string>
     <string name="help_tip_vault_add_p2_s4">Odaberi sef ako ih imaš više od jednog</string>
     <string name="help_tip_vault_restore_title">Vrati iz sefa</string>
     <string name="help_tip_vault_restore_subtitle">Vrati fotografije natrag u svoju uobičajenu galeriju</string>
@@ -602,7 +602,7 @@
     <string name="help_tip_trash_enable_p1_title">Postavka otpada</string>
     <string name="help_tip_trash_enable_p1_desc">Ako više voliš trajno brisanje bez razdoblja od 30 dana u otpadu, koš za otpad možeš potpuno onemogućiti. Kada je onemogućen, obrisane fotografije uklanjaju se odmah i ne mogu se oporaviti. Time se štedi mala količina prostora za pohranu, ali se uklanja sigurnosna mreža. Preporuka: drži otpad omogućenim osim ako imaš poseban razlog da ga onemogućiš.</string>
     <string name="help_tip_trash_enable_p1_s1">Idi na Postavke &gt; Općenito</string>
-    <string name="help_tip_trash_enable_p1_s2">Prebaci prekidač \'Omogući otpad\'</string>
+    <string name="help_tip_trash_enable_p1_s2">Prebaci prekidač 'Omogući otpad'</string>
     <string name="help_tip_trash_enable_p1_s3">Kada je isključeno: brisanja su trenutačna i trajna</string>
     <string name="help_tip_trash_enable_p1_s4">Kada je uključeno: obrisane stavke idu u otpad na 30 dana</string>
     <!-- LOCATIONS -->
@@ -622,7 +622,7 @@
     <string name="help_tip_exif_view_p1_title">Metapodaci fotografije</string>
     <string name="help_tip_exif_view_p1_desc">Prijeđi prstom prema gore na bilo kojoj fotografiji u pregledniku kako bi na prvi pogled vidio njezine metapodatke: datum i vrijeme snimanja, razlučivost, veličinu datoteke, model kamere i GPS lokaciju. Galerija prikuplja i sprema ove metapodatke u privremenu memoriju u pozadini radi brzog pristupa. Ove informacije pomažu ti shvatiti kada je, gdje i kako svaka fotografija snimljena.</string>
     <string name="help_tip_exif_view_p2_title">Potpuni EXIF prikaz</string>
-    <string name="help_tip_exif_view_p2_desc">Dodirni \'Prikaži sve metapodatke\' kako bi vidio svaki detalj ugrađen u datoteku fotografije: žarišnu duljinu, otvor blende, brzinu zatvarača, ISO, ravnotežu bijele boje, način mjerenja svjetlosti, prostor boja, verziju softvera i još mnogo toga. Ovo je neprocjenjivo za fotografe koji žele poboljšati svoju tehniku ili za provjeru autentičnosti fotografije.</string>
+    <string name="help_tip_exif_view_p2_desc">Dodirni 'Prikaži sve metapodatke' kako bi vidio svaki detalj ugrađen u datoteku fotografije: žarišnu duljinu, otvor blende, brzinu zatvarača, ISO, ravnotežu bijele boje, način mjerenja svjetlosti, prostor boja, verziju softvera i još mnogo toga. Ovo je neprocjenjivo za fotografe koji žele poboljšati svoju tehniku ili za provjeru autentičnosti fotografije.</string>
     <string name="help_tip_exif_edit_title">Uredi EXIF podatke</string>
     <string name="help_tip_exif_edit_subtitle">Promijeni datum, lokaciju i ostale metapodatke</string>
     <string name="help_tip_exif_edit_p1_title">Uredi metapodatke</string>
@@ -639,14 +639,14 @@
     <string name="help_tip_exif_delete_location_p1_desc">Radi privatnosti možeš ukloniti GPS koordinate sa svake fotografije. Ovo se preporučuje prije javnog dijeljenja fotografija ili dijeljenja na društvenim mrežama ako ne želiš otkriti gdje su snimljene. Brisanje je trajno — GPS podaci uklanjaju se iz EXIF metapodataka datoteke i ne mogu se oporaviti.</string>
     <string name="help_tip_exif_delete_location_p1_s1">Otvori fotografiju i prijeđi prstom prema gore</string>
     <string name="help_tip_exif_delete_location_p1_s2">Dodirni odjeljak s lokacijom</string>
-    <string name="help_tip_exif_delete_location_p1_s3">Dodirni \'Obriši lokaciju\'</string>
+    <string name="help_tip_exif_delete_location_p1_s3">Dodirni 'Obriši lokaciju'</string>
     <string name="help_tip_exif_delete_location_p1_s4">GPS podaci trajno se uklanjaju iz datoteke</string>
     <string name="help_tip_exif_refresh_title">Osvježi metapodatke</string>
     <string name="help_tip_exif_refresh_subtitle">Ponovno skeniraj metapodatke za sve fotografije</string>
     <string name="help_tip_exif_refresh_p1_title">Osvježi metapodatke</string>
     <string name="help_tip_exif_refresh_p1_desc">Ako se detalji fotografije čine zastarjelima ili nedostaju (npr. nakon vraćanja iz sigurnosne kopije ili uređivanja izvan Galerije), pokreni potpuno ponovno skeniranje metapodataka. Ovo ponovno čita sve EXIF podatke iz datoteka tvojih fotografija i ažurira predmemoriju metapodataka Galerije. Skeniranje se pokreće u pozadini i može potrajati nekoliko minuta za velike zbirke.</string>
     <string name="help_tip_exif_refresh_p1_s1">Idi na Postavke &gt; Pametne značajke</string>
-    <string name="help_tip_exif_refresh_p1_s2">Dodirni \'Osvježi metapodatke\'</string>
+    <string name="help_tip_exif_refresh_p1_s2">Dodirni 'Osvježi metapodatke'</string>
     <string name="help_tip_exif_refresh_p1_s3">Pričekaj da se pozadinsko skeniranje završi</string>
     <string name="help_tip_exif_refresh_p1_s4">Detalji fotografije ažurirat će se kako se budu ponovno učitavali</string>
     <!-- SETTINGS: APPEARANCE -->
@@ -664,7 +664,7 @@
     <string name="help_tip_settings_dark_mode_p1_title">Prisili tamni način rada</string>
     <string name="help_tip_settings_dark_mode_p1_desc">Nadjačaj temu sustava kako bi Galerija uvijek ostala u tamnom načinu rada, bez obzira na postavku cijelog sustava na tvom telefonu. Ovo je korisno ako više voliš tamni način rada u Galeriji čak i kada je tvoj telefon u svijetlom načinu rada. Kombiniraj s opcijom čiste AMOLED crne za vrhunski doživljaj tamne teme na OLED zaslonima.</string>
     <string name="help_tip_settings_dark_mode_p1_s1">Idi na Postavke &gt; Izgled</string>
-    <string name="help_tip_settings_dark_mode_p1_s2">Prebaci prekidač \'Prisili tamni način rada\'</string>
+    <string name="help_tip_settings_dark_mode_p1_s2">Prebaci prekidač 'Prisili tamni način rada'</string>
     <string name="help_tip_settings_dark_mode_p1_s3">Galerija ostaje tamna čak i kada je tvoj telefon u svijetlom načinu rada</string>
     <string name="help_tip_settings_amoled_title">Čista AMOLED crna</string>
     <string name="help_tip_settings_amoled_subtitle">Potpuno crne pozadine za OLED zaslone</string>
@@ -672,7 +672,7 @@
     <string name="help_tip_settings_amoled_p1_desc">Na OLED i AMOLED zaslonima pikseli s pravom crnom bojom potpuno su isključeni, što štedi bateriju i stvara zadivljujući izgled s visokim kontrastom. Ova postavka zamjenjuje tamnosive pozadine čistom crnom. Napomena: ima učinka samo kada je aktivan tamni način rada (bilo tamni način sustava ili Prisili tamni način rada).</string>
     <string name="help_tip_settings_amoled_p1_s1">Idi na Postavke &gt; Izgled</string>
     <string name="help_tip_settings_amoled_p1_s2">Omogući tamni način rada ili Prisili tamni način rada</string>
-    <string name="help_tip_settings_amoled_p1_s3">Prebaci prekidač \'Čista AMOLED crna\'</string>
+    <string name="help_tip_settings_amoled_p1_s3">Prebaci prekidač 'Čista AMOLED crna'</string>
     <string name="help_tip_settings_amoled_p1_s4">Najbolji rezultati na OLED/AMOLED zaslonima</string>
     <!-- SETTINGS: GENERAL -->
     <string name="help_tip_settings_trash_toggle_title">Omogući/onemogući otpad</string>
@@ -680,21 +680,21 @@
     <string name="help_tip_settings_trash_toggle_p1_title">Prekidač za otpad</string>
     <string name="help_tip_settings_trash_toggle_p1_desc">Upravlja sigurnosnom mrežom za brisanje. Kada je omogućeno (preporučeno), obrisane stavke idu u otpad na 30 dana prije trajnog brisanja, što ti daje vremena za ispravljanje pogrešaka. Kada je onemogućeno, sva su brisanja trenutačna i trajna — koristi s oprezom.</string>
     <string name="help_tip_settings_trash_toggle_p1_s1">Idi na Postavke &gt; Općenito</string>
-    <string name="help_tip_settings_trash_toggle_p1_s2">Prebaci prekidač \'Omogući otpad\'</string>
+    <string name="help_tip_settings_trash_toggle_p1_s2">Prebaci prekidač 'Omogući otpad'</string>
     <string name="help_tip_settings_trash_toggle_p1_s3">Preporučeno: drži omogućeno radi sigurnosti</string>
     <string name="help_tip_settings_trash_confirm_title">Potvrda brisanja u otpad</string>
     <string name="help_tip_settings_trash_confirm_subtitle">Zatraži potvrdu prije premještanja stavki u otpad</string>
     <string name="help_tip_settings_trash_confirm_p1_title">Potvrda brisanja u otpad</string>
     <string name="help_tip_settings_trash_confirm_p1_desc">Dodaje dodatni dijaloški okvir za potvrdu prije premještanja stavki u otpad. Ovo sprječava slučajna brisanja, što je osobito korisno ako ponekad greškom pritisneš gumb za brisanje. Kada je onemogućeno, stavke se šalju u otpad odmah, bez prethodnog pitanja.</string>
     <string name="help_tip_settings_trash_confirm_p1_s1">Idi na Postavke &gt; Općenito</string>
-    <string name="help_tip_settings_trash_confirm_p1_s2">Prebaci prekidač \'Potvrda brisanja u otpad\'</string>
+    <string name="help_tip_settings_trash_confirm_p1_s2">Prebaci prekidač 'Potvrda brisanja u otpad'</string>
     <string name="help_tip_settings_trash_confirm_p1_s3">Preporučeno ako često slučajno brišeš stavke</string>
     <string name="help_tip_settings_secure_mode_title">Sigurni način rada</string>
     <string name="help_tip_settings_secure_mode_subtitle">Sakrij iz nedavnih aplikacija i blokiraj snimke zaslona</string>
     <string name="help_tip_settings_secure_mode_p1_title">Sigurni način rada</string>
     <string name="help_tip_settings_secure_mode_p1_desc">Kada je aktiviran, Galerija se skriva sa zaslona nedavnih aplikacija (prebacivač zadataka prikazuje prazan pregled), a snimanje zaslona unutar aplikacije je blokirano. Ovo je dodatna mjera privatnosti ako ne želiš da drugi vide što pregledavaš kada bace pogled na tvoje nedavne aplikacije. Idealno u kombinaciji sa sefom za maksimalnu privatnost.</string>
     <string name="help_tip_settings_secure_mode_p1_s1">Idi na Postavke &gt; Općenito</string>
-    <string name="help_tip_settings_secure_mode_p1_s2">Prebaci prekidač \'Sigurni način rada\'</string>
+    <string name="help_tip_settings_secure_mode_p1_s2">Prebaci prekidač 'Sigurni način rada'</string>
     <string name="help_tip_settings_secure_mode_p1_s3">Galerija nestaje iz nedavnih aplikacija</string>
     <string name="help_tip_settings_secure_mode_p1_s4">Snimanje zaslona je blokirano unutar aplikacije</string>
     <string name="help_tip_settings_vibrations_title">Dopusti vibracije</string>
@@ -702,7 +702,7 @@
     <string name="help_tip_settings_vibrations_p1_title">Vibracije</string>
     <string name="help_tip_settings_vibrations_p1_desc">Upravlja haptičkim odzivom (suptilnom vibracijom) za interakcije poput dugog pritiska za odabir, označavanja favorita i drugih radnji. Haptički odziv čini aplikaciju responzivnijom i opipljivijom pod prstima. Onemogući ako više voliš potpuno tiho iskustvo ili ako ti vibracije smetaju.</string>
     <string name="help_tip_settings_vibrations_p1_s1">Idi na Postavke &gt; Općenito</string>
-    <string name="help_tip_settings_vibrations_p1_s2">Prebaci prekidač \'Dopusti vibracije\'</string>
+    <string name="help_tip_settings_vibrations_p1_s2">Prebaci prekidač 'Dopusti vibracije'</string>
     <string name="help_tip_settings_vibrations_p1_s3">Utječe na dugi pritisak, odabir i druge interakcije</string>
     <!-- SETTINGS: NAVIGATION -->
     <string name="help_tip_settings_launch_screen_title">Zadani početni zaslon</string>
@@ -710,21 +710,21 @@
     <string name="help_tip_settings_launch_screen_p1_title">Početni zaslon</string>
     <string name="help_tip_settings_launch_screen_p1_desc">Odaberi koji te zaslon dočekuje kada otvoriš Galeriju. Opcija Automatski pamti posljednji zaslon koji koristiš. Vremenska crta izvrsna je za pregledavanje nedavnih fotografija. Albumi su idealni ako organiziraš prema mapama. Zbirka dobro funkcionira ako prvenstveno pristupaš favoritima, sefu ili kategorijama.</string>
     <string name="help_tip_settings_launch_screen_p1_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_settings_launch_screen_p1_s2">Dodirni \'Zadani početni zaslon\'</string>
+    <string name="help_tip_settings_launch_screen_p1_s2">Dodirni 'Zadani početni zaslon'</string>
     <string name="help_tip_settings_launch_screen_p1_s3">Odaberi Automatski, Vremenska crta, Albumi ili Zbirka</string>
     <string name="help_tip_settings_old_navbar_title">Klasična navigacijska traka</string>
     <string name="help_tip_settings_old_navbar_subtitle">Koristi kompaktni stil navigacijske trake</string>
     <string name="help_tip_settings_old_navbar_p1_title">Stil navigacijske trake</string>
     <string name="help_tip_settings_old_navbar_p1_desc">Moderni stil prikazuje ikone s oznakama (Vremenska crta, Albumi, Zbirka) radi jasnoće. Klasični kompaktni stil koristi manje ikone bez oznaka, što ti daje više okomitog prostora na zaslonu za fotografije. Isprobaj oba stila kako bi vidio koji više odgovara tvojem načinu rada.</string>
     <string name="help_tip_settings_old_navbar_p1_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_settings_old_navbar_p1_s2">Prebaci prekidač \'Stari stil navigacijske trake\'</string>
+    <string name="help_tip_settings_old_navbar_p1_s2">Prebaci prekidač 'Stari stil navigacijske trake'</string>
     <string name="help_tip_settings_old_navbar_p1_s3">Moderno: ikone s oznakama, Klasično: kompaktne ikone</string>
     <string name="help_tip_settings_selection_titles_title">Prikaži naslove radnji pri odabiru</string>
     <string name="help_tip_settings_selection_titles_subtitle">Prikaži naslove u akcijskom listu za odabir</string>
     <string name="help_tip_settings_selection_titles_p1_title">Naslovi radnji pri odabiru</string>
     <string name="help_tip_settings_selection_titles_p1_desc">Kada odabereš fotografije, donji akcijski list prikazuje ikone za dostupne radnje. Omogućavanje naslova dodaje tekstualne oznake ispod svake ikone (Podijeli, Obriši, Kopiraj itd.) radi jasnoće. Onemogućavanje naslova pruža čišći i kompaktniji izgled. Ako već znaš što koja ikona radi, skrivanje naslova štedi prostor.</string>
     <string name="help_tip_settings_selection_titles_p1_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_settings_selection_titles_p1_s2">Prebaci prekidač \'Prikaži naslove radnji pri odabiru\'</string>
+    <string name="help_tip_settings_selection_titles_p1_s2">Prebaci prekidač 'Prikaži naslove radnji pri odabiru'</string>
     <string name="help_tip_settings_selection_titles_p1_s3">S naslovima: oznake ispod svake ikone radnje</string>
     <string name="help_tip_settings_selection_titles_p1_s4">Bez naslova: kompaktni prikaz samo s ikonama</string>
     <string name="help_tip_settings_selection_actions_title">Prilagodi radnje pri odabiru</string>
@@ -732,9 +732,9 @@
     <string name="help_tip_settings_selection_actions_p1_title">Radnje pri odabiru</string>
     <string name="help_tip_settings_selection_actions_p1_desc">Akcijski list za odabir pojavljuje se kad god odabereš fotografije. Prema zadanim postavkama prikazuje radnje Podijeli, Obriši, Kopiraj, Premjesti, Sakrij u sefu i druge. Možeš prilagoditi koje se radnje pojavljuju i njihov redoslijed kako bi odgovarali tvojim najčešćim zadacima.</string>
     <string name="help_tip_settings_selection_actions_p2_title">Prilagodi</string>
-    <string name="help_tip_settings_selection_actions_p2_desc">Povuci radnje prema gore ili dolje kako bi im promijenio redoslijed — postavi najčešće korištene radnje na vrh za brzi pristup. Prebaci prekidače kako bi prikazao ili sakrio radnje. Na primjer, ako nikada ne koristiš \'Kopiraj u album\', sakrij to kako bi smanjio nered. Tvoje se prilagodbe spremaju automatski.</string>
+    <string name="help_tip_settings_selection_actions_p2_desc">Povuci radnje prema gore ili dolje kako bi im promijenio redoslijed — postavi najčešće korištene radnje na vrh za brzi pristup. Prebaci prekidače kako bi prikazao ili sakrio radnje. Na primjer, ako nikada ne koristiš 'Kopiraj u album', sakrij to kako bi smanjio nered. Tvoje se prilagodbe spremaju automatski.</string>
     <string name="help_tip_settings_selection_actions_p2_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_settings_selection_actions_p2_s2">Dodirni \'Prilagodi radnje pri odabiru\'</string>
+    <string name="help_tip_settings_selection_actions_p2_s2">Dodirni 'Prilagodi radnje pri odabiru'</string>
     <string name="help_tip_settings_selection_actions_p2_s3">Povuci radnje za preslagivanje prema prioritetu</string>
     <string name="help_tip_settings_selection_actions_p2_s4">Uključi/isključi radnje za prikaz ili skrivanje</string>
     <!-- SETTINGS: SMART -->
@@ -745,7 +745,7 @@
     <string name="help_tip_settings_ai_models_p2_title">Upravljanje modelima</string>
     <string name="help_tip_settings_ai_models_p2_desc">Preuzmi modele kako bi omogućio AI značajke, provjeri njihov status ili ih ukloni radi oslobađanja prostora. Nakon preuzimanja, Galerija automatski započinje indeksiranje tvojih fotografija u pozadini. Ako su modeli već ugrađeni u verziju tvoje aplikacije, kopirat će se iz resursa (assets) prilikom prvog pokretanja.</string>
     <string name="help_tip_settings_ai_models_p2_s1">Idi na Postavke &gt; Pametne značajke</string>
-    <string name="help_tip_settings_ai_models_p2_s2">Dodirni \'Upravljanje AI modelima\'</string>
+    <string name="help_tip_settings_ai_models_p2_s2">Dodirni 'Upravljanje AI modelima'</string>
     <string name="help_tip_settings_ai_models_p2_s3">Preuzmi, provjeri ili ukloni modele</string>
     <string name="help_tip_settings_edit_backups_title">Preglednik sigurnosnih kopija uređivanja</string>
     <string name="help_tip_settings_edit_backups_subtitle">Pregledaj i upravljaj pohranom sigurnosnih kopija uređenih slika</string>
@@ -754,7 +754,7 @@
     <string name="help_tip_settings_edit_backups_p2_title">Upravljanje pohranom</string>
     <string name="help_tip_settings_edit_backups_p2_desc">Sigurnosne kopije mogu se nakupiti s vremenom, osobito ako uređuješ mnogo fotografija. Povremeno pregledaj svoje sigurnosne kopije i obriši one koje ti više ne trebaju kako bi oslobodio prostor. Možeš obrisati pojedinačne kopije ili ih ukloniti sve odjednom. Vraćanjem sigurnosne kopije uređena se fotografija zamjenjuje izvornom.</string>
     <string name="help_tip_settings_edit_backups_p2_s1">Idi na Postavke &gt; Pametne značajke</string>
-    <string name="help_tip_settings_edit_backups_p2_s2">Dodirni \'Preglednik sigurnosnih kopija uređivanja\'</string>
+    <string name="help_tip_settings_edit_backups_p2_s2">Dodirni 'Preglednik sigurnosnih kopija uređivanja'</string>
     <string name="help_tip_settings_edit_backups_p2_s3">Pregledaj, usporedi, vrati ili obriši sigurnosne kopije</string>
     <!-- GESTURES -->
     <string name="help_tip_gesture_pinch_grid_title">Uštipni za zumiranje mreže</string>
@@ -770,7 +770,7 @@
     <string name="help_tip_gesture_long_press_title">Dugi pritisak za odabir</string>
     <string name="help_tip_gesture_long_press_subtitle">Pokreni način odabira dugim pritiskom</string>
     <string name="help_tip_gesture_long_press_p1_title">Dugi pritisak</string>
-    <string name="help_tip_gesture_long_press_p1_desc">Pritisni i zadrži prst (oko pola sekunde) na bilo kojoj fotografiji za ulazak u način odabira. Na odabranoj stavci pojavit će se kvačica, nakon čega možeš dodirnuti ostale fotografije kako bi ih dodao. Za izlazak iz načina odabira upotrijebi gumb za povratak ili dodirni oznaku \'X\' za poništavanje cijelog odabira. Ako je haptički odziv omogućen, osjetit ćeš suptilnu vibraciju pri aktivaciji odabira.</string>
+    <string name="help_tip_gesture_long_press_p1_desc">Pritisni i zadrži prst (oko pola sekunde) na bilo kojoj fotografiji za ulazak u način odabira. Na odabranoj stavci pojavit će se kvačica, nakon čega možeš dodirnuti ostale fotografije kako bi ih dodao. Za izlazak iz načina odabira upotrijebi gumb za povratak ili dodirni oznaku 'X' za poništavanje cijelog odabira. Ako je haptički odziv omogućen, osjetit ćeš suptilnu vibraciju pri aktivaciji odabira.</string>
     <string name="help_tip_gesture_multi_select_title">Povlačenje za višestruki odabir</string>
     <string name="help_tip_gesture_multi_select_subtitle">Povući prst preko fotografija za odabir više njih odjednom</string>
     <string name="help_tip_gesture_multi_select_p1_title">Odabir povlačenjem</string>
@@ -783,7 +783,7 @@
     <string name="help_tip_selection_sheet_p2_title">Prilagodi radnje</string>
     <string name="help_tip_selection_sheet_p2_desc">Akcijski list je potpuno prilagodljiv. Presloži radnje kako bi one najčešće korištene bile na prvom mjestu i sakrij radnje koje nikada ne koristiš. To čini list čišćim i bržim za korištenje. Tvoje se prilagodbe trajno spremaju.</string>
     <string name="help_tip_selection_sheet_p2_s1">Idi na Postavke &gt; Navigacija</string>
-    <string name="help_tip_selection_sheet_p2_s2">Dodirni \'Prilagodi radnje pri odabiru\'</string>
+    <string name="help_tip_selection_sheet_p2_s2">Dodirni 'Prilagodi radnje pri odabiru'</string>
     <string name="help_tip_selection_sheet_p2_s3">Povuci za promjenu redoslijeda, prebaci prekidač za prikaz/skrivanje</string>
     <string name="help_tip_selection_sheet_p2_s4">Najčešće korištene radnje trebale bi biti na vrhu</string>
     <string name="help_tip_selection_batch_share_title">Grupno dijeljenje</string>
@@ -821,7 +821,7 @@
     <string name="help_tip_advanced_wallpaper_p1_desc">Otvori bilo koju fotografiju i upotrijebi izbornik radnji kako bi je postavio kao pozadinu svog uređaja. Možeš odabrati postavljanje za početni zaslon, zaključani zaslon ili oboje. Galerija otvara sučelje za obrezivanje kako bi mogao pozicionirati i promijeniti veličinu fotografije da savršeno odgovara tvom zaslonu prije primjene.</string>
     <string name="help_tip_advanced_wallpaper_p1_s1">Otvori fotografiju u pregledniku</string>
     <string name="help_tip_advanced_wallpaper_p1_s2">Dodirni izbornik s tri točke</string>
-    <string name="help_tip_advanced_wallpaper_p1_s3">Odaberi \'Postavi kao pozadinu\'</string>
+    <string name="help_tip_advanced_wallpaper_p1_s3">Odaberi 'Postavi kao pozadinu'</string>
     <string name="help_tip_advanced_wallpaper_p1_s4">Obreži i pozicioniraj fotografiju</string>
     <string name="help_tip_advanced_wallpaper_p1_s5">Odaberi početni zaslon, zaključani zaslon ili oboje</string>
     <!-- ACTION LABELS -->
@@ -843,7 +843,7 @@
     <string name="help_tip_viewer_auto_contrast_p1_title">Pametno podešavanje kontrasta</string>
     <string name="help_tip_viewer_auto_contrast_p1_desc">Kada je omogućeno, Galerija u stvarnom vremenu analizira svjetlinu svake fotografije i automatski prilagođava kontrast zaslona kako bi tamne slike bile lakše vidljive, a svijetle živopisnije. Prilagodba je suptilna i događa se trenutačno dok prelaziš s jedne fotografije na drugu. Ovo utječe samo na to kako slike izgledaju na zaslonu — tvoje izvorne datoteke nikada se ne mijenjaju. Ova je značajka trenutačno u beta verziji.</string>
     <string name="help_tip_viewer_auto_contrast_p1_s1">Idi na Postavke &gt; Izgled</string>
-    <string name="help_tip_viewer_auto_contrast_p1_s2">Prebaci prekidač \'Automatski kontrast\'</string>
+    <string name="help_tip_viewer_auto_contrast_p1_s2">Prebaci prekidač 'Automatski kontrast'</string>
     <string name="help_tip_viewer_auto_contrast_p1_s3">Listaj fotografije kako bi vidio prilagodbe u stvarnom vremenu</string>
     <!-- SELECTION: Right-Align Actions -->
     <string name="help_tip_selection_right_align_title">Poravnaj radnje pri vrhu udesno</string>
@@ -851,7 +851,7 @@
     <string name="help_tip_selection_right_align_p1_title">Desno poravnate radnje</string>
     <string name="help_tip_selection_right_align_p1_desc">Kada je omogućeno, gornji akcijski gumbi u traci za odabir (Odaberi sve, Detalji) pomiču se na desni rub zaslona, dok gumb Zatvori ostaje na lijevoj strani. To olakšava dosezanje radnji jednom rukom, posebno na većim telefonima. Gumbi su postavljeni u red koji se može pomicati (skrolati) kako bi se spriječilo preklapanje.</string>
     <string name="help_tip_selection_right_align_p1_s1">Idi na Postavke &gt; Navigacija &gt; Radnje pri odabiru</string>
-    <string name="help_tip_selection_right_align_p1_s2">Prebaci prekidač \'Poravnaj radnje pri vrhu udesno\'</string>
+    <string name="help_tip_selection_right_align_p1_s2">Prebaci prekidač 'Poravnaj radnje pri vrhu udesno'</string>
     <string name="help_tip_selection_right_align_p1_s3">Odaberi stavke kako bi vidio novi raspored</string>
     <!-- VAULT: Overhaul -->
     <string name="help_tip_vault_overhaul_title">Redizajnirana sigurnost sefa</string>
@@ -867,10 +867,10 @@
     <string name="help_tip_vault_overhaul_p2_s2">Postavi prilagođenu lozinku ili koristi sigurnost uređaja</string>
     <string name="help_tip_vault_overhaul_p2_s3">Svaki sef može imati svoju neovisnu sigurnost</string>
     <!-- SECURITY SETTINGS -->
-    <string name="help_tip_security_sandbox_title">Zaštita \"pješčanika\" aplikacije</string>
-    <string name="help_tip_security_sandbox_subtitle">Izoliraj obradu nepouzdanih datoteka u sigurnim procesima \"pješčanika\"</string>
-    <string name="help_tip_security_sandbox_p1_title">Što je \"pješčanik\" (sandboxing)?</string>
-    <string name="help_tip_security_sandbox_p1_desc">\"Pješčanik\" štiti aplikaciju obrađujući nepouzdane datoteke — kao što su HEIF, AVIF i JXL slike — u izoliranim procesima sustava. Ako zlonamjerna datoteka iskoristi ranjivost dekodera, šteta ostaje ograničena unutar pješčanika i ne može dosegnuti glavnu aplikaciju ili tvoje podatke.</string>
+    <string name="help_tip_security_sandbox_title">Zaštita "pješčanika" aplikacije</string>
+    <string name="help_tip_security_sandbox_subtitle">Izoliraj obradu nepouzdanih datoteka u sigurnim procesima "pješčanika"</string>
+    <string name="help_tip_security_sandbox_p1_title">Što je "pješčanik" (sandboxing)?</string>
+    <string name="help_tip_security_sandbox_p1_desc">"Pješčanik" štiti aplikaciju obrađujući nepouzdane datoteke — kao što su HEIF, AVIF i JXL slike — u izoliranim procesima sustava. Ako zlonamjerna datoteka iskoristi ranjivost dekodera, šteta ostaje ograničena unutar pješčanika i ne može dosegnuti glavnu aplikaciju ili tvoje podatke.</string>
     <string name="help_tip_security_sandbox_p2_title">Konfiguriranje zaštite pješčanika</string>
     <string name="help_tip_security_sandbox_p2_desc">Možeš kontrolirati koliko agresivno se datoteke izoliraju u pješčaniku. Izolacija metapodataka određuje odvija li se raščlamba EXIF podataka u zajedničkom procesu, zasebnom procesu po datoteci ili hibridno. Dekodiranje slika u pješčaniku usmjerava HEIF/AVIF/JXL datoteke kroz izoliranu uslugu dekodera koristeći dijeljenu memoriju.</string>
     <string name="help_tip_security_sandbox_p2_s1">Idi na Postavke → Sigurnost</string>
@@ -879,11 +879,11 @@
     <string name="help_tip_security_encrypted_storage_title">Šifrirana pohrana</string>
     <string name="help_tip_security_encrypted_storage_subtitle">Zaštiti svoje postavke i bazu podataka šifriranjem Android Keystore</string>
     <string name="help_tip_security_encrypted_storage_p1_title">Što se šifrira?</string>
-    <string name="help_tip_security_encrypted_storage_p1_desc">Kada je omogućeno, postavke tvoje aplikacije šifriraju se pomoću AES-256-GCM algoritma s ključevima pohranjenim u Android Keystore. Room baza podataka također je šifrirana pomoću SQLCiphera, štiteći tvoj indeks otpada, kategorije i interne podatke u stanju mirovanja — čak i ako je uređaj \"rootan\".</string>
+    <string name="help_tip_security_encrypted_storage_p1_desc">Kada je omogućeno, postavke tvoje aplikacije šifriraju se pomoću AES-256-GCM algoritma s ključevima pohranjenim u Android Keystore. Room baza podataka također je šifrirana pomoću SQLCiphera, štiteći tvoj indeks otpada, kategorije i interne podatke u stanju mirovanja — čak i ako je uređaj "rootan".</string>
     <string name="help_tip_security_encrypted_storage_p2_title">Omogućivanje šifrirane pohrane</string>
     <string name="help_tip_security_encrypted_storage_p2_desc">Šifriranje je opcionalno. Omogućivanje pokreće jednokratnu migraciju koja šifrira tvoje postojeće podatke. Ovo se odvija u pozadini i potrebno je samo jednom.</string>
     <string name="help_tip_security_encrypted_storage_p2_s1">Idi na Postavke → Sigurnost</string>
-    <string name="help_tip_security_encrypted_storage_p2_s2">Uključi \"Šifrirane postavke\"</string>
+    <string name="help_tip_security_encrypted_storage_p2_s2">Uključi "Šifrirane postavke"</string>
     <string name="help_tip_security_encrypted_storage_p2_s3">Aplikacija će automatski migrirati tvoje podatke</string>
     <string name="help_tip_security_private_folder_title">Privatna mapa</string>
     <string name="help_tip_security_private_folder_subtitle">Drži osjetljive datoteke sakrivene i zaštićene putem Androidovog okvira za pristup pohrani (SAF)</string>
@@ -892,7 +892,7 @@
     <string name="help_tip_security_private_folder_p2_title">Postavljanje privatne mape</string>
     <string name="help_tip_security_private_folder_p2_desc">Odaberi bilo koju mapu na svom uređaju kao privatnu mapu. Aplikacija uzima trajnu dozvolu za pristup, tako da postavka ostaje aktivna i nakon ponovnog pokretanja uređaja. Možeš pregledavati, gledati i upravljati privatnim datotekama baš kao i običnim medijskim sadržajem.</string>
     <string name="help_tip_security_private_folder_p2_s1">Idi na Postavke → Sigurnost</string>
-    <string name="help_tip_security_private_folder_p2_s2">Dodirni \"Privatna mapa\" i odaberi direktorij</string>
+    <string name="help_tip_security_private_folder_p2_s2">Dodirni "Privatna mapa" i odaberi direktorij</string>
     <string name="help_tip_security_private_folder_p2_s3">Pristupi svojim privatnim datotekama iz Zbirke</string>
     <!-- Timeline Filter (4.2.3) -->
     <string name="help_tip_timeline_filter_title">Filtar vremenske crte</string>
@@ -921,7 +921,7 @@
     <string name="help_tip_video_subtitles_p2_desc">Tijekom reprodukcije videozapisa dodirni gumb za titlove kako bi otvorio izbornik za odabir. Možeš se prebacivati između dostupnih zapisa, učitati vanjsku datoteku titlova ili potpuno isključiti titlove. Vanjske datoteke titlova također se mogu izbrisati iz donjeg izbornika.</string>
     <string name="help_tip_video_subtitles_p2_s1">Dodirni ikonu titlova u video playeru</string>
     <string name="help_tip_video_subtitles_p2_s2">Odaberi ugrađeni zapis ili učitaj vanjsku datoteku</string>
-    <string name="help_tip_video_subtitles_p2_s3">Dodirni \'Ništa\' za isključivanje titlova</string>
+    <string name="help_tip_video_subtitles_p2_s3">Dodirni 'Ništa' za isključivanje titlova</string>
     <!-- Video Pinch-to-Zoom (4.2.3) -->
     <string name="help_tip_video_zoom_title">Zumiranje videozapisa uštipom</string>
     <string name="help_tip_video_zoom_subtitle">Zumiraj videozapise gestama uštipa i dvostrukog dodira</string>
@@ -957,7 +957,7 @@
     <string name="help_tip_video_options_popup_title">Skočni izbornik video opcija</string>
     <string name="help_tip_video_options_popup_subtitle">Kompaktan animirani skočni izbornik za kontrole videozapisa</string>
     <string name="help_tip_video_options_popup_p1_title">Preglednije kontrole videozapisa</string>
-    <string name="help_tip_video_options_popup_p1_desc">Gumbi za kontrole videozapisa (titlovi, brzina, glasnoća, rotacija) objedinjeni su u jedan gumb \"više opcija\" koji se širi u zamućeni animirani skočni izbornik. Izbornik koristi vodoravni raspored u pejzažnom (landscape) i okomiti u portretnom (portrait) načinu rada, čime se održava preglednost videozapisa uz brz pristup svim kontrolama.</string>
+    <string name="help_tip_video_options_popup_p1_desc">Gumbi za kontrole videozapisa (titlovi, brzina, glasnoća, rotacija) objedinjeni su u jedan gumb "više opcija" koji se širi u zamućeni animirani skočni izbornik. Izbornik koristi vodoravni raspored u pejzažnom (landscape) i okomiti u portretnom (portrait) načinu rada, čime se održava preglednost videozapisa uz brz pristup svim kontrolama.</string>
     <!-- RELEASE NOTES: 4.3.0 -->
     <!-- RELEASE NOTES: 4.2.3 -->
     <!-- RELEASE NOTES: 4.2.2 -->
@@ -978,10 +978,10 @@
     <string name="help_tip_action_save_motion_video_title">Spremi fotografiju pokreta kao videozapis</string>
     <string name="help_tip_action_save_motion_video_subtitle">Izvezi ugrađeni isječak iz fotografije pokreta kao samostalni videozapis</string>
     <string name="help_tip_action_save_motion_video_p1_title">Izdvoji isječak pokreta</string>
-    <string name="help_tip_action_save_motion_video_p1_desc">Fotografije pokreta (motion photos) pohranjuju kratki videozapis uz statičnu sliku. Kada otvoriš takvu fotografiju, Galerija prikazuje radnju \"Spremi kao videozapis\" koja izvozi ugrađeni isječak kao običan MP4 u mapu Filmovi — savršeno za dijeljenje trenutka u obliku videozapisa. Ovo radi na lokalnim, nešifriranim fotografijama pokreta.</string>
+    <string name="help_tip_action_save_motion_video_p1_desc">Fotografije pokreta (motion photos) pohranjuju kratki videozapis uz statičnu sliku. Kada otvoriš takvu fotografiju, Galerija prikazuje radnju "Spremi kao videozapis" koja izvozi ugrađeni isječak kao običan MP4 u mapu Filmovi — savršeno za dijeljenje trenutka u obliku videozapisa. Ovo radi na lokalnim, nešifriranim fotografijama pokreta.</string>
     <string name="help_tip_action_save_motion_video_p1_s1">Otvori fotografiju pokreta</string>
     <string name="help_tip_action_save_motion_video_p1_s2">Otvori izbornik radnji</string>
-    <string name="help_tip_action_save_motion_video_p1_s3">Dodirni \"Spremi kao videozapis\"</string>
+    <string name="help_tip_action_save_motion_video_p1_s3">Dodirni "Spremi kao videozapis"</string>
     <string name="help_tip_action_save_motion_video_p1_s4">Pronađi novi isječak u mapi Filmovi</string>
     <!-- EDITING: EFFECTS TAB (5.0.0) -->
     <string name="help_tip_edit_effects_title">Efekti i alati za boje</string>
@@ -989,8 +989,8 @@
     <string name="help_tip_edit_effects_p1_title">Kartica Efekti</string>
     <string name="help_tip_edit_effects_p1_desc">Uređivač sada ima karticu Efekti s kreativnim alatima: Posterizacija smanjuje fotografiju na ravne pojaseve boja, Rubovi iscrtavaju obrise za izgled skice, a Obrubi dodaju okvir oko slike. Svaki efekt prikazuje pregled uživo tako da ga možeš prilagoditi prije spremanja.</string>
     <string name="help_tip_edit_effects_p2_title">Nijansa, crno-bijelo i Negativ</string>
-    <string name="help_tip_edit_effects_p2_desc">Na kartici Boja možeš promijeniti ukupnu nijansu (Hue) ili pretvoriti sliku u crno-bijelu uz preglede ubrzane grafičkim procesorom (GPU). Mreža filtara također uključuje \"jednim dodirom\" opciju Negativ koja trenutno invertira boje. Kombiniraj efekte, alate za boje, filtre i prilagodbe za potpuno personaliziran izgled.</string>
-    <string name="help_tip_edit_effects_p2_s1">Otvori fotografiju i dodirni \"Uredi\"</string>
+    <string name="help_tip_edit_effects_p2_desc">Na kartici Boja možeš promijeniti ukupnu nijansu (Hue) ili pretvoriti sliku u crno-bijelu uz preglede ubrzane grafičkim procesorom (GPU). Mreža filtara također uključuje "jednim dodirom" opciju Negativ koja trenutno invertira boje. Kombiniraj efekte, alate za boje, filtre i prilagodbe za potpuno personaliziran izgled.</string>
+    <string name="help_tip_edit_effects_p2_s1">Otvori fotografiju i dodirni "Uredi"</string>
     <string name="help_tip_edit_effects_p2_s2">Otvori karticu Efekti ili Boja</string>
     <string name="help_tip_edit_effects_p2_s3">Prilagodi efekt uz pregled uživo</string>
     <string name="help_tip_edit_effects_p2_s4">Dodirni kvačicu za spremanje</string>
@@ -1000,10 +1000,10 @@
     <string name="help_tip_albums_sections_p1_title">Sekcije albuma</string>
     <string name="help_tip_albums_sections_p1_desc">Kada je omogućeno, Galerija automatski razvrstava tvoje albume u sekcije koje se mogu sklopiti — Uobičajeno (Kamera, Slike, Preuzimanja), Aplikacije (mediji iz drugih aplikacija) i Ostalo — ovisno o tome gdje su pohranjeni. Sklopi sekcije koje ne trebaš kako bi zaslon Albumi ostao uredan. Ova značajka je prema zadanim postavkama isključena, a može se omogućiti u postavkama albuma.</string>
     <string name="help_tip_albums_sections_p2_title">Premjesti album u sekciju</string>
-    <string name="help_tip_albums_sections_p2_desc">Sekcije se automatski prepoznaju, ali ih možeš promijeniti. Dugo pritisni album i odaberi \"Premjesti u sekciju\" kako bi ga postavio točno tamo gdje želiš. Tvoji ručni odabiri ostaju zapamćeni.</string>
+    <string name="help_tip_albums_sections_p2_desc">Sekcije se automatski prepoznaju, ali ih možeš promijeniti. Dugo pritisni album i odaberi "Premjesti u sekciju" kako bi ga postavio točno tamo gdje želiš. Tvoji ručni odabiri ostaju zapamćeni.</string>
     <string name="help_tip_albums_sections_p2_s1">Omogući sekcije albuma u postavkama</string>
     <string name="help_tip_albums_sections_p2_s2">Dugo pritisni na album</string>
-    <string name="help_tip_albums_sections_p2_s3">Dodirni \"Premjesti u sekciju\"</string>
+    <string name="help_tip_albums_sections_p2_s3">Dodirni "Premjesti u sekciju"</string>
     <string name="help_tip_albums_sections_p2_s4">Odaberi sekciju za taj album</string>
     <!-- SETTINGS: BACKUP &amp; RESTORE WIZARD (5.0.0) -->
     <string name="help_tip_settings_backup_restore_title">Sigurnosno kopiranje i vraćanje podataka aplikacije</string>
@@ -1071,17 +1071,14 @@
     <string name="help_tip_video_fix_black_title">Fix black video on hide</string>
     <string name="help_tip_video_fix_black_subtitle">Stop video blacking out when the bars hide</string>
     <string name="help_tip_video_fix_black_p1_title">Keep video visible</string>
-    <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › \'Fix black video on hide\' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don\'t need it.</string>
+    <string name="help_tip_video_fix_black_p1_desc">On some devices (notably Samsung) a playing video can black out when the system bars are shown or hidden, even though it keeps playing. Enable Media Viewer › Video Playback › 'Fix black video on hide' to re-bind the player surface on every bar change. It is on by default for Samsung devices and off elsewhere — turn it off if you don't need it.</string>
     <!-- RELEASE NOTES: 5.0.3 -->
     <string name="help_search_hint">Pretraži pomoć i savjete</string>
-    <string name="help_search_clear">Očisti pretraživanje</string>
-    <string name="help_search_no_results">Nije pronađena pomoć za \"%1$s\"</string>
+    <string name="help_search_no_results">Nije pronađena pomoć za "%1$s"</string>
     <string name="help_search_section_tips">Savjeti i upute</string>
     <string name="help_search_section_settings">Postavke</string>
     <string name="help_search_section_actions">Brze radnje</string>
     <string name="help_search_section_changelog">Novosti</string>
-    <string name="help_search_see_all">Prikaži sve rezultate (%1$d)</string>
-    <string name="help_tips_section_title">Pomoć i savjeti</string>
     <string name="help_quick_actions">Brze radnje</string>
     <string name="help_qa_open_timeline">Otvori vremensku crtu</string>
     <string name="help_qa_open_albums">Otvori albume</string>
@@ -1092,15 +1089,13 @@
     <string name="help_qa_open_favorites">Otvori favorite</string>
     <string name="help_qa_open_locations">Otvori lokacije</string>
     <string name="help_qa_open_library">Otvori biblioteku</string>
-    <string name="help_qa_open_color_palette">Otvori paletu boja</string>
-    <string name="help_qa_open_appearance">Otvori postavke izgleda</string>
     <string name="help_tip_view_cutout_title">Izreži subjekt</string>
     <string name="help_tip_view_cutout_subtitle">Podigni osobu ili predmet s pozadine</string>
     <string name="help_tip_view_cutout_p1_title">Podigni otkriveni subjekt</string>
     <string name="help_tip_view_cutout_p1_desc">U pregledniku, ReFra može detektirati glavni subjekt na uređaju i prikazati istaknuti prijedlog. Otvori ga da poboljšaš masku, zatim kopiraj, podijeli ili spremi prozirni izrezak. Također možeš omogućiti dugim pritiskom pokretanje izreza iz postavki preglednika medija.</string>
     <string name="help_tip_view_cutout_p1_s1">Otvori fotografiju s jasnim subjektom</string>
-    <string name="help_tip_view_cutout_p1_s2">Dodirni prijedlog \'Izreži subjekt\'</string>
-    <string name="help_tip_view_cutout_p1_s3">Poboljšaj obris pomoću točaka \'uključi\' ili \'isključi\'</string>
+    <string name="help_tip_view_cutout_p1_s2">Dodirni prijedlog 'Izreži subjekt'</string>
+    <string name="help_tip_view_cutout_p1_s3">Poboljšaj obris pomoću točaka 'uključi' ili 'isključi'</string>
     <string name="help_tip_view_cutout_p1_s4">Kopiraj, podijeli ili spremi izrezak</string>
 
     <string name="help_tip_slideshow_play_title">Pokreni slideshow</string>

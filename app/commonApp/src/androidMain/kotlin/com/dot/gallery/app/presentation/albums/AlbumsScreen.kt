@@ -5,6 +5,11 @@
 
 package com.dot.gallery.app.presentation.albums
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DragIndicator
+import com.dot.gallery.core.ui.generated.resources.arrange_albums
+import org.jetbrains.compose.resources.stringResource
+import com.dot.gallery.core.ui.generated.resources.Res as UiRes
 import android.content.ContentUris
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,10 +25,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.unit.Dp
 import androidx.core.net.toUri
 import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.presentation.components.FilterOption
+import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
 import com.dot.gallery.core.startup.LocalStartupWorkGate
 import com.dot.gallery.core.startup.StartupContentEffect
@@ -36,8 +43,7 @@ import com.dot.gallery.feature.albums.ui.AlbumThumbnailActions
 import com.dot.gallery.feature.albums.ui.AlbumsContent
 import com.dot.gallery.feature.albums.ui.collections.CollectionThumbnailModel
 import com.dot.gallery.app.presentation.picker.PickerActivityContract
-import com.dot.gallery.app.presentation.search.MainSearchBar
-import com.dot.gallery.app.presentation.timeline.components.TimelineNavActions
+import com.dot.gallery.app.presentation.main.MainScreenTopBar
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.ui.util.rememberActivityResult
 import kotlinx.coroutines.launch
@@ -45,7 +51,7 @@ import com.dot.gallery.core.logging.printError
 import com.dot.gallery.feature.albums.ui.AlbumsStartupGate
 
 /**
- * App-side shell for the Albums tab: keeps the legacy signature while delegating
+ * App-side shell for the album grid of the Library tab, delegating
  * all content to `:feature:albums` ([AlbumsContent]). Platform seams bridged
  * here: the search-bar slot, the MediaStore trash launcher, the startup gate,
  * the custom-album-cover picker flow, provider brand icons and the
@@ -78,6 +84,10 @@ fun AlbumsScreen(
     onCreateCollection: () -> Unit = {},
     onMoveToSection: ((Album) -> Unit)? = null,
     onToggleSectionExpanded: (AlbumSectionWithAlbums, Boolean) -> Unit = { _, _ -> },
+    header: (@Composable () -> Unit)? = null,
+    menuItems: List<OptionItem> = emptyList(),
+    onContentDrawn: () -> Unit = {},
+    minCellWidth: Dp? = null,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
@@ -88,15 +98,23 @@ fun AlbumsScreen(
         filterOptions = filterOptions,
         isScrolling = isScrolling,
         gridSizeIndex = rememberAlbumGridSize(),
-        scrollToTopRoute = Screen.AlbumsScreen.route,
-        topBar = {
-            MainSearchBar(
+        scrollToTopRoute = Screen.LibraryScreen.route,
+        topBar = { onArrange ->
+            MainScreenTopBar(
                 isScrolling = isScrolling,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                menuItems = { TimelineNavActions() },
+                menuItems = menuItems + (onArrange?.let { arrange ->
+                    listOf(
+                        OptionItem(
+                            icon = Icons.Rounded.DragIndicator,
+                            text = stringResource(UiRes.string.arrange_albums),
+                            onClick = { arrange() },
+                        ),
+                    )
+                } ?: emptyList()),
             )
         },
+        header = header,
+        minCellWidth = minCellWidth,
         onAlbumClick = onAlbumClick,
         onAlbumLongClick = onAlbumLongClick,
         onMoveAlbumToTrash = { album -> onMoveAlbumToTrash(trashResult, album) },
@@ -122,7 +140,11 @@ fun AlbumsScreen(
             AlbumsStartupGate { gate.awaitFirstContent() }
         },
         startupReadyEffect = { ready ->
-            StartupContentEffect(route = Screen.AlbumsScreen(), ready = ready)
+            StartupContentEffect(
+                route = Screen.LibraryScreen(),
+                ready = ready,
+                onContentDrawn = onContentDrawn,
+            )
         },
         supportsTrash = SdkCompat.supportsTrash,
         thumbnailActions = rememberAlbumThumbnailActions(),
