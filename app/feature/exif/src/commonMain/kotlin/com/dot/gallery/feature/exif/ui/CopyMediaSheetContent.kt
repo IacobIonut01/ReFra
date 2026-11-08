@@ -9,7 +9,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -23,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,7 +31,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +45,11 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.ExpressiveSheetShape
+import com.dot.gallery.core.presentation.components.SheetActions
+import com.dot.gallery.core.presentation.components.SheetButton
+import com.dot.gallery.core.presentation.components.SheetButtonStyle
+import com.dot.gallery.core.presentation.components.SheetHeader
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.core.ui.util.rememberedDerivedState
@@ -130,7 +132,10 @@ fun CopyMediaSheetContent(
                 }
             },
             properties = properties,
-            dragHandle = { DragHandle() },
+            dragHandle = { DragHandle(modifier = Modifier.padding(vertical = 5.dp)) },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 0.dp,
+            shape = ExpressiveSheetShape,
             contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
         ) {
             Column(
@@ -147,14 +152,9 @@ fun CopyMediaSheetContent(
                     enter = enterAnimation,
                     exit = exitAnimation
                 ) {
-                    Text(
-                        text = stringResource(Res.string.copy),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .padding(24.dp)
-                            .fillMaxWidth()
+                    SheetHeader(
+                        title = stringResource(Res.string.copy),
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
                     )
                 }
 
@@ -253,28 +253,25 @@ fun CopyMediaSheetContent(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Text(
-                            text = stringResource(Res.string.cloud_copy_incomplete),
-                            style = MaterialTheme.typography.titleMedium
+                        SheetHeader(
+                            title = stringResource(Res.string.cloud_copy_incomplete),
+                            body = failureMessage
                         )
-                        Text(
-                            text = failureMessage,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SheetActions {
+                            SheetButton(
+                                text = stringResource(Res.string.close),
+                                onClick = onCloseResult,
+                                style = SheetButtonStyle.Tonal,
+                                modifier = Modifier.weight(1f)
+                            )
                             if (canRetry) {
-                                Button(onClick = onRetry) {
-                                    Text(stringResource(Res.string.retry_failed_items))
-                                }
-                            }
-                            TextButton(onClick = onCloseResult) {
-                                Text(stringResource(Res.string.close))
+                                SheetButton(
+                                    text = stringResource(Res.string.retry_failed_items),
+                                    onClick = onRetry,
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
                         }
                     }

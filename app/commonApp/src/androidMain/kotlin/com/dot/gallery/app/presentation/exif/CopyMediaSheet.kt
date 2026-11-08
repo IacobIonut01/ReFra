@@ -48,6 +48,7 @@ import com.dot.gallery.feature.exif.generated.resources.Res as ResFeatureExif
 import com.dot.gallery.feature.exif.generated.resources.cloud_copy_failed_count
 import com.dot.gallery.feature.exif.generated.resources.transfer_copy_failed
 import com.dot.gallery.feature.exif.CopyMediaViewModel
+import com.dot.gallery.feature.exif.copySheetOperationVisible
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.biometric_authentication
 import com.dot.gallery.generated.resources.unlock_album_biometric_subtitle
@@ -69,18 +70,14 @@ fun <T : Media> CopyMediaSheet(
         Environment.isExternalStorageManager()
     } else true
     val viewModel: CopyMediaViewModel = injectViewModel { copyMediaViewModel(it) }
-    val progress by viewModel.progress.collectAsState()
-    val isActive by viewModel.isActive.collectAsState()
     val localCopyState by viewModel.localCopyState.collectAsState()
     val cloudCopyState by viewModel.cloudCopyState.collectAsState()
     val cloudEnvironment by viewModel.cloudEnvironment.collectAsState()
-    val operationActive = localCopyState.active || cloudCopyState.active ||
-        (isActive && localCopyState.workIds.isEmpty())
+    val operationActive = localCopyState.active || cloudCopyState.active
     val operationFinished = cloudCopyState.finished || localCopyState.finished
     val operationProgress = when {
         cloudCopyState.active -> cloudCopyState.progress
-        localCopyState.active -> localCopyState.progress
-        else -> progress
+        else -> localCopyState.progress
     }
 
     val securitySheetState = rememberAppBottomSheetState()
@@ -183,17 +180,10 @@ fun <T : Media> CopyMediaSheet(
         }
     )
 
-    LaunchedEffect(
-        isActive,
-        localCopyState.active,
-        localCopyState.finished,
-        cloudCopyState.active,
-        cloudCopyState.finished
-    ) {
-        when {
-            operationActive || localCopyState.finished || cloudCopyState.finished -> sheetState.show()
-            else -> sheetState.hide()
-        }
+    // Only transfers started from this sheet open it; leftover background copy work doesn't.
+    val operationVisible = copySheetOperationVisible(localCopyState, cloudCopyState)
+    LaunchedEffect(operationVisible) {
+        if (operationVisible) sheetState.show() else sheetState.hide()
     }
 
     val failureMessage = if (cloudCopyState.finished) {

@@ -49,14 +49,26 @@
     <string name="locked_album_security_error">Please set up a phone security measure (PIN, pattern, password or biometrics) before locking or unlocking albums.</string>
 
     <!-- Metadata view -->
-    <string name="all_metadata">All Metadata</string>
+    <string name="all_metadata">All metadata</string>
     <string name="loading_metadata">Loading metadata…</string>
     <string name="no_metadata_found">No metadata found</string>
+    <string name="no_metadata_found_summary">This file carries no EXIF, XMP or IPTC data. Screenshots and images saved from apps often don't.</string>
+    <string name="filter_metadata_fields">Filter fields</string>
+    <string name="clear_metadata_filter">Clear filter</string>
+    <string name="no_matching_metadata_fields">No fields match “%1$s”</string>
+    <string name="copy_all_metadata">Copy all metadata</string>
+    <plurals name="metadata_field_count">
+        <item quantity="one">%1$d field</item>
+        <item quantity="other">%1$d fields</item>
+    </plurals>
 
     <!-- Metadata edit -->
     <string name="description">Description</string>
     <string name="edit_metadata">Edit Metadata</string>
     <string name="label">Label</string>
+    <string name="edit_name_and_description">Name and description</string>
+    <string name="media_name">Name</string>
+    <string name="action_save">Save</string>
     <string name="video_description_local_only">Video descriptions are stored locally and won't be written to the file</string>
 
     <!-- Capture date edit -->
