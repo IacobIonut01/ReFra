@@ -254,18 +254,37 @@ fun Context.launchEditImageIntent(packageName: String, uri: Uri) {
 suspend fun <T: Media> Context.launchEditIntent(media: T) {
     val uri = if (media.isCloud) resolveShareableUri(media) else media.getUri().authorizedUri(this)
     val editorKey = if (media.isImage) SettingsKeys.defaultImageEditor else SettingsKeys.defaultVideoEditor
-    val editor = runCatching {
-        DataStoreSettingsStore(activeDataStore).observe(editorKey).first()
+    val settingsStore = DataStoreSettingsStore(activeDataStore)
+    var editor = runCatching {
+        settingsStore.observe(editorKey).first()
     }.onFailure {
         printWarn("media-ops.edit", "Default editor preference unreadable", mapOf("error" to it.toString()))
     }.getOrDefault(editorKey.default)
+    if (media.isImage && editor == EDITOR_BUILTIN) {
+        val explicit = runCatching {
+            settingsStore.observe(SettingsKeys.imageEditorChoiceExplicit).first()
+        }.getOrDefault(false)
+        val resolved = resolveImageEditorChoice(editor, explicit)
+        if (resolved != editor) {
+            runCatching { settingsStore.put(editorKey, resolved) }
+                .onFailure {
+                    printWarn("media-ops.edit", "Default editor migration failed", mapOf("error" to it.toString()))
+                }
+            editor = resolved
+        }
+    }
     withContext(Dispatchers.Main) {
         if (editor == EDITOR_STUDIO && launchStudioEditor(uri, media.mimeType)) return@withContext
         if (media.isImage) {
+            if (editor != EDITOR_BUILTIN && editor != EDITOR_STUDIO &&
+                launchExternalEditorPackage(editor, uri, media.mimeType)
+            ) {
+                return@withContext
+            }
             EditActivity.launchEditor(this@launchEditIntent, uri)
         } else {
             if (editor != EDITOR_BUILTIN && editor != EDITOR_STUDIO &&
-                launchVideoEditorPackage(editor, uri, media.mimeType)
+                launchExternalEditorPackage(editor, uri, media.mimeType)
             ) {
                 return@withContext
             }
@@ -305,10 +324,11 @@ private fun Context.launchStudioEditor(uri: Uri, mimeType: String): Boolean {
 }
 
 /**
- * Opens the video editor the user chose. Returns false when it is no longer
- * installed or refuses the file, so the caller falls back to the app chooser.
+ * Opens the external editor the user chose. Returns false when it is no
+ * longer installed or refuses the file, so the caller falls back to the
+ * built-in editor (images) or the app chooser (videos).
  */
-private fun Context.launchVideoEditorPackage(packageName: String, uri: Uri, mimeType: String): Boolean {
+private fun Context.launchExternalEditorPackage(packageName: String, uri: Uri, mimeType: String): Boolean {
     val intent = Intent(Intent.ACTION_EDIT).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
         setDataAndType(uri, mimeType)
@@ -340,6 +360,16 @@ internal fun studioEditorActivity(mimeType: String): String? {
         else -> null
     }
 }
+
+/**
+ * A persisted [EDITOR_BUILTIN] predates the studio default: builds before it
+ * could only write "builtin" as the untouched default or as a pick that never
+ * measured against the ReFra editor. Only a choice stamped with
+ * `image_editor_choice_explicit` in a studio-aware build keeps the built-in
+ * editor as the default.
+ */
+internal fun resolveImageEditorChoice(stored: String, explicitChoice: Boolean): String =
+    if (stored == EDITOR_BUILTIN && !explicitChoice) EDITOR_STUDIO else stored
 
 private val STUDIO_PHOTO_MIME_TYPES = setOf(
     "image/jpeg",

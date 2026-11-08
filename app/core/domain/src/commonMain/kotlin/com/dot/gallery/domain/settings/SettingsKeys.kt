@@ -88,6 +88,12 @@ object SettingsKeys {
      */
     val defaultImageEditor = PrefKey.string("default_image_editor", default = EDITOR_STUDIO)
     /**
+     * True once the user picks an image editor in a build where [EDITOR_STUDIO]
+     * exists. A persisted [EDITOR_BUILTIN] without it is a stale pre-studio
+     * default, not a deliberate choice — resolves to [EDITOR_STUDIO].
+     */
+    val imageEditorChoiceExplicit = PrefKey.bool("image_editor_choice_explicit", default = false)
+    /**
      * [EDITOR_STUDIO], [EDITOR_BUILTIN] for "ask every time" (video has no
      * built-in editor), or the package name of an installed video editor.
      */

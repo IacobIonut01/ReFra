@@ -228,6 +228,7 @@ fun SettingsMediaViewerContent(
     var tapSidesToNavigate by rememberPreference(SettingsKeys.tapSidesToNavigate)
     var showFavoriteButton by rememberPreference(SettingsKeys.showFavoriteButton)
     var defaultEditor by rememberPreference(SettingsKeys.defaultImageEditor)
+    var imageEditorChoiceExplicit by rememberPreference(SettingsKeys.imageEditorChoiceExplicit)
     var defaultVideoEditor by rememberPreference(SettingsKeys.defaultVideoEditor)
     var autoHideOnVideoPlay by rememberPreference(SettingsKeys.autoHideOnVideoPlay)
     var autoPlayVideo by rememberPreference(SettingsKeys.videoAutoplay)
@@ -318,7 +319,10 @@ fun SettingsMediaViewerContent(
                 description = stringResource(Res.string.default_editor_description),
                 preview = { previews.editor(defaultEditor, state.editApps) },
                 options = editorOptions,
-                onOptionSelected = { defaultEditor = it },
+                onOptionSelected = {
+                    defaultEditor = it
+                    imageEditorChoiceExplicit = true
+                },
             )
         }
         DETAIL_VIDEO_EDITOR -> {

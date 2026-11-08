@@ -1,5 +1,6 @@
 package com.dot.gallery.app.presentation.util
 
+import com.dot.gallery.domain.settings.EDITOR_BUILTIN
 import com.dot.gallery.domain.settings.EDITOR_STUDIO
 import com.dot.gallery.domain.settings.SettingsKeys
 import org.junit.Assert.assertEquals
@@ -34,5 +35,23 @@ class StudioEditorRoutingTest {
         assertEquals("com.dot.gallery.editor.GalleryEditorActivity", studioEditorActivity("image/x-adobe-dng"))
         assertNull(studioEditorActivity("image/heic"))
         assertNull(studioEditorActivity("audio/mpeg"))
+    }
+
+    @Test
+    fun staleBuiltinImageDefaultResolvesToStudio() {
+        // A "builtin" written before the studio option existed is the old
+        // default, not a deliberate choice — upgraded installs get the new editor.
+        assertEquals(EDITOR_STUDIO, resolveImageEditorChoice(EDITOR_BUILTIN, explicitChoice = false))
+    }
+
+    @Test
+    fun explicitBuiltinChoiceStaysBuiltin() {
+        assertEquals(EDITOR_BUILTIN, resolveImageEditorChoice(EDITOR_BUILTIN, explicitChoice = true))
+    }
+
+    @Test
+    fun otherStoredEditorsResolveUnchanged() {
+        assertEquals(EDITOR_STUDIO, resolveImageEditorChoice(EDITOR_STUDIO, explicitChoice = false))
+        assertEquals("com.example.editor", resolveImageEditorChoice("com.example.editor", explicitChoice = false))
     }
 }
