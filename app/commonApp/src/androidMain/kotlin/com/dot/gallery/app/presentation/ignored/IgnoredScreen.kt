@@ -1,6 +1,6 @@
 package com.dot.gallery.app.presentation.ignored
 
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -10,93 +10,76 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
+import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.domain.model.AlbumState
 import com.dot.gallery.domain.model.IgnoredAlbum
 import com.dot.gallery.feature.ignored.ui.IgnoredContent
+import com.dot.gallery.feature.ignored.ui.IgnoredRuleEdit
+import com.dot.gallery.feature.ignored.ui.IgnoredRuleSheet
 import com.dot.gallery.feature.ignored.ui.IgnoredViewModel
-import com.dot.gallery.feature.ignored.ui.setup.IgnoredOptionsSheet
-import com.dot.gallery.feature.ignored.ui.setup.IgnoredOptionsViewModel
 import com.dot.gallery.feature.ignored.ui.setup.IgnoredSetupSheet
 import com.dot.gallery.feature.ignored.ui.setup.IgnoredSetupViewModel
-import kotlinx.coroutines.launch
-import com.dot.gallery.feature.ignored.ui.setup.IgnoredOptionsSheet as SharedIgnoredOptionsSheet
-import com.dot.gallery.feature.ignored.ui.setup.IgnoredSetupSheet as SharedIgnoredSetupSheet
-import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
+import com.dot.gallery.feature.ignored.ui.setup.SetupStep
+import com.dot.gallery.feature.ignored.ui.showStoppedIgnoring
 import com.dot.gallery.injection.injectViewModel
+import kotlinx.coroutines.launch
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IgnoredScreen(
     albumsState: State<AlbumState>,
 ) {
-    val vm = injectViewModel<IgnoredViewModel> {ignoredViewModel}
-    val optionsVm = injectViewModel<IgnoredOptionsViewModel> {ignoredOptionsViewModel}
-    val setupVm = injectViewModel<IgnoredSetupViewModel> {ignoredSetupViewModel}
+    val vm = injectViewModel<IgnoredViewModel> { ignoredViewModel }
+    val setupVm = injectViewModel<IgnoredSetupViewModel> { ignoredSetupViewModel }
     val state by vm.blacklistState.collectAsStateWithLifecycle()
-    val optionsUiState by optionsVm.uiState.collectAsStateWithLifecycle()
     val setupUiState by setupVm.uiState.collectAsStateWithLifecycle()
     val setupSheetState = rememberAppBottomSheetState()
-    val optionsSheetState = rememberAppBottomSheetState()
+    val ruleSheetState = rememberAppBottomSheetState()
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    var selectedAlbum by remember { mutableStateOf<IgnoredAlbum?>(null) }
-    val albumGridSize by rememberAlbumGridSize()
+    var selectedRule by remember { mutableStateOf<IgnoredAlbum?>(null) }
 
     IgnoredContent(
         state = state,
         albumsState = albumsState,
+        snackbarHostState = snackbarHostState,
         onAddClick = {
+            setupVm.startNew()
             scope.launch { setupSheetState.show() }
         },
-        onAlbumClick = { album ->
-            selectedAlbum = album
-            scope.launch { optionsSheetState.show() }
+        onAlbumClick = { rule ->
+            selectedRule = rule
+            scope.launch { ruleSheetState.show() }
         }
     )
 
-    LaunchedEffect(setupSheetState.isVisible, albumsState.value.albumsWithBlacklisted) {
-        if (setupSheetState.isVisible) {
-            setupVm.updateAlbums(albumsState.value.albumsWithBlacklisted)
-        }
+    LaunchedEffect(albumsState.value.albumsWithBlacklisted) {
+        setupVm.updateAlbums(albumsState.value.albumsWithBlacklisted)
     }
 
-    LaunchedEffect(albumGridSize) {
-        optionsVm.updateAlbumGridSize(albumGridSize)
-        setupVm.updateAlbumGridSize(albumGridSize)
-    }
-
-    LaunchedEffect(optionsSheetState.isVisible, selectedAlbum) {
-        if (optionsSheetState.isVisible && selectedAlbum != null) {
-            optionsVm.initialize(
-                ignoredAlbum = selectedAlbum,
-                albums = albumsState.value.albumsWithBlacklisted,
-                onUpdate = vm::updateIgnoredAlbum,
-                onDelete = vm::removeFromBlacklist
+    IgnoredRuleSheet(
+        sheetState = ruleSheetState,
+        rule = selectedRule?.let { selected -> state.albums.firstOrNull { it.id == selected.id } ?: selected },
+        albums = albumsState.value.albumsWithBlacklisted,
+        onEdit = { rule, edit ->
+            setupVm.startEdit(
+                rule = rule,
+                step = if (edit == IgnoredRuleEdit.ALBUMS) SetupStep.CHOOSE else SetupStep.WHERE
             )
-        } else if (!optionsSheetState.isVisible) {
-            optionsVm.reset()
-        }
-    }
-
-    LaunchedEffect(optionsSheetState.isVisible, albumsState.value.albumsWithBlacklisted) {
-        if (optionsSheetState.isVisible) {
-            optionsVm.updateAlbums(albumsState.value.albumsWithBlacklisted)
-        }
-    }
+            scope.launch { setupSheetState.show() }
+        },
+        onStopIgnoring = { rule ->
+            vm.removeFromBlacklist(rule)
+            scope.launch {
+                if (snackbarHostState.showStoppedIgnoring(rule)) vm.updateIgnoredAlbum(rule)
+            }
+        },
+        onDismiss = { selectedRule = null }
+    )
 
     IgnoredSetupSheet(
         sheetState = setupSheetState,
         uiState = setupUiState,
         onAction = setupVm::onAction,
         onDismiss = setupVm::reset,
-    )
-
-    IgnoredOptionsSheet(
-        sheetState = optionsSheetState,
-        uiState = optionsUiState,
-        albumState = albumsState,
-        onAction = optionsVm::onAction,
-        onDismiss = optionsVm::reset,
     )
 }
