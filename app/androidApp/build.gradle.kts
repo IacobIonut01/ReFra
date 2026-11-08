@@ -189,7 +189,9 @@ android {
         val offlinePrefix = if (isOffline) "-offline" else ""
         base.archivesName.set("ReFra-${versionName}-$versionCode$offlinePrefix")
         val cartoBasemapKey = if (includeMaps) {
-            providers.environmentVariable("CARTO_BASEMAP_KEY").orNull.orEmpty()
+            providers.environmentVariable("CARTO_BASEMAP_KEY").orNull
+                ?.takeIf(String::isNotBlank)
+                ?: committedCartoBasemapKey
         } else {
             ""
         }
@@ -464,6 +466,22 @@ val isOffline: Boolean
 
 val includeMaps: Boolean
     get() = !isOffline
+
+// The CARTO basemap key is a public client-side token: it ships inside the APK and is
+// sent in tile URL queries. Keeping a copy in the repo (app.properties) makes the
+// embedded key identical in every build environment, which F-Droid's reproducible
+// build verification requires; the env var still wins when set (CI, local overrides).
+val committedCartoBasemapKey: String
+    get() {
+        val fl = rootProject.file("app.properties")
+        return try {
+            val properties = Properties()
+            properties.load(FileInputStream(fl))
+            properties.getProperty("CARTO_BASEMAP_KEY", "").trim().removeSurrounding("\"")
+        } catch (_: Exception) {
+            ""
+        }
+    }
 
 val allowAllFilesAccess: Boolean
     get() {
