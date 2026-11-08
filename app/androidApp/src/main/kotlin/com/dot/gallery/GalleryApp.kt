@@ -15,6 +15,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.dot.gallery.core.work.WorkComponentHolder
+import com.dot.gallery.core.work.NetworkConstraintGuard
 import com.dot.gallery.core.workers.EditorExportBridgeHolder
 import com.dot.gallery.editor.GalleryEditorExportBridge
 import com.dot.gallery.editor.GalleryRawDecoder
@@ -271,6 +272,10 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
             AppLog.init(this@GalleryApp)
             CrashCapture.install()
         }
+        // Offline builds strip ACCESS_NETWORK_STATE: purge persisted network-constrained
+        // WorkSpecs before WorkManager schedules them and arm the scheduler guard so no
+        // new constrained spec can be enqueued (see NetworkConstraintGuard).
+        NetworkConstraintGuard.init(this@GalleryApp)
         // kmpworkmanager owns androidx.work's initialization (the androidx WorkManagerInitializer
         // is disabled in the manifest) — must run before any scheduler access or worker dispatch.
         StartupTracer.trace("KmpWorkManager.initialize") {

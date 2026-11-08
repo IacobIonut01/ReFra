@@ -57,7 +57,7 @@ object WorkComponentHolder {
 
 /** The app-wide scheduler; initialized by the Application via `KmpWorkManager.initialize`. */
 fun workScheduler(): BackgroundTaskScheduler =
-    KmpWorkManager.getInstance().backgroundTaskScheduler
+    NetworkConstraintGuard.wrap(KmpWorkManager.getInstance().backgroundTaskScheduler)
 
 /**
  * Typed view over a worker's JSON input — replaces `androidx.work.Data`.

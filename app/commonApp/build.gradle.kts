@@ -197,6 +197,7 @@ kotlin {
                 implementation(libs.mockwebserver)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.kmpworker.testing)
             }
         }
 
