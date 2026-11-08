@@ -7,10 +7,12 @@ package com.dot.gallery.app.presentation.location
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -27,17 +29,17 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.LocationOff
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.dot.gallery.core.presentation.components.ExpressiveEmptyState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -48,8 +50,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
+import com.dot.gallery.core.presentation.components.SheetButton
+import com.dot.gallery.core.presentation.components.SheetButtonStyle
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.work.workScheduler
@@ -59,7 +64,6 @@ import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.navigate
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.domain.model.GeoMedia
 import com.dot.gallery.domain.model.LocationMedia
 import com.dot.gallery.domain.model.Media
@@ -75,11 +79,9 @@ import com.dot.gallery.core.presentation.util.Screen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import com.dot.gallery.feature.editor.adjustments.Crop
 import com.dot.gallery.core.presentation.components.util.advancedShadow
 import com.dot.gallery.domain.util.isCloud
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.domain.model.locationLabelKey
 import com.dot.gallery.domain.model.locationCoordinateGroupKey
 import com.dot.gallery.domain.model.definedTimestamp
@@ -87,7 +89,18 @@ import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.access_media_location_summary
 import com.dot.gallery.generated.resources.grant_access
 import com.dot.gallery.generated.resources.locations
+import com.dot.gallery.generated.resources.map_panel_open
 import com.dot.gallery.generated.resources.no_locations_found
+import com.dot.gallery.generated.resources.s_items
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.activity.compose.BackHandler
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
+import com.dot.gallery.generated.resources.place_detail_map
 
 
 internal sealed interface MapGridItem {
@@ -107,13 +120,31 @@ fun LocationsScreen(
     geoMedia: List<GeoMedia> = emptyList(),
     initialMediaId: Long = -1L,
 ) {
+    // The map's places action swaps in the list page; its back (bar or system) returns to the map.
+    var showPlaces by rememberSaveable { mutableStateOf(false) }
+    BackHandler(enabled = showPlaces) { showPlaces = false }
     Box(modifier = Modifier.fillMaxSize()) {
-        MapLocationsContent(metadataState = metadataState, locations = locations, geoMedia = geoMedia, initialMediaId = initialMediaId)
+        if (showPlaces) {
+            ListLocationsContent(
+                metadataState = metadataState,
+                locations = locations,
+                geoMedia = geoMedia,
+                onShowMap = { showPlaces = false },
+            )
+        } else {
+            MapLocationsContent(
+                metadataState = metadataState,
+                locations = locations,
+                geoMedia = geoMedia,
+                initialMediaId = initialMediaId,
+                onShowPlaces = { showPlaces = true },
+            )
+        }
 
         // Without ACCESS_MEDIA_LOCATION the metadata pipeline only sees redacted
         // EXIF, so nothing can resolve to a location — surface that instead of
-        // silently showing an empty screen.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // silently showing an empty screen. The places page asks for it itself.
+        if (HasInteractiveMap && !showPlaces && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val scope = rememberCoroutineScope()
             val locationPermission = rememberPermissionState(
                 Manifest.permission.ACCESS_MEDIA_LOCATION
@@ -139,8 +170,9 @@ fun LocationsScreen(
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 16.dp, vertical = 24.dp)
                         .fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )
                 ) {
                     Row(
@@ -176,150 +208,130 @@ fun LocationsScreen(
     }
 }
 
-@Suppress("DerivedStateOfCandidate")
-@OptIn(ExperimentalMaterial3Api::class)
+/** The places page; the offline build shows it in place of the map. */
 @Composable
 internal fun ListLocationsContent(
     metadataState: State<MediaMetadataState>,
     locations: List<LocationMedia> = emptyList(),
+    geoMedia: List<GeoMedia> = emptyList(),
+    /** Returns to the map this list was opened from; null on builds without a map. */
+    onShowMap: (() -> Unit)? = null,
 ) {
-    val eventHandler = LocalEventHandler.current
-
-    val grouped = remember(locations) {
-        locations.groupBy {
-            if (!it.city.isNullOrBlank() || !it.country.isNullOrBlank()) {
-                "name:${locationLabelKey(it.location)}"
-            } else {
-                locationCoordinateGroupKey(it.latitude, it.longitude)
-                    ?.let { key -> "coordinates:$key" }
-                    ?: "label:${locationLabelKey(it.location)}"
-            }
-        }
-    }
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = rememberTopAppBarState(),
-        flingAnimationSpec = null
+    LocationPlacesContent(
+        metadataState = metadataState,
+        locations = locations,
+        geoMedia = geoMedia,
+        onShowMap = onShowMap,
     )
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                modifier = Modifier.hazeEffectScaled(
-                    state = LocalHazeState.current,
-                    style = LocalHazeBlurStyle.current
-                ),
-                title = {
-                    Text(text = stringResource(Res.string.locations))
-                },
-                navigationIcon = {
-                    NavigationBackButton()
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                ),
-            )
-        }
-    ) { paddingValues ->
-        if (grouped.isEmpty() && !metadataState.value.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(Res.string.no_locations_found),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(
-                    top = paddingValues.calculateTopPadding(),
-                    bottom = paddingValues.calculateBottomPadding() + 128.dp,
-                    start = 8.dp,
-                    end = 8.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                items(
-                    items = grouped.entries.toList(),
-                    key = { it.key }
-                ) { (_, mediaList) ->
-                    val representative = mediaList.maxByOrNull { it.media.definedTimestamp }
-                    LibrarySmallItem(
-                        modifier = Modifier.clickable(enabled = representative != null) {
-                            val item = representative ?: return@clickable
-                            val city = item.city
-                            val country = item.country
-                            val latitude = item.latitude
-                            val longitude = item.longitude
-                            if (!city.isNullOrBlank() || !country.isNullOrBlank() ||
-                                latitude != null && longitude != null
-                            ) {
-                                eventHandler.navigate(
-                                    Screen.LocationTimelineScreen.location(
-                                        gpsLocationNameCity = city.orEmpty(),
-                                        gpsLocationNameCountry = country.orEmpty(),
-                                        latitude = latitude,
-                                        longitude = longitude,
-                                    )
-                                )
-                            } else {
-                                eventHandler.navigate(Screen.MediaViewScreen.idAndAlbum(item.media.id, -1L))
-                            }
-                        },
-                        title = representative?.location.orEmpty(),
-                        subtitle = "${mediaList.size} ${if (mediaList.size == 1) "item" else "items"}",
-                        icon = Icons.Outlined.LocationOn,
-                        useIndicator = true,
-                        indicatorCounter = mediaList.size
-                    )
-                }
-            }
-        }
-
-        if (metadataState.value.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.BottomEnd
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .size(24.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
 }
 
+/** The named place the map's selected photo belongs to, shown above the map's media panel. */
+internal data class MapPanelPlace(
+    val title: String,
+    val city: String?,
+    val country: String?,
+    val itemCount: Int,
+    val latitude: Double,
+    val longitude: Double,
+)
+
+/** The place of [selected], counting every photo in [all] that shares its city and country. */
+internal fun mapPanelPlace(selected: GeoMedia, all: List<GeoMedia>): MapPanelPlace? {
+    val city = selected.locationCity?.takeIf { it.isNotBlank() }
+    val country = selected.locationCountry?.takeIf { it.isNotBlank() }
+    val title = city ?: country ?: return null
+    return MapPanelPlace(
+        title = title,
+        city = city,
+        country = country,
+        itemCount = all.count {
+            it.locationCity?.takeIf(String::isNotBlank) == city &&
+                it.locationCountry?.takeIf(String::isNotBlank) == country
+        },
+        latitude = selected.latitude,
+        longitude = selected.longitude,
+    )
+}
+
+/**
+ * The map's media panel: the selected photo's place with an Open action, then every located
+ * photo by month in a three-column grid of rounded tiles.
+ */
 @Composable
 internal fun MediaGridPanel(
     modifier: Modifier = Modifier,
     gridState: LazyGridState,
     gridItems: List<MapGridItem>,
-    stringToday: String,
-    stringYesterday: String,
+    place: MapPanelPlace?,
+    onOpenPlace: (MapPanelPlace) -> Unit,
+    selectedMediaId: Long,
+    onMediaClick: (GeoMedia) -> Unit,
+    onLocationClick: (LocationMedia) -> Unit,
+) {
+    Column(modifier = modifier) {
+        if (place != null) {
+            MapPanelPlaceHeader(place = place, onOpen = { onOpenPlace(place) })
+        }
+        MapMediaGrid(
+            gridState = gridState,
+            gridItems = gridItems,
+            selectedMediaId = selectedMediaId,
+            onMediaClick = onMediaClick,
+            onLocationClick = onLocationClick,
+        )
+    }
+}
+
+@Composable
+private fun MapPanelPlaceHeader(place: MapPanelPlace, onOpen: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 16.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = place.title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = listOfNotNull(
+                    stringResource(Res.string.s_items, place.itemCount.toString()),
+                    place.country.takeIf { place.city != null },
+                ).joinToString(" · "),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        SheetButton(
+            text = stringResource(Res.string.map_panel_open),
+            onClick = onOpen,
+            style = SheetButtonStyle.Tonal,
+        )
+    }
+}
+
+@Composable
+private fun MapMediaGrid(
+    gridState: LazyGridState,
+    gridItems: List<MapGridItem>,
     selectedMediaId: Long,
     onMediaClick: (GeoMedia) -> Unit,
     onLocationClick: (LocationMedia) -> Unit,
 ) {
     LazyVerticalGrid(
         state = gridState,
-        columns = GridCells.Fixed(4),
-        modifier = modifier,
-        contentPadding = PaddingValues(start = 2.dp, end = 2.dp, bottom = 80.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         items(
             items = gridItems,
@@ -349,21 +361,13 @@ internal fun MediaGridPanel(
         ) { item ->
             when (item) {
                 is MapGridItem.Header -> {
-                    val displayDate = remember(item.date) {
-                        item.date
-                            .replace("Today", stringToday)
-                            .replace("Yesterday", stringYesterday)
-                    }
                     Text(
-                        text = displayDate,
-                        style = MaterialTheme.typography.titleMedium,
+                        text = item.date,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(
-                                horizontal = 16.dp,
-                                vertical = 24.dp
-                            )
+                            .padding(top = 12.dp, bottom = 3.dp)
                     )
                 }
 
@@ -393,12 +397,15 @@ private fun MapMediaCell(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val shape = RoundedCornerShape(16.dp)
     Box(
         modifier = Modifier
             .aspectRatio(1f)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .clickable(onClick = onClick)
             .then(
-                if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary)
+                if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape)
                 else Modifier
             )
     ) {

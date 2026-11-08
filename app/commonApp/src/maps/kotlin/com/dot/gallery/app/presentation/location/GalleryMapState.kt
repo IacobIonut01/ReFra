@@ -134,7 +134,8 @@ class GalleryMapState(
             }
     }
 
-    fun fitCluster(cluster: MapPhotoCluster, paddingPx: Int, durationMs: Int = 450) {
+    /** [topPaddingPx] keeps the fitted cluster clear of chrome drawn over the map's top edge. */
+    fun fitCluster(cluster: MapPhotoCluster, paddingPx: Int, durationMs: Int = 450, topPaddingPx: Int = paddingPx) {
         val currentMap = map ?: return
         if (cluster.bounds.crossesAntimeridian || cluster.bounds.west == cluster.bounds.east) {
             animateCamera(
@@ -151,7 +152,10 @@ class GalleryMapState(
             .include(LatLng(cluster.bounds.south, cluster.bounds.west))
             .include(LatLng(cluster.bounds.north, cluster.bounds.east))
             .build()
-        currentMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, paddingPx), durationMs)
+        currentMap.animateCamera(
+            CameraUpdateFactory.newLatLngBounds(bounds, paddingPx, topPaddingPx, paddingPx, paddingPx),
+            durationMs,
+        )
     }
 
     /**

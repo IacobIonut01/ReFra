@@ -97,6 +97,37 @@
     <string name="map_cluster_title">Photos in this location</string>
     <string name="map_cluster_count">%1$d photos</string>
     <string name="map_marker_photo">Photo on map</string>
+    <string name="place_detail_map">Map</string>
+    <string name="map_panel_open">Open</string>
+    <plurals name="places_located_photos">
+        <item quantity="one">%1$s photo has a location</item>
+        <item quantity="other">%1$s photos have a location</item>
+    </plurals>
+    <plurals name="places_count">
+        <item quantity="one">%1$d place</item>
+        <item quantity="other">%1$d places</item>
+    </plurals>
+    <plurals name="places_in_countries">
+        <item quantity="one">in %1$d country</item>
+        <item quantity="other">in %1$d countries</item>
+    </plurals>
+    <plurals name="places_item_count">
+        <item quantity="one">%1$s item</item>
+        <item quantity="other">%1$s items</item>
+    </plurals>
+    <string name="places_open_map">open the map</string>
+    <string name="places_filter_all">All</string>
+    <string name="places_filter_cities">Cities</string>
+    <string name="places_filter_countries">Countries</string>
+    <string name="places_recent_trips">Recent trips</string>
+    <string name="places_all">All places</string>
+    <string name="places_permission_title">See where your photos were taken</string>
+    <string name="places_permission_body">Allow ReFra to read the location saved in your photos. It stays on this phone and is never uploaded.</string>
+    <string name="places_permission_allow">Allow access</string>
+    <string name="places_empty_title">No places yet</string>
+    <string name="places_empty_body">Photos taken with location turned on show up here, grouped by city and country.</string>
+    <string name="favorites_unfavorite">Unfavorite</string>
+    <string name="place_detail_year_range">%1$d – %2$d</string>
     <string name="app_dev">by %s</string>
     <string name="app_dev_name">IacobIonut01</string>
     <string name="donate">Donate</string>
