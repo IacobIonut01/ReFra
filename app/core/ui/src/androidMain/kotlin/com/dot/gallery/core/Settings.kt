@@ -40,6 +40,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.core.ml.FaceModel
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.SearchModel
 import com.dot.gallery.core.decoder.format.ImageReencoder
@@ -328,6 +329,24 @@ object Settings {
             rememberPreference(SettingsKeys.hiddenSections)
     }
 
+    object PeoplePage {
+        private val HIDDEN_SOURCES = stringSetPreferencesKey("people_hidden_sources")
+
+        /**
+         * People sources the user turned off on the People page (on-device people and each
+         * connected account). Stored as an exclusion list so new accounts show up by default.
+         */
+        fun hiddenSources(context: Context): Flow<Set<String>> =
+            context.activeDataStore.data.map { it[HIDDEN_SOURCES] ?: emptySet() }
+
+        suspend fun setSourceVisible(context: Context, key: String, visible: Boolean) {
+            context.activeDataStore.edit { prefs ->
+                val current = prefs[HIDDEN_SOURCES] ?: emptySet()
+                prefs[HIDDEN_SOURCES] = if (visible) current - key else current + key
+            }
+        }
+    }
+
     object SmartFeatures {
         private val INCLUDE_IGNORED_ALBUMS = booleanPreferencesKey("smart_features_include_ignored_albums")
         private val INDEX_ON_DEVICE_PROVIDERS = stringSetPreferencesKey("smart_features_index_on_device_providers")
@@ -389,11 +408,38 @@ object Settings {
             context.activeDataStore.edit { it[SEARCH_MODEL] = model.name }
         }
 
+        private val FACE_MODEL = stringPreferencesKey("smart_features_face_model")
+
+        /**
+         * The face grouping quality tier. Defaults to [FaceModel.STANDARD]; a stored tier whose
+         * models are not published yet resolves to the default.
+         */
+        fun faceModel(context: Context): Flow<FaceModel> =
+            context.activeDataStore.data.map { prefs -> FaceModel.resolve(prefs[FACE_MODEL]) }
+
+        suspend fun setFaceModel(context: Context, model: FaceModel) {
+            context.activeDataStore.edit { it[FACE_MODEL] = model.name }
+        }
+
+        private val SCAN_ONLY_WHILE_CHARGING = booleanPreferencesKey("smart_features_scan_only_while_charging")
+
+        /**
+         * Whether background (not user-started) heavy scans — search indexing, categories and
+         * face detection — wait for the charger. Default on, which is how background scans
+         * have always behaved; off lets them run whenever the battery is not low.
+         */
+        fun scanOnlyWhileCharging(context: Context): Flow<Boolean> =
+            context.activeDataStore.data.map { it[SCAN_ONLY_WHILE_CHARGING] ?: true }
+
+        suspend fun setScanOnlyWhileCharging(context: Context, enabled: Boolean) {
+            context.activeDataStore.edit { it[SCAN_ONLY_WHILE_CHARGING] = enabled }
+        }
+
         private val REMOVED_MODEL_GROUPS = stringSetPreferencesKey("smart_features_removed_model_groups")
 
         /**
          * Model groups the user explicitly deleted. Persisted so a bundled (withML) build does
-         * not silently re-install them on the next app launch (issue #1229).
+         * not silently re-install them on the next app launch.
          */
         fun removedModelGroups(context: Context): Flow<Set<ModelGroup>> =
             context.activeDataStore.data.map { prefs ->

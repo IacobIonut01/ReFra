@@ -6,6 +6,7 @@
 package com.dot.gallery.core.smart
 
 import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.core.ml.FaceModel
 import com.dot.gallery.data.entity.CloudMediaEntity
 import com.dot.gallery.data.entity.DetectedFaceEntity
 import com.dot.gallery.data.entity.MediaFeature
@@ -85,6 +86,31 @@ class SmartScanPlanTest {
             smartScanConstraintsFor(SmartScanPlan.phasesFor(SmartScanFeature.ALL_MASK), userVisible = true)
                 .requiresCharging
         )
+    }
+
+    @Test
+    fun turningOffChargingOnlyLetsBackgroundHeavyRunsRunOnBattery() {
+        val heavy = SmartScanPlan.phasesFor(SmartScanFeature.PERSONS.bit)
+        val relaxed = smartScanConstraintsFor(heavy, userVisible = false, chargingOnly = false)
+        assertEquals(false, relaxed.requiresCharging)
+        assertTrue(SystemConstraint.REQUIRE_BATTERY_NOT_LOW in relaxed.systemConstraints)
+        assertEquals(true, smartScanConstraintsFor(heavy, userVisible = false, chargingOnly = true).requiresCharging)
+    }
+
+    @Test
+    fun standardFaceTierKeepsTheRevisionsWrittenBeforeTiers() {
+        assertEquals("face-v3:d:e", faceIndexRevision(FaceModel.STANDARD, "d", "e"))
+        assertEquals("cluster-v2:d:e", faceClusterRevision(FaceModel.STANDARD, "d", "e"))
+        assertEquals("face-v3:d:e:fast-v1", faceIndexRevision(FaceModel.FAST, "d", "e"))
+        assertEquals("cluster-v2:d:e:accurate-v1", faceClusterRevision(FaceModel.ACCURATE, "d", "e"))
+    }
+
+    @Test
+    fun unpublishedFaceTiersResolveToTheDefault() {
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve(null))
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve("FAST"))
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve("unknown"))
+        assertEquals(FaceModel.STANDARD, FaceModel.resolve("STANDARD"))
     }
 
     @Test

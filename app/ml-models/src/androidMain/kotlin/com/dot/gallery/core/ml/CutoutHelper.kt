@@ -78,7 +78,8 @@ object CutoutHelper {
      */
     class CutoutSession(
         private val context: Context,
-        private val media: Media,
+        /** The media to decode from disk; null when only a bitmap is encoded. */
+        private val media: Media?,
         private val modelManager: ModelManager
     ) {
         private var env: OrtEnvironment = OrtEnvironment.getEnvironment()
@@ -122,6 +123,7 @@ object CutoutHelper {
                     printError("CutoutSession: ModelManager is not ready.")
                     return@withContext false
                 }
+                val media = media ?: return@withContext false
 
                 // 1. Resolve URI and decode original Bitmap
                 val uri = if (media.isEncrypted) {

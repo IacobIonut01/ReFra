@@ -21,6 +21,7 @@ import com.dot.gallery.data.dao.DetectedFaceHeader
 import com.dot.gallery.data.entity.CloudMediaEntity
 import com.dot.gallery.data.entity.DetectedFaceEntity
 import com.dot.gallery.core.ml.FaceHelper
+import com.dot.gallery.core.ml.FaceModel
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.workers.enqueueMetadataLocationRepair
 import com.dot.gallery.data.InternalDatabase
@@ -430,7 +431,6 @@ class MetadataPhaseProcessor @Inject constructor(
 private const val MEDIA_DELETE_BATCH_SIZE = 500
 private const val PREPARATION_BATCH_SIZE = 500
 
-private const val FACE_EMBEDDING_DIMENSION = 512
 private const val FACE_OWNER_MATCH_IOU = 0.5f
 
 internal fun smartSourceFingerprint(revisions: Iterable<String>): String {
@@ -1073,19 +1073,31 @@ class CategoryClassificationPhaseProcessor @Inject constructor(
     }
 }
 
+/**
+ * Revision of the face index phase. The tier suffix is empty for [FaceModel.STANDARD], so rows
+ * written before tiers existed stay current; any other tier re-detects every photo.
+ */
+internal fun faceIndexRevision(model: FaceModel, detectorRevision: String, embedderRevision: String): String =
+    "face-v3:$detectorRevision:$embedderRevision${model.revisionSuffix}"
+
+/** Revision of the face cluster phase, tier-scoped like [faceIndexRevision]. */
+internal fun faceClusterRevision(model: FaceModel, detectorRevision: String, embedderRevision: String): String =
+    "cluster-v2:$detectorRevision:$embedderRevision${model.revisionSuffix}"
+
 internal fun canAdoptExistingFaceResults(
     faces: List<DetectedFaceEntity>,
     timestamp: Long,
-    revision: String
+    revision: String,
+    embeddingDimension: Int = FaceModel.DEFAULT.embeddingDimension,
 ): Boolean = faces.isNotEmpty() && faces.all { face ->
     if (face.timestamp != timestamp ||
         face.resultRevision.isNotBlank() && face.resultRevision != revision
     ) return@all false
     val values = floatArrayOf(face.left, face.top, face.right, face.bottom, face.confidence)
     if (values.any { !it.isFinite() }) return@all false
-    val validEmbedding = face.embedding?.takeIf { it.size == FACE_EMBEDDING_DIMENSION * Float.SIZE_BYTES }
+    val validEmbedding = face.embedding?.takeIf { it.size == embeddingDimension * Float.SIZE_BYTES }
         ?.let { bytes ->
-            isValidEmbeddingVector(FloatVectorCodec.decode(bytes), FACE_EMBEDDING_DIMENSION)
+            isValidEmbeddingVector(FloatVectorCodec.decode(bytes), embeddingDimension)
         } ?: false
     face.right > face.left && face.bottom > face.top && validEmbedding
 }
@@ -1130,14 +1142,18 @@ class FaceIndexPhaseProcessor @Inject constructor(
 ) : MediaPhaseProcessor(repository, database) {
     override val phase = SmartScanPhase.FACE_INDEX
     override val revision: String
-        get() = "face-v3:${modelManager.processorRevision(ModelGroup.FACE_DETECT)}:" +
-            modelManager.processorRevision(ModelGroup.FACE_RECOGNITION)
+        get() = faceIndexRevision(
+            modelManager.activeFaceModel,
+            modelManager.processorRevision(ModelGroup.FACE_DETECT),
+            modelManager.processorRevision(ModelGroup.FACE_RECOGNITION),
+        )
 
     override suspend fun process(context: SmartScanPhaseContext): SmartScanPhaseResult {
         if (!BuildConfig.ENABLE_INDEXING) return SmartScanPhaseResult.Blocked("indexing_disabled")
-        if (!modelManager.isReady(ModelGroup.FACE_DETECT) ||
-            !modelManager.isReady(ModelGroup.FACE_RECOGNITION)
-        ) return SmartScanPhaseResult.Blocked("face_model_unavailable")
+        if (!modelManager.isReady(modelManager.activeFaceModel)) {
+            return SmartScanPhaseResult.Blocked("face_model_unavailable")
+        }
+        val embeddingDimension = modelManager.activeFaceModel.embeddingDimension
         val scanDao = database.getSmartScanDao()
         faceDao.deleteOrphans()
         faceDao.deleteOrphanExclusions()
@@ -1171,7 +1187,7 @@ class FaceIndexPhaseProcessor @Inject constructor(
                 } else {
                     emptyList()
                 }
-                if (!context.fullRefresh && canAdoptExistingFaceResults(existing, item.timestamp, revision)) {
+                if (!context.fullRefresh && canAdoptExistingFaceResults(existing, item.timestamp, revision, embeddingDimension)) {
                     database.withWriteTransaction {
                         check(faceDao.updateResultRevision(item.id, revision) == existing.size)
                         scanDao.upsertFeatureState(
@@ -1246,7 +1262,7 @@ class FaceIndexPhaseProcessor @Inject constructor(
                         } else {
                             faces.map { face ->
                                 val embedding = requireNotNull(helper.embed(bitmap, face.rectF))
-                                check(isValidEmbeddingVector(embedding, FACE_EMBEDDING_DIMENSION))
+                                check(isValidEmbeddingVector(embedding, embeddingDimension))
                                 DetectedFaceEntity(
                                     mediaId = item.id,
                                     personId = null,

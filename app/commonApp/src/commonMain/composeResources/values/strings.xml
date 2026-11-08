@@ -2081,6 +2081,12 @@
     <string name="cloud_memories_empty_summary">Memories from past years will appear here</string>
     <string name="cloud_memories_memory">Memory</string>
     <string name="cloud_memories_years_ago">On this day, %1$d years ago</string>
+    <string name="cloud_memories_on_this_day">On this day</string>
+    <string name="cloud_memories_earlier">Earlier memories</string>
+    <plurals name="cloud_memories_years_ago_count">
+        <item quantity="one">%1$d year ago</item>
+        <item quantity="other">%1$d years ago</item>
+    </plurals>
     <!-- Notifications -->
     <string name="cloud_notifications">Notifications</string>
     <string name="cloud_notif_background_backup">Background backup</string>

@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.core.logging.printInfo
+import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.core.logging.printWarning
 import com.dot.gallery.core.logging.printDebug
 import com.dot.gallery.core.AppIdentity
@@ -60,6 +61,19 @@ fun installBundledModel(
     } finally {
         tempFile.delete()
     }
+}
+
+/**
+ * Whether this APK packages the complete model set as assets. The WithML flavour adds the model
+ * pack to its asset dirs, so this reads the installed APK rather than trusting the
+ * `ML_MODELS_BUNDLED` build flag; a partial pack reports false and keeps the download path open.
+ */
+fun Context.hasBundledModelAssets(): Boolean {
+    val packaged = runCatching { assets.list("")?.toSet().orEmpty() }.getOrElse {
+        printWarn("ml.models", "Could not list APK assets", mapOf("error" to it.toString()))
+        emptySet()
+    }
+    return ModelManager.REQUIRED_FILES.all { it in packaged }
 }
 
 private fun File.sha256(): String {
@@ -161,6 +175,33 @@ class ModelManager @Inject constructor(
     fun activeSearchModelStatus(): Flow<ModelStatus> =
         activeSearchModelFlow.flatMapLatest { status(it.group) }
 
+    /**
+     * The face grouping tier selected in the Intelligence Hub, cached like [activeSearchModel]
+     * so the scan processors can build their revisions synchronously.
+     */
+    private val _activeFaceModel = MutableStateFlow(FaceModel.DEFAULT)
+    val activeFaceModelFlow: StateFlow<FaceModel> = _activeFaceModel.asStateFlow()
+    val activeFaceModel: FaceModel get() = _activeFaceModel.value
+
+    /**
+     * Persist + apply a face tier. Unpublished tiers are refused. Callers schedule a PERSONS
+     * scan: the tier is part of the face revisions, so every face is processed again.
+     */
+    suspend fun setActiveFaceModel(model: FaceModel): Boolean {
+        if (!model.isAvailable) {
+            printWarning("ModelManager: face model ${model.name} has no published models yet")
+            return false
+        }
+        if (model == _activeFaceModel.value) return false
+        Settings.SmartFeatures.setFaceModel(context, model)
+        _activeFaceModel.value = model
+        printInfo("ModelManager: active face model switched to ${model.name}")
+        return true
+    }
+
+    /** Whether every model group of [model] is installed. */
+    fun isReady(model: FaceModel): Boolean = model.isAvailable && model.groups.all(::isReady)
+
     fun isReady(model: SearchModel): Boolean = isReady(model.group)
     fun status(model: SearchModel): StateFlow<ModelStatus> = status(model.group)
     fun processorRevision(model: SearchModel): String = processorRevision(model.group)
@@ -169,7 +210,7 @@ class ModelManager @Inject constructor(
     /**
      * Initialize models on app start.
      * For withML builds: copies bundled assets to filesDir if not already present, unless the
-     * user explicitly deleted the group (its removal is persisted — issue #1229).
+     * user explicitly deleted the group (its removal is persisted — ).
      * For noML builds: checks if models have been previously downloaded.
      */
     suspend fun initializeModels() = mutex.withLock {
@@ -186,6 +227,12 @@ class ModelManager @Inject constructor(
                 printWarning("ModelManager: failed to read search model pref: ${it.message}")
                 SearchModel.DEFAULT
             }
+            _activeFaceModel.value = runCatching {
+                Settings.SmartFeatures.faceModel(context).first()
+            }.getOrElse {
+                printWarning("ModelManager: failed to read face model pref: ${it.message}")
+                FaceModel.DEFAULT
+            }
             if (AppIdentity.mlModelsBundled) {
                 ModelGroup.entries.forEach { group ->
                     if (group !in removedGroups && !checkModelsPresent(group)) {
@@ -200,7 +247,7 @@ class ModelManager @Inject constructor(
     private fun initializeGroup(group: ModelGroup, removedGroups: Set<ModelGroup>) {
         if (group in removedGroups) {
             // The user deleted this group — finish any interrupted delete and stay uninstalled
-            // instead of silently restoring the bundled copies (issue #1229).
+            // instead of silently restoring the bundled copies.
             File(modelsDir, group.subDir).deleteRecursively()
             fileInfoCache.remove(group)
             modelValidationCache.remove(group)
@@ -307,7 +354,7 @@ class ModelManager @Inject constructor(
 
     /**
      * Delete all downloaded/copied model files and persist the removal so the group is not
-     * silently restored on the next launch (issue #1229). Re-install stays possible via
+     * silently restored on the next launch. Re-install stays possible via
      * [installBundledModels] (withML) or a network download (INTERNET builds), so deletion
      * is only offered when [canInstallModels] is true.
      */

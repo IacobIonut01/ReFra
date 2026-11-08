@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -171,7 +172,6 @@ fun PersonDetailScreen(
 
     MediaScreen(
         albumName = personName,
-        customDateHeader = stringResource(Res.string.cloud_person_photo_count, mediaState.value.media.size),
         mediaState = mediaState,
         metadataState = metadataState,
         target = "person_${state.person?.id}",
@@ -187,7 +187,8 @@ fun PersonDetailScreen(
             }
         },
         mediaViewerRoute = Screen.MediaViewScreen.route,
-        navActionsContent = { },
+        // The person header carries the name; the bar takes it over once it scrolls away.
+        detailHeader = true,
         selectionSheetContent = { allMedia, selectedMediaList ->
             if (viewModel.isLocalPerson) {
                 val selector = LocalMediaSelector.current
@@ -451,7 +452,7 @@ fun PersonDetailScreen(
     }
 
     // Delete the whole person group — photos are kept; faces are suppressed so
-    // re-grouping can't resurrect it (#1262).
+    // re-grouping can't resurrect it.
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -560,24 +561,31 @@ private fun PersonActionChip(
     label: String,
     destructive: Boolean = false
 ) {
-    SuggestionChip(
+    // 48 dp tonal pills, like the Library shortcut tiles; destructive actions use the error container.
+    Surface(
         onClick = onClick,
-        label = { Text(label) },
-        icon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-        colors = if (destructive) {
-            SuggestionChipDefaults.suggestionChipColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                labelColor = MaterialTheme.colorScheme.onErrorContainer,
-                iconContentColor = MaterialTheme.colorScheme.onErrorContainer
+        shape = RoundedCornerShape(24.dp),
+        color = if (destructive) MaterialTheme.colorScheme.errorContainer
+            else MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = if (destructive) MaterialTheme.colorScheme.onErrorContainer
+            else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.heightIn(min = 48.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 14.dp, end = 18.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = if (destructive) MaterialTheme.colorScheme.onErrorContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant
             )
-        } else {
-            SuggestionChipDefaults.suggestionChipColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                labelColor = MaterialTheme.colorScheme.onSurface,
-                iconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = label, style = MaterialTheme.typography.labelLarge)
         }
-    )
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -608,8 +616,8 @@ fun PersonHeaderContent(
         // Avatar — tappable cover picker for on-device people, with an edit badge.
         Box(contentAlignment = Alignment.BottomEnd) {
             val avatarModifier = Modifier
-                .size(112.dp)
-                .clip(CircleShape)
+                .size(120.dp)
+                .clip(RoundedCornerShape(40.dp))
                 .let { base ->
                     if (isLocalPerson) base.clickable(onClick = onSetCoverClick) else base
                 }
@@ -665,12 +673,12 @@ fun PersonHeaderContent(
             Text(
                 text = state.person?.name?.ifBlank { stringResource(Res.string.cloud_person_add_name) }
                     ?: stringResource(Res.string.cloud_person_add_name),
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineMedium
             )
             Icon(
                 Icons.Outlined.Edit,
                 contentDescription = stringResource(Res.string.cloud_person_edit_name),
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -689,14 +697,14 @@ fun PersonHeaderContent(
                         countText, dateRange.first, dateRange.second
                     )
                 },
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Hidden state — a tonal banner with a direct way back, since a hidden
-        // person is otherwise invisible everywhere in the app (#1262).
+        // person is otherwise invisible everywhere in the app.
         if (state.person?.hidden == true) {
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -826,7 +834,8 @@ private fun PersonFaceStrip(
     ) {
         Text(
             text = stringResource(Res.string.person_faces_section),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 24.dp)
         )
         Text(
@@ -845,7 +854,7 @@ private fun PersonFaceStrip(
                     contentDescription = null,
                     modifier = Modifier
                         .size(72.dp)
-                        .clip(MaterialTheme.shapes.medium)
+                        .clip(RoundedCornerShape(20.dp))
                         .combinedClickable(
                             onClick = {},
                             onLongClick = { confirmRemoval = face }
@@ -900,7 +909,8 @@ private fun SimilarPeopleRow(
     ) {
         Text(
             text = stringResource(Res.string.person_similar_people),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 24.dp)
         )
         Text(
