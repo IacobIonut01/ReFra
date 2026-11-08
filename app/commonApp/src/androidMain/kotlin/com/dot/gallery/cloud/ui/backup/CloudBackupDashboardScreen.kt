@@ -20,7 +20,8 @@ fun CloudBackupDashboardScreen(
     onNavigateToUploadDetails: () -> Unit,
     onNavigateToAccounts: () -> Unit,
     onNavigateToDestinations: () -> Unit = {},
-    onNavigateToOffline: () -> Unit = {}
+    onNavigateToOffline: () -> Unit = {},
+    onNavigateToFreeUpSpace: () -> Unit = {}
 ) {
     val backupViewModel = injectViewModel<CloudBackupViewModel> {cloudBackupViewModel}
     val state by backupViewModel.uiState.collectAsStateWithLifecycle()
@@ -50,5 +51,6 @@ fun CloudBackupDashboardScreen(
         onNavigateToAccounts = onNavigateToAccounts,
         onNavigateToDestinations = onNavigateToDestinations,
         onNavigateToOffline = onNavigateToOffline,
+        onNavigateToFreeUpSpace = onNavigateToFreeUpSpace,
     )
 }

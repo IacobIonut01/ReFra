@@ -9,239 +9,98 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.Collections
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.PhotoAlbum
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.backup.BackupContents
 import com.dot.gallery.core.backup.BackupSection
-import com.dot.gallery.core.backup.BackupSelection
 import com.dot.gallery.core.backup.SectionProgress
-import com.dot.gallery.core.presentation.components.NavigationBackButton
-import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.ui.components.SettingsItem
+import com.dot.gallery.core.ui.components.SummaryCard
+import com.dot.gallery.core.ui.components.WizardAction
+import com.dot.gallery.core.ui.components.WizardScaffold
 import com.dot.gallery.core.ui.components.rememberSwitchPreference
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
+import com.dot.gallery.core.ui.components.settingsContentWidth
 import com.dot.gallery.feature.settings.generated.resources.Res
 import com.dot.gallery.feature.settings.generated.resources.backup_done
-import com.dot.gallery.feature.settings.generated.resources.backup_empty
-import com.dot.gallery.feature.settings.generated.resources.backup_import_password_desc
-import com.dot.gallery.feature.settings.generated.resources.backup_import_password_title
+import com.dot.gallery.feature.settings.generated.resources.backup_include_albums
+import com.dot.gallery.feature.settings.generated.resources.backup_include_albums_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_categories
+import com.dot.gallery.feature.settings.generated.resources.backup_include_categories_summary
 import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_configs
 import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_configs_summary
 import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_favorites
 import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_favorites_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_prefs
+import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_prefs_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_collections
+import com.dot.gallery.feature.settings.generated.resources.backup_include_collections_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_device_ui
+import com.dot.gallery.feature.settings.generated.resources.backup_include_device_ui_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_edit_backups
+import com.dot.gallery.feature.settings.generated.resources.backup_include_edit_backups_summary
 import com.dot.gallery.feature.settings.generated.resources.backup_include_local_favorites
 import com.dot.gallery.feature.settings.generated.resources.backup_include_local_favorites_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_metadata
+import com.dot.gallery.feature.settings.generated.resources.backup_include_metadata_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_people
+import com.dot.gallery.feature.settings.generated.resources.backup_include_people_summary
+import com.dot.gallery.feature.settings.generated.resources.backup_include_search_history
+import com.dot.gallery.feature.settings.generated.resources.backup_include_search_history_summary
 import com.dot.gallery.feature.settings.generated.resources.backup_include_settings
 import com.dot.gallery.feature.settings.generated.resources.backup_include_settings_summary
 import com.dot.gallery.feature.settings.generated.resources.backup_include_vaults
 import com.dot.gallery.feature.settings.generated.resources.backup_include_vaults_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_albums
-import com.dot.gallery.feature.settings.generated.resources.backup_include_albums_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_collections
-import com.dot.gallery.feature.settings.generated.resources.backup_include_collections_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_categories
-import com.dot.gallery.feature.settings.generated.resources.backup_include_categories_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_metadata
-import com.dot.gallery.feature.settings.generated.resources.backup_include_metadata_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_search_history
-import com.dot.gallery.feature.settings.generated.resources.backup_include_search_history_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_people
-import com.dot.gallery.feature.settings.generated.resources.backup_include_people_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_prefs
-import com.dot.gallery.feature.settings.generated.resources.backup_include_cloud_prefs_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_edit_backups
-import com.dot.gallery.feature.settings.generated.resources.backup_include_edit_backups_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_include_device_ui
-import com.dot.gallery.feature.settings.generated.resources.backup_include_device_ui_summary
-import com.dot.gallery.feature.settings.generated.resources.backup_preview_encrypted
-import com.dot.gallery.feature.settings.generated.resources.backup_preview_plain
-import com.dot.gallery.feature.settings.generated.resources.backup_preview_credentials
-import com.dot.gallery.feature.settings.generated.resources.backup_preview_no_credentials
-import com.dot.gallery.feature.settings.generated.resources.backup_confirm_merge_note
 import com.dot.gallery.feature.settings.generated.resources.backup_items_count
-import com.dot.gallery.feature.settings.generated.resources.backup_made_with_version
-import com.dot.gallery.feature.settings.generated.resources.backup_password
-import com.dot.gallery.feature.settings.generated.resources.backup_restore
-import com.dot.gallery.feature.settings.generated.resources.backup_restore_header
-import com.dot.gallery.feature.settings.generated.resources.backup_show_password
 import com.dot.gallery.feature.settings.generated.resources.backup_vaults_value
-import com.dot.gallery.feature.settings.generated.resources.backup_warning
-import com.dot.gallery.feature.settings.generated.resources.backup_wrong_password
-import com.dot.gallery.feature.settings.generated.resources.ok
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 // =================================================================================================
-// Shared components — used by both the export and import wizards.
+// Shared pieces of the Create backup and Restore wizards.
 // =================================================================================================
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BackupWizardScaffold(
-    title: String,
-    content: @Composable (PaddingValues) -> Unit
-) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(title) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        },
-        content = content
-    )
+private fun positionIn(index: Int, count: Int): Position = when {
+    count == 1 -> Position.Alone
+    index == 0 -> Position.Top
+    index == count - 1 -> Position.Bottom
+    else -> Position.Middle
 }
 
-@Composable
-fun BackupCenteredMessage(
-    padding: PaddingValues,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.widthIn(max = 480.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) { content() }
-    }
-}
-
-/** Maximum content width used to keep the wizard readable on tablets and unfolded foldables. */
-private val BACKUP_CONTENT_MAX_WIDTH = 640.dp
-
-/**
- * Scrolling content container shared by the wizard steps. Applies the scaffold insets and a
- * horizontal padding, and constrains the content to an adaptive max width that stays centered
- * on large windows (tablets, unfolded foldables) while filling the width on phones.
- */
-@Composable
-fun BackupScrollColumn(
-    padding: PaddingValues,
-    verticalSpacing: Dp = 12.dp,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(
-                top = padding.calculateTopPadding(),
-                bottom = padding.calculateBottomPadding()
-            ),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .widthIn(max = BACKUP_CONTENT_MAX_WIDTH)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(verticalSpacing),
-            content = content
-        )
-    }
-}
-
-/** Primary wizard action, rendered with the shared [SetupButton] for app-wide consistency. */
-@Composable
-fun BackupPrimaryButton(
-    text: String,
-    onClick: () -> Unit,
-    enabled: Boolean = true
-) {
-    SetupButton(
-        text = text,
-        onClick = onClick,
-        enabled = enabled,
-        applyHorizontalPadding = false,
-        applyBottomPadding = false,
-        applyInsets = false
-    )
-}
-
-/** Secondary wizard action (e.g. Back), styled to match [SetupButton] but tonal. */
-@Composable
-fun BackupSecondaryButton(
-    text: String,
-    onClick: () -> Unit,
-    enabled: Boolean = true
-) {
-    SetupButton(
-        text = text,
-        onClick = onClick,
-        enabled = enabled,
-        applyHorizontalPadding = false,
-        applyBottomPadding = false,
-        applyInsets = false,
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-    )
-}
-
-/**
- * Renders a group of [BackupSection] toggles using the shared Settings DSL ([SettingsItem] +
- * [rememberSwitchPreference]) so the cards match the rest of the settings UI. Corner positions
- * are assigned manually since this is laid out in a scrolling Column rather than a LazyColumn.
- */
+/** A grouped list of section switches, each with its Outlined icon. */
 @Composable
 fun BackupSectionList(
     sections: List<BackupSection>,
@@ -252,36 +111,26 @@ fun BackupSectionList(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         if (headerTitle != null) {
-            SettingsItem(
-                item = SettingsEntity.Header(title = headerTitle),
-                applyPaddings = false
-            )
+            SettingsItem(item = SettingsEntity.Header(title = headerTitle))
         }
         sections.forEachIndexed { index, section ->
-            val position = when {
-                sections.size == 1 -> Position.Alone
-                index == 0 -> Position.Top
-                index == sections.lastIndex -> Position.Bottom
-                else -> Position.Middle
-            }
+            val position = positionIn(index, sections.size)
             val summary = summaryFor(section)
             val pref = rememberSwitchPreference(
                 section, isSelected(section), summary, position,
                 title = stringResource(section.titleRes()),
+                icon = section.icon(),
                 summary = summary,
                 isChecked = isSelected(section),
                 onCheck = { onToggle(section, it) },
                 screenPosition = position
             )
-            SettingsItem(item = pref, applyPaddings = false)
+            SettingsItem(item = pref)
         }
     }
 }
 
-/**
- * Renders a group of individually-selectable rows (used for picking specific vaults) with the
- * same Settings DSL styling as [BackupSectionList]. [items] are (id, title, summary) triples.
- */
+/** Individually selectable vaults, as (id, title, summary) triples, under [headerTitle]. */
 @Composable
 fun BackupToggleList(
     items: List<Triple<String, String, String?>>,
@@ -290,84 +139,94 @@ fun BackupToggleList(
     headerTitle: String
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        SettingsItem(
-            item = SettingsEntity.Header(title = headerTitle),
-            applyPaddings = false
-        )
+        SettingsItem(item = SettingsEntity.Header(title = headerTitle))
         items.forEachIndexed { index, (id, title, summary) ->
-            val position = when {
-                items.size == 1 -> Position.Alone
-                index == 0 -> Position.Top
-                index == items.lastIndex -> Position.Bottom
-                else -> Position.Middle
-            }
+            val position = positionIn(index, items.size)
             val checked = isSelected(id)
             val pref = rememberSwitchPreference(
                 id, checked, summary, position,
                 title = title,
+                icon = Icons.Outlined.Lock,
                 summary = summary,
                 isChecked = checked,
                 onCheck = { onToggle(id, it) },
                 screenPosition = position
             )
-            SettingsItem(item = pref, applyPaddings = false)
+            SettingsItem(item = pref)
         }
     }
 }
 
+/** A quiet icon + 12 sp line inside a wizard body (one per step). */
 @Composable
-fun BackupProgressContent(
-    padding: PaddingValues,
-    sections: List<BackupSection>,
-    progress: Map<BackupSection, SectionProgress>,
-    header: String
-) {
-    BackupScrollColumn(padding) {
-        Spacer(Modifier.height(4.dp))
-        Text(text = header, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        sections.forEach { section ->
-            BackupSectionProgressCard(section, progress[section])
-        }
-        Spacer(Modifier.height(16.dp))
-    }
-}
-
-@Composable
-private fun BackupSectionProgressCard(
-    section: BackupSection,
-    progress: SectionProgress?
-) {
-    val done = progress?.done == true
+fun BackupNote(icon: ImageVector, text: String) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(14.dp),
+            .settingsContentWidth()
+            .padding(start = 8.dp, end = 8.dp, top = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** Running export or restore: one row per section with its progress. */
+@Composable
+fun BackupProgressScreen(
+    title: String,
+    sections: List<BackupSection>,
+    progress: Map<BackupSection, SectionProgress>,
+    header: String,
+) {
+    WizardScaffold(title = title, heading = header) {
+        sections.forEachIndexed { index, section ->
+            BackupSectionProgressRow(section, progress[section], positionIn(index, sections.size))
+        }
+    }
+}
+
+@Composable
+private fun BackupSectionProgressRow(
+    section: BackupSection,
+    progress: SectionProgress?,
+    position: Position,
+) {
+    val done = progress?.done == true
+    val shape = when (position) {
+        Position.Alone -> RoundedCornerShape(24.dp)
+        Position.Top -> RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp)
+        Position.Middle -> RoundedCornerShape(8.dp)
+        Position.Bottom -> RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp)
+    }
+    Row(
+        modifier = Modifier
+            .settingsContentWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
-            when {
-                done -> Icon(
-                    Icons.Outlined.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-                else -> CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+            if (done) {
+                Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            } else {
+                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
             }
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(section.titleRes()),
-                style = MaterialTheme.typography.titleSmall
-            )
+            Text(text = stringResource(section.titleRes()), style = MaterialTheme.typography.titleSmall)
             if (!done && progress != null && progress.total > 0) {
-                Spacer(Modifier.height(6.dp))
                 LinearProgressIndicator(
                     progress = { progress.current.toFloat() / progress.total.toFloat() },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 6.dp)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
                 )
                 Text(
                     text = "${progress.current} / ${progress.total}",
@@ -379,214 +238,38 @@ private fun BackupSectionProgressCard(
     }
 }
 
+/** Finished or failed export / restore: a result card with per-section counts. */
 @Composable
-fun BackupStatusContent(
-    padding: PaddingValues,
-    success: Boolean,
+fun BackupStatusScreen(
     title: String,
+    success: Boolean,
+    heading: String,
     rows: List<Pair<String, String>>,
     note: String?,
     onDone: () -> Unit,
-    doneLabel: String? = null
+    doneLabel: String? = null,
 ) {
-    // Use a neutral surface with onSurface text for strong, theme-consistent contrast;
-    // the success/error state is conveyed by the accent-tinted icon and title only.
-    val container = MaterialTheme.colorScheme.surfaceContainerHigh
-    val onContainer = MaterialTheme.colorScheme.onSurface
-    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val tint = if (success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-    val icon: ImageVector = if (success) Icons.Outlined.CheckCircle else Icons.Outlined.ErrorOutline
-
-    BackupScrollColumn(padding, verticalSpacing = 16.dp) {
-        Spacer(Modifier.height(8.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .background(container)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+    WizardScaffold(
+        title = title,
+        primary = WizardAction(doneLabel ?: stringResource(Res.string.backup_done), onDone),
+    ) {
+        SummaryCard(
+            icon = if (success) Icons.Outlined.CheckCircle else Icons.Outlined.ErrorOutline,
+            title = heading,
+            body = null,
+            containerColor = if (success) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.errorContainer,
+            contentColor = if (success) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.onErrorContainer,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = onContainer
-                )
-            }
             rows.forEach { (label, value) ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(label, style = MaterialTheme.typography.bodyMedium, color = labelColor)
-                    Text(
-                        value,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = onContainer
-                    )
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                    Text(value, style = MaterialTheme.typography.titleSmall)
                 }
             }
-            note?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = labelColor)
-            }
         }
-        BackupPrimaryButton(
-            text = doneLabel ?: stringResource(Res.string.backup_done),
-            onClick = onDone
-        )
-        Spacer(Modifier.height(16.dp))
-    }
-}
-
-// ----- Import steps (shared, param-driven) -------------------------------------------------------
-
-@Composable
-fun ImportPasswordContent(
-    padding: PaddingValues,
-    wrongPassword: Boolean,
-    onSubmit: (String) -> Unit
-) {
-    var password by rememberSaveable { mutableStateOf("") }
-    var showPassword by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(wrongPassword) { if (wrongPassword) password = "" }
-
-    BackupScrollColumn(padding) {
-        Spacer(Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Text(
-                text = stringResource(Res.string.backup_import_password_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-        Text(
-            text = stringResource(Res.string.backup_import_password_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(stringResource(Res.string.backup_password)) },
-            singleLine = true,
-            isError = wrongPassword,
-            supportingText = if (wrongPassword) {
-                { Text(stringResource(Res.string.backup_wrong_password)) }
-            } else null,
-            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = showPassword, onCheckedChange = { showPassword = it })
-            Text(stringResource(Res.string.backup_show_password), modifier = Modifier.padding(start = 4.dp))
-        }
-        BackupPrimaryButton(
-            text = stringResource(Res.string.ok),
-            enabled = password.isNotBlank(),
-            onClick = { onSubmit(password) }
-        )
-        Spacer(Modifier.height(16.dp))
-    }
-}
-
-@Composable
-fun ImportSelectContent(
-    padding: PaddingValues,
-    sections: List<BackupSection>,
-    contents: BackupContents,
-    selection: BackupSelection,
-    onToggle: (BackupSection, Boolean) -> Unit,
-    onToggleVault: (String, Boolean) -> Unit,
-    onRestore: () -> Unit
-) {
-    val anySelected = sections.any { selection.isOn(it) } &&
-        (!selection.vaults || sections.any { it != BackupSection.VAULTS && selection.isOn(it) } ||
-            contents.vaults.any { selection.isVaultSelected(it.uuid) })
-    BackupScrollColumn(padding) {
-        Spacer(Modifier.height(4.dp))
-        if (contents.appVersionName.isNotBlank()) {
-            Text(
-                text = stringResource(Res.string.backup_made_with_version, contents.appVersionName),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-        }
-        Text(
-            text = stringResource(
-                if (contents.encrypted) Res.string.backup_preview_encrypted
-                else Res.string.backup_preview_plain
-            ),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        if (contents.has(BackupSection.VAULTS)) {
-            Text(
-                text = stringResource(
-                    if (contents.credentialIncluded) Res.string.backup_preview_credentials
-                    else Res.string.backup_preview_no_credentials
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-        }
-        Text(
-            text = stringResource(Res.string.backup_confirm_merge_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        if (sections.isEmpty()) {
-            Text(
-                text = stringResource(Res.string.backup_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            BackupSectionList(
-                sections = sections,
-                isSelected = { selection.isOn(it) },
-                onToggle = onToggle,
-                headerTitle = stringResource(Res.string.backup_restore_header),
-                summaryFor = { contents.countLabel(it) }
-            )
-            if (selection.vaults && contents.vaults.isNotEmpty()) {
-                BackupToggleList(
-                    items = contents.vaults.map {
-                        Triple(
-                            it.uuid,
-                            it.name,
-                            stringResource(Res.string.backup_items_count, it.mediaCount)
-                        )
-                    },
-                    isSelected = { selection.isVaultSelected(it) },
-                    onToggle = onToggleVault,
-                    headerTitle = stringResource(Res.string.backup_include_vaults)
-                )
-            }
-        }
-        BackupNoticeCard(
-            icon = Icons.Outlined.Shield,
-            text = stringResource(Res.string.backup_warning)
-        )
-        BackupPrimaryButton(
-            text = stringResource(Res.string.backup_restore),
-            enabled = anySelected,
-            onClick = onRestore
-        )
-        Spacer(Modifier.height(16.dp))
+        note?.let { BackupNote(icon = Icons.Outlined.ErrorOutline, text = it) }
     }
 }
 
@@ -624,6 +307,24 @@ fun BackupSection.summaryRes(): StringResource = when (this) {
     BackupSection.CLOUD_PREFS -> Res.string.backup_include_cloud_prefs_summary
     BackupSection.EDIT_BACKUPS -> Res.string.backup_include_edit_backups_summary
     BackupSection.DEVICE_UI -> Res.string.backup_include_device_ui_summary
+}
+
+/** The Outlined icon of a section's row. */
+fun BackupSection.icon(): ImageVector = when (this) {
+    BackupSection.SETTINGS -> Icons.Outlined.Settings
+    BackupSection.LOCAL_FAVORITES -> Icons.Outlined.StarOutline
+    BackupSection.CLOUD_FAVORITES -> Icons.Outlined.Cloud
+    BackupSection.CLOUD_CONFIGS -> Icons.Outlined.Dns
+    BackupSection.VAULTS -> Icons.Outlined.Lock
+    BackupSection.ALBUMS -> Icons.Outlined.PhotoAlbum
+    BackupSection.COLLECTIONS -> Icons.Outlined.Collections
+    BackupSection.CATEGORIES -> Icons.Outlined.Category
+    BackupSection.METADATA -> Icons.Outlined.Place
+    BackupSection.SEARCH_HISTORY -> Icons.AutoMirrored.Outlined.ManageSearch
+    BackupSection.PEOPLE -> Icons.Outlined.Face
+    BackupSection.CLOUD_PREFS -> Icons.Outlined.Tune
+    BackupSection.EDIT_BACKUPS -> Icons.Outlined.History
+    BackupSection.DEVICE_UI -> Icons.Outlined.Dashboard
 }
 
 @Composable

@@ -64,6 +64,8 @@ fun CloudArchiveScreen(
         allMedia: MediaState<UriMedia>,
         selectedMediaList: androidx.compose.runtime.snapshots.SnapshotStateList<UriMedia>,
     ) -> Unit)? = null,
+    /** Docs seam: opens the grid scrolled to this item. */
+    initialFirstVisibleItemIndex: Int = 0,
 ) {
     val cloudArchiveGroupByDate by rememberCloudArchiveGroupByDate()
     val cloudArchiveGroupMethod by rememberCloudArchiveGroupMethod()
@@ -75,10 +77,9 @@ fun CloudArchiveScreen(
         mediaState = mediaState,
         metadataState = metadataState,
         allowHeaders = cloudArchiveGroupByDate,
-        enableStickyHeaders = cloudArchiveGroupByDate,
         groupMethod = if (cloudArchiveGroupByDate) cloudArchiveGroupMethod else Settings.Misc.GROUP_NORMAL,
         mediaViewerRoute = Screen.MediaViewScreen.route,
-        navActionsContent = { },
+        initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
         selectionSheetContent = selectionContent ?: { allMedia, selectedMediaList ->
             SelectionSheet(
                 modifier = Modifier.align(Alignment.BottomEnd),

@@ -5,6 +5,7 @@
 
 package com.dot.gallery.app.presentation.settings.subsettings
 
+import com.dot.gallery.core.backup.BackupSection
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dot.gallery.core.backup.BackupJobController
@@ -50,6 +51,9 @@ class BackupHubViewModel @Inject constructor(
         BackupHubState(
             lastExportLabel = partial.lastExport?.let { formatDate(it.updatedAt) },
             lastExportSize = partial.lastExport?.let { formatBytes(it.payloadBytes) },
+            lastExportSections = partial.lastExport?.let { export ->
+                BackupSection.entries.count { export.selection.isOn(it) }
+            },
             lastRestoreLabel = partial.lastRestore?.let { formatDate(it.updatedAt) },
             lastRestoreResult = partial.lastRestore?.let { restoreSummary(it) },
             healthCheckedLabel = partial.report?.checkedAt?.takeIf { it > 0 }?.let(::formatDate),

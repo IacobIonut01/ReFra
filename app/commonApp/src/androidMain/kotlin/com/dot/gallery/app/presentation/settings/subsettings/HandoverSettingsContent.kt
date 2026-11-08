@@ -5,7 +5,10 @@
 
 package com.dot.gallery.app.presentation.settings.subsettings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -14,19 +17,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudDone
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -36,12 +40,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.cloud.ui.WifiSsidPickerSheet
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.ui.components.settings
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.generated.resources.Res
@@ -80,8 +86,10 @@ import com.dot.gallery.generated.resources.handover_sink_both
 import com.dot.gallery.generated.resources.handover_sink_client
 import com.dot.gallery.generated.resources.handover_sink_pick
 import com.dot.gallery.generated.resources.handover_sink_server
+import com.dot.gallery.generated.resources.handover_status_connected_title
 import com.dot.gallery.generated.resources.handover_status_down
 import com.dot.gallery.generated.resources.handover_status_ok
+import com.dot.gallery.generated.resources.handover_status_unreachable_title
 import com.dot.gallery.generated.resources.handover_test
 import com.dot.gallery.generated.resources.handover_testing
 import com.dot.gallery.generated.resources.handover_title
@@ -94,6 +102,11 @@ import com.dot.gallery.handover.HandoverEnvelope
 import com.dot.gallery.handover.HandoverInfo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 /** Snapshot of everything the screen renders — no ViewModel, no DataStore. */
 @Stable
@@ -137,8 +150,7 @@ fun HandoverSettingsContent(
     state: HandoverSettingsState,
     actions: HandoverSettingsActions = HandoverSettingsActions(),
 ) {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
     val wifiSheetState = rememberAppBottomSheetState()
@@ -154,14 +166,14 @@ fun HandoverSettingsContent(
 
     // Strings resolved outside the non-composable settings{} DSL.
     val notConfigured = stringResource(Res.string.handover_not_configured)
-    val statusSummary = when {
-        !state.enabled -> ""
-        state.status != null -> stringResource(
-            Res.string.handover_status_ok,
-            state.status.engines.size,
-            state.status.principal
-        )
-        else -> stringResource(Res.string.handover_status_down)
+    val statusTitle = stringResource(
+        if (state.status != null) Res.string.handover_status_connected_title
+        else Res.string.handover_status_unreachable_title
+    )
+    val statusSummary = if (state.status != null) {
+        stringResource(Res.string.handover_status_ok, state.status.engines.size, state.status.principal)
+    } else {
+        stringResource(Res.string.handover_status_down)
     }
     val serverUrlTitle = stringResource(Res.string.handover_server_url)
     val secretTitle = stringResource(Res.string.handover_secret)
@@ -186,15 +198,11 @@ fun HandoverSettingsContent(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.handover_title)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(Res.string.handover_title),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { padding ->
@@ -217,7 +225,8 @@ fun HandoverSettingsContent(
         val authModeTitle = stringResource(Res.string.handover_auth_mode)
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             contentPadding = PaddingValues(
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),
                 end = padding.calculateEndPadding(LocalLayoutDirection.current),
@@ -225,10 +234,21 @@ fun HandoverSettingsContent(
                 bottom = padding.calculateBottomPadding()
             )
         ) {
+            if (state.enabled) {
+                item(key = "status") {
+                    HandoverStatusCard(
+                        connected = state.status != null,
+                        title = statusTitle,
+                        body = statusSummary,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                    )
+                }
+            }
             settings {
                 SwitchPreference(
                     title = enableTitle,
-                    summary = statusSummary,
                     isChecked = state.enabled,
                     onCheck = actions.onEnabledChange
                 )
@@ -440,6 +460,50 @@ fun HandoverSettingsContent(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun HandoverStatusCard(
+    connected: Boolean,
+    title: String,
+    body: String,
+    modifier: Modifier = Modifier,
+) {
+    val container = if (connected) MaterialTheme.colorScheme.surfaceContainer
+    else MaterialTheme.colorScheme.errorContainer
+    val content = if (connected) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onErrorContainer
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(container)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            imageVector = if (connected) Icons.Outlined.CloudDone else Icons.Outlined.CloudOff,
+            contentDescription = null,
+            tint = if (connected) MaterialTheme.colorScheme.primary else content
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = content
+            )
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (connected) MaterialTheme.colorScheme.onSurfaceVariant else content
+            )
+        }
     }
 }
 

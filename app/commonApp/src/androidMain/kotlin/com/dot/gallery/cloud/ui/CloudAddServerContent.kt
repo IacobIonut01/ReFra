@@ -14,6 +14,43 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.layout.ContentScale
+import com.dot.gallery.cloud.ui.components.CloudNote
+import com.dot.gallery.cloud.ui.components.ProviderBadge
+import com.dot.gallery.cloud.ui.components.cloudContentWidth
+import com.dot.gallery.cloud.ui.components.positionOf
+import com.dot.gallery.core.Position
+import com.dot.gallery.core.SettingsEntity
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.ui.components.SettingsItem
+import com.github.panpf.sketch.AsyncImage
+import com.dot.gallery.generated.resources.cloud_add_provider
+import com.dot.gallery.generated.resources.cloud_api_key
+import com.dot.gallery.generated.resources.cloud_back
+import com.dot.gallery.generated.resources.cloud_connect
+import com.dot.gallery.generated.resources.cloud_wizard_review_note
+import com.dot.gallery.generated.resources.cloud_wizard_step_named
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -36,8 +73,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Visibility
@@ -46,34 +81,30 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.dot.gallery.cloud.core.auth.InteractiveAuthErrorKind
@@ -83,18 +114,13 @@ import com.dot.gallery.cloud.ui.descriptor.CredentialValues
 import com.dot.gallery.cloud.ui.descriptor.ProviderUiDescriptor
 import com.dot.gallery.cloud.ui.descriptor.ProviderUiDescriptors
 import com.dot.gallery.core.presentation.components.AppTextField
-import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.domain.model.Album
-import com.dot.gallery.feature.setup.ui.SetupWizardScaffold
-import com.dot.gallery.core.presentation.util.LocalHazeState
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.InetAddress
 import java.net.URI
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cancel
 import com.dot.gallery.generated.resources.cloud_credentials
@@ -107,7 +133,6 @@ import com.dot.gallery.generated.resources.cloud_net_auto_url
 import com.dot.gallery.generated.resources.cloud_net_auto_url_summary
 import com.dot.gallery.generated.resources.cloud_net_local_url
 import com.dot.gallery.generated.resources.cloud_net_local_url_hint
-import com.dot.gallery.generated.resources.cloud_net_ssid_optional
 import com.dot.gallery.generated.resources.cloud_net_wifi_blank_summary
 import com.dot.gallery.generated.resources.cloud_net_wifi_name
 import com.dot.gallery.generated.resources.cloud_network_share_lan_note
@@ -135,7 +160,6 @@ import com.dot.gallery.generated.resources.cloud_review_external_url
 import com.dot.gallery.generated.resources.cloud_review_folders
 import com.dot.gallery.generated.resources.cloud_review_local_url
 import com.dot.gallery.generated.resources.cloud_review_none
-import com.dot.gallery.generated.resources.cloud_review_provider
 import com.dot.gallery.generated.resources.cloud_save
 import com.dot.gallery.generated.resources.cloud_server_url
 import com.dot.gallery.generated.resources.cloud_setup_help
@@ -153,6 +177,9 @@ import com.dot.gallery.generated.resources.local_network_permission_dialog_messa
 import com.dot.gallery.generated.resources.local_network_permission_dialog_title
 import com.dot.gallery.generated.resources.local_network_permission_not_now
 import com.dot.gallery.generated.resources.setup_grant_permissions
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
 
 /**
  * The wizard's interactive surface, decoupled from [CloudAccountsViewModel]:
@@ -225,7 +252,7 @@ fun CloudAddServerContent(
     }
 
     // Warn once before proceeding with an unencrypted HTTP server URL. HTTP is allowed
-    // (self-hosted servers over trusted tunnels often use it) but the user must confirm (#990).
+    // (self-hosted servers over trusted tunnels often use it) but the user must confirm.
     val serverUrlTrimmed = state.serverUrl.trim()
     val isInsecureHttp = serverUrlTrimmed.startsWith("http://", ignoreCase = true)
     var httpAckUrl by rememberSaveable { mutableStateOf<String?>(null) }
@@ -268,35 +295,36 @@ fun CloudAddServerContent(
         )
     }
 
-    SetupWizardScaffold(
-        showBack = true,
-        onBack = goBack,
-        stepNumber = if (isEditMode) 0 else safeIndex + 1,
-        totalSteps = if (isEditMode) 0 else steps.size,
-        showProgress = !isEditMode,
+    CloudWizardScaffold(
         title = if (isEditMode) stringResource(Res.string.cloud_credentials)
-                else stringResource(step.titleRes),
-        subtitle = if (isEditMode) null else step.subtitleRes?.let { stringResource(it) },
+                else stringResource(Res.string.cloud_add_provider, descriptor.providerType.displayName),
+        stepIndex = safeIndex,
+        totalSteps = if (isEditMode) 0 else steps.size,
+        stepLabel = if (isEditMode) null else stringResource(
+            Res.string.cloud_wizard_step_named, safeIndex + 1, steps.size, stringResource(step.titleRes)
+        ),
+        headline = if (isEditMode) null else step.subtitleRes?.let { stringResource(it) },
+        onBack = goBack,
         bottomBar = {
             if (isEditMode) {
-                SetupButton(
+                Spacer(Modifier.weight(1f))
+                WizardPrimaryButton(
                     text = if (state.isSaving) stringResource(Res.string.cloud_save) + "…"
                            else stringResource(Res.string.cloud_save),
                     enabled = canSave,
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    applyNavigationPadding = false,
                     onClick = { guardHttp { actions.saveServer() } }
                 )
             } else {
+                TextButton(onClick = goBack, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(Res.string.cloud_back))
+                }
                 WizardBottomBar(
                     isLast = step == CloudSetupStep.REVIEW,
                     canAdvance = canAdvance,
                     isSaving = state.isSaving,
                     onNext = {
                         // Gate the first "Next" (leaving the server step) behind the HTTP warning
-                        // so the user is warned before continuing with an insecure URL (#990).
+                        // so the user is warned before continuing with an insecure URL.
                         guardHttp { stepIndex = (safeIndex + 1).coerceAtMost(steps.lastIndex) }
                     },
                     onSave = { guardHttp { actions.saveServer() } }
@@ -305,9 +333,7 @@ fun CloudAddServerContent(
         }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (isEditMode) {
@@ -346,7 +372,9 @@ fun CloudAddServerContent(
                             )
                             CloudSetupStep.NETWORKING -> NetworkingStep(state, actions)
                             CloudSetupStep.SYNC -> SyncStep(state, localAlbums, actions)
-                            CloudSetupStep.REVIEW -> ReviewStep(state, descriptor)
+                            CloudSetupStep.REVIEW -> ReviewStep(state, descriptor, onEdit = { target ->
+                                stepIndex = steps.indexOf(target).coerceAtLeast(0)
+                            })
                         }
                     }
                 }
@@ -371,31 +399,122 @@ private fun WizardBottomBar(
     onNext: () -> Unit,
     onSave: () -> Unit
 ) {
-    SetupButton(
+    WizardPrimaryButton(
         text = if (isLast) {
-            if (isSaving) stringResource(Res.string.cloud_save) + "…"
-            else stringResource(Res.string.cloud_save)
+            if (isSaving) stringResource(Res.string.cloud_connect) + "…"
+            else stringResource(Res.string.cloud_connect)
         } else stringResource(Res.string.cloud_next),
         enabled = canAdvance,
-        applyHorizontalPadding = false,
-        applyBottomPadding = false,
-        applyInsets = false,
-        applyNavigationPadding = false,
         onClick = if (isLast) onSave else onNext
     )
 }
 
+@Composable
+private fun WizardPrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 120.dp),
+    ) {
+        Text(text)
+    }
+}
+
 /**
- * Frosted, semi-transparent field background for the setup wizard: blurs the animated
- * background behind the input (via the [LocalHazeState] sourced in [SetupWizardScaffold])
- * instead of a solid dark box, while keeping text contrast. The [AppTextField] container is
- * drawn transparent so the soft blur shows through.
+ * Page chrome for the add-account wizard in the Library style: [GalleryPageTopBar], a segmented
+ * step bar, the step label and question, a scrolling body and Back / Next pinned to the bottom.
  */
 @Composable
-private fun frostedFieldModifier(): Modifier = Modifier
-    .fillMaxWidth()
-    .clip(RoundedCornerShape(16.dp))
-    .hazeEffectScaled(state = LocalHazeState.current, style = LocalHazeBlurStyle.current)
+private fun CloudWizardScaffold(
+    title: String,
+    stepIndex: Int,
+    totalSteps: Int,
+    stepLabel: String?,
+    headline: String?,
+    onBack: () -> Unit,
+    bottomBar: @Composable RowScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val hazeState = LocalHazeState.current
+    val scrollState = rememberScrollState()
+    val scrolled = rememberScrolledUnderTopBar(scrollState)
+    Scaffold(
+        topBar = {
+            // Opaque at rest; once scrolled the bar blurs and the step bar floats over the content.
+            Column(modifier = if (scrolled) Modifier else Modifier.background(MaterialTheme.colorScheme.surface)) {
+                GalleryPageTopBar(title = title, onBack = onBack, hazeState = hazeState, scrolled = scrolled)
+                if (totalSteps > 0) {
+                    Row(
+                        modifier = Modifier.cloudContentWidth().padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        repeat(totalSteps) { index ->
+                            val color by animateColorAsState(
+                                if (index <= stepIndex) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                label = "wizardStep"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(4.dp)
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(color)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .cloudContentWidth()
+                    .padding(top = 12.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                content = bottomBar
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState)
+                .verticalScroll(scrollState)
+                .padding(padding)
+                .cloudContentWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            if (stepLabel != null || headline != null) {
+                Column(
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 20.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    stepLabel?.let {
+                        Text(it, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    }
+                    headline?.let {
+                        Text(it, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            } else {
+                Spacer(Modifier.height(16.dp))
+            }
+            content()
+        }
+    }
+}
+
+/** Filled field container used by every wizard input. */
+private fun frostedFieldModifier(): Modifier = Modifier.fillMaxWidth()
+
+private val wizardFieldColor: Color
+    @Composable get() = MaterialTheme.colorScheme.surfaceContainerHigh
 
 @Composable
 private fun ServerStep(
@@ -410,7 +529,7 @@ private fun ServerStep(
         label = { Text(stringResource(Res.string.cloud_server_url)) },
         placeholder = { Text(stringResource(descriptor.urlHintRes)) },
         modifier = frostedFieldModifier(),
-        containerColor = Color.Transparent,
+        containerColor = wizardFieldColor,
         singleLine = true,
         isError = state.serverUrl.isNotBlank() && !isUrlValid,
         supportingText = if (state.serverUrl.isNotBlank() && !isUrlValid) {
@@ -506,7 +625,7 @@ private fun CredentialsStep(
         label = { Text(stringResource(Res.string.cloud_display_name)) },
         placeholder = { Text(stringResource(Res.string.cloud_display_name_hint)) },
         modifier = frostedFieldModifier(),
-        containerColor = Color.Transparent,
+        containerColor = wizardFieldColor,
         singleLine = true
     )
 
@@ -524,7 +643,7 @@ private fun CredentialsStep(
             authState is CloudAuthenticationState.WaitingForBrowser ||
             authState is CloudAuthenticationState.Polling ||
             authState is CloudAuthenticationState.Verifying
-        SetupButton(
+        WizardWideButton(
             text = when (authState) {
                 CloudAuthenticationState.Starting -> stringResource(Res.string.cloud_nextcloud_starting)
                 CloudAuthenticationState.WaitingForBrowser,
@@ -534,9 +653,7 @@ private fun CredentialsStep(
                 else -> stringResource(Res.string.cloud_nextcloud_sign_in)
             },
             enabled = !authBusy && authState !is CloudAuthenticationState.Verified,
-            applyHorizontalPadding = false,
-            applyBottomPadding = false,
-            applyInsets = false,
+            filled = true,
             onClick = actions.startInteractiveAuth
         )
         when (authState) {
@@ -611,16 +728,12 @@ private fun CredentialsStep(
                 CredentialTextField(field = field, value = value, onValueChange = onValueChange)
             }
             Spacer(Modifier.height(16.dp))
-            SetupButton(
+            WizardWideButton(
                 text = if (state.isTesting) stringResource(Res.string.cloud_testing)
                     else stringResource(Res.string.cloud_test_connection),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = MaterialTheme.colorScheme.onSurface,
                 enabled = !state.isTesting && state.serverUrl.isNotBlank() &&
                     descriptor.credentialsSatisfied(credentialValues),
-                applyHorizontalPadding = false,
-                applyBottomPadding = false,
-                applyInsets = false,
+                filled = false,
                 onClick = testConnection
             )
         }
@@ -635,22 +748,35 @@ private fun CredentialsStep(
 
 @Composable
 private fun AuthResultRow(success: Boolean, text: String) {
-    Spacer(Modifier.height(8.dp))
+    val container = if (success) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
+    val content = if (success) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
+    Spacer(Modifier.height(12.dp))
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(container)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            if (success) Icons.Default.Check else Icons.Default.Error,
+            if (success) Icons.Outlined.CheckCircle else Icons.Outlined.ErrorOutline,
             contentDescription = null,
-            tint = if (success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            tint = content
         )
-        Text(
-            text,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-        )
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = content)
+    }
+}
+
+/** Full-width wizard action: filled for the main path, outlined for checks like Test connection. */
+@Composable
+private fun WizardWideButton(text: String, enabled: Boolean, filled: Boolean, onClick: () -> Unit) {
+    val modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+    if (filled) {
+        Button(onClick = onClick, enabled = enabled, modifier = modifier) { Text(text) }
+    } else {
+        OutlinedButton(onClick = onClick, enabled = enabled, modifier = modifier) { Text(text) }
     }
 }
 
@@ -692,7 +818,7 @@ private fun CredentialTextField(
         label = { Text(stringResource(field.labelRes)) },
         placeholder = field.hintRes?.let { { Text(stringResource(it)) } },
         modifier = frostedFieldModifier(),
-        containerColor = Color.Transparent,
+        containerColor = wizardFieldColor,
         singleLine = true,
         visualTransformation = if (field.isSecret && !revealed) PasswordVisualTransformation()
         else VisualTransformation.None,
@@ -722,24 +848,17 @@ private fun NetworkingStep(
 ) {
     val scope = rememberCoroutineScope()
     val wifiSheetState = rememberAppBottomSheetState()
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(stringResource(Res.string.cloud_net_auto_url))
-            Text(
-                stringResource(Res.string.cloud_net_auto_url_summary),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Switch(
-            checked = state.autoUrlSwitch,
-            onCheckedChange = actions.updateAutoUrlSwitch
-        )
-    }
+    SettingsItem(
+        item = SettingsEntity.SwitchPreference(
+            icon = Icons.Outlined.Home,
+            title = stringResource(Res.string.cloud_net_auto_url),
+            summary = stringResource(Res.string.cloud_net_auto_url_summary),
+            isChecked = state.autoUrlSwitch,
+            onCheck = actions.updateAutoUrlSwitch,
+            screenPosition = Position.Alone,
+        ),
+        applyPaddings = false,
+    )
     AnimatedVisibility(visible = state.autoUrlSwitch) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             AppTextField(
@@ -748,13 +867,16 @@ private fun NetworkingStep(
                 label = { Text(stringResource(Res.string.cloud_net_local_url)) },
                 placeholder = { Text(stringResource(Res.string.cloud_net_local_url_hint)) },
                 modifier = frostedFieldModifier(),
-                containerColor = Color.Transparent,
+                containerColor = wizardFieldColor,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
             )
             // Clickable field that opens the SSID picker sheet (blank = switching disabled).
             Column(
-                modifier = frostedFieldModifier()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(wizardFieldColor)
                     .clickable { scope.launch { wifiSheetState.show() } }
                     .padding(16.dp)
             ) {
@@ -794,19 +916,33 @@ private fun SyncStep(
     if (localAlbums.isEmpty()) {
         SyncEmptyHint(stringResource(Res.string.cloud_sync_no_local))
     } else {
-        SelectionCard {
-            localAlbums.forEach { album ->
-                SelectableRow(
-                    icon = Icons.Outlined.Folder,
-                    title = album.label,
-                    subtitle = stringResource(Res.string.cloud_sync_item_count, album.count),
-                    checked = album.id in state.selectedLocalAlbumIds,
-                    onToggle = { actions.toggleLocalAlbum(album.id) }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            localAlbums.forEachIndexed { index, album ->
+                SettingsItem(
+                    item = SettingsEntity.SwitchPreference(
+                        icon = Icons.Outlined.Folder,
+                        title = album.label,
+                        summary = stringResource(Res.string.cloud_sync_item_count, album.count),
+                        isChecked = album.id in state.selectedLocalAlbumIds,
+                        onCheck = { actions.toggleLocalAlbum(album.id) },
+                        screenPosition = positionOf(index, localAlbums.size),
+                    ),
+                    applyPaddings = false,
+                    customIcon = { _, _, _ ->
+                        AsyncImage(
+                            uri = album.uri.toString(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                        )
+                    },
                 )
             }
         }
     }
-
 }
 
 @Composable
@@ -850,94 +986,92 @@ private fun SyncLoadingRow(text: String) {
 }
 
 @Composable
-private fun SelectionCard(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-        content = content
-    )
-}
-
-@Composable
-private fun SelectableRow(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onToggle: () -> Unit
+private fun ReviewStep(
+    state: AddServerUiState,
+    descriptor: ProviderUiDescriptor,
+    onEdit: (CloudSetupStep) -> Unit,
 ) {
+    val none = stringResource(Res.string.cloud_review_none)
+    val host = state.serverUrl.substringAfter("://").trimEnd('/')
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(bottom = 16.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(22.dp)
-        )
-        Column(modifier = Modifier.weight(1f)) {
+        ProviderBadge(descriptor.providerType)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                text = state.displayName.ifBlank { descriptor.providerType.displayName },
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
-                text = subtitle,
+                text = descriptor.providerType.displayName + if (host.isNotBlank()) " · $host" else "",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
-        Checkbox(checked = checked, onCheckedChange = { onToggle() })
     }
-}
-
-@Composable
-private fun ReviewStep(
-    state: AddServerUiState,
-    descriptor: ProviderUiDescriptor
-) {
-    val none = stringResource(Res.string.cloud_review_none)
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ReviewRow(stringResource(Res.string.cloud_review_provider), descriptor.providerType.displayName)
-        ReviewRow(stringResource(Res.string.cloud_display_name), state.displayName.ifBlank { none })
-        ReviewRow(stringResource(Res.string.cloud_review_external_url), state.serverUrl.ifBlank { none })
+    val rows = buildList {
+        add(Triple(Icons.Outlined.Dns, stringResource(Res.string.cloud_review_external_url) to state.serverUrl.ifBlank { none }, CloudSetupStep.SERVER))
+        add(
+            Triple(
+                Icons.Outlined.Key,
+                stringResource(Res.string.cloud_credentials) to state.username.ifBlank {
+                    if (state.apiKey.isNotBlank()) stringResource(Res.string.cloud_api_key) else none
+                },
+                CloudSetupStep.CREDENTIALS
+            )
+        )
         if (state.autoUrlSwitch) {
-            ReviewRow(stringResource(Res.string.cloud_review_local_url), state.localServerUrl.ifBlank { none })
-            ReviewRow(
-                stringResource(Res.string.cloud_net_wifi_name),
-                state.localWifiSsid.ifBlank { stringResource(Res.string.cloud_net_ssid_optional) }
+            add(
+                Triple(
+                    Icons.Outlined.Home,
+                    stringResource(Res.string.cloud_review_local_url) to listOf(
+                        state.localServerUrl.ifBlank { none },
+                        state.localWifiSsid
+                    ).filter { it.isNotBlank() }.joinToString(" · "),
+                    CloudSetupStep.NETWORKING
+                )
             )
         }
-        ReviewRow(
-            stringResource(Res.string.cloud_review_folders),
-            if (state.selectedLocalAlbumIds.isEmpty()) none
-            else stringResource(Res.string.cloud_sync_count_selected, state.selectedLocalAlbumIds.size)
+        add(
+            Triple(
+                Icons.Outlined.CloudUpload,
+                stringResource(Res.string.cloud_review_folders) to if (state.selectedLocalAlbumIds.isEmpty()) none
+                else stringResource(Res.string.cloud_sync_count_selected, state.selectedLocalAlbumIds.size),
+                CloudSetupStep.SYNC
+            )
         )
     }
-}
-
-@Composable
-private fun ReviewRow(label: String, value: String) {
-    Column {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        rows.forEachIndexed { index, (icon, labelValue, target) ->
+            SettingsItem(
+                item = SettingsEntity.Preference(
+                    icon = icon,
+                    title = labelValue.first,
+                    summary = labelValue.second,
+                    screenPosition = positionOf(index, rows.size),
+                    onClick = { onEdit(target) },
+                ),
+                applyPaddings = false,
+                customTrailingContent = {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                },
+            )
+        }
     }
+    CloudNote(icon = Icons.Outlined.Wifi, text = stringResource(Res.string.cloud_wizard_review_note))
 }
 
 @Composable

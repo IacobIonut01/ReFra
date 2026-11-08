@@ -35,15 +35,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import org.jetbrains.compose.resources.stringResource
@@ -64,14 +60,11 @@ import androidx.compose.ui.unit.dp
 import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
 import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.core.presentation.util.LocalHazeState
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.matches
 import com.dot.gallery.feature.editor.adjustments.Crop
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_destinations_account_albums
 import com.dot.gallery.generated.resources.cloud_destinations_add_account
@@ -87,6 +80,10 @@ import com.dot.gallery.generated.resources.cloud_destinations_pick_subtitle
 import com.dot.gallery.generated.resources.cloud_destinations_sheet_title
 import com.dot.gallery.generated.resources.cloud_destinations_subtitle
 import com.dot.gallery.generated.resources.cloud_destinations_title
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 
 /**
@@ -134,39 +131,26 @@ fun CloudDestinationsContent(
         accounts.mapIndexed { index, account -> account.configId to palette[index % palette.size] }.toMap()
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = rememberTopAppBarState()
-    )
+    val listState = rememberLazyListState()
 
     // The album whose destination bottom sheet is open, if any (multi-cloud mode).
     var sheetAlbum by remember { mutableStateOf(albums.firstOrNull { it.id == initialSheetAlbumId }) }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                modifier = Modifier.hazeEffectScaled(
-                    state = LocalHazeState.current,
-                    style = LocalHazeBlurStyle.current
-                ),
-                title = {
-                    Text(
-                        if (singleMode) singleAccount?.label
-                            ?: stringResource(Res.string.cloud_destinations_title)
-                        else stringResource(Res.string.cloud_destinations_title)
-                    )
-                },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                ),
+            GalleryPageTopBar(
+                title = if (singleMode) singleAccount?.label
+                    ?: stringResource(Res.string.cloud_destinations_title)
+                else stringResource(Res.string.cloud_destinations_title),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { innerPadding ->
         val layoutDir = LocalLayoutDirection.current
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             contentPadding = PaddingValues(
                 start = innerPadding.calculateStartPadding(layoutDir) + 16.dp,
                 end = innerPadding.calculateEndPadding(layoutDir) + 16.dp,

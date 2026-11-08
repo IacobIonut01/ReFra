@@ -231,8 +231,7 @@ internal class CloudOkHttpFetcher(
                             // no real preview exists). Feeding those bytes to Glide produces a long
                             // chain of useless decode failures, so reject them up front with a
                             // descriptive error and log what was actually returned.
-                            val isImage = contentType?.startsWith("image/", ignoreCase = true) == true
-                            if (!isImage) {
+                            if (resolveImageMimeType(contentType, bytes) == null) {
                                 val snippet = String(bytes.copyOf(minOf(bytes.size, 180)))
                                     .replace('\n', ' ').replace('\r', ' ').trim()
                                 printWarn(

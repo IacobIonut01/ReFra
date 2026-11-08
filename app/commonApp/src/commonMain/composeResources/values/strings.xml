@@ -1832,6 +1832,10 @@
     <string name="cloud_shared_links_edit_allow_download_badge">Download</string>
     <string name="cloud_shared_links_edit_show_metadata_badge">EXIF</string>
     <string name="cloud_shared_links_confirm">Confirm</string>
+    <string name="cloud_shared_links_save">Save</string>
+    <string name="cloud_shared_links_edit_show_metadata_desc">Camera, date and location</string>
+    <string name="cloud_shared_links_edit_allow_download_desc">Visitors can save originals</string>
+    <string name="cloud_shared_links_edit_allow_upload_desc">Visitors can add photos to this album</string>
     <string name="cloud_shared_links_expires_on">Expires %1$s</string>
     <string name="cloud_shared_links_no_expiry">No expiry</string>
     <string name="cloud_shared_links_link_copied">Link copied to clipboard</string>
@@ -1856,9 +1860,60 @@
     <string name="cloud_backup_account_progress">%1$d / %2$d backed up</string>
     <string name="cloud_backup_account_albums">%1$d albums</string>
     <string name="cloud_backup_dashboard_title">Backup &amp; Sync</string>
-    <string name="cloud_backup_overall_backed_up">%1$d%% backed up</string>
+    <string name="cloud_backup_overall_backed_up">%1$d% backed up</string>
     <string name="cloud_backup_overall_caption">%1$d of %2$d items across %3$d services</string>
     <string name="cloud_backup_services">Services</string>
+    <!-- Backup & Sync hub -->
+    <string name="cloud_add_account">Add account</string>
+    <string name="cloud_hub_accounts">Accounts</string>
+    <string name="cloud_hub_storage">Storage</string>
+    <string name="cloud_hub_body_verified">%1$d% verified by content</string>
+    <string name="cloud_hub_stat_verified">verified</string>
+    <string name="cloud_hub_stat_remaining">not verified yet</string>
+    <string name="cloud_hub_checking">Checking your backups…</string>
+    <string name="cloud_hub_percent">%1$d%</string>
+    <string name="cloud_hub_details">Details</string>
+    <string name="cloud_hub_sync">Sync</string>
+    <string name="cloud_hub_error_title">Can’t reach %1$s</string>
+    <string name="cloud_hub_error_body">Check that the server is online, or update the sign-in.</string>
+    <string name="cloud_hub_error_status">Can’t connect</string>
+    <string name="cloud_hub_open_settings">Open settings</string>
+    <string name="cloud_hub_upload_activity">Upload activity</string>
+    <string name="cloud_hub_upload_activity_summary">What’s uploading now, and what failed</string>
+    <string name="cloud_hub_privacy">Photos go straight from this phone to servers you choose. ReFra has no cloud of its own.</string>
+    <string name="cloud_hub_empty_title">Back up your photos</string>
+    <string name="cloud_hub_empty_body">Connect a server you own, and ReFra keeps this phone’s photos and videos backed up and in sync.</string>
+    <string name="cloud_hub_works_with">Works with</string>
+    <string name="cloud_settings_backup_downloads">Backup and downloads</string>
+    <string name="cloud_settings_storage_of">of %1$s on the server</string>
+    <string name="cloud_sync_interval_desc">How often ReFra checks this account for new and changed photos in the background.</string>
+    <string name="cloud_upload_filter_all">All</string>
+    <string name="cloud_upload_filter_on">Backing up</string>
+    <string name="cloud_upload_filter_off">Not backed up</string>
+    <string name="cloud_upload_albums_summary">%1$d of %2$d albums · %3$d items</string>
+    <plurals name="cloud_upload_album_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="cloud_accounts_yours">Your accounts</string>
+    <string name="cloud_accounts_choose_title">Where do your photos live?</string>
+    <string name="cloud_accounts_choose_body">Pick a server to back up to. You can add more accounts later and send each album to a different one.</string>
+    <string name="cloud_accounts_photo_server">Photo server</string>
+    <string name="cloud_accounts_cloud_storage">Cloud storage</string>
+    <string name="cloud_accounts_home_network">Home network</string>
+    <string name="cloud_accounts_home_network_desc">Only reachable while this phone is on the same network.</string>
+    <string name="cloud_synced_count">%1$d items synced</string>
+    <string name="cloud_provider_desc_immich">Keeps albums, people and shared links</string>
+    <string name="cloud_provider_desc_nextcloud">Sign in with your browser</string>
+    <string name="cloud_provider_desc_owncloud">Server address, username and app password</string>
+    <string name="cloud_provider_desc_webdav">Any server that speaks WebDAV</string>
+    <string name="cloud_provider_desc_smb">Windows shares and most NAS boxes</string>
+    <string name="cloud_provider_desc_nfs">Linux and NAS exports</string>
+    <string name="cloud_wizard_step_named">Step %1$d of %2$d · %3$s</string>
+    <string name="cloud_connect">Connect</string>
+    <string name="cloud_wizard_review_note">You can change these later in the account’s settings.</string>
+    <string name="cloud_remove_account">Remove account</string>
+    <string name="cloud_remove_account_note">Signs out and clears this account’s cache on the phone. Photos on the server aren’t touched.</string>
     <!-- Destinations matrix (album × cloud fan-out) -->
     <string name="cloud_destinations_title">Destinations</string>
     <string name="cloud_destinations_subtitle">Choose which albums back up to each cloud. An album can go to several clouds for redundancy.</string>
@@ -2112,6 +2167,7 @@
     <string name="cloud_notif_detail_progress_summary">Show per-file upload progress in notification</string>
     <string name="cloud_notif_failures">Notify on failures</string>
     <string name="cloud_notif_failures_summary">Show notification when backup fails</string>
+    <string name="cloud_notif_footnote">Android still hides these if notifications for ReFra are turned off in system settings.</string>
     <string name="cloud_backup_notification_title">Backing up media</string>
     <string name="cloud_backup_progress_text">%1$d of %2$d</string>
     <string name="cloud_backup_channel_progress">Backup progress</string>
@@ -2135,6 +2191,9 @@
     <string name="cloud_net_external">External network</string>
     <string name="cloud_net_fallback_urls">Fallback URLs</string>
     <string name="cloud_net_no_external">No external URLs configured</string>
+    <string name="cloud_net_switching">Switching</string>
+    <string name="cloud_net_in_use">In use</string>
+    <string name="cloud_net_footnote">On the Wi-Fi network above, ReFra uses the local URL. Anywhere else it uses the external URLs.</string>
     <!-- Advanced -->
     <string name="cloud_advanced">Advanced</string>
     <string name="cloud_adv_troubleshooting">Troubleshooting</string>
@@ -2156,7 +2215,8 @@
     <string name="cloud_download_all">Download all remote media</string>
     <string name="cloud_adv_sync">Sync</string>
     <string name="cloud_adv_sync_deletions">Sync remote deletions</string>
-    <string name="cloud_adv_sync_deletions_summary">Delete local copies downloaded by the app when the file is removed on the server</string>
+    <string name="cloud_adv_sync_deletions_desc">Delete local copies downloaded by the app when the file is removed on the server</string>
+    <string name="cloud_adv_experimental_note">Experimental: syncing remote deletions may change in a future version.</string>
     <string name="cloud_adv_display">Display</string>
     <string name="cloud_adv_prefer_remote">Prefer remote images</string>
     <string name="cloud_adv_prefer_remote_summary">Load cloud thumbnails instead of local copies</string>
@@ -2165,6 +2225,8 @@
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
     <string name="cloud_adv_clearing_cache">Clearing…</string>
+    <string name="cloud_adv_clear_cache_summary">Cached thumbnails and previews for all accounts</string>
+    <string name="cloud_adv_footnote">These options apply only to %1$s. The image cache is shared by every account.</string>
     <!-- Viewer -->
     <string name="cloud_viewer">Viewer Settings</string>
     <string name="cloud_viewer_photos">Photos</string>
@@ -2181,6 +2243,7 @@
     <string name="cloud_viewer_force_original_summary">Always stream the original quality video</string>
     <string name="cloud_viewer_recommended">Use recommended settings</string>
     <string name="cloud_viewer_recommended_summary">Preview on · original off · autoplay on · no loop</string>
+    <string name="cloud_viewer_footnote">Applies only to videos from %1$s.</string>
     <string name="cloud_accounts">Cloud Accounts</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_synced_items">Connected | Synced %1$d items</string>
@@ -2531,8 +2594,10 @@
     <string name="handover_engine_pick">Choose engine</string>
     <string name="handover_sink_pick">Store results</string>
     <string name="handover_not_configured">Not configured</string>
-    <string name="handover_status_ok">Connected — %1$d engine(s), %2$s principal</string>
-    <string name="handover_status_down">Server unreachable — check URL and network</string>
+    <string name="handover_status_connected_title">Connected</string>
+    <string name="handover_status_unreachable_title">Server unreachable</string>
+    <string name="handover_status_ok">%1$d engine(s) · %2$s principal</string>
+    <string name="handover_status_down">Check the server URL and your network connection.</string>
     <string name="handover_status_engines">%1$s · %2$s loaded</string>
     <string name="handover_enabled_summary">Server-side inference and search are on</string>
     <string name="handover_disabled_summary">Run search inference on your own server</string>
