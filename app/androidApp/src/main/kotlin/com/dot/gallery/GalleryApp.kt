@@ -15,6 +15,11 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.dot.gallery.core.work.WorkComponentHolder
+import com.dot.gallery.core.workers.EditorExportBridgeHolder
+import com.dot.gallery.editor.GalleryEditorExportBridge
+import com.dot.gallery.editor.GalleryRawDecoder
+import com.dot.gallery.editor.android.EditorExportDispatch
+import com.dot.gallery.editor.android.EditorRawDispatch
 import com.dot.gallery.core.work.workScheduler
 import dev.brewkits.kmpworkmanager.KmpWorkManager
 import dev.brewkits.kmpworkmanager.generated.AndroidWorkerFactoryGenerated
@@ -271,6 +276,15 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
         StartupTracer.trace("KmpWorkManager.initialize") {
             KmpWorkManager.initialize(this@GalleryApp, AndroidWorkerFactoryGenerated())
             WorkComponentHolder.install(component)
+            // Editor exports run as workers with a live notification —
+            // the bridge is both the sessions' dispatch hook and the
+            // worker-side executor.
+            GalleryEditorExportBridge(this@GalleryApp).also { bridge ->
+                EditorExportBridgeHolder.bridge = bridge
+                EditorExportDispatch.photo = bridge
+                EditorExportDispatch.video = bridge
+                EditorRawDispatch.decoder = GalleryRawDecoder
+            }
         }
         appScope.launch {
             Settings.Misc.getDeveloperModeFlow(this@GalleryApp).collectLatest {

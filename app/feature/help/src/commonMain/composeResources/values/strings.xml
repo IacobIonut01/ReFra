@@ -1511,6 +1511,7 @@
     <string name="change_app_name">App name</string>
     <string name="show_favorite_button">Favorite button in viewer</string>
     <string name="default_image_editor">Default image editor</string>
+    <string name="default_video_editor">Default video editor</string>
     <string name="settings_title">Settings</string>
     <string name="settings_trash_title">Use trash can</string>
     <string name="map_appearance_title">Map appearance</string>

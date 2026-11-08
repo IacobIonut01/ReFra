@@ -294,3 +294,6 @@ fun resolveLongPressAction(storedValue: String?, legacyCutout: Boolean): String 
 
 /** Built-in editor sentinel — mirror `Settings.Misc.EDITOR_BUILTIN`. */
 const val EDITOR_BUILTIN = "builtin"
+
+/** New standalone ReFra editor sentinel — mirror `Settings.Misc.EDITOR_STUDIO`. */
+const val EDITOR_STUDIO = "studio"

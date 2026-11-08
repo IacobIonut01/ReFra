@@ -1336,6 +1336,7 @@ object Settings {
             rememberPreference(SettingsKeys.timelineLayoutType)
 
         const val EDITOR_BUILTIN = "builtin"
+        const val EDITOR_STUDIO = "studio"
 
         @Composable
         fun rememberDefaultImageEditor() =

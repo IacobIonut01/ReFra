@@ -252,6 +252,40 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- Standalone photo editor (new editor/ modules). Externally callable
+             via the platform ACTION_EDIT (and the library's custom action)
+             on JPEG/PNG content URIs; saves a new copy and returns its URI.
+             The legacy in-app editor stays untouched. -->
+        <activity
+            android:name="com.dot.gallery.editor.GalleryEditorActivity"
+            android:exported="true"
+            android:label="@string/editor_photo_activity_label"
+            android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="com.dot.gallery.editor.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/jpeg" />
+                <data android:mimeType="image/png" />
+            </intent-filter>
+        </activity>
+
+        <!-- Standalone video editor: the same intent contract as the photo
+             host over any video content URI — the platform EDIT action
+             plus the library's custom action. -->
+        <activity
+            android:name="com.dot.gallery.editor.GalleryVideoEditorActivity"
+            android:exported="true"
+            android:label="@string/editor_video_activity_label"
+            android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="com.dot.gallery.editor.action.EDIT_VIDEO" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="com.dot.gallery.app.presentation.standalone.StandaloneActivity"
             android:exported="true"

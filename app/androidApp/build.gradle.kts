@@ -407,6 +407,9 @@ kotlin {
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(project(":app:commonApp"))
+    // Standalone photo editor host (GalleryEditorActivity).
+    implementation(project(":editor:android"))
+    implementation(project(":app:ml-models"))
     "baselineProfile"(project(mapOf("path" to ":app:baselineprofile")))
 
     // Entry-point code (GalleryApp / MainActivity) — everything else lives in

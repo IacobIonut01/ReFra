@@ -1,0 +1,5 @@
+/Users/ionut.iacob/Documents/Gallery/editor/native/build-p1/CMakeFiles/refra_editor.dir
+/Users/ionut.iacob/Documents/Gallery/editor/native/build-p1/CMakeFiles/refra_editor_color_test.dir
+/Users/ionut.iacob/Documents/Gallery/editor/native/build-p1/CMakeFiles/test.dir
+/Users/ionut.iacob/Documents/Gallery/editor/native/build-p1/CMakeFiles/edit_cache.dir
+/Users/ionut.iacob/Documents/Gallery/editor/native/build-p1/CMakeFiles/rebuild_cache.dir

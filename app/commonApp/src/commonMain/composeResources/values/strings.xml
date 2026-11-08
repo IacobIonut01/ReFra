@@ -18,6 +18,7 @@
     <string name="show_favorite_button_summary">Show the favorite toggle button in the media viewer</string>
     <string name="default_image_editor">Default image editor</string>
     <string name="default_image_editor_builtin">Built-in editor</string>
+    <string name="default_image_editor_studio">ReFra editor (preview)</string>
     <string name="nav_albums">Albums</string>
     <string name="header_today">Today</string>
     <string name="header_yesterday">Yesterday</string>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Streams fixture bytes through a non-seekable pipe so the media
+             access layer's ESPIPE staging path is exercised. Same-uid only. -->
+        <provider
+            android:name="com.dot.gallery.editor.android.PipeContentProvider"
+            android:authorities="com.dot.gallery.editor.android.test.pipe"
+            android:exported="false" />
+    </application>
+
+</manifest>

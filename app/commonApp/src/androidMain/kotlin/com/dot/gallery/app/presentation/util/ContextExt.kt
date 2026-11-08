@@ -66,6 +66,13 @@ import com.dot.gallery.app.presentation.edit.EditActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import com.dot.gallery.core.activeDataStore
+import com.dot.gallery.core.logging.printWarn
+import com.dot.gallery.domain.settings.DataStoreSettingsStore
+import com.dot.gallery.domain.settings.EDITOR_BUILTIN
+import com.dot.gallery.domain.settings.EDITOR_STUDIO
+import com.dot.gallery.domain.settings.SettingsKeys
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.dot.gallery.core.util.or
@@ -224,6 +231,15 @@ fun Context.getEditImageCapableApps(): List<ResolveInfo> {
         .distinctBy { it.activityInfo.packageName }
 }
 
+fun Context.getEditVideoCapableApps(): List<ResolveInfo> {
+    val intent = Intent(Intent.ACTION_EDIT).apply {
+        setType("video/*")
+    }
+    return packageManager.queryIntentActivities(intent, 0)
+        .filterNot { it.activityInfo.packageName == BuildConfig.APPLICATION_ID }
+        .distinctBy { it.activityInfo.packageName }
+}
+
 fun Context.launchEditImageIntent(packageName: String, uri: Uri) {
     val intent = Intent(Intent.ACTION_EDIT).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
@@ -237,10 +253,22 @@ fun Context.launchEditImageIntent(packageName: String, uri: Uri) {
 
 suspend fun <T: Media> Context.launchEditIntent(media: T) {
     val uri = if (media.isCloud) resolveShareableUri(media) else media.getUri().authorizedUri(this)
+    val editorKey = if (media.isImage) SettingsKeys.defaultImageEditor else SettingsKeys.defaultVideoEditor
+    val editor = runCatching {
+        DataStoreSettingsStore(activeDataStore).observe(editorKey).first()
+    }.onFailure {
+        printWarn("media-ops.edit", "Default editor preference unreadable", mapOf("error" to it.toString()))
+    }.getOrDefault(editorKey.default)
     withContext(Dispatchers.Main) {
+        if (editor == EDITOR_STUDIO && launchStudioEditor(uri, media.mimeType)) return@withContext
         if (media.isImage) {
             EditActivity.launchEditor(this@launchEditIntent, uri)
         } else {
+            if (editor != EDITOR_BUILTIN && editor != EDITOR_STUDIO &&
+                launchVideoEditorPackage(editor, uri, media.mimeType)
+            ) {
+                return@withContext
+            }
             val intent = Intent(Intent.ACTION_EDIT).apply {
                 addCategory(Intent.CATEGORY_DEFAULT)
                 setDataAndType(uri, media.mimeType)
@@ -251,6 +279,87 @@ suspend fun <T: Media> Context.launchEditIntent(media: T) {
         }
     }
 }
+
+/**
+ * Opens the standalone ReFra photo/video editor for the MIME types its
+ * hosts declare. Returns false when the media is unsupported or the host
+ * activity is missing, so the caller falls back to the built-in editor.
+ */
+private fun Context.launchStudioEditor(uri: Uri, mimeType: String): Boolean {
+    val component = studioEditorActivity(mimeType) ?: return false
+    val intent = Intent(Intent.ACTION_EDIT).apply {
+        setClassName(packageName, component)
+        setDataAndType(uri, mimeType)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    if (intent.resolveActivity(packageManager) == null) return false
+    return runCatching { startActivity(intent) }
+        .onFailure {
+            printWarn(
+                "media-ops.edit",
+                "Standalone editor launch failed",
+                mapOf("mime" to mimeType, "error" to it.toString()),
+            )
+        }
+        .isSuccess
+}
+
+/**
+ * Opens the video editor the user chose. Returns false when it is no longer
+ * installed or refuses the file, so the caller falls back to the app chooser.
+ */
+private fun Context.launchVideoEditorPackage(packageName: String, uri: Uri, mimeType: String): Boolean {
+    val intent = Intent(Intent.ACTION_EDIT).apply {
+        addCategory(Intent.CATEGORY_DEFAULT)
+        setDataAndType(uri, mimeType)
+        putExtra("mimeType", mimeType)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        setPackage(packageName)
+    }
+    return runCatching { startActivity(intent) }
+        .onFailure {
+            printWarn(
+                "media-ops.edit",
+                "Chosen video editor launch failed",
+                mapOf("package" to packageName, "mime" to mimeType, "error" to it.toString()),
+            )
+        }
+        .isSuccess
+}
+
+/**
+ * The ReFra editor activity for [mimeType], or null when it cannot open it.
+ * Every video type goes to the video editor, which reads the file's real
+ * container and codecs rather than trusting the MIME type.
+ */
+internal fun studioEditorActivity(mimeType: String): String? {
+    val mime = mimeType.lowercase()
+    return when {
+        mime in STUDIO_PHOTO_MIME_TYPES -> STUDIO_PHOTO_ACTIVITY
+        mime.startsWith("video/") -> STUDIO_VIDEO_ACTIVITY
+        else -> null
+    }
+}
+
+private val STUDIO_PHOTO_MIME_TYPES = setOf(
+    "image/jpeg",
+    "image/png",
+    // Camera RAW, developed by the host's LibRaw decoder.
+    "image/x-adobe-dng",
+    "image/dng",
+    "image/x-canon-cr2",
+    "image/x-canon-cr3",
+    "image/x-nikon-nef",
+    "image/x-nikon-nrw",
+    "image/x-sony-arw",
+    "image/x-fuji-raf",
+    "image/x-olympus-orf",
+    "image/x-panasonic-rw2",
+    "image/x-pentax-pef",
+    "image/x-samsung-srw"
+)
+private const val STUDIO_PHOTO_ACTIVITY = "com.dot.gallery.editor.GalleryEditorActivity"
+private const val STUDIO_VIDEO_ACTIVITY = "com.dot.gallery.editor.GalleryVideoEditorActivity"
 
 suspend fun <T: Media> Context.launchUseAsIntent(media: T) =
     withContext(Dispatchers.Default) {
