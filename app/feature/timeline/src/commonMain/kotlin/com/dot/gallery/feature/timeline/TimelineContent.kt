@@ -41,6 +41,8 @@ import com.dot.gallery.core.presentation.components.EmptyMedia
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.LocalGalleryHeaderReveal
 import com.dot.gallery.core.presentation.components.LocalGalleryPaneChrome
+import com.dot.gallery.core.presentation.components.TimelineMonth
+import com.dot.gallery.core.presentation.components.TimelinePlace
 import com.dot.gallery.core.presentation.components.rememberGalleryHeaderRevealState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -97,6 +99,10 @@ fun TimelineContent(
         selectedMediaList: androidx.compose.runtime.snapshots.SnapshotStateList<UriMedia>,
     ) -> Unit,
     topBar: @Composable (searchBarTrailingIcon: (@Composable () -> Unit)?) -> Unit,
+    /** Opens every photo taken in a place named by a timeline header. */
+    onOpenPlace: ((TimelinePlace) -> Unit)? = null,
+    /** Starts a slideshow from a month highlight card. */
+    onPlayMonth: ((TimelineMonth) -> Unit)? = null,
 ) {
     val scrollToTop = LocalScrollToTop.current
     val refreshScope = rememberCoroutineScope()
@@ -217,6 +223,9 @@ fun TimelineContent(
                             emptyContent = emptyContent,
                             onRetry = { refreshScope.launch { onRefresh() } },
                             scrollToTopRoute = scrollToTopRoute,
+                            decorate = true,
+                            onOpenPlace = onOpenPlace,
+                            onPlayMonth = onPlayMonth,
                         )
                     }
                 }

@@ -288,9 +288,6 @@ fun <T : Media> MosaicMediaGrid(
         return
     }
 
-    val scope = rememberCoroutineScope()
-    val stringToday = stringResource(Res.string.header_today)
-    val stringYesterday = stringResource(Res.string.header_yesterday)
     val feedbackManager = rememberFeedbackManager()
     val scrolling by rememberedDerivedState { gridState.isScrollInProgress }
     var canAnimate by rememberSaveable { mutableStateOf(!scrolling) }
@@ -298,7 +295,7 @@ fun <T : Media> MosaicMediaGrid(
         if (!canAnimate) delay(500)
         canAnimate = !scrolling
     }
-    // #1029: pinch-zoom changes the mosaic column (slot) count at runtime. The
+    // pinch-zoom changes the mosaic column (slot) count at runtime. The
     // persisted LazyGridState's item-placement animator keeps per-lane arrays
     // sized for the previous column count, so animating an item across the
     // slot-count change indexes a stale lane and throws an
@@ -421,7 +418,7 @@ fun <T : Media> MosaicMediaGrid(
         val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates) {
             MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates)
         }
-        // Phase 3 (#1076): publish debounced scroll-motion for the mosaic grid too.
+        // publish debounced scroll-motion for the mosaic grid too.
         val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })
         key(safeColumns) {
         CompositionLocalProvider(
@@ -486,40 +483,16 @@ fun <T : Media> MosaicMediaGrid(
             ) { idx ->
                 when (val item = displayItems[idx]) {
                     is MosaicDisplayItem.HeaderItem -> {
-                        val header = item.header
-                        val isChecked = rememberSaveable { mutableStateOf(false) }
-                        if (allowSelection) {
-                            LaunchedEffect(isSelectionActive) {
-                                isChecked.value = isChecked.value && isSelectionActive
-                            }
-                            LaunchedEffect(selectedMedia.value.size) {
-                                withContext(Dispatchers.Default) {
-                                    isChecked.value = selectedMedia.value.containsAll(header.data)
-                                }
-                            }
-                        }
-                        MediaItemHeader(
+                        TimelineHeaderItem(
+                            header = item.header,
+                            mediaState = mediaState,
+                            selectedMedia = selectedMedia,
+                            isSelectionActive = isSelectionActive,
+                            allowSelection = allowSelection,
+                            bigHeaders = bigHeaders,
+                            onMediaClick = { media -> onMediaClick(media) },
                             modifier = if (animateItems) Modifier.animateItem(fadeInSpec = null) else Modifier,
-                            date = remember(header) {
-                                header.text
-                                    .replace("Today", stringToday)
-                                    .replace("Yesterday", stringYesterday)
-                            },
-                            showAsBig = remember(header, bigHeaders) { header.key.isBigHeaderKey || bigHeaders },
-                            bigHeaderOnly = bigHeaders,
-                            isChecked = isChecked
-                        ) {
-                            if (allowSelection) {
-                                feedbackManager.vibrate()
-                                scope.launch {
-                                    isChecked.value = !isChecked.value
-                                    val list = mediaState.value.media.map { it.id }
-                                        .filter { id -> id in header.data }
-                                    if (isChecked.value) selector.addToSelection(list)
-                                    else selector.removeFromSelection(list)
-                                }
-                            }
-                        }
+                        )
                     }
                     is MosaicDisplayItem.BigTileItem -> {
                         val mi = item.mediaItem

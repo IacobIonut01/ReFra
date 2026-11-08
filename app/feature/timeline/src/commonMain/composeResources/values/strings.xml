@@ -8,7 +8,7 @@
     <string name="modified_time_summary">When the file was last changed</string>
     <string name="sort_descending">Newest first</string>
     <string name="sort_ascending">Oldest first</string>
-    <string name="capture_time_indexing">Checking capture dates: %1$d%%</string>
+    <string name="capture_time_indexing">Checking capture dates: %1$d%</string>
     <string name="filter_type">Type</string>
     <string name="filter_all">All</string>
     <string name="photos">Photos</string>
@@ -30,4 +30,7 @@
         <item quantity="one">%1$d item</item>
         <item quantity="other">%1$d items</item>
     </plurals>
+    <string name="timeline_months_title">Months</string>
+    <string name="timeline_months_close">Back to the timeline</string>
+    <string name="timeline_months_this_month">This month</string>
 </resources>

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.NewReleases
@@ -43,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings.Misc.rememberLastSeenVersion
-import com.dot.gallery.core.Settings.Misc.rememberShowSearchBarFavoriteButton
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.OptionItem
@@ -53,6 +53,7 @@ import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_backup_dashboard_title
+import com.dot.gallery.generated.resources.cloud_memories
 import com.dot.gallery.generated.resources.favorites
 import com.dot.gallery.generated.resources.help_whats_new
 import com.dot.gallery.generated.resources.more_options
@@ -74,7 +75,6 @@ const val TimelineMenuSheetTag = "Timeline.MenuSheet"
 @Composable
 fun TimelineNavActions(extraItems: List<OptionItem> = emptyList()) {
     val eventHandler = LocalEventHandler.current
-    val showFavoriteButton by rememberShowSearchBarFavoriteButton()
     var lastSeenVersion by rememberLastSeenVersion()
     val sheetState = rememberAppBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -101,7 +101,7 @@ fun TimelineNavActions(extraItems: List<OptionItem> = emptyList()) {
                 ),
             )
         }
-        if (showFavoriteButton && SdkCompat.supportsFavorites) {
+        if (SdkCompat.supportsFavorites) {
             add(
                 OptionItem(
                     icon = Icons.Outlined.FavoriteBorder,
@@ -110,6 +110,13 @@ fun TimelineNavActions(extraItems: List<OptionItem> = emptyList()) {
                 ),
             )
         }
+        add(
+            OptionItem(
+                icon = Icons.Outlined.AutoAwesome,
+                text = stringResource(Res.string.cloud_memories),
+                onClick = { openRoute(Screen.MemoriesScreen()) },
+            ),
+        )
         add(
             OptionItem(
                 icon = Icons.Outlined.CloudUpload,

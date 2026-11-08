@@ -126,4 +126,28 @@
     <string name="cutout_share_failed">Failed to share cutout object</string>
     <string name="cutout_save_failed">Failed to save cutout object</string>
     <string name="cutout_saved">Saved cutout to Pictures/Cutouts</string>
+    <string name="preference_preview_off">Off</string>
+    <string name="preference_preview_on">On</string>
+    <plurals name="timeline_month_photos">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
+    <plurals name="timeline_month_videos">
+        <item quantity="one">%1$d video</item>
+        <item quantity="other">%1$d videos</item>
+    </plurals>
+    <plurals name="timeline_month_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="timeline_summary_separator">%1$s · %2$s</string>
+    <string name="timeline_places_two">%1$s, %2$s</string>
+    <plurals name="timeline_places_and_more">
+        <item quantity="one">%2$s, %3$s and %1$d more</item>
+        <item quantity="other">%2$s, %3$s and %1$d more</item>
+    </plurals>
+    <string name="timeline_play_month_recap">Play a slideshow of %1$s</string>
+    <string name="timeline_open_place">Show photos taken in %1$s</string>
+    <string name="timeline_open_months">Show all months</string>
+    <string name="timeline_select_month">Select %1$s</string>
 </resources>

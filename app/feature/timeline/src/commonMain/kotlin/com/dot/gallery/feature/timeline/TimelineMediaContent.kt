@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,6 +73,23 @@ import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.presentation.components.rememberStickyHeaderItem
 import com.dot.gallery.core.presentation.components.StickyHeaderGrid
+import com.dot.gallery.core.presentation.components.LocalTimelineDecorations
+import com.dot.gallery.core.presentation.components.TimelineDecorations
+import com.dot.gallery.core.presentation.components.TimelineFloatingDate
+import com.dot.gallery.core.presentation.components.TimelineIndex
+import com.dot.gallery.core.presentation.components.TimelineMonth
+import com.dot.gallery.core.presentation.components.TimelinePlace
+import com.dot.gallery.core.presentation.components.TimelineSignals
+import com.dot.gallery.core.presentation.components.buildTimelineIndex
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.backhandler.BackHandler
 
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -93,6 +111,15 @@ fun TimelineMediaContent(
     emptyContent: @Composable () -> Unit,
     onRetry: (() -> Unit)? = null,
     scrollToTopRoute: String? = null,
+    /** Date headers pin to the top while scrolling; pages under a blur bar turn this off. */
+    stickyHeaders: Boolean = true,
+    /** Grid states of the grid and mosaic layouts, hoisted for pages that track the scroll. */
+    gridState: LazyGridState = rememberTimelineGridState(),
+    mosaicGridState: LazyGridState = rememberTimelineGridState(),
+    /** Month highlight cards, places, the floating date and the months view (main timeline only). */
+    decorate: Boolean = false,
+    onOpenPlace: ((TimelinePlace) -> Unit)? = null,
+    onPlayMonth: ((TimelineMonth) -> Unit)? = null,
 ) {
     var canScroll by rememberSaveable { mutableStateOf(true) }
     var lastCellIndexState by lastCellIndex
@@ -100,11 +127,10 @@ fun TimelineMediaContent(
     val timelineGroupByDate by rememberPreference(SettingsKeys.timelineGroupByDate)
     val timelineGroupMethod by rememberPreference(SettingsKeys.timelineGroupMethod)
     val isMosaicLayout = timelineLayoutType == LAYOUT_MOSAIC && timelineGroupByDate
-    val cacheWindow = remember { LazyLayoutCacheWindow(aheadFraction = 2f, behindFraction = 2f) }
     val pinchState = rememberGridPinchZoomState(
         cellsList = cellsList,
         initialCellsIndex = lastCellIndexState,
-        gridState = rememberLazyGridState(cacheWindow = cacheWindow),
+        gridState = gridState,
     )
 
     LaunchedEffect(pinchState.isZooming) {
@@ -124,11 +150,57 @@ fun TimelineMediaContent(
         bottom = bottomPadding,
     )
 
+    val signals = remember { TimelineSignals() }
+    var showMonths by rememberSaveable { mutableStateOf(false) }
+    val monthHighlights by rememberPreference(SettingsKeys.timelineMonthHighlights)
+    val monthRecaps by rememberPreference(SettingsKeys.timelineMonthRecaps)
+    val headerPlaces by rememberPreference(SettingsKeys.timelineHeaderPlaces)
+    val floatingDateLabel by rememberPreference(SettingsKeys.timelineFloatingDateLabel)
+    val index by produceState(TimelineIndex.Empty, decorate, mediaState.value, metadataState.value, timelineGroupMethod) {
+        if (!decorate) {
+            value = TimelineIndex.Empty
+            return@produceState
+        }
+        val state = mediaState.value
+        val metadata = metadataState.value
+        value = withContext(Dispatchers.Default) {
+            val mapped = when (timelineGroupMethod) {
+                GROUP_MONTHLY -> state.mappedMediaWithMonthly
+                GROUP_YEARLY -> state.mappedMediaWithYearly
+                else -> state.mappedMedia
+            }
+            buildTimelineIndex(state.media, mapped, metadata.metadataMap, state.dateSource)
+        }
+    }
+    val decorations = if (decorate) {
+        remember(index, monthHighlights, monthRecaps, headerPlaces, floatingDateLabel, timelineGroupMethod, onOpenPlace, onPlayMonth) {
+            TimelineDecorations(
+                index = index,
+                signals = signals,
+                // Yearly grouping turns the big headers into years, which keep their plain header.
+                monthHighlights = monthHighlights && timelineGroupMethod != GROUP_YEARLY,
+                monthRecaps = monthRecaps,
+                headerPlaces = headerPlaces,
+                floatingDateLabel = floatingDateLabel,
+                onOpenPlace = onOpenPlace,
+                onPlayMonth = onPlayMonth,
+                onOpenMonths = { showMonths = true },
+            )
+        }
+    } else null
+    val openMonths: (() -> Unit)? = if (decorate && timelineGroupByDate) {
+        { showMonths = true }
+    } else null
+
+    CompositionLocalProvider(LocalTimelineDecorations provides decorations) {
+    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
     if (!isMosaicLayout) {
         GridPinchZoomLayout(
             state = pinchState,
             modifier = Modifier.hazeSource(LocalHazeState.current),
             indicatorTopPadding = contentPadding.calculateTopPadding() + 16.dp,
+            onPinchOutPastMin = openMonths,
         ) {
             MediaGridView(
                 mediaState = mediaState,
@@ -139,7 +211,7 @@ fun TimelineMediaContent(
                 allowSelection = true,
                 canScroll = canScroll,
                 allowHeaders = timelineGroupByDate,
-                enableStickyHeaders = timelineGroupByDate,
+                enableStickyHeaders = timelineGroupByDate && stickyHeaders,
                 groupMethod = if (timelineGroupByDate) timelineGroupMethod else GROUP_NORMAL,
                 aboveGridContent = aboveGridContent,
                 isScrolling = isScrolling,
@@ -150,15 +222,14 @@ fun TimelineMediaContent(
                 onRetry = onRetry,
             )
         }
-        return
+        return@Box
     }
 
     var lastMosaicCellIndexState by lastMosaicCellIndex
     val mosaicPinchState = rememberMosaicPinchZoomState(
         initialColumnsIndex = lastMosaicCellIndexState,
-        gridState = rememberLazyGridState(cacheWindow = cacheWindow),
+        gridState = mosaicGridState,
     )
-    val mosaicGridState = mosaicPinchState.gridState
     LaunchedEffect(mosaicPinchState.isZooming) {
         lastMosaicCellIndexState = mosaicPinchState.currentColumnsIndex
     }
@@ -203,10 +274,14 @@ fun TimelineMediaContent(
         toolbarOffset = { 0 },
         stickyHeader = {
             val show by remember {
-                derivedStateOf { mediaState.value.media.isNotEmpty() && stickyHeaderItem != null }
+                derivedStateOf { stickyHeaders && mediaState.value.media.isNotEmpty() && stickyHeaderItem != null }
             }
             AnimatedVisibility(visible = show, enter = enterAnimation, exit = exitAnimation) {
                 val text by rememberedDerivedState(stickyHeaderItem) { stickyHeaderItem ?: "" }
+                if (decorations?.floatingDateLabel == true) {
+                    TimelineFloatingDate(text = text, topPadding = searchBarPadding, decorations = decorations, gridState = mosaicGridState)
+                    return@AnimatedVisibility
+                }
                 val darkTheme = isDarkTheme()
                 Text(
                     text = text,
@@ -235,6 +310,7 @@ fun TimelineMediaContent(
         MosaicPinchZoomLayout(
             state = mosaicPinchState,
             indicatorTopPadding = contentPadding.calculateTopPadding() + 16.dp,
+            onPinchOutPastMin = openMonths,
         ) { currentColumns ->
             TimelineScroller(
                 modifier = Modifier
@@ -289,4 +365,35 @@ fun TimelineMediaContent(
             )
         }
     }
+    }
+    if (decorate) {
+        @OptIn(ExperimentalComposeUiApi::class)
+        BackHandler(enabled = showMonths) { showMonths = false }
+        AnimatedVisibility(
+            visible = showMonths,
+            enter = fadeIn() + scaleIn(initialScale = 1.08f),
+            exit = fadeOut() + scaleOut(targetScale = 1.08f),
+        ) {
+            TimelineMonthsOverview(
+                months = index.months,
+                topPadding = contentPadding.calculateTopPadding(),
+                bottomPadding = bottomPadding,
+                onMonthClick = { month ->
+                    signals.pendingMonthJump = month.key
+                    showMonths = false
+                },
+                onClose = { showMonths = false },
+            )
+        }
+    }
+    }
+    }
+}
+
+/** Grid state with the timeline's look-ahead cache window. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun rememberTimelineGridState(initialFirstVisibleItemIndex: Int = 0): LazyGridState {
+    val cacheWindow = remember { LazyLayoutCacheWindow(aheadFraction = 2f, behindFraction = 2f) }
+    return rememberLazyGridState(cacheWindow = cacheWindow, initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 }

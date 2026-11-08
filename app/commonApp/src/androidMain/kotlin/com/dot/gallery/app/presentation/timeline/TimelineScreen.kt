@@ -135,6 +135,17 @@ fun TimelineScreen(
         onMediaClick = {
             eventHandler.navigate(Screen.MediaViewScreen.idAndAlbum(it.id, -1L))
         },
+        onOpenPlace = { place ->
+            eventHandler.navigate(
+                Screen.LocationTimelineScreen.location(
+                    gpsLocationNameCity = place.city,
+                    gpsLocationNameCountry = place.country,
+                )
+            )
+        },
+        onPlayMonth = { month ->
+            eventHandler.navigate(Screen.MediaViewScreen.idAndAlbumSlideshow(month.firstMediaId, -1L))
+        },
         selectionOverlay = { allMedia, selectedMediaList ->
             SelectionSheet(
                 modifier = Modifier.align(Alignment.BottomEnd),

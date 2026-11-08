@@ -285,6 +285,14 @@ class StoryCardsViewModel @Inject constructor(
         return true
     }
 
+    /**
+     * Opens the story viewer on [cards] starting at [initialCardId]. Used by the Memories page,
+     * whose memories are not the story row's cards.
+     */
+    fun openCards(cards: List<StoryCard>, initialCardId: Long) {
+        createStoryViewerSnapshot(cards, initialCardId)?.let { _viewerSnapshot.value = it }
+    }
+
     fun clearViewerSnapshot() {
         _viewerSnapshot.value = null
     }

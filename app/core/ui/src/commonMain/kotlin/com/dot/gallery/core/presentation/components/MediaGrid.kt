@@ -105,7 +105,7 @@ fun mediaContentState(
  * Scrolls the least distance needed to bring [index] into the viewport: an item above
  * it lands at the top edge, an item below lands at the bottom edge. Used to keep the
  * media-viewer return-flight target composed without jumping the grid to the top of
- * the screen behind the open viewer (issue #960).
+ * the screen behind the open viewer.
  */
 suspend fun LazyGridState.scrollMinimallyToItem(index: Int) {
     val info = layoutInfo
@@ -250,9 +250,6 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
     animatedContentScope: AnimatedContentScope,
     allowSharedElements: Boolean = true,
 ) {
-    val scope = rememberCoroutineScope()
-    val stringToday = stringResource(Res.string.header_today)
-    val stringYesterday = stringResource(Res.string.header_yesterday)
     val feedbackManager = rememberFeedbackManager()
     val headers by rememberedDerivedState(mediaState.value) {
         mediaState.value.headers
@@ -280,7 +277,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
             }
         }
         val scrollGestureActive = remember { mutableStateOf(false) }
-        val allKeys by rememberedDerivedState {
+        val allKeys by rememberedDerivedState(mappedData) {
             mappedData.fastFilter { it is MediaItem.MediaViewItem<T> }.fastMap { it.key }
         }
         val isScrolling by rememberedDerivedState {
@@ -366,7 +363,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
         val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, cloudBackedUpIds) {
             MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, cloudBackedUpIds)
         }
-        // Phase 3 (#1076): publish debounced scroll-motion so cells load the cheap MOTION tier
+        // publish debounced scroll-motion so cells load the cheap MOTION tier
         // during a fling and refine only once the grid settles.
         val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })
         key(gridCells) {
@@ -409,47 +406,21 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
                 }
             ) { it ->
                 if (it is MediaItem.Header) {
-                    val isChecked = rememberSaveable { mutableStateOf(false) }
-                    if (allowSelection) {
-                        LaunchedEffect(isSelectionActive) {
-                            // Uncheck if selectionState is set to false
-                            isChecked.value = isChecked.value && isSelectionActive
-                        }
-                        LaunchedEffect(selectedMedia.value.size) {
-                            withContext(Dispatchers.Default) {
-                                // Partial check of media items should not check the header
-                                isChecked.value = selectedMedia.value.containsAll(it.data)
-                            }
-                        }
-                    }
-                    MediaItemHeader(
+                    TimelineHeaderItem(
+                        header = it,
+                        mediaState = mediaState,
+                        selectedMedia = selectedMedia,
+                        isSelectionActive = isSelectionActive,
+                        allowSelection = allowSelection,
+                        bigHeaders = bigHeaders,
+                        onMediaClick = { media -> onMediaClick(media) },
                         modifier = Modifier
                             .then(
                                 if (canScroll) Modifier.animateItem(fadeInSpec = null)
                                 else Modifier
                             )
                             .pinchItem(key = it.key),
-                        date = remember(it) {
-                            it.text
-                                .replace("Today", stringToday)
-                                .replace("Yesterday", stringYesterday)
-                        },
-                        showAsBig = remember(it, bigHeaders) { it.key.isBigHeaderKey || bigHeaders },
-                        bigHeaderOnly = bigHeaders,
-                        isChecked = isChecked
-                    ) {
-                        if (allowSelection) {
-                            feedbackManager.vibrate()
-                            scope.launch {
-                                isChecked.value = !isChecked.value
-                                val list = mediaState.value.media.map { it.id }
-                                    .filter { id -> id in it.data }
-                                if (isChecked.value) {
-                                    selector.addToSelection(list)
-                                } else selector.removeFromSelection(list)
-                            }
-                        }
-                    }
+                    )
                 } else if (it is MediaItem.MediaViewItem) {
                     val sharedElementModifier = if (allowSharedElements) {
                         with(sharedTransitionScope) {
@@ -573,7 +544,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
     val cellState = remember(selectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates) {
         MediaCellState(selectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates)
     }
-    // Phase 3 (#1076): publish debounced scroll-motion for the header-less media grid too.
+    // publish debounced scroll-motion for the header-less media grid too.
     val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })
 
     key(gridCells) {

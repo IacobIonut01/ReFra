@@ -100,6 +100,9 @@ import kotlin.math.roundToInt
 const val StoryCardsRowTag = "StoryCards.Row"
 const val StoryCardsLoadingRowTag = "StoryCards.LoadingRow"
 private val StoryCardHeight = 220.dp
+
+/** Resting rounding of a story card; the viewer's flight morphs it away on open and back on dismiss. */
+private val StoryCardCornerRadius = 28.dp
 fun storyCardTag(id: Long) = "StoryCards.Card.$id"
 fun storyCardTitleTag(id: Long) = "StoryCards.Title.$id"
 fun storyCardTypeTag(id: Long) = "StoryCards.Type.$id"
@@ -168,7 +171,7 @@ fun StoryCardsRow(
                         onClick = { onCardClick(card) },
                         captionBounds = { itemDrawInfo.maskRect },
                         modifier = storySharedModifier(card.id, sharedTransitionScope, animatedVisibilityScope)
-                            .maskClip(RoundedCornerShape(28.dp))
+                            .maskClip(RoundedCornerShape(StoryCardCornerRadius))
                             .testTag(storyCardTag(card.id)),
                     )
                 }
@@ -185,7 +188,11 @@ private fun storySharedModifier(
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ): Modifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
     with(sharedTransitionScope) {
-        Modifier.storyCardSharedElement(cardId = cardId, animatedVisibilityScope = animatedVisibilityScope)
+        Modifier.storyCardSharedElement(
+            cardId = cardId,
+            animatedVisibilityScope = animatedVisibilityScope,
+            cornerRadius = StoryCardCornerRadius,
+        )
     }
 } else Modifier
 
@@ -208,7 +215,7 @@ private fun LoadingStoryCardsRow(modifier: Modifier, contentPadding: PaddingValu
         listOf(188.dp, 120.dp, 56.dp).forEach { width ->
             Box(
                 Modifier.width(width).height(StoryCardHeight)
-                    .clip(RoundedCornerShape(28.dp))
+                    .clip(RoundedCornerShape(StoryCardCornerRadius))
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .shimmerLoading(),
             )
@@ -230,7 +237,7 @@ private fun StoryCardItem(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(StoryCardCornerRadius))
             .clickable(onClick = onClick)
             .semantics {
                 role = Role.Button

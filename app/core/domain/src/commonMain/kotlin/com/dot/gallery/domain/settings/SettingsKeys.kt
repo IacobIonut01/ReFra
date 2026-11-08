@@ -169,6 +169,14 @@ object SettingsKeys {
     val vaultGroupMethod = PrefKey.string("vault_group_method", default = GROUP_NORMAL)
     val cloudArchiveGroupMethod = PrefKey.string("cloud_archive_group_method", default = GROUP_NORMAL)
     val locationGroupMethod = PrefKey.string("location_group_method", default = GROUP_NORMAL)
+    /** Month headers on the main timeline open with a card of the month's best photos. */
+    val timelineMonthHighlights = PrefKey.bool("timeline_month_highlights", default = true)
+    /** Month highlight cards carry a play button that starts a slideshow from the month. */
+    val timelineMonthRecaps = PrefKey.bool("timeline_month_recaps", default = true)
+    /** Timeline headers name where the photos were taken. */
+    val timelineHeaderPlaces = PrefKey.bool("timeline_header_places", default = true)
+    /** The timeline's sticky date header floats as a pill that opens the months view. */
+    val timelineFloatingDateLabel = PrefKey.bool("timeline_floating_date_label", default = true)
     val showLocationCategories = PrefKey.bool("library_show_location_categories", default = true)
     val hiddenSections = PrefKey.stringSet("library_hidden_sections")
 
