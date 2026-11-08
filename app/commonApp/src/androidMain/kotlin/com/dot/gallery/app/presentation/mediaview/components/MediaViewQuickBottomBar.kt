@@ -218,7 +218,9 @@ fun <T : Media> MediaViewQuickBottomBar(
             }
         },
         onEdit = { media ->
-            if (media.isImage && defaultEditor != Settings.Misc.EDITOR_BUILTIN) {
+            if (media.isImage && defaultEditor != Settings.Misc.EDITOR_BUILTIN &&
+                defaultEditor != Settings.Misc.EDITOR_STUDIO
+            ) {
                 try {
                     context.launchEditImageIntent(defaultEditor, media.getUri())
                 } catch (_: Exception) {

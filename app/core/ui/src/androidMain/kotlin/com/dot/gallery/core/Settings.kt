@@ -996,14 +996,6 @@ object Settings {
             context.activeDataStore.edit { it[TAP_SIDES_TO_NAVIGATE_PROMPT_SHOWN] = true }
         }
 
-        /**
-         * Swipe a photo or video upwards in the full-screen viewer to move it to the trash.
-         * Off by default: it is a destructive gesture, so it stays opt-in.
-         */
-        @Composable
-        fun rememberSwipeUpToTrash() =
-            rememberPreference(SettingsKeys.swipeUpToTrash)
-
         @Composable
         fun rememberAutoHideOnVideoPlay() =
             rememberPreference(SettingsKeys.autoHideOnVideoPlay)
@@ -1107,7 +1099,7 @@ object Settings {
 
         /**
          * Workaround for video [android.view.SurfaceView] blacking out when the
-         * system bars are toggled while playing (#967). When enabled, the player
+         * system bars are toggled while playing. When enabled, the player
          * surface is re-bound on every system-bar visibility change. Defaults to on
          * for Samsung devices, where the issue is observed, and off elsewhere.
          */
@@ -1118,7 +1110,7 @@ object Settings {
         /**
          * Lets the media viewer switch the window into
          * [android.content.pm.ActivityInfo.COLOR_MODE_HDR] while a Dolby Vision / HDR10 / HLG
-         * video is playing (#1274). Only takes effect on HDR-capable displays — the window
+         * video is playing. Only takes effect on HDR-capable displays — the window
          * toggle itself is gated on `HdrCapabilities.isHdrDisplay`, so this silently no-ops on
          * SDR-only hardware.
          */

@@ -5,54 +5,41 @@
 
 package com.dot.gallery.feature.viewer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ClosedCaptionDisabled
 import androidx.compose.material.icons.outlined.Subtitles
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.Position
+import com.dot.gallery.core.presentation.components.ExpressiveSheet
+import com.dot.gallery.core.presentation.components.SheetHeader
+import com.dot.gallery.core.presentation.components.SheetOptionRow
+import com.dot.gallery.core.presentation.components.SheetRowTrailing
+import com.dot.gallery.core.presentation.components.sheetRowPosition
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.domain.model.SubtitleTrack
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.viewer.generated.resources.Res
 import com.dot.gallery.feature.viewer.generated.resources.add_subtitle_file
 import com.dot.gallery.feature.viewer.generated.resources.remove_subtitle_track
 import com.dot.gallery.feature.viewer.generated.resources.subtitle_external_label
 import com.dot.gallery.feature.viewer.generated.resources.subtitle_off
 import com.dot.gallery.feature.viewer.generated.resources.subtitles_title
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubtitleBottomSheet(
     state: AppBottomSheetState,
@@ -63,166 +50,88 @@ fun SubtitleBottomSheet(
     onRemoveSubtitle: (SubtitleTrack) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val anySelected = subtitleTracks.any { it.isSelected }
-
-    if (state.isVisible) {
-        ModalBottomSheet(
-            sheetState = state.sheetState,
-            onDismissRequest = {
-                scope.launch { state.hide() }
+    val hide: () -> Unit = { scope.launch { state.hide() } }
+    ExpressiveSheet(sheetState = state, paneTitle = stringResource(Res.string.subtitles_title)) {
+        SubtitleSheetContent(
+            tracks = subtitleTracks.map {
+                SubtitleOption(
+                    key = "${it.groupIndex}:${it.trackIndex}",
+                    label = it.label,
+                    language = it.language,
+                    selected = it.isSelected,
+                    external = it.isManuallyAdded,
+                )
             },
-            dragHandle = { DragHandle() },
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(bottom = 16.dp)
-            ) {
-                // Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Subtitles,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = stringResource(Res.string.subtitles_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+            onSelect = { key ->
+                subtitleTracks.firstOrNull { "${it.groupIndex}:${it.trackIndex}" == key }?.let(onSelectSubtitle)
+                hide()
+            },
+            onDisable = { onDisableSubtitles(); hide() },
+            onAdd = { onAddSubtitle(); hide() },
+            onRemove = { key ->
+                subtitleTracks.firstOrNull { "${it.groupIndex}:${it.trackIndex}" == key }?.let(onRemoveSubtitle)
+            },
+        )
+    }
+}
 
-                Spacer(modifier = Modifier.height(16.dp))
+/** One subtitle track shown by [SubtitleSheetContent]. */
+data class SubtitleOption(
+    val key: String,
+    val label: String,
+    val language: String?,
+    val selected: Boolean,
+    val external: Boolean,
+)
 
-                // "Off" option
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onDisableSubtitles()
-                            scope.launch { state.hide() }
-                        }
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    RadioButton(
-                        selected = !anySelected || subtitleTracks.isEmpty(),
-                        onClick = {
-                            onDisableSubtitles()
-                            scope.launch { state.hide() }
-                        }
-                    )
-                    Text(
-                        text = stringResource(Res.string.subtitle_off),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                // Track list
-                LazyColumn {
-                    items(
-                        items = subtitleTracks,
-                        key = { "${it.groupIndex}:${it.trackIndex}" }
-                    ) { track ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onSelectSubtitle(track)
-                                    scope.launch { state.hide() }
-                                }
-                                .padding(start = 24.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            RadioButton(
-                                selected = track.isSelected,
-                                onClick = {
-                                    onSelectSubtitle(track)
-                                    scope.launch { state.hide() }
-                                }
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = track.label,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                track.language?.let { lang ->
-                                    Text(
-                                        text = lang,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                AnimatedVisibility(
-                                    visible = track.isManuallyAdded,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.subtitle_external_label),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.tertiary
-                                    )
-                                }
-                            }
-                            if (track.isManuallyAdded) {
-                                IconButton(onClick = { onRemoveSubtitle(track) }) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Close,
-                                        contentDescription = stringResource(Res.string.remove_subtitle_track),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+/** Stateless body of [SubtitleBottomSheet]: Off, every track as a radio row, then Add subtitle file. */
+@Composable
+fun ColumnScope.SubtitleSheetContent(
+    tracks: List<SubtitleOption>,
+    onSelect: (String) -> Unit,
+    onDisable: () -> Unit,
+    onAdd: () -> Unit,
+    onRemove: (String) -> Unit,
+) {
+    SheetHeader(title = stringResource(Res.string.subtitles_title))
+    val count = tracks.size + 1
+    SheetOptionRow(
+        title = stringResource(Res.string.subtitle_off),
+        icon = Icons.Outlined.ClosedCaptionDisabled,
+        position = sheetRowPosition(0, count),
+        trailing = SheetRowTrailing.Radio(tracks.none { it.selected }),
+        onClick = onDisable,
+    )
+    val externalLabel = stringResource(Res.string.subtitle_external_label)
+    val removeLabel = stringResource(Res.string.remove_subtitle_track)
+    tracks.forEachIndexed { index, track ->
+        val summary = listOfNotNull(track.language, externalLabel.takeIf { track.external }).joinToString(" · ")
+        SheetOptionRow(
+            title = track.label,
+            summary = summary.ifBlank { null },
+            icon = Icons.Outlined.Subtitles,
+            position = sheetRowPosition(index + 1, count),
+            trailing = SheetRowTrailing.Custom {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (track.external) {
+                        IconButton(onClick = { onRemove(track.key) }) {
+                            Icon(Icons.Outlined.Close, contentDescription = removeLabel, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
+                    RadioButton(selected = track.selected, onClick = null)
                 }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-                )
-
-                // "Add subtitle file" button
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onAddSubtitle()
-                            scope.launch { state.hide() }
-                        }
-                        .padding(horizontal = 24.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = stringResource(Res.string.add_subtitle_file),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
+            },
+            onClick = { onSelect(track.key) },
+        )
     }
+    Spacer(Modifier.height(12.dp))
+    SheetOptionRow(
+        title = stringResource(Res.string.add_subtitle_file),
+        icon = Icons.Outlined.AddCircleOutline,
+        position = Position.Alone,
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        trailing = SheetRowTrailing.Chevron,
+        onClick = onAdd,
+    )
 }

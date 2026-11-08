@@ -9,9 +9,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,15 +55,12 @@ import com.dot.gallery.core.presentation.components.ConfirmationSheet
 import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.presentation.components.OptionLayoutStyle
 import com.dot.gallery.core.presentation.components.OptionSheet
-import com.dot.gallery.core.presentation.util.LocalHazeState
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.Vault
 import com.dot.gallery.domain.util.isEncrypted
 import com.dot.gallery.domain.util.isVideo
-import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.viewer.generated.resources.Res
@@ -354,27 +355,36 @@ fun <T : Media> MediaViewSheetActions(
         }
     }
 
-    // Render as 2-column grid
+    // Two-column grouped grid: only the grid's outer corners are rounded, cells of a row
+    // share the tallest label's height, and a lone last action spans its row.
+    val actionRows = actions.chunked(2)
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(ViewerSheetGroupGap)
     ) {
-        actions.chunked(2).forEach { rowItems ->
+        actionRows.forEachIndexed { rowIndex, rowItems ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(ViewerSheetGroupGap)
             ) {
-                rowItems.forEach { item ->
+                rowItems.forEachIndexed { column, item ->
                     ActionGridCell(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         icon = item.icon,
                         text = item.text,
                         enabled = item.enabled,
+                        shape = actionGridCellCorners(
+                            row = rowIndex,
+                            rowCount = actionRows.size,
+                            column = column,
+                            spansRow = rowItems.size == 1,
+                        ).toShape(),
                         onClick = item.onClick
                     )
-                }
-                if (rowItems.size < 2) {
-                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -432,46 +442,31 @@ private fun ActionGridCell(
     icon: ImageVector,
     text: String,
     enabled: Boolean = true,
+    shape: Shape = RoundedCornerShape(ViewerSheetInnerCorner),
     onClick: () -> Unit
 ) {
-    val isBlurEnabled = LocalMediaViewerVisualPolicy.current.allowBlur
-    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHigh
-    val backgroundModifier = remember(isBlurEnabled) {
-        if (!isBlurEnabled) {
-            Modifier.background(
-                color = surfaceColor,
-                shape = RoundedCornerShape(16.dp)
-            )
-        } else Modifier
-    }
-    val hazeStyle = HazeMaterials.regular(
-        containerColor = MaterialTheme.colorScheme.surface
-    )
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .then(backgroundModifier)
-            .hazeEffectScaled(
-                state = LocalHazeState.current,
-                style = hazeStyle
-            )
+            .heightIn(min = 56.dp)
+            .clip(shape)
+            .background(viewerSheetRowColor())
             .clickable(enabled = enabled, onClick = onClick)
             .alpha(if (enabled) 1f else 0.4f)
-            .padding(horizontal = 12.dp, vertical = 16.dp),
+            .padding(start = 16.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(20.dp)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
         )
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
     }

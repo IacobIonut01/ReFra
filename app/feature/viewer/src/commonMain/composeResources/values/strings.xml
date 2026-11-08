@@ -134,4 +134,8 @@
     <string name="cutout_copy">Copy</string>
     <string name="cutout_share">Share</string>
     <string name="cutout_save">Save</string>
+    <string name="edit_capture_date">Edit capture date</string>
+    <string name="view_all_metadata_summary">EXIF, XMP and file details</string>
+    <string name="remove_metadata_summary">Location, camera details, dates and more</string>
+    <string name="remove_metadata_checking">Checking what can be removed…</string>
 </resources>

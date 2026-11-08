@@ -8,12 +8,14 @@ package com.dot.gallery.feature.viewer.components.media
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.layout.layout
@@ -86,6 +88,15 @@ fun ViewerDismissFlightLayer(bridge: ViewerDismissBridge) {
                     )
                 }
             }
+                // The source card may be rounded while the viewer is flat. Driving the clip from
+                // [ViewerDismissFlight.cornerRadius] (already interpolated by the same progress
+                // that morphs the bounds) makes the corners merge with the card instead of the
+                // flight landing square over it.
+                .graphicsLayer {
+                    val radius = flight.cornerRadius
+                    shape = RoundedCornerShape(radius)
+                    clip = radius.value > 0f
+                }
         ) {
             ViewerSharedElementThumbnail(
                 media = flight.media,

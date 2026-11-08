@@ -12,14 +12,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.feature.exif.ui.MetadataViewContent
 import com.dot.gallery.injection.injectViewModel
+import dev.chrisbanes.haze.rememberHazeState
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -90,6 +93,11 @@ fun MetadataCoverLayer(
                 onClick = {},
             ),
     ) {
-        MetadataViewContent(state = state, onBack = onBack)
+        // The viewer's haze state has the photo as a source. Inheriting it made the metadata
+        // top bar blur the photo underneath instead of the list scrolling under it, so the
+        // cover gets its own state whose only source is the metadata list.
+        CompositionLocalProvider(LocalHazeState provides rememberHazeState()) {
+            MetadataViewContent(state = state, onBack = onBack)
+        }
     }
 }

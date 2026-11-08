@@ -23,7 +23,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,8 +61,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
+import androidx.compose.foundation.Canvas
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -82,6 +80,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalResources
 import com.dot.gallery.feature.viewer.generated.resources.Res
@@ -97,7 +99,9 @@ import com.dot.gallery.feature.viewer.generated.resources.toggle_audio_cd
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.media3.common.util.UnstableApi
@@ -467,83 +471,87 @@ fun VideoPlayerController(
                     textAlign = TextAlign.Center
                 )
 
-                val trackModifier = Modifier
-                    .fillMaxWidth()
-                    .height(12.dp)
-                    .clip(RoundedCornerShape(100))
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Display-only tracks + thumb, drawn manually — the two stacked
+                    // m3 Sliders used before broke on material3 1.5.0-alpha (the
+                    // position track rendered fully active regardless of value).
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(18.dp)
+                    ) {
+                        val trackHeight = 12.dp.toPx()
+                        val thumbWidth = 2.dp.toPx()
+                        val trackTop = (size.height - trackHeight) / 2f
+                        val trackCorner = CornerRadius(trackHeight / 2f, trackHeight / 2f)
+                        val thumbTop = (size.height - 18.dp.toPx()) / 2f
 
-                Box(Modifier.weight(1f)) {
-                    // Buffered track (disabled slider)
-                    val disabledColors = SliderDefaults.colors(
-                        disabledThumbColor = Color.Transparent,
-                        disabledInactiveTrackColor = Color.DarkGray.copy(alpha = 0.4f),
-                        disabledActiveTrackColor = Color.Gray.copy(alpha = 0.8f),
-                        disabledActiveTickColor = Color.Transparent
-                    )
-                    Slider(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = buffer.toFloat(),
-                        enabled = false,
-                        onValueChange = {},
-                        thumb = {
-                            SliderDefaults.Thumb(
-                                interactionSource = remember { MutableInteractionSource() },
-                                thumbSize = DpSize(0.dp, 0.dp),
-                                colors = disabledColors,
-                                enabled = false
-                            )
-                        },
-                        track = {
-                            SliderDefaults.Track(
-                                modifier = trackModifier,
-                                sliderState = it,
-                                colors = disabledColors,
-                                drawStopIndicator = null,
-                                drawTick = { _, _ -> },
-                                enabled = false,
-                                thumbTrackGapSize = 0.dp
-                            )
-                        },
-                        valueRange = 0f..100f,
-                        colors = disabledColors
-                    )
-
-                    // Active (position) slider — display only, gestures handled by overlay
-                    val activeColors = SliderDefaults.colors(
-                        thumbColor = Color.White,
-                        activeTrackColor = Color.White,
-                        activeTickColor = Color.Transparent,
-                        inactiveTrackColor = Color.Transparent
-                    )
-                    Slider(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = sliderValue.coerceIn(0f, (totalTime).coerceAtLeast(0L).toFloat()),
-                        onValueChange = {},
-                        valueRange = 0f..(if (totalTime > 0) totalTime.toFloat() else 0f),
-                        colors = activeColors,
-                        thumb = {
-                            SliderDefaults.Thumb(
-                                interactionSource = remember { MutableInteractionSource() },
-                                thumbSize = DpSize(2.dp, 18.dp),
-                                colors = activeColors
-                            )
-                        },
-                        track = {
-                            SliderDefaults.Track(
-                                modifier = trackModifier,
-                                sliderState = it,
-                                colors = activeColors,
-                                drawStopIndicator = null,
-                                drawTick = { _, _ -> },
-                                thumbTrackGapSize = 0.dp
+                        // Unbuffered remainder
+                        drawRoundRect(
+                            color = Color.DarkGray.copy(alpha = 0.4f),
+                            topLeft = Offset(0f, trackTop),
+                            size = Size(size.width, trackHeight),
+                            cornerRadius = trackCorner
+                        )
+                        // Buffered portion
+                        val bufferedWidth =
+                            size.width * (buffer / 100f).coerceIn(0f, 1f)
+                        if (bufferedWidth > 0f) {
+                            drawRoundRect(
+                                color = Color.Gray.copy(alpha = 0.8f),
+                                topLeft = Offset(0f, trackTop),
+                                size = Size(bufferedWidth, trackHeight),
+                                cornerRadius = trackCorner
                             )
                         }
-                    )
+                        // Played portion + thumb
+                        val max = totalTime.coerceAtLeast(0L).toFloat()
+                        val fraction =
+                            if (max > 0f) (sliderValue / max).coerceIn(0f, 1f) else 0f
+                        if (fraction > 0f) {
+                            drawRoundRect(
+                                color = Color.White,
+                                topLeft = Offset(0f, trackTop),
+                                size = Size(size.width * fraction, trackHeight),
+                                cornerRadius = trackCorner
+                            )
+                        }
+                        val thumbX = (size.width * fraction - thumbWidth / 2f)
+                            .coerceIn(0f, size.width - thumbWidth)
+                        drawRoundRect(
+                            color = Color.White,
+                            topLeft = Offset(thumbX, thumbTop),
+                            size = Size(thumbWidth, 18.dp.toPx()),
+                            cornerRadius = CornerRadius(thumbWidth / 2f, thumbWidth / 2f)
+                        )
+                    }
 
                     // Sensitivity-aware scrubbing gesture overlay
                     Box(
                         Modifier
                             .matchParentSize()
+                            .semantics {
+                                val rangeEnd = totalTime.coerceAtLeast(0L).toFloat()
+                                if (rangeEnd > 0f) {
+                                    progressBarRangeInfo = ProgressBarRangeInfo(
+                                        current = sliderValue.coerceIn(0f, rangeEnd) / rangeEnd,
+                                        range = 0f..1f
+                                    )
+                                    setProgress { p ->
+                                        val target =
+                                            (p.coerceIn(0f, 1f) * rangeEnd).toLong()
+                                        sliderValue = target.toFloat()
+                                        player.seekTo(target)
+                                        currentTime.longValue = target
+                                        true
+                                    }
+                                }
+                            }
                             .pointerInput(totalTime) {
                                 val maxValue = totalTime.coerceAtLeast(0L).toFloat()
                                 if (maxValue <= 0f) return@pointerInput

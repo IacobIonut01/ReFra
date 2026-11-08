@@ -8,9 +8,10 @@ package com.dot.gallery.app.presentation.mediaview.components
 import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.Camera
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.PhotoSizeSelectLarge
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material.icons.outlined.VideoFile
@@ -39,7 +40,6 @@ import com.dot.gallery.generated.resources.label
 import com.dot.gallery.generated.resources.path
 import com.dot.gallery.generated.resources.ppcm
 import com.dot.gallery.generated.resources.ppi
-import com.dot.gallery.generated.resources.ppi_resolution_string
 import com.dot.gallery.generated.resources.resolution_with_mp
 import com.dot.gallery.generated.resources.taken_on
 import com.dot.gallery.generated.resources.type_size
@@ -73,7 +73,7 @@ fun Media.retrieveMetadata(
 
     // 2) Full path
     info += InfoRow(
-        icon = Icons.Outlined.Info,
+        icon = Icons.Outlined.FolderOpen,
         label = context.getString(Res.string.path),
         content = path.substringBeforeLast("/")
     )
@@ -138,7 +138,7 @@ fun Media.retrieveMetadata(
         ).joinToString(" • ")
         if (cam.isNotBlank()) {
             info += InfoRow(
-                icon = Icons.Outlined.Camera,
+                icon = Icons.Outlined.PhotoCamera,
                 label = cam,
                 content = camDetails
             )
@@ -160,18 +160,15 @@ fun Media.retrieveMetadata(
                     3 -> context.getString(Res.string.ppcm)
                     else -> ""
                 }
-                content += context.getString(
-                    Res.string.ppi_resolution_string,
-                    resX,
-                    resY,
-                    unit
-                )
+                // Built here rather than from ppi_resolution_string: Compose resources keep
+                // its XML quotes and do not expand the %1$.1f float placeholders.
+                content += " • ${"%.1f".format(resX)} × ${"%.1f".format(resY)} $unit".trimEnd()
             }
             if (size > 0) {
                 content += " • ${formatSize(size)}"
             }
             info += InfoRow(
-                icon = Icons.Outlined.ImageSearch,
+                icon = Icons.Outlined.PhotoSizeSelectLarge,
                 label = context.getString(Res.string.dimensions),
                 content = content
             )
@@ -219,7 +216,7 @@ fun Media.retrieveMetadata(
 
     // Floor rows: a missing metadata row must never hide the file itself. Size and
     // duration already come from the MediaStore projection, so surface them even
-    // when every parser failed (#1267).
+    // when every parser failed.
     if (mediaMetadata == null && size > 0) {
         info += InfoRow(
             icon = Icons.Outlined.Info,
@@ -237,7 +234,7 @@ fun Media.retrieveMetadata(
         }
     }
 
-    // HDR classification of the playing track, published by the player (#1274). Kept outside
+    // HDR classification of the playing track, published by the player. Kept outside
     // the metadata scope so the row still renders when no parsed metadata exists. For Dolby
     // Vision the label also reflects how the device actually renders it.
     if (isVideo && videoHdr.isHdr) {

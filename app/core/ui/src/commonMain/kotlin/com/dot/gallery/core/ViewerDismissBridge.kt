@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 
 /**
  * Bridges a viewer's swipe-down dismiss gesture to the overlay host.
@@ -42,6 +44,26 @@ class ViewerDismissBridge {
 
     /** Root-space bounds of shared-element source cells/cards, keyed by element key. */
     val cellBounds = mutableStateMapOf<Any, Rect>()
+
+    /**
+     * Resting corner radius of shared-element source cells/cards, keyed by element key. Lets a
+     * manual flight round its corners toward a rounded source (story cards) while staying square
+     * toward a flat viewer, instead of snapping between the two.
+     */
+    val cellCornerRadii = mutableStateMapOf<Any, Dp>()
+
+    /**
+     * Lookahead size in px of shared-element source cells/cards, keyed by element key. Unlike
+     * [cellBounds], this is the element's own layout size and stays stable while the shared
+     * bounds animation is morphing its on-screen rect, so corner interpolation can anchor to it.
+     */
+    val cellCornerSizes = mutableStateMapOf<Any, IntSize>()
+
+    /** Resting corner radius of the viewer/target side, keyed by element key. */
+    val targetCornerRadii = mutableStateMapOf<Any, Dp>()
+
+    /** Lookahead size in px of the viewer/target side, keyed by element key. */
+    val targetCornerSizes = mutableStateMapOf<Any, IntSize>()
 
     /** The manual flight currently morphing media bounds — dismiss (release->cell) or the
      * overlay's enter (cell->fullscreen). */

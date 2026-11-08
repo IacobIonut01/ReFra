@@ -6,7 +6,7 @@
     <string name="version_build_format">v%1$s (%2$d)</string>
     <string name="donate">Donate</string>
     <string name="donate_button_cd">Donate Button</string>
-    <string name="github">Github</string>
+    <string name="github">GitHub</string>
     <string name="github_button_cd">Github Button</string>
     <string name="github_url">https://github.com/IacobIonut01/Gallery</string>
     <string name="dismiss_banner_title">Move banner?</string>

@@ -15,6 +15,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.dot.gallery.domain.model.Media
 import kotlinx.coroutines.CancellationException
@@ -199,7 +200,14 @@ class ViewerDismissState(
             snapshotFlow { sizePx }.first { it.width > 0 && it.height > 0 }
         } ?: return
         b.suppressedElementKey = key
-        b.flight = ViewerDismissFlight(key = key, media = media, bounds = cellBounds, isEnter = true)
+        b.flight = ViewerDismissFlight(
+            key = key,
+            media = media,
+            bounds = cellBounds,
+            isEnter = true,
+            sourceCornerRadius = b.cellCornerRadii[key] ?: 0.dp,
+            targetCornerRadius = b.targetCornerRadii[key] ?: 0.dp,
+        )
         val progress = Animatable(0f)
         try {
             progress.animateTo(
@@ -283,7 +291,14 @@ class ViewerDismissState(
             // the in-place media is hidden (isDismissedVisualHidden) and the root-level flight
             // layer carries the visual to the cell. Backdrop/chrome fade via progress.
             val release = viewerBounds(dragOffsetY)
-            b.flight = ViewerDismissFlight(key = armedKey!!, media = media, bounds = release)
+            val flightKey = armedKey!!
+            b.flight = ViewerDismissFlight(
+                key = flightKey,
+                media = media,
+                bounds = release,
+                sourceCornerRadius = b.cellCornerRadii[flightKey] ?: 0.dp,
+                targetCornerRadius = b.targetCornerRadii[flightKey] ?: 0.dp,
+            )
             launch {
                 dragAnimation.animateTo(
                     targetValue = heightPx * DISMISS_FADE_DISTANCE_FRACTION,
@@ -375,7 +390,13 @@ class ViewerDismissState(
         hiddenElementKey = elementKey
         b.suppressedElementKey = elementKey
         val full = viewerBounds()
-        b.flight = ViewerDismissFlight(key = elementKey, media = media, bounds = full)
+        b.flight = ViewerDismissFlight(
+            key = elementKey,
+            media = media,
+            bounds = full,
+            sourceCornerRadius = b.cellCornerRadii[elementKey] ?: 0.dp,
+            targetCornerRadius = b.targetCornerRadii[elementKey] ?: 0.dp,
+        )
         fun Rect.lerpTo(other: Rect, t: Float) = Rect(
             left = lerp(left, other.left, t),
             top = lerp(top, other.top, t),

@@ -12,6 +12,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,11 +27,15 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalFireDepartment
+import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,21 +79,27 @@ import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.viewer.generated.resources.Res
 import com.dot.gallery.feature.viewer.generated.resources.cloud_media
 import com.dot.gallery.feature.viewer.generated.resources.edit
+import com.dot.gallery.feature.viewer.generated.resources.edit_capture_date
 import com.dot.gallery.feature.viewer.generated.resources.encrypted
-import com.dot.gallery.feature.viewer.generated.resources.metadata
 import com.dot.gallery.feature.viewer.generated.resources.remove_metadata
+import com.dot.gallery.feature.viewer.generated.resources.remove_metadata_checking
+import com.dot.gallery.feature.viewer.generated.resources.remove_metadata_summary
 import com.dot.gallery.feature.viewer.generated.resources.s_items
 import com.dot.gallery.feature.viewer.generated.resources.view_all_metadata
+import com.dot.gallery.feature.viewer.generated.resources.view_all_metadata_summary
 
 
 /**
- * The viewer's bottom info sheet: date/location card, info rows, action grid.
+ * The viewer's bottom info sheet: date header, location group, info rows, action grid.
+ *
+ * The sheet is the only blurred surface (HazeMaterials.thin over the media); every row, card
+ * and action cell inside paints [viewerSheetRowColor] and shows that single blur through it.
  *
  * Everything app-coupled is slotted: the caller resolves [dateCaption],
  * [mediaInfoList] and [locationData], renders the metadata/capture-date/move
  * sheets through slots, hosts the action grid via [actionsContent], and can
- * inject extra lazy items (motion-photo section, cloud backup card, people card)
- * via [preInfoItems]/[postInfoItems] using [MediaInfoSheetCard] for the chrome.
+ * inject extra lazy items (motion-photo section, cloud backup row, people group)
+ * via [preInfoItems]/[postInfoItems] using the [ViewerSheetRow] / [MediaInfoSheetCard] chrome.
  */
 @Composable
 fun <T : Media> MediaViewSheetDetails(
@@ -125,9 +136,9 @@ fun <T : Media> MediaViewSheetDetails(
     mapPreview: (@Composable (Modifier) -> Unit)? = null,
     onOpenMap: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     // ACCESS_MEDIA_LOCATION prompt — app-side (permissions). Rendered when location is
-    // missing on a local image and this is non-null.
+    // missing on a local image and this is non-null; it receives the row modifier.
     locationAccessPrompt: (@Composable (Modifier) -> Unit)? = null,
-    // Extra LazyColumn sections. Use [MediaInfoSheetCard] for the shared card chrome.
+    // Extra LazyColumn sections. Use [ViewerSheetRow] / [MediaInfoSheetCard] for the chrome.
     motionPhotoContent: (@Composable (Modifier) -> Unit)? = null,
     preInfoItems: LazyListScope.() -> Unit = {},
     postInfoItems: LazyListScope.() -> Unit = {},
@@ -145,61 +156,19 @@ fun <T : Media> MediaViewSheetDetails(
     }
     val isBlurEnabled = LocalMediaViewerVisualPolicy.current.allowBlur
     val surfaceColor = MaterialTheme.colorScheme.surface
-    val surfaceColorVariant = MaterialTheme.colorScheme.surfaceContainer
-    val surfaceContainerHigh = MaterialTheme.colorScheme.surfaceContainerHigh
-    val sheetHazeStyle = HazeMaterials.thin(
-        containerColor = surfaceColor
-    )
-    val iconBackgroundHazeStyle = HazeMaterials.thick(
-        containerColor = surfaceContainerHigh
-    )
-    val sheetCardButtonHazeStyle = HazeMaterials.thick(
-        containerColor = surfaceColorVariant
-    )
-    val iconBackgroundModifier = remember(isBlurEnabled) {
-        if (!isBlurEnabled) {
-            Modifier.background(
-                color = surfaceContainerHigh,
-                shape = RoundedCornerShape(10.dp)
-            )
-        } else {
-            Modifier
-        }
-    }
-    val buttonBackgroundModifier = remember(isBlurEnabled) {
-        if (!isBlurEnabled) {
-            Modifier.background(
-                color = surfaceContainerHigh,
-                shape = RoundedCornerShape(12.dp)
-            )
-        } else {
-            Modifier
-        }
-    }
-    val sheetBackgroundModifier = remember(isBlurEnabled) {
-        if (!isBlurEnabled) {
-            Modifier.background(
-                color = surfaceColor,
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-            )
-        } else {
-            Modifier
-        }
-    }
+    val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     Column(
         modifier = Modifier
             .widthIn(max = 600.dp)
             .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(
-                    topStart = 24.dp,
-                    topEnd = 24.dp
-                )
+            .clip(sheetShape)
+            .then(
+                if (!isBlurEnabled) Modifier.background(color = surfaceColor, shape = sheetShape)
+                else Modifier
             )
-            .then(sheetBackgroundModifier)
             .hazeEffectScaled(
                 state = LocalHazeState.current,
-                style = sheetHazeStyle
+                style = HazeMaterials.thin(containerColor = surfaceColor)
             )
             .graphicsLayer {
                 translationY = -1f
@@ -210,7 +179,7 @@ fun <T : Media> MediaViewSheetDetails(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DragHandle()
+            DragHandle(modifier = Modifier.padding(vertical = 1.dp))
         }
 
         AnimatedVisibility(
@@ -278,120 +247,97 @@ fun <T : Media> MediaViewSheetDetails(
                     }
                 }
 
+                val canEditDate = currentMedia.canMakeActions && currentMedia.isImage
+                val showLocationPrompt = locationData == null && currentMedia.isImage &&
+                    !currentMedia.isCloud && !currentMedia.isEncrypted &&
+                    !currentMedia.readUriOnly && locationAccessPrompt != null
+
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(16.dp)),
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    item(key = "date_location") {
-                        MediaInfoSheetCard(innerPadding = Modifier.padding(16.dp)) {
-                            DateHeader(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        enabled = currentMedia.canMakeActions && currentMedia.isImage,
-                                        indication = null,
-                                        interactionSource = remember {
-                                            MutableInteractionSource()
-                                        }
-                                    ) {
-                                        scope.launch {
-                                            captureDateSheetState.show()
-                                        }
-                                    },
-                                mediaDateCaption = dateCaption
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .horizontalScroll(state = rememberScrollState())
-                                    .padding(top = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    item(key = "header") {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 8.dp, bottom = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                if (currentMedia.isRaw) {
-                                    MediaInfoChip(
-                                        text = currentMedia.fileExtension.uppercase(),
-                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                    )
-                                }
-                                if (currentMedia.isEncrypted) {
-                                    MediaInfoChip(
-                                        text = stringResource(Res.string.encrypted),
-                                        containerColor = MaterialTheme.colorScheme.error,
-                                        contentColor = MaterialTheme.colorScheme.onError
-                                    )
-                                }
-                                if (currentMedia.isCloud) {
-                                    MediaInfoChip(
-                                        text = stringResource(Res.string.cloud_media),
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
+                                DateHeader(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            enabled = canEditDate,
+                                            indication = null,
+                                            interactionSource = remember {
+                                                MutableInteractionSource()
+                                            }
+                                        ) {
+                                            scope.launch { captureDateSheetState.show() }
+                                        },
+                                    mediaDateCaption = dateCaption
+                                )
+                                val showChips = currentMedia.isRaw || currentMedia.isEncrypted ||
+                                    currentMedia.isCloud
+                                if (showChips) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(state = rememberScrollState()),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        if (currentMedia.isRaw) {
+                                            ViewerSheetChip(
+                                                text = currentMedia.fileExtension.uppercase(),
+                                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                            )
+                                        }
+                                        if (currentMedia.isEncrypted) {
+                                            ViewerSheetChip(
+                                                text = stringResource(Res.string.encrypted),
+                                                containerColor = MaterialTheme.colorScheme.error,
+                                                contentColor = MaterialTheme.colorScheme.onError
+                                            )
+                                        }
+                                        if (currentMedia.isCloud) {
+                                            ViewerSheetChip(
+                                                text = stringResource(Res.string.cloud_media),
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                        }
+                                    }
                                 }
                             }
+                            if (canEditDate) {
+                                ViewerSheetIconButton(
+                                    icon = Icons.Outlined.EditCalendar,
+                                    contentDescription = stringResource(Res.string.edit_capture_date),
+                                    onClick = { scope.launch { captureDateSheetState.show() } },
+                                )
+                            }
+                        }
+                    }
+                    if (locationData != null) {
+                        item(key = "location") {
                             LocationItem(
-                                iconBackgroundModifier = Modifier
-                                    .then(iconBackgroundModifier)
-                                    .hazeEffectScaled(
-                                        state = LocalHazeState.current,
-                                        style = iconBackgroundHazeStyle
-                                    ),
                                 locationData = locationData,
                                 mediaUri = currentMedia.getUri(),
                                 mapPreview = mapPreview,
                                 onOpenMap = onOpenMap,
                                 onShowInApp = { onShowLocationInApp(currentMedia) }
                             )
-                            if (locationData == null && currentMedia.isImage &&
-                                !currentMedia.isCloud && !currentMedia.isEncrypted &&
-                                !currentMedia.readUriOnly && locationAccessPrompt != null
-                            ) {
-                                locationAccessPrompt(
-                                    Modifier
-                                        .then(iconBackgroundModifier)
-                                        .hazeEffectScaled(
-                                            state = LocalHazeState.current,
-                                            style = iconBackgroundHazeStyle
-                                        )
-                                )
-                            }
-                            AnimatedVisibility(visible = currentMedia.canMakeActions) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 4.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .then(buttonBackgroundModifier)
-                                        .hazeEffectScaled(
-                                            state = LocalHazeState.current,
-                                            style = sheetCardButtonHazeStyle
-                                        )
-                                        .clickable(enabled = !metadataRemovalBusy) {
-                                            probeMetadataSanitization(currentMedia)
-                                        }
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.LocalFireDepartment,
-                                        contentDescription = stringResource(Res.string.remove_metadata),
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = stringResource(Res.string.remove_metadata),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.padding(start = 8.dp)
-                                    )
-                                }
-                            }
+                        }
+                    } else if (showLocationPrompt) {
+                        item(key = "location_access") {
+                            locationAccessPrompt(Modifier.fillMaxWidth())
                         }
                     }
                     if (motionPhotoContent != null) {
@@ -400,105 +346,113 @@ fun <T : Media> MediaViewSheetDetails(
                                 Modifier
                                     .widthIn(max = 600.dp)
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp))
                             )
                         }
                     }
-                    // Cloud-backup / people cards etc.
+                    // Cloud-backup / people rows etc.
                     preInfoItems()
                     item(key = "media_info") {
-                        MediaInfoSheetCard(innerPadding = Modifier.padding(vertical = 16.dp)) {
-                            mediaInfoList.forEach {
-                                MediaInfoRow(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    label = it.label,
-                                    content = it.content,
-                                    icon = it.icon,
-                                    iconBackgroundModifier = Modifier
-                                        .then(iconBackgroundModifier)
-                                        .hazeEffectScaled(
-                                            state = LocalHazeState.current,
-                                            style = iconBackgroundHazeStyle
-                                        ),
-                                    trailingContent = {
-                                        if (it.trailingIcon != null && currentMedia.canMakeActions) {
-                                            MediaInfoChip(
-                                                text = stringResource(Res.string.edit),
-                                                contentColor = MaterialTheme.colorScheme.secondary,
-                                                containerColor = MaterialTheme.colorScheme.secondary.copy(
-                                                    alpha = 0.1f
-                                                ),
-                                                onClick = {
-                                                    scope.launch {
-                                                        metadataSheetState.show()
-                                                    }
+                        val showAllMetadata = !currentMedia.isEncrypted && metadata != null
+                        val rowCount = mediaInfoList.size +
+                            (if (showAllMetadata) 1 else 0) +
+                            (if (category != null) 1 else 0)
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            ViewerSheetGroup {
+                                mediaInfoList.forEachIndexed { index, row ->
+                                    val editIcon = row.trailingIcon?.takeIf { currentMedia.canMakeActions }
+                                    ViewerSheetRow(
+                                        title = row.label,
+                                        summary = row.content,
+                                        icon = row.icon,
+                                        position = viewerSheetPosition(index, rowCount),
+                                        onClick = row.onClick,
+                                        onLongClick = row.onLongClick,
+                                        trailing = if (editIcon != null) {
+                                            {
+                                                IconButton(
+                                                    onClick = {
+                                                        scope.launch { metadataSheetState.show() }
+                                                    },
+                                                ) {
+                                                    Icon(
+                                                        imageVector = editIcon,
+                                                        contentDescription = stringResource(Res.string.edit),
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
                                                 }
-                                            )
-                                        }
-                                    },
-                                    onClick = it.onClick
-                                )
-                            }
-                            // Only offer "view all metadata" when there is metadata to show.
-                            // metadata is null when nothing could be parsed for this item, so
-                            // hiding the row avoids opening an empty metadata screen.
-                            if (!currentMedia.isEncrypted && metadata != null) {
-                                MediaInfoRow(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    label = stringResource(Res.string.view_all_metadata),
-                                    content = stringResource(Res.string.metadata),
-                                    icon = Icons.Outlined.Info,
-                                    iconBackgroundModifier = Modifier
-                                        .then(iconBackgroundModifier)
-                                        .hazeEffectScaled(
-                                            state = LocalHazeState.current,
-                                            style = iconBackgroundHazeStyle
-                                        ),
-                                    onClick = { onViewAllMetadata(currentMedia) }
-                                )
-                            }
-                            if (category != null) {
-                                MediaInfoRow(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    label = category,
-                                    content = stringResource(
-                                        Res.string.s_items,
-                                        categoryItemCount
-                                    ),
-                                    iconBackgroundModifier = Modifier
-                                        .then(iconBackgroundModifier)
-                                        .hazeEffectScaled(
-                                            state = LocalHazeState.current,
-                                            style = iconBackgroundHazeStyle
-                                        ),
-                                    trailingContent = {
-                                        AnimatedVisibility(
-                                            visible = categoryThumbnail != null,
-                                            enter = enterAnimation,
-                                            exit = exitAnimation
-                                        ) {
-                                            categoryThumbnail?.let { thumb ->
-                                                imageRenderer.RenderImage(
-                                                    model = thumb,
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    signature = thumb,
-                                                    modifier = Modifier
-                                                        .size(48.dp)
-                                                        .clip(RoundedCornerShape(16.dp))
-                                                )
                                             }
-                                        }
-                                    },
-                                    onClick = { onOpenCategory(category) }
-                                )
+                                        } else null,
+                                    )
+                                }
+                                var nextIndex = mediaInfoList.size
+                                // Only offer "view all metadata" when there is metadata to show.
+                                // metadata is null when nothing could be parsed for this item, so
+                                // hiding the row avoids opening an empty metadata screen.
+                                if (showAllMetadata) {
+                                    ViewerSheetRow(
+                                        title = stringResource(Res.string.view_all_metadata),
+                                        summary = stringResource(Res.string.view_all_metadata_summary),
+                                        icon = Icons.Outlined.Info,
+                                        position = viewerSheetPosition(nextIndex++, rowCount),
+                                        onClick = { onViewAllMetadata(currentMedia) },
+                                        trailing = {
+                                            ViewerSheetTrailingIcon(Icons.AutoMirrored.Outlined.KeyboardArrowRight)
+                                        },
+                                    )
+                                }
+                                if (category != null) {
+                                    ViewerSheetRow(
+                                        title = category,
+                                        summary = stringResource(Res.string.s_items, categoryItemCount),
+                                        icon = Icons.Outlined.Sell,
+                                        position = viewerSheetPosition(nextIndex, rowCount),
+                                        onClick = { onOpenCategory(category) },
+                                        trailing = {
+                                            AnimatedVisibility(
+                                                visible = categoryThumbnail != null,
+                                                enter = enterAnimation,
+                                                exit = exitAnimation
+                                            ) {
+                                                categoryThumbnail?.let { thumb ->
+                                                    imageRenderer.RenderImage(
+                                                        model = thumb,
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        signature = thumb,
+                                                        modifier = Modifier
+                                                            .size(48.dp)
+                                                            .clip(RoundedCornerShape(12.dp))
+                                                    )
+                                                }
+                                            }
+                                        },
+                                    )
+                                }
                             }
+                        }
+                    }
+                    if (currentMedia.canMakeActions) {
+                        item(key = "remove_metadata") {
+                            ViewerSheetRow(
+                                title = stringResource(Res.string.remove_metadata),
+                                summary = stringResource(
+                                    if (metadataRemovalBusy) Res.string.remove_metadata_checking
+                                    else Res.string.remove_metadata_summary
+                                ),
+                                icon = Icons.Outlined.LocalFireDepartment,
+                                enabled = !metadataRemovalBusy,
+                                onClick = { probeMetadataSanitization(currentMedia) },
+                                trailing = {
+                                    if (metadataRemovalBusy) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            strokeWidth = 2.dp,
+                                        )
+                                    } else {
+                                        ViewerSheetTrailingIcon(Icons.AutoMirrored.Outlined.KeyboardArrowRight)
+                                    }
+                                },
+                            )
                         }
                     }
                     postInfoItems()
@@ -509,6 +463,7 @@ fun <T : Media> MediaViewSheetDetails(
                         Spacer(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .padding(bottom = 16.dp)
                                 .windowInsetsBottomHeight(WindowInsets.navigationBars)
                         )
                     }

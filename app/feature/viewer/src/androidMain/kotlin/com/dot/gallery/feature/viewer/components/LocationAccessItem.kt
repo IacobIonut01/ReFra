@@ -6,20 +6,9 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings as AndroidSettings
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,14 +17,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
+import com.dot.gallery.feature.viewer.ViewerSheetRow
+import com.dot.gallery.feature.viewer.ViewerSheetTrailingIcon
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
@@ -58,7 +45,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun LocationAccessItem(
     modifier: Modifier = Modifier,
-    iconBackgroundModifier: Modifier = Modifier,
     onGranted: () -> Unit,
 ) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
@@ -89,69 +75,36 @@ fun LocationAccessItem(
         enter = enterAnimation,
         exit = exitAnimation
     ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .clickable {
-                    if (requestInFlight) return@clickable
-                    if (shouldOpenPermissionSettings(requestAttempted, locationPermission.status)) {
-                        context.startActivity(
-                            Intent(
-                                AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", context.packageName, null)
-                            )
+        ViewerSheetRow(
+            modifier = modifier,
+            title = stringResource(Res.string.location),
+            summary = stringResource(Res.string.location_access_row_hint),
+            icon = Icons.Outlined.LocationOn,
+            onClick = {
+                if (requestInFlight) return@ViewerSheetRow
+                if (shouldOpenPermissionSettings(requestAttempted, locationPermission.status)) {
+                    context.startActivity(
+                        Intent(
+                            AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", context.packageName, null)
                         )
-                    } else {
-                        requestAttempted = true
-                        requestInFlight = true
-                        // Accompanist throws IllegalStateException when its launcher is
-                        // still null — without the catch the guard would jam the row dead.
-                        try {
-                            locationPermission.launchPermissionRequest()
-                        } catch (e: IllegalStateException) {
-                            requestInFlight = false
-                        }
+                    )
+                } else {
+                    requestAttempted = true
+                    requestInFlight = true
+                    // Accompanist throws IllegalStateException when its launcher is
+                    // still null — without the catch the guard would jam the row dead.
+                    try {
+                        locationPermission.launchPermissionRequest()
+                    } catch (e: IllegalStateException) {
+                        requestInFlight = false
                     }
                 }
-                .padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .then(iconBackgroundModifier),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.location),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = stringResource(Res.string.location_access_row_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
+            },
+            trailing = {
+                ViewerSheetTrailingIcon(Icons.AutoMirrored.Outlined.KeyboardArrowRight)
+            },
+        )
     }
 }
 

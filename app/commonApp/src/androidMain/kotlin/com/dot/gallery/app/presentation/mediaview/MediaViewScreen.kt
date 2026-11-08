@@ -79,10 +79,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -95,13 +91,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -152,14 +146,9 @@ import com.composables.core.SheetDetent.Companion.FullyExpanded
 import com.composables.core.rememberBottomSheetState
 import com.composeunstyled.LocalTextStyle
 import com.dot.gallery.cloud.core.CloudRuntimeSettings
-import com.dot.gallery.cloud.ui.CloudSelectionViewModel
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
-import com.dot.gallery.core.LocalMediaHandler
-import com.dot.gallery.core.PendingRemovalScope
 import com.dot.gallery.core.Settings
-import com.dot.gallery.core.Settings.Misc.rememberSwipeUpToTrash
-import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.core.decoder.format.ImageReencoder
 import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataSaveMode
@@ -336,18 +325,6 @@ import com.dot.gallery.generated.resources.visual_search_stage_downloading
 import com.dot.gallery.generated.resources.visual_search_stage_extracting
 import com.dot.gallery.generated.resources.visual_search_stage_preparing
 import com.dot.gallery.generated.resources.visual_search_with
-import com.dot.gallery.generated.resources.action_undo
-import com.dot.gallery.generated.resources.error_toast
-import com.dot.gallery.generated.resources.swipe_up_to_trash_message
-import com.dot.gallery.data.repository.MediaMutationResult
-import com.dot.gallery.domain.trash.canMoveToTrashRecoverably
-import com.dot.gallery.app.presentation.mediaview.components.TrashSwipeIndicator
-import com.dot.gallery.app.presentation.mediaview.components.swipeUpTrashProgress
-import com.dot.gallery.core.logging.printDebug
-import com.dot.gallery.core.ui.util.rememberActivityResult
-import com.dot.gallery.core.util.SdkCompat
-import com.dot.gallery.core.util.rememberFeedbackManager
-import com.dot.gallery.app.presentation.util.toastError
 
 
 internal enum class TapNavigationZone {
@@ -655,7 +632,7 @@ internal fun isMediaViewerContentReady(
  * Whether the low-res surrogate thumbnail behind the media should draw. Its jobs are the
  * load placeholder and the transition/dismiss underlay; once the viewer is settled it must
  * stay hidden — parked under the media it leaks into view whenever the image leaves its
- * rest bounds (pinch zoom-out rubber-banding, rotation) (#1226).
+ * rest bounds (pinch zoom-out rubber-banding, rotation).
  */
 internal fun isViewerSurrogateVisible(
     contentReady: Boolean,
@@ -1148,15 +1125,10 @@ fun <T : Media> MediaViewScreen(
             slideshowActive
         ) { currentMedia?.isVideo == true && (canAutoPlay || slideshowActive) }
         val isReadOnly by rememberedDerivedState { currentMedia?.readUriOnly == true }
-        val cloudSelectionViewModel = injectViewModel<CloudSelectionViewModel> {cloudSelectionViewModel}
         val cloudSettingsByConfigId by CloudRuntimeSettings.settingsByConfigId.collectAsStateWithLifecycle()
         val currentCapabilities by rememberedDerivedState(currentMedia, cloudSettingsByConfigId) {
-            val media = currentMedia
-            // A cloud item's trash is the *provider's* bin, which only the cloud registry knows:
-            // without it the capability would read as "cannot trash" for every remote item.
-            media?.viewerActionCapabilities(
+            currentMedia?.viewerActionCapabilities(
                 settingsByConfigId = cloudSettingsByConfigId,
-                providerSupportsTrash = media.isCloud && cloudSelectionViewModel.supportsTrash(media),
             )
         }
         // URI-only items still have immutable filename/type/size details even though metadata mutation
@@ -1258,7 +1230,7 @@ fun <T : Media> MediaViewScreen(
             remember(currentMedia?.id) { VideoFramePickerControllerRef() }
         // HDR classification of the current page's video track, published from the
         // videoController slot under the `index == currentPage` guard and consumed by the
-        // HDR window-mode effect below (#1274). Stays NONE for images/SDR videos.
+        // HDR window-mode effect below. Stays NONE for images/SDR videos.
         val videoHdrInfo = remember { mutableStateOf(VideoHdrInfo.NONE) }
         val hdrVideoEnabled by rememberVideoHdrPlayback()
         val openFramePicker: () -> Unit =
@@ -1285,7 +1257,7 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
             }
-        // ── Visual search (#1155) ──
+        // Visual search
         // Provider-aware button: enabled by default, hidden when no app accepting
         // ACTION_SEND image/* is installed or when the media can't produce an image.
         var visualSearchEnabled by rememberVisualSearchEnabled()
@@ -1400,7 +1372,7 @@ fun <T : Media> MediaViewScreen(
         // Key rotation helpers by the *settled* pager media id, not currentMedia?.id.
         // During a cancelled swipe the pager's currentPage briefly flips to the neighbour
         // page and back; keying off it would reset this rememberSaveable state and make the
-        // pending rotate button vanish (#962). settledPage only advances once a scroll fully
+        // pending rotate button vanish. settledPage only advances once a scroll fully
         // settles on a new page, so a cancelled swipe keeps the rotation state intact.
         // (Keying by media id also avoids a Serializable fallback of the whole Media object.)
         val settledRotationKey by rememberedDerivedState(pagerItems) {
@@ -1410,7 +1382,7 @@ fun <T : Media> MediaViewScreen(
         val showRotationHelper = rememberSaveable(settledRotationKey) { mutableStateOf(false) }
         // The media the pending rotation was created on. During a cancelled swipe the
         // neighbour page is transiently composed and can emit rotation events, so the
-        // apply path must resolve this id rather than trusting currentPage (#962).
+        // apply path must resolve this id rather than trusting currentPage.
         val rotationMediaId = rememberSaveable(settledRotationKey) { mutableLongStateOf(-1L) }
 
         // Drives the top-bar Rotate chip busy state and the seamless hold-until-reload behavior.
@@ -1492,7 +1464,7 @@ fun <T : Media> MediaViewScreen(
 
         // Read live: paddingValues is a stable, lazily-evaluated object, so caching its
         // calculateBottomPadding() in a remember keyed on the object would never update
-        // on rotation. Reading it directly subscribes to the inset state (#929).
+        // on rotation. Reading it directly subscribes to the inset state.
         val bottomPadding = paddingValues.calculateBottomPadding()
 
         val imageOnlyHeight =
@@ -1508,7 +1480,7 @@ fun <T : Media> MediaViewScreen(
         // intermediate one with stale insets still at the old height, then the correct one),
         // and portrait + the intermediate frame share the same height, so keying on
         // imageOnlyHeight recreates the state exactly once, on the final correct value —
-        // taking the same code path as opening fresh in landscape (which always worked). (#929)
+        // taking the same code path as opening fresh in landscape (which always worked).
         val sheetState = key(imageOnlyHeight) {
             rememberBottomSheetState(
                 initialDetent = if (initialInfoExpanded) expandedDetent else imageOnlyDetent,
@@ -1710,7 +1682,7 @@ fun <T : Media> MediaViewScreen(
                                     // Sketch's result cache re-encodes bitmaps with
                                     // Bitmap.compress, which strips the Ultra HDR gain map, so a
                                     // cached result would report hasGainmap()=false and leave the
-                                    // window in SDR mode after the app restarts (#998).
+                                    // window in SDR mode after the app restarts.
                                     resultCachePolicy(CachePolicy.DISABLED)
                                     memoryCachePolicy(CachePolicy.DISABLED)
                                 }
@@ -1725,7 +1697,7 @@ fun <T : Media> MediaViewScreen(
                                 } ?: printWarning("Resulting image null")
                             }
                         } else if (media?.isVideo == true) {
-                            // Video HDR (#1274): driven by the playing track's published HDR
+                            // Video HDR: driven by the playing track's published HDR
                             // classification — the window enters COLOR_MODE_HDR once the tracks
                             // resolve to Dolby Vision/HDR10/HLG and leaves it when playback ends,
                             // the page changes, or the user disables HDR video playback.
@@ -1965,186 +1937,7 @@ fun <T : Media> MediaViewScreen(
                     },
                 )
             }
-            // ── Swipe up to trash ──
-            // Opt-in gesture (Settings → Media Viewer): drag the current media upwards to move it
-            // to the trash. Only a recoverable trash move is ever performed — an item with no bin
-            // (a cloud provider without one, encrypted media, a source that cannot be trashed)
-            // leaves the gesture inert instead of falling back to a permanent delete.
-            val mediaHandler = LocalMediaHandler.current
-            val swipeUpToTrashEnabled by rememberSwipeUpToTrash()
-            val trashEnabledSetting by rememberTrashEnabled()
-            // Per-item trash policy inputs: a cloud item's bin is the provider's, a local item's is
-            // the platform's plus the Trash setting.
-            val trashEnabledFor: (Media) -> Boolean = { media ->
-                if (media.isCloud) {
-                    cloudSelectionViewModel.supportsTrash(media)
-                } else {
-                    trashEnabledSetting
-                }
-            }
-            val trashSupportedFor: (Media) -> Boolean = { media ->
-                if (media.isCloud) {
-                    cloudSelectionViewModel.supportsTrash(media)
-                } else {
-                    SdkCompat.supportsTrash
-                }
-            }
-            val trashGestureAllowed by rememberedDerivedState(
-                currentMedia,
-                currentCapabilities,
-                swipeUpToTrashEnabled,
-                trashEnabledSetting,
-                target,
-            ) {
-                val media = currentMedia
-                media != null &&
-                        swipeUpToTrashEnabled &&
-                        target != TARGET_TRASH &&
-                        currentCapabilities?.trash == true &&
-                        media.canMoveToTrashRecoverably(
-                            trashEnabled = trashEnabledFor(media),
-                            trashSupported = trashSupportedFor(media),
-                        )
-            }
-            // The gesture handler outlives a page change — its pointerInput block is only rebuilt
-            // when a key changes — so the page it acts on is read live at release time instead of
-            // being captured together with the lambda.
-            val latestMedia by rememberUpdatedState(currentMedia)
-            val latestTrashGestureAllowed by rememberUpdatedState(trashGestureAllowed)
-            // 0..1 for the in-flight upward drag; drives the trash indicator.
-            var trashSwipeProgress by remember { mutableFloatStateOf(0f) }
-            val trashSwipeFeedback = rememberFeedbackManager()
-            val snackbarHostState = remember { SnackbarHostState() }
-            val movedToTrashMessage = stringResource(Res.string.swipe_up_to_trash_message)
-            val undoLabel = stringResource(Res.string.action_undo)
-            val trashSwipeError = toastError(stringResource(Res.string.error_toast))
-            // Hides a media the viewer just lost and lets its thumbnail drop out of the page.
-            val hideTrashedMedia: (Media) -> Unit = { removed ->
-                pendingTrashIds = pendingTrashIds + removed.id
-                exitingMedia = removed.takeIf { sharedElementsEnabled }
-            }
-            // A MediaStore trash/untrash request is answered asynchronously (Android 11+ asks the
-            // user to confirm), so the items in flight are parked until that result arrives.
-            var pendingSwipeTrash by remember { mutableStateOf<List<Media>>(emptyList()) }
-            // Undo restores the item AND brings the viewer back to it: the page it was on has
-            // already advanced to a neighbour, so a rescued photo would otherwise sit off-screen
-            // until the user swiped back to find it. Requests travel through a flow rather than a
-            // state key — clearing a key from inside its own LaunchedEffect cancels that effect
-            // before it ever scrolls.
-            val revealRestoredRequests = remember { MutableSharedFlow<Media>(extraBufferCapacity = 4) }
-            var pendingUndoRestore by remember { mutableStateOf<Media?>(null) }
-            val swipeRestoreResult = rememberActivityResult(
-                onResultOk = {
-                    pendingUndoRestore?.let { revealRestoredRequests.tryEmit(it) }
-                    pendingUndoRestore = null
-                },
-                onResultCanceled = { pendingUndoRestore = null },
-            )
-            // Waits until the restored item is back in the pager, then scrolls onto it. The pager
-            // needs a frame or two to pick the updated list up, and a scroll issued against the
-            // stale one lands on the neighbour that had taken the item's place — so the target is
-            // resolved from the pager's own list and the scroll is retried until the page really
-            // shows the restored media.
-            val revealRestoredPage: suspend (Media) -> Unit = { media ->
-                val isRestored: (Media?) -> Boolean = { item ->
-                    item != null && (item.id == media.id ||
-                            mediaState.value.mediaGroups[item.id]?.any { it.id == media.id } == true)
-                }
-                val deadline = System.currentTimeMillis() + 10_000
-                var shown = false
-                while (!shown && System.currentTimeMillis() < deadline) {
-                    val index = pagerItems.indexOfFirst { isRestored(it) }
-                    if (index in 0 until pagerState.pageCount) {
-                        pagerState.scrollToPageOrAnimate(index, sharedElementsEnabled)
-                        shown = isRestored(pagerItems.getOrNull(pagerState.settledPage))
-                        printDebug(
-                            "mediaview.trash",
-                            "Undo reveal ${media.id}: index=$index settled=${pagerState.settledPage} " +
-                                    "pageCount=${pagerState.pageCount} shown=$shown"
-                        )
-                    }
-                    if (!shown) delay(150)
-                }
-            }
-            LaunchedEffect(Unit) {
-                revealRestoredRequests.collect { media -> revealRestoredPage(media) }
-            }
-            // Puts a trashed item back and returns the viewer to it — the Undo action.
-            val undoSwipeTrash: suspend (Media) -> Unit = { media ->
-                distributor.unmarkPendingRemoval(setOf(media.id))
-                pendingTrashIds = pendingTrashIds - media.id
-                when (mediaHandler.trashMedia(swipeRestoreResult, listOf(media), trash = false)) {
-                    MediaMutationResult.COMPLETED -> revealRestoredRequests.tryEmit(media)
-                    MediaMutationResult.FAILED -> trashSwipeError.show()
-                    MediaMutationResult.REQUEST_LAUNCHED -> pendingUndoRestore = media
-                }
-            }
-            // Offers Undo for a trashed item; true when the user took it.
-            val offerUndoSwipeTrash: suspend (Media) -> Boolean = { media ->
-                val outcome = snackbarHostState.showSnackbar(
-                    message = movedToTrashMessage,
-                    actionLabel = undoLabel,
-                    withDismissAction = false,
-                    duration = SnackbarDuration.Short,
-                )
-                val undone = outcome == SnackbarResult.ActionPerformed
-                if (undone) undoSwipeTrash(media)
-                undone
-            }
-            // Bookkeeping once the trash itself went through: hide the page, then offer Undo. The
-            // viewer only closes after the Undo window has passed, so even the last item — the one
-            // case with no neighbour page left to reveal — stays recoverable in place.
-            val onSwipeUpTrashCommitted: suspend (List<Media>) -> Unit = { items ->
-                val removed = items.firstOrNull()
-                if (removed != null) {
-                    distributor.markPendingRemoval(
-                        items.mapTo(HashSet()) { it.id },
-                        PendingRemovalScope.NON_TRASH,
-                    )
-                    hideTrashedMedia(removed)
-                    if (!offerUndoSwipeTrash(removed)) {
-                        val state = mediaState.value
-                        val allItems = state.pagerMedia.ifEmpty { state.media }
-                        if (allItems.none { it.id !in pendingTrashIds } && !isStandalone) {
-                            windowInsetsController.toggleSystemBars(show = true)
-                            dismissViewer()
-                        }
-                    }
-                }
-            }
-            val swipeTrashResult = rememberActivityResult(
-                onResultCanceled = { pendingSwipeTrash = emptyList() },
-                onResultOk = {
-                    val items = pendingSwipeTrash
-                    pendingSwipeTrash = emptyList()
-                    scope.launch { onSwipeUpTrashCommitted(items) }
-                },
-            )
-            // Moves the media the finger was released on to the trash.
-            val performSwipeUpTrash: suspend (Media) -> Unit = { media ->
-                // A second gate on the exact item, so a stale closure can never reach a permanent
-                // delete where the user asked for a trash move.
-                if (media.canMoveToTrashRecoverably(trashEnabledFor(media), trashSupportedFor(media))) {
-                    when (mediaHandler.trashMedia(swipeTrashResult, listOf(media), trash = true)) {
-                        MediaMutationResult.COMPLETED -> onSwipeUpTrashCommitted(listOf(media))
-                        MediaMutationResult.FAILED -> trashSwipeError.show()
-                        MediaMutationResult.REQUEST_LAUNCHED -> pendingSwipeTrash = listOf(media)
-                    }
-                }
-            }
-
             val dismissGestureEnabled = overlayMode &&
-                    metadataCover == null &&
-                    !isLocked &&
-                    !isImageZoomed &&
-                    !isVideoZoomed &&
-                    !isCutoutActive &&
-                    !slideshowActive &&
-                    !pagerState.isScrollInProgress &&
-                    sheetState.progress(imageOnlyDetent, expandedDetent) == 0f
-            // Reuses every dismiss guard, so a zoomed, cut-out, locked or slideshow page never
-            // arms the trash gesture either.
-            val trashGestureEnabled = trashGestureAllowed &&
                     metadataCover == null &&
                     !isLocked &&
                     !isImageZoomed &&
@@ -2166,14 +1959,14 @@ fun <T : Media> MediaViewScreen(
                     // box), so pointer positions here always arrive in untranslated screen space.
                     // A handler inside the offset card would see each applied offset subtracted
                     // from the next delta — halved tracking speed and a fast up/down oscillation.
-                    .pointerInput(dismissGestureEnabled, trashGestureEnabled) {
-                        if (dismissGestureEnabled || trashGestureEnabled) {
+                    .pointerInput(dismissGestureEnabled) {
+                        if (dismissGestureEnabled) {
                             // Uptime of the last clean tap. A down arriving inside the
                             // double-tap window is the second press of the image's
                             // one-finger zoom (double-tap-hold and drag) and must reach
                             // ZoomImage instead of arming swipe-to-dismiss — this detector
                             // reads the Initial pass, so a downward drag would otherwise be
-                            // consumed before zoomable ever sees it (#1226).
+                            // consumed before zoomable ever sees it.
                             var lastTapUpUptime = Long.MIN_VALUE
                             awaitEachGesture {
                                 val down = awaitFirstDown(
@@ -2189,8 +1982,6 @@ fun <T : Media> MediaViewScreen(
                                 var lastPosition = down.position
                                 var totalDrag = Offset.Zero
                                 var draggingToDismiss = false
-                                var draggingToTrash = false
-                                var trashVibrated = false
                                 var cancelled = false
                                 var upChange: PointerInputChange? = null
                                 try {
@@ -2210,8 +2001,6 @@ fun <T : Media> MediaViewScreen(
                                         totalDrag += delta
                                         if (!doubleTapHold &&
                                             !draggingToDismiss &&
-                                            !draggingToTrash &&
-                                            dismissGestureEnabled &&
                                             totalDrag.y > viewConfiguration.touchSlop &&
                                             abs(totalDrag.y) > abs(totalDrag.x)
                                         ) {
@@ -2228,29 +2017,8 @@ fun <T : Media> MediaViewScreen(
                                             )
                                             draggingToDismiss = true
                                         }
-                                        // The mirror gesture, armed only when a recoverable trash
-                                        // move is available for this page.
-                                        if (!doubleTapHold &&
-                                            !draggingToDismiss &&
-                                            !draggingToTrash &&
-                                            trashGestureEnabled &&
-                                            -totalDrag.y > viewConfiguration.touchSlop &&
-                                            abs(totalDrag.y) > abs(totalDrag.x)
-                                        ) {
-                                            draggingToTrash = true
-                                        }
                                         if (draggingToDismiss) {
                                             viewerDismissState.dragBy(delta.y)
-                                            change.consume()
-                                        }
-                                        if (draggingToTrash) {
-                                            // Progress follows the finger, so a release below the
-                                            // threshold simply springs the indicator away.
-                                            trashSwipeProgress = swipeUpTrashProgress(-totalDrag.y)
-                                            if (!trashVibrated && trashSwipeProgress >= 1f) {
-                                                trashSwipeFeedback.vibrateStrong()
-                                                trashVibrated = true
-                                            }
                                             change.consume()
                                         }
                                         lastPosition = change.position
@@ -2260,7 +2028,6 @@ fun <T : Media> MediaViewScreen(
                                     // zoom; anything else resets the window.
                                     val up = upChange
                                     lastTapUpUptime = if (!cancelled && !draggingToDismiss &&
-                                        !draggingToTrash &&
                                         up != null && isCleanTap(
                                             upUptime = up.uptimeMillis,
                                             downUptime = down.uptimeMillis,
@@ -2285,25 +2052,11 @@ fun <T : Media> MediaViewScreen(
                                             }
                                         }
                                     }
-                                    if (draggingToTrash) {
-                                        // A release past the threshold trashes; anything else
-                                        // (short drag, cancelled gesture) only retracts the
-                                        // indicator and leaves the media alone.
-                                        val committed = !cancelled && trashSwipeProgress >= 1f
-                                        val media = latestMedia
-                                        trashSwipeProgress = 0f
-                                        if (committed && media != null &&
-                                            latestTrashGestureAllowed
-                                        ) {
-                                            scope.launch { performSwipeUpTrash(media) }
-                                        }
-                                    }
                                 } catch (e: CancellationException) {
                                     // The pointerInput key (media id / gesture eligibility) can
                                     // flip mid-drag and cancel this block; never leave the
                                     // dismiss state stuck in gestureActive.
                                     if (draggingToDismiss) viewerDismissState.cancel(scope)
-                                    if (draggingToTrash) trashSwipeProgress = 0f
                                     throw e
                                 }
                             }
@@ -2555,7 +2308,7 @@ fun <T : Media> MediaViewScreen(
                                         media?.id?.let { videoEndedFlow.tryEmit(it) }
                                     },
                                     // Only the current page's HDR state is allowed to drive window
-                                    // HDR mode and the details-sheet row (#1274).
+                                    // HDR mode and the details-sheet row.
                                     onVideoHdrChanged = if (index == currentPage) {
                                         { videoHdrInfo.value = it }
                                     } else {
@@ -2617,7 +2370,7 @@ fun <T : Media> MediaViewScreen(
                                         // Only react to a genuine cutout transition. The selected page
                                         // re-emits `false` on every swipe (its cutout is inactive), so
                                         // without this guard each page change would force `showUI = true`
-                                        // and bring the controls back after the user hid them (#1033).
+                                        // and bring the controls back after the user hid them.
                                         if (active != isCutoutActive) {
                                             isCutoutActive = active
                                             if (active) {
@@ -2658,7 +2411,7 @@ fun <T : Media> MediaViewScreen(
                                                 // swipe currentDetent still reads imageOnly, so watch the
                                                 // sheet's drag progress instead: any non-zero progress
                                                 // means a gesture is in flight and hiding the UI now would
-                                                // make it vanish mid-swipe (#964).
+                                                // make it vanish mid-swipe.
                                                 val sheetMoved = withTimeoutOrNull(2.seconds) {
                                                     snapshotFlow {
                                                         sheetState.progress(
@@ -2980,7 +2733,7 @@ fun <T : Media> MediaViewScreen(
                         paddingValues = paddingValues,
                         currentMedia = currentMedia,
                         // Hide the pending-rotation chip while the info panel is expanded so it
-                        // doesn't float on top of / overlap the metadata sheet (#963).
+                        // doesn't float on top of / overlap the metadata sheet.
                         showRotationHelper = rememberedDerivedState(
                             showRotationHelper.value,
                             sheetState.currentDetent,
@@ -2992,7 +2745,7 @@ fun <T : Media> MediaViewScreen(
                         },
                         // Fade the top-bar extras out as the info sheet is dragged up, fully hidden at
                         // full expand. Read inside a lambda so it re-evaluates per frame without
-                        // recomposing the whole app bar (#963).
+                        // recomposing the whole app bar.
                         topExtrasAlpha = {
                             1f - sheetState.progress(imageOnlyDetent, expandedDetent)
                                 .coerceIn(0f, 1f)
@@ -3006,7 +2759,7 @@ fun <T : Media> MediaViewScreen(
                         rotationStageLabel = rotationStageLabel,
                         rotateImage = {
                             // Apply to the media the pending rotation was created on,
-                            // not whatever currentPage points at mid-swipe (#962).
+                            // not whatever currentPage points at mid-swipe.
                             val media = pagerItems.firstOrNull { it.id == rotationMediaId.longValue }
                                 ?: pagerItems.firstOrNull { it.id == settledRotationKey }
                                 ?: currentMedia!!
@@ -3252,7 +3005,7 @@ fun <T : Media> MediaViewScreen(
                 // When the UI is hidden (e.g. tapping the image), always settle the info sheet back
                 // to the image-only detent. A partial drag interrupted by hiding the UI would
                 // otherwise freeze the sheet at a mid-offset and, since its alpha is tied to showUI,
-                // leave it invisible-but-still-interactive instead of dismissed (#964).
+                // leave it invisible-but-still-interactive instead of dismissed.
                 LaunchedEffect(showUI) {
                     if (!showUI && sheetState.progress(imageOnlyDetent, expandedDetent) > 0f) {
                         sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
@@ -3446,23 +3199,6 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
 
-                // Trash target for the swipe-up gesture: only drawn while the drag is in flight,
-                // so the viewer shows nothing extra at rest.
-                TrashSwipeIndicator(
-                    progress = trashSwipeProgress,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-
-                // Undo for a swipe-up trash. It lives above the quick-actions bar so the action
-                // stays reachable while the item that was trashed leaves the page.
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = bottomPadding + extraPaddingWithNavButtons + 96.dp)
-                        .padding(horizontal = 16.dp),
-                )
-
                 // Cutout controls: replaces the quick-actions bar in the same bottom slot while a
                 // subject-cutout session is active on the current page.
                 AnimatedVisibility(
@@ -3521,7 +3257,11 @@ fun <T : Media> MediaViewScreen(
                     MetadataCoverLayer(
                         request = request,
                         onBack = { metadataCover = null },
-                        modifier = Modifier.fillMaxSize(),
+                        // Above the viewer app bar (zIndex 1), which would otherwise draw its
+                        // back/info buttons over the metadata page's own top bar.
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(2f),
                     )
                 }
             }

@@ -47,8 +47,13 @@ import com.dot.gallery.core.metadata.MetadataCategory
 import com.dot.gallery.core.metadata.MetadataPolicy
 import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.metadata.SanitizationCapability
+import androidx.compose.material.icons.outlined.FileCopy
+import androidx.compose.material.icons.outlined.Repeat
 import com.dot.gallery.core.presentation.components.DragHandle
-import com.dot.gallery.core.presentation.components.SetupButton
+import com.dot.gallery.core.presentation.components.ExpressiveSheetShape
+import com.dot.gallery.core.presentation.components.SheetButton
+import com.dot.gallery.core.presentation.components.SheetButtonStyle
+import com.dot.gallery.core.presentation.components.SheetHeader
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
@@ -123,9 +128,10 @@ fun MetadataRemovalSheet(
                 onDismissed()
             }
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 0.dp,
-        dragHandle = { DragHandle() },
+        shape = ExpressiveSheetShape,
+        dragHandle = { DragHandle(modifier = Modifier.padding(vertical = 5.dp)) },
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
         Column(
@@ -133,23 +139,14 @@ fun MetadataRemovalSheet(
                 .fillMaxWidth()
                 .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 8.dp),
+                .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = stringResource(Res.string.remove_metadata),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = summaryLine(capability, present),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            SheetHeader(
+                title = stringResource(Res.string.remove_metadata),
+                body = summaryLine(capability, present),
+                modifier = Modifier.padding(bottom = 0.dp),
+            )
 
             val limitation = capability?.limitation
             if (!limitation.isNullOrBlank()) {
@@ -206,36 +203,28 @@ fun MetadataRemovalSheet(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    MetadataSaveMode.entries.forEachIndexed { index, entry ->
-                        SegmentedButton(
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MetadataSaveMode.entries.forEach { entry ->
+                        PresetCard(
+                            icon = if (entry == MetadataSaveMode.SAVE_COPY) Icons.Outlined.FileCopy else Icons.Outlined.Repeat,
+                            title = entry.title(),
+                            description = entry.description(),
                             selected = mode == entry,
-                            onClick = { saveMode = entry },
                             enabled = !isBusy && (entry != MetadataSaveMode.REPLACE_ORIGINAL || canReplaceOriginal),
-                            shape = SegmentedButtonDefaults.itemShape(index, MetadataSaveMode.entries.size),
-                        ) {
-                            Text(entry.title())
-                        }
+                            onClick = { saveMode = entry },
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
-                Text(
-                    text = mode.description(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
 
             val replacing = mode == MetadataSaveMode.REPLACE_ORIGINAL
-            SetupButton(
+            SheetButton(
+                text = if (isBusy) stringResource(Res.string.remove_metadata_running) else mode.actionTitle(),
                 onClick = { onConfirm(selection, mode) },
                 enabled = removesSomething && !isBusy,
-                containerColor = if (replacing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                contentColor = if (replacing) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary,
-                applyHorizontalPadding = false,
-                applyBottomPadding = false,
-                applyInsets = false,
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp),
-                text = if (isBusy) stringResource(Res.string.remove_metadata_running) else mode.actionTitle()
+                style = if (replacing) SheetButtonStyle.Error else SheetButtonStyle.Filled,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
             )
         }
     }
@@ -271,7 +260,7 @@ private fun PresetCard(
         onClick = onClick,
         enabled = enabled,
         shape = RoundedCornerShape(20.dp),
-        color = if (selected && enabled) colors.secondaryContainer else colors.surfaceContainer,
+        color = if (selected && enabled) colors.secondaryContainer else colors.surfaceContainerHigh,
         contentColor = if (selected && enabled) colors.onSecondaryContainer else colors.onSurface,
         border = if (selected && enabled) BorderStroke(2.dp, colors.secondary) else null,
         modifier = modifier,
@@ -305,8 +294,8 @@ private fun AdvancedSection(
 ) {
     val rotation by animateFloatAsState(if (expanded) 180f else 0f)
     Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column {
             Row(

@@ -573,7 +573,7 @@
     <string name="ai_category">Smart Features</string>
     
     <!-- AI Model Management -->
-<string name="ai_models_manager">AI Models Manager</string>
+<string name="ai_models_manager">Intelligence Hub</string>
     <string name="ai_models_download">Download AI Models</string>
     <string name="ai_models_download_summary">Download AI models for image search and classification (~150 MB)</string>
     <string name="ai_models_downloading">Downloading AI Models…</string>
