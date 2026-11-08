@@ -56,6 +56,10 @@ import com.dot.gallery.generated.resources.videos
 import com.dot.gallery.core.util.getString
 
 
+/**
+ * Launches the in-app picker. Pass a vault uuid string as the launch input to hide that vault
+ * from the picker, so adding to a vault can't pick from (and re-encrypt into) itself.
+ */
 class PickerActivityContract(
     private val mediaType: String = "*/*",
     private val allowMultiple: Boolean = true
@@ -65,6 +69,7 @@ class PickerActivityContract(
         return Intent(context, PickerActivity::class.java).apply {
             type = mediaType
             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple)
+            (input as? String)?.let { putExtra(PickerActivity.EXCLUDED_VAULT_UUID, it) }
         }
     }
 
@@ -174,6 +179,7 @@ class PickerActivity : FragmentActivity() {
             title = title,
             allowedMedia = allowedMedia,
             allowSelection = allowMultiple,
+            excludedVaultUuid = intent.getStringExtra(EXCLUDED_VAULT_UUID),
             onClose = ::finish,
             sendMediaAsResult = ::sendMediaAsResult,
             sendMediaAsMediaResult = ::sendMediaAsMediaResult
@@ -222,5 +228,6 @@ class PickerActivity : FragmentActivity() {
     companion object {
         const val EXPORT_AS_MEDIA = "EXPORT_AS_MEDIA"
         const val MEDIA_LIST = "MEDIA_LIST"
+        const val EXCLUDED_VAULT_UUID = "EXCLUDED_VAULT_UUID"
     }
 }
