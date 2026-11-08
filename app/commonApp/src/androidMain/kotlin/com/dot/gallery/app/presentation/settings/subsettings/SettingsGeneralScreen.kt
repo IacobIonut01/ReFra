@@ -90,129 +90,27 @@ fun SettingsGeneralScreen() {
             appLogoAlias = appLogoAlias,
         ),
         actions = actions,
-        appNamePreview = { AppNamePreview(appNameAlias, appLogoAlias) },
-        appLogoPreview = { AppLogoPreview(appLogoAlias) },
+        appIcon = { alias -> LauncherIcon(alias) },
     )
 }
 
+/** The round launcher icon of one launcher alias, as the home screen draws it. */
 @Composable
-private fun AppNamePreview(currentAlias: String, logoAlias: String) {
+private fun LauncherIcon(alias: String) {
     val context = LocalContext.current
-    val iconRes = when (logoAlias) {
+    val iconRes = when (alias) {
         Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
         Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
         Settings.Misc.ALIAS_GALLERY_MONO -> R.mipmap.ic_launcher_gallery_mono_round
         else -> R.mipmap.ic_launcher_round
     }
-    Row(
+    Image(
+        painter = rememberDrawablePainter(
+            drawable = AppCompatResources.getDrawable(context, iconRes)
+        ),
+        contentDescription = null,
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        listOf(Settings.Misc.ALIAS_REFRA, Settings.Misc.ALIAS_GALLERY).forEach { alias ->
-            val selected = currentAlias == alias
-            val borderColor = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant
-            val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else Color.Transparent
-
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
-                    .background(containerColor)
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Image(
-                    painter = rememberDrawablePainter(
-                        drawable = AppCompatResources.getDrawable(context, iconRes)
-                    ),
-                    contentDescription = alias,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                )
-                Text(
-                    text = alias,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = if (selected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.outlineVariant,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppLogoPreview(currentAlias: String) {
-    val context = LocalContext.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(24.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        listOf(
-            Settings.Misc.ALIAS_REFRA,
-            Settings.Misc.ALIAS_GALLERY,
-            Settings.Misc.ALIAS_MONO,
-            Settings.Misc.ALIAS_GALLERY_MONO
-        ).forEach { alias ->
-            val selected = currentAlias == alias
-            val borderColor = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant
-            val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else Color.Transparent
-            val iconRes = when (alias) {
-                Settings.Misc.ALIAS_GALLERY -> R.mipmap.ic_launcher_gallery_round
-                Settings.Misc.ALIAS_MONO -> R.mipmap.ic_launcher_mono_round
-                Settings.Misc.ALIAS_GALLERY_MONO -> R.mipmap.ic_launcher_gallery_mono_round
-                else -> R.mipmap.ic_launcher_round
-            }
-
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
-                    .background(containerColor)
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Image(
-                    painter = rememberDrawablePainter(
-                        drawable = AppCompatResources.getDrawable(context, iconRes)
-                    ),
-                    contentDescription = alias,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                )
-                Text(
-                    text = alias,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = if (selected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.outlineVariant,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-    }
+            .size(56.dp)
+            .clip(CircleShape)
+    )
 }

@@ -560,8 +560,6 @@
     <string name="tap_sides_to_navigate_previous">Previous</string>
     <string name="tap_sides_to_navigate_controls">Controls</string>
     <string name="tap_sides_to_navigate_next">Next</string>
-    <string name="swipe_up_to_trash_message">Moved to trash</string>
-    <string name="action_undo">Undo</string>
     <string name="disable_smoothing_title">Disable smoothing</string>
     <string name="disable_smoothing_summary">Show crisp, square pixels when zooming instead of a blurry, smoothed image</string>
     <string name="disable_smoothing_description">When enabled, images are drawn with nearest-neighbor scaling so zooming into pixel art keeps clean, sharp pixels rather than blurring them. Leave it off for smooth scaling of photos.</string>

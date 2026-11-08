@@ -13,6 +13,7 @@ import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.data.dao.CloudServerConfigDao
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.ml.DownloadInfo
+import com.dot.gallery.core.ml.FaceModel
 import com.dot.gallery.core.ml.ModelFileInfo
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelStatus
@@ -78,6 +79,33 @@ class SmartFeaturesViewModel @Inject constructor(
                 SmartScanFeature.EMBEDDINGS.bit or SmartScanFeature.CATEGORIES.bit
             )
         }
+    }
+
+    /** The face grouping tier selected in the Intelligence Hub. */
+    val activeFaceModel: StateFlow<FaceModel> = modelManager.activeFaceModelFlow
+
+    /**
+     * Switch face tiers. The tier is part of the face revisions, so when its models are already
+     * installed the next PERSONS scan detects and groups every face again under the new tier.
+     */
+    fun selectFaceModel(model: FaceModel) {
+        viewModelScope.launch {
+            if (modelManager.setActiveFaceModel(model) && modelManager.isReady(model)) {
+                smartScanScheduler.automatic(SmartScanFeature.PERSONS.bit)
+            }
+        }
+    }
+
+    /** "Scan only while charging": background heavy scans wait for the charger. */
+    val scanOnlyWhileCharging: StateFlow<Boolean> =
+        Settings.SmartFeatures.scanOnlyWhileCharging(context).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    fun setScanOnlyWhileCharging(enabled: Boolean) {
+        viewModelScope.launch { Settings.SmartFeatures.setScanOnlyWhileCharging(context, enabled) }
     }
 
     fun installedSize(group: ModelGroup): Long = modelManager.getInstalledSize(group)
@@ -189,7 +217,7 @@ class SmartFeaturesViewModel @Inject constructor(
     fun deleteModels(group: ModelGroup) {
         if (modelManagementAction(group) != ModelManagementAction.DELETE) return
         // Cancel any queued/in-flight download so it cannot resurrect the group
-        // after deletion (issue #1229).
+        // after deletion.
         modelDownloadRuntime.cancelModelDownload(group)
         viewModelScope.launch {
             modelManager.deleteModels(group)

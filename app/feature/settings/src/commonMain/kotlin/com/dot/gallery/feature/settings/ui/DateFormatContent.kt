@@ -27,18 +27,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +53,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -63,8 +64,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.LocalTextStyle
+import com.dot.gallery.core.Position
 import com.dot.gallery.core.presentation.components.DragHandle
-import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.core.presentation.components.sheetGroupedShape
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.domain.date.SystemDateFormatField
 import com.dot.gallery.domain.date.getDate
@@ -99,6 +101,9 @@ import com.dot.gallery.feature.settings.generated.resources.media_info
 import com.dot.gallery.feature.settings.generated.resources.media_view
 import com.dot.gallery.feature.settings.generated.resources.reset
 import com.dot.gallery.feature.settings.generated.resources.weekly_date
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import dev.chrisbanes.haze.rememberHazeState
 
 
 
@@ -111,7 +116,7 @@ fun DateFormatContent(
     gridColumns: Int,
     previewImage: @Composable BoxScope.() -> Unit,
 ) {
-    // Raw stored patterns: blank means "follow the system" (see #953).
+    // Raw stored patterns: blank means "follow the system" (see ).
     var rawDateHeaderFormat by rememberPreference(SettingsKeys.rawDateHeaderFormat)
     var rawExtendedDateHeaderFormat by rememberPreference(SettingsKeys.rawExtendedDateHeaderFormat)
     var rawExifDateFormat by rememberPreference(SettingsKeys.rawExifDateFormat)
@@ -147,33 +152,32 @@ fun DateFormatContent(
     val currentMillis = remember { Clock.System.now().toEpochMilliseconds() / 1000 }
     val textStyle = LocalTextStyle.current
 
+    // The previews below blur LocalHazeState themselves, so the bar gets a state of its own
+    // rather than making the scrolling column a source of the state its children draw from.
+    val barHazeState = rememberHazeState()
+    val scrollState = rememberScrollState()
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(Res.string.date_format_settings))
-                },
-                navigationIcon = {
-                    NavigationBackButton()
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+            GalleryPageTopBar(
+                title = stringResource(Res.string.date_format_settings),
+                hazeState = barHazeState,
+                scrolled = rememberScrolledUnderTopBar(scrollState),
             )
         }
     ) { innerPadding ->
         FlowRow(
             modifier = Modifier
                 .fillMaxSize()
+                .hazeSource(barHazeState)
+                .imePadding()
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
         ) {
+            DateFormatSectionLabel(stringResource(Res.string.media_view))
             DateFormatPreview(
                 modifier = Modifier,
                 title = stringResource(Res.string.date_header_title),
-                location = stringResource(Res.string.media_view),
                 dateFormat = dateHeaderFormat,
                 rawFormat = rawDateHeaderFormat,
                 onDateFormatChange = { rawDateHeaderFormat = it },
@@ -289,7 +293,6 @@ fun DateFormatContent(
             DateFormatPreview(
                 modifier = Modifier,
                 title = stringResource(Res.string.extended_date_header_title),
-                location = stringResource(Res.string.media_view),
                 dateFormat = extendedDateHeaderFormat,
                 rawFormat = rawExtendedDateHeaderFormat,
                 onDateFormatChange = { rawExtendedDateHeaderFormat = it },
@@ -402,9 +405,9 @@ fun DateFormatContent(
                 }
             }
 
+            DateFormatSectionLabel(stringResource(Res.string.media_info))
             DateFormatPreview(
                 title = stringResource(Res.string.exif_date),
-                location = stringResource(Res.string.media_info),
                 dateFormat = exifDateFormat,
                 rawFormat = rawExifDateFormat,
                 onDateFormatChange = { rawExifDateFormat = it },
@@ -448,9 +451,9 @@ fun DateFormatContent(
                 }
             }
 
+            DateFormatSectionLabel(stringResource(Res.string.media_grid))
             DateFormatPreview(
                 title = stringResource(Res.string.weekly_date),
-                location = stringResource(Res.string.media_grid),
                 dateFormat = weeklyDateFormat,
                 rawFormat = rawWeeklyDateFormat,
                 onDateFormatChange = { rawWeeklyDateFormat = it },
@@ -495,7 +498,6 @@ fun DateFormatContent(
 
             DateFormatPreview(
                 title = stringResource(Res.string.classic_date),
-                location = stringResource(Res.string.media_grid),
                 dateFormat = defaultDateFormat,
                 rawFormat = rawDefaultDateFormat,
                 onDateFormatChange = { rawDefaultDateFormat = it },
@@ -540,7 +542,6 @@ fun DateFormatContent(
 
             DateFormatPreview(
                 title = stringResource(Res.string.extended_date),
-                location = stringResource(Res.string.media_grid),
                 dateFormat = extendedDateFormat,
                 rawFormat = rawExtendedDateFormat,
                 onDateFormatChange = { rawExtendedDateFormat = it },
@@ -589,11 +590,28 @@ fun DateFormatContent(
 
 }
 
+/** Section label above a group of preview cards, as on the other settings pages. */
+@Composable
+private fun DateFormatSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .semantics { heading() }
+    )
+}
+
+/**
+ * One date format as a grouped card: a header row with the info and reset actions, the live
+ * preview, then the pattern field, joined with the 24/8 dp grouped corners.
+ */
 @Composable
 fun DateFormatPreview(
     modifier: Modifier = Modifier,
     title: String,
-    location: String,
     dateFormat: String,
     rawFormat: String,
     onDateFormatChange: (String) -> Unit,
@@ -605,52 +623,61 @@ fun DateFormatPreview(
     Column(
         modifier = modifier
             .fillMaxWidth(if (isLandscape) 0.5f else 1f)
+            .padding(bottom = 16.dp)
             .then(
-                if (isLandscape) Modifier.padding(8.dp) else Modifier
-            )
+                if (isLandscape) Modifier.padding(horizontal = 8.dp) else Modifier
+            ),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        ListItem(
-            modifier = Modifier.fillMaxWidth(),
-            headlineContent = {
-                Text(title)
-            },
-            overlineContent = {
-                Text(location)
-            },
-            supportingContent = {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(sheetGroupedShape(Position.Top))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 if (rawFormat.isBlank()) {
-                    Text(stringResource(Res.string.date_format_following_system))
-                }
-            },
-            trailingContent = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onInfoClick) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = stringResource(Res.string.date_format_info_action)
-                        )
-                    }
-                    TextButton(
-                        onClick = { onDateFormatChange("") },
-                        enabled = rawFormat.isNotBlank()
-                    ) {
-                        Text(stringResource(Res.string.reset))
-                    }
+                    Text(
+                        text = stringResource(Res.string.date_format_following_system),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
-        )
+            IconButton(onClick = onInfoClick) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = stringResource(Res.string.date_format_info_action),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            FilledTonalIconButton(
+                onClick = { onDateFormatChange("") },
+                enabled = rawFormat.isNotBlank()
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.RestartAlt,
+                    contentDescription = stringResource(Res.string.reset)
+                )
+            }
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 128.dp)
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomEnd = 2.dp,
-                        bottomStart = 2.dp
-                    )
-                )
+                .clip(sheetGroupedShape(Position.Middle))
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             dateFormatPreview(dateFormat)
         }
@@ -669,7 +696,7 @@ fun DateFormatPreview(
                 )
             }
         }
-        OutlinedTextField(
+        TextField(
             value = textFieldValue,
             onValueChange = { newValue ->
                 textFieldValue = newValue
@@ -686,21 +713,17 @@ fun DateFormatPreview(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp),
-            shape = RoundedCornerShape(
-                topStart = 2.dp,
-                topEnd = 2.dp,
-                bottomEnd = 16.dp,
-                bottomStart = 16.dp
-            ),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = sheetGroupedShape(Position.Bottom),
             isError = isDateHeaderFormatError,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                errorBorderColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                errorContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
             )
         )
     }

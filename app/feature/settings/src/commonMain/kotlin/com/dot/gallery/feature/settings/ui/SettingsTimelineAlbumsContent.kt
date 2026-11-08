@@ -5,6 +5,39 @@
 
 package com.dot.gallery.feature.settings.ui
 
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.outlined.BurstMode
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextOverflow
+import com.dot.gallery.core.ui.components.PreviewFocusPhoto
+import com.dot.gallery.core.ui.components.PreviewHomeHeader
+import com.dot.gallery.core.ui.components.PreviewPhoto
+import com.dot.gallery.feature.settings.generated.resources.merge_albums_preview_album
+import com.dot.gallery.feature.settings.generated.resources.merge_albums_preview_merged
+import com.dot.gallery.feature.settings.generated.resources.merge_albums_preview_phone
+import com.dot.gallery.feature.settings.generated.resources.merge_albums_preview_sd_card
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.CalendarViewMonth
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.EditCalendar
+import androidx.compose.material.icons.outlined.EventRepeat
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.GifBox
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.MergeType
+import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.PermMedia
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Sort
+import androidx.compose.material.icons.outlined.ViewAgenda
+import androidx.compose.material.icons.outlined.Workspaces
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -50,14 +83,11 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -79,7 +109,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -93,7 +122,6 @@ import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.presentation.components.AlbumSectionNameSheet
 import com.dot.gallery.core.presentation.components.DeleteSectionSheet
 import com.dot.gallery.core.presentation.components.FilterKind
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.presentation.components.OptionSheet
 import com.dot.gallery.core.presentation.components.SectionDialogMode
@@ -197,9 +225,6 @@ import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name_description
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name_summary
 import com.dot.gallery.feature.settings.generated.resources.modified_time_summary
-import com.dot.gallery.feature.settings.generated.resources.pinned_albums_as_grid_description
-import com.dot.gallery.feature.settings.generated.resources.pinned_albums_as_grid_summary
-import com.dot.gallery.feature.settings.generated.resources.pinned_albums_as_grid_title
 import com.dot.gallery.feature.settings.generated.resources.recheck_capture_dates
 import com.dot.gallery.feature.settings.generated.resources.recheck_capture_dates_summary
 import com.dot.gallery.feature.settings.generated.resources.rename_section
@@ -213,15 +238,23 @@ import com.dot.gallery.feature.settings.generated.resources.settings_timeline_al
 import com.dot.gallery.feature.settings.generated.resources.show_filter_button
 import com.dot.gallery.feature.settings.generated.resources.show_filter_button_description
 import com.dot.gallery.feature.settings.generated.resources.show_filter_button_summary
-import com.dot.gallery.feature.settings.generated.resources.show_searchbar_favorite_button
-import com.dot.gallery.feature.settings.generated.resources.show_searchbar_favorite_button_description
-import com.dot.gallery.feature.settings.generated.resources.show_searchbar_favorite_button_summary
 import com.dot.gallery.feature.settings.generated.resources.sort_ascending
 import com.dot.gallery.feature.settings.generated.resources.sort_by_date_modified
 import com.dot.gallery.feature.settings.generated.resources.sort_descending
 import com.dot.gallery.feature.settings.generated.resources.story_cards_settings_summary
 import com.dot.gallery.feature.settings.generated.resources.story_cards_settings_title
 import com.dot.gallery.feature.settings.generated.resources.timeline
+import com.dot.gallery.feature.settings.generated.resources.month_highlights_title
+import com.dot.gallery.feature.settings.generated.resources.month_highlights_summary
+import com.dot.gallery.feature.settings.generated.resources.month_highlights_description
+import com.dot.gallery.feature.settings.generated.resources.month_recaps_title
+import com.dot.gallery.feature.settings.generated.resources.month_recaps_summary
+import com.dot.gallery.feature.settings.generated.resources.header_places_title
+import com.dot.gallery.feature.settings.generated.resources.header_places_summary
+import com.dot.gallery.feature.settings.generated.resources.header_places_description
+import com.dot.gallery.feature.settings.generated.resources.floating_date_label_title
+import com.dot.gallery.feature.settings.generated.resources.floating_date_label_summary
+import com.dot.gallery.feature.settings.generated.resources.floating_date_label_description
 import com.dot.gallery.feature.settings.generated.resources.timeline_layout_description
 import com.dot.gallery.feature.settings.generated.resources.timeline_layout_grid
 import com.dot.gallery.feature.settings.generated.resources.timeline_layout_mosaic
@@ -231,6 +264,10 @@ import com.dot.gallery.feature.settings.generated.resources.timeline_order
 import com.dot.gallery.feature.settings.generated.resources.timeline_order_description
 import com.dot.gallery.feature.settings.generated.resources.update_modified_date_summary
 import com.dot.gallery.feature.settings.generated.resources.update_modified_date_title
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
 
 private const val DETAIL_TIMELINE_LAYOUT = "timeline_layout"
 private const val DETAIL_TIMELINE_ORDER = "timeline_order"
@@ -239,11 +276,12 @@ private const val DETAIL_GIF_ANIMATION = "gif_animation"
 private const val DETAIL_FILTER_BUTTON = "filter_button"
 private const val DETAIL_MERGE_ALBUMS = "merge_albums"
 private const val DETAIL_ALBUM_SECTIONS = "album_sections"
-private const val DETAIL_PINNED_GRID = "pinned_albums_as_grid"
 private const val DETAIL_FAV_ICON = "fav_icon"
-private const val DETAIL_SEARCHBAR_FAV_BUTTON = "searchbar_fav_button"
 private const val DETAIL_DATE_HEADERS = "date_headers"
 private const val DETAIL_GROUP_METHOD = "group_method"
+private const val DETAIL_MONTH_HIGHLIGHTS = "month_highlights"
+private const val DETAIL_HEADER_PLACES = "header_places"
+private const val DETAIL_FLOATING_DATE = "floating_date"
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -265,11 +303,9 @@ fun SettingsTimelineAlbumsContent(
     var groupCloudLocal by rememberPreference(SettingsKeys.groupCloudLocal)
     var allowGifAnimation by rememberPreference(SettingsKeys.allowGifAnimation)
     var showFilterButton by rememberPreference(SettingsKeys.showFilterButton)
-    var showSearchBarFavButton by rememberPreference(SettingsKeys.showSearchBarFavButton)
     var dateHeaderAlbums by rememberPreference(SettingsKeys.albumGroupByDate)
     var mergeAlbumsByName by rememberPreference(SettingsKeys.mergeAlbumsByName)
     var albumSectionsEnabled by rememberPreference(SettingsKeys.albumSectionsEnabled)
-    var pinnedAlbumsAsGrid by rememberPreference(SettingsKeys.pinnedAlbumsAsGrid)
     var showMediaTypeAlbums by rememberPreference(SettingsKeys.showMediaTypeAlbums)
     var updateModifiedDate by rememberPreference(SettingsKeys.updateModifiedDate)
     var favIconPosition by rememberPreference(SettingsKeys.favoriteIconPosition)
@@ -283,6 +319,10 @@ fun SettingsTimelineAlbumsContent(
     var groupMethodVault by rememberPreference(SettingsKeys.vaultGroupMethod)
     var groupMethodCloudArchive by rememberPreference(SettingsKeys.cloudArchiveGroupMethod)
     var showLocationCategories by rememberPreference(SettingsKeys.showLocationCategories)
+    var monthHighlights by rememberPreference(SettingsKeys.timelineMonthHighlights)
+    var monthRecaps by rememberPreference(SettingsKeys.timelineMonthRecaps)
+    var headerPlaces by rememberPreference(SettingsKeys.timelineHeaderPlaces)
+    var floatingDateLabel by rememberPreference(SettingsKeys.timelineFloatingDateLabel)
     var hiddenSections by rememberPreference(SettingsKeys.hiddenSections)
 
     when (detailKey) {
@@ -291,7 +331,7 @@ fun SettingsTimelineAlbumsContent(
             ChooserPreferenceDetailScreen(
                 title = stringResource(Res.string.timeline_layout_type),
                 description = stringResource(Res.string.timeline_layout_description),
-                preview = { TimelineLayoutPreview(timelineLayoutType) },
+                optionPreview = { layout -> TimelineLayoutTilePreview(layout) },
                 options = listOf(
                     PreferenceOption(LAYOUT_GRID, stringResource(Res.string.timeline_layout_grid), timelineLayoutType == LAYOUT_GRID),
                     PreferenceOption(LAYOUT_MOSAIC, stringResource(Res.string.timeline_layout_mosaic), timelineLayoutType == LAYOUT_MOSAIC),
@@ -393,18 +433,7 @@ fun SettingsTimelineAlbumsContent(
                 onCheckedChange = { showFilterButton = it },
                 description = stringResource(Res.string.show_filter_button_description),
                 useColumnLayout = true,
-                preview = { checked -> FilterButtonPreview(checked) },
-            )
-        }
-        DETAIL_SEARCHBAR_FAV_BUTTON -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.show_searchbar_favorite_button),
-                isChecked = showSearchBarFavButton,
-                onCheckedChange = { showSearchBarFavButton = it },
-                description = stringResource(Res.string.show_searchbar_favorite_button_description),
-                useColumnLayout = true,
-                preview = { checked -> SearchBarFavoriteButtonPreview(checked) },
+                preview = { checked -> PreviewHomeHeader(showControls = checked, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) },
             )
         }
         DETAIL_MERGE_ALBUMS -> {
@@ -428,16 +457,6 @@ fun SettingsTimelineAlbumsContent(
                 sections = state.albumSections,
                 albumCountBySection = state.albumCountBySection,
                 actions = actions,
-            )
-        }
-        DETAIL_PINNED_GRID -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.pinned_albums_as_grid_title),
-                isChecked = pinnedAlbumsAsGrid,
-                onCheckedChange = { pinnedAlbumsAsGrid = it },
-                description = stringResource(Res.string.pinned_albums_as_grid_description),
-                preview = { checked -> PinnedAlbumsGridPreview(checked) },
             )
         }
         DETAIL_FAV_ICON -> {
@@ -550,6 +569,51 @@ fun SettingsTimelineAlbumsContent(
                 },
             )
         }
+        DETAIL_MONTH_HIGHLIGHTS -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.month_highlights_title),
+                isChecked = monthHighlights,
+                onCheckedChange = { monthHighlights = it },
+                description = stringResource(Res.string.month_highlights_description),
+                preview = { checked -> MonthHighlightsPreview(checked) },
+                customContent = {
+                    Column(modifier = Modifier.padding(top = 16.dp)) {
+                        SettingsItem(
+                            item = SettingsEntity.SwitchPreference(
+                                title = stringResource(Res.string.month_recaps_title),
+                                summary = stringResource(Res.string.month_recaps_summary),
+                                isChecked = monthRecaps,
+                                onCheck = { monthRecaps = it },
+                                screenPosition = Position.Alone
+                            )
+                        )
+                    }
+                },
+            )
+        }
+        DETAIL_HEADER_PLACES -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.header_places_title),
+                isChecked = headerPlaces,
+                onCheckedChange = { headerPlaces = it },
+                description = stringResource(Res.string.header_places_description),
+                useColumnLayout = true,
+                preview = { checked -> HeaderPlacesPreview(checked) },
+            )
+        }
+        DETAIL_FLOATING_DATE -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.floating_date_label_title),
+                isChecked = floatingDateLabel,
+                onCheckedChange = { floatingDateLabel = it },
+                description = stringResource(Res.string.floating_date_label_description),
+                useColumnLayout = true,
+                preview = { checked -> FloatingDatePreview(checked) },
+            )
+        }
         else -> {
             TimelineAlbumsListContent(
                 state = state,
@@ -561,14 +625,10 @@ fun SettingsTimelineAlbumsContent(
                 onGifAnimationChange = { allowGifAnimation = it },
                 showFilterButton = showFilterButton,
                 onShowFilterButtonChange = { showFilterButton = it },
-                showSearchBarFavButton = showSearchBarFavButton,
-                onShowSearchBarFavButtonChange = { showSearchBarFavButton = it },
                 mergeAlbumsByName = mergeAlbumsByName,
                 onMergeAlbumsChange = { mergeAlbumsByName = it },
                 albumSectionsEnabled = albumSectionsEnabled,
                 onAlbumSectionsChange = { albumSectionsEnabled = it },
-                pinnedAlbumsAsGrid = pinnedAlbumsAsGrid,
-                onPinnedAlbumsAsGridChange = { pinnedAlbumsAsGrid = it },
                 showMediaTypeAlbums = showMediaTypeAlbums,
                 onShowMediaTypeAlbumsChange = { showMediaTypeAlbums = it },
                 updateModifiedDate = updateModifiedDate,
@@ -578,6 +638,12 @@ fun SettingsTimelineAlbumsContent(
                 onShowLocationCategoriesChange = { showLocationCategories = it },
                 hiddenSections = hiddenSections,
                 onHiddenSectionsChange = { hiddenSections = it },
+                monthHighlights = monthHighlights,
+                onMonthHighlightsChange = { monthHighlights = it },
+                headerPlaces = headerPlaces,
+                onHeaderPlacesChange = { headerPlaces = it },
+                floatingDateLabel = floatingDateLabel,
+                onFloatingDateLabelChange = { floatingDateLabel = it },
                 onDetailClick = { detailKey = it },
                 onDateFormatClick = { actions.onDateFormatClick() },
                 onStoryCardsClick = actions.onStoryCardsClick,
@@ -600,14 +666,10 @@ private fun TimelineAlbumsListContent(
     onGifAnimationChange: (Boolean) -> Unit,
     showFilterButton: Boolean,
     onShowFilterButtonChange: (Boolean) -> Unit,
-    showSearchBarFavButton: Boolean,
-    onShowSearchBarFavButtonChange: (Boolean) -> Unit,
     mergeAlbumsByName: Boolean,
     onMergeAlbumsChange: (Boolean) -> Unit,
     albumSectionsEnabled: Boolean = false,
     onAlbumSectionsChange: (Boolean) -> Unit = {},
-    pinnedAlbumsAsGrid: Boolean = false,
-    onPinnedAlbumsAsGridChange: (Boolean) -> Unit = {},
     showMediaTypeAlbums: Boolean = true,
     onShowMediaTypeAlbumsChange: (Boolean) -> Unit = {},
     updateModifiedDate: Boolean,
@@ -617,6 +679,12 @@ private fun TimelineAlbumsListContent(
     onShowLocationCategoriesChange: (Boolean) -> Unit = {},
     hiddenSections: Set<String> = emptySet(),
     onHiddenSectionsChange: (Set<String>) -> Unit = {},
+    monthHighlights: Boolean = true,
+    onMonthHighlightsChange: (Boolean) -> Unit = {},
+    headerPlaces: Boolean = true,
+    onHeaderPlacesChange: (Boolean) -> Unit = {},
+    floatingDateLabel: Boolean = true,
+    onFloatingDateLabelChange: (Boolean) -> Unit = {},
     onDetailClick: (String) -> Unit,
     onDateFormatClick: () -> Unit,
     onStoryCardsClick: () -> Unit = {},
@@ -643,6 +711,7 @@ private fun TimelineAlbumsListContent(
         val timelineLayoutPref = rememberPreference(
             timelineLayoutType,
             title = stringResource(Res.string.timeline_layout_type),
+            icon = Icons.Outlined.GridView,
             summary = stringResource(Res.string.timeline_layout_type_summary) + " ($layoutLabel)",
             onClick = { onDetailClick(DETAIL_TIMELINE_LAYOUT) },
             screenPosition = Position.Top
@@ -661,6 +730,7 @@ private fun TimelineAlbumsListContent(
         val timelineOrderPref = rememberPreference(
             timelineSort,
             title = stringResource(Res.string.timeline_order),
+            icon = Icons.Outlined.Sort,
             summary = "$timelineSortLabel · $timelineDirectionLabel",
             onClick = { onDetailClick(DETAIL_TIMELINE_ORDER) },
             screenPosition = Position.Middle
@@ -669,6 +739,7 @@ private fun TimelineAlbumsListContent(
         val groupSimilarMediaPref = rememberSwitchPreference(
             groupSimilarMedia,
             title = stringResource(Res.string.group_similar_media_title),
+            icon = Icons.Outlined.Layers,
             summary = stringResource(Res.string.group_similar_media_summary),
             isChecked = groupSimilarMedia,
             onCheck = onGroupSimilarChange,
@@ -679,6 +750,7 @@ private fun TimelineAlbumsListContent(
         val allowGifAnimationPref = rememberSwitchPreference(
             allowGifAnimation,
             title = stringResource(Res.string.allow_gif_animation_title),
+            icon = Icons.Outlined.GifBox,
             summary = stringResource(Res.string.allow_gif_animation_summary),
             isChecked = allowGifAnimation,
             onCheck = onGifAnimationChange,
@@ -686,8 +758,42 @@ private fun TimelineAlbumsListContent(
             screenPosition = Position.Middle
         )
 
+        val monthHighlightsPref = rememberSwitchPreference(
+            monthHighlights,
+            title = stringResource(Res.string.month_highlights_title),
+            icon = Icons.Outlined.AutoAwesome,
+            summary = stringResource(Res.string.month_highlights_summary),
+            isChecked = monthHighlights,
+            onCheck = onMonthHighlightsChange,
+            onClick = { onDetailClick(DETAIL_MONTH_HIGHLIGHTS) },
+            screenPosition = Position.Middle
+        )
+
+        val headerPlacesPref = rememberSwitchPreference(
+            headerPlaces,
+            title = stringResource(Res.string.header_places_title),
+            icon = Icons.Outlined.Place,
+            summary = stringResource(Res.string.header_places_summary),
+            isChecked = headerPlaces,
+            onCheck = onHeaderPlacesChange,
+            onClick = { onDetailClick(DETAIL_HEADER_PLACES) },
+            screenPosition = Position.Middle
+        )
+
+        val floatingDateLabelPref = rememberSwitchPreference(
+            floatingDateLabel,
+            title = stringResource(Res.string.floating_date_label_title),
+            icon = Icons.Outlined.CalendarViewMonth,
+            summary = stringResource(Res.string.floating_date_label_summary),
+            isChecked = floatingDateLabel,
+            onCheck = onFloatingDateLabelChange,
+            onClick = { onDetailClick(DETAIL_FLOATING_DATE) },
+            screenPosition = Position.Middle
+        )
+
         val dateHeaderPref = rememberPreference(
             title = stringResource(Res.string.date_header),
+            icon = Icons.Outlined.CalendarMonth,
             summary = stringResource(Res.string.date_header_summary),
             onClick = onDateFormatClick,
             screenPosition = Position.Middle
@@ -695,6 +801,7 @@ private fun TimelineAlbumsListContent(
 
         val recheckCaptureDatesPref = rememberPreference(
             title = stringResource(Res.string.recheck_capture_dates),
+            icon = Icons.Outlined.EventRepeat,
             summary = stringResource(Res.string.recheck_capture_dates_summary),
             onClick = onRecheckCaptureDates,
             screenPosition = Position.Middle
@@ -703,6 +810,7 @@ private fun TimelineAlbumsListContent(
         val showFilterButtonPref = rememberSwitchPreference(
             showFilterButton,
             title = stringResource(Res.string.show_filter_button),
+            icon = Icons.Outlined.FilterList,
             summary = stringResource(Res.string.show_filter_button_summary),
             isChecked = showFilterButton,
             onCheck = onShowFilterButtonChange,
@@ -710,18 +818,9 @@ private fun TimelineAlbumsListContent(
             screenPosition = Position.Middle
         )
 
-        val showSearchBarFavButtonPref = rememberSwitchPreference(
-            showSearchBarFavButton,
-            title = stringResource(Res.string.show_searchbar_favorite_button),
-            summary = stringResource(Res.string.show_searchbar_favorite_button_summary),
-            isChecked = showSearchBarFavButton,
-            onCheck = onShowSearchBarFavButtonChange,
-            onClick = { onDetailClick(DETAIL_SEARCHBAR_FAV_BUTTON) },
-            screenPosition = Position.Middle
-        )
-
         val storyCardsPref = rememberPreference(
             title = stringResource(Res.string.story_cards_settings_title),
+            icon = Icons.Outlined.AutoStories,
             summary = stringResource(Res.string.story_cards_settings_summary),
             onClick = onStoryCardsClick,
             screenPosition = Position.Bottom
@@ -735,6 +834,7 @@ private fun TimelineAlbumsListContent(
         val mergeAlbumsByNamePref = rememberSwitchPreference(
             mergeAlbumsByName,
             title = stringResource(Res.string.merge_albums_by_name),
+            icon = Icons.Outlined.MergeType,
             summary = stringResource(Res.string.merge_albums_by_name_summary),
             isChecked = mergeAlbumsByName,
             onCheck = onMergeAlbumsChange,
@@ -745,6 +845,7 @@ private fun TimelineAlbumsListContent(
         val updateModifiedDatePref = rememberSwitchPreference(
             updateModifiedDate,
             title = stringResource(Res.string.update_modified_date_title),
+            icon = Icons.Outlined.EditCalendar,
             summary = stringResource(Res.string.update_modified_date_summary),
             isChecked = updateModifiedDate,
             onCheck = onUpdateModifiedDateChange,
@@ -754,6 +855,7 @@ private fun TimelineAlbumsListContent(
         val albumSectionsPref = rememberSwitchPreference(
             albumSectionsEnabled,
             title = stringResource(Res.string.album_sections_title),
+            icon = Icons.Outlined.ViewAgenda,
             summary = stringResource(Res.string.album_sections_summary),
             isChecked = albumSectionsEnabled,
             onCheck = onAlbumSectionsChange,
@@ -761,19 +863,10 @@ private fun TimelineAlbumsListContent(
             screenPosition = Position.Middle
         )
 
-        val pinnedAlbumsAsGridPref = rememberSwitchPreference(
-            pinnedAlbumsAsGrid,
-            title = stringResource(Res.string.pinned_albums_as_grid_title),
-            summary = stringResource(Res.string.pinned_albums_as_grid_summary),
-            isChecked = pinnedAlbumsAsGrid,
-            onCheck = onPinnedAlbumsAsGridChange,
-            onClick = { onDetailClick(DETAIL_PINNED_GRID) },
-            screenPosition = Position.Middle
-        )
-
         val showMediaTypeAlbumsPref = rememberSwitchPreference(
             showMediaTypeAlbums,
             title = stringResource(Res.string.media_type_albums_setting_title),
+            icon = Icons.Outlined.PermMedia,
             summary = stringResource(Res.string.media_type_albums_setting_summary),
             isChecked = showMediaTypeAlbums,
             onCheck = onShowMediaTypeAlbumsChange,
@@ -805,6 +898,7 @@ private fun TimelineAlbumsListContent(
         val favIconPositionPref = rememberPreference(
             favIconPosition,
             title = stringResource(Res.string.favorite_icon_on_thumbnails),
+            icon = Icons.Outlined.Favorite,
             summary = favIconPositionLabel,
             onClick = { onDetailClick(DETAIL_FAV_ICON) },
             screenPosition = Position.Bottom
@@ -817,6 +911,7 @@ private fun TimelineAlbumsListContent(
 
         val dateHeadersPref = rememberPreference(
             title = stringResource(Res.string.date_headers_title),
+            icon = Icons.Outlined.DateRange,
             summary = stringResource(Res.string.date_headers_summary),
             onClick = { onDetailClick(DETAIL_DATE_HEADERS) },
             screenPosition = Position.Top
@@ -824,6 +919,7 @@ private fun TimelineAlbumsListContent(
 
         val groupMethodPref = rememberPreference(
             title = stringResource(Res.string.group_method_title),
+            icon = Icons.Outlined.Workspaces,
             summary = stringResource(Res.string.group_method_summary),
             onClick = { onDetailClick(DETAIL_GROUP_METHOD) },
             screenPosition = if (hasFavorites) Position.Middle else Position.Bottom
@@ -837,16 +933,18 @@ private fun TimelineAlbumsListContent(
         val locationCategoriesPref = rememberSwitchPreference(
             showLocationCategories,
             title = stringResource(Res.string.location_categories_title),
+            icon = Icons.Outlined.Place,
             summary = stringResource(Res.string.location_categories_summary),
             isChecked = showLocationCategories,
             onCheck = onShowLocationCategoriesChange,
             screenPosition = Position.Top
         )
 
-        // Section visibility parity with the Library edit-mode Sections card (#1262).
+        // Section visibility parity with the Library edit-mode Sections card.
         val peopleSectionPref = rememberSwitchPreference(
             hiddenSections,
             title = stringResource(Res.string.library_people_section_title),
+            icon = Icons.Outlined.People,
             summary = stringResource(Res.string.library_people_section_summary),
             isChecked = SECTION_PEOPLE !in hiddenSections,
             onCheck = { checked ->
@@ -860,6 +958,7 @@ private fun TimelineAlbumsListContent(
         val categoriesSectionPref = rememberSwitchPreference(
             hiddenSections,
             title = stringResource(Res.string.library_categories_section_title),
+            icon = Icons.Outlined.Category,
             summary = stringResource(Res.string.library_categories_section_summary),
             isChecked = SECTION_CATEGORIES !in hiddenSections,
             onCheck = { checked ->
@@ -873,10 +972,11 @@ private fun TimelineAlbumsListContent(
 
         return remember(
             timelineHeader, timelineLayoutPref, timelineOrderPref, groupSimilarMediaPref,
-            allowGifAnimationPref, dateHeaderPref, recheckCaptureDatesPref, showFilterButtonPref,
-            showSearchBarFavButtonPref, storyCardsPref,
+            allowGifAnimationPref, monthHighlightsPref, headerPlacesPref, floatingDateLabelPref,
+            dateHeaderPref, recheckCaptureDatesPref, showFilterButtonPref,
+            storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
-            pinnedAlbumsAsGridPref, showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
+            showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
             dateHeadersPref, groupMethodPref, libraryHeader, locationCategoriesPref,
             peopleSectionPref, categoriesSectionPref
         ) {
@@ -886,19 +986,18 @@ private fun TimelineAlbumsListContent(
                 add(timelineOrderPref)
                 add(groupSimilarMediaPref)
                 add(allowGifAnimationPref)
+                add(monthHighlightsPref)
+                add(headerPlacesPref)
+                add(floatingDateLabelPref)
                 add(dateHeaderPref)
                 add(recheckCaptureDatesPref)
                 add(showFilterButtonPref)
-                if (state.supportsFavorites) {
-                    add(showSearchBarFavButtonPref)
-                }
                 add(storyCardsPref)
 
                 add(albumsHeader)
                 add(mergeAlbumsByNamePref)
                 add(updateModifiedDatePref)
                 add(albumSectionsPref)
-                add(pinnedAlbumsAsGridPref)
                 add(showMediaTypeAlbumsPref)
 
                 add(displayHeader)
@@ -984,490 +1083,6 @@ private fun HideTimelinePreview(isChecked: Boolean) {
     }
 }
 
-@Composable
-private fun TimelineLayoutPreview(currentLayout: String) {
-    val cellColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    val bigCellColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        listOf(LAYOUT_GRID, LAYOUT_MOSAIC).forEach { layoutType ->
-            val selected = currentLayout == layoutType
-            val label = if (layoutType == LAYOUT_MOSAIC) stringResource(Res.string.timeline_layout_mosaic)
-            else stringResource(Res.string.timeline_layout_grid)
-            val borderColor = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant
-            val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else Color.Transparent
-
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable { }
-                    .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
-                    .background(containerColor)
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .padding(4.dp)
-                ) {
-                    if (layoutType == LAYOUT_GRID) {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            repeat(4) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    repeat(4) {
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .aspectRatio(1f)
-                                                .clip(RoundedCornerShape(2.dp))
-                                                .background(cellColor)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Row(
-                                modifier = Modifier.weight(2f),
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier.weight(2f).fillMaxSize()
-                                        .clip(RoundedCornerShape(2.dp)).background(bigCellColor)
-                                )
-                                Column(
-                                    modifier = Modifier.weight(2f),
-                                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
-                                    repeat(2) {
-                                        Row(
-                                            modifier = Modifier.weight(1f),
-                                            horizontalArrangement = Arrangement.spacedBy(2.dp)
-                                        ) {
-                                            repeat(2) {
-                                                Box(
-                                                    modifier = Modifier.weight(1f).fillMaxSize()
-                                                        .clip(RoundedCornerShape(2.dp)).background(cellColor)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            Row(
-                                modifier = Modifier.weight(1f),
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                repeat(4) {
-                                    Box(
-                                        modifier = Modifier.weight(1f).fillMaxSize()
-                                            .clip(RoundedCornerShape(2.dp)).background(cellColor)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = if (selected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.outlineVariant,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun GroupSimilarPreview(isChecked: Boolean) {
-    val cellColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    val groupColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(2.dp)) {
-            if (isChecked) {
-                // Grouped: 4 items, first has stack indicator
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(groupColor)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(3.dp)
-                            .size(12.dp, 8.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
-                }
-                repeat(3) {
-                    Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(4.dp)).background(cellColor))
-                }
-            } else {
-                repeat(4) {
-                    Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(4.dp)).background(
-                        if (it < 2) groupColor.copy(alpha = 0.25f) else cellColor
-                    ))
-                }
-            }
-        }
-        Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(2.dp)) {
-            repeat(4) {
-                Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(4.dp)).background(cellColor))
-            }
-        }
-    }
-}
-
-@Composable
-private fun AnimateGifsPreview(isChecked: Boolean) {
-    val cellColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    val gifColor = MaterialTheme.colorScheme.tertiaryContainer
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(2.dp)) {
-            repeat(4) { index ->
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(if (index == 1) gifColor else cellColor)
-                ) {
-                    if (index == 1) {
-                        Icon(
-                            imageVector = Icons.Outlined.Gif,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.align(Alignment.Center).size(20.dp)
-                        )
-                        if (isChecked) {
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 3.dp),
-                                horizontalArrangement = Arrangement.spacedBy(1.dp)
-                            ) {
-                                repeat(3) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(width = 4.dp, height = (3 + it * 2).dp)
-                                            .clip(RoundedCornerShape(1.dp))
-                                            .background(MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f))
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(2.dp)) {
-            repeat(4) {
-                Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(4.dp)).background(cellColor))
-            }
-        }
-    }
-}
-
-@Composable
-private fun MergeAlbumsPreview(isChecked: Boolean) {
-    val cellColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    val folderColor = MaterialTheme.colorScheme.primaryContainer
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        if (isChecked) {
-            // Merged: single album folder with link icon
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(folderColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Outlined.Folder,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Outlined.Link,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-            }
-            Text(
-                text = "Camera",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        } else {
-            // Separate: two album folders
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                listOf("Camera", "Camera").forEachIndexed { index, name ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(cellColor),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Folder,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PinnedAlbumsGridPreview(isChecked: Boolean) {
-    val headerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-    val pinnedColor = MaterialTheme.colorScheme.primaryContainer
-    val cellColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Box(Modifier.size(64.dp, 8.dp).clip(RoundedCornerShape(4.dp)).background(headerColor))
-        if (isChecked) {
-            // Pinned albums shown as regular tiles, wrapping to rows above the others
-            Row(Modifier.fillMaxWidth().height(40.dp), Arrangement.spacedBy(6.dp)) {
-                repeat(3) {
-                    Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(pinnedColor))
-                }
-            }
-        } else {
-            // Pinned albums shown as a wide horizontal banner carousel
-            Row(Modifier.fillMaxWidth().height(56.dp), Arrangement.spacedBy(6.dp)) {
-                Box(Modifier.weight(2f).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(pinnedColor))
-                Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(pinnedColor.copy(alpha = 0.5f)))
-            }
-        }
-        Spacer(Modifier.height(4.dp))
-        Box(Modifier.size(48.dp, 8.dp).clip(RoundedCornerShape(4.dp)).background(headerColor))
-        repeat(2) {
-            Row(Modifier.fillMaxWidth().height(40.dp), Arrangement.spacedBy(6.dp)) {
-                repeat(3) {
-                    Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(cellColor))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FavoriteIconPreview(currentPosition: String) {
-    val isHidden = currentPosition == FAV_ICON_DISABLED
-    val heartAlpha by animateFloatAsState(
-        targetValue = if (isHidden) 0f else 1f,
-        label = "heartAlpha"
-    )
-    val favAlignment = when (currentPosition) {
-        FAV_ICON_BOTTOM_START -> Alignment.BottomStart
-        FAV_ICON_TOP_END -> Alignment.TopEnd
-        FAV_ICON_TOP_START -> Alignment.TopStart
-        else -> Alignment.BottomEnd
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
-    ) {
-        repeat(3) { index ->
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            ) {
-                if (index == 1) {
-                    Icon(
-                        modifier = Modifier
-                            .align(favAlignment)
-                            .padding(6.dp)
-                            .size(14.dp),
-                        imageVector = Icons.Filled.Favorite,
-                        tint = Color.Red.copy(alpha = heartAlpha),
-                        contentDescription = null
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FilterButtonPreview(isChecked: Boolean) {
-    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
-            .clip(RoundedCornerShape(100))
-            .background(surfaceColor)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Search,
-            contentDescription = null,
-            tint = onSurfaceColor,
-            modifier = Modifier.size(22.dp)
-        )
-        Text(
-            text = stringResource(Res.string.search),
-            style = MaterialTheme.typography.bodyLarge,
-            color = onSurfaceColor,
-            modifier = Modifier.weight(1f)
-        )
-        if (isChecked) {
-            Icon(
-                imageVector = Icons.Outlined.FilterList,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SearchBarFavoriteButtonPreview(isChecked: Boolean) {
-    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-    val favColor = MaterialTheme.colorScheme.primaryFixed
-    val onFavColor = MaterialTheme.colorScheme.onPrimaryFixed
-    val settingsColor = MaterialTheme.colorScheme.tertiaryFixed
-    val onSettingsColor = MaterialTheme.colorScheme.onTertiaryFixed
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(100))
-                .background(surfaceColor)
-                .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null,
-                tint = onSurfaceColor,
-                modifier = Modifier.size(22.dp)
-            )
-            Text(
-                text = stringResource(Res.string.search),
-                style = MaterialTheme.typography.bodyLarge,
-                color = onSurfaceColor,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Outlined.FilterList,
-                contentDescription = null,
-                tint = onSurfaceColor,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-        if (isChecked) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(favColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Favorite,
-                    contentDescription = null,
-                    tint = onFavColor,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(settingsColor),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Settings,
-                contentDescription = null,
-                tint = onSettingsColor,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AlbumSectionsDetailContent(
@@ -1493,8 +1108,7 @@ private fun AlbumSectionsDetailContent(
     val density = LocalDensity.current
     val itemHeightPx = remember(density) { with(density) { 72.dp.toPx() } }
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
 
     AlbumSectionNameSheet(
         sheetState = sectionNameSheetState,
@@ -1533,20 +1147,17 @@ private fun AlbumSectionsDetailContent(
     )
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.album_sections_title)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(Res.string.album_sections_title),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current),
             userScrollEnabled = draggingIndex == -1,
             contentPadding = PaddingValues(
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),
@@ -1561,6 +1172,7 @@ private fun AlbumSectionsDetailContent(
                 SettingsItem(
                     item = SettingsEntity.SwitchPreference(
                         title = stringResource(Res.string.album_sections_title),
+                        icon = Icons.Outlined.ViewAgenda,
                         summary = stringResource(Res.string.album_sections_summary),
                         isChecked = isEnabled,
                         onCheck = {
@@ -1990,6 +1602,307 @@ private fun GroupMethodSectionRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.padding(top = 6.dp),
             )
+        }
+    }
+}
+
+/** Grid against Mosaic: the arrangement itself, in stand-in photos. */
+@Composable
+private fun TimelineLayoutTilePreview(layout: String) {
+    val cell = 30.dp
+    val gap = 2.dp
+    if (layout == LAYOUT_MOSAIC) {
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                PreviewPhoto(3, Modifier.size(cell * 2 + gap).clip(RoundedCornerShape(4.dp)))
+                Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                    PreviewPhoto(1, Modifier.size(cell).clip(RoundedCornerShape(4.dp)))
+                    PreviewPhoto(2, Modifier.size(cell).clip(RoundedCornerShape(4.dp)))
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                PreviewPhoto(0, Modifier.size(cell * 1.5f + gap / 2, cell).clip(RoundedCornerShape(4.dp)))
+                PreviewPhoto(4, Modifier.size(cell * 1.5f + gap / 2, cell).clip(RoundedCornerShape(4.dp)))
+            }
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            repeat(3) { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    repeat(3) { col ->
+                        PreviewPhoto(row * 3 + col, Modifier.size(cell).clip(RoundedCornerShape(4.dp)))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** One photo; grouped, two similar shots stack behind it and a badge counts them. */
+@Composable
+private fun GroupSimilarPreview(isChecked: Boolean) {
+    Box(modifier = Modifier.size(width = 132.dp, height = 140.dp)) {
+        if (isChecked) {
+            PreviewPhoto(
+                index = 2,
+                modifier = Modifier.offset(24.dp, 0.dp).size(84.dp, 100.dp).alpha(0.6f)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+            PreviewPhoto(
+                index = 1,
+                modifier = Modifier.offset(14.dp, 10.dp).size(104.dp, 110.dp).alpha(0.85f)
+                    .clip(RoundedCornerShape(14.dp))
+            )
+        }
+        PreviewFocusPhoto(index = 0, modifier = Modifier.offset(6.dp, 20.dp)) {
+            if (isChecked) {
+                Row(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.7f))
+                        .padding(start = 5.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Icon(Icons.Outlined.BurstMode, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Text("3", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+    }
+}
+
+/** One GIF; animated, it gains a primary outline, a primary badge and playback progress. */
+@Composable
+private fun AnimateGifsPreview(isChecked: Boolean) {
+    PreviewFocusPhoto(
+        index = 1,
+        modifier = if (isChecked) {
+            Modifier.border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+        } else Modifier,
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .clip(CircleShape)
+                .background(
+                    if (isChecked) MaterialTheme.colorScheme.primary
+                    else Color.Black.copy(alpha = 0.7f)
+                )
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+        ) {
+            Text(
+                text = "GIF",
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isChecked) MaterialTheme.colorScheme.onPrimary else Color.White,
+            )
+        }
+        if (isChecked) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.5f))
+            ) {
+                Box(
+                    Modifier.fillMaxWidth(0.6f).fillMaxHeight().clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+            }
+        }
+    }
+}
+
+/** Two albums with the same name from different places, or the single merged one. */
+@Composable
+private fun MergeAlbumsPreview(isChecked: Boolean) {
+    val album = stringResource(Res.string.merge_albums_preview_album)
+    Column(
+        modifier = Modifier.width(144.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        if (isChecked) {
+            MergeAlbumRow(album, stringResource(Res.string.merge_albums_preview_merged), photo = 0, merged = true)
+        } else {
+            MergeAlbumRow(album, stringResource(Res.string.merge_albums_preview_phone), photo = 0, merged = false)
+            MergeAlbumRow(album, stringResource(Res.string.merge_albums_preview_sd_card), photo = 3, merged = false)
+        }
+    }
+}
+
+@Composable
+private fun MergeAlbumRow(name: String, detail: String, photo: Int, merged: Boolean) {
+    val container = if (merged) MaterialTheme.colorScheme.primaryContainer
+    else MaterialTheme.colorScheme.surfaceContainerLowest
+    val content = if (merged) MaterialTheme.colorScheme.onPrimaryContainer
+    else MaterialTheme.colorScheme.onSurface
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(container)
+            .padding(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        PreviewPhoto(photo, Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(name, style = MaterialTheme.typography.labelLarge, color = content, maxLines = 1)
+            Text(
+                detail,
+                style = MaterialTheme.typography.labelSmall,
+                color = content.copy(alpha = 0.8f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (merged) {
+            Icon(Icons.Outlined.Link, null, tint = content, modifier = Modifier.size(18.dp))
+        }
+    }
+}
+
+/** One thumbnail with the heart in the chosen corner, or none when hidden. */
+@Composable
+private fun FavoriteIconPreview(currentPosition: String) {
+    val alignment = when (currentPosition) {
+        FAV_ICON_BOTTOM_START -> Alignment.BottomStart
+        FAV_ICON_TOP_END -> Alignment.TopEnd
+        FAV_ICON_TOP_START -> Alignment.TopStart
+        else -> Alignment.BottomEnd
+    }
+    PreviewFocusPhoto(index = 4, modifier = Modifier.padding(vertical = 16.dp)) {
+        if (currentPosition != FAV_ICON_DISABLED) {
+            Box(
+                modifier = Modifier
+                    .align(alignment)
+                    .padding(8.dp)
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+/** A month's plain bold header and grid, against its highlight card. */
+@Composable
+private fun MonthHighlightsPreview(isChecked: Boolean) {
+    val c = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier.width(140.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        if (isChecked) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(92.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            ) {
+                Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    PreviewPhoto(0, Modifier.weight(2f).fillMaxHeight())
+                    Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        PreviewPhoto(1, Modifier.fillMaxWidth().weight(1f))
+                        PreviewPhoto(2, Modifier.fillMaxWidth().weight(1f))
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.PlayArrow, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                }
+                Column(Modifier.align(Alignment.BottomStart).padding(8.dp)) {
+                    Box(Modifier.size(56.dp, 8.dp).clip(RoundedCornerShape(4.dp)).background(Color.White))
+                    Spacer(Modifier.height(4.dp))
+                    Box(Modifier.size(40.dp, 5.dp).clip(RoundedCornerShape(3.dp)).background(Color.White.copy(alpha = 0.8f)))
+                }
+            }
+        } else {
+            Box(Modifier.size(72.dp, 10.dp).clip(RoundedCornerShape(5.dp)).background(c.onSurface.copy(alpha = 0.6f)))
+            Spacer(Modifier.height(2.dp))
+        }
+        Box(Modifier.size(48.dp, 6.dp).clip(RoundedCornerShape(3.dp)).background(c.onSurface.copy(alpha = 0.4f)))
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            repeat(3) { PreviewPhoto(it + 3, Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(4.dp))) }
+        }
+    }
+}
+
+/** A day header with and without the city after the date. */
+@Composable
+private fun HeaderPlacesPreview(isChecked: Boolean) {
+    val c = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Box(Modifier.size(72.dp, 10.dp).clip(RoundedCornerShape(5.dp)).background(c.onSurface.copy(alpha = 0.7f)))
+            if (isChecked) {
+                Icon(Icons.Outlined.LocationOn, null, tint = c.primary, modifier = Modifier.size(14.dp))
+                Box(Modifier.size(48.dp, 10.dp).clip(RoundedCornerShape(5.dp)).background(c.primary.copy(alpha = 0.6f)))
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            repeat(4) { PreviewPhoto(it, Modifier.weight(1f).height(36.dp).clip(RoundedCornerShape(4.dp))) }
+        }
+    }
+}
+
+/** The plain sticky date header, against the floating pill that opens the months. */
+@Composable
+private fun FloatingDatePreview(isChecked: Boolean) {
+    val c = MaterialTheme.colorScheme
+    Box(modifier = Modifier.fillMaxWidth().height(88.dp)) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            repeat(4) { PreviewPhoto(it + 1, Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(4.dp))) }
+        }
+        if (isChecked) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 14.dp)
+                    .clip(CircleShape)
+                    .background(c.surfaceContainerHigh)
+                    .padding(start = 12.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Box(Modifier.size(56.dp, 8.dp).clip(RoundedCornerShape(4.dp)).background(c.onSurface.copy(alpha = 0.7f)))
+                Icon(Icons.Outlined.ExpandMore, null, tint = c.onSurface, modifier = Modifier.size(16.dp))
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(36.dp)
+                    .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(c.surface, Color.Transparent)))
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Box(Modifier.size(64.dp, 8.dp).clip(RoundedCornerShape(4.dp)).background(c.onSurface.copy(alpha = 0.7f)))
+            }
         }
     }
 }

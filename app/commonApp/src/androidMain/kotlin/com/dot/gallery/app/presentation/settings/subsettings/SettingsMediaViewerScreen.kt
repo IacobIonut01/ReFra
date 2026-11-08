@@ -91,6 +91,7 @@ import com.dot.gallery.app.presentation.mediaview.discoverVisualSearchTargets
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.app.presentation.util.getEditImageCapableApps
+import com.dot.gallery.app.presentation.util.getEditVideoCapableApps
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.launch
@@ -100,6 +101,7 @@ import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.R
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.default_image_editor_builtin
+import com.dot.gallery.generated.resources.default_image_editor_studio
 import com.dot.gallery.generated.resources.image_sample_2
 
 /**
@@ -129,6 +131,12 @@ fun SettingsMediaViewerScreen(
                     label = it.loadLabel(context.packageManager).toString(),
                 )
             },
+            videoEditApps = context.getEditVideoCapableApps().map {
+                EditAppEntry(
+                    packageName = it.activityInfo.packageName,
+                    label = it.loadLabel(context.packageManager).toString(),
+                )
+            },
             visualSearchTargets = context.discoverVisualSearchTargets(),
         )
     }
@@ -151,6 +159,9 @@ fun SettingsMediaViewerScreen(
         previews = previews,
         actions = SettingsMediaViewerActions(
             onOpenSlideshow = { eventHandler.navigate(Screen.SlideshowSettingsScreen()) },
+            onOpenViewerActions = {
+                eventHandler.navigate(Screen.SettingsViewerActionsScreen())
+            },
             onTapSidesChanged = {
                 scope.launch { Settings.Misc.markTapSidesToNavigatePromptShown(context) }
             },
@@ -384,7 +395,7 @@ private fun EditorPreview(
 
     // Auto-scroll to selected item when selection changes
     val allEditors = remember(editApps) {
-        val list = mutableListOf(Settings.Misc.EDITOR_BUILTIN)
+        val list = mutableListOf(Settings.Misc.EDITOR_BUILTIN, Settings.Misc.EDITOR_STUDIO)
         editApps.forEach { list.add(it.activityInfo.packageName) }
         list
     }
@@ -417,6 +428,21 @@ private fun EditorPreview(
                             drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
                         ),
                         contentDescription = stringResource(Res.string.default_image_editor_builtin),
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                    )
+                }
+            )
+            EditorOptionCard(
+                label = stringResource(Res.string.default_image_editor_studio),
+                selected = currentEditor == Settings.Misc.EDITOR_STUDIO,
+                icon = {
+                    Image(
+                        painter = rememberDrawablePainter(
+                            drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
+                        ),
+                        contentDescription = stringResource(Res.string.default_image_editor_studio),
                         modifier = Modifier
                             .size(64.dp)
                             .clip(CircleShape)

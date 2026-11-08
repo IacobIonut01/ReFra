@@ -5,6 +5,21 @@
 
 package com.dot.gallery.feature.settings.ui
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.Text
+import com.dot.gallery.core.ui.components.PreviewPhoto
+import com.dot.gallery.feature.settings.generated.resources.secure_mode_preview_app
+import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DriveFileRenameOutline
+import androidx.compose.material.icons.outlined.EnhancedEncryption
+import androidx.compose.material.icons.outlined.PhonelinkErase
+import androidx.compose.material.icons.outlined.RestoreFromTrash
+import androidx.compose.material.icons.outlined.ScreenLockPortrait
+import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -109,16 +124,16 @@ private const val DETAIL_APP_LOGO = "app_logo"
 private const val DETAIL_VAULT_ENCRYPT = "vault_encrypt"
 
 /**
- * Launcher-icon previews are platform renderables (mipmap drawables on
- * Android) — callers inject them, the docs scene omits them.
+ * Launcher icons are platform renderables (mipmap drawables on Android): [appIcon] draws the icon
+ * for one launcher alias. Without it, as in the docs scene, the name and logo choosers fall back
+ * to plain radio lists.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsGeneralContent(
     state: SettingsGeneralState,
     actions: SettingsGeneralActions,
-    appNamePreview: (@Composable () -> Unit)? = null,
-    appLogoPreview: (@Composable () -> Unit)? = null,
+    appIcon: (@Composable (alias: String) -> Unit)? = null,
 ) {
     var detailKey by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -207,7 +222,19 @@ fun SettingsGeneralContent(
             ChooserPreferenceDetailScreen(
                 title = stringResource(Res.string.change_app_name),
                 description = stringResource(Res.string.app_name_description),
-                preview = appNamePreview?.let { p -> { p() } },
+                optionPreview = if (appIcon == null) null else { alias ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            appIcon(state.appLogoAlias)
+                            Text(
+                                text = alias,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                },
                 options = listOf(
                     PreferenceOption(ALIAS_REFRA, ALIAS_REFRA, state.appNameAlias == ALIAS_REFRA),
                     PreferenceOption(
@@ -223,7 +250,7 @@ fun SettingsGeneralContent(
             ChooserPreferenceDetailScreen(
                 title = stringResource(Res.string.change_app_logo),
                 description = stringResource(Res.string.app_logo_description),
-                preview = appLogoPreview?.let { p -> { p() } },
+                optionPreview = if (appIcon == null) null else { alias -> appIcon(alias) },
                 options = listOf(
                     PreferenceOption(ALIAS_REFRA, ALIAS_REFRA, state.appLogoAlias == ALIAS_REFRA),
                     PreferenceOption(
@@ -312,6 +339,7 @@ private fun GeneralListScreen(
 
     val openTrashPref = rememberPreference(
         title = stringResource(Res.string.settings_open_trash),
+        icon = Icons.Outlined.Delete,
         summary = stringResource(Res.string.settings_open_trash_summary),
         onClick = onOpenTrash,
         screenPosition = Position.Top,
@@ -320,6 +348,7 @@ private fun GeneralListScreen(
     val trashCanEnabledPref = rememberSwitchPreference(
         trashCanEnabled,
         title = stringResource(Res.string.settings_trash_title),
+        icon = Icons.Outlined.RestoreFromTrash,
         summary = stringResource(Res.string.settings_trash_summary),
         isChecked = trashCanEnabled,
         onCheck = onTrashChange,
@@ -331,6 +360,7 @@ private fun GeneralListScreen(
         trashConfirmationEnabled,
         trashCanEnabled,
         title = stringResource(Res.string.settings_trash_confirmation_title),
+        icon = Icons.Outlined.TaskAlt,
         summary = stringResource(
             if (trashCanEnabled) {
                 Res.string.settings_trash_confirmation_summary
@@ -348,6 +378,7 @@ private fun GeneralListScreen(
     val secureModePref = rememberSwitchPreference(
         secureMode,
         title = stringResource(Res.string.secure_mode_title),
+        icon = Icons.Outlined.ScreenLockPortrait,
         summary = stringResource(Res.string.secure_mode_summary),
         isChecked = secureMode,
         onCheck = onSecureChange,
@@ -358,6 +389,7 @@ private fun GeneralListScreen(
     val allowVibrationsPref = rememberSwitchPreference(
         allowVibrations,
         title = stringResource(Res.string.allow_vibrations),
+        icon = Icons.Outlined.Vibration,
         summary = stringResource(Res.string.allow_vibrations_summary),
         isChecked = allowVibrations,
         onCheck = onVibrationsChange,
@@ -374,6 +406,7 @@ private fun GeneralListScreen(
     val deleteScopePref = rememberPreference(
         deleteScope,
         title = stringResource(Res.string.settings_delete_scope_title),
+        icon = Icons.Outlined.PhonelinkErase,
         summary = deleteScopeSummary,
         onClick = { onDetailClick(DETAIL_DELETE_SCOPE) },
         screenPosition = Position.Middle
@@ -382,6 +415,7 @@ private fun GeneralListScreen(
     val appNamePref = rememberPreference(
         appNameAlias,
         title = stringResource(Res.string.change_app_name),
+        icon = Icons.Outlined.DriveFileRenameOutline,
         summary = stringResource(Res.string.change_app_name_summary),
         onClick = { onDetailClick(DETAIL_APP_NAME) },
         screenPosition = Position.Middle
@@ -390,6 +424,7 @@ private fun GeneralListScreen(
     val appLogoPref = rememberPreference(
         appLogoAlias,
         title = stringResource(Res.string.change_app_logo),
+        icon = Icons.Outlined.Apps,
         summary = stringResource(Res.string.change_app_logo_summary),
         onClick = { onDetailClick(DETAIL_APP_LOGO) },
         screenPosition = Position.Bottom
@@ -403,6 +438,7 @@ private fun GeneralListScreen(
     val vaultEncryptPref = rememberPreference(
         vaultEncryptBehavior,
         title = stringResource(Res.string.vault_encrypt_behavior),
+        icon = Icons.Outlined.EnhancedEncryption,
         summary = vaultEncryptBehaviorSummary,
         onClick = { onDetailClick(DETAIL_VAULT_ENCRYPT) },
         screenPosition = Position.Alone
@@ -445,52 +481,61 @@ private fun GeneralListScreen(
     )
 }
 
+/**
+ * ReFra's card in the recent apps overview: the gallery shows through, or secure mode blanks it
+ * and screenshots of it.
+ */
 @Composable
 private fun SecureModePreview(isChecked: Boolean) {
-    val overlayAlpha by animateFloatAsState(if (isChecked) 1f else 0f, label = "overlay")
-    val cellColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp)
-            .height(140.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface),
-        contentAlignment = Alignment.Center
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Box(Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(3.dp)).background(cellColor))
-            repeat(2) {
-                Row(Modifier.weight(1f).fillMaxWidth(), Arrangement.spacedBy(4.dp)) {
-                    repeat(3) {
-                        Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(4.dp)).background(cellColor))
-                    }
-                }
-            }
+            Box(Modifier.size(12.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
+            Text(
+                text = stringResource(Res.string.secure_mode_preview_app),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .size(width = 100.dp, height = 156.dp)
+                .clip(RoundedCornerShape(14.dp))
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.9f * overlayAlpha),
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.95f * overlayAlpha)
-                        )
-                    )
-                ),
+                    if (isChecked) MaterialTheme.colorScheme.surfaceContainerHighest
+                    else MaterialTheme.colorScheme.surface
+                )
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp)),
             contentAlignment = Alignment.Center
         ) {
-            if (overlayAlpha > 0f) {
+            if (isChecked) {
                 Icon(
-                    imageVector = Icons.Filled.Shield,
+                    imageVector = Icons.Outlined.VisibilityOff,
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = overlayAlpha)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(28.dp)
                 )
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    repeat(4) { row ->
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                            repeat(2) { col ->
+                                PreviewPhoto(
+                                    index = row * 2 + col,
+                                    modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(4.dp))
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

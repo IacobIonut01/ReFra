@@ -138,200 +138,18 @@ import com.dot.gallery.feature.settings.generated.resources.ai_models_status_not
 import com.dot.gallery.feature.settings.generated.resources.ai_models_status_title
 import com.dot.gallery.feature.settings.generated.resources.ai_models_switch_note
 
-private val SEARCH_GROUPS = SearchModel.entries.map { it.group }.toSet()
+internal val SEARCH_GROUPS = SearchModel.entries.map { it.group }.toSet()
 
-private fun searchModelOf(group: ModelGroup): SearchModel? =
+internal fun searchModelOf(group: ModelGroup): SearchModel? =
     SearchModel.entries.firstOrNull { it.group == group }
 
-private fun positionOf(index: Int, count: Int): Position = when {
+internal fun positionOf(index: Int, count: Int): Position = when {
     count == 1 -> Position.Alone
     index == 0 -> Position.Top
     index == count - 1 -> Position.Bottom
     else -> Position.Middle
 }
 
-/**
- * AI models manager, built on the shared settings rows: one radio group choosing the
- * Smart Search engine (with a comparison sheet), one group for the face and cutout
- * models. Each row carries its status and a single trailing control; everything else
- * — source, file checksums, delete — lives in that model's detail sheet.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AiModelsManagerContent(
-    state: AiModelsManagerState,
-    actions: AiModelsManagerActions,
-) {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    val scope = rememberCoroutineScope()
-    val detailSheet = rememberAppBottomSheetState()
-    val compareSheet = rememberAppBottomSheetState()
-    val deleteSheet = rememberAppBottomSheetState()
-    var detailGroup by remember { mutableStateOf<ModelGroup?>(null) }
-    var pendingDelete by remember { mutableStateOf<ModelGroup?>(null) }
-
-    fun uiOf(group: ModelGroup) =
-        state.groups.firstOrNull { it.group == group } ?: AiModelGroupUi(group = group)
-
-    val openDetails: (ModelGroup) -> Unit = { group ->
-        detailGroup = group
-        scope.launch { detailSheet.show() }
-    }
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.ai_models_manager)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        }
-    ) { padding ->
-        val layoutDirection = LocalLayoutDirection.current
-        val otherGroups = ModelGroup.entries.filter { it !in SEARCH_GROUPS }
-        val compareTitle = stringResource(Res.string.ai_models_compare_title)
-        val compareSummary = stringResource(Res.string.ai_models_compare_summary)
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = padding.calculateStartPadding(layoutDirection),
-                end = padding.calculateEndPadding(layoutDirection),
-                top = 16.dp + padding.calculateTopPadding(),
-                bottom = padding.calculateBottomPadding() + 16.dp
-            )
-        ) {
-            item(key = "intro") {
-                SectionExplanation(
-                    text = stringResource(Res.string.ai_models_description),
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
-
-            item(key = "search_header") {
-                SettingsItem(
-                    item = SettingsEntity.Header(
-                        title = stringResource(Res.string.ai_models_section_search_title)
-                    )
-                )
-            }
-            item(key = "search_explanation") {
-                SectionExplanation(stringResource(Res.string.ai_models_section_search_subtitle))
-            }
-            // Engines + the comparison row form one group.
-            val searchRowCount = SearchModel.entries.size + 1
-            SearchModel.entries.forEachIndexed { index, model ->
-                item(key = "engine_${model.name}") {
-                    ModelRow(
-                        ui = uiOf(model.group),
-                        labels = modelLabels(model.group),
-                        isActive = model == state.activeSearchModel,
-                        isEngine = true,
-                        isBundled = state.isBundled,
-                        canInstallModels = state.canInstallModels,
-                        position = positionOf(index, searchRowCount),
-                        actions = actions,
-                        onOpenDetails = { openDetails(model.group) },
-                    )
-                }
-            }
-            item(key = "engine_compare") {
-                SettingsItem(
-                    item = SettingsEntity.Preference(
-                        title = compareTitle,
-                        summary = compareSummary,
-                        screenPosition = Position.Bottom,
-                        onClick = { scope.launch { compareSheet.show() } }
-                    )
-                )
-            }
-
-            item(key = "other_header") {
-                SettingsItem(
-                    item = SettingsEntity.Header(
-                        title = stringResource(Res.string.ai_models_section_other_title)
-                    )
-                )
-            }
-            otherGroups.forEachIndexed { index, group ->
-                item(key = "group_${group.name}") {
-                    ModelRow(
-                        ui = uiOf(group),
-                        labels = modelLabels(group),
-                        isActive = false,
-                        isEngine = false,
-                        isBundled = state.isBundled,
-                        canInstallModels = state.canInstallModels,
-                        position = positionOf(index, otherGroups.size),
-                        actions = actions,
-                        onOpenDetails = { openDetails(group) },
-                    )
-                }
-            }
-
-            item(key = "privacy") {
-                Text(
-                    text = stringResource(Res.string.ai_models_privacy_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .widthIn(max = 600.dp)
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 8.dp)
-                )
-            }
-        }
-    }
-
-    detailGroup?.let { group ->
-        val ui = uiOf(group)
-        ModelDetailSheet(
-            sheetState = detailSheet,
-            ui = ui,
-            labels = modelLabels(group),
-            isActive = searchModelOf(group) == state.activeSearchModel,
-            isBundled = state.isBundled,
-            canInstallModels = state.canInstallModels,
-            actions = actions,
-            onUseForSearch = { model ->
-                actions.onSelectSearchModel(model)
-                scope.launch { detailSheet.hide() }
-            },
-            onDelete = {
-                pendingDelete = group
-                scope.launch {
-                    detailSheet.hide()
-                    deleteSheet.show()
-                }
-            },
-        )
-    }
-
-    CompareEnginesSheet(sheetState = compareSheet, activeModel = state.activeSearchModel)
-
-    pendingDelete?.let { group ->
-        ConfirmationSheet(
-            state = deleteSheet,
-            title = stringResource(Res.string.ai_models_delete_title, modelLabels(group).title),
-            summary = stringResource(
-                when {
-                    searchModelOf(group) == state.activeSearchModel ->
-                        Res.string.ai_models_delete_confirm_active
-                    state.isBundled -> Res.string.ai_models_delete_confirm_bundled
-                    else -> Res.string.ai_models_delete_confirm
-                }
-            ),
-            confirmText = stringResource(Res.string.ai_models_delete_model),
-            onConfirm = { actions.onDelete(group) }
-        )
-    }
-}
 
 // ==================== Rows ====================
 
@@ -340,7 +158,7 @@ fun AiModelsManagerContent(
  * trailing control — the engine radio once installed, download, or cancel with progress.
  */
 @Composable
-private fun ModelRow(
+internal fun ModelRow(
     ui: AiModelGroupUi,
     labels: ModelLabels,
     isActive: Boolean,
@@ -445,7 +263,7 @@ private fun ModelRow(
 }
 
 @Composable
-private fun statusLine(
+internal fun statusLine(
     ui: AiModelGroupUi,
     action: ModelManagementAction,
     approxBytes: Long,
@@ -479,7 +297,7 @@ private fun statusLine(
 }
 
 @Composable
-private fun SectionExplanation(text: String, modifier: Modifier = Modifier) {
+internal fun SectionExplanation(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodyMedium,
@@ -500,7 +318,7 @@ private fun SectionExplanation(text: String, modifier: Modifier = Modifier) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ModelDetailSheet(
+internal fun ModelDetailSheet(
     sheetState: AppBottomSheetState,
     ui: AiModelGroupUi,
     labels: ModelLabels,
@@ -621,7 +439,7 @@ private fun ModelDetailSheet(
 }
 
 @Composable
-private fun SheetButton(
+internal fun SheetButton(
     text: String,
     modifier: Modifier,
     containerColor: Color = MaterialTheme.colorScheme.primary,
@@ -646,7 +464,7 @@ private fun SheetButton(
 /** Side-by-side engine specs — capabilities and costs, not marketing. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CompareEnginesSheet(
+internal fun CompareEnginesSheet(
     sheetState: AppBottomSheetState,
     activeModel: SearchModel,
 ) {
@@ -758,7 +576,7 @@ private fun CompareRow(
 
 // ==================== Labels ====================
 
-private class ModelLabels(
+internal class ModelLabels(
     val title: String,
     /** One line saying what the model is for — shown on the row. */
     val purpose: String,
@@ -770,7 +588,7 @@ private class ModelLabels(
 )
 
 @Composable
-private fun modelLabels(group: ModelGroup): ModelLabels = when (group) {
+internal fun modelLabels(group: ModelGroup): ModelLabels = when (group) {
     ModelGroup.SEARCH_CLIP -> {
         val tagline = stringResource(Res.string.ai_models_engine_clip_desc)
         ModelLabels(
@@ -819,7 +637,7 @@ private fun modelLabels(group: ModelGroup): ModelLabels = when (group) {
     )
 }
 
-private fun formatDuration(seconds: Long): String = when {
+internal fun formatDuration(seconds: Long): String = when {
     seconds < 60 -> "${seconds}s"
     seconds < 3600 -> "${seconds / 60}m ${seconds % 60}s"
     else -> "${seconds / 3600}h ${(seconds % 3600) / 60}m"

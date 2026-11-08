@@ -1537,7 +1537,7 @@
     <string name="disable_smoothing_title">Disable smoothing</string>
     <string name="auto_hide_on_video_play">Hide UI on Video Play</string>
     <string name="dark_media_viewer_title">Dark viewer background</string>
-    <string name="ai_models_manager">AI Models Manager</string>
+    <string name="ai_models_manager">Intelligence Hub</string>
     <string name="categories_exclude_videos">Exclude videos</string>
     <string name="date_header">Date Formats</string>
     <string name="categories">Categories</string>

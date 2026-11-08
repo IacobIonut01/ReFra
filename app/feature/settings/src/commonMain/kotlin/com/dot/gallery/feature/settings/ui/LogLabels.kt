@@ -52,13 +52,14 @@ internal fun groupSummary(group: AreaGroup): String {
     return parts.joinToString(" · ")
 }
 
-/** Portable `%.1f` byte-size formatter — used by developer diagnostics rows. */
+/** Portable `%.1f` byte-size formatter — used by developer diagnostics and private folder stats. */
 fun formatBytes(bytes: Long): String {
     fun tenths(value: Float): String {
         val t = (value * 10).toLong()
         return "${t / 10}.${t % 10}"
     }
     return when {
+        bytes >= 1_073_741_824L -> "${tenths(bytes / 1_073_741_824f)} GB"
         bytes >= 1_048_576L -> "${tenths(bytes / 1_048_576f)} MB"
         bytes >= 1_024L -> "${tenths(bytes / 1_024f)} KB"
         else -> "$bytes B"

@@ -5,13 +5,9 @@
 
 package com.dot.gallery.feature.settings.ui
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,41 +30,23 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.DragHandle
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.RestartAlt
-import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material.icons.outlined.Deselect
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -84,8 +62,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -93,39 +69,32 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.ui.components.RequestInitialSettingsFocus
 import com.dot.gallery.core.ui.components.SettingsItem
-import com.dot.gallery.core.ui.components.rememberSettingsFocusState
 import com.dot.gallery.core.ui.components.settingsFocusGroup
-import com.dot.gallery.core.ui.components.settingsFocusTarget
 import com.dot.gallery.core.presentation.components.ActionZone
 import com.dot.gallery.core.presentation.components.SelectionAction
 import com.dot.gallery.core.presentation.components.SelectionSheetConfig
 import com.dot.gallery.core.presentation.components.rememberSelectionSheetConfig
 import com.dot.gallery.core.presentation.components.rememberShowSelectionTitles
-import com.dot.gallery.core.ui.util.rememberedDerivedState
 import com.dot.gallery.feature.settings.generated.resources.Res
 import com.dot.gallery.feature.settings.generated.resources.action_bar
 import com.dot.gallery.feature.settings.generated.resources.action_bar_fill
 import com.dot.gallery.feature.settings.generated.resources.action_bar_fill_summary
-import com.dot.gallery.feature.settings.generated.resources.action_delete
-import com.dot.gallery.feature.settings.generated.resources.action_locked
-import com.dot.gallery.feature.settings.generated.resources.add_action
 import com.dot.gallery.feature.settings.generated.resources.middle_actions
 import com.dot.gallery.feature.settings.generated.resources.minimum_one_action
-import com.dot.gallery.feature.settings.generated.resources.move_down
-import com.dot.gallery.feature.settings.generated.resources.move_up
-import com.dot.gallery.feature.settings.generated.resources.no_actions_available
 import com.dot.gallery.feature.settings.generated.resources.reset_to_defaults
 import com.dot.gallery.feature.settings.generated.resources.selection_actions
 import com.dot.gallery.feature.settings.generated.resources.selection_actions_description
 import com.dot.gallery.feature.settings.generated.resources.top_actions
 import com.dot.gallery.feature.settings.generated.resources.top_actions_right_aligned
 import com.dot.gallery.feature.settings.generated.resources.top_actions_right_aligned_summary
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,8 +103,6 @@ fun SettingsSelectionActionsContent() {
     var config by rememberSelectionSheetConfig()
     val sanitizedConfig = remember(config) { config.sanitized() }
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val initialFocusRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
     RequestInitialSettingsFocus(
@@ -157,21 +124,17 @@ fun SettingsSelectionActionsContent() {
     val itemHeightPx = remember(density) { with(density) { 72.dp.toPx() } }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(Res.string.selection_actions)) },
-                navigationIcon = { NavigationBackButton() },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+            GalleryPageTopBar(
+                title = stringResource(Res.string.selection_actions),
+                hazeState = LocalHazeState.current,
+                scrolled = rememberScrolledUnderTopBar(listState),
             )
         }
     ) { padding ->
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize().settingsFocusGroup(),
+            modifier = Modifier.fillMaxSize().hazeSource(LocalHazeState.current).settingsFocusGroup(),
             userScrollEnabled = draggingZone == null,
             contentPadding = PaddingValues(
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),
@@ -237,7 +200,7 @@ fun SettingsSelectionActionsContent() {
 
             // ── Top Actions Header ──
             item(key = "top_header") {
-                SectionHeader(
+                ActionEditorSectionHeader(
                     title = stringResource(Res.string.top_actions),
                     modifier = Modifier
                         .widthIn(max = 600.dp)
@@ -273,10 +236,14 @@ fun SettingsSelectionActionsContent() {
                 key = { _, action -> "top_${action.name}" }
             ) { index, action ->
                 val isLocked = action == SelectionAction.CLOSE
-                val position = itemPosition(index, sanitizedConfig.topActions.size)
+                val position = actionEditorPosition(index, sanitizedConfig.topActions.size)
                 val isDragged = draggingZone == ActionZone.TOP && draggingIndex == index
-                ActionListItem(
-                    action = action,
+                ActionEditorListItem(
+                    entry = ActionEditorEntry(
+                        icon = action.icon,
+                        label = stringResource(action.labelRes),
+                        description = stringResource(action.descriptionRes),
+                    ),
                     position = position,
                     isLocked = isLocked,
                     canRemove = !isLocked,
@@ -357,7 +324,7 @@ fun SettingsSelectionActionsContent() {
                         .filter { it.zone == ActionZone.TOP && it !in sanitizedConfig.topActions }
                 }
                 if (availableTop.isNotEmpty()) {
-                    AddActionButton(
+                    ActionEditorAddButton(
                         onClick = { showAddTopSheet = true },
                         modifier = Modifier
                             .widthIn(max = 600.dp)
@@ -372,7 +339,7 @@ fun SettingsSelectionActionsContent() {
 
             // ── Middle Actions Header ──
             item(key = "middle_header") {
-                SectionHeader(
+                ActionEditorSectionHeader(
                     title = stringResource(Res.string.middle_actions),
                     modifier = Modifier
                         .widthIn(max = 600.dp)
@@ -387,10 +354,14 @@ fun SettingsSelectionActionsContent() {
                 items = sanitizedConfig.middleActions,
                 key = { _, action -> "middle_${action.name}" }
             ) { index, action ->
-                val position = itemPosition(index, sanitizedConfig.middleActions.size)
+                val position = actionEditorPosition(index, sanitizedConfig.middleActions.size)
                 val isDragged = draggingZone == ActionZone.MIDDLE && draggingIndex == index
-                ActionListItem(
-                    action = action,
+                ActionEditorListItem(
+                    entry = ActionEditorEntry(
+                        icon = action.icon,
+                        label = stringResource(action.labelRes),
+                        description = stringResource(action.descriptionRes),
+                    ),
                     position = position,
                     isLocked = false,
                     canRemove = true,
@@ -464,7 +435,7 @@ fun SettingsSelectionActionsContent() {
                         .filter { it.zone == ActionZone.MIDDLE && it !in sanitizedConfig.middleActions }
                 }
                 if (availableMiddle.isNotEmpty()) {
-                    AddActionButton(
+                    ActionEditorAddButton(
                         onClick = { showAddMiddleSheet = true },
                         modifier = Modifier
                             .widthIn(max = 600.dp)
@@ -479,7 +450,7 @@ fun SettingsSelectionActionsContent() {
 
             // ── Bottom Actions Header ──
             item(key = "bottom_header") {
-                SectionHeader(
+                ActionEditorSectionHeader(
                     title = stringResource(Res.string.action_bar),
                     modifier = Modifier
                         .widthIn(max = 600.dp)
@@ -513,10 +484,14 @@ fun SettingsSelectionActionsContent() {
                 items = sanitizedConfig.bottomActions,
                 key = { _, action -> "bottom_${action.name}" }
             ) { index, action ->
-                val position = itemPosition(index, sanitizedConfig.bottomActions.size)
+                val position = actionEditorPosition(index, sanitizedConfig.bottomActions.size)
                 val isDragged = draggingZone == ActionZone.BOTTOM && draggingIndex == index
-                ActionListItem(
-                    action = action,
+                ActionEditorListItem(
+                    entry = ActionEditorEntry(
+                        icon = action.icon,
+                        label = stringResource(action.labelRes),
+                        description = stringResource(action.descriptionRes),
+                    ),
                     position = position,
                     isLocked = false,
                     canRemove = sanitizedConfig.bottomActions.size > 1,
@@ -592,7 +567,7 @@ fun SettingsSelectionActionsContent() {
                         .filter { it.zone == ActionZone.BOTTOM && it !in sanitizedConfig.bottomActions }
                 }
                 if (availableBottom.isNotEmpty()) {
-                    AddActionButton(
+                    ActionEditorAddButton(
                         onClick = { showAddBottomSheet = true },
                         modifier = Modifier
                             .widthIn(max = 600.dp)
@@ -611,8 +586,15 @@ fun SettingsSelectionActionsContent() {
             SelectionAction.entries
                 .filter { it.zone == ActionZone.TOP && it !in sanitizedConfig.topActions }
         }
-        AddActionSheet(
+        ActionEditorAddSheet(
             actions = availableTop,
+            entry = { action ->
+                ActionEditorEntry(
+                    icon = action.icon,
+                    label = stringResource(action.labelRes),
+                    description = stringResource(action.descriptionRes),
+                )
+            },
             onActionSelected = { action ->
                 config = config.copy(topActions = config.topActions + action)
                 showAddTopSheet = false
@@ -626,8 +608,15 @@ fun SettingsSelectionActionsContent() {
             SelectionAction.entries
                 .filter { it.zone == ActionZone.MIDDLE && it !in sanitizedConfig.middleActions }
         }
-        AddActionSheet(
+        ActionEditorAddSheet(
             actions = availableMiddle,
+            entry = { action ->
+                ActionEditorEntry(
+                    icon = action.icon,
+                    label = stringResource(action.labelRes),
+                    description = stringResource(action.descriptionRes),
+                )
+            },
             onActionSelected = { action ->
                 config = config.copy(middleActions = config.middleActions + action)
                 showAddMiddleSheet = false
@@ -641,23 +630,21 @@ fun SettingsSelectionActionsContent() {
             SelectionAction.entries
                 .filter { it.zone == ActionZone.BOTTOM && it !in sanitizedConfig.bottomActions }
         }
-        AddActionSheet(
+        ActionEditorAddSheet(
             actions = availableBottom,
+            entry = { action ->
+                ActionEditorEntry(
+                    icon = action.icon,
+                    label = stringResource(action.labelRes),
+                    description = stringResource(action.descriptionRes),
+                )
+            },
             onActionSelected = { action ->
                 config = config.copy(bottomActions = config.bottomActions + action)
                 showAddBottomSheet = false
             },
             onDismiss = { showAddBottomSheet = false }
         )
-    }
-}
-
-private fun itemPosition(index: Int, size: Int): Position {
-    return when {
-        size == 1 -> Position.Alone
-        index == 0 -> Position.Top
-        index == size - 1 -> Position.Bottom
-        else -> Position.Middle
     }
 }
 
@@ -668,8 +655,15 @@ private fun itemPosition(index: Int, size: Int): Position {
 
 @Composable
 fun SelectionSheetPreview(
+    modifier: Modifier = Modifier,
     config: SelectionSheetConfig,
     showTitlesOverride: Boolean? = null,
+    count: Int = 3,
+    selectAllActive: Boolean = false,
+    infoVisible: Boolean = true,
+    onClose: (() -> Unit)? = null,
+    onSelectAll: (() -> Unit)? = null,
+    onAction: ((SelectionAction) -> Unit)? = null,
 ) {
     val showTitlesSetting by rememberShowSelectionTitles()
     val showTitles = showTitlesOverride ?: showTitlesSetting
@@ -678,7 +672,7 @@ fun SelectionSheetPreview(
     val pillShape = RoundedCornerShape(28.dp)
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         horizontalAlignment = Alignment.Start,
@@ -721,6 +715,7 @@ fun SelectionSheetPreview(
                                     shape = pillShape
                                 )
                                 .clip(pillShape)
+                                .clickable(enabled = onClose != null) { onClose?.invoke() }
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -732,7 +727,7 @@ fun SelectionSheetPreview(
                                 contentDescription = null
                             )
                             Text(
-                                text = "3",
+                                text = count.toString(),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = tintColor
                             )
@@ -747,12 +742,20 @@ fun SelectionSheetPreview(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         config.topActions.forEach { action ->
-                            if (action != SelectionAction.CLOSE) {
+                            if (action != SelectionAction.CLOSE &&
+                                (action != SelectionAction.INFO || infoVisible)
+                            ) {
                                 TopActionPreviewPill(
                                     action = action,
                                     tintColor = tintColor,
                                     barSurfaceColor = barSurfaceColor,
-                                    pillShape = pillShape
+                                    pillShape = pillShape,
+                                    count = count,
+                                    selectAllActive = selectAllActive,
+                                    onClick = when (action) {
+                                        SelectionAction.SELECT_ALL -> onSelectAll
+                                        else -> onAction?.let { handler -> ({ handler(action) }) }
+                                    },
                                 )
                             }
                         }
@@ -765,12 +768,21 @@ fun SelectionSheetPreview(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     config.topActions.forEach { action ->
-                        TopActionPreviewPill(
-                            action = action,
-                            tintColor = tintColor,
-                            barSurfaceColor = barSurfaceColor,
-                            pillShape = pillShape
-                        )
+                        if (action != SelectionAction.INFO || infoVisible) {
+                            TopActionPreviewPill(
+                                action = action,
+                                tintColor = tintColor,
+                                barSurfaceColor = barSurfaceColor,
+                                pillShape = pillShape,
+                                count = count,
+                                selectAllActive = selectAllActive,
+                                onClick = when (action) {
+                                    SelectionAction.CLOSE -> onClose
+                                    SelectionAction.SELECT_ALL -> onSelectAll
+                                    else -> onAction?.let { handler -> ({ handler(action) }) }
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -785,6 +797,7 @@ fun SelectionSheetPreview(
                         shape = pillShape
                     )
                     .clip(pillShape)
+                    .clickable(enabled = onAction != null) { onAction?.invoke(action) }
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -828,6 +841,7 @@ fun SelectionSheetPreview(
                 config.bottomActions.forEach { action ->
                     Column(
                         modifier = Modifier
+                            .clickable(enabled = onAction != null) { onAction?.invoke(action) }
                             .then(
                                 if (config.fillActionBar) Modifier.weight(1f)
                                 else Modifier.defaultMinSize(
@@ -871,441 +885,53 @@ private fun TopActionPreviewPill(
     tintColor: Color,
     barSurfaceColor: Color,
     pillShape: RoundedCornerShape,
+    count: Int = 3,
+    selectAllActive: Boolean = false,
+    onClick: (() -> Unit)? = null,
 ) {
+    // The select-all pill mirrors SelectAllAddon's active pose: Deselect icon,
+    // clear-selection label, primary-container surface.
+    val isSelectAll = action == SelectionAction.SELECT_ALL && selectAllActive
+    val pillSurfaceColor = if (isSelectAll) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        barSurfaceColor
+    }
+    val pillContentColor = if (isSelectAll) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        tintColor
+    }
     Row(
         modifier = Modifier
             .background(
-                color = barSurfaceColor,
+                color = pillSurfaceColor,
                 shape = pillShape
             )
             .clip(pillShape)
+            .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             modifier = Modifier.size(24.dp),
-            imageVector = action.icon,
-            colorFilter = ColorFilter.tint(tintColor),
+            imageVector = if (isSelectAll) Icons.Outlined.Deselect else action.icon,
+            colorFilter = ColorFilter.tint(pillContentColor),
             contentDescription = null
         )
         Text(
             text = when (action) {
-                SelectionAction.CLOSE -> "3"
-                else -> stringResource(action.labelRes)
+                SelectionAction.CLOSE -> count.toString()
+                else -> if (isSelectAll) {
+                    // commonApp's clear_selection string is module-internal here.
+                    "Remove All"
+                } else {
+                    stringResource(action.labelRes)
+                }
             },
             style = MaterialTheme.typography.titleMedium,
-            color = tintColor
+            color = pillContentColor
         )
-    }
-}
-
-// ────────────────────────────────────────────────────────────────────────────────
-// Action List Item — matches SettingsItem design: animated corner radii,
-// Position-based shapes, surfaceContainer bg, swipe-to-delete, drag handle
-// ────────────────────────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ActionListItem(
-    action: SelectionAction,
-    position: Position,
-    isLocked: Boolean,
-    canRemove: Boolean = true,
-    isDragging: Boolean = false,
-    dragOffset: Float = 0f,
-    onDragStart: () -> Unit = {},
-    onDrag: (Float) -> Unit = {},
-    onDragEnd: () -> Unit = {},
-    onMoveUp: (() -> Unit)? = null,
-    onMoveDown: (() -> Unit)? = null,
-    onRemove: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val backgroundColor = MaterialTheme.colorScheme.surfaceContainer
-    val focusState = rememberSettingsFocusState()
-
-    val fullCornerRadius by animateDpAsState(
-        targetValue = 24.dp,
-        label = "fullCornerRadius"
-    )
-    val normalCornerRadius by animateDpAsState(
-        targetValue = 8.dp,
-        label = "normalCornerRadius"
-    )
-
-    val shape by rememberedDerivedState(position, fullCornerRadius, normalCornerRadius) {
-        when (position) {
-            Position.Alone -> RoundedCornerShape(fullCornerRadius)
-            Position.Top -> RoundedCornerShape(
-                topStart = fullCornerRadius,
-                topEnd = fullCornerRadius,
-                bottomStart = normalCornerRadius,
-                bottomEnd = normalCornerRadius
-            )
-            Position.Middle -> RoundedCornerShape(normalCornerRadius)
-            Position.Bottom -> RoundedCornerShape(
-                topStart = normalCornerRadius,
-                topEnd = normalCornerRadius,
-                bottomStart = fullCornerRadius,
-                bottomEnd = fullCornerRadius
-            )
-        }
-    }
-
-    val paddingModifier = when (position) {
-        Position.Alone -> Modifier.padding(bottom = 16.dp)
-        Position.Bottom -> Modifier.padding(top = 1.dp, bottom = 16.dp)
-        Position.Middle -> Modifier.padding(vertical = 1.dp)
-        Position.Top -> Modifier.padding(bottom = 1.dp)
-    }
-
-    val elevation by animateFloatAsState(
-        targetValue = if (isDragging) 8f else 0f,
-        label = "dragElevation"
-    )
-
-    val currentOnDragStart by rememberUpdatedState(onDragStart)
-    val currentOnDrag by rememberUpdatedState(onDrag)
-    val currentOnDragEnd by rememberUpdatedState(onDragEnd)
-
-    val dragModifier = if (!isLocked) {
-        Modifier.pointerInput(Unit) {
-            detectDragGesturesAfterLongPress(
-                onDragStart = { currentOnDragStart() },
-                onDrag = { change, offset ->
-                    change.consume()
-                    currentOnDrag(offset.y)
-                },
-                onDragEnd = { currentOnDragEnd() },
-                onDragCancel = { currentOnDragEnd() }
-            )
-        }
-    } else Modifier
-
-    val itemContent: @Composable () -> Unit = {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = modifier
-                    .settingsFocusTarget(focusState)
-                    .padding(horizontal = 16.dp)
-                    .clip(shape)
-                    .background(
-                        color = if (focusState.hasFocus) {
-                            MaterialTheme.colorScheme.surfaceContainerHighest
-                        } else {
-                            backgroundColor
-                        }
-                    )
-                    .border(
-                        width = if (focusState.hasFocus) 2.dp else 0.dp,
-                        color = if (focusState.hasFocus) MaterialTheme.colorScheme.primary else Color.Transparent,
-                        shape = shape,
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .widthIn(max = 600.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Drag handle
-                    Icon(
-                        Icons.Outlined.DragHandle, null,
-                        modifier = Modifier
-                            .padding(end = 12.dp)
-                            .size(22.dp),
-                        tint = if (isDragging) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    )
-
-                    // Action icon
-                    Image(
-                        imageVector = action.icon,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(end = 12.dp)
-                            .size(22.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                    )
-
-                    // Label + description
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = stringResource(action.labelRes),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(action.descriptionRes),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
-                    }
-
-                    if (onMoveUp != null) {
-                        IconButton(onClick = onMoveUp) {
-                            Icon(Icons.Outlined.KeyboardArrowUp, stringResource(Res.string.move_up))
-                        }
-                    }
-                    if (onMoveDown != null) {
-                        IconButton(onClick = onMoveDown) {
-                            Icon(Icons.Outlined.KeyboardArrowDown, stringResource(Res.string.move_down))
-                        }
-                    }
-                    if (!isLocked && canRemove) {
-                        IconButton(onClick = onRemove) {
-                            Icon(Icons.Default.Delete, stringResource(Res.string.action_delete))
-                        }
-                    }
-
-                    // Locked indicator
-                    if (isLocked) {
-                        Icon(
-                            Icons.Outlined.Lock, stringResource(Res.string.action_locked),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    // Outer wrapper: drag gesture sits above SwipeToDismissBox so it isn't intercepted
-    Box(
-        modifier = Modifier
-            .then(paddingModifier)
-            .graphicsLayer {
-                translationY = dragOffset
-                shadowElevation = elevation
-                scaleX = if (isDragging) 1.02f else 1f
-                scaleY = if (isDragging) 1.02f else 1f
-            }
-            .then(dragModifier)
-    ) {
-        if (!isLocked && canRemove && !isDragging) {
-            val dismissState = rememberSwipeToDismissBoxState(
-                positionalThreshold = { totalDistance -> totalDistance * 0.4f }
-            )
-            LaunchedEffect(dismissState.targetValue) {
-                if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-                    onRemove()
-                }
-            }
-            SwipeToDismissBox(
-                state = dismissState,
-                backgroundContent = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(shape)
-                            .padding(horizontal = 24.dp),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                },
-                enableDismissFromStartToEnd = false,
-                enableDismissFromEndToStart = true,
-                content = { itemContent() }
-            )
-        } else {
-            itemContent()
-        }
-    }
-}
-
-// ────────────────────────────────────────────────────────────────────────────────
-// Add Action Button — matches SettingsItem Alone position style
-// ────────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun AddActionButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f))
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            Icons.Outlined.Add, null,
-            modifier = Modifier.size(22.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            text = stringResource(Res.string.add_action),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-}
-
-// ────────────────────────────────────────────────────────────────────────────────
-// Section Header — matches SettingsEntity.Header style
-// ────────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier
-    )
-}
-
-// ────────────────────────────────────────────────────────────────────────────────
-// Add Action Bottom Sheet — picker for available actions
-// ────────────────────────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddActionSheet(
-    actions: List<SelectionAction>,
-    onActionSelected: (SelectionAction) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp)
-        ) {
-            Text(
-                text = stringResource(Res.string.add_action),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-            )
-
-            if (actions.isEmpty()) {
-                Text(
-                    text = stringResource(Res.string.no_actions_available),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-                )
-            } else {
-                actions.forEachIndexed { index, action ->
-                    val position = itemPosition(index, actions.size)
-                    AddActionSheetItem(
-                        action = action,
-                        position = position,
-                        onClick = { onActionSelected(action) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AddActionSheetItem(
-    action: SelectionAction,
-    position: Position,
-    onClick: () -> Unit,
-) {
-    val backgroundColor = MaterialTheme.colorScheme.surfaceContainer
-
-    val fullCornerRadius = 24.dp
-    val normalCornerRadius = 8.dp
-
-    val shape = when (position) {
-        Position.Alone -> RoundedCornerShape(fullCornerRadius)
-        Position.Top -> RoundedCornerShape(
-            topStart = fullCornerRadius, topEnd = fullCornerRadius,
-            bottomStart = normalCornerRadius, bottomEnd = normalCornerRadius
-        )
-        Position.Middle -> RoundedCornerShape(normalCornerRadius)
-        Position.Bottom -> RoundedCornerShape(
-            topStart = normalCornerRadius, topEnd = normalCornerRadius,
-            bottomStart = fullCornerRadius, bottomEnd = fullCornerRadius
-        )
-    }
-
-    val paddingModifier = when (position) {
-        Position.Alone -> Modifier.padding(bottom = 0.dp)
-        Position.Bottom -> Modifier.padding(top = 1.dp)
-        Position.Middle -> Modifier.padding(vertical = 1.dp)
-        Position.Top -> Modifier.padding(bottom = 1.dp)
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(paddingModifier)
-            .padding(horizontal = 16.dp)
-            .clip(shape)
-            .background(color = backgroundColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-                .padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                imageVector = action.icon,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(22.dp),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = stringResource(action.labelRes),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(action.descriptionRes),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-            }
-        }
     }
 }

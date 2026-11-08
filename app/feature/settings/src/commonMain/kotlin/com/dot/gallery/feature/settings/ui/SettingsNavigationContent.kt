@@ -5,6 +5,17 @@
 
 package com.dot.gallery.feature.settings.ui
 
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Search
+import com.dot.gallery.core.ui.components.PreviewIconBadge
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.Title
+import androidx.compose.material.icons.outlined.VerticalAlignBottom
+import androidx.compose.material.icons.outlined.VerticalSplit
+import androidx.compose.material.icons.outlined.ViewDay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +65,7 @@ import com.dot.gallery.core.ui.components.rememberSwitchPreference
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.LAUNCH_ROUTE_AUTO
 import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.domain.settings.normalizeLaunchRoute
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.core.presentation.components.rememberSelectionSheetConfig
 import com.dot.gallery.feature.settings.generated.resources.Res
@@ -124,7 +136,6 @@ fun SettingsNavigationContent(
             BackHandler { detailKey = null }
             val useLastOpenedScreenLabel = stringResource(Res.string.use_last_opened_screen)
             val launchOnTimelineLabel = stringResource(Res.string.launch_on_timeline)
-            val launchOnAlbumsLabel = stringResource(Res.string.launch_on_albums)
             val launchOnLibraryLabel = stringResource(Res.string.launch_on_library)
             val launchOptions = remember(
                 lastScreen,
@@ -132,7 +143,6 @@ fun SettingsNavigationContent(
                 state,
                 useLastOpenedScreenLabel,
                 launchOnTimelineLabel,
-                launchOnAlbumsLabel,
                 launchOnLibraryLabel,
             ) {
                 listOf(
@@ -145,27 +155,15 @@ fun SettingsNavigationContent(
                         forcedLastScreen && lastScreen == state.timelineRoute
                     ),
                     PreferenceOption(
-                        state.albumsRoute, launchOnAlbumsLabel,
-                        forcedLastScreen && lastScreen == state.albumsRoute
-                    ),
-                    PreferenceOption(
                         state.libraryRoute, launchOnLibraryLabel,
-                        forcedLastScreen && lastScreen == state.libraryRoute
+                        forcedLastScreen && normalizeLaunchRoute(lastScreen) == state.libraryRoute
                     ),
                 )
             }
             ChooserPreferenceDetailScreen(
                 title = stringResource(Res.string.set_default_launch_screen),
                 description = stringResource(Res.string.launch_screen_description),
-                preview = {
-                    LaunchScreenPreview(
-                        lastScreen = lastScreen,
-                        forcedLastScreen = forcedLastScreen,
-                        timelineRoute = state.timelineRoute,
-                        albumsRoute = state.albumsRoute,
-                        libraryRoute = state.libraryRoute,
-                    )
-                },
+                optionPreview = { route -> LaunchTargetPreview(route, state.timelineRoute) },
                 options = launchOptions,
                 onOptionSelected = { selected ->
                     if (selected == LAUNCH_ROUTE_AUTO) {
@@ -260,206 +258,10 @@ fun SettingsNavigationContent(
                 onDetailClick = { detailKey = it },
                 onOpenSelectionActions = actions.onOpenSelectionActions,
                 timelineRoute = state.timelineRoute,
-                albumsRoute = state.albumsRoute,
                 libraryRoute = state.libraryRoute,
                 searchRoute = actions.searchRoute,
                 searchSink = actions.searchSink,
             )
-        }
-    }
-}
-
-@Composable
-private fun LaunchScreenPreview(
-    lastScreen: String,
-    forcedLastScreen: Boolean,
-    timelineRoute: String,
-    albumsRoute: String,
-    libraryRoute: String,
-) {
-    data class LaunchOption(val route: String, val label: String, val icon: ImageVector)
-    val options = listOf(
-        LaunchOption(timelineRoute, stringResource(Res.string.timeline), Icons.Outlined.Photo),
-        LaunchOption(albumsRoute, stringResource(Res.string.albums), Icons.Outlined.CollectionsBookmark),
-        LaunchOption(libraryRoute, stringResource(Res.string.library), Icons.Outlined.PhotoLibrary),
-    )
-    val selectedRoute = if (forcedLastScreen) lastScreen else null
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        // Auto option
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            val isAutoSelected = !forcedLastScreen
-            val borderColor = if (isAutoSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                    .border(2.dp, borderColor, RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(Res.string.settings_navigation_auto_symbol),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (isAutoSelected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
-            Text(
-                text = stringResource(Res.string.auto),
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isAutoSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                textAlign = TextAlign.Center
-            )
-        }
-        // Screen options
-        options.forEach { option ->
-            val isSelected = selectedRoute == option.route
-            val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                        .border(2.dp, borderColor, RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = option.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                }
-                Text(
-                    text = option.label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun OldNavbarPreview(isChecked: Boolean) {
-    val activeColor = MaterialTheme.colorScheme.primary
-    val inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-    val surfaceColor = MaterialTheme.colorScheme.surfaceContainer
-    val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
-    val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
-
-    val icons = listOf(
-        Icons.Outlined.Photo to stringResource(Res.string.timeline),
-        Icons.Outlined.CollectionsBookmark to stringResource(Res.string.albums),
-        Icons.Outlined.PhotoLibrary to stringResource(Res.string.library),
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (isChecked) {
-            // Classic Material navigation bar (full width, with labels)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(surfaceColor),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                icons.forEachIndexed { index, (icon, label) ->
-                    val isActive = index == 0
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        // Indicator pill behind icon (Material 3 style)
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(
-                                    if (isActive) secondaryContainer
-                                    else Color.Transparent
-                                )
-                                .padding(horizontal = 12.dp, vertical = 2.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = if (isActive) onSecondaryContainer else inactiveColor
-                            )
-                        }
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 9.sp,
-                            color = if (isActive) activeColor else inactiveColor,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        } else {
-            // Modern GalleryNavBar (floating compact pill, icon-only)
-            Row(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(surfaceColor)
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                icons.forEachIndexed { index, (icon, _) ->
-                    val isActive = index == 0
-                    if (isActive) {
-                        // Selected item with pill background
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(secondaryContainer)
-                                .padding(horizontal = 14.dp, vertical = 6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = onSecondaryContainer
-                            )
-                        }
-                    } else {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = inactiveColor
-                        )
-                    }
-                }
-            }
         }
     }
 }
@@ -483,7 +285,6 @@ private fun NavigationListScreen(
     onDetailClick: (String) -> Unit,
     onOpenSelectionActions: () -> Unit,
     timelineRoute: String,
-    albumsRoute: String,
     libraryRoute: String,
     searchRoute: String?,
     searchSink: ((String, List<String>) -> Unit)?,
@@ -496,24 +297,20 @@ private fun NavigationListScreen(
     }
 
     val launchOnTimelineLabel = stringResource(Res.string.launch_on_timeline)
-    val launchOnAlbumsLabel = stringResource(Res.string.launch_on_albums)
     val launchOnLibraryLabel = stringResource(Res.string.launch_on_library)
     val launchAutoLabel = stringResource(Res.string.launch_auto)
     val launchSummary = remember(
         lastScreen,
         forcedLastScreen,
         timelineRoute,
-        albumsRoute,
         libraryRoute,
         launchOnTimelineLabel,
-        launchOnAlbumsLabel,
         launchOnLibraryLabel,
         launchAutoLabel,
     ) {
         if (forcedLastScreen) {
             when (lastScreen) {
                 timelineRoute -> launchOnTimelineLabel
-                albumsRoute -> launchOnAlbumsLabel
                 else -> launchOnLibraryLabel
             }
         } else {
@@ -523,6 +320,7 @@ private fun NavigationListScreen(
     val forcedLastScreenPref = rememberPreference(
         forcedLastScreen, lastScreen,
         title = stringResource(Res.string.set_default_screen),
+        icon = Icons.Outlined.Home,
         summary = launchSummary,
         onClick = { onDetailClick(DETAIL_LAUNCH_SCREEN) },
         screenPosition = Position.Alone
@@ -536,6 +334,7 @@ private fun NavigationListScreen(
     val showOldNavbarPref = rememberSwitchPreference(
         showOldNavbar,
         title = stringResource(Res.string.old_navbar),
+        icon = Icons.Outlined.ViewDay,
         summary = stringResource(Res.string.old_navbar_summary),
         isChecked = showOldNavbar,
         onCheck = onOldNavbarChange,
@@ -546,6 +345,7 @@ private fun NavigationListScreen(
     val autoHideSearchPref = rememberSwitchPreference(
         autoHideSearch,
         title = stringResource(Res.string.auto_hide_searchbar),
+        icon = Icons.Outlined.SearchOff,
         summary = stringResource(Res.string.auto_hide_searchbar_summary),
         isChecked = autoHideSearch,
         onCheck = onAutoHideSearchChange,
@@ -556,6 +356,7 @@ private fun NavigationListScreen(
     val autoOpenKeyboardPref = rememberSwitchPreference(
         autoOpenKeyboard,
         title = stringResource(Res.string.auto_open_search_keyboard),
+        icon = Icons.Outlined.Keyboard,
         summary = stringResource(Res.string.auto_open_search_keyboard_summary),
         isChecked = autoOpenKeyboard,
         onCheck = onAutoOpenKeyboardChange,
@@ -566,6 +367,7 @@ private fun NavigationListScreen(
     val autoHideNavBarPref = rememberSwitchPreference(
         autoHideNavBar,
         title = stringResource(Res.string.auto_hide_navigationbar),
+        icon = Icons.Outlined.VerticalAlignBottom,
         summary = stringResource(Res.string.auto_hide_navigationbar_summary),
         isChecked = autoHideNavBar,
         onCheck = onAutoHideNavChange,
@@ -576,6 +378,7 @@ private fun NavigationListScreen(
     val dualPanePref = rememberSwitchPreference(
         dualPane,
         title = stringResource(Res.string.gallery_dual_pane),
+        icon = Icons.Outlined.VerticalSplit,
         summary = stringResource(Res.string.gallery_dual_pane_summary),
         isChecked = dualPane,
         onCheck = onDualPaneChange,
@@ -591,6 +394,7 @@ private fun NavigationListScreen(
     val showSelectionTitlesPref = rememberSwitchPreference(
         showSelectionTitles,
         title = stringResource(Res.string.show_selection_titles),
+        icon = Icons.Outlined.Title,
         summary = stringResource(Res.string.show_selection_titles_summary),
         isChecked = showSelectionTitles,
         onCheck = onSelectionTitlesChange,
@@ -600,6 +404,7 @@ private fun NavigationListScreen(
 
     val selectionActionsPref = rememberPreference(
         title = stringResource(Res.string.selection_actions),
+        icon = Icons.Outlined.Checklist,
         summary = stringResource(Res.string.selection_actions_summary),
         onClick = onOpenSelectionActions,
         screenPosition = Position.Bottom
@@ -632,4 +437,110 @@ private fun NavigationListScreen(
         searchRoute = searchRoute,
         searchSink = searchSink,
     )
+}
+
+/** The icon a launch-screen tile shows: the screen it opens, or history for "last used". */
+@Composable
+private fun LaunchTargetPreview(route: String, timelineRoute: String) {
+    PreviewIconBadge(
+        icon = when (route) {
+            LAUNCH_ROUTE_AUTO -> Icons.Outlined.History
+            timelineRoute -> Icons.Outlined.Photo
+            else -> Icons.Outlined.PhotoLibrary
+        }
+    )
+}
+
+/** The floating navigation group with its search button, or the classic bar with labels. */
+@Composable
+private fun OldNavbarPreview(isChecked: Boolean) {
+    val container = MaterialTheme.colorScheme.surfaceContainerHigh
+    val inactive = MaterialTheme.colorScheme.onSurfaceVariant
+    val items = listOf(
+        Icons.Outlined.Photo to stringResource(Res.string.timeline),
+        Icons.Outlined.CollectionsBookmark to stringResource(Res.string.albums),
+        Icons.Outlined.PhotoLibrary to stringResource(Res.string.library),
+    )
+    if (isChecked) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(container)
+                .padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            items.forEachIndexed { index, (icon, label) ->
+                val active = index == 0
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(
+                                if (active) MaterialTheme.colorScheme.secondaryContainer
+                                else Color.Transparent
+                            )
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (active) MaterialTheme.colorScheme.onSecondaryContainer else inactive,
+                        )
+                    }
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (active) MaterialTheme.colorScheme.onSurface else inactive,
+                    )
+                }
+            }
+        }
+    } else {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(64.dp)
+                    .clip(CircleShape)
+                    .background(container)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items.forEachIndexed { index, (icon, _) ->
+                    val active = index == 0
+                    Box(
+                        modifier = Modifier
+                            .size(width = if (active) 56.dp else 48.dp, height = 40.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (active) MaterialTheme.colorScheme.secondaryContainer
+                                else Color.Transparent
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (active) MaterialTheme.colorScheme.onSecondaryContainer else inactive,
+                        )
+                    }
+                }
+            }
+            Box(
+                modifier = Modifier.size(64.dp).clip(CircleShape).background(container),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.Search, contentDescription = null, tint = inactive)
+            }
+        }
+    }
 }
