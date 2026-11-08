@@ -33,6 +33,7 @@ import com.dot.gallery.feature.help.generated.resources.dark_media_viewer_title
 import com.dot.gallery.feature.help.generated.resources.date_header
 import com.dot.gallery.feature.help.generated.resources.date_headers_title
 import com.dot.gallery.feature.help.generated.resources.default_image_editor
+import com.dot.gallery.feature.help.generated.resources.default_video_editor
 import com.dot.gallery.feature.help.generated.resources.disable_smoothing_title
 import com.dot.gallery.feature.help.generated.resources.edit_backups
 import com.dot.gallery.feature.help.generated.resources.fancy_blur
@@ -60,7 +61,6 @@ import com.dot.gallery.feature.help.generated.resources.map_appearance_title
 import com.dot.gallery.feature.help.generated.resources.media_type_albums_setting_title
 import com.dot.gallery.feature.help.generated.resources.merge_albums_by_name
 import com.dot.gallery.feature.help.generated.resources.old_navbar
-import com.dot.gallery.feature.help.generated.resources.pinned_albums_as_grid_title
 import com.dot.gallery.feature.help.generated.resources.refresh_metadata
 import com.dot.gallery.feature.help.generated.resources.secure_mode_title
 import com.dot.gallery.feature.help.generated.resources.security_encryption_status
@@ -236,6 +236,7 @@ object HelpSearchIndex {
             Toggle(Res.string.show_date_header, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.show_favorite_button, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.default_image_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.default_video_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.disable_smoothing_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.long_press_action_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.auto_hide_on_video_play, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
@@ -260,7 +261,6 @@ object HelpSearchIndex {
             Toggle(Res.string.group_cloud_local_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.merge_albums_by_name, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.album_sections_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
-            Toggle(Res.string.pinned_albums_as_grid_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.media_type_albums_setting_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.date_headers_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.location_categories_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),

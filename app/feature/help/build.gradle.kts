@@ -36,6 +36,8 @@ kotlin {
             implementation(libs.cmp.material.icons.extended)
             implementation(libs.cmp.ui.backhandler)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.haze)
+            implementation(libs.haze.blur)
         }
         androidMain.dependencies {
             implementation(libs.fuzzywuzzy.kotlin)
