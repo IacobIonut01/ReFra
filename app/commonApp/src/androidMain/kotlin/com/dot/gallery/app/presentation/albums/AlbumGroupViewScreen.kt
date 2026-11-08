@@ -11,7 +11,6 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
-import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.AlbumGroupWithAlbums
@@ -21,7 +20,7 @@ import com.dot.gallery.core.ui.util.rememberActivityResult
 /**
  * App-side shell for the album-group grid: delegates to
  * `:feature:albums` [AlbumGroupViewContent] and bridges the MediaStore
- * trash launcher, custom-cover picker and provider brand icons.
+ * trash launcher and custom-cover picker.
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -33,6 +32,7 @@ fun AlbumGroupViewScreen(
     onIgnoreAlbum: (Album) -> Unit,
     onRemoveFromGroup: (Album) -> Unit,
     onRenameGroup: (AlbumGroupWithAlbums) -> Unit,
+    onAddAlbums: ((groupId: Long) -> Unit)? = null,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
 ) {
@@ -46,14 +46,8 @@ fun AlbumGroupViewScreen(
         onRemoveFromGroup = onRemoveFromGroup,
         onRenameGroup = onRenameGroup,
         supportsTrash = SdkCompat.supportsTrash,
+        onAddAlbums = onAddAlbums,
         thumbnailActions = rememberAlbumThumbnailActions(),
-        providerIcon = { providerType, tint, modifier ->
-            ProviderBrandIcon(
-                providerType = providerType,
-                tint = tint,
-                modifier = modifier
-            )
-        },
         sharedTransitionScope = sharedTransitionScope,
         animatedContentScope = animatedContentScope,
     )

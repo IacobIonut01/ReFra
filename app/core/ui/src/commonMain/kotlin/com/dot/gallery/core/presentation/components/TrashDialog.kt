@@ -13,21 +13,21 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,13 +49,8 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.Constants.Animation.enterAnimation
-import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.presentation.util.remove
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.core.ui.util.AppBottomSheetState
@@ -74,13 +69,11 @@ import com.dot.gallery.domain.trash.TrashDialogAction.RESTORE
 import com.dot.gallery.domain.trash.TrashDialogAction.TRASH
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.domain.util.isCloud
-import com.dot.gallery.ui.theme.Shapes
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
-import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.ui.generated.resources.Res
 import com.dot.gallery.core.ui.generated.resources.action_cancel
@@ -120,7 +113,7 @@ fun <T : Media> TrashDialog(
     // Ids of items that cannot go through a recoverable trash path (e.g. cloud
     // items whose provider has no bin). Under a TRASH action they are marked in
     // the preview row and the dialog warns they will be deleted permanently —
-    // the same treatment un-trashable SD-card items had (#1279).
+    // the same treatment un-trashable SD-card items had.
     untrashableIds: Set<Long> = emptySet(),
     onConfirm: suspend (List<Media>) -> Unit
 ) {
@@ -135,7 +128,7 @@ fun <T : Media> TrashDialog(
 
     // Cloud copies backing up the local items still in the list. When any exist
     // the user picks where the deletion applies — device, cloud, or both — unless
-    // a default scope was saved (#1241). For trash the picker is only offered when
+    // a default scope was saved. For trash the picker is only offered when
     // every copy's provider has a real bin; otherwise "trash from cloud" would be
     // a misleading permanent remote delete.
     val cloudCopies = dataCopy.flatMap { cloudBackups[it.id].orEmpty() }
@@ -160,7 +153,7 @@ fun <T : Media> TrashDialog(
         } finally {
             // The sheet must always leave, even when the confirm throws or the
             // invoking coroutine is cancelled mid-request — a wedged isVisible
-            // with no sheet rendered dead-ends every later attempt (#1321).
+            // with no sheet rendered dead-ends every later attempt.
             withContext(NonCancellable) {
                 appBottomSheetState.hide()
             }
@@ -179,7 +172,7 @@ fun <T : Media> TrashDialog(
         } else {
             // The no-confirmation path renders no sheet, so the reset inside the
             // UI branch below never runs for it and `confirmed` stays latched —
-            // every later delete then silently does nothing (#1321). Per-show
+            // every later delete then silently does nothing. Per-show
             // state clears when the sheet leaves, whichever path used it.
             confirmed = false
             resolvedItemCount = 0
@@ -207,129 +200,50 @@ fun <T : Media> TrashDialog(
                     appBottomSheetState.hide()
                 }
             },
-            dragHandle = { DragHandle() },
+            dragHandle = { DragHandle(modifier = Modifier.padding(vertical = 5.dp)) },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 0.dp,
+            shape = ExpressiveSheetShape,
             contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
         ) {
-            val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
-            val tertiaryOnContainer = MaterialTheme.colorScheme.onTertiaryContainer
-            val mainButtonDefaultText = stringResource(
-                when (action) {
-                    TRASH -> Res.string.action_move_to_trash
-                    DELETE -> Res.string.action_delete_permanently
-                    RESTORE -> Res.string.trash_restore
-                }
-            )
-            val mainButtonConfirmText = stringResource(Res.string.action_confirmed)
-            val mainButtonText = remember(confirmed) {
-                if (confirmed) mainButtonConfirmText else mainButtonDefaultText
-            }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                AnimatedVisibility(
-                    visible = !confirmed,
-                    enter = enterAnimation,
-                    exit = exitAnimation
-                ) {
-                    val text = when (action) {
-                        TRASH -> stringResource(Res.string.dialog_to_trash)
-                        DELETE -> stringResource(Res.string.dialog_delete)
-                        RESTORE -> stringResource(Res.string.dialog_from_trash)
-                    }
-                    Column {
-                        Text(
-                            text = buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontStyle = MaterialTheme.typography.titleLarge.fontStyle,
-                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                        letterSpacing = MaterialTheme.typography.titleLarge.letterSpacing
-                                    )
-                                ) {
-                                    append(text)
-                                }
-                                append("\n")
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontStyle = MaterialTheme.typography.bodyMedium.fontStyle,
-                                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                                        letterSpacing = MaterialTheme.typography.bodyMedium.letterSpacing
-                                    )
-                                ) {
-                                    append(stringResource(Res.string.s_items, dataCopy.size))
-                                }
-                            },
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .padding(24.dp)
-                                .fillMaxWidth()
-                        )
-                    }
-                }
-
-                AnimatedVisibility(
-                    visible = confirmed,
-                    enter = enterAnimation,
-                    exit = exitAnimation
-                ) {
-                    val itemCount = resolvedItemCount.takeIf { it > 0 } ?: dataCopy.size
-                    val text =
-                        when (action) {
-                            TRASH -> stringResource(Res.string.trashing_items, itemCount)
-                            DELETE -> stringResource(Res.string.deleting_items, itemCount)
-                            RESTORE -> stringResource(Res.string.restoring_items, itemCount)
-                        }
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(24.dp)
-                            .fillMaxWidth()
-                    )
-                }
+            ExpressiveSheetColumn {
+                TrashDialogHeader(
+                    action = action,
+                    confirmed = confirmed,
+                    itemCount = dataCopy.size,
+                    resolvedItemCount = resolvedItemCount,
+                )
 
                 val hasUntrashable by remember(action, untrashableIds) {
                     derivedStateOf { action == TRASH && dataCopy.any { it.id in untrashableIds } }
                 }
                 AnimatedVisibility(visible = hasUntrashable && !confirmed) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.errorContainer,
-                                    shape = Shapes.large
-                                )
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                imageVector = Icons.Outlined.ErrorOutline,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer
-                            )
+                        Icon(
+                            imageVector = Icons.Outlined.ErrorOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
                                 text = stringResource(Res.string.trash_incompatible_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Text(
+                                text = stringResource(Res.string.trash_incompatible_summary),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
-                        Text(
-                            text = stringResource(Res.string.trash_incompatible_summary),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 }
 
@@ -346,15 +260,13 @@ fun <T : Media> TrashDialog(
                     modifier = Modifier
                         .alpha(alpha)
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .padding(vertical = 12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp, alignment),
                 ) {
-                    if (dataCopy.size > 1) {
-                        item {
-                            Spacer(modifier = Modifier.width(16.dp))
-                        }
-                    }
                     items(
                         items = dataCopy,
                         key = { it.toString() },
@@ -363,21 +275,16 @@ fun <T : Media> TrashDialog(
                         val showToast = rememberPlatformToast()
                         val longPressText = stringResource(Res.string.long_press_to_remove)
                         val untrashable = action == TRASH && it.id in untrashableIds
-                        val borderWidth = if (untrashable) 2.dp else 0.5.dp
-                        val borderColor =
-                            if (untrashable) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        val shape = if (untrashable) Shapes.extraLarge else Shapes.large
+                        val shape = RoundedCornerShape(16.dp)
                         val feedbackManager = rememberFeedbackManager()
                         Box(
                             modifier = Modifier
                                 .animateItem()
-                                .size(width = 80.dp, height = 120.dp)
+                                .size(width = 72.dp, height = 96.dp)
                                 .clip(shape)
-                                .border(
-                                    width = borderWidth,
-                                    color = borderColor,
-                                    shape = shape
+                                .then(
+                                    if (untrashable) Modifier.border(2.dp, MaterialTheme.colorScheme.error, shape)
+                                    else Modifier
                                 )
                                 .combinedClickable(
                                     enabled = !confirmed,
@@ -411,10 +318,8 @@ fun <T : Media> TrashDialog(
                 if (askScope) {
                     // The selection holds items that exist both on the device and
                     // in a cloud backup, so the user picks where the deletion
-                    // applies (#1241). The checkbox saves the choice as the
+                    // applies. The checkbox saves the choice as the
                     // default scope for future deletes.
-                    val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
-                    val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
                     val backedUpCount = dataCopy.count { cloudBackups[it.id] != null }
                     val confirmScope: (String) -> Unit = { deleteScope ->
                         if (setScopeAsDefault) savedDeleteScope = deleteScope
@@ -423,82 +328,45 @@ fun <T : Media> TrashDialog(
                             confirmItems(resolveItems(deleteScope))
                         }
                     }
-                    Column(
+                    Text(
+                        text = pluralStringResource(
+                            Res.plurals.delete_scope_backed_up_info,
+                            backedUpCount,
+                            backedUpCount
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = pluralStringResource(
-                Res.plurals.delete_scope_backed_up_info,
-                                backedUpCount,
-                                backedUpCount
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp)
-                        )
-                        SetupButton(
-                            onClick = { confirmScope(DELETE_SCOPE_DEVICE) },
-                            containerColor = secondaryContainer,
-                            contentColor = onSecondaryContainer,
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
+                            .padding(horizontal = 8.dp, vertical = 16.dp)
+                    )
+                    val scopes = listOf(
+                        DELETE_SCOPE_DEVICE to Res.string.delete_scope_from_device,
+                        DELETE_SCOPE_CLOUD to Res.string.delete_scope_from_cloud,
+                        DELETE_SCOPE_BOTH to Res.string.delete_scope_from_both,
+                    )
+                    scopes.forEachIndexed { index, (deleteScope, label) ->
+                        SheetOptionRow(
+                            title = stringResource(label),
+                            position = sheetRowPosition(index, scopes.size),
+                            trailing = SheetRowTrailing.Chevron,
                             enabled = !confirmed,
-                            text = stringResource(Res.string.delete_scope_from_device)
+                            onClick = { confirmScope(deleteScope) },
                         )
-                        SetupButton(
-                            onClick = { confirmScope(DELETE_SCOPE_CLOUD) },
-                            containerColor = secondaryContainer,
-                            contentColor = onSecondaryContainer,
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
-                            enabled = !confirmed,
-                            text = stringResource(Res.string.delete_scope_from_cloud)
-                        )
-                        SetupButton(
-                            onClick = { confirmScope(DELETE_SCOPE_BOTH) },
-                            containerColor = secondaryContainer,
-                            contentColor = onSecondaryContainer,
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
-                            enabled = !confirmed,
-                            text = stringResource(Res.string.delete_scope_from_both)
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = setScopeAsDefault,
-                                onCheckedChange = { setScopeAsDefault = it }
-                            )
-                            Text(
-                                text = stringResource(Res.string.delete_scope_set_default),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        SetupButton(
-                            onClick = {
-                                scope.launch {
-                                    appBottomSheetState.hide()
-                                }
-                            },
-                            containerColor = tertiaryContainer,
-                            contentColor = tertiaryOnContainer,
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
-                            text = stringResource(Res.string.action_cancel)
+                    }
+                    SheetOptionRow(
+                        title = stringResource(Res.string.delete_scope_set_default),
+                        modifier = Modifier.padding(top = 8.dp),
+                        trailing = SheetRowTrailing.Checkbox(setScopeAsDefault),
+                        onClick = { setScopeAsDefault = !setScopeAsDefault },
+                    )
+                    SheetActions {
+                        SheetButton(
+                            text = stringResource(Res.string.action_cancel),
+                            onClick = { scope.launch { appBottomSheetState.hide() } },
+                            style = SheetButtonStyle.Tonal,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 } else {
@@ -516,50 +384,96 @@ fun <T : Media> TrashDialog(
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 24.dp)
+                                .padding(horizontal = 8.dp, vertical = 16.dp)
                         )
                     }
-                    Row(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalArrangement = Arrangement
-                            .spacedBy(24.dp, Alignment.CenterHorizontally)
-                    ) {
-                        AnimatedVisibility(
-                            visible = !confirmed,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            SetupButton(
-                                onClick = {
-                                    scope.launch {
-                                        appBottomSheetState.hide()
-                                    }
-                                },
-                                containerColor = tertiaryContainer,
-                                contentColor = tertiaryOnContainer,
-                                applyHorizontalPadding = false,
-                                applyBottomPadding = false,
-                                applyInsets = false,
-                                text = stringResource(Res.string.action_cancel)
-                            )
-                        }
-                        SetupButton(
-                            enabled = !confirmed,
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                confirmed = true
-                                scope.launch {
-                                    confirmItems(resolvedItems())
-                                }
-                            },
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
-                            text = mainButtonText
-                        )
-                    }
+                    TrashDialogActions(
+                        action = action,
+                        confirmed = confirmed,
+                        onCancel = { scope.launch { appBottomSheetState.hide() } },
+                        onConfirm = {
+                            confirmed = true
+                            scope.launch {
+                                confirmItems(resolvedItems())
+                            }
+                        },
+                    )
                 }
             }
-            Spacer(modifier = Modifier)
         }
+    }
+}
+
+/**
+ * Heading of the trash, restore and delete confirmation: a toned badge, the action title and the
+ * item count, or the in-progress message once confirmed.
+ */
+@Composable
+fun TrashDialogHeader(
+    action: TrashDialogAction,
+    confirmed: Boolean,
+    itemCount: Int,
+    resolvedItemCount: Int = 0,
+) {
+    val count = resolvedItemCount.takeIf { it > 0 } ?: itemCount
+    SheetHeader(
+        title = if (confirmed) {
+            when (action) {
+                TRASH -> stringResource(Res.string.trashing_items, count)
+                DELETE -> stringResource(Res.string.deleting_items, count)
+                RESTORE -> stringResource(Res.string.restoring_items, count)
+            }
+        } else {
+            when (action) {
+                TRASH -> stringResource(Res.string.dialog_to_trash)
+                DELETE -> stringResource(Res.string.dialog_delete)
+                RESTORE -> stringResource(Res.string.dialog_from_trash)
+            }
+        },
+        body = if (confirmed) null else stringResource(Res.string.s_items, itemCount),
+        icon = when (action) {
+            TRASH -> Icons.Outlined.Delete
+            DELETE -> Icons.Outlined.DeleteForever
+            RESTORE -> Icons.Outlined.RestoreFromTrash
+        },
+        tone = if (action == RESTORE) SheetTone.Primary else SheetTone.Error,
+    )
+}
+
+/** Cancel and confirm pair of [TrashDialog]; the confirm is an error button for trash and delete. */
+@Composable
+fun TrashDialogActions(
+    action: TrashDialogAction,
+    confirmed: Boolean,
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    SheetActions {
+        AnimatedVisibility(visible = !confirmed, modifier = Modifier.weight(1f)) {
+            SheetButton(
+                text = stringResource(Res.string.action_cancel),
+                onClick = onCancel,
+                style = SheetButtonStyle.Tonal,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        SheetButton(
+            text = if (confirmed) stringResource(Res.string.action_confirmed) else stringResource(
+                when (action) {
+                    TRASH -> Res.string.action_move_to_trash
+                    DELETE -> Res.string.action_delete_permanently
+                    RESTORE -> Res.string.trash_restore
+                }
+            ),
+            onClick = onConfirm,
+            enabled = !confirmed,
+            style = if (action == RESTORE) SheetButtonStyle.Filled else SheetButtonStyle.Error,
+            icon = when (action) {
+                TRASH -> Icons.Outlined.Delete
+                DELETE -> Icons.Outlined.DeleteForever
+                RESTORE -> Icons.Outlined.RestoreFromTrash
+            },
+            modifier = Modifier.weight(1f),
+        )
     }
 }

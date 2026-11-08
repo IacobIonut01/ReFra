@@ -1242,10 +1242,6 @@
     <string name="show_combined_timeline">Show combined timeline</string>
     <string name="dismiss">Dismiss</string>
 
-    <!-- Pinned albums layout -->
-    <string name="pinned_albums_as_grid_title">Pinned albums as tiles</string>
-    <string name="pinned_albums_as_grid_summary">Show pinned albums as regular tiles above the other albums, instead of a scrolling banner</string>
-    <string name="pinned_albums_as_grid_description">When enabled, pinned albums appear as the same grid tiles as the rest of your albums (wrapping to multiple rows), placed before the other albums. When disabled, they show as a wide, horizontally scrollable banner carousel.</string>
 
     <!-- Media type albums -->
     <string name="media_type_albums_section">Media types</string>

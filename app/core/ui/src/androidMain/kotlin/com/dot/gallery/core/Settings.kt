@@ -50,6 +50,7 @@ import com.dot.gallery.core.security.AdvancedProtectionMonitor
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.domain.model.SearchHistory
 import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.domain.settings.normalizeLaunchRoute
 import com.dot.gallery.domain.settings.resolveLongPressAction
 import com.dot.gallery.domain.model.SlideshowTransition
 import com.dot.gallery.feature.viewer.SlideshowConfig
@@ -216,10 +217,6 @@ object Settings {
             rememberPreference(SettingsKeys.albumSectionsEnabled)
 
         @Composable
-        fun rememberPinnedAlbumsAsGrid() =
-            rememberPreference(SettingsKeys.pinnedAlbumsAsGrid)
-
-        @Composable
         fun rememberShowMediaTypeAlbums() =
             rememberPreference(SettingsKeys.showMediaTypeAlbums)
 
@@ -310,7 +307,7 @@ object Settings {
             rememberPreference(libraryShortcutsLayoutKey)
 
         /**
-         * Whether the Library screen shows the Locations carousel section (#1181).
+         * Whether the Library screen shows the Locations carousel section.
          * Also read by `LibraryContentInputs` as the data-collection gate — it is a
          * data switch, not just a display toggle.
          */
@@ -318,7 +315,7 @@ object Settings {
         fun rememberShowLocationCategories() =
             rememberPreference(SettingsKeys.showLocationCategories)
 
-        /** Section ids that can be toggled in the Library edit mode (#1262). */
+        /** Section ids that can be toggled in the Library edit mode. */
         const val SECTION_PEOPLE = "people"
         const val SECTION_CATEGORIES = "categories"
 
@@ -1238,10 +1235,6 @@ object Settings {
         @Composable
         fun rememberVisualSearchConvertFormat() =
             rememberPreference(SettingsKeys.visualSearchConvertFormat)
-
-        @Composable
-        fun rememberShowSearchBarFavoriteButton() =
-            rememberPreference(SettingsKeys.showSearchBarFavButton)
 
         @Composable
         fun rememberShowFilterButton() =

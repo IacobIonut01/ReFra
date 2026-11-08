@@ -56,6 +56,21 @@
     <string name="use_as_album_cover">Use as album cover</string>
     <string name="action_desc_set_as_album_cover">Set the selected photo as the cover of its album</string>
     <string name="restore">Restore</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="open_with">Open with</string>
+    <string name="use_as">Use as</string>
+    <string name="rename">Rename</string>
+    <string name="visual_search">Visual search</string>
+    <string name="action_desc_share_item">Share the current item with other apps</string>
+    <string name="action_desc_visual_search_item">Search the web for the current item</string>
+    <string name="action_desc_copy_item">Copy the current item to the clipboard</string>
+    <string name="action_desc_favorite_item">Toggle favorite status for the current item</string>
+    <string name="action_desc_open_item">Open the current item in another app</string>
+    <string name="action_desc_restore_item">Move the current item out of the vault</string>
+    <string name="action_desc_download_item">Download the current cloud item to your device</string>
+    <string name="action_desc_rename_item">Rename the current file</string>
+    <string name="action_desc_edit_item">Open the current item in the photo editor</string>
+    <string name="action_desc_trash_item">Move the current item to the trash</string>
     <string name="private_folder_move_out">Move out</string>
 <string name="rename_section">Rename section</string>
     <string name="create_section">Create section</string>
@@ -65,6 +80,12 @@
     <string name="delete_section_confirm">Are you sure you want to delete this section? The albums inside will not be deleted.</string>
     <string name="move_to_section">Move to section</string>
     <string name="section_auto">Automatic</string>
+    <string name="section_auto_summary">ReFra places it by folder</string>
+    <plurals name="section_album_count">
+        <item quantity="one">%1$d album</item>
+        <item quantity="other">%1$d albums</item>
+    </plurals>
+    <string name="create_section_body">Sections add a heading to All albums. Move albums into it from each album's options.</string>
     <string name="error_title">Something went wrong :(</string>
     <string name="retry">Retry</string>
     <string name="error_copied">Error details copied</string>

@@ -48,6 +48,8 @@ fun <T : Media> TrashedContent(
     aboveGridContent: @Composable () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
+    /** Docs seam: opens the grid scrolled to this item. */
+    initialFirstVisibleItemIndex: Int = 0,
 ) {
     MediaScreen(
         paddingValues = paddingValues,
@@ -56,9 +58,7 @@ fun <T : Media> TrashedContent(
         mediaState = mediaState,
         metadataState = metadataState,
         allowHeaders = false,
-        enableStickyHeaders = false,
         mediaViewerRoute = mediaViewerRoute,
-        navActionsContent = { },
         emptyContent = { EmptyTrash() },
         aboveGridContent = aboveGridContent,
         selectionSheetContent = selectionSheetContent,
@@ -66,6 +66,7 @@ fun <T : Media> TrashedContent(
         lastMosaicCellIndex = lastMosaicCellIndex,
         searchBar = searchBar,
         sharedTransitionScope = sharedTransitionScope,
-        animatedContentScope = animatedContentScope
+        animatedContentScope = animatedContentScope,
+        initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     )
 }

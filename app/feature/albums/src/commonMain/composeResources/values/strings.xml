@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="albums_heading">Albums</string>
+    <string name="album_filter_all">All</string>
+    <string name="album_filter_device">On device</string>
+    <string name="album_filter_collections">Collections</string>
+    <string name="album_filter_cloud">Cloud</string>
     <string name="pinned_albums_title">Pinned Albums</string>
     <string name="media_type_albums_section">Media types</string>
     <string name="albums_others_section">Others</string>
@@ -58,6 +63,16 @@
     <string name="create_and_add">Create &amp; add</string>
     <string name="new_collection">New collection</string>
     <string name="n_items_in_collection">%1$d items</string>
+    <string name="sheet_cancel">Cancel</string>
+    <string name="sheet_done">Done</string>
+    <string name="add_to_collection_body">Collections hold photos from any album without moving the files.</string>
+    <string name="new_collection_summary">Create one and add these photos</string>
+    <string name="add_to_group_body">Groups bundle albums into a single tile in Albums.</string>
+    <string name="new_group_summary">Name it, then this album moves in</string>
+    <plurals name="group_album_count">
+        <item quantity="one">%1$d album</item>
+        <item quantity="other">%1$d albums</item>
+    </plurals>
     <string name="rename_collection">Rename</string>
     <string name="delete_collection">Delete collection</string>
     <string name="unpin_collection">Unpin</string>
@@ -75,4 +90,10 @@
     <string name="delete_group_confirm">Are you sure you want to delete this group? The albums inside will not be deleted.</string>
     <string name="create_collection">Create collection</string>
     <string name="delete_collection_confirm">Are you sure you want to delete this collection? The media inside will not be deleted.</string>
+    <string name="detail_collection">Collection</string>
+    <string name="detail_album_group">Album group</string>
+    <string name="group_members_header">Albums in this group</string>
+    <string name="group_add_albums">Add albums</string>
+    <string name="detail_rename">Rename</string>
+    <string name="detail_slideshow">Slideshow</string>
 </resources>

@@ -157,8 +157,8 @@ object SettingsKeys {
     val albumGroupByDate = PrefKey.bool("album_group_by_date", default = true)
     val mergeAlbumsByName = PrefKey.bool("merge_albums_by_name", default = true)
     val albumSectionsEnabled = PrefKey.bool("album_sections_enabled", default = false)
-    val pinnedAlbumsAsGrid = PrefKey.bool("pinned_albums_as_grid", default = false)
     val showMediaTypeAlbums = PrefKey.bool("show_media_type_albums", default = true)
+    val showPinnedAlbums = PrefKey.bool("show_pinned_albums", default = true)
     val updateModifiedDate = PrefKey.bool("update_modified_date", default = false)
     val hideTimelineOnAlbum = PrefKey.bool("hide_timeline_on_album", default = false)
     val timelineGroupByDate = PrefKey.bool("timeline_group_by_date", default = true)
@@ -206,7 +206,7 @@ object SettingsKeys {
     val autoOpenSearchKeyboard = PrefKey.bool("auto_open_search_keyboard", default = true)
     val autoHideNavBar = PrefKey.bool("auto_hide_navigationbar", default = true)
 
-    // Date format overrides — blank = follow system (see #953)
+    // Date format overrides — blank = follow system (see )
     val rawDateHeaderFormat = PrefKey.string("date_header_format", default = "")
     val rawExtendedDateHeaderFormat = PrefKey.string("extended_date_header_format", default = "")
     val rawExifDateFormat = PrefKey.string("exif_date_format", default = "")
@@ -237,6 +237,10 @@ const val LAUNCH_ROUTE_TIMELINE = "timeline_screen"
 const val LAUNCH_ROUTE_ALBUMS = "albums_screen"
 const val LAUNCH_ROUTE_LIBRARY = "library_screen"
 const val LAUNCH_ROUTE_AUTO = "auto"
+
+/** Albums merged into Library, so a stored Albums choice now opens Library. */
+fun normalizeLaunchRoute(route: String): String =
+    if (route == LAUNCH_ROUTE_ALBUMS) LAUNCH_ROUTE_LIBRARY else route
 
 /** Slideshow interval bounds — mirror `Settings.Slideshow` constants. */
 const val DEFAULT_SLIDESHOW_INTERVAL = 5

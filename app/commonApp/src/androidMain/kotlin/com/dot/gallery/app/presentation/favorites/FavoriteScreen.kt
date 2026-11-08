@@ -11,11 +11,9 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import com.dot.gallery.app.presentation.favorites.components.FavoritesSelectionSheet
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
-import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.UriMedia
@@ -50,8 +48,7 @@ fun FavoriteScreen(
             )
         },
         selectionSheetContent = { allMedia, selectedMediaList ->
-            SelectionSheet(
-                modifier = Modifier.align(Alignment.BottomEnd),
+            FavoritesSelectionSheet(
                 allMedia = allMedia,
                 selectedMedia = selectedMediaList
             )

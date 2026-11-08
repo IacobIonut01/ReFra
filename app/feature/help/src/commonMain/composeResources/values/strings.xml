@@ -1560,7 +1560,6 @@
     <string name="settings_trash_confirmation_title">Require confirmation on trash</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="dismiss">Dismiss</string>
-    <string name="pinned_albums_as_grid_title">Pinned albums as tiles</string>
     <string name="media_type_albums_setting_title">Show media type albums</string>
     <string name="location_categories_title">Location categories</string>
     <string name="album_sections_title">Organize albums by sections</string>

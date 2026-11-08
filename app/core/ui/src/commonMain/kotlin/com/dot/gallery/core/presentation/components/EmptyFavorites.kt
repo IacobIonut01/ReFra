@@ -28,21 +28,9 @@ fun EmptyFavorites(
     modifier: Modifier = Modifier,
     title: String = stringResource(Res.string.empty_favorites_title),
 ) {
-    Column(
-        modifier = modifier.padding(top = 64.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
-    ) {
-        Icon(
-            modifier = Modifier
-                .size(128.dp),
-            imageVector = Icons.Outlined.FavoriteBorder,
-            contentDescription = stringResource(Res.string.empty_favorites_title),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge
-        )
-    }
+    ExpressiveEmptyState(
+        icon = Icons.Outlined.FavoriteBorder,
+        title = title,
+        modifier = modifier.padding(top = 32.dp),
+    )
 }

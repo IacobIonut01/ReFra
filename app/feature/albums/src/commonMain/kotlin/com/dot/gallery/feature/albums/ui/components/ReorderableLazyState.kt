@@ -35,21 +35,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/** Visible item geometry in the lazy container's own coordinates. */
-internal data class ReorderItem(val key: Any, val index: Int, val bounds: Rect)
-
-/** The parts of a lazy grid or list that drag-to-reorder needs. */
-internal interface ReorderLayout {
-    val items: List<ReorderItem>
-    /** Visible area between the content paddings, in container coordinates. */
-    val visibleStart: Float
-    val visibleEnd: Float
-    val firstVisibleIndex: Int
-    val firstVisibleOffset: Int
-    suspend fun scrollBy(pixels: Float): Float
-    suspend fun scrollToItem(index: Int, offset: Int)
-}
-
 private class GridReorderLayout(private val state: LazyGridState) : ReorderLayout {
     override val items: List<ReorderItem>
         get() {

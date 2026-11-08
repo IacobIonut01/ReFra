@@ -6,23 +6,29 @@
 package com.dot.gallery.app.presentation.trashed.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Restore
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
-import com.dot.gallery.core.Position
-import com.dot.gallery.core.SettingsEntity
-import com.dot.gallery.core.presentation.components.SetupButton
-import com.dot.gallery.core.ui.components.SettingsItem
+import com.dot.gallery.core.presentation.components.SheetButton
+import com.dot.gallery.core.presentation.components.SheetButtonStyle
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.action_delete_all_permanently
 import com.dot.gallery.generated.resources.trash
@@ -31,10 +37,9 @@ import com.dot.gallery.generated.resources.trash_restore_all
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The pure rendering of the trash footer — Restore all / Delete permanently
- * row (only while trash has items) and the auto-delete warning card. The
- * launcher/ViewModel/dialog wiring stays in [AutoDeleteFooter]; docs scenes
- * supply in-memory callbacks.
+ * The pure rendering of the trash header above the grid: the retention card and, while trash has
+ * items, Restore all / Delete permanently. The launcher/ViewModel/dialog wiring stays in
+ * [AutoDeleteFooter]; docs scenes supply in-memory callbacks.
  */
 @Composable
 fun TrashFooterContent(
@@ -46,9 +51,36 @@ fun TrashFooterContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(top = 8.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.History,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = stringResource(Res.string.trash),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    text = stringResource(Res.string.trash_deletion_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+        }
         AnimatedVisibility(
             visible = hasMedia,
             enter = enterAnimation,
@@ -56,37 +88,23 @@ fun TrashFooterContent(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SetupButton(
-                    modifier = Modifier.weight(1f),
+                SheetButton(
+                    text = stringResource(Res.string.trash_restore_all),
                     onClick = onRestoreAll,
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    text = stringResource(Res.string.trash_restore_all)
-                )
-                SetupButton(
+                    style = SheetButtonStyle.Tonal,
+                    icon = Icons.Outlined.Restore,
                     modifier = Modifier.weight(1f),
+                )
+                SheetButton(
+                    text = stringResource(Res.string.action_delete_all_permanently),
                     onClick = onDeleteAll,
-                    applyHorizontalPadding = false,
-                    applyBottomPadding = false,
-                    applyInsets = false,
-                    text = stringResource(Res.string.action_delete_all_permanently)
+                    style = SheetButtonStyle.Error,
+                    icon = Icons.Outlined.DeleteForever,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
-
-        SettingsItem(
-            item = SettingsEntity.Preference(
-                icon = Icons.Outlined.Info,
-                title = stringResource(Res.string.trash),
-                summary = stringResource(Res.string.trash_deletion_warning),
-                screenPosition = Position.Alone,
-            ),
-            applyPaddings = false,
-        )
     }
 }

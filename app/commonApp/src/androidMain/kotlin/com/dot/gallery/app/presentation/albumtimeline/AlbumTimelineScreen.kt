@@ -41,20 +41,16 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -72,7 +68,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import org.jetbrains.compose.resources.stringResource
@@ -94,8 +89,20 @@ import com.dot.gallery.core.cloudMemberKey
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.EmptyMedia
+import com.dot.gallery.core.presentation.components.GalleryDetailAction
+import com.dot.gallery.core.presentation.components.GalleryDetailCover
+import com.dot.gallery.core.presentation.components.GalleryDetailHeader
+import com.dot.gallery.core.presentation.components.GalleryDetailTopBar
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
+import com.dot.gallery.core.presentation.components.galleryDetailTopBarHeight
+import com.dot.gallery.core.presentation.components.mediaDateRangeLabel
+import com.dot.gallery.core.presentation.components.rememberDetailHeaderCollapsed
+import com.dot.gallery.feature.albums.ui.components.AlbumSortPill
+import com.dot.gallery.feature.albums.ui.components.AlbumSortTopBarAction
+import androidx.compose.material.icons.outlined.PhotoAlbum
+import com.dot.gallery.generated.resources.more_options
+import com.dot.gallery.generated.resources.s_items
 import com.dot.gallery.core.presentation.components.ModalSheet
-import com.dot.gallery.core.presentation.components.NavigationButton
 import com.dot.gallery.core.presentation.components.SelectionSheet
 import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.domain.model.Album
@@ -104,14 +111,12 @@ import com.dot.gallery.domain.model.MediaItem
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
-import com.dot.gallery.feature.albums.ui.components.AlbumSortDropdown
 import com.dot.gallery.app.presentation.albumtimeline.components.SlideshowOptionsSheet
 import com.dot.gallery.core.presentation.components.MediaGridView
 import com.dot.gallery.core.presentation.components.MosaicPinchZoomLayout
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.presentation.util.selectedMedia
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -128,13 +133,11 @@ import com.dot.gallery.core.Settings.Misc.rememberAlbumsGroupMethod
 import com.dot.gallery.core.Settings.Misc.rememberGridSize
 import com.dot.gallery.core.Settings.Misc.rememberMosaicGridSize
 import com.dot.gallery.core.Settings.Misc.rememberTimelineLayoutType
-import com.dot.gallery.core.presentation.components.TwoLinedDateToolbarTitle
 import com.dot.gallery.core.presentation.components.rememberMosaicMonthSegments
 import com.dot.gallery.core.presentation.components.MosaicMediaGrid
 import com.dot.gallery.core.presentation.components.TimelineScroller
 import com.dot.gallery.core.presentation.components.rememberGridPinchZoomState
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.core.presentation.components.rememberMosaicPinchZoomState
 import com.dot.gallery.feature.albums.CloudAlbumManageViewModel
@@ -221,16 +224,17 @@ fun AlbumTimelineScreen(
     val slideshowSheetState = rememberAppBottomSheetState()
     val slideshowScope = rememberCoroutineScope()
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = rememberTopAppBarState(),
-        canScroll = { canScroll },
-        flingAnimationSpec = null
-    )
-
     val dpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
     val pinchState = rememberGridPinchZoomState(
         cellsList = cellsList,
         initialCellsIndex = lastCellIndex,
+        gridState = rememberLazyGridState(
+            cacheWindow = dpCacheWindow
+        )
+    )
+    var lastMosaicCellIndex by rememberMosaicGridSize()
+    val mosaicPinchState = rememberMosaicPinchZoomState(
+        initialColumnsIndex = lastMosaicCellIndex,
         gridState = rememberLazyGridState(
             cacheWindow = dpCacheWindow
         )
@@ -242,6 +246,73 @@ fun AlbumTimelineScreen(
             lastCellIndex = cellsList.indexOf(pinchState.currentCells)
         }
     }
+    LaunchedEffect(mosaicPinchState.isZooming) {
+        lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
+    }
+
+    val albumGroupByDate by rememberAlbumGroupByDate()
+    val albumsGroupMethod by rememberAlbumsGroupMethod()
+    val timelineLayoutType by rememberTimelineLayoutType()
+    val isMosaicLayout = timelineLayoutType == Settings.Misc.LAYOUT_MOSAIC
+    val hazeState = LocalHazeState.current
+    val topBarHeight = galleryDetailTopBarHeight()
+    val isSelectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()
+    val media = mediaState.value.media
+    val headerCollapsed by rememberDetailHeaderCollapsed(
+        if (isMosaicLayout) mosaicPinchState.gridState else pinchState.gridState
+    )
+    val itemsLabel = stringResource(Res.string.s_items, media.size.toString())
+    val dateRange = remember(media) { mediaDateRangeLabel(media) }
+    val slideshowLabel = stringResource(Res.string.slideshow)
+    val openSlideshow: () -> Unit = { slideshowScope.launch { slideshowSheetState.show() } }
+
+    // The detail header is the grid's first item; merged-album info follows it.
+    val headerContent: @Composable () -> Unit = {
+        Column {
+            GalleryDetailHeader(
+                title = resolvedAlbumName,
+                stats = listOfNotNull(itemsLabel, dateRange).joinToString(" · "),
+                cover = {
+                    GalleryDetailCover(
+                        model = currentAlbum?.uri?.toString() ?: media.firstOrNull()?.getUri()?.toString(),
+                        signature = currentAlbum ?: media.firstOrNull(),
+                        fallbackIcon = Icons.Outlined.PhotoAlbum,
+                    )
+                },
+                actions = {
+                    if (media.isNotEmpty()) {
+                        GalleryDetailAction(
+                            label = slideshowLabel,
+                            icon = Icons.Outlined.Slideshow,
+                            onClick = openSlideshow,
+                        )
+                    }
+                    AlbumSortPill(
+                        currentSort = albumMediaSort,
+                        onSortChange = { newSort -> albumMediaSort = newSort },
+                    )
+                },
+            )
+            if (showMergeContent) {
+                AlbumsMergedBanner(
+                    constituentAlbums = constituentAlbums,
+                    mergesSubfolders = currentAlbum.mergesSubfolders,
+                    mergesByName = currentAlbum.mergesByName,
+                    dismissible = !isSubGallery,
+                    onAlbumClick = onAlbumClick,
+                    onDismiss = { showMergedBanner = false }
+                )
+            }
+        }
+    }
+
+    val emptyContent: @Composable () -> Unit = {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            headerContent()
+            if (!isSubGallery || constituentAlbums.isEmpty()) EmptyMedia()
+        }
+    }
+
     Box(
         modifier = Modifier
             .padding(
@@ -249,98 +320,27 @@ fun AlbumTimelineScreen(
                 end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
             )
     ) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = {
-                LargeTopAppBar(
-                    modifier = Modifier.hazeEffectScaled(
-                        state = LocalHazeState.current,
-                        style = LocalHazeBlurStyle.current
-                    ),
-                    title = {
-                        TwoLinedDateToolbarTitle(
-                            albumName = resolvedAlbumName,
-                            dateHeader = mediaState.value.dateHeader
-                        )
-                    },
-                    navigationIcon = {
-                        NavigationButton(
-                            albumId = albumId,
-                            target = null,
-                            alwaysGoBack = true,
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            slideshowScope.launch { slideshowSheetState.show() }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Slideshow,
-                                contentDescription = stringResource(Res.string.slideshow)
-                            )
-                        }
-                        AlbumSortDropdown(
-                            currentSort = albumMediaSort,
-                            onSortChange = { newSort ->
-                                albumMediaSort = newSort
-                            }
-                        )
-                        currentAlbum?.let { album ->
-                            album.cloudIdentity?.let { identity ->
-                                CloudAlbumManageMenu(
-                                    album = album,
-                                    identity = identity,
-                                    readOnly = cloudSettingsByConfigId[identity.serverConfigId]?.readOnlyMode == true,
-                                    selection = selectedMediaList,
-                                    viewModel = cloudAlbumManageViewModel,
-                                    snackbarHostState = snackbarHostState,
-                                    onDeleted = { eventHandler.navigateUpAction() },
-                                    onSelectionHandled = { selector.clearSelection() }
-                                )
-                            }
-                        }
-                    },
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                    ),
+        val ptrState = rememberPullToRefreshState()
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { refreshScope.launch { distributor.invalidate() } },
+            state = ptrState,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = ptrState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = topBarHeight)
                 )
-            }
-        ) { it ->
-            val ptrState = rememberPullToRefreshState()
-            PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = { refreshScope.launch { distributor.invalidate() } },
-                state = ptrState,
-                indicator = {
-                    PullToRefreshDefaults.Indicator(
-                        state = ptrState,
-                        isRefreshing = isRefreshing,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = it.calculateTopPadding())
-                    )
-                },
-            ) {
-            val albumGroupByDate by rememberAlbumGroupByDate()
-            val albumsGroupMethod by rememberAlbumsGroupMethod()
-            val timelineLayoutType by rememberTimelineLayoutType()
-            val isMosaicLayout = timelineLayoutType == Settings.Misc.LAYOUT_MOSAIC
+            },
+        ) {
+            val gridPaddingValues = PaddingValues(
+                top = topBarHeight,
+                bottom = paddingValues.calculateBottomPadding() + 128.dp
+            )
             if (isMosaicLayout) {
-                var lastMosaicCellIndex by rememberMosaicGridSize()
-                val mosaicPinchState = rememberMosaicPinchZoomState(
-                    initialColumnsIndex = lastMosaicCellIndex,
-                    gridState = rememberLazyGridState(
-                        cacheWindow = dpCacheWindow
-                    )
-                )
                 val mosaicGridState = mosaicPinchState.gridState
-
-                LaunchedEffect(mosaicPinchState.isZooming) {
-                    lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
-                }
-
                 val mappedData by remember(mediaState, albumsGroupMethod, albumGroupByDate) {
                     derivedStateOf {
                         if (!albumGroupByDate) {
@@ -363,56 +363,39 @@ fun AlbumTimelineScreen(
                         mediaState.value.headers.toMutableStateList()
                     }
                 }
-                val mosaicPaddingValues = PaddingValues(
-                    top = it.calculateTopPadding(),
-                    bottom = paddingValues.calculateBottomPadding() + 128.dp
-                )
                 MosaicPinchZoomLayout(
                     state = mosaicPinchState,
-                    indicatorTopPadding = mosaicPaddingValues.calculateTopPadding() + 16.dp,
+                    indicatorTopPadding = topBarHeight + 16.dp,
                 ) { currentColumns ->
                 TimelineScroller(
                     modifier = Modifier
-                        .padding(mosaicPaddingValues)
+                        .padding(gridPaddingValues)
                         .padding(top = 32.dp)
                         .padding(vertical = 32.dp),
                     segments = rememberMosaicMonthSegments(
                         mappedData = mappedData,
                         columns = currentColumns,
                         allowHeaders = albumGroupByDate,
-                        leadingItemCount = if (showMergeContent) 1 else 0,
+                        leadingItemCount = 1,
                         dateSource = mediaState.value.dateSource,
                     ),
                     headers = headers,
                     state = mosaicGridState,
                 ) {
                     MosaicMediaGrid(
-                        modifier = Modifier.hazeSource(LocalHazeState.current),
+                        modifier = Modifier.hazeSource(hazeState),
                         gridState = mosaicGridState,
                         columns = currentColumns,
                         mediaState = mediaState,
                         metadataState = metadataState,
                         mappedData = mappedData,
-                        paddingValues = mosaicPaddingValues,
+                        paddingValues = gridPaddingValues,
                         allowSelection = true,
                         canScroll = !mosaicPinchState.isZooming,
                         allowHeaders = albumGroupByDate,
-                        aboveGridContent = if (showMergeContent) {
-                            {
-                                AlbumsMergedBanner(
-                                    constituentAlbums = constituentAlbums,
-                                    mergesSubfolders = currentAlbum.mergesSubfolders,
-                                    mergesByName = currentAlbum.mergesByName,
-                                    dismissible = !isSubGallery,
-                                    onAlbumClick = onAlbumClick,
-                                    onDismiss = { showMergedBanner = false }
-                                )
-                            }
-                        } else null,
+                        aboveGridContent = headerContent,
                         isScrolling = isScrolling,
-                        emptyContent = {
-                            if (!isSubGallery || constituentAlbums.isEmpty()) EmptyMedia()
-                        },
+                        emptyContent = emptyContent,
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
                         onMediaClick = {
@@ -424,38 +407,22 @@ fun AlbumTimelineScreen(
             } else {
                 GridPinchZoomLayout(
                     state = pinchState,
-                    modifier = Modifier.hazeSource(LocalHazeState.current),
-                    indicatorTopPadding = it.calculateTopPadding() + 16.dp,
+                    modifier = Modifier.hazeSource(hazeState),
+                    indicatorTopPadding = topBarHeight + 16.dp,
                 ) {
                     MediaGridView(
                         mediaState = mediaState,
                         metadataState = metadataState,
                         allowSelection = true,
                         showSearchBar = false,
-                        enableStickyHeaders = albumGroupByDate,
+                        enableStickyHeaders = false,
                         groupMethod = if (albumGroupByDate) albumsGroupMethod else Settings.Misc.GROUP_NORMAL,
-                        paddingValues = PaddingValues(
-                            top = it.calculateTopPadding(),
-                            bottom = paddingValues.calculateBottomPadding() + 128.dp
-                        ),
+                        paddingValues = gridPaddingValues,
                         canScroll = canScroll,
                         allowHeaders = albumGroupByDate,
-                        aboveGridContent = if (showMergeContent) {
-                            {
-                                AlbumsMergedBanner(
-                                    constituentAlbums = constituentAlbums,
-                                    mergesSubfolders = currentAlbum.mergesSubfolders,
-                                    mergesByName = currentAlbum.mergesByName,
-                                    dismissible = !isSubGallery,
-                                    onAlbumClick = onAlbumClick,
-                                    onDismiss = { showMergedBanner = false }
-                                )
-                            }
-                        } else null,
+                        aboveGridContent = headerContent,
                         isScrolling = isScrolling,
-                        emptyContent = {
-                            if (!isSubGallery || constituentAlbums.isEmpty()) EmptyMedia()
-                        },
+                        emptyContent = emptyContent,
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope
                     ) {
@@ -463,8 +430,52 @@ fun AlbumTimelineScreen(
                     }
                 }
             }
-            } // PullToRefreshBox
         }
+        GalleryDetailTopBar(
+            title = resolvedAlbumName,
+            count = media.size.toString(),
+            collapsed = headerCollapsed,
+            hazeState = hazeState,
+            onBack = if (isSelectionActive) selector::clearSelection else null,
+            navigationIcon = if (isSelectionActive) Icons.Outlined.Close else null,
+            collapsedActions = buildList {
+                if (media.isNotEmpty()) {
+                    add {
+                        GalleryPageTopBarAction(
+                            icon = Icons.Outlined.Slideshow,
+                            contentDescription = slideshowLabel,
+                            onClick = openSlideshow,
+                        )
+                    }
+                }
+                add {
+                    AlbumSortTopBarAction(
+                        currentSort = albumMediaSort,
+                        onSortChange = { newSort -> albumMediaSort = newSort },
+                    )
+                }
+            },
+            actions = currentAlbum?.cloudIdentity?.let { identity ->
+                {
+                    CloudAlbumManageMenu(
+                        album = currentAlbum,
+                        identity = identity,
+                        readOnly = cloudSettingsByConfigId[identity.serverConfigId]?.readOnlyMode == true,
+                        selection = selectedMediaList,
+                        viewModel = cloudAlbumManageViewModel,
+                        snackbarHostState = snackbarHostState,
+                        onDeleted = { eventHandler.navigateUpAction() },
+                        onSelectionHandled = { selector.clearSelection() }
+                    )
+                }
+            },
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = paddingValues.calculateBottomPadding()),
+        )
         SelectionSheet(
             modifier = Modifier
                 .align(Alignment.BottomEnd),
@@ -626,12 +637,11 @@ private fun CloudAlbumManageMenu(
     }
 
     Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = null
-            )
-        }
+        GalleryPageTopBarAction(
+            icon = Icons.Outlined.MoreVert,
+            contentDescription = stringResource(Res.string.more_options),
+            onClick = { expanded = true },
+        )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             if (canRenameDelete) {
                 DropdownMenuItem(

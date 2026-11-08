@@ -11,6 +11,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import com.dot.gallery.app.presentation.albumtimeline.components.SlideshowOptionsSheet
+import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.dot.gallery.core.LocalEventHandler
@@ -25,7 +33,8 @@ import com.dot.gallery.core.presentation.util.Screen
 /**
  * App-side shell for the collection media grid: delegates to
  * `:feature:albums` [CollectionViewContent] and bridges the persisted grid
- * sizes, media-view navigation and the app-owned [SelectionSheet] overlay.
+ * sizes, media-view navigation, the slideshow options sheet and the app-owned [SelectionSheet]
+ * overlay.
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -40,6 +49,9 @@ fun CollectionViewScreen(
     animatedContentScope: AnimatedContentScope,
 ) {
     val eventHandler = LocalEventHandler.current
+    val slideshowSheetState = rememberAppBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var slideshowStartId by remember { mutableStateOf<Long?>(null) }
     CollectionViewContent(
         collectionId = collectionId,
         collectionName = collectionName,
@@ -52,6 +64,10 @@ fun CollectionViewScreen(
             eventHandler.navigate(Screen.MediaViewScreen.idAndCollection(media.id, collectionId))
         },
         onEditAlbums = onEditAlbums,
+        onSlideshow = { startId ->
+            slideshowStartId = startId
+            scope.launch { slideshowSheetState.show() }
+        },
         selectionSheet = { mediaState, selectedMedia ->
             SelectionSheet(
                 modifier = Modifier.align(Alignment.BottomEnd),
@@ -62,5 +78,14 @@ fun CollectionViewScreen(
         },
         sharedTransitionScope = sharedTransitionScope,
         animatedContentScope = animatedContentScope,
+    )
+    SlideshowOptionsSheet(
+        state = slideshowSheetState,
+        canStart = slideshowStartId != null,
+        onStart = {
+            slideshowStartId?.let { startId ->
+                eventHandler.navigate(Screen.MediaViewScreen.idAndCollectionSlideshow(startId, collectionId))
+            }
+        }
     )
 }

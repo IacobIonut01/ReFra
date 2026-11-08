@@ -18,14 +18,3 @@ fun albumThumbnailPresentation(isLocked: Boolean): AlbumThumbnailPresentation =
     } else {
         AlbumThumbnailPresentation.MEDIA
     }
-
-/**
- * "Change cover" is a sub-page of the album option sheet. It must drop the
- * moment the sheet is dismissed or the system picker returns, otherwise the
- * next long-press reopens on the cover options instead of the album menu.
- */
-fun nextAlbumCoverPickerState(
-    currentlySelecting: Boolean,
-    sheetVisible: Boolean,
-    pickerFinished: Boolean = false
-): Boolean = currentlySelecting && sheetVisible && !pickerFinished

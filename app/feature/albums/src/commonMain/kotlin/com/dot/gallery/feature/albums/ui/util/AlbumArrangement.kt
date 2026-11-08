@@ -7,17 +7,6 @@ package com.dot.gallery.feature.albums.ui.util
 
 import com.dot.gallery.domain.model.Album
 
-/**
- * Albums split by the user's manual arrangement. [arranged] follows the stored order and ignores
- * the active sort; [others] holds albums that were never arranged, in the incoming (sorted) order.
- */
-data class ArrangedAlbums<T>(
-    val arranged: List<T>,
-    val others: List<T>,
-) {
-    val hasArrangement: Boolean get() = arranged.isNotEmpty()
-}
-
 object AlbumArrangement {
 
     fun split(sortedAlbums: List<Album>, order: List<Long>): ArrangedAlbums<Album> =

@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -37,7 +38,8 @@ fun LibrarySmallItem(
     containerColor: Color = contentColor.copy(alpha = 0.1f),
     useIndicator: Boolean = false,
     indicatorCounter: Int = 0,
-    contentDescription: String = title
+    contentDescription: String = title,
+    shape: Shape = RoundedCornerShape(16.dp),
 ) {
     ListItem(
         colors = ListItemDefaults.colors(
@@ -45,7 +47,7 @@ fun LibrarySmallItem(
             headlineColor = contentColor
         ),
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(shape),
         headlineContent = {
             Text(
                 text = title,
