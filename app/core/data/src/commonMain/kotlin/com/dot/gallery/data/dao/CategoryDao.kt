@@ -22,8 +22,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CategoryDao {
 
-    // ============ Category CRUD ============
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: Category): Long
 
@@ -80,8 +78,6 @@ interface CategoryDao {
 
     @Query("SELECT COUNT(*) FROM categories")
     fun getCategoryCount(): Flow<Int>
-
-    // ============ MediaCategory operations ============
 
     @Upsert
     suspend fun insertMediaCategory(mediaCategory: MediaCategory)
@@ -148,7 +144,7 @@ interface CategoryDao {
 
     /**
      * Ids of every media item with a video mimeType, across the local `media`
-     * mirror and `cloud_media`. Used to exclude videos from classification (#948).
+     * mirror and `cloud_media`. Used to exclude videos from classification.
      */
     @Query("""
         SELECT id FROM media WHERE mimeType LIKE 'video/%'
@@ -159,7 +155,7 @@ interface CategoryDao {
 
     /**
      * Count of `media_category` memberships whose media resolves to a video —
-     * drives the purge confirmation when the exclude-videos toggle is enabled (#948).
+     * drives the purge confirmation when the exclude-videos toggle is enabled.
      * Correlated subqueries instead of a bound `IN (...)` list, safe for large libraries.
      */
     @Query("""
@@ -171,7 +167,7 @@ interface CategoryDao {
 
     /**
      * Removes every `media_category` membership (automatic and manual) whose media is
-     * a video — the confirmed purge behind the exclude-videos toggle (#948).
+     * a video — the confirmed purge behind the exclude-videos toggle.
      */
     @Query("""
         DELETE FROM media_category
@@ -197,9 +193,8 @@ interface CategoryDao {
     )
     fun getDistinctClassifiedMediaCount(): Flow<Int>
 
-    // Get all media IDs in a category, ordered by similarity score.
     // Vaulted (encrypted_media) ids are excluded: memberships are kept so un-vaulting
-    // restores categorisation, but they must never surface in category listings (#1106).
+    // restores categorisation, but they must never surface in category listings.
     @Query("""
         SELECT mediaId FROM media_category mc
         WHERE categoryId = :categoryId
@@ -216,10 +211,9 @@ interface CategoryDao {
     """)
     suspend fun getMediaIdsInCategoryAsync(categoryId: Long): List<Long>
 
-    // Get media count for a category.
     // Counts only members that are displayable: mirrored in `media` or live in
     // `cloud_media`, and never vaulted — same validity contract as
-    // getCategoriesWithMediaCount so cards and detail screens agree (#1106).
+    // getCategoriesWithMediaCount so cards and detail screens agree.
     @Query("""
         SELECT COUNT(*) FROM media_category mc
         WHERE mc.categoryId = :categoryId
@@ -250,7 +244,6 @@ interface CategoryDao {
     """)
     suspend fun getMediaCountInCategoryAsync(categoryId: Long): Int
 
-    // Get all categories for a media item
     @Query("""
         SELECT c.* FROM categories c
         INNER JOIN media_category mc ON c.id = mc.categoryId
@@ -267,7 +260,6 @@ interface CategoryDao {
     """)
     suspend fun getCategoriesForMediaAsync(mediaId: Long): List<Category>
 
-    // Get thumbnail media ID for a category (highest similarity score)
     @Query("""
         SELECT mediaId FROM media_category 
         WHERE categoryId = :categoryId 
@@ -284,24 +276,21 @@ interface CategoryDao {
     """)
     suspend fun getThumbnailMediaIdForCategoryAsync(categoryId: Long): Long?
 
-    // Get similarity score for a specific media-category pair
     @Query("SELECT similarityScore FROM media_category WHERE mediaId = :mediaId AND categoryId = :categoryId")
     suspend fun getSimilarityScore(mediaId: Long, categoryId: Long): Float?
 
-    // Check if a media item is in a category
     @Query("SELECT EXISTS(SELECT 1 FROM media_category WHERE mediaId = :mediaId AND categoryId = :categoryId)")
     suspend fun isMediaInCategory(mediaId: Long, categoryId: Long): Boolean
 
-    // Get all media that are already classified (have embeddings processed)
     @Query("SELECT DISTINCT mediaId FROM media_category")
     suspend fun getAllClassifiedMediaIds(): List<Long>
 
-    // Get categories with media count - for displaying in the grid.
     // Only counts memberships whose media still exists in the internal `media` mirror, and
-    // picks the highest-scored *existing* media as the cover, so a deleted cover falls back to
-    // the next valid member and stale counts never show phantom items (#1076).
+    // uses the user-picked cover while it is still an existing member, otherwise picks the
+    // highest-scored *existing* media as the cover, so a deleted cover falls back to
+    // the next valid member and stale counts never show phantom items.
     // valid_media excludes vaulted ids (encrypted_media) — memberships survive vaulting for
-    // restore, but must not count or surface while vaulted (#1106). UNION (not UNION ALL)
+    // restore, but must not count or surface while vaulted. UNION (not UNION ALL)
     // dedups ids present in both `media` and `cloud_media` so a synced item counts once.
     // A user-created category with no displayable member stays listed at count zero.
     // A generated category with none stays off the list.
@@ -315,10 +304,15 @@ interface CategoryDao {
               AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = cloud_media.globalMediaId)
         )
         SELECT c.*, COUNT(vm.id) as mediaCount,
-               (SELECT mc2.mediaId FROM media_category mc2
-                INNER JOIN valid_media vm2 ON vm2.id = mc2.mediaId
-                WHERE mc2.categoryId = c.id
-                ORDER BY mc2.similarityScore DESC LIMIT 1) as thumbnailMediaId
+               COALESCE(
+                   (SELECT mc3.mediaId FROM media_category mc3
+                    INNER JOIN valid_media vm3 ON vm3.id = mc3.mediaId
+                    WHERE mc3.categoryId = c.id AND mc3.mediaId = c.coverMediaId LIMIT 1),
+                   (SELECT mc2.mediaId FROM media_category mc2
+                    INNER JOIN valid_media vm2 ON vm2.id = mc2.mediaId
+                    WHERE mc2.categoryId = c.id
+                    ORDER BY mc2.similarityScore DESC LIMIT 1)
+               ) as thumbnailMediaId
         FROM categories c
         LEFT JOIN media_category mc ON c.id = mc.categoryId
         LEFT JOIN valid_media vm ON vm.id = mc.mediaId
@@ -328,14 +322,17 @@ interface CategoryDao {
     """)
     fun getCategoriesWithMediaCount(): Flow<List<CategoryWithMediaCount>>
 
-    // Batch update for reclassification
+    // A cover that stops being a displayable member is ignored by the thumbnail queries, so a
+    // stale id never needs clearing; null restores the best-scored member.
+    @Query("UPDATE categories SET coverMediaId = :mediaId, updatedAt = :updatedAt WHERE id = :categoryId")
+    suspend fun updateCategoryCover(categoryId: Long, mediaId: Long?, updatedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds())
+
     @Transaction
     suspend fun reclassifyMediaForCategory(categoryId: Long, mediaCategories: List<MediaCategory>) {
         removeAutomaticMediaFromCategory(categoryId)
         if (mediaCategories.isNotEmpty()) insertAutomaticMediaCategories(mediaCategories)
     }
 
-    // Delete all data (for reset)
     @Query("DELETE FROM media_category")
     suspend fun deleteAllMediaCategories()
 
@@ -348,9 +345,8 @@ interface CategoryDao {
         deleteAllCategories()
     }
 
-    // Get the top N categories by media count for carousel display.
     // Same existence validation as getCategoriesWithMediaCount so carousels never surface a
-    // stale count or a deleted cover (#1076); vaulted ids excluded and ids deduped (#1106).
+    // stale count or a deleted cover; vaulted ids excluded and ids deduped.
     @Query("""
         WITH valid_media AS (
             SELECT id FROM media
@@ -361,10 +357,15 @@ interface CategoryDao {
               AND NOT EXISTS (SELECT 1 FROM encrypted_media WHERE encrypted_media.id = cloud_media.globalMediaId)
         )
         SELECT c.*, COUNT(mc.mediaId) as mediaCount,
-               (SELECT mc2.mediaId FROM media_category mc2
-                INNER JOIN valid_media vm2 ON vm2.id = mc2.mediaId
-                WHERE mc2.categoryId = c.id
-                ORDER BY mc2.similarityScore DESC LIMIT 1) as thumbnailMediaId
+               COALESCE(
+                   (SELECT mc3.mediaId FROM media_category mc3
+                    INNER JOIN valid_media vm3 ON vm3.id = mc3.mediaId
+                    WHERE mc3.categoryId = c.id AND mc3.mediaId = c.coverMediaId LIMIT 1),
+                   (SELECT mc2.mediaId FROM media_category mc2
+                    INNER JOIN valid_media vm2 ON vm2.id = mc2.mediaId
+                    WHERE mc2.categoryId = c.id
+                    ORDER BY mc2.similarityScore DESC LIMIT 1)
+               ) as thumbnailMediaId
         FROM categories c
         INNER JOIN media_category mc ON c.id = mc.categoryId
         INNER JOIN valid_media vm ON vm.id = mc.mediaId

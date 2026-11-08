@@ -36,6 +36,9 @@ fun CategoriesSettingsScreen() {
     val categoryWorkerProgress by viewModel.categoryWorkerProgress.collectAsStateWithLifecycle()
     val categoriesWithCount by viewModel.categoriesWithCount.collectAsStateWithLifecycle()
     val modelStatus by viewModel.modelStatus.collectAsStateWithLifecycle()
+    val matchedCount by viewModel.distinctClassifiedMediaCount.collectAsStateWithLifecycle()
+    val embeddedCount by viewModel.imageEmbeddingCount.collectAsStateWithLifecycle()
+    val lastScanAt by viewModel.lastCategoryScanAt.collectAsStateWithLifecycle()
     // Classification runs on stored image_embeddings — a configured remote
     // inference server produces them without local models.
     val handoverReady by remember {
@@ -50,6 +53,10 @@ fun CategoriesSettingsScreen() {
             hasCategories = categoriesWithCount.isNotEmpty(),
             modelsReady = modelStatus == ModelStatus.READY || handoverReady,
             videoPurgeCount = videoPurgeCount,
+            categoryCount = categoriesWithCount.size,
+            matchedCount = matchedCount,
+            unmatchedCount = (embeddedCount - matchedCount).coerceAtLeast(0),
+            lastScanAt = lastScanAt,
         ),
         actions = CategoriesSettingsActions(
             onStartScan = viewModel::startCategoryClassification,

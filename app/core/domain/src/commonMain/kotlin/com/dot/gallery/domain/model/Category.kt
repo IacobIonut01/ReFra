@@ -28,6 +28,7 @@ import kotlinx.serialization.Serializable
  * @param isPinned Whether this category is pinned/favorited by the user
  * @param createdAt Timestamp when the category was created
  * @param updatedAt Timestamp when the category was last updated
+ * @param coverMediaId Media the user picked as the cover; null uses the best-scored member
  */
 @Entity(tableName = "categories")
 @Serializable
@@ -43,7 +44,9 @@ data class Category(
     val isUserCreated: Boolean = false,
     val isPinned: Boolean = false,
     val createdAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
-    val updatedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
+    val updatedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+    @ColumnInfo(defaultValue = "NULL")
+    val coverMediaId: Long? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -62,6 +65,7 @@ data class Category(
         if (isPinned != other.isPinned) return false
         if (createdAt != other.createdAt) return false
         if (updatedAt != other.updatedAt) return false
+        if (coverMediaId != other.coverMediaId) return false
 
         return true
     }
@@ -77,6 +81,7 @@ data class Category(
         result = 31 * result + isPinned.hashCode()
         result = 31 * result + createdAt.hashCode()
         result = 31 * result + updatedAt.hashCode()
+        result = 31 * result + (coverMediaId?.hashCode() ?: 0)
         return result
     }
 

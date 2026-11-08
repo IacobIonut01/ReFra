@@ -65,8 +65,12 @@ import com.dot.gallery.feature.classifier.ui.search.SearchHelper
 import com.dot.gallery.feature.classifier.ui.search.SearchIndexerState
 import com.dot.gallery.feature.classifier.ui.search.SearchMediaItem
 import com.dot.gallery.feature.classifier.ui.search.SearchResultsState
+import com.dot.gallery.feature.classifier.ui.search.TypedSearchSuggestion
+import com.dot.gallery.feature.classifier.ui.search.matchTypedSuggestions
+import com.dot.gallery.feature.classifier.ui.components.CategoryCarouselItem
 import com.dot.gallery.feature.library.location.MapGeoMediaSource
 import com.dot.gallery.domain.util.isCloud
+import com.dot.gallery.domain.util.isFavorite
 import com.dot.gallery.domain.uri.query
 import com.dot.gallery.feature.classifier.ui.search.deriveSearchIndexerState
 import com.dot.gallery.feature.classifier.ui.search.toReadableMimeType
@@ -221,15 +225,62 @@ class SearchViewModel @Inject constructor(
         localGeoMedia = mediaDistributor.geoMediaFlow,
         timelineMedia = mediaDistributor.timelineMediaFlow,
     )
-    val topLocations: StateFlow<ImmutableList<LocationMedia>> = mapGeoMediaSource.mergedLocations(
+    private val allLocations: StateFlow<List<LocationMedia>> = mapGeoMediaSource.mergedLocations(
         localLocations = mediaDistributor.locationsMediaFlow,
         geoMedia = geoMedia,
         timelineMedia = mediaDistributor.timelineMediaFlow,
-    ).map { it.take(10).toImmutableList() }
+    ).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    val topLocations: StateFlow<ImmutableList<LocationMedia>> = allLocations
+        .map { it.take(10).toImmutableList() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = persistentListOf()
+        )
+
+    private val allCategories: StateFlow<List<CategoryCarouselItem>> = combine(
+        repository.getCategoriesWithMediaCount(),
+        mediaDistributor.timelineMediaFlow
+    ) { categories, mediaState ->
+        val mediaMap = mediaState.media.associateBy { it.id }
+        categories.filter { it.mediaCount > 0 }.map { category ->
+            CategoryCarouselItem(
+                id = category.id,
+                name = category.name,
+                mediaCount = category.mediaCount,
+                thumbnailMedia = category.thumbnailMediaId?.let { mediaMap[it] },
+            )
+        }
+    }.flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    /** Categories, places and albums matching what is being typed, before a search runs. */
+    val typedSuggestions: StateFlow<List<TypedSearchSuggestion>> = combine(
+        _query,
+        allCategories,
+        allLocations,
+        mediaDistributor.albumsFlow
+    ) { query, categories, locations, albumState ->
+        matchTypedSuggestions(
+            query = query,
+            categories = categories,
+            locations = locations,
+            albums = albumState.albums,
+        )
+    }.flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
         )
 
     // Top MIME types carousel – grouped by mimeType, readable labels
@@ -466,6 +517,12 @@ class SearchViewModel @Inject constructor(
             removingHistoryJob = viewModelScope.launch {
                 Settings.Search.removeHistory(context, query)
             }
+        }
+    }
+
+    fun clearHistory() {
+        viewModelScope.launch {
+            Settings.Search.clearHistory(context)
         }
     }
 
@@ -770,6 +827,30 @@ class SearchViewModel @Inject constructor(
             val filteredMedia = allMedia.filter { it.mimeType.startsWith(searchQuery) }
             val mediaState = mapMediaToItem(
                 data = filteredMedia,
+                error = "",
+                albumId = -1L,
+                defaultDateFormat = dateFormats.value.first,
+                extendedDateFormat = dateFormats.value.second,
+                weeklyDateFormat = dateFormats.value.third
+            )
+            _searchResultsState.tryEmit(
+                SearchResultsState(
+                    hasSearched = true,
+                    isSearching = false,
+                    progress = 1f,
+                    results = mediaState
+                )
+            )
+        }
+    }
+
+    /** Shows the favourites among the searchable media, with [label] as the visible query. */
+    fun setFavoritesQuery(label: String) {
+        _query.value = label
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            val mediaState = mapMediaToItem(
+                data = allMedia.value.media.filter { it.isFavorite },
                 error = "",
                 albumId = -1L,
                 defaultDateFormat = dateFormats.value.first,

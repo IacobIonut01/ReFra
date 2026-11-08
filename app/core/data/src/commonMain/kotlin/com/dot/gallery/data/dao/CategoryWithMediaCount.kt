@@ -28,7 +28,10 @@ data class CategoryWithMediaCount(
     val createdAt: Long,
     val updatedAt: Long,
     val mediaCount: Int,
-    val thumbnailMediaId: Long?
+    /** User-picked cover when it is still a displayable member, else the best-scored member. */
+    val thumbnailMediaId: Long?,
+    /** Raw user-picked cover (may point at a removed photo; use [thumbnailMediaId] to display). */
+    val coverMediaId: Long? = null,
 ) {
     fun toCategory() = Category(
         id = id,
@@ -40,7 +43,8 @@ data class CategoryWithMediaCount(
         isUserCreated = isUserCreated,
         isPinned = isPinned,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
+        coverMediaId = coverMediaId,
     )
 
     override fun equals(other: Any?): Boolean {
@@ -62,6 +66,7 @@ data class CategoryWithMediaCount(
         if (updatedAt != other.updatedAt) return false
         if (mediaCount != other.mediaCount) return false
         if (thumbnailMediaId != other.thumbnailMediaId) return false
+        if (coverMediaId != other.coverMediaId) return false
 
         return true
     }
@@ -79,6 +84,7 @@ data class CategoryWithMediaCount(
         result = 31 * result + updatedAt.hashCode()
         result = 31 * result + mediaCount
         result = 31 * result + (thumbnailMediaId?.hashCode() ?: 0)
+        result = 31 * result + (coverMediaId?.hashCode() ?: 0)
         return result
     }
 }

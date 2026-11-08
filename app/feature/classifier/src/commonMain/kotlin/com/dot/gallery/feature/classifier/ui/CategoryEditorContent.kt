@@ -10,16 +10,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,13 +29,13 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.rememberScrollState
@@ -46,22 +44,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.CenterFocusWeak
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -69,116 +64,125 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.cellsList
 import com.dot.gallery.core.presentation.components.EmptyMedia
+import com.dot.gallery.core.presentation.components.GalleryFilterChip
+import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
 import com.dot.gallery.core.presentation.components.GridPinchZoomLayout
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
 import com.dot.gallery.core.presentation.components.MediaGridView
-import com.dot.gallery.core.presentation.components.NavigationBackButton
 import com.dot.gallery.core.presentation.components.rememberGridPinchZoomState
-import com.dot.gallery.core.presentation.util.LocalHazeState
-import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.Category
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.domain.util.getUri
-import com.dot.gallery.feature.classifier.ui.search.ImageSearchPickerSheet
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
-import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.classifier.generated.resources.Res
 import com.dot.gallery.feature.classifier.generated.resources.action_cancel
 import com.dot.gallery.feature.classifier.generated.resources.action_delete
 import com.dot.gallery.feature.classifier.generated.resources.add_reference_photos
+import com.dot.gallery.feature.classifier.generated.resources.add_short
 import com.dot.gallery.feature.classifier.generated.resources.best_match
-import com.dot.gallery.feature.classifier.generated.resources.category_created
-import com.dot.gallery.feature.classifier.generated.resources.category_deleted
+import com.dot.gallery.feature.classifier.generated.resources.best_matches_summary
 import com.dot.gallery.feature.classifier.generated.resources.category_name
 import com.dot.gallery.feature.classifier.generated.resources.category_name_hint
-import com.dot.gallery.feature.classifier.generated.resources.category_updated
 import com.dot.gallery.feature.classifier.generated.resources.create
-import com.dot.gallery.feature.classifier.generated.resources.delete_category_confirmation
-import com.dot.gallery.feature.classifier.generated.resources.delete_category_title
 import com.dot.gallery.feature.classifier.generated.resources.describe_content
 import com.dot.gallery.feature.classifier.generated.resources.describe_content_example
-import com.dot.gallery.feature.classifier.generated.resources.describe_content_hint
 import com.dot.gallery.feature.classifier.generated.resources.edit_category
+import com.dot.gallery.feature.classifier.generated.resources.examples_label
+import com.dot.gallery.feature.classifier.generated.resources.examples_none
+import com.dot.gallery.feature.classifier.generated.resources.examples_summary
 import com.dot.gallery.feature.classifier.generated.resources.fine_tune
-import com.dot.gallery.feature.classifier.generated.resources.matching_preview
+import com.dot.gallery.feature.classifier.generated.resources.fine_tune_summary
+import com.dot.gallery.feature.classifier.generated.resources.matching_photos
 import com.dot.gallery.feature.classifier.generated.resources.more_accurate
 import com.dot.gallery.feature.classifier.generated.resources.more_results
 import com.dot.gallery.feature.classifier.generated.resources.new_category
 import com.dot.gallery.feature.classifier.generated.resources.no_matching_photos
 import com.dot.gallery.feature.classifier.generated.resources.quick_start
-import com.dot.gallery.feature.classifier.generated.resources.quick_start_subtitle
-import com.dot.gallery.feature.classifier.generated.resources.reference_images
 import com.dot.gallery.feature.classifier.generated.resources.reference_images_count
-import com.dot.gallery.feature.classifier.generated.resources.reference_images_hint
+import com.dot.gallery.feature.classifier.generated.resources.remove_reference_cd
 import com.dot.gallery.feature.classifier.generated.resources.save
 import com.dot.gallery.feature.classifier.generated.resources.see_all_matches
 import com.dot.gallery.feature.classifier.generated.resources.sensitivity
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_balanced
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_balanced_desc
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_broad
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_broad_desc
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_exact
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_exact_desc
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_strict
-import com.dot.gallery.feature.classifier.generated.resources.sensitivity_strict_desc
+import com.dot.gallery.feature.classifier.generated.resources.sensitivity_custom
+import com.dot.gallery.feature.classifier.generated.resources.wizard_back
+import com.dot.gallery.feature.classifier.generated.resources.wizard_describe_title
+import com.dot.gallery.feature.classifier.generated.resources.wizard_early_matches
+import com.dot.gallery.feature.classifier.generated.resources.wizard_early_matches_hint
+import com.dot.gallery.feature.classifier.generated.resources.wizard_examples_body
+import com.dot.gallery.feature.classifier.generated.resources.wizard_examples_tip_body
+import com.dot.gallery.feature.classifier.generated.resources.wizard_examples_tip_title
+import com.dot.gallery.feature.classifier.generated.resources.wizard_examples_title
+import com.dot.gallery.feature.classifier.generated.resources.wizard_next
+import com.dot.gallery.feature.classifier.generated.resources.wizard_quick_start_body
+import com.dot.gallery.feature.classifier.generated.resources.wizard_step
+import com.dot.gallery.feature.classifier.generated.resources.wizard_step_describe
+import com.dot.gallery.feature.classifier.generated.resources.wizard_step_examples
+import com.dot.gallery.feature.classifier.generated.resources.wizard_step_strictness
+import com.dot.gallery.feature.classifier.generated.resources.wizard_strictness_title
+import com.dot.gallery.feature.classifier.ui.components.CategoryCard
+import com.dot.gallery.feature.classifier.ui.components.CategoryListRow
+import com.dot.gallery.feature.classifier.ui.components.DashedAddTile
+import com.dot.gallery.feature.classifier.ui.components.SensitivityPreset
+import com.dot.gallery.feature.classifier.ui.components.StrictnessSelector
+import com.dot.gallery.feature.classifier.ui.components.WizardStepBar
+import com.dot.gallery.feature.classifier.ui.search.ImageSearchPickerSheet
+import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
+import com.dot.gallery.core.presentation.util.LocalHazeState
+import dev.chrisbanes.haze.hazeSource
 
+private const val WIZARD_STEPS = 3
+
+private val stepNames: List<StringResource> = listOf(
+    Res.string.wizard_step_describe,
+    Res.string.wizard_step_examples,
+    Res.string.wizard_step_strictness,
+)
+private val stepTitles: List<StringResource> = listOf(
+    Res.string.wizard_describe_title,
+    Res.string.wizard_examples_title,
+    Res.string.wizard_strictness_title,
+)
 
 /**
- * Unified screen for creating and editing categories.
- * Replaces both the add- and edit-category screens with improved UX:
- * - Natural language description instead of "search terms"
- * - Inline preview grid with top matches
- * - Template suggestion chips for quick-start
- * - Humanized sensitivity presets instead of raw threshold slider
- * - Post-save snackbar feedback
+ * Category editor. Create mode is a three-step wizard (describe, example photos, strictness);
+ * edit mode shows the same sections on one scrolling page with Delete in the top bar. The live
+ * preview, the reference-photo picker and the all-matches sheet are shared by both.
  *
- * @param lastCellIndex persisted media-grid cell index for the preview sheet
- * (platform store — app-side).
+ * @param lastCellIndex persisted media-grid cell index for the all-matches sheet.
  */
-@OptIn(
-    ExperimentalSharedTransitionApi::class,
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
-    ExperimentalLayoutApi::class
-)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun CategoryEditorContent(
     state: CategoryEditorState,
@@ -192,129 +196,183 @@ fun CategoryEditorContent(
     animatedContentScope: AnimatedContentScope,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.categoryId) {
         state.categoryId?.takeIf { it > 0 }?.let(actions.onLoadCategory)
     }
 
+    var step by rememberSaveable { mutableIntStateOf(0) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showRefImagePicker by remember { mutableStateOf(false) }
     var showPreviewSheet by remember { mutableStateOf(false) }
-    var showFineTune by rememberSaveable { mutableStateOf(false) }
-    var lastCellIndexState by lastCellIndex
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = rememberTopAppBarState(),
-        flingAnimationSpec = null
-    )
+    val wizard = !state.isEditMode
+    val goBack: () -> Unit = {
+        if (wizard && step > 0) step-- else actions.onNavigateBack()
+    }
+    BackHandler(enabled = wizard && step > 0) { step-- }
 
-    // Snackbar messages
-    val categoryCreatedMsg = stringResource(Res.string.category_created)
-    val categoryUpdatedMsg = stringResource(Res.string.category_updated)
-    val categoryDeletedMsg = stringResource(Res.string.category_deleted)
-
-    // Delete dialog
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(Res.string.delete_category_title)) },
-            text = { Text(stringResource(Res.string.delete_category_confirmation)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        actions.onDelete {
-                            scope.launch {
-                                snackbarHostState.showSnackbar(categoryDeletedMsg)
-                            }
-                            actions.onNavigateBack()
-                        }
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(stringResource(Res.string.action_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(Res.string.action_cancel))
-                }
-            }
-        )
+    val save: () -> Unit = {
+        keyboardController?.hide()
+        actions.onSave { actions.onNavigateBack() }
+    }
+    val canAdvance = when {
+        !wizard -> state.isValid && !state.isSaving
+        // A description or example photos is enough, so the name alone opens step 2.
+        step == 0 -> state.categoryName.isNotBlank()
+        step == 1 -> true
+        else -> state.isValid && !state.isSaving
     }
 
-    // Full preview bottom sheet
-    if (showPreviewSheet && state.previewMedia.isNotEmpty()) {
-        val previewSheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded))
-        ModalBottomSheet(
-            onDismissRequest = { showPreviewSheet = false },
-            sheetState = previewSheetState,
-            dragHandle = null
-        ) {
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .fillMaxSize()
-            ) {
-                // Header
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = stringResource(Res.string.best_match),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-                // Full grid using the same MediaGridView as search results
-                val sheetDpCacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)
-                val sheetPinchState = rememberGridPinchZoomState(
-                    cellsList = cellsList,
-                    initialCellsIndex = lastCellIndexState,
-                    gridState = rememberLazyGridState(cacheWindow = sheetDpCacheWindow)
+    val layoutDirection = LocalLayoutDirection.current
+    val hazeState = LocalHazeState.current
+    val scrollState = rememberScrollState()
+    val scrolled = rememberScrolledUnderTopBar(scrollState)
+    Scaffold(
+        modifier = Modifier.padding(
+            start = paddingValues.calculateStartPadding(layoutDirection),
+            end = paddingValues.calculateEndPadding(layoutDirection),
+        ),
+        topBar = {
+            Column {
+                GalleryPageTopBar(
+                    title = stringResource(if (wizard) Res.string.new_category else Res.string.edit_category),
+                    onBack = goBack,
+                    hazeState = hazeState,
+                    scrolled = scrolled,
+                    actions = if (wizard) null else {
+                        {
+                            GalleryPageTopBarAction(
+                                icon = Icons.Outlined.Delete,
+                                contentDescription = stringResource(Res.string.action_delete),
+                                onClick = { showDeleteDialog = true },
+                            )
+                        }
+                    },
                 )
-                GridPinchZoomLayout(state = sheetPinchState) {
-                    val sheetMediaState = remember {
-                        derivedStateOf { previewMediaState.value.copy(isLoading = false) }
-                    }
-                    MediaGridView(
-                        mediaState = sheetMediaState,
-                        metadataState = metadataState,
-                        allowSelection = false,
-                        showSearchBar = false,
-                        enableStickyHeaders = false,
-                        paddingValues = PaddingValues(bottom = 128.dp),
-                        canScroll = true,
-                        allowHeaders = false,
-
-                        isScrolling = isScrolling,
-                        emptyContent = {
-                            EmptyMedia(title = stringResource(Res.string.no_matching_photos))
-                        },
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedContentScope = animatedContentScope,
-                        // Shared-element transitions cannot cross into a ModalBottomSheet's
-                        // separate window/subcomposition; enabling them here crashes on scroll
-                        // with "LookaheadDelegate has not been measured yet" (#1019).
-                        allowSharedElements = false
+                if (wizard) {
+                    WizardStepBar(
+                        step = step + 1,
+                        total = WIZARD_STEPS,
+                        modifier = Modifier
+                            .then(if (scrolled) Modifier else Modifier.background(MaterialTheme.colorScheme.surface))
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
                     )
                 }
+            }
+        },
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(start = 8.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = goBack, modifier = Modifier.height(48.dp)) {
+                    Text(stringResource(if (wizard && step > 0) Res.string.wizard_back else Res.string.action_cancel))
+                }
+                val last = !wizard || step == WIZARD_STEPS - 1
+                Button(
+                    onClick = { if (last) save() else { keyboardController?.hide(); step++ } },
+                    enabled = canAdvance,
+                    modifier = Modifier.height(48.dp),
+                ) {
+                    if (state.isSaving) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else if (wizard && last) {
+                        Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    }
+                    if (state.isSaving || (wizard && last)) Spacer(Modifier.size(8.dp))
+                    Text(
+                        stringResource(
+                            when {
+                                !wizard -> Res.string.save
+                                last -> Res.string.create
+                                else -> Res.string.wizard_next
+                            }
+                        )
+                    )
+                }
+            }
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState)
+                .verticalScroll(scrollState)
+                .padding(innerPadding)
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = 632.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (wizard) {
+                WizardHeader(step = step)
+                when (step) {
+                    0 -> {
+                        DescribeFields(state = state, actions = actions)
+                        if (state.categoryName.isBlank() && state.searchTerms.isBlank()) {
+                            QuickStart(onTemplateSelected = actions.onApplyTemplate)
+                        } else if (state.searchTerms.isNotBlank()) {
+                            EarlyMatchesCard(state = state)
+                        }
+                    }
+                    1 -> {
+                        Text(
+                            text = stringResource(Res.string.wizard_examples_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        ExamplePhotos(
+                            state = state,
+                            onAdd = { showRefImagePicker = true },
+                            onRemove = actions.onRemoveReferenceImage,
+                            tileSize = null,
+                        )
+                        CategoryListRow(
+                            icon = Icons.Outlined.CenterFocusWeak,
+                            title = stringResource(Res.string.wizard_examples_tip_title),
+                            summary = stringResource(Res.string.wizard_examples_tip_body),
+                            shape = RoundedCornerShape(24.dp),
+                        )
+                    }
+                    else -> StrictnessSection(state = state, actions = actions, onSeeAll = { showPreviewSheet = true })
+                }
+            } else {
+                DescribeFields(state = state, actions = actions)
+                SectionLabel(
+                    title = stringResource(Res.string.examples_label),
+                    description = if (state.referenceImageIds.isEmpty()) stringResource(Res.string.examples_none)
+                    else stringResource(Res.string.examples_summary, state.referenceImageIds.size),
+                )
+                ExamplePhotos(
+                    state = state,
+                    onAdd = { showRefImagePicker = true },
+                    onRemove = actions.onRemoveReferenceImage,
+                    tileSize = 84,
+                )
+                SectionLabel(title = stringResource(Res.string.sensitivity))
+                StrictnessSection(state = state, actions = actions, onSeeAll = { showPreviewSheet = true })
             }
         }
     }
 
-    // Reference image picker sheet (reuses the search screen's image picker)
+    if (showDeleteDialog) {
+        DeleteCategoryDialog(
+            name = state.categoryName,
+            onConfirm = {
+                showDeleteDialog = false
+                actions.onDelete { actions.onNavigateBack() }
+            },
+            onDismiss = { showDeleteDialog = false },
+        )
+    }
+
     if (showRefImagePicker) {
         ImageSearchPickerSheet(
             onMediaSelected = { media ->
@@ -325,651 +383,433 @@ fun CategoryEditorContent(
         )
     }
 
-    Scaffold(
-        modifier = Modifier
-            .padding(
-                start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
-                end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
-            )
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            LargeTopAppBar(
-                modifier = Modifier.hazeEffectScaled(
-                    state = LocalHazeState.current,
-                    style = LocalHazeBlurStyle.current
-                ),
-                title = {
-                    Text(
-                        text = if (state.isEditMode) stringResource(Res.string.edit_category)
-                        else stringResource(Res.string.new_category),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                navigationIcon = {
-                    NavigationBackButton(forcedAction = actions.onNavigateBack)
-                },
-                actions = {
-                    if (state.isEditMode) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                Icons.Outlined.Delete,
-                                contentDescription = stringResource(Res.string.action_delete),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                ),
-            )
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = state.isValid && !state.isSaving,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                FloatingActionButton(
-                    onClick = {
-                        keyboardController?.hide()
-                        actions.onSave {
-                            scope.launch {
-                                snackbarHostState.showSnackbar(
-                                    if (state.isEditMode) categoryUpdatedMsg else categoryCreatedMsg
-                                )
-                            }
-                            actions.onNavigateBack()
-                        }
-                    },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Check,
-                        contentDescription = if (state.isEditMode) stringResource(Res.string.save) else stringResource(Res.string.create),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = paddingValues.calculateBottomPadding() + 128.dp
-                ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // ============ 1. Category Name ============
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.category_name),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                OutlinedTextField(
-                    value = state.categoryName,
-                    onValueChange = actions.onNameChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = stringResource(Res.string.category_name_hint),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    },
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        imeAction = ImeAction.Next
-                    )
-                )
-            }
+    if (showPreviewSheet && state.previewMedia.isNotEmpty()) {
+        AllMatchesSheet(
+            previewCount = state.previewCount,
+            previewMediaState = previewMediaState,
+            metadataState = metadataState,
+            isScrolling = isScrolling,
+            lastCellIndex = lastCellIndex,
+            onDismiss = { showPreviewSheet = false },
+            sharedTransitionScope = sharedTransitionScope,
+            animatedContentScope = animatedContentScope,
+        )
+    }
+}
 
-            // ============ 2. Quick Start Suggestions (create mode only, when name is empty) ============
-            if (!state.isEditMode && state.categoryName.isBlank() && state.searchTerms.isBlank()) {
-                TemplateChipsSection(
-                    onTemplateSelected = actions.onApplyTemplate
-                )
-            }
+@Composable
+private fun WizardHeader(step: Int) {
+    Column(
+        modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = stringResource(Res.string.wizard_step, step + 1, WIZARD_STEPS, stringResource(stepNames[step])),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = stringResource(stepTitles[step]),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
 
-            // ============ 3. Description / Search Terms ============
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.describe_content),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(Res.string.describe_content_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                OutlinedTextField(
-                    value = state.searchTerms,
-                    onValueChange = actions.onSearchTermsChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = stringResource(Res.string.describe_content_example),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    },
-                    minLines = 2,
-                    maxLines = 4,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
-                        imeAction = ImeAction.Done
-                    )
-                )
-            }
-
-            // ============ 4. Reference Images (image-to-image) ============
-            ReferenceImagesSection(
-                referenceImageIds = state.referenceImageIds,
-                allMedia = state.allMedia,
-                onAddClick = { showRefImagePicker = true },
-                onRemove = actions.onRemoveReferenceImage,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            // ============ 5. Sensitivity Presets ============
-            SensitivitySection(
-                threshold = state.threshold,
-                onThresholdChange = actions.onThresholdChange,
-                showFineTune = showFineTune,
-                onToggleFineTune = { showFineTune = !showFineTune },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            // ============ 6. Inline Preview Grid ============
-            InlinePreviewSection(
-                previewMedia = state.previewMedia,
-                previewCount = state.previewCount,
-                isLoading = state.isLoading,
-                searchTerms = state.searchTerms,
-                onCardClick = {
-                    if (state.previewCount > 0) showPreviewSheet = true
-                },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
+@Composable
+private fun SectionLabel(title: String, description: String? = null) {
+    Column(
+        modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(text = title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (description != null) {
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
-// ============ Template Chips ============
+@Composable
+private fun EditorTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String,
+    singleLine: Boolean,
+    capitalization: KeyboardCapitalization,
+    imeAction: ImeAction,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(label) },
+        placeholder = { Text(placeholder) },
+        singleLine = singleLine,
+        minLines = if (singleLine) 1 else 2,
+        maxLines = if (singleLine) 1 else 4,
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedBorderColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+        ),
+        keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction),
+    )
+}
+
+@Composable
+private fun DescribeFields(state: CategoryEditorState, actions: CategoryEditorActions) {
+    EditorTextField(
+        value = state.categoryName,
+        onValueChange = actions.onNameChange,
+        label = stringResource(Res.string.category_name),
+        placeholder = stringResource(Res.string.category_name_hint),
+        singleLine = true,
+        capitalization = KeyboardCapitalization.Words,
+        imeAction = ImeAction.Next,
+    )
+    EditorTextField(
+        value = state.searchTerms,
+        onValueChange = actions.onSearchTermsChange,
+        label = stringResource(Res.string.describe_content),
+        placeholder = stringResource(Res.string.describe_content_example),
+        singleLine = false,
+        capitalization = KeyboardCapitalization.None,
+        imeAction = ImeAction.Done,
+    )
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TemplateChipsSection(
-    onTemplateSelected: (Category) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+private fun QuickStart(onTemplateSelected: (Category) -> Unit) {
+    SectionLabel(
+        title = stringResource(Res.string.quick_start),
+        description = stringResource(Res.string.wizard_quick_start_body),
+    )
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = stringResource(Res.string.quick_start),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = stringResource(Res.string.quick_start_subtitle),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Category.DEFAULT_CATEGORIES.forEach { template ->
-                FilterChip(
-                    selected = false,
-                    onClick = { onTemplateSelected(template) },
-                    label = {
-                        Text(
-                            text = template.name,
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        labelColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        borderColor = MaterialTheme.colorScheme.outlineVariant,
-                        enabled = true,
-                        selected = false
-                    )
-                )
-            }
-        }
-    }
-}
-
-// ============ Sensitivity Section ============
-
-private enum class SensitivityPreset(
-    val threshold: Float,
-    val labelRes: StringResource,
-    val descRes: StringResource
-) {
-    BROAD(0.05f, Res.string.sensitivity_broad, Res.string.sensitivity_broad_desc),
-    BALANCED(Category.DEFAULT_THRESHOLD, Res.string.sensitivity_balanced, Res.string.sensitivity_balanced_desc),
-    STRICT(0.5f, Res.string.sensitivity_strict, Res.string.sensitivity_strict_desc),
-    EXACT(0.75f, Res.string.sensitivity_exact, Res.string.sensitivity_exact_desc);
-
-    companion object {
-        fun fromThreshold(threshold: Float): SensitivityPreset? {
-            return entries.find { kotlin.math.abs(it.threshold - threshold) < 0.01f }
+        Category.DEFAULT_CATEGORIES.forEach { template ->
+            GalleryFilterChip(label = template.name, selected = false, onClick = { onTemplateSelected(template) })
         }
     }
 }
 
 @Composable
-private fun SensitivitySection(
-    threshold: Float,
-    onThresholdChange: (Float) -> Unit,
-    showFineTune: Boolean,
-    onToggleFineTune: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val selectedPreset = SensitivityPreset.fromThreshold(threshold)
+private fun EarlyMatchesCard(state: CategoryEditorState) {
+    CategoryCard {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = if (state.previewCount > 0) stringResource(Res.string.wizard_early_matches, state.previewCount)
+                else stringResource(Res.string.no_matching_photos),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            if (state.isLoading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+        }
+        if (state.previewMedia.isNotEmpty()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                state.previewMedia.take(5).forEach { media ->
+                    Thumbnail(media = media, modifier = Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(14.dp)))
+                }
+                repeat((5 - state.previewMedia.size).coerceAtLeast(0)) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+        Text(
+            text = stringResource(Res.string.wizard_early_matches_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
 
+@Composable
+private fun Thumbnail(media: UriMedia, modifier: Modifier) {
+    LocalMediaImageRenderer.current.RenderImage(
+        modifier = modifier,
+        model = media.getUri(),
+        contentScale = ContentScale.Crop,
+        contentDescription = null,
+        signature = media,
+    )
+}
+
+/**
+ * Reference photos with a remove button each, followed by the dashed Add tile. [tileSize] null
+ * lays them out three to a row across the full width.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ExamplePhotos(
+    state: CategoryEditorState,
+    onAdd: () -> Unit,
+    onRemove: (Long) -> Unit,
+    tileSize: Int?,
+) {
+    val mediaMap = remember(state.allMedia) { state.allMedia.associateBy { it.id } }
+    val references = state.referenceImageIds.mapNotNull { id -> mediaMap[id]?.let { id to it } }
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        maxItemsInEachRow = if (tileSize == null) 3 else Int.MAX_VALUE,
+    ) {
+        val tileModifier = if (tileSize == null) Modifier.weight(1f).aspectRatio(1f) else Modifier.size(tileSize.dp)
+        references.forEach { (id, media) ->
+            Box(modifier = tileModifier.clip(RoundedCornerShape(20.dp))) {
+                Thumbnail(media = media, modifier = Modifier.fillMaxSize())
+                IconButton(
+                    onClick = { onRemove(id) },
+                    modifier = Modifier.align(Alignment.TopEnd),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(Res.string.remove_reference_cd),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+        }
+        DashedAddTile(
+            label = stringResource(if (tileSize == null) Res.string.add_reference_photos else Res.string.add_short),
+            onClick = onAdd,
+            modifier = tileModifier,
+            cornerRadius = 20.dp,
+        )
+        if (tileSize == null) {
+            val filled = (references.size + 1) % 3
+            if (filled != 0) repeat(3 - filled) { Spacer(Modifier.weight(1f)) }
+        }
+    }
+    if (tileSize == null && references.isNotEmpty()) {
+        Text(
+            text = stringResource(Res.string.reference_images_count, references.size),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun StrictnessSection(
+    state: CategoryEditorState,
+    actions: CategoryEditorActions,
+    onSeeAll: () -> Unit,
+) {
+    val preset = SensitivityPreset.fromThreshold(state.threshold)
+    val percent = (state.threshold * 100).roundToInt()
+    var showFineTune by rememberSaveable { mutableStateOf(preset == null) }
+
+    StrictnessSelector(selected = preset, onSelect = { actions.onThresholdChange(it.threshold) })
+    Text(
+        text = if (preset != null) stringResource(preset.descRes) else stringResource(Res.string.sensitivity_custom, percent),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 8.dp),
+    )
+    FineTuneCard(
+        expanded = showFineTune,
+        threshold = state.threshold,
+        onToggle = { showFineTune = !showFineTune },
+        onThresholdChange = actions.onThresholdChange,
+    )
+    PreviewCard(state = state, onSeeAll = onSeeAll)
+}
+
+@Composable
+private fun FineTuneCard(
+    expanded: Boolean,
+    threshold: Float,
+    onToggle: () -> Unit,
+    onThresholdChange: (Float) -> Unit,
+) {
+    val percent = (threshold * 100).roundToInt()
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(20.dp)
             .animateContentSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button, onClick = onToggle)
+                .padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                text = stringResource(Res.string.sensitivity),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            IconButton(onClick = onToggleFineTune) {
-                Icon(
-                    imageVector = Icons.Outlined.Tune,
-                    contentDescription = stringResource(Res.string.fine_tune),
-                    tint = if (showFineTune) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        // Preset chips
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            SensitivityPreset.entries.forEach { preset ->
-                val isSelected = selectedPreset == preset
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .then(
-                            if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer)
-                            else Modifier
-                                .background(MaterialTheme.colorScheme.surface)
-                                .border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.outlineVariant,
-                                    RoundedCornerShape(16.dp)
-                                )
-                        )
-                        .clickable { onThresholdChange(preset.threshold) }
-                        .padding(horizontal = 8.dp, vertical = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
+            Icon(Icons.Outlined.Tune, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stringResource(Res.string.fine_tune), style = MaterialTheme.typography.titleSmall)
+                if (!expanded) {
                     Text(
-                        text = stringResource(preset.labelRes),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                        else MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = stringResource(preset.descRes),
+                        text = stringResource(Res.string.fine_tune_summary, percent),
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
+            if (expanded) {
+                Text("$percent%", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            }
+            Icon(
+                if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-
-        // Fine-tune slider (advanced, toggled)
-        AnimatedVisibility(visible = showFineTune) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(Res.string.fine_tune),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${(threshold * 100).roundToInt()}%",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+        AnimatedVisibility(visible = expanded) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
                 Slider(
                     value = threshold,
                     onValueChange = onThresholdChange,
                     valueRange = Category.MIN_THRESHOLD..Category.MAX_THRESHOLD,
                     steps = 12,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(Res.string.more_results),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = stringResource(Res.string.more_accurate),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(stringResource(Res.string.more_results), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(Res.string.more_accurate), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
     }
 }
 
-// ============ Inline Preview Section ============
-
 @Composable
-private fun InlinePreviewSection(
-    previewMedia: List<UriMedia>,
-    previewCount: Int,
-    isLoading: Boolean,
-    searchTerms: String,
-    onCardClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val imageRenderer = LocalMediaImageRenderer.current
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .clickable(enabled = previewCount > 0, onClick = onCardClick)
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+private fun PreviewCard(state: CategoryEditorState, onSeeAll: () -> Unit) {
+    CategoryCard {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(Res.string.matching_photos),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            if (state.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            } else if (state.previewCount > 0) {
                 Text(
-                    text = stringResource(Res.string.matching_preview),
+                    text = state.previewCount.toString(),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
-                    )
-                }
-            }
-            if (previewCount > 0 && !isLoading) {
-                Text(
-                    text = previewCount.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
-
-        if (searchTerms.isBlank()) {
-            Text(
-                text = stringResource(Res.string.describe_content_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else if (previewMedia.isEmpty() && !isLoading) {
-            Text(
-                text = stringResource(Res.string.no_matching_photos),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else if (previewMedia.isNotEmpty()) {
-            // Inline 3x2 thumbnail grid
-            val displayMedia = previewMedia.take(6)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(((displayMedia.size / 3 + if (displayMedia.size % 3 > 0) 1 else 0) * 120).dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                userScrollEnabled = false
-            ) {
-                items(
-                    items = displayMedia,
-                    key = { it.id }
-                ) { media ->
-                    imageRenderer.RenderImage(
-                        model = media.getUri(),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop,
-                        signature = media
-                    )
-                }
-            }
-
-            // "See all" indicator
-            if (previewCount > 6) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(Res.string.see_all_matches, previewCount),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ============ Reference Images Section ============
-
-@Composable
-private fun ReferenceImagesSection(
-    referenceImageIds: List<Long>,
-    allMedia: List<UriMedia>,
-    onAddClick: () -> Unit,
-    onRemove: (Long) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val imageRenderer = LocalMediaImageRenderer.current
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
+        if (state.previewMedia.isEmpty()) {
+            if (!state.isLoading) {
                 Text(
-                    text = stringResource(Res.string.reference_images),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(Res.string.reference_images_hint),
+                    text = stringResource(Res.string.no_matching_photos),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            FilterChip(
-                selected = false,
-                onClick = onAddClick,
-                label = {
-                    Text(
-                        text = if (referenceImageIds.isEmpty()) stringResource(Res.string.add_reference_photos)
-                        else stringResource(Res.string.reference_images_count, referenceImageIds.size),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.AddPhotoAlternate,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
+        } else {
+            PreviewGrid(media = state.previewMedia.take(6))
+            if (state.previewCount > 0) {
+                TextButton(onClick = onSeeAll) {
+                    Text(stringResource(Res.string.see_all_matches, state.previewCount))
                 }
-            )
+            }
         }
+    }
+}
 
-        if (referenceImageIds.isNotEmpty()) {
-            val mediaMap = remember(allMedia) { allMedia.associateBy { it.id } }
+@Composable
+private fun ColumnScope.PreviewGrid(media: List<UriMedia>) {
+    media.chunked(3).forEach { row ->
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            row.forEach { item ->
+                Thumbnail(media = item, modifier = Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(14.dp)))
+            }
+            repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+        }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+private fun AllMatchesSheet(
+    previewCount: Int,
+    previewMediaState: State<MediaState<UriMedia>>,
+    metadataState: State<MediaMetadataState>,
+    isScrolling: MutableState<Boolean>,
+    lastCellIndex: MutableState<Int>,
+    onDismiss: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
+) {
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+    )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(modifier = Modifier.statusBarsPadding().fillMaxSize()) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(start = 24.dp, end = 16.dp, bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                referenceImageIds.forEach { id ->
-                    val media = mediaMap[id]
-                    if (media != null) {
-                        Box(
-                            modifier = Modifier
-                                .size(72.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                        ) {
-                            imageRenderer.RenderImage(
-                                model = media.getUri(),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                                signature = media
-                            )
-                            // Remove badge
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(2.dp)
-                                    .size(20.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.error)
-                                    .clickable { onRemove(id) },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Close,
-                                    contentDescription = stringResource(Res.string.action_delete),
-                                    tint = MaterialTheme.colorScheme.onError,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                    }
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(stringResource(Res.string.best_match), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        text = stringResource(Res.string.best_matches_summary, previewCount),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
+                GalleryPageTopBarAction(
+                    icon = Icons.Outlined.Close,
+                    contentDescription = stringResource(Res.string.action_cancel),
+                    onClick = onDismiss,
+                    modifier = Modifier.clip(CircleShape),
+                )
+            }
+            var lastCellIndexState by lastCellIndex
+            val pinchState = rememberGridPinchZoomState(
+                cellsList = cellsList,
+                initialCellsIndex = lastCellIndexState,
+                gridState = rememberLazyGridState(cacheWindow = LazyLayoutCacheWindow(ahead = 200.dp, behind = 100.dp)),
+            )
+            GridPinchZoomLayout(state = pinchState) {
+                val sheetMediaState = remember { derivedStateOf { previewMediaState.value.copy(isLoading = false) } }
+                MediaGridView(
+                    mediaState = sheetMediaState,
+                    metadataState = metadataState,
+                    allowSelection = false,
+                    showSearchBar = false,
+                    enableStickyHeaders = false,
+                    paddingValues = PaddingValues(bottom = 128.dp),
+                    canScroll = true,
+                    allowHeaders = false,
+                    isScrolling = isScrolling,
+                    emptyContent = { EmptyMedia(title = stringResource(Res.string.no_matching_photos)) },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
+                    // Shared-element transitions cannot cross into a ModalBottomSheet's
+                    // separate window/subcomposition; enabling them here crashes on scroll
+                    // with "LookaheadDelegate has not been measured yet".
+                    allowSharedElements = false
+                )
             }
         }
     }
