@@ -177,8 +177,8 @@ const humanize = (s: string) =>
                       </select>
                     </label>
                   )}
-                  {(themeChoices.includes('dark') ||
-                    themeChoices.includes('light')) && (
+                  {/* A single-theme scene (the dark-only editor) gets no toggle. */}
+                  {themeChoices.includes('dark') && themeChoices.includes('light') && (
                     <span class="pv-field" role="group" aria-label="Preview theme" data-theme-group>
                       {(['light', 'dark'] as const).map((t) => (
                         <button

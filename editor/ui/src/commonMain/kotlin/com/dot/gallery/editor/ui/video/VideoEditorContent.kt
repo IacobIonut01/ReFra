@@ -76,6 +76,7 @@ import com.dot.gallery.editor.render.video.VideoInsertion
 import com.dot.gallery.editor.render.video.VideoErrorKind
 import com.dot.gallery.editor.render.video.VideoExportResult
 import com.dot.gallery.editor.ui.EditorLayoutMode
+import com.dot.gallery.editor.ui.LocalEditorLaunchPose
 import com.dot.gallery.editor.ui.rememberEditorSettingsStore
 import com.dot.gallery.editor.ui.EditorRecoverySurface
 import com.dot.gallery.editor.ui.EditorToolCatalogueSheet
@@ -434,6 +435,23 @@ fun VideoEditorContent(
             // Back.
             LaunchedEffect(closeRequest) {
                 if (closeRequest != 0) requestClose()
+            }
+
+            // A host-requested launch pose applies once per source, after
+            // the sequence opens, through the same selection a tap takes.
+            val launchPose = LocalEditorLaunchPose.current
+            var launchPoseApplied by rememberSaveable(reference) {
+                mutableStateOf(false)
+            }
+            val sequenceReady = state.sequence != null && !state.opening
+            LaunchedEffect(launchPose, sequenceReady) {
+                if (launchPose == null || launchPoseApplied || !sequenceReady) {
+                    return@LaunchedEffect
+                }
+                launchPoseApplied = true
+                launchPose.tool?.let { selectTool(EditorToolId(it)) }
+                if (launchPose.catalogueOpen) panel = VideoPanel.Tools.name
+                if (launchPose.settingsOpen) settingsOpen = true
             }
 
             // The export finished winding down after the user confirmed the

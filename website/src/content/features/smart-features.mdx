@@ -17,7 +17,7 @@ order: 2
 <PreviewCollection feature="smart-features" section="the-hub-rows" />
 
 - **Include ignored albums**: whether media hidden by ignore rules still feeds Smart Features and Smart Search. Changing it starts a full refresh, and locked albums stay private either way. The switch is unavailable while a Smart Scan is running; wait for it or cancel it in the Smart Scan manager.
-- **AI Models Manager**: download, install, or remove the model packs each feature needs. See [AI models](/ReFra/features/ai-models).
+- **Intelligence Hub**: download, install, or remove the models each feature needs. See [AI models](/ReFra/features/ai-models).
 - **Categories**: opens the categories manager; enabled once the models are ready. See [categories](/ReFra/features/categories).
 - **Cloud libraries**: appears once a cloud account is configured. **Server-side smart search** is one global switch that applies to connected servers with their own AI (currently Immich) and lets the server answer searches itself. Per-provider **Index on this device** switches; one per provider type, covering every account of that type, and make the app analyze that provider's media with the local AI, so even a provider with no AI of its own (a NAS share over SMB or WebDAV, for example) can join local search results. Leaving the switches off skips that provider's media in local scans.
 - **Smart Features data**: the scan manager for refreshing and repairing the data Smart Features rely on. See [Smart Features data](/ReFra/features/smart-scan).
@@ -36,6 +36,6 @@ Search indexes, categories, people groups, and cutouts are computed by the on-de
 
 ## If a feature is missing
 
-- Rows like **AI Models Manager** and **Categories** only appear on builds that include the AI feature; a build without it does not show them.
-- **Categories** stays disabled until the required models are downloaded in the AI Models Manager.
+- Rows like **Intelligence Hub** and **Categories** only appear on builds that include the AI feature; a build without it does not show them.
+- **Categories** stays disabled until the required models are downloaded in the Intelligence Hub.
 - **Cloud libraries** needs a connected cloud account; with none, the row does not appear.

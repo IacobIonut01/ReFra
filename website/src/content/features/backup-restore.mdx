@@ -16,20 +16,20 @@ A backup can contain decrypted vault media. The app warns you on the screen; kee
 
 ## What can be included
 
-- **App settings** — the supported preferences and customizations.
-- **Local favorites** — re-applied on import where matching photos are found.
-- **Cloud favorites** — favorites of synced cloud media.
-- **Cloud accounts** — server configurations; you may need to sign in again after import.
-- **Vaults** — full vault contents, decrypted into the archive. Choosing this asks you to unlock each vault first.
-- **Albums & folders** — pinned, locked, ignored and merged folders, covers, groups, sections, and timeline sort choices.
-- **Collections** — custom collections, their media, album membership, and exclusions.
-- **Categories & classifications** — smart categories, manual classifications, and description terms.
-- **Metadata & locations** — extracted EXIF, reverse-geocoded place names, and capture times.
-- **Search history** — recent text and image searches.
-- **People & face corrections** — names, birth dates, hidden people, and manual face matches. Face detection is re-run on the new device; the backup does not contain biometric embeddings.
-- **Cloud preferences** — per-account upload, album sync, offline, and free-up-space choices.
-- **Original edited files** — the untouched original kept for each edited photo. These can be large, so the section is off by default.
-- **Device layout** — grid sizes, widget definitions, and private-folder configuration where the device can still resolve them.
+- **App settings**: the supported preferences and customizations.
+- **Local favorites**: re-applied on import where matching photos are found.
+- **Cloud favorites**: favorites of synced cloud media.
+- **Cloud accounts**: server configurations; you may need to sign in again after import.
+- **Vaults**: full vault contents, decrypted into the archive. Choosing this asks you to unlock each vault first.
+- **Albums & folders**: pinned, locked, ignored and merged folders, covers, groups, sections, and timeline sort choices.
+- **Collections**: custom collections, their media, album membership, and exclusions.
+- **Categories & classifications**: smart categories, manual classifications, and description terms.
+- **Metadata & locations**: extracted EXIF, reverse-geocoded place names, and capture times.
+- **Search history**: recent text and image searches.
+- **People & face corrections**: names, birth dates, hidden people, and manual face matches. Face detection is re-run on the new device; the backup does not contain biometric embeddings.
+- **Cloud preferences**: per-account upload, album sync, offline, and free-up-space choices.
+- **Original edited files**: the untouched original kept for each edited photo. These can be large, so the section is off by default.
+- **Device layout**: grid sizes, widget definitions, and private-folder configuration where the device can still resolve them.
 
 Derived data is rebuilt instead of copied: thumbnails, the media index, semantic-search embeddings, detected faces, and sync bookkeeping.
 
@@ -85,7 +85,7 @@ Ordinary photos and videos outside vaults are not part of the backup. Vault cont
 
 ## If the import fails
 
-- **Incorrect password** — recheck it and try again. Only an actually encrypted archive asks.
-- **"This backup doesn't contain any restorable data"** — check that you picked the intended file; it may have been exported with nothing selected, or it is not a ReFra backup.
-- **A section reports skipped items** — those items could not be matched on this device (for example, photos that were not copied across). The rest of the section is restored.
+- **Incorrect password**: recheck it and try again. Only an actually encrypted archive asks.
+- **"This backup doesn't contain any restorable data"**: check that you picked the intended file; it may have been exported with nothing selected, or it is not a ReFra backup.
+- **A section reports skipped items**: those items could not be matched on this device (for example, photos that were not copied across). The rest of the section is restored.
 - For any other error, keep the original backup file and report the message shown.

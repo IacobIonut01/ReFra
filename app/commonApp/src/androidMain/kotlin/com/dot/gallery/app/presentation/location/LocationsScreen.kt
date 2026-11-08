@@ -210,7 +210,7 @@ fun LocationsScreen(
 
 /** The places page; the offline build shows it in place of the map. */
 @Composable
-internal fun ListLocationsContent(
+fun ListLocationsContent(
     metadataState: State<MediaMetadataState>,
     locations: List<LocationMedia> = emptyList(),
     geoMedia: List<GeoMedia> = emptyList(),

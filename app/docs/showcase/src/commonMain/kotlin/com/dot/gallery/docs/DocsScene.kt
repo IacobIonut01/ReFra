@@ -65,6 +65,12 @@ data class DocsScene(
      * shows once content has scrolled under it. The live embed shows these states at rest.
      */
     val swipedStates: List<String> = emptyList(),
+    /**
+     * The app themes this scene is captured in. A surface that only ships one
+     * theme (the ReFra editor is dark-only for now) lists just that one, so a
+     * light-and-dark sweep never records frames the app cannot show.
+     */
+    val themes: List<String> = listOf("light", "dark"),
     val content: @Composable (state: String?) -> Unit,
 ) {
     init {
@@ -79,6 +85,9 @@ data class DocsScene(
         }
         require(swipedStates.all { it in states }) {
             "Scene '$id' swipedStates must be declared in states, got $swipedStates"
+        }
+        require(themes.isNotEmpty() && themes.all { it == "light" || it == "dark" }) {
+            "Scene '$id' themes must be a non-empty subset of light and dark, got $themes"
         }
     }
 }

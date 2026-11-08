@@ -97,16 +97,40 @@ fun MemoriesScreen(
 ) {
     val viewModel = injectViewModel<MemoriesViewModel> {memoriesViewModel}
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    MemoriesPageContent(
+        memories = state.memories,
+        isLoading = state.isLoading,
+        error = state.error,
+        onOpenMemory = { memory ->
+            val memories = state.memories
+            scope.launch { onOpenStory(viewModel.storyCards(memories), viewModel.storyCardId(memory)) }
+        },
+    )
+}
+
+/**
+ * The Memories page for a loaded state: the top bar with the count, then the loading, empty or
+ * grid body. [today] decides which memories count as "On this day".
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MemoriesPageContent(
+    memories: List<MemoryEntry>,
+    isLoading: Boolean,
+    error: String?,
+    onOpenMemory: (MemoryEntry) -> Unit,
+    today: LocalDate = remember { LocalDate.now() },
+) {
     val hazeState = LocalHazeState.current
     val gridState = rememberLazyGridState()
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             CompositionLocalProvider(LocalHazePerformanceMode provides HazePerformanceMode.Performance) {
                 GalleryPageTopBar(
                     title = stringResource(Res.string.cloud_memories),
-                    count = state.memories.size.takeIf { it > 0 }?.toString(),
+                    count = memories.size.takeIf { it > 0 }?.toString(),
                     hazeState = hazeState,
                     scrolled = rememberScrolledUnderTopBar(gridState),
                 )
@@ -117,14 +141,14 @@ fun MemoriesScreen(
         // The page's only haze source, around every branch.
         Box(modifier = Modifier.fillMaxSize().hazeSource(hazeState)) {
         when {
-            state.isLoading -> {
+            isLoading -> {
                 LoadingMedia(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
                 )
             }
-            state.memories.isEmpty() -> {
+            memories.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -140,12 +164,9 @@ fun MemoriesScreen(
             }
             else -> {
                 MemoriesGrid(
-                    memories = state.memories,
-                    onOpenMemory = { memory ->
-                        val memories = state.memories
-                        scope.launch { onOpenStory(viewModel.storyCards(memories), viewModel.storyCardId(memory)) }
-                    },
-                    today = remember { LocalDate.now() },
+                    memories = memories,
+                    onOpenMemory = onOpenMemory,
+                    today = today,
                     contentPadding = PaddingValues(
                         start = innerPadding.calculateStartPadding(layoutDir),
                         end = innerPadding.calculateEndPadding(layoutDir),
@@ -159,7 +180,7 @@ fun MemoriesScreen(
         }
 
         // With nothing to show the empty state already explains where memories come from.
-        state.error?.takeIf { state.memories.isNotEmpty() }?.let {
+        error?.takeIf { memories.isNotEmpty() }?.let {
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,

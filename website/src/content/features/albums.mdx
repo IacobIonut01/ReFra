@@ -1,24 +1,28 @@
 ---
 title: Albums
-summary: Your media grouped by folder or cloud album, with grid and list views, sorting, pinned albums, and collections.
+summary: Your media grouped by folder or cloud album on the Library screen, with filters, pinned albums, manual arranging, and collections.
 area: browse
 path:
+  - Library
   - Albums
-related: [timeline, album-organization, collections, hidden-content]
+related: [library, timeline, album-organization, collections, hidden-content]
 scenes: [loading-album, empty-album, browse-albums]
 order: 4
 ---
 
-The Albums tab groups your media by where it lives: each device folder that contains photos or videos (Camera, Screenshots, Downloads, WhatsApp, and so on) and each album on a connected cloud account.
+Albums group your media by where it lives: each device folder that contains photos or videos (Camera, Screenshots, Downloads, WhatsApp, and so on) and each album on a connected cloud account. They live on the **Library** screen, below its shortcuts and sections; see [Library](/ReFra/features/library).
 
-## Open the Albums tab
+## Find the albums
 
-Tap **Albums** in the bottom navigation bar. The screen shows, top to bottom:
+Tap **Library** in the navigation bar and scroll past the shortcuts. The albums part shows, top to bottom:
 
-1. **Pinned albums**: a row at the top holding albums you pinned; it only appears once you pin something.
-2. **All albums**: the grid or list of folders and cloud albums. Each album shows a cover thumbnail and item count; cloud albums sit in their own section with the provider's icon, and albums others shared with you carry a "Shared" badge.
-3. **Collections**: your virtual collections and a **New collection** tile. See [collections](/ReFra/features/collections).
-4. **Media types**: virtual albums that collect all photos, all videos, all GIFs, or all RAW files across folders.
+1. **Albums** with the number of albums, the sort and view controls, and **+** to start a [collection](/ReFra/features/collections).
+2. **Filter chips**: **All**, **On device**, a chip per album section, **Collections**, **Cloud** when a cloud account is connected, and **Media types**.
+3. **Pinned albums**: a carousel of the albums you pinned; it only appears once you pin something.
+4. **Album sections**: collapsible groups such as Common and Apps, then **Others** for everything else.
+5. **Media types**: virtual albums that collect all videos, photos, GIFs, or RAW files across folders.
+
+Pinned albums, album sections, and media types can each be switched off while customizing the Library. Cloud albums carry the provider's icon, and albums others shared with you carry a **Shared** badge.
 
 An album with a small lock icon is locked: opening it asks for your fingerprint or PIN first. See [locked albums](/ReFra/features/hidden-content).
 
@@ -26,8 +30,9 @@ An album with a small lock icon is locked: opening it asks for your fingerprint 
 
 <PreviewCollection feature="albums" section="browse-and-find-an-album" />
 
-- **Grid or list**: the view toggle switches between a thumbnail grid and a compact list. Pinch the grid to change its column count.
-- **Sort**: the sort control orders albums by **Date** (recent activity first) or **Name**.
+- **Grid or list**: the view toggle beside the sort control switches between a thumbnail grid and a compact list. Pinch the grid to change its column count.
+- **Sort**: the sort control orders the albums.
+- **Arrange albums**: from the header menu, touch and hold an album and drag it into place. **Reset** returns to the automatic order and **Done** keeps yours. New albums appear under **Others**.
 - **Inside an album**: tap an album to open it; its media appears in a date-grouped grid with the same gestures as the timeline. Pinch to resize, touch and hold to select, tap the check circle on a date header to select that group.
 
 ## Album actions
@@ -36,26 +41,27 @@ An album with a small lock icon is locked: opening it asks for your fingerprint 
 
 Touch and hold any album to open its actions:
 
-- **Pin / Unpin**: keep the album in the pinned row at the top.
+- **Pin / Unpin**: keep the album in the pinned carousel.
 - **Change album cover**: pick any photo as the cover instead of the most recent one.
 - **Add to group**: bundle albums under a named, collapsible group.
 - **Move to section**: override which collapsible section the album sits in.
 - **Merge subfolders**: fold a folder's subfolders into a single album view; **Unmerge subfolders** splits them back.
 - **Lock album / Unlock album**: require authentication to open it.
-- **Add to ignored albums**: start an ignore rule for the folder; the follow-up sheet asks whether it hides from the Timeline, Albums, or both, without deleting files. See [ignored albums](/ReFra/features/ignored-albums).
+- **Add to ignored albums**: start an ignore rule for the folder; the follow-up steps ask whether it hides from the Timeline, Library, or both, without deleting files. See [ignored albums](/ReFra/features/ignored-albums).
 - **Move album to trash / Delete album permanently**: removes the album's contents; the permanent option cannot be undone.
 
 Groups, sections, covers, and merging are covered step by step in [album organization](/ReFra/features/album-organization).
 
 ## Example: find the Screenshots folder fast
 
-1. Open **Albums**.
+1. Open **Library** and scroll to the albums.
 2. Touch and hold **Screenshots**, then tap **Pin**.
-3. Screenshots now sits in the pinned row at the very top, whatever the sort order.
-4. Tap the sort control and choose **Name** to alphabetize the rest of the grid.
+3. Screenshots now sits in the pinned carousel above the other albums, whatever the sort order.
+4. Tap **On device** to hide cloud albums and collections while you look.
 
 ## If an album is missing
 
-- Its folder may have no media, or it may be covered by an ignore rule scoped to the Albums tab. Check **Library › Ignored**.
+- Its folder may have no media, or it may be covered by an ignore rule for albums. Check **Library › Ignored**.
+- A filter chip other than **All** may be selected.
 - The same folder name on two storage locations can appear as one album if **Merge albums by name** is on under **Settings › Timeline & Albums**.
 - New folders appear after Android indexes them; pull down to refresh.

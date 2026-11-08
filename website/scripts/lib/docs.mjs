@@ -185,7 +185,8 @@ export function readDocsOutFrames(docsOut = DOCS_OUT) {
     const dir = join(docsOut, name);
     if (!statSync(dir).isDirectory() || name === 'manifest') continue;
     const files = new Set(
-      walk(dir, MEDIA_EXT).map((file) => file.slice(dir.length + 1)),
+      // Asset keys use '/', so Windows separators are normalised.
+      walk(dir, MEDIA_EXT).map((file) => file.slice(dir.length + 1).replaceAll(sep, '/')),
     );
     frames.set(name, files);
   }
@@ -395,7 +396,8 @@ export function parseFrontmatter(text) {
   if (!m) return result;
   result.hasFrontmatter = true;
   result.body = text.slice(m[0].length);
-  const lines = m[1].split('\n');
+  // CRLF checkouts (Windows autocrlf) must parse like LF ones.
+  const lines = m[1].split(/\r?\n/);
   result.rawLines = lines;
   let key = null;
   for (const line of lines) {

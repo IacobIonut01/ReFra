@@ -97,7 +97,7 @@ class DocsCaptureTest {
                     continue
                 }
                 for (state in DocsSceneRegistry.statesOf(scene, stateFilter)) {
-                    for (theme in themes) {
+                    for (theme in themes.filter { it in scene.themes }) {
                         jobs += Job(scene, preset, state, theme)
                     }
                 }

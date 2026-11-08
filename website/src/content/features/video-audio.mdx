@@ -1,0 +1,57 @@
+---
+title: Video audio
+summary: Add music and voice-overs, then mix, route, duck, and equalise the sound in the ReFra video editor.
+area: edit
+path:
+  - Video
+  - Edit
+  - Audio
+related: [video-editor, save-edits]
+scenes: [studio-video]
+order: 11
+---
+
+The **Audio** button on the video editor's toolbar opens the audio tools. Each source plays on its own lane below the video track, and the mix goes into the exported copy.
+
+## Add audio
+
+<PreviewCollection feature="video-audio" section="add-audio" />
+
+**Add audio** offers three sources:
+
+- **Files** imports an audio file onto a new lane at the playhead.
+- **Record** records a voice-over onto a new lane, starting at the playhead.
+- **Extract from video** moves the selected clip's sound to its own lane so you can edit it separately.
+
+With **Fill empty audio tracks** on in the editor's settings, new audio goes into the selected empty track instead of a new one.
+
+## Voice-over
+
+**Voice-over** records from the microphone. **Input** names the microphone in use. Set a **Count-in**, and turn on **Monitor in headphones** to hear yourself while recording; use headphones to avoid feedback. The **Input level** meter shows the signal. **Start recording** begins after the count-in, **Stop** keeps the take, and **Cancel** throws it away.
+
+The first time, the editor explains why it needs the microphone before Android asks. The recording stays on the device. **Microphone** in the editor's settings shows whether access is allowed.
+
+## Clip audio
+
+**Clip audio** edits the selected audio clip: **Gain**, **Pan**, **Mute**, and **Fade in** and **Fade out** times. For a video clip's own sound, **Linked to video** shows whether it plays with the clip or on its own lane.
+
+## Mixer
+
+<PreviewCollection feature="video-audio" section="mixer" />
+
+The **Mixer** has a fader for each lane, the **Source sound** of the main video, and the **Master** output. Each strip can be muted, and audio lanes can also be soloed. **Limiter** puts a hard ceiling on the master output so loud passages do not clip.
+
+## Routing, ducking, and EQ
+
+These tools work on the selected audio lane:
+
+- **Routing** (**Channels & routing**): the **Left channel** and **Right channel** gains, **Link L/R** to move both together, and **Mono downmix**, which blends both channels into one before gain and pan. The lane plays to the master stereo output.
+- **Ducking** lowers this lane while another lane plays, such as music under a voice-over. Choose the lane to listen to, then set **Reduction**, **Attack**, and **Release**; **Preview mix** plays the result. Ducking needs at least two audio lanes.
+- **EQ** shapes the tone with **Low**, **Mid**, and **High** bands and a **High-pass** filter, with **Flat** and **Voice clarity** presets. **Bypass EQ** passes the lane through untouched.
+
+## Example: music under a voice-over
+
+1. Tap **Audio**, then **Add audio › Files**, and pick a music track.
+2. Move the playhead to the start and record a **Voice-over**.
+3. Select the music lane, open **Ducking**, and listen to the voice-over lane.
+4. Set **Reduction** so the voice stays clear, then check it with **Preview mix**.

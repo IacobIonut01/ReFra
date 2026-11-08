@@ -1,38 +1,47 @@
 ---
-title: Crop and rotate
-summary: Crop presets, freeform dragging, mirroring, and rotation in the editor.
+title: Crop, straighten, and perspective
+summary: Crop to a ratio, rotate, flip, level the horizon, and correct converging lines in the ReFra editor.
 area: edit
 path:
   - Media viewer
   - Edit
   - Crop
-related: [editor, save-edits]
-scenes: [editor-photo]
+related: [editor, lighting-colour, legacy-crop-rotate]
+scenes: [studio-photo]
 order: 2
 ---
 
-Crop and rotation controls sit at the bottom of the [editor](/ReFra/features/editor), always reachable; no need to open a tool tab first.
+**Crop & straighten** handles cropping, rotation, flips, straightening, and keystone correction in one tool. It is pinned to the toolbar as **Crop**. **Perspective** in the catalogue opens the same tool on its **Vertical** ruler.
 
 ## Crop
 
 <PreviewCollection feature="crop-rotate" section="crop" />
 
-1. Drag the corners of the crop frame to any shape (**Freeform**).
-2. Or tap a preset ratio: **Square**, **5:4**, **4:3**, **3:2**, **16:9**, **4:5**, **3:4**, **2:3**, or **9:16**.
-3. Toggle the grid guide on or off to line things up.
-4. Everything outside the frame is cut when the edit is applied.
+- Drag the frame's edges or corners to crop; drag inside the frame to move the photo under it. The label above the frame shows the ratio and the output size in pixels.
+- The ratio menu offers **Free**, **Original**, **1:1**, **4:5**, **3:2**, **4:3**, and **16:9**. The button next to it switches the ratio between portrait and landscape.
+- **Rotate left** turns the photo 90 degrees; **Flip** mirrors it horizontally.
+- **Apply Crop** keeps the result; **Reset** returns the frame to the full photo.
 
-## Rotate and mirror
+The crop always stays inside the photo, so straightening or keystone correction never leaves blank corners.
 
-- **Rotate** turns the image 90 degrees at a time.
-- A rotation scrubber fine-tunes the angle in degrees for small straightening fixes.
-- **Mirror image** flips the picture horizontally.
+## Straighten and keystone
 
-**Undo** and **Redo** cover every step, and the crop applies with the rest of the edit when you save; there is no separate "resize by width and height" dialog; crop sets the output shape.
+<PreviewCollection feature="crop-rotate" section="straighten-and-keystone" />
 
-## Example: straighten a landscape, square a portrait
+The menu on the right picks what the ruler changes:
 
-1. Open the tilted sea photo, tap **Edit**.
-2. Use the rotate scrubber until the horizon sits level against the grid.
-3. For a portrait post instead, pick the **4:5** preset and drag the frame over your subject.
-4. **Save Copy** keeps the original framing untouched.
+- **Straighten** tilts the photo in fine steps to level a horizon.
+- **Vertical** and **Horizontal** correct converging lines, such as a building shot from below.
+
+Double-tap the value above the ruler to reset it to zero, or tap it to type an exact number. **Show grid** in the editor's settings draws a grid while you straighten.
+
+## Guided upright
+
+Drag the controls up to show **Flip vertical** and **Guided upright**. With **Guided upright** on, drag along up to four lines in the photo that should be straight; the editor solves the correction as you draw. **Clear guides** removes them.
+
+## Example: level a skyline
+
+1. Open the photo and tap **Crop**.
+2. Pick **Vertical** and drag the ruler until the building edges stand upright.
+3. Switch to **Straighten** and level the horizon.
+4. Choose **16:9**, adjust the frame, and tap **Apply Crop**.

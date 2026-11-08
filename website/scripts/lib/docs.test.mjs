@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { collectScenes, parseKotlinScenes } from './docs.mjs';
+import { collectScenes, parseFrontmatter, parseKotlinScenes } from './docs.mjs';
 
 function fixture({ manifestScenes = [], fragments = {}, kotlin = '', live = null } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'docs-out-'));
@@ -543,4 +543,15 @@ test('docs-out merge keeps incoming tablet logical dims truthful', () => {
   assert.equal(tablet.widthDp, 840);
   assert.equal(tablet.heightDp, 1180);
   assert.equal(merged.captures.length, 2);
+});
+
+test('frontmatter parses the same from CRLF and LF checkouts', () => {
+  const lf = '---\ntitle: Editor\narea: edit\npath:\n  - Media viewer\n  - Edit\n---\nBody\n';
+  const crlf = lf.replaceAll('\n', '\r\n');
+  const fromLf = parseFrontmatter(lf);
+  const fromCrlf = parseFrontmatter(crlf);
+  assert.equal(fromCrlf.data.title, 'Editor');
+  assert.equal(fromCrlf.data.area, 'edit');
+  assert.deepEqual(fromCrlf.data.path, ['Media viewer', 'Edit']);
+  assert.deepEqual(fromCrlf.data, fromLf.data);
 });

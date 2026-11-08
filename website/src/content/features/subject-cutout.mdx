@@ -1,11 +1,11 @@
 ---
 title: Subject cutout
-summary: Lift a subject off its photo with a long press or the editor's Smart tools.
+summary: Lift a subject off its photo with a long press or the editor's Cutout and Remove background tools.
 area: edit
 path:
   - Media viewer
   - Long press
-related: [media-viewer, editor, ai-models]
+related: [media-viewer, editor, ai-models, viewer-settings]
 scenes: [subject-cutout, cutout-tools]
 order: 7
 ---
@@ -15,7 +15,7 @@ Subject cutout isolates the thing you point at from its background, producing a 
 ## Two ways in
 
 - **Viewer**: choose **Cut out subject** under **Long-press action** in [media viewer settings](/ReFra/features/viewer-settings), then touch and hold the subject in the open photo. The option needs the model downloaded first; until then it is disabled with a hint. A long press rotates by default, so choosing cutout replaces that gesture with an on-screen rotate button.
-- **Editor**: the **Smart** tab offers cutout as an interactive tool and **Background Removal** as an automatic one-shot removal; the Smart tool lets you refine the mask; background removal does it in one pass.
+- **Editor**: in the [ReFra editor](/ReFra/features/editor), the **Retouch** group has **Cutout** and **Remove background**. Tap the photo to pick the subject, then switch between **Include** and **Exclude** and tap again to refine the selection; **Reset selection** starts over. **Cutout** can **Copy** or **Share** the subject as a transparent image. **Remove background** keeps the subject in the photo, and the saved copy is a transparent PNG. Both tools appear only when the model is installed.
 
 ## Refine the cutout
 
@@ -29,7 +29,7 @@ Subject cutout isolates the thing you point at from its background, producing a 
 
 <PreviewCollection feature="subject-cutout" section="use-the-result" />
 
-The transparent selection offers **Copy** (clipboard), **Share**, and **Save**; saving writes a PNG so the transparency survives. **Close cutout** exits the mode. In the editor the result applies to the working image; in the viewer the controls float over the photo and the original file is untouched.
+The transparent selection offers **Copy** (clipboard), **Share**, and **Save**; saving writes a PNG so the transparency survives. **Close cutout** exits the mode. In the viewer the controls float over the photo and the original file is untouched.
 
 ## Example: a sticker of the cat
 

@@ -15,42 +15,42 @@ The first time you open ReFra, a short wizard walks you through the choices the 
 
 <PreviewCollection feature="first-launch" section="the-steps" />
 
-The wizard shows "Step X of Y" at the top so you always know where you are. The steps run in this order; some only appear on builds that include the feature.
+A welcome screen opens the wizard; the numbered steps after it show "Step X of Y" and the step's name at the top. Some steps only appear on builds that include the feature, and **Skip** moves past an optional one.
 
-1. **Welcome**: the app name, version, and tagline ("Your private, on-device gallery"). Tap **Get started**.
-2. **Permissions**: what ReFra is allowed to read and change. Details below.
-3. **Looks & Feel**: pick an app name and app logo, and tap **Customize appearance** to open the theme settings if you want to choose colors now. A note warns that the app restarts once at the end of setup to apply a new name or icon. Tap **Continue**.
-4. **Cloud sync**: connect a server (Nextcloud, Immich, and other providers, depending on the build). Tap **Set up cloud sync** to add one, or move on; the page itself says you can always do this later from Settings. This step only appears on builds that ship a cloud provider.
-5. **AI Models**: download the on-device models that power smart search, automatic categories, people grouping, face blur, and subject cutout. Each extra shows its download size, so you can take only what you want. Tap **Download AI models** or **Skip for now**. This step appears on builds that can download models, and on offline builds that bundle them; an offline build without bundled models skips it.
-6. **Tips & Tricks**: a reminder that the Help page in Settings holds a guide for every feature. Tap **Finish**.
+1. **Welcome**: "Hello, ReFra" with the tagline ("Your private, on-device gallery"). Tap **Let's go**.
+2. **Permissions** ("Show me your photos"): what ReFra is allowed to read and change. Details below.
+3. **Looks & feel** ("Make it yours"): pick an app icon and app name, and open **Theme & colours** if you want to choose colours now. A note says ReFra restarts once when you finish, to apply a new name or icon. Tap **Continue**.
+4. **Cloud** ("Bring your server"): connect a server you run, such as Immich or Nextcloud, depending on the build. ReFra has no cloud of its own, and you can add accounts later from **Settings › Cloud accounts**. This step only appears on builds that ship a cloud provider.
+5. **AI models** ("Teach it to see"): optional models for **Smart search**, **Face grouping**, and **Subject cutout**, each with its status. They run on the phone only, and you can download or remove them later from the [Intelligence Hub](/ReFra/features/ai-models). This step appears on builds that can download models, and on offline builds that bundle them.
+6. **Done** ("You're all set!"): tips on pinching the grid, selecting by long-press and drag, and where Help & tips lives. Tap **Start browsing**.
 
 ## Permissions
 
 <PreviewCollection feature="first-launch" section="permissions" />
 
-The Permissions page lists each access as a row with a "Used for:" explanation, so you can see the reason before granting. Tap **Grant Permissions** to hand them to Android's own dialogs.
+The Permissions page lists each access as a row with a "Used for:" explanation, so you can see the reason before granting. Tap a row (**Tap to allow**) or **Allow access** to hand it to Android's own dialog; **Not now** leaves an optional one for later.
 
 - **Photos and videos**: required. Without these the gallery stays empty. On Android 14 and later you can choose **Full media access** or **Selected photos and videos**; with the limited option, only the items you pick appear in the app, and Android will offer to widen the selection later.
 - **Media location**: optional. Lets ReFra read the GPS data embedded in photos for the map and location features. The gallery works fine without it.
 - **Notifications**: shows progress for background work such as backups, encryption, and downloads.
 - **Manage media**: lets Android skip the extra confirmation dialog when you favorite, trash, or edit several items at once.
 - **Manage all files**: extra storage access that may be needed to find and manage files Android does not normally include in the media library, such as formats like JPEG XL or folders outside the standard media directories.
-- **Local network**: optional. Only needed when ReFra connects directly to a server on your current network.
+- **Local network**: optional. Only needed when ReFra connects directly to a server on your current network. Offline builds skip it.
 
 If ReFra offers an **Open app settings** button on a permission row, use it: it takes you to Android's own page for the app so you can grant the access there.
 
 ## Example: a local-only setup
 
 1. Install and open ReFra.
-2. On Welcome, tap **Get started**.
-3. On Permissions, tap **Grant Permissions** and allow photo and video access. Skip media location and notifications if you prefer.
-4. On Looks & Feel, tap **Continue**. You can theme the app later.
-5. If the Cloud sync step appears, leave it and continue.
-6. If the AI Models step appears, tap **Skip for now**.
-7. Tap **Finish**. The timeline opens with your photos.
+2. On Welcome, tap **Let's go**.
+3. On Permissions, allow photo and video access. Skip media location and notifications if you prefer.
+4. On Looks & feel, tap **Continue**. You can theme the app later.
+5. If the Cloud step appears, tap **Skip**.
+6. If the AI models step appears, tap **Skip**.
+7. Tap **Start browsing**. The timeline opens with your photos.
 
 ## If something goes wrong
 
 - **The gallery is empty after setup.** Photo and video access was probably denied or limited. Open **Library**, tap the gear icon, and use **Open app settings** on the permission prompt, or re-grant media access from Android's app settings.
-- **You skipped a step and want it back.** Everything the wizard sets is a normal setting: appearance under **Settings › Appearance**, cloud under **Settings › Cloud Accounts**, AI models under **Settings › Smart Features**.
+- **You skipped a step and want it back.** Everything the wizard sets is a normal setting: appearance under **Settings › Appearance**, cloud under **Settings › Cloud Accounts**, AI models under **Settings › Smart Features › Intelligence Hub**.
 - **The app restarted at the end.** Expected when you changed the app name or icon; it relaunches once to apply them.

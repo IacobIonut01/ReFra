@@ -109,12 +109,16 @@ actual fun platformScenes(): List<DocsScene> = listOf(
         pathTrace = listOf("Photo", "Edit"),
         states = listOf("lighting", "colour", "effects", "filters", "markup", "crop", "save-menu"),
         captureWindow = true,
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsPhotoEditorScene(state) },
     DocsScene(
         id = "editor-raw",
         title = "RAW develop editor",
         pathTrace = listOf("RAW photo", "Edit", "Develop"),
         states = listOf("white-balance", "tone", "detail", "colour", "output"),
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsRawEditorScene(state) },
     DocsScene(
         id = "raw-export",
@@ -122,11 +126,15 @@ actual fun platformScenes(): List<DocsScene> = listOf(
         pathTrace = listOf("RAW photo", "Edit", "Save"),
         states = listOf("all-formats", "edits-applied"),
         captureWindow = true,
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsRawExportScene(state) },
     DocsScene(
         id = "markup-text",
         title = "Markup text input",
         pathTrace = listOf("Photo", "Edit", "Markup", "Text"),
+        // The editor renders dark only.
+        themes = listOf("dark"),
     ) { state -> DocsMarkupTextScene(state) },
     DocsScene(
         id = "cutout-tools",
@@ -168,7 +176,9 @@ actual fun platformScenes(): List<DocsScene> = listOf(
         states = listOf("configured", "blank", "scrolled"),
         swipedStates = listOf("scrolled"),
     ) { state -> DocsRemoteInferenceScene(state) },
-) + cloudSetupScenes + cloudSettingsScenes + cloudUseScenes + viewerScenes + exploreScenes
+) + cloudSetupScenes + cloudSettingsScenes + cloudUseScenes + viewerScenes + exploreScenes +
+    placesMemoriesScenes +
+    editorScenes
 
 // ── Bundled-asset fixtures ────────────────────────────────────────────────
 

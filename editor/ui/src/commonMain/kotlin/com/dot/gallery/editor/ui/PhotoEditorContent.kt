@@ -684,6 +684,37 @@ fun PhotoEditorContent(
                 canvasRefocusTick++
             }
 
+            // A host-requested launch pose applies once per source, after
+            // the document opens, through the same selection a tap takes.
+            // The settings page is not part of the workspace's saved state,
+            // so its half of the pose is re-applied after a restore while
+            // the saved half (tool, panel, overlays) is not.
+            val launchPose = LocalEditorLaunchPose.current
+            var launchPoseApplied by rememberSaveable(state.info?.reference) {
+                mutableStateOf(false)
+            }
+            var launchSettingsApplied by remember(state.info?.reference) {
+                mutableStateOf(false)
+            }
+            val documentReady = state.document != null && !state.opening
+            LaunchedEffect(launchPose, documentReady) {
+                if (launchPose == null || !documentReady) return@LaunchedEffect
+                if (!launchPoseApplied) {
+                    launchPoseApplied = true
+                    launchPose.tool?.let { selectTool(EditorToolId(it)) }
+                    launchPose.panel?.let { panel ->
+                        if (panel != EditorWorkspacePanel.Edit) workspace.togglePanel(panel)
+                    }
+                    if (launchPose.catalogueOpen) workspace.catalogueOpen = true
+                    if (launchPose.pinEditorOpen) workspace.pinEditorOpen = true
+                    if (launchPose.focusMode) workspace.focusMode = true
+                }
+                if (!launchSettingsApplied) {
+                    launchSettingsApplied = true
+                    if (launchPose.settingsOpen) workspace.settingsOpen = true
+                }
+            }
+
             // The contextual seam for layer-aware surfaces — the Layers
             // list rows, the composition tools and their canvas overlays
             // share selection, the host picker and tool routing through

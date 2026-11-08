@@ -15,7 +15,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -81,7 +80,8 @@ open class EditorActivity : ComponentActivity() {
     /** The editor chrome; hosts wrap their own theme around [content]. */
     @Composable
     protected open fun EditorHostTheme(content: @Composable () -> Unit) {
-        EditorTheme(darkTheme = isSystemInDarkTheme()) { content() }
+        // Dark only until the editor's light theme is fixed.
+        EditorTheme(darkTheme = true) { content() }
     }
 
     /** Diagnostics sink — no Gallery logging dependency in the library. */
