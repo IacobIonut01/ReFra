@@ -31,6 +31,8 @@ class HeifMimeInputStreamDecoder(
         height: Int,
         options: Options
     ): Resource<Bitmap>? {
+        // Grid-sized platform-decodable HEIC: null falls through to the platform thumbnail.
+        if (source.defersToPlatformThumbnail(context, width, height)) return null
         return try {
             val bytes = source.inputStream.readBytes()
             core.decodeBytes(bytes, width, height, source.mimeType).resource

@@ -8,6 +8,7 @@ package com.dot.gallery.core.image.thumbnail
 import com.dot.gallery.core.util.SynchronizedRefinedThumbnailLoadTracker
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -28,6 +29,17 @@ class ThumbnailMotionTest {
     @Test
     fun idleGridUsesRefinedTier() {
         assertFalse(shouldUseMotionThumbnail(isMoving = false, hasLoadedRefined = false))
+    }
+
+    @Test
+    fun heavyCodecRefinedRequestBridgesFromCachedMotionBitmap() {
+        // #1385: heavy codecs used to refine with no bridge, flashing the placeholder.
+        assertEquals(MotionThumbnailBridge.CACHED_ONLY, motionThumbnailBridge(isHeavyCodec = true))
+    }
+
+    @Test
+    fun regularCodecRefinedRequestBridgesFromMotionBitmap() {
+        assertEquals(MotionThumbnailBridge.DECODE, motionThumbnailBridge(isHeavyCodec = false))
     }
 
     @Test

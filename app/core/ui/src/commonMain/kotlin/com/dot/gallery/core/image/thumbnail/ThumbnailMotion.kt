@@ -36,6 +36,27 @@ const val DEFAULT_IDLE_DEBOUNCE_MS = 200L
 
 fun shouldUseMotionThumbnail(isMoving: Boolean, hasLoadedRefined: Boolean): Boolean =
     isMoving && !hasLoadedRefined
+
+/**
+ * How a REFINED request bridges from the MOTION bitmap already on screen.
+ *
+ * Every refined request needs a bridge: without one the image library clears the cell to its
+ * placeholder while the refined bitmap loads, so every cell that refines when a scroll settles
+ * flashes for a frame (#1385).
+ */
+enum class MotionThumbnailBridge {
+    /** Reuse the cached MOTION bitmap, decoding it if it is missing. */
+    DECODE,
+
+    /**
+     * Reuse the MOTION bitmap only when it is already cached. For expensive codecs, so a cell that
+     * never showed the MOTION tier does not pay a second decode just to bridge.
+     */
+    CACHED_ONLY,
+}
+
+fun motionThumbnailBridge(isHeavyCodec: Boolean): MotionThumbnailBridge =
+    if (isHeavyCodec) MotionThumbnailBridge.CACHED_ONLY else MotionThumbnailBridge.DECODE
 class RefinedThumbnailLoadTracker(private val capacity: Int) {
     // Insertion-ordered map; a hit re-inserts at the tail so keys.first() is always the LRU entry.
     private val loadedKeys = LinkedHashMap<RefinedThumbnailKey, Unit>()

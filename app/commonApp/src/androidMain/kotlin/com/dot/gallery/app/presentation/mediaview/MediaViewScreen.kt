@@ -155,6 +155,7 @@ import com.dot.gallery.core.metadata.MetadataSaveMode
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.navigateUp
 import com.dot.gallery.core.presentation.components.DragHandle
+import com.dot.gallery.core.presentation.components.LocalMediaPrefetcher
 import com.dot.gallery.core.presentation.components.OverwriteFallbackSheet
 import com.dot.gallery.core.presentation.components.SetupButton
 import com.dot.gallery.core.setFollowTheme
@@ -898,6 +899,8 @@ fun <T : Media> MediaViewScreen(
         // Signals emitted (with a media id) when a video finishes playing in slideshow mode.
         val videoEndedFlow = remember { MutableSharedFlow<Long>(extraBufferCapacity = 4) }
         var failedMediaIds by rememberSaveable { mutableStateOf(emptySet<Long>()) }
+        // Pages whose full-resolution image is on screen; gates the HDR gain-map probe.
+        var fullImageLoadedIds by remember { mutableStateOf(emptySet<Long>()) }
 
         // FCast
         val fcastVm: MediaViewerCastController =
@@ -1650,6 +1653,23 @@ fun <T : Media> MediaViewScreen(
             }
         }
 
+        // Warm the low-res previews around the settled page so a swipe lands on an image, not an
+        // empty page. Same request the viewer's preview uses, so it is a cache hit there (#1385).
+        // Cloud media is skipped: its viewer preview uses a different request and costs network.
+        val mediaPrefetcher = LocalMediaPrefetcher.current
+        if (mediaPrefetcher != null) {
+            LaunchedEffect(mediaState.value) {
+                snapshotFlow { pagerState.settledPage }.collectLatest { page ->
+                    val items = pagerItems
+                    neighbourPrefetchOrder(page, items.size).forEach { index ->
+                        items.getOrNull(index)
+                            ?.takeIf { it.isImage && !it.isCloud }
+                            ?.let(mediaPrefetcher::prefetch)
+                    }
+                }
+            }
+        }
+
         // set HDR Gain map (only on displays that can actually render HDR — skips the probe decode on
         // SDR-only devices, where the window would never enter COLOR_MODE_HDR anyway)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
@@ -1669,6 +1689,11 @@ fun <T : Media> MediaViewScreen(
                                 }
                                 printWarning("Setting HDR Mode to $cached (cached)")
                             } else {
+                                // This probe is a second full decode. Let the visible image win
+                                // the hardware decoder first; give up waiting after a cap.
+                                withTimeoutOrNull(HDR_PROBE_MAX_WAIT_MS) {
+                                    snapshotFlow { media.id in fullImageLoadedIds }.first { it }
+                                }
                                 val request = ImageRequest(context, media.getUri().toString()) {
                                     setExtra(
                                         key = "mediaKey",
@@ -2303,6 +2328,9 @@ fun <T : Media> MediaViewScreen(
                                     cutoutEnabled = currentCapabilities?.cutout == true,
                                     onLoadFailed = {
                                         media?.id?.let { failedMediaIds = failedMediaIds + it }
+                                    },
+                                    onFullImageLoaded = {
+                                        media?.id?.let { fullImageLoadedIds = fullImageLoadedIds + it }
                                     },
                                     onVideoEnded = {
                                         media?.id?.let { videoEndedFlow.tryEmit(it) }

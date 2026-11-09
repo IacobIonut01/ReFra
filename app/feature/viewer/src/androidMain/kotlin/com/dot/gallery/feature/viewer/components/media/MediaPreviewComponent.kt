@@ -74,6 +74,8 @@ fun <T : Media> MediaPreviewComponent(
     storyActive: Boolean = false,
     cutoutEnabled: Boolean = true,
     onLoadFailed: () -> Unit = {},
+    // Full-resolution still image is on screen (see ZoomablePagerImage).
+    onFullImageLoaded: () -> Unit = {},
     onVideoEnded: () -> Unit = {},
     // Reports the detected HDR format even when playback fails (the controller lambda is
     // `ready`-gated and never composes for undecodable tracks).
@@ -163,6 +165,7 @@ fun <T : Media> MediaPreviewComponent(
                             }
                         },
                         onLoadFailed = onLoadFailed,
+                        onFullImageLoaded = onFullImageLoaded,
                         onCutoutStateChanged = onCutoutStateChanged,
                         onCutoutController = onCutoutController,
                         isSelected = isSelected,

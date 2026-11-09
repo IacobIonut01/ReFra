@@ -7,6 +7,7 @@ package com.dot.gallery.core.decoder.glide
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.CancellationSignal
@@ -17,15 +18,16 @@ import android.util.Size
 import androidx.exifinterface.media.ExifInterface
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.Option
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.data.DataFetcher
 import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
-import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.dot.gallery.core.image.thumbnail.HeavyThumbnailClassifier
 import com.dot.gallery.core.logging.printError
+import com.dot.gallery.core.logging.printWarn
 import java.io.IOException
 
 /**
@@ -64,11 +66,11 @@ class MediaStoreThumbnailModelLoader(
     ): ModelLoader.LoadData<Bitmap>? {
         // Decline unbounded/original-size requests and anything larger than a grid cell so the
         // full-resolution pipeline is never replaced by a capped platform thumbnail.
-        if (width == Target.SIZE_ORIGINAL || height == Target.SIZE_ORIGINAL) return null
-        if (width <= 0 || height <= 0) return null
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) return null
-        // Key by uri + exact size so distinct tiers cache independently and stay stable.
-        val key = ObjectKey("mediastore-thumb-v2:$model:${width}x$height")
+        if (!coversSize(width, height)) return null
+        val allowUpscale = options.get(ThumbnailOptions.ALLOW_UPSCALE) == true
+        // Key by uri + exact size so distinct tiers cache independently and stay stable. v3: the
+        // fetcher now rejects thumbnails that would be stretched, so v2 entries may be soft.
+        val key = ObjectKey("mediastore-thumb-v3:$model:${width}x$height")
         return ModelLoader.LoadData(
             key,
             MediaStoreThumbnailFetcher(
@@ -76,6 +78,7 @@ class MediaStoreThumbnailModelLoader(
                 uri = model,
                 width = width,
                 height = height,
+                allowUpscale = allowUpscale,
                 shouldBypass = { shouldBypassPlatformThumbnail(model) },
             )
         )
@@ -116,6 +119,7 @@ class MediaStoreThumbnailModelLoader(
         private val uri: Uri,
         private val width: Int,
         private val height: Int,
+        private val allowUpscale: Boolean,
         private val shouldBypass: () -> Boolean,
     ) : DataFetcher<Bitmap> {
 
@@ -139,6 +143,19 @@ class MediaStoreThumbnailModelLoader(
                     Size(width, height),
                     cancellationSignal
                 )
+                // The platform caches one thumbnail per image and never upscales it, so it can be
+                // smaller than the cell. Stretching it is visibly soft; fall through to a real
+                // decode instead, unless the caller asked for speed over sharpness.
+                if (!allowUpscale && !platformThumbnailFills(bitmap.width, bitmap.height, width, height)) {
+                    bitmap.recycle()
+                    callback.onLoadFailed(
+                        IOException(
+                            "platform thumbnail ${bitmap.width}x${bitmap.height} " +
+                                "too small for ${width}x$height"
+                        )
+                    )
+                    return
+                }
                 callback.onDataReady(bitmap)
             } catch (e: Exception) {
                 // Includes OperationCanceledException on cancel and IOException when the provider
@@ -176,15 +193,70 @@ class MediaStoreThumbnailModelLoader(
         override fun teardown() {}
     }
 
-    companion object {
+    /**
+     * Glide options for this loader. A separate holder rather than the companion: constructing a
+     * Glide [Option] calls `TextUtils`, and the companion's pure size checks must stay loadable
+     * in JVM unit tests.
+     */
+    object ThumbnailOptions {
         /**
-         * Upper bound (px) for either dimension. Larger requests use the full pipeline.
-         * Platform thumbnails are typically generated at ~512 px, so requests above
-         * this size would receive an upscaled thumbnail instead of a real decode —
-         * wide-tile pixelation. Keep the fast path for the MOTION tier
-         * (256 px) and small cells only.
+         * Accept a platform thumbnail even when it must be stretched to fill the request. Set on
+         * the scroll (MOTION) tier, where decode speed matters more than sharpness and the
+         * refined request replaces it once the grid settles.
          */
-        private const val MAX_DIMENSION = 512
+        val ALLOW_UPSCALE: Option<Boolean> =
+            Option.memory("com.dot.gallery.mediastore.allowUpscale", false)
+    }
+
+    companion object {
+        /** Lower bound for [maxDimension], used when the display size is unknown. */
+        private const val MIN_MAX_DIMENSION = 512
+
+        /** Largest stretch accepted before a thumbnail counts as too small (10%). */
+        private const val UPSCALE_TOLERANCE = 1.1f
+
+        /**
+         * Edge of the box MediaProvider caches thumbnails in: half the display's short edge
+         * (`MediaProvider.mThumbSize`), floored at [MIN_MAX_DIMENSION].
+         */
+        fun platformThumbnailCap(displayWidthPx: Int, displayHeightPx: Int): Int =
+            maxOf(MIN_MAX_DIMENSION, minOf(displayWidthPx, displayHeightPx) / 2)
+
+        /**
+         * Upper bound (px) for either request dimension. A larger request can never be filled by
+         * the cached thumbnail, so it skips the platform call and decodes directly.
+         */
+        val maxDimension: Int by lazy {
+            runCatching {
+                val metrics = Resources.getSystem().displayMetrics
+                platformThumbnailCap(metrics.widthPixels, metrics.heightPixels)
+            }.getOrElse {
+                printWarn(
+                    "decode.thumb",
+                    "display size unavailable; using default platform thumbnail cap",
+                    ctx = mapOf("error" to it.toString()),
+                )
+                MIN_MAX_DIMENSION
+            }
+        }
+
+        /**
+         * True when a request of this size is served by this loader. Bounded and positive, so
+         * `Target.SIZE_ORIGINAL` (a negative sentinel) is never covered.
+         */
+        fun coversSize(width: Int, height: Int, maxDimension: Int = this.maxDimension): Boolean =
+            width in 1..maxDimension && height in 1..maxDimension
+
+        /**
+         * True when a [thumbWidth]x[thumbHeight] thumbnail can fill a [reqWidth]x[reqHeight]
+         * request without being stretched beyond [UPSCALE_TOLERANCE]. Uses the centre-crop
+         * scale (the larger axis ratio), which the grid uses and which is never looser than fit.
+         */
+        fun platformThumbnailFills(thumbWidth: Int, thumbHeight: Int, reqWidth: Int, reqHeight: Int): Boolean {
+            if (thumbWidth <= 0 || thumbHeight <= 0) return false
+            val scale = maxOf(reqWidth.toFloat() / thumbWidth, reqHeight.toFloat() / thumbHeight)
+            return scale <= UPSCALE_TOLERANCE
+        }
     }
 }
 

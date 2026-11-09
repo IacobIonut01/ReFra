@@ -71,6 +71,9 @@ class SandboxedHeifMimeDecoder(
         height: Int,
         options: Options
     ): Resource<Bitmap>? {
+        // Grid-sized platform-decodable HEIC: null falls through to the platform thumbnail,
+        // which MediaProvider decodes in its own process.
+        if (source.defersToPlatformThumbnail(context, width, height)) return null
         val decoder = SandboxedDecoderHolder.decoder ?: return null
         val bytes = source.inputStream.readBytes()
         val mime = source.mimeType ?: "image/heif"

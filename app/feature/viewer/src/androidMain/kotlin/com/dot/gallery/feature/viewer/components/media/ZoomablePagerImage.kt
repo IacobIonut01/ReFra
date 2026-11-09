@@ -338,6 +338,9 @@ fun <T : Media> ZoomablePagerImage(
     onSubsamplingLoadingChange: (Boolean) -> Unit = {},
     onZoomTransformChange: (Transform) -> Unit = {},
     onLoadFailed: () -> Unit = {},
+    // Fires once the full-resolution image (not the low-res preview) is on screen, so callers
+    // can hold back competing decodes such as the HDR gain-map probe until then.
+    onFullImageLoaded: () -> Unit = {},
     onCutoutStateChanged: (Boolean) -> Unit = {},
     onCutoutController: (CutoutController?) -> Unit = {},
     isSelected: Boolean = true,
@@ -519,15 +522,21 @@ fun <T : Media> ZoomablePagerImage(
     val previewImageState = rememberAsyncImageState()
     val previewPainter = rememberAsyncImagePainter(
         request = ComposableImageRequest(mediaUri) {
-            resize(width = 600, height = 600, precision = Precision.LESS_PIXELS)
             crossfade(false)
-            if (!isCloudMedia) {
-                setExtra("realMimeType", media.mimeType)
+            if (isCloudMedia) {
+                resize(width = MEDIA_PREVIEW_SIZE, height = MEDIA_PREVIEW_SIZE, precision = Precision.LESS_PIXELS)
+                setExtra(key = "mediaVersion", value = mediaVersion)
+                if (isEncrypted) {
+                    setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
+                }
+            } else {
+                // Same request as the tap prefetch and the opening animation, so all three share
+                // one cached decode — and HEIC takes the platform-thumbnail path (#1385).
+                mediaPreviewOptions(media)
             }
-            setExtra(key = "mediaVersion", value = mediaVersion)
-            setExtra(key = "viewerLoadAttempt", value = imageRequestAttempt)
-            if (isEncrypted) {
-                setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
+            // Only a retry needs a distinct key; keeping attempt 0 out preserves the shared entry.
+            if (imageRequestAttempt > 0) {
+                setExtra(key = "viewerLoadAttempt", value = imageRequestAttempt)
             }
         },
         state = previewImageState,
@@ -565,6 +574,10 @@ fun <T : Media> ZoomablePagerImage(
 
     val isFullImageLoaded by rememberedDerivedState(media) {
         fullImageState.painterState is PainterState.Success
+    }
+    val currentOnFullImageLoaded by rememberUpdatedState(onFullImageLoaded)
+    LaunchedEffect(isFullImageLoaded) {
+        if (isFullImageLoaded) currentOnFullImageLoaded()
     }
     val imageLoadFailed by rememberedDerivedState(
         previewImageState.painterState,

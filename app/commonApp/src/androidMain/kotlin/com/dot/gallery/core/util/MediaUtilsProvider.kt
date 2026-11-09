@@ -32,7 +32,11 @@ import com.dot.gallery.core.MediaSelector
 import com.dot.gallery.core.image.thumbnail.RefinedThumbnailKey
 import com.dot.gallery.core.image.thumbnail.RefinedThumbnailLoadTracker
 import com.dot.gallery.core.image.thumbnail.ThumbnailTelemetry
+import com.dot.gallery.core.decoder.glide.MediaStoreThumbnailModelLoader
+import com.dot.gallery.core.image.thumbnail.MotionThumbnailBridge
+import com.dot.gallery.core.image.thumbnail.motionThumbnailBridge
 import com.dot.gallery.core.image.thumbnail.shouldUseMotionThumbnail
+import com.github.panpf.sketch.request.Depth
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 import com.github.panpf.sketch.AsyncImage
@@ -61,8 +65,8 @@ import com.dot.gallery.injection.ComponentOwner
 
 
 /**
- * Software-decoded image formats with no hardware decoder. They are expensive to decode, so the
- * timeline renderer avoids the extra 0.4x thumbnail pass for them (which would decode twice).
+ * Formats that are expensive to decode at full size. Their refined grid request bridges only from
+ * an already-cached motion bitmap, so a cell never decodes the file twice just to fill the gap.
  */
 private val HEAVY_CODEC_EXTENSIONS = listOf(
     ".heic", ".heif", ".avif", ".avis", ".jxl", ".tiff", ".tif", ".psd", ".jp2", ".j2k"
@@ -161,8 +165,7 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
             signatureStr.contains(".avif", ignoreCase = true) ||
             signatureStr.contains(".apng", ignoreCase = true)
         )
-        // Heavy software codecs (no hardware decode) are expensive to decode. The idle refined pass
-        // skips the extra thumbnail sub-request for them so they decode once, not twice.
+        // Expensive codecs bridge the idle refined pass only from a cached motion bitmap.
         val isHeavyCodec = HEAVY_CODEC_EXTENSIONS.any { signatureStr.contains(it, ignoreCase = true) }
         val tier = if (useMotionThumbnail) "MOTION" else "REFINED"
         GlideImage(
@@ -180,7 +183,10 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
                 // Cheap MOTION-tier sub-request: small, static, stable key. It is used both as the
                 // standalone request during a fling and as the idle refined request's thumbnail
                 // placeholder, so the same bitmap is decoded once and reused (no flicker/re-decode).
+                // The platform thumbnail may be stretched here: speed matters more than sharpness
+                // mid-fling, and the refined request replaces it once the grid settles.
                 var motion = base.clone().override(THUMBNAIL_MOTION_PX)
+                    .set(MediaStoreThumbnailModelLoader.ThumbnailOptions.ALLOW_UPSCALE, true)
                 if (signature != null) motion = motion.signature(ObjectKey(signatureStr))
 
                 var request = if (useMotionThumbnail) {
@@ -190,9 +196,14 @@ val GlideMediaImageRenderer = object : MediaImageRenderer {
                     var refined = base
                     if (signature != null) refined = refined.signature(ObjectKey(signatureStr))
                     refined = refined.addListener(refinedLoadListener)
-                    // Show the cached motion bitmap instantly while the refined image decodes.
-                    if (!isHeavyCodec) refined = refined.thumbnail(motion)
-                    refined
+                    // Keep the motion bitmap on screen while the refined image loads; without a
+                    // thumbnail Glide clears the cell to its placeholder and it flashes (#1385).
+                    // Heavy codecs only reuse a cached motion bitmap, never decode one to bridge.
+                    val bridge = when (motionThumbnailBridge(isHeavyCodec)) {
+                        MotionThumbnailBridge.DECODE -> motion
+                        MotionThumbnailBridge.CACHED_ONLY -> motion.clone().onlyRetrieveFromCache(true)
+                    }
+                    refined.thumbnail(bridge)
                 }
                 // attach the bounded telemetry listener (staging/debug only;
                 // null in release so this is a no-op there).
@@ -253,8 +264,7 @@ val SketchMediaImageRenderer = object : MediaImageRenderer {
             signatureStr.contains(".avif", ignoreCase = true) ||
             signatureStr.contains(".apng", ignoreCase = true)
         )
-        // Heavy software codecs (no hardware decode) are expensive to decode. The idle refined pass
-        // skips the extra thumbnail sub-request for them so they decode once, not twice.
+        // Expensive codecs bridge the idle refined pass only from a cached motion bitmap.
         val isHeavyCodec = HEAVY_CODEC_EXTENSIONS.any { signatureStr.contains(it, ignoreCase = true) }
         val tier = if (useMotionThumbnail) "MOTION" else "REFINED"
         AsyncImage(
@@ -274,18 +284,19 @@ val SketchMediaImageRenderer = object : MediaImageRenderer {
                     size(THUMBNAIL_MOTION_PX, THUMBNAIL_MOTION_PX)
                 } else {
                     addListener(refinedLoadListener)
-                    // Show the cached motion bitmap instantly while the refined image decodes.
-                    if (!isHeavyCodec) {
-                        thumbnail(
-                            ImageRequest(context, model?.toString()) {
-                                size(THUMBNAIL_MOTION_PX, THUMBNAIL_MOTION_PX)
-                                if (signature != null) {
-                                    setExtra(key = "thumbnailSignature", value = signatureStr)
-                                }
-                                disallowAnimatedImage(true)
+                    // Keep the motion bitmap on screen while the refined image loads (#1385).
+                    // Heavy codecs only reuse a cached motion bitmap, never decode one to bridge.
+                    val bridge = motionThumbnailBridge(isHeavyCodec)
+                    thumbnail(
+                        ImageRequest(context, model?.toString()) {
+                            size(THUMBNAIL_MOTION_PX, THUMBNAIL_MOTION_PX)
+                            if (signature != null) {
+                                setExtra(key = "thumbnailSignature", value = signatureStr)
                             }
-                        )
-                    }
+                            disallowAnimatedImage(true)
+                            if (bridge == MotionThumbnailBridge.CACHED_ONLY) depth(Depth.MEMORY)
+                        }
+                    )
                 }
                 // attach the bounded telemetry listener (staging/debug only;
                 // null in release so this is a no-op there).
