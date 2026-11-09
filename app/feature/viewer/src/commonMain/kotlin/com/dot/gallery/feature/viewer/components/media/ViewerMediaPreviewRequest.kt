@@ -15,6 +15,12 @@ import com.github.panpf.sketch.resize.Precision
 const val MEDIA_PREVIEW_SIZE = 600
 
 /**
+ * Request extra the Android HEIF decoder reads as `SketchHeifDecoder.Factory.PLATFORM_PREVIEW_EXTRA`.
+ * It lives in an Android-only module, so the key is repeated here; a unit test keeps them equal.
+ */
+const val HEIF_PLATFORM_PREVIEW_EXTRA = "heifPlatformPreview"
+
+/**
  * Cache version extra for the low-res preview: busts the entry when the underlying file is
  * replaced in place.
  */
@@ -37,6 +43,9 @@ fun ImageRequest.Builder.mediaPreviewOptions(
     resize(width = width, height = height, precision = Precision.LESS_PIXELS)
     setExtra("realMimeType", media.mimeType)
     setExtra(key = "mediaVersion", value = mediaPreviewVersion(media))
+    // HEIC previews may use the platform thumbnail instead of a full HEVC decode, so the opening
+    // animation has a frame to show (#1385).
+    setExtra(key = HEIF_PLATFORM_PREVIEW_EXTRA, value = true)
     if (media.isEncrypted) {
         setExtra(key = "mediaKeyPreviewEnc", value = media.idLessKey)
     }

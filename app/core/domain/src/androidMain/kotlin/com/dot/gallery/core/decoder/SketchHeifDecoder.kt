@@ -1,6 +1,14 @@
 package com.dot.gallery.core.decoder
 
+import android.content.ContentResolver
 import android.os.Build
+import android.os.CancellationSignal
+import android.os.OperationCanceledException
+import android.provider.MediaStore
+import com.dot.gallery.core.image.thumbnail.HeavyThumbnailClassifier
+import com.dot.gallery.core.logging.printWarn
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
 import com.github.panpf.sketch.ComponentRegistry
 import com.github.panpf.sketch.request.ImageData
 import com.github.panpf.sketch.decode.Decoder
@@ -19,6 +27,8 @@ import com.dot.gallery.core.util.or
 
 
 
+private const val HEIF_PREVIEW_TAG = "decode.heif"
+
 fun ComponentRegistry.Builder.supportHeifDecoder(): ComponentRegistry.Builder = apply {
     add(SketchHeifDecoder.Factory())
 }
@@ -27,7 +37,8 @@ fun ComponentRegistry.Builder.supportHeifDecoder(): ComponentRegistry.Builder = 
 class SketchHeifDecoder(
     private val requestContext: RequestContext,
     private val dataSource: DataSource,
-    private val mimeType: String
+    private val mimeType: String,
+    private val allowPlatformPreview: Boolean = false,
 ) : Decoder {
 
     class Factory : Decoder.Factory {
@@ -39,7 +50,13 @@ class SketchHeifDecoder(
 
         override fun create(requestContext: RequestContext, fetchResult: FetchResult): Decoder? {
             val mimeType = resolveMimeType(requestContext, fetchResult) ?: return null
-            return SketchHeifDecoder(requestContext, fetchResult.dataSource, mimeType)
+            // Animated sequences keep the full decode so their preview can still animate.
+            val allowPlatformPreview =
+                requestContext.request.extras?.get(PLATFORM_PREVIEW_EXTRA) as? Boolean == true &&
+                    !isAnimatedHeif(fetchResult.headerBytes)
+            return SketchHeifDecoder(
+                requestContext, fetchResult.dataSource, mimeType, allowPlatformPreview
+            )
         }
 
         override fun equals(other: Any?): Boolean {
@@ -54,6 +71,14 @@ class SketchHeifDecoder(
         override fun toString(): String = key
 
         companion object {
+            /**
+             * Request extra (Boolean) marking a low-res, transitional preview. HEIC with this
+             * extra may be served from the platform's cached MediaStore thumbnail instead of a
+             * full HEVC decode of every tile, which took long enough to leave the viewer's
+             * opening animation black (#1385). Set only by the viewer's `mediaPreviewOptions`.
+             */
+            const val PLATFORM_PREVIEW_EXTRA = "heifPlatformPreview"
+
             val HEIF_MIMETYPES = listOf(
                 "image/heif",
                 "image/heic",
@@ -97,6 +122,8 @@ class SketchHeifDecoder(
     }
 
     override suspend fun decode(): ImageData {
+        decodePlatformPreview()?.let { return it }
+
         val sourceData = dataSource.openSource().use { src ->
             src.buffer().readByteArray()
         }
@@ -141,6 +168,55 @@ class SketchHeifDecoder(
                     ?: throw IllegalStateException("Unable to decode HEIF image")
             }
         )
+    }
+
+    /**
+     * Platform-thumbnail fast path for preview requests (see [Factory.PLATFORM_PREVIEW_EXTRA]).
+     * Returns null, so the regular decode runs, for anything it does not cover: non-MediaStore
+     * URIs, unbounded sizes, over-10-bit HEIF (the platform thumbnailer corrupts it) and platform
+     * failures.
+     */
+    private suspend fun decodePlatformPreview(): ImageData? {
+        if (!allowPlatformPreview) return null
+        val uri = requestContext.request.uri
+        if (uri.scheme != ContentResolver.SCHEME_CONTENT || uri.authority != MediaStore.AUTHORITY) {
+            return null
+        }
+        val target = requestContext.size
+        if (target == com.github.panpf.sketch.util.Size.Origin ||
+            target.width <= 0 || target.height <= 0
+        ) return null
+        val resolver = requestContext.sketch.context.contentResolver
+        val androidUri = android.net.Uri.parse(uri.toString())
+        val heavyFormat = runCatching { HeavyThumbnailClassifier.classify(resolver, androidUri) }
+            .getOrElse {
+                printWarn(
+                    HEIF_PREVIEW_TAG,
+                    "preview classification failed; using full decode",
+                    ctx = mapOf("uri" to uri.toString(), "error" to it.toString()),
+                )
+                return null
+            }
+        if (heavyFormat != null) return null
+        val signal = CancellationSignal()
+        currentCoroutineContext().job.invokeOnCompletion { signal.cancel() }
+        return try {
+            val bitmap = resolver.loadThumbnail(
+                androidUri,
+                android.util.Size(target.width, target.height),
+                signal,
+            )
+            imageDataFromBitmap(bitmap, requestContext, dataSource.dataFrom, mimeType)
+        } catch (e: OperationCanceledException) {
+            throw e
+        } catch (e: Exception) {
+            printWarn(
+                HEIF_PREVIEW_TAG,
+                "platform preview thumbnail failed; using full decode",
+                ctx = mapOf("uri" to uri.toString(), "error" to e.toString()),
+            )
+            null
+        }
     }
 
     override suspend fun getImageInfo(): ImageInfo {
