@@ -120,8 +120,17 @@ open class TransformState(
 
         if (pannable) {
             val newPan = this.pan + panChange.times(this.zoom / newZoom)
-            snapPanXto(newPan.x)
-            snapPanYto(newPan.y)
+            if (limitPan) {
+                val maxPanX = ((drawAreaSize.width * this.zoom - containerSize.width) / 2f)
+                    .coerceAtLeast(0f)
+                val maxPanY = ((drawAreaSize.height * this.zoom - containerSize.height) / 2f)
+                    .coerceAtLeast(0f)
+                snapPanXto(newPan.x.coerceIn(-maxPanX, maxPanX))
+                snapPanYto(newPan.y.coerceIn(-maxPanY, maxPanY))
+            } else {
+                snapPanXto(newPan.x)
+                snapPanYto(newPan.y)
+            }
         }
     }
 
