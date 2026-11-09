@@ -36,11 +36,15 @@ import kotlinx.coroutines.flow.Flow
  *    fails fast without INTERNET, and the cloud workers early-return on empty configs), and
  *  - deletes already-persisted network-constrained WorkSpecs before KmpWorkManager
  *    initializes — e.g. ones left behind by a previous online install under the same
- *    application id, which would otherwise crash at startup before any app code runs.
+ *    application id, which would otherwise crash at startup before any app code runs — and
+ *    installs a database trigger that clears required_network_type on every later INSERT or
+ *    UPDATE, covering paths the decorator cannot reach (kmpworkmanager's own persisted task
+ *    store, reschedules on the raw NativeTaskScheduler).
  */
 object NetworkConstraintGuard {
 
     private const val WORK_MANAGER_DB = "androidx.work.workdb"
+    private const val STRIP_TRIGGER = "refra_strip_network_constraints"
 
     @Volatile
     private var appContext: Context? = null
@@ -50,13 +54,25 @@ object NetworkConstraintGuard {
 
     /**
      * Installs the application context for [wrap] and, while ACCESS_NETWORK_STATE is
-     * absent, purges persisted network-constrained WorkSpecs. Must run before
+     * absent, sanitizes the persisted WorkManager database. Must run before
      * `KmpWorkManager.initialize` — WorkManager schedules persisted specs during init.
      */
     fun init(context: Context) {
         appContext = context.applicationContext
         if (!hasAccessNetworkState(context)) {
-            purgeNetworkConstrainedWorkSpecs(context)
+            sanitizeWorkDatabase(context)
+        }
+    }
+
+    /**
+     * Re-runs the database sanitization — purge plus write-time trigger — after
+     * `KmpWorkManager.initialize` (whose init may create the database and reschedule
+     * internally persisted tasks) and once more after first content.
+     */
+    fun rearm() {
+        val context = appContext ?: return
+        if (!hasAccessNetworkState(context)) {
+            sanitizeWorkDatabase(context)
         }
     }
 
@@ -73,7 +89,7 @@ object NetworkConstraintGuard {
             context.packageName
         ) == PackageManager.PERMISSION_GRANTED
 
-    private fun purgeNetworkConstrainedWorkSpecs(context: Context) {
+    private fun sanitizeWorkDatabase(context: Context) {
         val dbFile = context.getDatabasePath(WORK_MANAGER_DB)
         if (!dbFile.exists()) return
         runCatching {
@@ -82,12 +98,28 @@ object NetworkConstraintGuard {
             ).use { db ->
                 // FK cascade removes each spec's WorkTag/WorkName/SystemIdInfo/Dependency rows.
                 db.execSQL("PRAGMA foreign_keys=ON")
+                // Network-constrained WorkSpecs can also be written AFTER this point through
+                // paths app code cannot wrap — kmpworkmanager's own persisted task store
+                // (exact alarms, chain continuations enqueued via the raw NativeTaskScheduler
+                // with constraints stored by an older build). The trigger clears the flag at
+                // write time so no constrained spec can ever exist, regardless of writer.
+                db.execSQL(
+                    "CREATE TRIGGER IF NOT EXISTS $STRIP_TRIGGER " +
+                        "AFTER INSERT ON WorkSpec WHEN NEW.required_network_type <> 0 BEGIN " +
+                        "UPDATE WorkSpec SET required_network_type = 0 WHERE id = NEW.id; END"
+                )
+                db.execSQL(
+                    "CREATE TRIGGER IF NOT EXISTS ${STRIP_TRIGGER}_update " +
+                        "AFTER UPDATE OF required_network_type ON WorkSpec " +
+                        "WHEN NEW.required_network_type <> 0 BEGIN " +
+                        "UPDATE WorkSpec SET required_network_type = 0 WHERE id = NEW.id; END"
+                )
                 db.execSQL("DELETE FROM WorkSpec WHERE required_network_type <> 0")
             }
         }.onFailure {
             printError(
                 "worker.network-guard",
-                "purge of network-constrained WorkSpecs failed",
+                "workdb network-constraint sanitization failed",
                 it
             )
         }

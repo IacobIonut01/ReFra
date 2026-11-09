@@ -280,6 +280,10 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
         // is disabled in the manifest) — must run before any scheduler access or worker dispatch.
         StartupTracer.trace("KmpWorkManager.initialize") {
             KmpWorkManager.initialize(this@GalleryApp, AndroidWorkerFactoryGenerated())
+            // WorkManager's database may first exist now — rearm so the write-time
+            // trigger lands on the fresh schema and any constrained spec written by
+            // library-internal rescheduling during init is removed.
+            NetworkConstraintGuard.rearm()
             WorkComponentHolder.install(component)
             // Editor exports run as workers with a live notification —
             // the bridge is both the sessions' dispatch hook and the
@@ -309,6 +313,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
         }
         appScope.launch {
             startupGate.awaitFirstContent()
+            NetworkConstraintGuard.rearm()
             scheduler.enqueueCaptureTimeIndex()
             scheduler.enqueueMetadataLocationRepair()
             scheduler.enqueueRedactedLocationRepair()
