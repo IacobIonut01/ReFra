@@ -97,6 +97,16 @@ import com.dot.gallery.ui.core.icons.Stylus
 import com.dot.gallery.app.presentation.mediaview.MediaViewScreen
 import com.dot.gallery.app.presentation.trashed.TrashedGridScreen
 import com.dot.gallery.feature.help.ui.rememberPreviewAnimation
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
+import com.dot.gallery.feature.viewer.insight.CodeChip
+import com.dot.gallery.generated.resources.Res
+import com.dot.gallery.generated.resources.help_preview_code_kind
+import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.core.ui.generated.resources.Res as ResCoreUi
 import com.dot.gallery.core.ui.generated.resources.filter_type_date
 import com.dot.gallery.core.ui.generated.resources.filter_type_name
@@ -146,6 +156,7 @@ fun HelpPreview(
         PreviewType.SUBJECT_CUTOUT -> SubjectCutoutPreviewMini(modifier)
         PreviewType.CASTING -> CastingPreviewMini(modifier)
         PreviewType.PANORAMA -> PanoramaPreviewMini(modifier)
+        PreviewType.CODE_SCAN -> CodeScanPreviewMini(modifier)
         PreviewType.NONE -> {}
     }
 }
@@ -505,6 +516,70 @@ private fun SubjectCutoutPreviewMini(modifier: Modifier = Modifier) {
                 )
         )
         PreviewBadge(Icons.Outlined.AutoFixHigh)
+    }
+}
+
+/**
+ * A photo with a QR code: the brackets draw in and the production [CodeChip] fades up under it,
+ * as in the viewer. Sample state only; no scanner is created.
+ */
+@Composable
+private fun CodeScanPreviewMini(modifier: Modifier = Modifier) {
+    val animation = rememberPreviewAnimation(stepCount = 2)
+    val progress = animation.stepProgress
+    val primary = MaterialTheme.colorScheme.primary
+    PreviewFrame(modifier, applyPadding = false) {
+        ViewerScreenMock()
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color.White)
+                    .drawBehind {
+                        val cell = size.width / 21f
+                        val ink = Color(0xFF16161A)
+                        fun finder(cx: Int, cy: Int) {
+                            drawRect(ink, Offset((cx + 2) * cell, (cy + 2) * cell), Size(cell * 7, cell * 7))
+                            drawRect(Color.White, Offset((cx + 3) * cell, (cy + 3) * cell), Size(cell * 5, cell * 5))
+                            drawRect(ink, Offset((cx + 4) * cell, (cy + 4) * cell), Size(cell * 3, cell * 3))
+                        }
+                        finder(0, 0); finder(10, 0); finder(0, 10)
+                        for (i in 0 until 9) for (j in 0 until 9) {
+                            if ((i * 7 + j * 3) % 5 < 2) {
+                                drawRect(ink, Offset((10 + i) * cell, (10 + j) * cell), Size(cell, cell))
+                            }
+                        }
+                    }
+                    .drawWithContent {
+                        drawContent()
+                        val arm = size.width * 0.24f * progress
+                        val stroke = 3.dp.toPx()
+                        val w = size.width
+                        val h = size.height
+                        val c = primary.copy(alpha = progress)
+                        listOf(Offset(0f, 0f) to Offset(1f, 1f), Offset(w, 0f) to Offset(-1f, 1f),
+                            Offset(w, h) to Offset(-1f, -1f), Offset(0f, h) to Offset(1f, -1f)).forEach { (p, d) ->
+                            drawLine(c, p, p + Offset(d.x * arm, 0f), stroke, StrokeCap.Round)
+                            drawLine(c, p, p + Offset(0f, d.y * arm), stroke, StrokeCap.Round)
+                        }
+                    }
+            )
+            Box(modifier = Modifier.graphicsLayer { alpha = progress; translationY = (1f - progress) * 24f }) {
+                CodeChip(
+                    icon = Icons.Outlined.Link,
+                    kind = stringResource(Res.string.help_preview_code_kind),
+                    value = "canalnights.example",
+                    contentDescription = "",
+                    enabled = false,
+                    onClick = {},
+                )
+            }
+        }
     }
 }
 

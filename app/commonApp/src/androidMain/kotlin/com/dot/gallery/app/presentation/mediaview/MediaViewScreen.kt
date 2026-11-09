@@ -82,6 +82,14 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import com.dot.gallery.feature.viewer.insight.CodeScanButton
+import com.dot.gallery.feature.viewer.insight.CodeScanNothingFoundToast
+import com.dot.gallery.feature.viewer.insight.InsightTrigger
+import com.dot.gallery.feature.viewer.insight.LocalInsightController
+import com.dot.gallery.feature.viewer.insight.insightKey
+import com.dot.gallery.feature.viewer.insight.insightSupported
+import com.dot.gallery.feature.viewer.insight.rememberCodeScanOnTap
+import com.dot.gallery.feature.viewer.insight.rememberViewerInsightController
 import androidx.compose.runtime.DisallowComposableCalls
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -98,6 +106,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -215,6 +224,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -845,7 +855,10 @@ fun <T : Media> MediaViewScreen(
             if (request != null) metadataCover = request else exitNavigate(route)
         }
     }
+    // Codes in photos: one controller per viewer screen, null while the setting is off.
+    val insightController = rememberViewerInsightController()
     CompositionLocalProvider(
+    LocalInsightController provides insightController,
     // Viewer-owned backdrop. The activity haze state also carries gallery sources for as
     // long as the overlay is up; remembering this state here (not on chrome or page keys)
     // keeps media sources and every viewer consumer on one backdrop across hide/show.
@@ -1668,6 +1681,31 @@ fun <T : Media> MediaViewScreen(
                     }
                 }
             }
+        }
+
+        // Codes in photos: look at the photo the pager settles on. Passing through a page never
+        // starts work, and a scroll cancels a scan that is still running.
+        val codeScanOnTap = rememberCodeScanOnTap()
+        // currentMedia's state object is recreated whenever its keys change, so the long-lived
+        // flow below must read it through one stable, always-current state.
+        val latestMediaForInsights by rememberUpdatedState(currentMedia)
+        if (insightController != null) {
+            LaunchedEffect(insightController, codeScanOnTap, slideshowActive) {
+                snapshotFlow { if (pagerState.isScrollInProgress) null else latestMediaForInsights }
+                    .distinctUntilChanged { old, new -> old?.id == new?.id && old?.let(::insightKey) == new?.let(::insightKey) }
+                    .collectLatest { media ->
+                        when {
+                            media == null -> insightController.cancel()
+                            slideshowActive || !insightSupported(media) -> insightController.clear()
+                            else -> insightController.request(
+                                insightKey(media),
+                                media,
+                                if (codeScanOnTap) InsightTrigger.PASSIVE else InsightTrigger.AUTO,
+                            )
+                        }
+                    }
+            }
+            CodeScanNothingFoundToast(insightController)
         }
 
         // set HDR Gain map (only on displays that can actually render HDR — skips the probe decode on
@@ -2841,6 +2879,26 @@ fun <T : Media> MediaViewScreen(
                         visualSearchProgress = visualSearchPreparing?.progress,
                         visualSearchStageLabel = visualSearchStageLabel,
                         onCancelVisualSearch = cancelVisualSearch,
+                        scanButton = if (insightController != null && codeScanOnTap &&
+                            currentMedia?.let(::insightSupported) == true
+                        ) {
+                            { followTheme ->
+                                val insight by insightController.state.collectAsStateWithLifecycle()
+                                CodeScanButton(
+                                    scanning = insight.manualScanRunning,
+                                    followTheme = followTheme,
+                                    onClick = {
+                                        val media = currentMedia
+                                        when {
+                                            insight.manualScanRunning -> insightController.cancel()
+                                            media != null -> insightController.request(
+                                                insightKey(media), media, InsightTrigger.MANUAL
+                                            )
+                                        }
+                                    },
+                                )
+                            }
+                        } else null,
                         castButton = if (fcastVm.isCastAvailable()) {
                             { followTheme ->
                                 CastButton(

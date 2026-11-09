@@ -1136,5 +1136,7 @@
     <string name="handover_status_down">Check the server URL and your network connection.</string>
     <string name="handover_enabled_summary">Server-side inference and search are on</string>
     <string name="handover_disabled_summary">Run search inference on your own server</string>
+    <!-- Help preview: kind label on the sample code chip -->
+    <string name="help_preview_code_kind">Link</string>
 </resources>
 

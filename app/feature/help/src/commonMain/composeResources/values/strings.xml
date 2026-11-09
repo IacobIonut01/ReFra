@@ -1166,6 +1166,18 @@
     <string name="help_qa_open_library">Open Library</string>
 
     <!-- COVERAGE COMPLETION TIPS (100% audit) -->
+    <string name="help_tip_view_codes_title">Read QR codes and barcodes</string>
+    <string name="help_tip_view_codes_subtitle">Open links, join Wi-Fi and more from codes in your photos</string>
+    <string name="help_tip_view_codes_p1_title">Codes in your photos</string>
+    <string name="help_tip_view_codes_p1_desc">When a photo contains a QR code or barcode, the viewer reads it on your device and marks it once you stop swiping. Nothing is uploaded, and nothing opens until you choose an action.</string>
+    <string name="help_tip_view_codes_p1_s1">Open a photo or screenshot that has a code in it</string>
+    <string name="help_tip_view_codes_p1_s2">Tap the chip under the code, or the code itself</string>
+    <string name="help_tip_view_codes_p1_s3">Choose an action, such as Open link, Connect, Add contact, Copy or Share</string>
+    <string name="help_tip_view_codes_p2_title">Choose when it looks</string>
+    <string name="help_tip_view_codes_p2_desc">Codes in photos is on by default. You can make it wait until you ask, limit which code types it reads, or turn it off.</string>
+    <string name="help_tip_view_codes_p2_s1">Open Settings, then Media viewer</string>
+    <string name="help_tip_view_codes_p2_s2">Under Codes in photos, set When to look to Only when I tap Scan to add a Scan button to the viewer</string>
+    <string name="help_tip_view_codes_p2_s3">Use Code types to choose QR codes, other 2D codes, product barcodes or other barcodes</string>
     <string name="help_tip_view_cutout_title">Cut out a subject</string>
     <string name="help_tip_view_cutout_subtitle">Lift a person or object from the background</string>
     <string name="help_tip_view_cutout_p1_title">Lift the detected subject</string>

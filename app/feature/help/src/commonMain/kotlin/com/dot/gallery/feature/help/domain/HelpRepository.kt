@@ -14,6 +14,19 @@ import androidx.compose.material.icons.automirrored.outlined.MergeType
 import androidx.compose.material.icons.automirrored.outlined.RotateRight
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_title
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_subtitle
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p1_title
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p1_desc
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p1_s1
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p1_s2
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p1_s3
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p2_title
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p2_desc
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p2_s1
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p2_s2
+import com.dot.gallery.feature.help.generated.resources.help_tip_view_codes_p2_s3
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Animation
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -1831,6 +1844,13 @@ object HelpRepository {
             pages = listOf(
                 TutorialPage(title = Res.string.help_tip_view_cutout_p1_title, description = Res.string.help_tip_view_cutout_p1_desc, steps = listOf(Res.string.help_tip_view_cutout_p1_s1, Res.string.help_tip_view_cutout_p1_s2, Res.string.help_tip_view_cutout_p1_s3, Res.string.help_tip_view_cutout_p1_s4), previewType = PreviewType.SUBJECT_CUTOUT)
             ), sinceVersion = "5.1.0"),
+        HelpTip(id = "view_codes", title = Res.string.help_tip_view_codes_title, subtitle = Res.string.help_tip_view_codes_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.QrCodeScanner), category = HelpCategory.VIEWING,
+            deepLink = HelpRoute.Target.SETTINGS_MEDIA_VIEWER,
+            pages = listOf(
+                TutorialPage(title = Res.string.help_tip_view_codes_p1_title, description = Res.string.help_tip_view_codes_p1_desc, steps = listOf(Res.string.help_tip_view_codes_p1_s1, Res.string.help_tip_view_codes_p1_s2, Res.string.help_tip_view_codes_p1_s3), previewType = PreviewType.CODE_SCAN),
+                TutorialPage(title = Res.string.help_tip_view_codes_p2_title, description = Res.string.help_tip_view_codes_p2_desc, steps = listOf(Res.string.help_tip_view_codes_p2_s1, Res.string.help_tip_view_codes_p2_s2, Res.string.help_tip_view_codes_p2_s3))
+            ), sinceVersion = "6.0.0"),
         HelpTip(id = "slideshow_play", title = Res.string.help_tip_slideshow_play_title, subtitle = Res.string.help_tip_slideshow_play_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Slideshow), category = HelpCategory.VIEWING,
             deepLink = HelpRoute.Target.SLIDESHOW_SETTINGS,

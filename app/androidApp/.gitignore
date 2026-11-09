@@ -19,3 +19,5 @@
 /src/main/cpp/rawcodec/
 
 /src/main/cpp/jp2codec/
+# Produced by scripts/native/build-zxing.sh; not committed.
+/src/main/cpp/zxingcpp/

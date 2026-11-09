@@ -62,7 +62,8 @@ val nativeStacks = listOf(
     Triple("Imgcodec", "build-imgcodec.sh", "imgcodec"),
     Triple("HeifEncode", "build-heif-encode.sh", "heifenc"),
     Triple("Libraw", "build-libraw.sh", "rawcodec"),
-    Triple("Jp2", "build-jp2.sh", "jp2codec")
+    Triple("Jp2", "build-jp2.sh", "jp2codec"),
+    Triple("Zxing", "build-zxing.sh", "zxingcpp")
 )
 val nativeAbiTaskSuffixes = mapOf(
     "arm64-v8a" to "Arm64V8a",
@@ -81,7 +82,8 @@ val nativeSourceOverrides = listOf(
     "AOM_SOURCE_DIR",
     "LIBRAW_SOURCE_DIR",
     "LIBTIFF_SOURCE_DIR",
-    "JP2FORANDROID_SOURCE_DIR"
+    "JP2FORANDROID_SOURCE_DIR",
+    "ZXING_CPP_SOURCE_DIR"
 )
 // On Windows a bare "bash" resolves to C:\Windows\System32\bash.exe (the WSL launcher),
 // which cannot open a script at a Windows path. Prefer a real POSIX shell, and let
@@ -113,6 +115,12 @@ val nativeTasksByAbi = nativeAbiTaskSuffixes.mapValues { (abi, suffix) ->
             // escape its output, so hand them over with forward slashes on every platform.
             environment("NATIVE_DOWNLOAD_CACHE", nativeDownloadCache.invariantSeparatorsPath)
             environment("NATIVE_OUTPUT_BASE", file("src/main/cpp").invariantSeparatorsPath)
+            // The scripts hand mktemp paths to native Windows CMake. Without a TMPDIR the Git
+            // Bash a daemon inherits may default to /tmp, which CMake cannot resolve, so give
+            // it the JVM's temp dir in drive-letter form.
+            if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+                environment("TMPDIR", File(System.getProperty("java.io.tmpdir")).invariantSeparatorsPath)
+            }
             nativeSourceOverrides.forEach { environment(it, "") }
             inputs.file(script)
             inputs.file(nativeCommonScript)

@@ -825,4 +825,26 @@
     <string name="floating_date_label_title">Floating date label</string>
     <string name="floating_date_label_summary">Keep the date at the top while you scroll</string>
     <string name="floating_date_label_description">While you scroll, the date you are in floats at the top of the timeline. Tap it to see every month and jump to one; pinching out past the smallest grid opens the same view. Turned off, the date shows as a plain sticky header.</string>
+    <!-- Codes in photos -->
+    <string name="code_scan_header">Codes in photos</string>
+    <string name="code_scan_title">Read QR codes and barcodes</string>
+    <string name="code_scan_summary">Finds codes in the photo you are viewing. Runs on this device only.</string>
+    <string name="code_scan_description">When a photo contains a QR code or barcode, the viewer marks it and shows what it says, such as a link or a Wi-Fi network. Reading happens on this device and nothing is uploaded. Nothing opens until you choose an action.</string>
+    <string name="code_scan_mode_title">When to look</string>
+    <string name="code_scan_mode_description">Choose whether the viewer looks for codes on its own or only when you ask.</string>
+    <string name="code_scan_mode_auto">Automatically</string>
+    <string name="code_scan_mode_auto_summary">Looks once you stop swiping. A chip appears when a code is found.</string>
+    <string name="code_scan_mode_on_tap">Only when I tap Scan</string>
+    <string name="code_scan_mode_on_tap_summary">Adds a Scan button to the viewer bar. Nothing runs until you tap it.</string>
+    <string name="code_scan_types_title">Code types</string>
+    <string name="code_scan_types_description">Choose which kinds of codes the viewer reads. Fewer types make scanning a little faster.</string>
+    <string name="code_scan_types_qr">QR codes</string>
+    <string name="code_scan_types_qr_summary">QR, Micro QR and rMQR</string>
+    <string name="code_scan_types_matrix">Other 2D codes</string>
+    <string name="code_scan_types_matrix_summary">Data Matrix, Aztec, PDF417 and MaxiCode</string>
+    <string name="code_scan_types_product">Product barcodes</string>
+    <string name="code_scan_types_product_summary">EAN and UPC</string>
+    <string name="code_scan_types_linear">Other barcodes</string>
+    <string name="code_scan_types_linear_summary">Code 128, Code 39, Code 93, ITF, Codabar and GS1 DataBar</string>
+    <string name="code_scan_types_none">None</string>
 </resources>

@@ -37,5 +37,6 @@ enum class PreviewType {
     SUBJECT_CUTOUT,
     CASTING,
     PANORAMA,
+    CODE_SCAN,
     NONE
 }

@@ -426,6 +426,10 @@ fun SettingsMediaViewerContent(
                 enabled = state.hdrDisplayCapable,
             )
         }
+        DETAIL_CODE_SCAN, DETAIL_CODE_SCAN_MODE, DETAIL_CODE_SCAN_TYPES -> {
+            BackHandler { detailKey = null }
+            CodeScanSettingsDetail(detailKey)
+        }
         DETAIL_VISUAL_SEARCH -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -707,6 +711,8 @@ private fun MediaViewerListContent(
             screenPosition = Position.Middle
         )
 
+        val codeScanSettings = rememberCodeScanSettings(onDetailClick)
+
         val slideshowTitle = stringResource(Res.string.slideshow)
         val slideshowSummary = stringResource(Res.string.slideshow_settings_summary)
         val slideshowPref = remember(slideshowTitle, slideshowSummary, onOpenSlideshow) {
@@ -823,7 +829,7 @@ private fun MediaViewerListContent(
             visualSearchPref, slideshowPref,
             saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
             videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref,
-            hdrVideoPlaybackPref
+            hdrVideoPlaybackPref, codeScanSettings
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(viewingHeader)
@@ -841,6 +847,8 @@ private fun MediaViewerListContent(
                 add(longPressActionPref)
                 add(visualSearchPref)
                 add(slideshowPref)
+
+                addAll(codeScanSettings)
 
                 add(saveQualityHeader)
                 add(manualQualityPref)

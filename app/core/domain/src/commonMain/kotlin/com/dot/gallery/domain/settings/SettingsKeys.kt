@@ -104,6 +104,15 @@ object SettingsKeys {
     val longPressCutout = PrefKey.bool("long_press_cutout", default = false)
     /** Empty means unset — resolve through [resolveLongPressAction] with [longPressCutout]. */
     val longPressAction = PrefKey.string("long_press_action", default = "")
+    /** Read QR codes and barcodes in the photo on screen, on the device. */
+    val codeScanEnabled = PrefKey.bool("code_scan_enabled", default = true)
+    /** [CODE_SCAN_MODE_AUTO] or [CODE_SCAN_MODE_ON_TAP]. */
+    val codeScanMode = PrefKey.string("code_scan_mode", default = CODE_SCAN_MODE_AUTO)
+    /** Format group names from `CodeFormat.groups`; all of them by default. */
+    val codeScanFormats = PrefKey.stringSet(
+        "code_scan_formats",
+        default = setOf(CODE_SCAN_GROUP_QR, CODE_SCAN_GROUP_MATRIX, CODE_SCAN_GROUP_PRODUCT, CODE_SCAN_GROUP_LINEAR),
+    )
     val reencodeQualityMode = PrefKey.string("reencode_quality_mode", default = REENCODE_MODE_AUTO)
     val reencodeLossyQuality = PrefKey.int("reencode_lossy_quality", default = 90)
     val reencodeJxlEffort = PrefKey.int("reencode_jxl_effort", default = 7)
@@ -317,6 +326,16 @@ fun resolveLongPressAction(storedValue: String?, legacyCutout: Boolean): String 
         LONG_PRESS_ACTION_ROTATE, LONG_PRESS_ACTION_CUTOUT, LONG_PRESS_ACTION_NONE -> storedValue
         else -> if (legacyCutout) LONG_PRESS_ACTION_CUTOUT else LONG_PRESS_ACTION_ROTATE
     }
+
+/** Viewer code-scan modes stored in [SettingsKeys.codeScanMode]. */
+const val CODE_SCAN_MODE_AUTO = "auto"
+const val CODE_SCAN_MODE_ON_TAP = "on_tap"
+
+/** Format groups stored in [SettingsKeys.codeScanFormats]; keys of `CodeFormat.groups`. */
+const val CODE_SCAN_GROUP_QR = "qr"
+const val CODE_SCAN_GROUP_MATRIX = "matrix"
+const val CODE_SCAN_GROUP_PRODUCT = "product"
+const val CODE_SCAN_GROUP_LINEAR = "linear"
 
 /** Built-in editor sentinel — mirror `Settings.Misc.EDITOR_BUILTIN`. */
 const val EDITOR_BUILTIN = "builtin"

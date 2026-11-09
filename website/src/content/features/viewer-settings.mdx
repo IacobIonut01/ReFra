@@ -1,11 +1,11 @@
 ---
 title: Media viewer settings
-summary: Brightness, gestures, saving quality, and video playback options for the full-screen viewer.
+summary: Brightness, gestures, code scanning, saving quality, and video playback options for the full-screen viewer.
 area: customize
 path:
   - Settings
   - Media Viewer
-related: [media-viewer, slideshow, visual-search]
+related: [media-viewer, slideshow, visual-search, codes-in-photos]
 scenes: [settings-media-viewer, long-press-action]
 order: 6
 ---
@@ -28,6 +28,14 @@ order: 6
 - **Long-press action**: picks what a long-press on an image does in the viewer: **Rotate** (the default), **Cut out subject**, or **None**. While the Subject Cutout model is not downloaded, **Cut out subject** is disabled with a hint to get it from AI models. You can always cut out a subject with the editor's **Cutout** tool.
 - **Save quality**: how edited and rotated images are re-encoded. **Auto** saves lossless where the format supports it (JXL) and high quality otherwise. **Manual** exposes **Lossy quality** (1 to 100) and **JXL effort** (1 to 9) sliders.
 - **Slideshow**: opens the slideshow options; see [slideshow](/ReFra/features/slideshow).
+
+## Codes in photos
+
+- **Read QR codes and barcodes**: on by default. The viewer reads codes in the photo you are viewing, on the device, and offers what they hold. Turned off, it never scans.
+- **When to look**: **Automatically** scans each photo once you stop swiping; **Only when I tap Scan** adds a Scan button to the viewer's top bar instead.
+- **Code types**: limits scanning to **QR codes**, **Other 2D codes**, **Product barcodes**, and **Other barcodes**.
+
+See [codes in photos](/ReFra/features/codes-in-photos).
 
 ## Video playback
 

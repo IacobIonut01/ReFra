@@ -114,6 +114,8 @@ fun MediaViewAppBar(
     visualSearchProgress: Int? = null,
     visualSearchStageLabel: String? = null,
     onCancelVisualSearch: () -> Unit = {},
+    // "Scan for codes" when code scanning runs only on request; first in the trailing group.
+    scanButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
     castButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
     castBanner: @Composable (() -> Unit)? = null
 ) {
@@ -263,6 +265,7 @@ fun MediaViewAppBar(
                     surfaceModifier = groupSurface,
                     segmentSize = 48.dp,
                 ) {
+                    scanButton?.invoke(followTheme)
                     castButton?.invoke(followTheme)
 
                     this@Column.AnimatedVisibility(

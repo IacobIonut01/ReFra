@@ -32,6 +32,28 @@ find_library(dl-lib dl)
 add_library(metadata_brotli SHARED metadata_brotli_jni.cpp)
 target_link_libraries(metadata_brotli ${dl-lib})
 
+# codescan: QR / barcode reader for the viewer's "codes in photos" feature. Links the reader-only
+# static zxing-cpp built by scripts/native/build-zxing.sh into zxingcpp/<ABI>/. Missing prebuilt
+# => stub that reports unavailable, and the viewer never scans.
+set(ZXING_PREBUILT "${CMAKE_CURRENT_SOURCE_DIR}/zxingcpp/${ANDROID_ABI}")
+find_library(jnigraphics-lib jnigraphics)
+add_library(codescan SHARED codescan_jni.cpp)
+if (EXISTS "${ZXING_PREBUILT}/lib/libZXing.a" AND EXISTS "${ZXING_PREBUILT}/include/ZXing/ReadBarcode.h")
+    message(STATUS "codescan: using source-built zxing-cpp for ${ANDROID_ABI}")
+    add_library(zxing_static STATIC IMPORTED)
+    set_target_properties(zxing_static PROPERTIES IMPORTED_LOCATION "${ZXING_PREBUILT}/lib/libZXing.a")
+    target_include_directories(codescan PRIVATE "${ZXING_PREBUILT}/include")
+    target_compile_definitions(codescan PRIVATE HAVE_ZXING=1)
+    target_compile_options(codescan PRIVATE -Os -ffunction-sections -fdata-sections)
+    target_link_libraries(codescan zxing_static ${jnigraphics-lib})
+    target_link_options(codescan PRIVATE "-Wl,--gc-sections")
+else ()
+    message(WARNING "codescan: no source-built zxing-cpp for ${ANDROID_ABI}; building stub. "
+            "Run scripts/native/build-zxing.sh all to enable code scanning for every ABI.")
+    target_link_libraries(codescan ${jnigraphics-lib})
+endif ()
+target_link_options(codescan PRIVATE "-Wl,-z,max-page-size=16384")
+
 set(JP2_PREBUILT "${CMAKE_CURRENT_SOURCE_DIR}/jp2codec/${ANDROID_ABI}")
 add_library(openjpeg SHARED jp2_bridge_jni.cpp)
 if (EXISTS "${JP2_PREBUILT}/lib/libopenjpeg.a")

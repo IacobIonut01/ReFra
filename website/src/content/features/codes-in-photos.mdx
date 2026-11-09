@@ -1,0 +1,63 @@
+---
+title: Codes in photos
+summary: Read QR codes and barcodes in the photo you are viewing, then open, join, save, or copy what they say.
+area: view-play
+path:
+  - Timeline
+  - Open a photo
+related: [media-viewer, viewer-settings, visual-search]
+scenes: []
+order: 10
+---
+
+When a photo or screenshot contains a QR code or a barcode, the viewer reads it on your device and marks it. A chip under the code shows what it holds, such as a link or a Wi-Fi network, and tapping the chip offers the matching actions. Nothing is uploaded, and nothing opens until you choose an action.
+
+## How it works
+
+- The viewer looks only at the photo it settles on, a moment after you stop swiping. Swiping past a photo does not scan it, and swiping away cancels a scan that is still running.
+- It first reads the preview already on screen. If that finds nothing and you stay on the photo, it tries once more with a larger copy and harder settings, which also catches light-on-dark codes.
+- Corner brackets follow each code, even when it was photographed at an angle, and stay on it while you zoom and pan. The chip hides while you pinch or drag and when the viewer controls are hidden.
+- With several codes in one photo, each gets a numbered badge and the chip shows how many there are. Tap the chip for the list, or tap a code to open it directly.
+- Results are kept for the photos you have looked at, so swiping back shows them at once.
+- Videos, animated images, and TIFF, PSD, and JPEG 2000 files are not scanned. Cloud photos are read from their preview only, so scanning never downloads anything.
+
+## What you can do with a code
+
+Tap the chip, or tap the code itself, to open the details sheet. It shows the full decoded value, never shortened, and the actions for that kind of code:
+
+| Code holds | Main action | Also |
+| --- | --- | --- |
+| Link | **Open link** in your browser | **Copy**, **Share** |
+| Wi-Fi network | **Connect** | **Copy password**, **Share** |
+| Contact card | **Add contact** | **Copy**, **Share** |
+| Email address | **Write email** | **Copy**, **Share** |
+| Phone number | **Call** opens the dialer with the number filled in | **Copy**, **Share** |
+| Text message | **Send message** | **Copy**, **Share** |
+| Location | **Open in maps** | **Copy**, **Share** |
+| Calendar event | **Add to calendar** | **Copy**, **Share** |
+| Product barcode or plain text | none | **Copy**, **Share** |
+
+- Links show the full address, with a warning line for addresses that are not HTTPS and for addresses that use unusual characters, which can imitate a familiar site.
+- Wi-Fi passwords stay hidden until you tap **Show password**. On Android 11 and later, **Connect** offers the network to the system, which asks you to confirm. On older versions, and for WEP networks, it copies the password and opens the Wi-Fi panel.
+- Copied passwords are marked as sensitive, so the clipboard preview does not show them.
+
+## Settings
+
+The options live under **Settings › Media Viewer › Codes in photos**:
+
+- **Read QR codes and barcodes**: on by default. Turned off, the viewer never scans.
+- **When to look**: **Automatically** scans each photo you stop on. **Only when I tap Scan** adds a Scan button to the viewer's top bar and does nothing until you tap it; tap it again to stop. If that scan finds nothing, the viewer says so.
+- **Code types**: choose any of **QR codes** (QR, Micro QR and rMQR), **Other 2D codes** (Data Matrix, Aztec, PDF417 and MaxiCode), **Product barcodes** (EAN and UPC), and **Other barcodes** (Code 128, Code 39, Code 93, ITF, Codabar and GS1 DataBar).
+
+## Example: join a café's guest Wi-Fi
+
+1. Take a photo of the Wi-Fi card on the table, or open a screenshot of it.
+2. In the viewer, wait for the chip under the code to show the network name.
+3. Tap the chip, check the network name, and tap **Connect**.
+4. Confirm in the system dialog to save the network.
+
+## If nothing appears
+
+- Check that **Read QR codes and barcodes** is on and that the code's type is selected under **Code types**.
+- With **Only when I tap Scan**, codes are only found after you tap the Scan button.
+- Very small or blurry codes may not be readable. Zooming does not trigger a new scan, so try a sharper photo.

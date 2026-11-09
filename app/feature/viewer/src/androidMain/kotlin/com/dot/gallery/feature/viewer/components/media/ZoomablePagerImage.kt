@@ -46,6 +46,17 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.dot.gallery.core.insight.CodeInsight
+import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
+import com.dot.gallery.feature.viewer.insight.CodeOverlay
+import com.dot.gallery.feature.viewer.insight.CodeResultSheet
+import com.dot.gallery.feature.viewer.insight.LocalInsightController
+import com.dot.gallery.feature.viewer.insight.hitTestCodes
+import com.dot.gallery.feature.viewer.insight.insightKey
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -907,6 +918,32 @@ fun <T : Media> ZoomablePagerImage(
         }
     }
 
+    // --- Codes in photos ---
+    // The viewer-wide controller scans only the settled page; this page just shows the result
+    // when it is for this exact media version.
+    val insightController = LocalInsightController.current
+    val pageInsightKey = remember(media) { insightKey(media) }
+    val insightState = insightController?.state?.collectAsState()
+    val insightSnapshot = insightState?.value
+    val codes = remember(insightSnapshot, isSelected, pageInsightKey) {
+        if (insightSnapshot == null || !isSelected || insightSnapshot.key != pageInsightKey) {
+            emptyList()
+        } else {
+            insightSnapshot.insights.filterIsInstance<CodeInsight>()
+        }
+    }
+    val showCodes = codes.isNotEmpty() && !cutoutState.isActive && !cutoutState.isProcessing
+    val codeSheetState = rememberAppBottomSheetState()
+    var codeSelection by remember(media.id) { mutableStateOf<Int?>(null) }
+    val openCode: (Int?) -> Unit = { index ->
+        codeSelection = index
+        scope.launch { codeSheetState.show() }
+    }
+    // A new result or leaving the page closes a sheet that belongs to the old one.
+    LaunchedEffect(codes, isSelected) {
+        if (codeSheetState.isVisible && (codes.isEmpty() || !isSelected)) codeSheetState.hide()
+    }
+
     // Tap handler: while a cutout session is active, add/remove a prompt point; otherwise pass through.
     val onImageTap: (Offset) -> Unit = { offset ->
         val session = cutoutState.session
@@ -949,8 +986,9 @@ fun <T : Media> ZoomablePagerImage(
                 }
             }
         } else {
-            // No active session: pass the tap to the viewer.
-            onItemClick(offset)
+            // A tap on a found code opens it; any other tap goes to the viewer.
+            val hit = if (showCodes) hitTestCodes(codes, zoomState.zoomable, offset) else null
+            if (hit != null) openCode(hit) else onItemClick(offset)
         }
     }
 
@@ -1066,6 +1104,27 @@ fun <T : Media> ZoomablePagerImage(
             glowRadius = glowRadius,
             translationY = swipeOffsetY.toFloat()
         )
+
+        if (showCodes) {
+            CodeOverlay(
+                insights = codes,
+                zoomable = zoomState.zoomable,
+                showChip = uiVisible,
+                animationsEnabled = animationsEnabled,
+                bottomReserve = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 96.dp,
+                translationY = { swipeOffsetY.toFloat() },
+                onOpen = openCode,
+            )
+        }
+        if (codes.isNotEmpty()) {
+            CodeResultSheet(
+                sheetState = codeSheetState,
+                insights = codes,
+                selected = codeSelection,
+                onSelect = { codeSelection = it },
+                onDismiss = { codeSelection = null },
+            )
+        }
 
         // Processing / refinement indicator
         if (cutoutState.isProcessing) {

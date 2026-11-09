@@ -27,6 +27,13 @@ native_prepare_source() {
     local url="$4"
     local expected_sha="$5"
     local sentinel="$6"
+    # Optional tar --exclude pattern. zxing-cpp ships writer-only symlinks that Windows tar
+    # cannot create; a reader-only build never needs them.
+    local exclude="${7:-}"
+    local -a tar_extra=()
+    if [ -n "$exclude" ]; then
+        tar_extra=(--exclude="$exclude")
+    fi
     local source_dir
     source_dir="$(printenv "$env_name" 2>/dev/null || true)"
     if [ -z "$source_dir" ] && [ -n "${NATIVE_SOURCES_DIR:-}" ] && [ -d "$NATIVE_SOURCES_DIR/$key" ]; then
@@ -84,9 +91,9 @@ native_prepare_source() {
         # GNU tar reads a Windows drive path ("D:/...") as a remote host spec; keep it local.
         # bsdtar (macOS) neither needs nor accepts --force-local.
         if tar --version 2>/dev/null | grep -q "GNU tar"; then
-            tar --force-local -xzf "$archive" --strip-components=1 -C "$destination"
+            tar --force-local ${tar_extra[@]+"${tar_extra[@]}"} -xzf "$archive" --strip-components=1 -C "$destination"
         else
-            tar -xzf "$archive" --strip-components=1 -C "$destination"
+            tar ${tar_extra[@]+"${tar_extra[@]}"} -xzf "$archive" --strip-components=1 -C "$destination"
         fi
     fi
 
