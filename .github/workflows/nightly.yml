@@ -45,7 +45,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install pinned native CMake
         run: |
-          sdkmanager --install "cmake;3.31.6"
+          curl -fsSL "https://dl.google.com/android/repository/cmake-3.31.6-linux.zip" -o /tmp/cmake.zip
+          unzip -q /tmp/cmake.zip -d "$ANDROID_HOME/cmake/3.31.6"
+          rm /tmp/cmake.zip
           "$ANDROID_HOME/cmake/3.31.6/bin/cmake" --version | head -n 1 | grep -Fx "cmake version 3.31.6"
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
@@ -97,7 +99,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install pinned native CMake
         run: |
-          sdkmanager --install "cmake;3.31.6"
+          curl -fsSL "https://dl.google.com/android/repository/cmake-3.31.6-linux.zip" -o /tmp/cmake.zip
+          unzip -q /tmp/cmake.zip -d "$ANDROID_HOME/cmake/3.31.6"
+          rm /tmp/cmake.zip
           "$ANDROID_HOME/cmake/3.31.6/bin/cmake" --version | head -n 1 | grep -Fx "cmake version 3.31.6"
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
@@ -149,7 +153,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install pinned native CMake
         run: |
-          sdkmanager --install "cmake;3.31.6"
+          curl -fsSL "https://dl.google.com/android/repository/cmake-3.31.6-linux.zip" -o /tmp/cmake.zip
+          unzip -q /tmp/cmake.zip -d "$ANDROID_HOME/cmake/3.31.6"
+          rm /tmp/cmake.zip
           "$ANDROID_HOME/cmake/3.31.6/bin/cmake" --version | head -n 1 | grep -Fx "cmake version 3.31.6"
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/powershell || true
