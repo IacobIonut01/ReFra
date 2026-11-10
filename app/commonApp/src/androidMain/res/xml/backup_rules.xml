@@ -12,4 +12,15 @@
 -->
     <!-- Downloaded text recognition models: large, and downloaded again on the new device. -->
     <exclude domain="file" path="models/ocr/" />
+    <!-- Encrypted with Android Keystore keys, which never leave the device and are
+         deleted on uninstall, so a restored copy can never be decrypted. -->
+    <exclude domain="database" path="internal_db" />
+    <exclude domain="database" path="internal_db-wal" />
+    <exclude domain="database" path="internal_db-shm" />
+    <exclude domain="database" path="internal_db-journal" />
+    <exclude domain="database" path="internal_db.undecryptable" />
+    <exclude domain="sharedpref" path="encrypted_db_prefs.xml" />
+    <exclude domain="file" path="datastore/encrypted_settings.pb" />
+    <!-- Vault EncryptedFile keyset: a restored copy also fails to encrypt, so no new vault could be created. -->
+    <exclude domain="sharedpref" path="__androidx_security_crypto_encrypted_file_pref__.xml" />
 </full-backup-content>

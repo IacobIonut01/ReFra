@@ -7,23 +7,28 @@ package com.dot.gallery.core.encryption
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.core.content.edit
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.data.InternalDatabase
 import com.dot.gallery.core.logging.printDebug
+import com.dot.gallery.core.logging.printError
 import com.dot.gallery.core.logging.printWarning
 import androidx.room3.useReaderConnection
 import androidx.room3.useWriterConnection
 import androidx.sqlite.execSQL
+import com.dot.gallery.data.DatabaseFileState
 import com.dot.gallery.data.SqlCipherDriver
 import com.dot.gallery.data.getAndroidDatabaseBuilder
 import com.dot.gallery.data.getInternalDatabase
 import net.zetetic.database.sqlcipher.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteNotADatabaseException
 import java.io.File
 import java.security.KeyStore
 import java.security.SecureRandom
+import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -52,6 +57,7 @@ object EncryptedDatabaseFactory {
     private const val FLAG_DB_ENCRYPTED = "db_encrypted"
     private const val GCM_TAG_LENGTH = 128
     private const val PREF_RAW_KEY_MIGRATED = "raw_key_migrated"
+    private const val VERIFIED_MARKER = "internal_db_verified"
 
     fun create(context: Context, startupGate: StartupWorkGate? = null): InternalDatabase {
         val createSpan = StartupTracer.begin("EncryptedDB.create")
@@ -84,6 +90,10 @@ object EncryptedDatabaseFactory {
         // Must happen before Room opens the database.
         StartupTracer.trace("EncryptedDB.rekeyIfNeeded") {
             migrateToRawKeyIfNeeded(context, passphrase, hexString)
+        }
+
+        StartupTracer.trace("EncryptedDB.verifyOncePerInstall") {
+            verifyDatabaseOncePerInstall(context, passphrase, "x'$hexString'")
         }
 
         val db = StartupTracer.trace("EncryptedDB.roomBuilder") {
@@ -198,9 +208,18 @@ object EncryptedDatabaseFactory {
         if (flags.getBoolean(FLAG_DB_ENCRYPTED, false)) return
 
         val dbFile = context.getDatabasePath(InternalDatabase.NAME)
-        if (!dbFile.exists() || dbFile.length() == 0L) {
-            flags.edit {putBoolean(FLAG_DB_ENCRYPTED, true)}
-            return
+        when (DatabaseFileState.of(dbFile)) {
+            DatabaseFileState.ABSENT -> {
+                flags.edit {putBoolean(FLAG_DB_ENCRYPTED, true)}
+                return
+            }
+            // Already encrypted, but with a key this install never had (for example a
+            // database restored without the preferences holding its passphrase).
+            DatabaseFileState.NOT_PLAINTEXT -> {
+                discardUndecryptableDatabase(context, reason = "no passphrase for encrypted file", throwable = null)
+                return
+            }
+            DatabaseFileState.PLAINTEXT -> Unit
         }
 
         val backupFile = File(dbFile.parentFile, "${InternalDatabase.NAME}_plaintext_backup")
@@ -344,30 +363,124 @@ object EncryptedDatabaseFactory {
      * Keystore keys because we never call [SecretKey.getEncoded].
      */
     private fun getOrCreatePassphrase(context: Context): ByteArray {
-        val key = getOrCreateKey()
+        val (key, keyCreated) = loadOrCreateKey()
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val stored = prefs.getString(PREF_WRAPPED_PASSPHRASE, null)
 
-        return if (stored != null) {
-            unwrapPassphrase(key, stored)
-        } else {
-            val random = ByteArray(32).also { SecureRandom().nextBytes(it) }
-            val passphrase = random.joinToString("") { "%02x".format(it) }
-                .toByteArray(Charsets.UTF_8)
-            val wrapped = wrapPassphrase(key, passphrase)
-            prefs.edit {putString(PREF_WRAPPED_PASSPHRASE, wrapped)}
-            printDebug("EncryptedDatabaseFactory: generated and wrapped new passphrase")
-            passphrase
+        if (stored != null) {
+            val failure: Exception? = if (keyCreated) null else try {
+                return unwrapPassphrase(key, stored)
+            } catch (e: AEADBadTagException) {
+                e
+            } catch (e: KeyPermanentlyInvalidatedException) {
+                e
+            } catch (e: IllegalArgumentException) {
+                e
+            } catch (e: IndexOutOfBoundsException) {
+                e
+            }
+            // The Keystore key that wrapped this passphrase is gone: Keystore keys are
+            // deleted on uninstall and never leave the device, so a passphrase restored
+            // from a backup can never be unwrapped, and neither can the database it keys.
+            discardUndecryptableDatabase(
+                context,
+                reason = if (keyCreated) "keystore key missing" else "passphrase unwrap failed",
+                throwable = failure,
+            )
         }
+
+        val random = ByteArray(32).also { SecureRandom().nextBytes(it) }
+        val passphrase = random.joinToString("") { "%02x".format(it) }
+            .toByteArray(Charsets.UTF_8)
+        val wrapped = wrapPassphrase(key, passphrase)
+        prefs.edit {putString(PREF_WRAPPED_PASSPHRASE, wrapped)}
+        printDebug("EncryptedDatabaseFactory: generated and wrapped new passphrase")
+        return passphrase
     }
 
-    // Cache the Keystore key to avoid repeated expensive Keystore lookups.
-    private val cachedKey: SecretKey by lazy {
+    /**
+     * Once per install, checks that the database file opens with the stored passphrase
+     * before Room gets it. A restore can bring back the database and [PREFS_NAME] from
+     * different snapshots, or a plaintext file under a flag that says encrypted; Room
+     * would then fail on the first query. The marker lives in `noBackupFilesDir`, so a
+     * restored install always runs the check again.
+     */
+    private fun verifyDatabaseOncePerInstall(context: Context, passphrase: ByteArray, rawKey: String) {
+        val marker = File(context.noBackupFilesDir, VERIFIED_MARKER)
+        if (marker.exists()) return
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val dbFile = context.getDatabasePath(InternalDatabase.NAME)
+        when (DatabaseFileState.of(dbFile)) {
+            DatabaseFileState.ABSENT -> Unit
+            // Flagged as encrypted but still plaintext: encrypt it now, keeping the data.
+            DatabaseFileState.PLAINTEXT -> {
+                prefs.edit { putBoolean(FLAG_DB_ENCRYPTED, false) }
+                migrateUnencryptedDbIfNeeded(context, passphrase)
+            }
+            DatabaseFileState.NOT_PLAINTEXT -> try {
+                val db = SQLiteDatabase.openDatabase(
+                    dbFile.absolutePath, rawKey, null, SQLiteDatabase.OPEN_READWRITE, null, null
+                )
+                try {
+                    db.rawQuery("SELECT COUNT(*) FROM sqlite_schema", null).use { it.moveToFirst() }
+                } finally {
+                    db.close()
+                }
+            } catch (e: SQLiteNotADatabaseException) {
+                // Still keyed with the pre-raw-key passphrase after a failed rekey: not a
+                // mismatch, so keep the file and check again on the next launch.
+                if (!prefs.getBoolean(PREF_RAW_KEY_MIGRATED, false)) return
+                discardUndecryptableDatabase(context, reason = "passphrase does not match the database", throwable = e)
+            } catch (e: Exception) {
+                printWarning("EncryptedDatabaseFactory: database check failed, retrying next launch: ${e.message}")
+                return
+            }
+        }
+        marker.createNewFile()
+    }
+
+    /**
+     * Moves the database that nothing can decrypt aside (see [DatabaseFileState.moveAside]),
+     * so [create] builds a fresh encrypted database. Indexes are rebuilt by the next scans;
+     * anything that lived only in the old file was already lost with its key.
+     */
+    private fun discardUndecryptableDatabase(context: Context, reason: String, throwable: Throwable?) {
+        val dbFile = context.getDatabasePath(InternalDatabase.NAME)
+        val bytes = dbFile.length()
+        val moved = if (DatabaseFileState.of(dbFile) == DatabaseFileState.ABSENT) {
+            DatabaseFileState.companions(dbFile).forEach { it.delete() }
+            null
+        } else {
+            DatabaseFileState.moveAside(dbFile)
+        }
+        // The stored passphrase is left alone: the caller replaces it, or it was just
+        // generated for the fresh database.
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putBoolean(FLAG_DB_ENCRYPTED, true)
+            putBoolean(PREF_RAW_KEY_MIGRATED, true)
+        }
+        printError(
+            tag = "db.encryption",
+            message = "Encrypted database cannot be decrypted ($reason); rebuilding it",
+            throwable = throwable,
+            ctx = mapOf(
+                "reason" to reason,
+                "bytes" to bytes.toString(),
+                "movedTo" to (moved?.name ?: "none"),
+            ),
+        )
+    }
+
+    /**
+     * Returns the database Keystore key, and whether it was generated by this call. A key
+     * generated now cannot have wrapped any stored passphrase. Called once per [create].
+     */
+    private fun loadOrCreateKey(): Pair<SecretKey, Boolean> {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
         keyStore.load(null)
 
-        if (keyStore.containsAlias(KEY_ALIAS)) {
-            keyStore.getKey(KEY_ALIAS, null) as SecretKey
+        return if (keyStore.containsAlias(KEY_ALIAS)) {
+            (keyStore.getKey(KEY_ALIAS, null) as SecretKey) to false
         } else {
             val keyGen = KeyGenerator.getInstance(
                 KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE
@@ -382,11 +495,9 @@ object EncryptedDatabaseFactory {
                     .setKeySize(256)
                     .build()
             )
-            keyGen.generateKey()
+            keyGen.generateKey() to true
         }
     }
-
-    private fun getOrCreateKey(): SecretKey = cachedKey
 
     private fun wrapPassphrase(key: SecretKey, passphrase: ByteArray): String {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")

@@ -208,7 +208,8 @@ import com.dot.gallery.core.smart.OcrIndexPhaseProcessor
 import com.dot.gallery.core.smart.SearchIndexPhaseProcessor
 import com.dot.gallery.core.smart.SmartScanPhaseProcessor
 import com.dot.gallery.core.smart.SourceSyncProcessor
-import com.dot.gallery.data.getBundledDatabase
+import com.dot.gallery.core.logging.printError
+import com.dot.gallery.data.getFallbackDatabase
 
 /**
  * kotlin-inject root graph for the app process.
@@ -305,9 +306,15 @@ abstract class AppComponent(
             EncryptedDatabaseFactory.create(application, startupGate).also {
                 EncryptionStateMonitor.reportDatabase(EncryptionBackendState.ENCRYPTED)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            printError(
+                tag = "db.encryption",
+                message = "Encrypted database unavailable; falling back to an unencrypted one",
+                throwable = e,
+                ctx = mapOf("exception" to e.javaClass.name),
+            )
             StartupTracer.trace("AppComponent.provideDatabase.fallbackPlaintext") {
-                getBundledDatabase(application)
+                getFallbackDatabase(application)
             }.also {
                 EncryptionStateMonitor.reportDatabase(EncryptionBackendState.PLAINTEXT_FALLBACK)
             }

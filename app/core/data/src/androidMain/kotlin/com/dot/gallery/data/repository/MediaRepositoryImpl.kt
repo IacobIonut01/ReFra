@@ -1404,7 +1404,7 @@ class MediaRepositoryImpl(
                 val uuidRegex =
                     "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$".toRegex()
                 val vaults =
-                    filesDir.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
+                    vaultRoot.listFiles { it.isDirectory && it.nameWithoutExtension.matches(uuidRegex) }
                 vaults?.forEach { vaultFolder ->
                     (vaultFolder.listFiles()?.filter { it.name.endsWith("enc") }
                         ?: emptyList()).map { file ->

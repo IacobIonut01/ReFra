@@ -12,6 +12,8 @@ import com.dot.gallery.domain.model.Vault
 import com.dot.gallery.domain.model.VaultInfo
 import com.dot.gallery.domain.util.toKotlinByteArray
 import com.dot.gallery.core.logging.printError
+import com.dot.gallery.core.logging.printInfo
+import com.dot.gallery.core.logging.printWarn
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -27,6 +29,7 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 import kotlin.uuid.Uuid
+import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
@@ -45,7 +48,13 @@ class KeychainHolder @Inject constructor(
 
     val filesDir: File = context.filesDir
 
-    fun vaultFolder(vault: Vault) = File(filesDir, vault.uuid.toString())
+    /**
+     * Root of every vault folder. It sits in `noBackupFilesDir` because vault data is keyed
+     * by Android Keystore keys, which are never backed up, so a restored copy is unreadable.
+     */
+    val vaultRoot: File = File(context.noBackupFilesDir, VAULT_ROOT_DIR)
+
+    fun vaultFolder(vault: Vault) = File(vaultRoot, vault.uuid.toString())
     private fun vaultInfoFile(vault: Vault) = File(vaultFolder(vault), VAULT_INFO_FILE_NAME)
     fun Vault.mediaFile(mediaId: Long) = File(vaultFolder(this), "$mediaId.enc")
 
@@ -53,12 +62,94 @@ class KeychainHolder @Inject constructor(
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
+    init {
+        if (!storagePrepared) synchronized(KeychainHolder) {
+            if (!storagePrepared) {
+                prepareStorage()
+                storagePrepared = true
+            }
+        }
+    }
+
+    /**
+     * Runs once per process before any vault file is touched: moves vault folders out of
+     * `filesDir` into [vaultRoot], then recovers from a restored keyset (see
+     * [recoverUndecryptableKeyset]). Safe to call again.
+     */
+    fun prepareStorage() {
+        moveVaultFoldersOutOfBackup()
+        recoverUndecryptableKeyset()
+    }
+
+    private fun moveVaultFoldersOutOfBackup() {
+        val legacy = filesDir.listFiles { f ->
+            f.isDirectory && runCatching { Uuid.parse(f.name) }.isSuccess &&
+                f.list()?.any { it == VAULT_INFO_FILE_NAME || it.endsWith(".enc") } == true
+        } ?: return
+        if (legacy.isEmpty()) return
+        vaultRoot.mkdirs()
+        legacy.forEach { from ->
+            val to = File(vaultRoot, from.name)
+            if (to.exists() || !from.renameTo(to)) {
+                to.mkdirs()
+                from.listFiles()?.forEach { child ->
+                    val target = File(to, child.name)
+                    if (!target.exists() && !child.renameTo(target)) {
+                        printWarn(TAG, "Could not move vault file", ctx = mapOf("vault" to from.name, "file" to child.name))
+                    }
+                }
+                from.delete()
+            }
+        }
+        printInfo(TAG, "Moved ${legacy.size} vault folder(s) to noBackupFilesDir")
+    }
+
+    /**
+     * A backup restore brings back the EncryptedFile keyset but not the Keystore master key
+     * that wraps it, and from then on every [EncryptedFile.Builder.build] throws
+     * [AEADBadTagException], so no vault can be created or read. Checked once per install
+     * (the marker is in `noBackupFilesDir`, which a restore never brings back). On that
+     * failure the keyset is cleared so a new one is generated. Device-locked vaults can
+     * never be read again and are deleted; portable vaults keep their media and lose only
+     * their wrapped data key, so re-importing the exported key opens them again.
+     */
+    private fun recoverUndecryptableKeyset() {
+        val marker = File(context.noBackupFilesDir, KEYSET_VERIFIED_MARKER)
+        if (marker.exists()) return
+        val keysetFile = File(filesDir.parentFile, "shared_prefs/$KEYSET_PREFS_NAME.xml")
+        if (keysetFile.exists()) {
+            try {
+                EncryptedFile.Builder(context, File(context.cacheDir, KEYSET_PROBE_FILE), masterKey, AES256_GCM_HKDF_4KB).build()
+            } catch (e: AEADBadTagException) {
+                context.getSharedPreferences(KEYSET_PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit()
+                var deleted = 0
+                var keysDropped = 0
+                vaultRoot.listFiles { f -> f.isDirectory }?.forEach { folder ->
+                    val vault = runCatching { Vault(uuid = Uuid.parse(folder.name), name = "") }.getOrNull() ?: return@forEach
+                    if (isTransferable(vault)) {
+                        if (dataKeyFile(vault).delete()) keysDropped++
+                    } else if (folder.deleteRecursively()) {
+                        deleted++
+                    }
+                }
+                printError(
+                    TAG, "Vault keyset cannot be decrypted (restored without its Keystore key); cleared it", e,
+                    ctx = mapOf("deviceLockedVaultsDeleted" to "$deleted", "portableKeysDropped" to "$keysDropped"),
+                )
+            } catch (e: Exception) {
+                printWarn(TAG, "Vault keyset check failed; retrying next launch", ctx = mapOf("exception" to "${e.javaClass.name}: ${e.message}"))
+                return
+            }
+        }
+        marker.createNewFile()
+    }
+
     /**
      * Legacy write: always device-locked (non-transferable). Kept for backward compatibility.
      */
     fun writeVaultInfo(vault: Vault, onSuccess: () -> Unit = {}, onFailed: (reason: String) -> Unit = {}) {
         try {
-            val vaultFolder = File(filesDir, vault.uuid.toString())
+            val vaultFolder = vaultFolder(vault)
             if (!vaultFolder.exists()) {
                 vaultFolder.mkdirs()
             }
@@ -134,7 +225,7 @@ class KeychainHolder @Inject constructor(
     }
 
     fun checkVaultFolder(vault: Vault) {
-        val mainFolder = File(filesDir, vault.uuid.toString())
+        val mainFolder = vaultFolder(vault)
         if (!mainFolder.exists()) {
             mainFolder.mkdirs()
             writeVaultInfo(vault)
@@ -312,7 +403,7 @@ class KeychainHolder @Inject constructor(
 
     /**
      * Import a portable vault by injecting a provided Base64 data key.
-     * If vault folder exists and already has key, it's left unchanged unless force=true.
+     * If vault folder exists and already has a readable key, it's left unchanged unless force=true.
      */
     fun importPortableVault(vault: Vault, base64Key: String, force: Boolean = false): Boolean {
         return try {
@@ -321,7 +412,13 @@ class KeychainHolder @Inject constructor(
             val folder = vaultFolder(vault)
             if (!folder.exists()) folder.mkdirs()
             val dkFile = dataKeyFile(vault)
-            if (dkFile.exists() && !force) return true
+            // Keep an existing key only if it still decrypts; otherwise the import replaces it.
+            if (dkFile.exists() && !force && runCatching { loadDataKey(vault) }
+                    .onFailure { printWarn(TAG, "Existing vault data key unreadable; replacing it", ctx = mapOf("exception" to "${it.javaClass.name}: ${it.message}")) }
+                    .getOrNull() != null
+            ) return true
+            // EncryptedFile refuses to overwrite an existing file.
+            dkFile.delete()
             // Write encrypted DK file
             EncryptedFile.Builder(
                 context,
@@ -505,6 +602,14 @@ class KeychainHolder @Inject constructor(
         private const val TAG = "vault.keychain"
         const val VAULT_INFO_FILE_NAME = "info.vault"
         const val DATA_KEY_FILE_NAME = "vault.key.enc"
+        const val VAULT_ROOT_DIR = "vaults"
+        const val KEYSET_VERIFIED_MARKER = "vault_keyset_verified"
+        // EncryptedFile's default keyset preferences; excluded from backup in the backup rules.
+        const val KEYSET_PREFS_NAME = "__androidx_security_crypto_encrypted_file_pref__"
+        private const val KEYSET_PROBE_FILE = "vault_keyset_probe"
+
+        @Volatile
+        private var storagePrepared = false
 
         fun sniffMimeType(bytes: ByteArray): String {
             if (bytes.size < 12) return "application/octet-stream"
