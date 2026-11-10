@@ -55,6 +55,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,10 +65,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.cloud.core.PersonInfo
 import com.dot.gallery.cloud.local.PersonMergeSuggestion
@@ -95,6 +98,8 @@ import com.dot.gallery.generated.resources.people_hide_hidden
 import com.dot.gallery.generated.resources.people_new_section
 import com.dot.gallery.generated.resources.people_photo_count
 import com.dot.gallery.generated.resources.people_regroup
+import com.dot.gallery.generated.resources.people_scan_failed
+import com.dot.gallery.generated.resources.people_scan_start_failed
 import com.dot.gallery.generated.resources.people_scanning_count
 import com.dot.gallery.generated.resources.people_scanning_grouping
 import com.dot.gallery.generated.resources.people_scanning_title
@@ -125,6 +130,21 @@ fun PeopleListScreen(
     val viewModel = injectViewModel<PeopleListViewModel> {peopleListViewModel}
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val scanState by viewModel.scanState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scanStartFailedText = stringResource(Res.string.people_scan_start_failed)
+    val scanRunFailedText = stringResource(Res.string.people_scan_failed)
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            Toast.makeText(
+                context,
+                when (event) {
+                    PeopleScanEvent.ScanStartFailed -> scanStartFailedText
+                    PeopleScanEvent.ScanRunFailed -> scanRunFailedText
+                },
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
     PeopleListContent(
         state = state,
         scanState = scanState,

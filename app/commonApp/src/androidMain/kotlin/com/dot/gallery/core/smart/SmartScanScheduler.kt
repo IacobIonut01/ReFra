@@ -34,6 +34,7 @@ import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.core.workers.SmartScanWorker
 import com.dot.gallery.core.presentation.util.mediaStoreVersion
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.logging.printInfo
 import com.dot.gallery.core.logging.printWarn
 
 
@@ -62,6 +63,15 @@ private val SMART_SCAN_HEAVY_PHASES = setOf(
     SmartScanPhase.FACE_INDEX,
     SmartScanPhase.OCR_INDEX
 )
+
+/**
+ * A manual request must start the scan now: an existing task still `Enqueued` —
+ * sitting in WorkManager retry-backoff or waiting on constraints — is alive for
+ * the scheduler but invisible to the user, so it is replaced instead of letting
+ * the request be swallowed by the unchanged schedule.
+ */
+internal fun shouldKickDeferredTask(trigger: SmartScanTrigger, state: TaskState): Boolean =
+    trigger == SmartScanTrigger.MANUAL && state is TaskState.Enqueued
 
 @Singleton
 class SmartScanSchedulerImpl @Inject constructor(
@@ -149,10 +159,18 @@ class SmartScanSchedulerImpl @Inject constructor(
     override suspend fun resumeActiveRun(): Boolean = schedulingMutex.withLock {
         val run = dao.getActiveRun() ?: return@withLock false
         val state = run.workId?.let { scheduler.observeTaskState(it).first() }
-        if (state != null && !state.isFinished) return@withLock true
+        // A user-visible run whose task sits deferred recovers like a dead one —
+        // backoff can otherwise leave it idle for hours across restarts.
+        val kickDeferred = run.userVisible && state is TaskState.Enqueued
+        if (state != null && !state.isFinished && !kickDeferred) return@withLock true
 
+        val deferredWorkId = run.workId?.takeIf { kickDeferred }
         if (!dao.prepareRunRecovery(run.runId, UUID.randomUUID().toString(), System.currentTimeMillis())) {
             return@withLock false
+        }
+        deferredWorkId?.let { value ->
+            printInfo("smart.scan", "recovering user-visible run ${run.runId.take(8)} behind deferred task ${value.take(8)}")
+            runCatching { scheduler.cancel(value) }
         }
         return@withLock enqueueRunLocked(run.runId, replace = true)
     }
@@ -217,7 +235,14 @@ class SmartScanSchedulerImpl @Inject constructor(
         val scheduled = dao.coalesceOrCreate(run, phases)
         val scheduledWorkId = requireNotNull(scheduled.workId)
         val existingState = scheduler.observeTaskState(scheduledWorkId).first()
-        if (existingState != TaskState.Unknown && !existingState.isFinished) return scheduled
+        val kickDeferred = shouldKickDeferredTask(trigger, existingState)
+        if (existingState != TaskState.Unknown && !existingState.isFinished && !kickDeferred) return scheduled
+        if (kickDeferred) {
+            printInfo(
+                "smart.scan",
+                "manual request replaces deferred task ${scheduledWorkId.take(8)} for run ${scheduled.runId.take(8)}"
+            )
+        }
         val scheduledRun = requireNotNull(dao.getRun(scheduled.runId))
         val actualWorkId = if (existingState.isFinished && existingState != TaskState.Unknown)
             UUID.randomUUID().toString() else scheduledWorkId
@@ -246,7 +271,7 @@ class SmartScanSchedulerImpl @Inject constructor(
             workerClassName = SmartScanWorker.WORKER_NAME,
             constraints = actualWork.constraints,
             inputJson = actualWork.inputJson,
-            policy = if (promoted) ExistingPolicy.REPLACE else ExistingPolicy.KEEP,
+            policy = if (promoted || kickDeferred) ExistingPolicy.REPLACE else ExistingPolicy.KEEP,
             tags = actualWork.tags,
         )
         return scheduled

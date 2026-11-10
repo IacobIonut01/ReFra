@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -36,7 +37,16 @@ import com.dot.gallery.cloud.local.LocalPeopleProvider
 import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.core.smart.SmartScanScheduler
 import com.dot.gallery.cloud.core.LOCAL_PEOPLE_CONFIG_ID
+import com.dot.gallery.data.entity.SmartScanStatus
+import com.dot.gallery.core.logging.printError
+import com.dot.gallery.core.logging.printInfo
+import com.dot.gallery.core.logging.printWarn
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
+
+private val FAILED_SCAN_STATUSES = setOf(SmartScanStatus.FAILED, SmartScanStatus.BLOCKED)
 
 /** A labelled group of people belonging to one non-local provider account. */
 data class ProviderPeopleSection(
@@ -53,6 +63,15 @@ data class PeopleScanUiState(
     val total: Int = 0,
     val runId: String? = null
 )
+
+/** One-shot events the screen surfaces as toasts. */
+sealed interface PeopleScanEvent {
+    /** Scheduling threw — the scan never started. */
+    data object ScanStartFailed : PeopleScanEvent
+
+    /** A PERSONS run finished FAILED or BLOCKED while this screen was alive. */
+    data object ScanRunFailed : PeopleScanEvent
+}
 
 data class PeopleListUiState(
     /** Named on-device people, most photos first. */
@@ -91,6 +110,13 @@ class PeopleListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(PeopleListUiState())
     val uiState: StateFlow<PeopleListUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<PeopleScanEvent>(extraBufferCapacity = 2)
+    val events: SharedFlow<PeopleScanEvent> = _events.asSharedFlow()
+
+    /** Terminal failures only notify for runs finished while this screen lives — an old
+     * failed run in the table must not toast on every page open. */
+    private val createdAt = System.currentTimeMillis()
 
     /** Whether an on-device face scan can be started (the active face tier is installed). */
     val localScanAvailable: Boolean
@@ -134,7 +160,20 @@ class PeopleListViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PeopleScanUiState())
 
     fun scanForPeople() {
-        viewModelScope.launch { smartScanScheduler.manual(SmartScanFeature.PERSONS.bit) }
+        viewModelScope.launch {
+            runCatching { smartScanScheduler.manual(SmartScanFeature.PERSONS.bit) }
+                .onSuccess { scheduled ->
+                    printInfo(
+                        "ml.people",
+                        "people scan scheduled (run=${scheduled.runId.take(8)} " +
+                            "created=${scheduled.created} work=${scheduled.workId?.take(8)})"
+                    )
+                }
+                .onFailure { error ->
+                    printError("ml.people", "people scan scheduling failed", throwable = error)
+                    _events.emit(PeopleScanEvent.ScanStartFailed)
+                }
+        }
     }
 
     /** Re-run only the grouping phase over stored embeddings — no media re-scan. */
@@ -214,6 +253,23 @@ class PeopleListViewModel @Inject constructor(
             localProvider()?.observeHiddenPeopleCount()?.collect { count ->
                 _uiState.value = _uiState.value.copy(hiddenPeopleCount = count)
             }
+        }
+        viewModelScope.launch {
+            smartScanDao.observeLatestRun()
+                .map { run -> run?.takeIf { SmartScanPlan.runRequestsFeature(it, SmartScanFeature.PERSONS) } }
+                .distinctUntilChangedBy { it?.runId to it?.status }
+                .collect { run ->
+                    if (run != null && run.status in FAILED_SCAN_STATUSES &&
+                        (run.finishedAt ?: 0L) >= createdAt
+                    ) {
+                        printWarn(
+                            "ml.people",
+                            "people scan finished ${run.status.name.lowercase()} " +
+                                "(run=${run.runId.take(8)} code=${run.lastErrorCode ?: "none"})"
+                        )
+                        _events.emit(PeopleScanEvent.ScanRunFailed)
+                    }
+                }
         }
         viewModelScope.launch {
             Settings.PeoplePage.hiddenSources(context).collect { sources ->

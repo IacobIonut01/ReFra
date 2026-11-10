@@ -844,6 +844,8 @@
     <string name="people_setup_face_grouping">Set up face grouping</string>
     <string name="people_scanning_title">Finding faces</string>
     <string name="people_scanning_count">%1$d of %2$d photos</string>
+    <string name="people_scan_start_failed">Could not start the people scan</string>
+    <string name="people_scan_failed">People scan failed</string>
     <string name="people_settings">People settings</string>
     <string name="people_settings_sources">Sources</string>
     <string name="people_settings_sources_desc">Choose which sources appear in People.</string>
