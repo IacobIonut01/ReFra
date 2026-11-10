@@ -103,21 +103,36 @@ tasks.matching {
 tasks.matching { it.name.endsWith("AndroidTestAssets") }
     .configureEach { dependsOn(stageVideoCaptureSample) }
 
-// The editor's scanline JPEG encoder (editor/native/src/jpeg_jni.c) links the
-// same prebuilt libjpeg-turbo the app's image pipeline uses. Gradle builds this
-// library before :app:androidApp, so on a clean tree those artifacts would not
-// exist yet when the editor's CMake configures and the encoder would compile to
-// stubs. Depend on the producing task explicitly, per ABI.
-val imgcodecTaskByAbi = mapOf(
-    "arm64-v8a" to "buildImgcodecNativeArm64V8a",
-    "armeabi-v7a" to "buildImgcodecNativeArmeabiV7a",
-    "x86" to "buildImgcodecNativeX86",
-    "x86_64" to "buildImgcodecNativeX8664"
+// The editor's JNI bridge links prebuilt static libraries that :app:androidApp's
+// native tasks produce: libjpeg-turbo from build-imgcodec.sh for the scanline
+// JPEG encoder (src/jpeg_jni.c), and libheif + x265 + aom + de265 from
+// build-heif-encode.sh for tiled HEIF export (src/heif_jni.cpp). Gradle builds
+// this library before :app:androidApp, so on a clean tree those artifacts would
+// not exist yet when the editor's CMake configures, and the encoders would
+// compile to stubs. Worse, the scripts delete and recreate their ABI output
+// directory, so a CMake build running alongside one sees configured libraries
+// vanish and ninja fails with "missing and no known rule to make it". Depend on
+// every producing task per ABI, and track its output so CMake reconfigures when
+// the libraries change.
+val editorNativeStacks = mapOf(
+    "Imgcodec" to "imgcodec",
+    "HeifEncode" to "heifenc"
+)
+val editorNativeAbiTaskSuffixes = mapOf(
+    "arm64-v8a" to "Arm64V8a",
+    "armeabi-v7a" to "ArmeabiV7a",
+    "x86" to "X86",
+    "x86_64" to "X8664"
 )
 tasks.configureEach {
-    val abi = imgcodecTaskByAbi.keys.firstOrNull { name.endsWith("[$it]") }
+    val abi = editorNativeAbiTaskSuffixes.keys.firstOrNull { name.endsWith("[$it]") }
     if (name.startsWith("configureCMake") && abi != null) {
-        dependsOn(":app:androidApp:${imgcodecTaskByAbi.getValue(abi)}")
+        val suffix = editorNativeAbiTaskSuffixes.getValue(abi)
+        editorNativeStacks.forEach { (stack, outputName) ->
+            dependsOn(":app:androidApp:build${stack}Native$suffix")
+            inputs.files(rootProject.file("app/androidApp/src/main/cpp/$outputName/$abi"))
+                .withPropertyName("prebuilt${stack}")
+        }
     }
 }
 
