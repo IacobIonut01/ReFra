@@ -15,7 +15,8 @@ enum class SmartScanFeature(val bit: Int) {
     METADATA(1),
     EMBEDDINGS(1 shl 1),
     CATEGORIES(1 shl 2),
-    PERSONS(1 shl 3);
+    PERSONS(1 shl 3),
+    TEXT(1 shl 4);
 
     companion object {
         val ALL_MASK = entries.fold(0) { mask, feature -> mask or feature.bit }

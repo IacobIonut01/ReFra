@@ -204,6 +204,7 @@ import com.dot.gallery.core.smart.CategoryClassificationPhaseProcessor
 import com.dot.gallery.core.smart.FaceClusterPhaseProcessor
 import com.dot.gallery.core.smart.FaceIndexPhaseProcessor
 import com.dot.gallery.core.smart.MetadataPhaseProcessor
+import com.dot.gallery.core.smart.OcrIndexPhaseProcessor
 import com.dot.gallery.core.smart.SearchIndexPhaseProcessor
 import com.dot.gallery.core.smart.SmartScanPhaseProcessor
 import com.dot.gallery.core.smart.SourceSyncProcessor
@@ -435,6 +436,28 @@ abstract class AppComponent(
 
     @Provides
     @Singleton
+    fun provideOcrPackStore(): com.dot.gallery.core.ocr.model.OcrPackStore =
+        com.dot.gallery.core.ocr.model.OcrPackStore(application)
+
+    @Provides
+    @Singleton
+    fun provideOcrRepository(database: com.dot.gallery.data.InternalDatabase): com.dot.gallery.core.ocr.repository.OcrRepository =
+        com.dot.gallery.core.ocr.repository.OcrRepository(database.getOcrResultDao())
+
+    @Provides
+    @Singleton
+    fun provideOcrSessionManager(store: com.dot.gallery.core.ocr.model.OcrPackStore): com.dot.gallery.core.ocr.engine.OcrSessionManager =
+        com.dot.gallery.core.ocr.engine.OcrSessionManager(store)
+
+    @Provides
+    @Singleton
+    fun providePpOcrV5Engine(
+        store: com.dot.gallery.core.ocr.model.OcrPackStore,
+        sessions: com.dot.gallery.core.ocr.engine.OcrSessionManager,
+    ): com.dot.gallery.core.ocr.engine.PpOcrV5Engine = com.dot.gallery.core.ocr.engine.PpOcrV5Engine(store, sessions)
+
+    @Provides
+    @Singleton
     fun provideModelManager(): ModelManager =
         StartupTracer.trace("AppComponent.provideModelManager") { ModelManager(application) }
 
@@ -596,6 +619,10 @@ abstract class AppComponent(
     @Provides
     fun provideFaceClusterProcessor(processor: FaceClusterPhaseProcessor): SmartScanPhaseProcessor = processor
 
+    @IntoSet
+    @Provides
+    fun provideOcrIndexProcessor(processor: OcrIndexPhaseProcessor): SmartScanPhaseProcessor = processor
+
     // ── graph accessors — injectViewModel/InjectWorkerFactory and app code read from here
 
     abstract val contentResolver: ContentResolver
@@ -742,6 +769,10 @@ abstract class AppComponent(
     abstract val metadataCollectionWorker: MetadataCollectionWorker
     abstract val metadataLocationRepairWorker: MetadataLocationRepairWorker
     abstract val modelDownloadWorker: ModelDownloadWorker
+    abstract val ocrPackInstallWorker: com.dot.gallery.core.workers.OcrPackInstallWorker
+    abstract val ocrPackStore: com.dot.gallery.core.ocr.model.OcrPackStore
+    abstract val ocrRepository: com.dot.gallery.core.ocr.repository.OcrRepository
+    abstract val ppOcrV5Engine: com.dot.gallery.core.ocr.engine.PpOcrV5Engine
     abstract val redactedLocationRepairWorker: RedactedLocationRepairWorker
     abstract val rotateMediaWorker: RotateMediaWorker
     abstract val floatingProgressRegistry: FloatingProgressRegistry

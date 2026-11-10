@@ -13,6 +13,7 @@ class SmartScanDetailActions(
     val onEmbeddings: () -> Unit = {},
     val onCategories: () -> Unit = {},
     val onPersons: () -> Unit = {},
+    val onText: () -> Unit = {},
     val onAll: () -> Unit = {},
     val onFullRefresh: () -> Unit = {},
     val onCancel: () -> Unit = {},

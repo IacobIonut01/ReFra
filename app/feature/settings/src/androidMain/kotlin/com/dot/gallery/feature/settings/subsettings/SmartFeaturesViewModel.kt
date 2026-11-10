@@ -267,6 +267,8 @@ class SmartFeaturesViewModel @Inject constructor(
 
     fun refreshPersons() = request(SmartScanFeature.PERSONS.bit)
 
+    fun refreshText() = request(SmartScanFeature.TEXT.bit)
+
     fun refreshAll() {
         viewModelScope.launch { smartScanScheduler.all(userVisible = true) }
     }

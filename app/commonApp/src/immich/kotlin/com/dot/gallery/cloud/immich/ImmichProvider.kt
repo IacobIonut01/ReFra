@@ -34,6 +34,7 @@ import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteNameConflictPolicy
 import com.dot.gallery.cloud.core.capabilities.ShareLinkCapableProvider
 import com.dot.gallery.cloud.core.capabilities.SmartSearchCapableProvider
+import com.dot.gallery.cloud.core.capabilities.TextSearchCapableProvider
 import com.dot.gallery.cloud.core.capabilities.SyncDelta
 import com.dot.gallery.cloud.core.capabilities.CloudTagInfo
 import com.dot.gallery.cloud.core.capabilities.TagsCapableProvider
@@ -109,6 +110,7 @@ private const val IMMICH_MAX_RECONCILE_PAGES = 500
 // A single asset realistically lives in a handful of albums; more than this means
 // the server ignored the `assetId` filter and returned the full album list.
 private const val MAX_ALBUM_LOOKUP_CANDIDATES = 8
+private const val TEXT_SEARCH_PAGE_SIZE = 250
 
 internal fun immichChecksum(contentHash: String): String {
     val normalized = contentHash.lowercase()
@@ -157,6 +159,7 @@ class ImmichProvider @Inject constructor(
     MapCapableProvider,
     PeopleCapableProvider,
     SmartSearchCapableProvider,
+    TextSearchCapableProvider,
     TagsCapableProvider,
     ShareLinkCapableProvider,
     RemoteAlbumWriteProvider,
@@ -221,6 +224,9 @@ class ImmichProvider @Inject constructor(
         ProviderCapability.PEOPLE,
         ProviderCapability.MAP,
         ProviderCapability.SMART_SEARCH,
+        // Immich 2.2 and later search recognized text; older servers reject the field and
+        // textSearch then reports no hits.
+        ProviderCapability.TEXT_SEARCH,
         ProviderCapability.SHARE_CREATE,
         ProviderCapability.SHARE_MANAGE,
         ProviderCapability.ARCHIVE,
@@ -936,6 +942,28 @@ class ImmichProvider @Inject constructor(
 
     override suspend fun smartSearchByAsset(remoteId: String): Result<List<Media>> =
         runSmartSearch(ImmichSearchDto(queryAssetId = remoteId), excludeRemoteId = remoteId)
+
+    /** `POST /api/search/metadata` with `ocr`: assets whose server-recognized text matches. */
+    override suspend fun textSearch(query: String): Result<List<Media>> {
+        return try {
+            val configId = requireConfigId()
+            val response = requireApi().metadataSearch(mapOf("ocr" to query, "size" to TEXT_SEARCH_PAGE_SIZE))
+            if (response.isSuccessful) {
+                val entities = response.body()?.assets?.items
+                    ?.map { it.toCloudMediaEntity(configId, baseUrl) }
+                    .orEmpty()
+                // Only the account's own library is cached; foreign assets would be pruned and flap.
+                val own = entities.filter { cloudMediaDao.getByRemoteId(it.remoteId, it.providerType, configId) != null }
+                Result.success(own.map { it.toUriMedia() })
+            } else {
+                Result.failure(Exception("Text search failed: ${response.code()}"))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     private suspend fun runSmartSearch(
         dto: ImmichSearchDto,

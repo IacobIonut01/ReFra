@@ -104,7 +104,8 @@ class InsightController<T>(
                     throw e
                 } catch (e: Throwable) {
                     onError(e)
-                    publish(myGeneration, key, emptyList(), manual = false)
+                    // Not cached: a failed read is not "nothing found", so the next request reads again.
+                    publish(myGeneration, key, emptyList(), manual = false, cacheResult = false)
                 }
             }
         }
@@ -143,10 +144,16 @@ class InsightController<T>(
         scope.launch { engine.release() }.invokeOnCompletion { scope.cancel() }
     }
 
-    private fun publish(myGeneration: Long, key: InsightKey, found: List<Insight>, manual: Boolean) {
+    private fun publish(
+        myGeneration: Long,
+        key: InsightKey,
+        found: List<Insight>,
+        manual: Boolean,
+        cacheResult: Boolean = true,
+    ) {
         synchronized(lock) {
             if (disposed || myGeneration != generation) return
-            cache[key] = found
+            if (cacheResult) cache[key] = found
             _state.value = InsightState(key, found)
             jobKey = null
             job = null

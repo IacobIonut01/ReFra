@@ -61,4 +61,6 @@ data class SearchActions(
     val onSeeAllCategories: () -> Unit = {},
     /** "See all" on the Places section. */
     val onSeeAllPlaces: () -> Unit = {},
+    /** Open a "Text in photos" match; the viewer highlights the query's words in it. */
+    val onOpenTextMatch: (mediaId: Long) -> Unit = onOpenSearchResult,
 )

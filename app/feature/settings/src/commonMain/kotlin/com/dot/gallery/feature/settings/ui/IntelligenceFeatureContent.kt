@@ -374,9 +374,13 @@ private fun IntelligenceFeature.heroIcon(): ImageVector = when (this) {
     IntelligenceFeature.SUBJECT_CUTOUT -> Icons.Outlined.ContentCut
 }
 
-/** The feature's glyph on an orbit, with the offline badge and the on-device note. */
 @Composable
-private fun FeatureHero(feature: IntelligenceFeature, modifier: Modifier = Modifier) {
+private fun FeatureHero(feature: IntelligenceFeature, modifier: Modifier = Modifier) =
+    HubFeatureHero(icon = feature.heroIcon(), modifier = modifier)
+
+/** A hub feature's glyph on an orbit, with the offline badge and the on-device note. */
+@Composable
+internal fun HubFeatureHero(icon: ImageVector, modifier: Modifier = Modifier) {
     val orbitColor = MaterialTheme.colorScheme.outlineVariant
     Box(
         modifier = modifier
@@ -410,7 +414,7 @@ private fun FeatureHero(feature: IntelligenceFeature, modifier: Modifier = Modif
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = feature.heroIcon(),
+                imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
@@ -472,6 +476,12 @@ private fun FeatureIntro(feature: IntelligenceFeature) {
         IntelligenceFeature.SMART_SEARCH -> Res.string.feature_search_headline to Res.string.feature_search_body
         IntelligenceFeature.SUBJECT_CUTOUT -> Res.string.feature_cutout_headline to Res.string.feature_cutout_body
     }
+    HubFeatureIntro(headline = stringResource(headline), body = stringResource(body))
+}
+
+/** Headline and explanation under a hub feature's hero. */
+@Composable
+internal fun HubFeatureIntro(headline: String, body: String) {
     Column(
         modifier = Modifier
             .hubContentWidth()
@@ -479,12 +489,12 @@ private fun FeatureIntro(feature: IntelligenceFeature) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = stringResource(headline),
+            text = headline,
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = stringResource(body),
+            text = body,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -579,7 +589,7 @@ private fun WifiNote() {
 }
 
 @Composable
-private fun Chevron() {
+internal fun Chevron() {
     Icon(
         imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
         contentDescription = null,

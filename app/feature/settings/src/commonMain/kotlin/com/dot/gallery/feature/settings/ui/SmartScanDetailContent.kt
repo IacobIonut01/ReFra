@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -85,6 +86,8 @@ import com.dot.gallery.feature.settings.generated.resources.smart_scan_row_metad
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_row_metadata_summary
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_row_people
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_row_people_summary
+import com.dot.gallery.feature.settings.generated.resources.smart_scan_row_text
+import com.dot.gallery.feature.settings.generated.resources.smart_scan_row_text_summary
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_scanning_title
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_stage_running
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_stages_header
@@ -225,7 +228,13 @@ private fun refreshRows(
             stringResource(Res.string.smart_scan_row_people),
             if (state.personsReady) stringResource(Res.string.smart_scan_row_people_summary)
             else stringResource(Res.string.smart_scan_face_models_unavailable),
-            Position.Bottom, state.personsReady, actions.onPersons,
+            Position.Middle, state.personsReady, actions.onPersons,
+        ),
+        row(
+            Icons.Outlined.TextFields,
+            stringResource(Res.string.smart_scan_row_text),
+            stringResource(Res.string.smart_scan_row_text_summary),
+            Position.Bottom, true, actions.onText,
         ),
         SettingsEntity.Header(stringResource(Res.string.smart_scan_rebuild_header)),
         row(
@@ -284,6 +293,7 @@ private fun SmartScanPhase.icon(): ImageVector = when (this) {
     SmartScanPhase.CATEGORY_CLASSIFICATION -> Icons.Outlined.Category
     SmartScanPhase.FACE_INDEX -> Icons.Outlined.Face
     SmartScanPhase.FACE_CLUSTER -> Icons.Outlined.Groups
+    SmartScanPhase.OCR_INDEX -> Icons.Outlined.TextFields
 }
 
 @Composable

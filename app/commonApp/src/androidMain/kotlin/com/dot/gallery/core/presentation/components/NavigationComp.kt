@@ -109,6 +109,8 @@ import com.dot.gallery.app.presentation.settings.subsettings.SlideshowSettingsSc
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsTimelineAlbumsScreen
 import com.dot.gallery.app.presentation.settings.subsettings.EditBackupsViewerScreen
 import com.dot.gallery.app.presentation.settings.subsettings.AIModelsManagerScreen
+import com.dot.gallery.app.presentation.settings.subsettings.OcrPacksSettingsScreen
+import com.dot.gallery.app.presentation.settings.subsettings.TextRecognitionSettingsScreen
 import com.dot.gallery.app.presentation.settings.subsettings.IntelligenceFeatureScreen
 import com.dot.gallery.feature.settings.ui.IntelligenceFeature
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsCloudIndexingScreen
@@ -924,7 +926,7 @@ fun NavigationComp(
                 val searchResultsState =
                     searchViewModel().searchResultsState.collectAsStateWithLifecycle()
                 val mediaState =
-                    remember(searchResultsState.value) { mutableStateOf(searchResultsState.value.results) }
+                    remember(searchResultsState.value) { mutableStateOf(searchResultsState.value.viewerResults) }
                 MediaViewScreenRoute(
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
@@ -1315,6 +1317,12 @@ fun NavigationComp(
             }
             composable(Screen.AIModelsManagerScreen()) {
                 AIModelsManagerScreen()
+            }
+            composable(Screen.TextRecognitionSettingsScreen()) {
+                TextRecognitionSettingsScreen()
+            }
+            composable(Screen.OcrPacksScreen()) {
+                OcrPacksSettingsScreen()
             }
             composable(
                 route = Screen.IntelligenceFeatureScreen.feature(),

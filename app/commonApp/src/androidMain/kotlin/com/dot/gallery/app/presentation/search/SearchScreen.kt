@@ -59,6 +59,7 @@ import com.dot.gallery.feature.help.domain.HelpSearchItem
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.feature.help.toScreenRoute
 import com.dot.gallery.feature.search.SearchViewModel
+import com.dot.gallery.feature.viewer.insight.TextSearchHighlight
 import com.dot.gallery.domain.uri.query
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.help_search_see_all
@@ -155,6 +156,11 @@ fun SearchScreen(
                 eventHandler.navigate(Screen.MediaViewScreen.idAndAlbum(mediaId, -1L))
             },
             onOpenSearchResult = { mediaId ->
+                TextSearchHighlight.query = null
+                eventHandler.navigate(Screen.MediaViewScreen.idAndQuery(mediaId))
+            },
+            onOpenTextMatch = { mediaId ->
+                TextSearchHighlight.query = query
                 eventHandler.navigate(Screen.MediaViewScreen.idAndQuery(mediaId))
             },
             onClearHistory = viewModel::clearHistory,

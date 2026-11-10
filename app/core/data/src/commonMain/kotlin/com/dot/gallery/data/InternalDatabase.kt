@@ -37,6 +37,8 @@ import com.dot.gallery.data.entity.FaceExclusionEntity
 import com.dot.gallery.data.entity.FaceLinkEntity
 import com.dot.gallery.data.entity.FaceSuppressionEntity
 import com.dot.gallery.data.entity.OcrResultEntity
+import com.dot.gallery.data.entity.OcrSearchEntity
+import com.dot.gallery.data.dao.OcrResultDao
 import com.dot.gallery.data.entity.PersonEntity
 import com.dot.gallery.data.entity.CloudUploadPrefEntity
 import com.dot.gallery.data.entity.CloudDeleteLocalPrefEntity
@@ -131,6 +133,7 @@ import com.dot.gallery.data.Converters
         FaceLinkEntity::class,
         FaceSuppressionEntity::class,
         OcrResultEntity::class,
+        OcrSearchEntity::class,
         SyncStateEntity::class,
         CloudAlbumSyncEntity::class,
         CloudUploadPrefEntity::class,
@@ -145,7 +148,7 @@ import com.dot.gallery.data.Converters
         CloudTagEntity::class,
         CloudMediaTagEntity::class
     ],
-    version = 56,
+    version = 57,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -270,6 +273,8 @@ abstract class InternalDatabase : RoomDatabase() {
     abstract fun getAlbumSectionDao(): AlbumSectionDao
 
     abstract fun getCloudTagDao(): CloudTagDao
+
+    abstract fun getOcrResultDao(): OcrResultDao
 
     companion object {
         const val NAME = "internal_db"

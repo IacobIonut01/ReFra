@@ -104,6 +104,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import com.dot.gallery.feature.viewer.insight.CodeChip
+import com.dot.gallery.feature.viewer.insight.TextChip
+import com.dot.gallery.feature.viewer.insight.TextChipMode
+import com.dot.gallery.feature.viewer.insight.TextSelectionBar
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.help_preview_code_kind
 import org.jetbrains.compose.resources.stringResource
@@ -157,6 +160,7 @@ fun HelpPreview(
         PreviewType.CASTING -> CastingPreviewMini(modifier)
         PreviewType.PANORAMA -> PanoramaPreviewMini(modifier)
         PreviewType.CODE_SCAN -> CodeScanPreviewMini(modifier)
+        PreviewType.TEXT_RECOGNITION -> TextRecognitionPreviewMini(modifier)
         PreviewType.NONE -> {}
     }
 }
@@ -578,6 +582,47 @@ private fun CodeScanPreviewMini(modifier: Modifier = Modifier) {
                     enabled = false,
                     onClick = {},
                 )
+            }
+        }
+    }
+}
+
+/**
+ * A poster whose lines light up, then the production [TextChip] and, in the second step, the
+ * selection with the production [TextSelectionBar]. Sample state only; no model is loaded.
+ */
+@Composable
+private fun TextRecognitionPreviewMini(modifier: Modifier = Modifier) {
+    val animation = rememberPreviewAnimation(stepCount = 2)
+    val progress = animation.stepProgress
+    val selecting = animation.currentStep == 1
+    val primary = MaterialTheme.colorScheme.primary
+    val lines = listOf("Canal Nights", "Open-air cinema · Aug 14", "Screenings start at 21:30", "Pier 4, Harbour Road")
+    PreviewFrame(modifier, applyPadding = false) {
+        ViewerScreenMock()
+        if (selecting) Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.45f * progress)))
+        Column(
+            modifier = Modifier.align(Alignment.Center).clip(RoundedCornerShape(6.dp)).background(Color(0xFFF6F1E7)).padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            lines.forEachIndexed { index, line ->
+                Text(
+                    text = line,
+                    style = if (index == 0) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodySmall,
+                    fontWeight = if (index == 0) FontWeight.Bold else null,
+                    color = Color(0xFF16161A),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(primary.copy(alpha = (if (selecting) 0.45f else 0.26f) * progress))
+                        .padding(horizontal = 2.dp),
+                )
+            }
+        }
+        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp).graphicsLayer { alpha = progress }) {
+            if (selecting) {
+                TextSelectionBar(showSearch = true, onCopy = {}, onShare = {}, onSelectAll = {}, onSearch = {})
+            } else {
+                TextChip(mode = TextChipMode.FOUND, lineCount = lines.size, onClick = {})
             }
         }
     }

@@ -17,5 +17,6 @@ enum class SmartScanPhase(val storedValue: String) {
     SEARCH_INDEX("search_index"),
     CATEGORY_CLASSIFICATION("category_classification"),
     FACE_INDEX("face_index"),
-    FACE_CLUSTER("face_cluster")
+    FACE_CLUSTER("face_cluster"),
+    OCR_INDEX("ocr_index")
 }

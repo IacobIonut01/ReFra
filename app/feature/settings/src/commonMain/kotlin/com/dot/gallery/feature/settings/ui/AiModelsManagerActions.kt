@@ -22,6 +22,8 @@ data class AiModelsManagerActions(
     val onSkipHiddenAlbumsChange: (Boolean) -> Unit = {},
     /** Opens a feature's preview page from the hub. */
     val onOpenFeature: (IntelligenceFeature) -> Unit = {},
+    /** Opens the text recognition page from the hub. */
+    val onOpenTextRecognition: () -> Unit = {},
     /** Starts a people scan once face grouping is installed. */
     val onScanForPeople: () -> Unit = {},
     /** Leaves a preview opened from setup or People without downloading. Null hides "Not now". */

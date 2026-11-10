@@ -5,5 +5,5 @@
 
 package com.dot.gallery.core.insight
 
-/** The families of things the viewer can find in a photo. Text (OCR) is expected to join later. */
-enum class InsightKind { CODES }
+/** The families of things the viewer can find in a photo: codes, and text (on-device OCR). */
+enum class InsightKind { CODES, TEXT }

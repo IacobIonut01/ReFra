@@ -10,4 +10,6 @@
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>
 -->
+    <!-- Downloaded text recognition models: large, and downloaded again on the new device. -->
+    <exclude domain="file" path="models/ocr/" />
 </full-backup-content>

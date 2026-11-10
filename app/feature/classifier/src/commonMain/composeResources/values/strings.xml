@@ -188,4 +188,11 @@
     <string name="action_cancel">Cancel</string>
     <string name="header_today">Today</string>
     <string name="header_yesterday">Yesterday</string>
+    <string name="search_text_in_photos">Text in photos</string>
+    <string name="search_photos_that_match">Photos that match</string>
+    <string name="search_text_match_server">Found by your server</string>
+    <plurals name="search_photos_count">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
 </resources>

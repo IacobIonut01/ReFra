@@ -1,0 +1,1496 @@
+{
+  "schemaVersion": 2,
+  "catalogId": "refra-ocr-model-catalog",
+  "notes": "Single source of truth for OCR models. Pins verified against the Hugging Face API on 2026-11-09. `locales` is derived by OcrCatalogCoverageTest from the bundled dictionaries and the CLDR main exemplar sets; edit `trainedLocales` (PaddleOCR PP-OCRv5 multilingual docs, section 5) instead.",
+  "unsupportedLocales": [
+    "bn",
+    "he",
+    "or",
+    "pa",
+    "vi"
+  ],
+  "models": [
+    {
+      "id": "pp-ocrv5-mobile-det",
+      "role": "DETECTOR",
+      "repository": "PaddlePaddle/PP-OCRv5_mobile_det_onnx",
+      "commit": "e6f4fa85f00e168c862bc462aebca69eef9b3d3d",
+      "dependencies": [],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 4826518,
+          "sha256": "a431985659dc921974177a95adcfbb90fd9e51989a5e04d70d0b75f597b6e61d",
+          "url": "https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_det_onnx/resolve/e6f4fa85f00e168c862bc462aebca69eef9b3d3d/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        }
+      ],
+      "tensorContract": {
+        "opset": 11,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "resize": {
+          "mode": "LONG_EDGE",
+          "width": 960,
+          "height": 960,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": {
+        "dbThreshold": 0.3,
+        "boxThreshold": 0.6,
+        "unclipRatio": 1.5
+      },
+      "recognizerContract": null
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-latin",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/latin_PP-OCRv5_mobile_rec_onnx",
+      "commit": "89d3a50e2c27e2e7cceeab0e944c25c807d5db4f",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 8042023,
+          "sha256": "7888113072263cb471b93f66dd5e2ad70548dc526fa1ace760d0d973dd121498",
+          "url": "https://huggingface.co/PaddlePaddle/latin_PP-OCRv5_mobile_rec_onnx/resolve/89d3a50e2c27e2e7cceeab0e944c25c807d5db4f/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 6817,
+          "sha256": "0bbe984570f597af3638e50bdf2e8276f3ab26a61966096538b3b0d1849f5c84",
+          "url": "https://huggingface.co/PaddlePaddle/latin_PP-OCRv5_mobile_rec_onnx/resolve/89d3a50e2c27e2e7cceeab0e944c25c807d5db4f/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-latin.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "838"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-en",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx",
+      "commit": "3fafbc3b5dcf93dd72add9f48368be8a3a2cd33b",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7848423,
+          "sha256": "b5f833dfc5d0eb71da397b4efa06ebeee9b431b690a47d6af40d77d8eabc557f",
+          "url": "https://huggingface.co/PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx/resolve/3fafbc3b5dcf93dd72add9f48368be8a3a2cd33b/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 3964,
+          "sha256": "27e91d0582f40168aa218303c76e184bc78fa7a5d105aad0cfbad8458b441067",
+          "url": "https://huggingface.co/PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx/resolve/3fafbc3b5dcf93dd72add9f48368be8a3a2cd33b/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-en.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-cjk",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/PP-OCRv5_mobile_rec_onnx",
+      "commit": "ed152b8b495f84de93cda5709d768548a9127622",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 16534782,
+          "sha256": "da72dc72ca4dc220df0dfde68c1dedc31c58d3e76a25871122e5056227d50092",
+          "url": "https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_rec_onnx/resolve/ed152b8b495f84de93cda5709d768548a9127622/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 148345,
+          "sha256": "5dfeb2777f6d0db8177d8128a8acfcf6e6276dc4ac73ea3bf0dc06d6a5e85d8e",
+          "url": "https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_rec_onnx/resolve/ed152b8b495f84de93cda5709d768548a9127622/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-cjk.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "18385"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-korean",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/korean_PP-OCRv5_mobile_rec_onnx",
+      "commit": "5c6f574b8e2230adf4287b33e736d71b9fabd28e",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 13418787,
+          "sha256": "92f0b7785e64fc9090106a241cf4c1eb97472824558272751b88a2a4476d3a08",
+          "url": "https://huggingface.co/PaddlePaddle/korean_PP-OCRv5_mobile_rec_onnx/resolve/5c6f574b8e2230adf4287b33e736d71b9fabd28e/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 96039,
+          "sha256": "f757fa1c40e99edcf27e9cce879b93eb2a51fa46f5ef39095689b8c37dd75998",
+          "url": "https://huggingface.co/PaddlePaddle/korean_PP-OCRv5_mobile_rec_onnx/resolve/5c6f574b8e2230adf4287b33e736d71b9fabd28e/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-korean.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-cyrillic",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec_onnx",
+      "commit": "2cef88145434beb8afa9dd82d77d799eb1ad7b29",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 8048799,
+          "sha256": "5371ee1ddaa7983cc62d0818d99e982b6804638c85e4f960d59a574094e172e5",
+          "url": "https://huggingface.co/PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec_onnx/resolve/2cef88145434beb8afa9dd82d77d799eb1ad7b29/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 6991,
+          "sha256": "5c76cc91fa98410178a09f498db10050d0ec1634a660053d3005ab7be581f501",
+          "url": "https://huggingface.co/PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec_onnx/resolve/2cef88145434beb8afa9dd82d77d799eb1ad7b29/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-cyrillic.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-eslav",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/eslav_PP-OCRv5_mobile_rec_onnx",
+      "commit": "9a32171fc5718746875e1a261818884517975013",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7887627,
+          "sha256": "b3018ef2b09a0250b6e0c8e871c927098363e5fd4df890cc68e8358eb0aaf1bd",
+          "url": "https://huggingface.co/PaddlePaddle/eslav_PP-OCRv5_mobile_rec_onnx/resolve/9a32171fc5718746875e1a261818884517975013/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 4538,
+          "sha256": "025039bac23eb4a308efcefa4d58eab3af440767815c6ba6938468bf6353ee5a",
+          "url": "https://huggingface.co/PaddlePaddle/eslav_PP-OCRv5_mobile_rec_onnx/resolve/9a32171fc5718746875e1a261818884517975013/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-eslav.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-arabic",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/arabic_PP-OCRv5_mobile_rec_onnx",
+      "commit": "14aaedcd75825982689ecf5cd64ab33ee083215a",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7998947,
+          "sha256": "799113ebf267fbe742deb99eb36e8d42c9ddc5291ceacf92add41b4d52a59110",
+          "url": "https://huggingface.co/PaddlePaddle/arabic_PP-OCRv5_mobile_rec_onnx/resolve/14aaedcd75825982689ecf5cd64ab33ee083215a/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 6165,
+          "sha256": "21368419e6c016c31db55d316d59e11c128e1913e6e6fe10287084710043d3a6",
+          "url": "https://huggingface.co/PaddlePaddle/arabic_PP-OCRv5_mobile_rec_onnx/resolve/14aaedcd75825982689ecf5cd64ab33ee083215a/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-arabic.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-devanagari",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/devanagari_PP-OCRv5_mobile_rec_onnx",
+      "commit": "251aec19e36739540d35e2cc943f6aa7503b98e5",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7912311,
+          "sha256": "cb789212ce96c69d3e74728ae4309d179281d68cb3945d0616b67cafab41c986",
+          "url": "https://huggingface.co/PaddlePaddle/devanagari_PP-OCRv5_mobile_rec_onnx/resolve/251aec19e36739540d35e2cc943f6aa7503b98e5/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 5027,
+          "sha256": "9bd172dd26440c8ce94d1cde5d5baea6aefdc7cf3c5c8492e0beedef656d4e54",
+          "url": "https://huggingface.co/PaddlePaddle/devanagari_PP-OCRv5_mobile_rec_onnx/resolve/251aec19e36739540d35e2cc943f6aa7503b98e5/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-devanagari.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-greek",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/el_PP-OCRv5_mobile_rec_onnx",
+      "commit": "8152b89d2ee0e1d4c92decab75fe75e5e3d836b6",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7808735,
+          "sha256": "2acf17fcaea2bc81b878e311e6263b8885f48bb03796f75f9f30ed3242bbaa6d",
+          "url": "https://huggingface.co/PaddlePaddle/el_PP-OCRv5_mobile_rec_onnx/resolve/8152b89d2ee0e1d4c92decab75fe75e5e3d836b6/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 3317,
+          "sha256": "17d85b2fe2d2f24cd4ab07bcbc33e0c126859b956ced36e281dc65e2d0c1f0bf",
+          "url": "https://huggingface.co/PaddlePaddle/el_PP-OCRv5_mobile_rec_onnx/resolve/8152b89d2ee0e1d4c92decab75fe75e5e3d836b6/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-greek.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-thai",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx",
+      "commit": "1d4adbbafb1034a2fd6618498575b81ea7b69f69",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7891015,
+          "sha256": "27618be66018f8598ac0a526a593f9f1cebf794e7eded93428e8fb016e537f5f",
+          "url": "https://huggingface.co/PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx/resolve/1d4adbbafb1034a2fd6618498575b81ea7b69f69/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 4667,
+          "sha256": "f6ba7fefc38ca1ff398ddafa75d67d16e0b3757c4e6c833adffee98a981766c9",
+          "url": "https://huggingface.co/PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx/resolve/1d4adbbafb1034a2fd6618498575b81ea7b69f69/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-thai.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-tamil",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/ta_PP-OCRv5_mobile_rec_onnx",
+      "commit": "0db89798af0d5218fad9ea7ace0557526e9077f1",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7885691,
+          "sha256": "c6d2b682d2a0ea4cb1fccdba295976f93fd439964d16cdc666cadef531accbee",
+          "url": "https://huggingface.co/PaddlePaddle/ta_PP-OCRv5_mobile_rec_onnx/resolve/0db89798af0d5218fad9ea7ace0557526e9077f1/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 4579,
+          "sha256": "88a28f5a1bb30cabe38a0985cb5e6619fa4f0c7c78e57a08274674228c5219a6",
+          "url": "https://huggingface.co/PaddlePaddle/ta_PP-OCRv5_mobile_rec_onnx/resolve/0db89798af0d5218fad9ea7ace0557526e9077f1/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-tamil.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "id": "pp-ocrv5-mobile-rec-telugu",
+      "role": "RECOGNIZER",
+      "repository": "PaddlePaddle/te_PP-OCRv5_mobile_rec_onnx",
+      "commit": "f1197c83430241c58c64b0952b3a80366d04eeba",
+      "dependencies": [
+        "pp-ocrv5-mobile-det"
+      ],
+      "license": "Apache-2.0",
+      "artifacts": [
+        {
+          "fileName": "inference.onnx",
+          "sizeBytes": 7898759,
+          "sha256": "8238bfc46d4cffe720ed6706e3842802467343497428693ff2bfb4e6b3caa36b",
+          "url": "https://huggingface.co/PaddlePaddle/te_PP-OCRv5_mobile_rec_onnx/resolve/f1197c83430241c58c64b0952b3a80366d04eeba/inference.onnx",
+          "delivery": "DOWNLOAD",
+          "resource": null
+        },
+        {
+          "fileName": "inference.yml",
+          "sizeBytes": 4795,
+          "sha256": "acebbe53f1831bf28ddfed75aedf58225d7aa5d09100c1d5a9140a2a53b137ce",
+          "url": "https://huggingface.co/PaddlePaddle/te_PP-OCRv5_mobile_rec_onnx/resolve/f1197c83430241c58c64b0952b3a80366d04eeba/inference.yml",
+          "delivery": "BUNDLED",
+          "resource": "ocr/dictionaries/pp-ocrv5-mobile-rec-telugu.yml"
+        }
+      ],
+      "tensorContract": {
+        "opset": 7,
+        "inputs": [
+          {
+            "name": "x",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "3",
+              "48",
+              "dynamic"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "dataType": "FLOAT",
+            "shape": [
+              "dynamic",
+              "dynamic",
+              "dynamic"
+            ]
+          }
+        ]
+      },
+      "preprocessing": {
+        "colorOrder": "BGR",
+        "scale": 0.00392156862745098,
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "resize": {
+          "mode": "FIXED_HEIGHT_MAX_WIDTH",
+          "width": 320,
+          "height": 48,
+          "preserveAspectRatio": true
+        }
+      },
+      "detectorContract": null,
+      "recognizerContract": {
+        "ctcBlankIndex": 0,
+        "dictionaryArtifact": "inference.yml",
+        "outputInterpretation": "PROBABILITIES",
+        "confidenceCalibration": {
+          "scale": 1.0,
+          "offset": 0.0
+        }
+      }
+    }
+  ],
+  "packs": [
+    {
+      "id": "latin",
+      "title": "Latin script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-latin"
+      ],
+      "scripts": [
+        "Latn"
+      ],
+      "suggestPriority": 10,
+      "trainedLocales": [
+        "af",
+        "az",
+        "bs",
+        "ca",
+        "cs",
+        "cy",
+        "da",
+        "de",
+        "en",
+        "es",
+        "et",
+        "eu",
+        "fi",
+        "fil",
+        "fr",
+        "ga",
+        "gl",
+        "hr",
+        "hu",
+        "id",
+        "is",
+        "it",
+        "ku",
+        "lb",
+        "lt",
+        "lv",
+        "mi",
+        "ms",
+        "mt",
+        "nb",
+        "nl",
+        "nn",
+        "oc",
+        "pl",
+        "pt",
+        "qu",
+        "rm",
+        "ro",
+        "sk",
+        "sl",
+        "sq",
+        "sr-Latn",
+        "sv",
+        "sw",
+        "tr",
+        "uz",
+        "vi"
+      ],
+      "locales": [
+        "af",
+        "bs",
+        "ca",
+        "cs",
+        "da",
+        "de",
+        "en",
+        "es",
+        "et",
+        "eu",
+        "fi",
+        "fil",
+        "fr",
+        "ga",
+        "gl",
+        "hr",
+        "hu",
+        "id",
+        "is",
+        "it",
+        "ku",
+        "lb",
+        "lt",
+        "lv",
+        "mi",
+        "ms",
+        "mt",
+        "nb",
+        "nl",
+        "nn",
+        "oc",
+        "pl",
+        "pt",
+        "qu",
+        "rm",
+        "ro",
+        "sk",
+        "sl",
+        "sq",
+        "sr-Latn",
+        "sv",
+        "sw",
+        "tr"
+      ],
+      "coverageExceptions": {
+        "nl": "́"
+      }
+    },
+    {
+      "id": "english",
+      "title": "English only",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-en"
+      ],
+      "scripts": [
+        "Latn"
+      ],
+      "suggestPriority": 11,
+      "trainedLocales": [
+        "en"
+      ],
+      "locales": [
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "cjk",
+      "title": "Chinese and Japanese",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-cjk"
+      ],
+      "scripts": [
+        "Hans",
+        "Hant",
+        "Jpan"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "zh",
+        "zh-Hant",
+        "ja",
+        "en"
+      ],
+      "locales": [
+        "zh",
+        "zh-Hant",
+        "ja",
+        "en"
+      ],
+      "coverageExceptions": {
+        "ja": "ゐヱ"
+      }
+    },
+    {
+      "id": "korean",
+      "title": "Korean",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-korean"
+      ],
+      "scripts": [
+        "Kore"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "ko",
+        "en"
+      ],
+      "locales": [
+        "ko",
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "eslav",
+      "title": "Cyrillic script · Belarusian, Russian, Ukrainian",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-eslav"
+      ],
+      "scripts": [
+        "Cyrl"
+      ],
+      "suggestPriority": 20,
+      "trainedLocales": [
+        "be",
+        "ru",
+        "uk",
+        "en"
+      ],
+      "locales": [
+        "be",
+        "ru",
+        "uk",
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "cyrillic",
+      "title": "Cyrillic script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-cyrillic"
+      ],
+      "scripts": [
+        "Cyrl"
+      ],
+      "suggestPriority": 21,
+      "trainedLocales": [
+        "ab",
+        "av",
+        "ba",
+        "be",
+        "bg",
+        "ce",
+        "cv",
+        "kk",
+        "kv",
+        "ky",
+        "mk",
+        "mn",
+        "os",
+        "ru",
+        "sah",
+        "sr",
+        "tg",
+        "tt",
+        "tyv",
+        "udm",
+        "uk",
+        "en"
+      ],
+      "locales": [
+        "ba",
+        "be",
+        "bg",
+        "ce",
+        "cv",
+        "kk",
+        "ky",
+        "mk",
+        "mn",
+        "ru",
+        "sr",
+        "tg",
+        "tt",
+        "tyv",
+        "uk",
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "arabic",
+      "title": "Arabic script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-arabic"
+      ],
+      "scripts": [
+        "Arab"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "ar",
+        "bal",
+        "ckb",
+        "fa",
+        "ps",
+        "sd",
+        "ug",
+        "ur",
+        "en"
+      ],
+      "locales": [
+        "ar",
+        "ckb",
+        "fa",
+        "ps",
+        "sd",
+        "ug",
+        "ur",
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "devanagari",
+      "title": "Devanagari script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-devanagari"
+      ],
+      "scripts": [
+        "Deva"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "bho",
+        "hi",
+        "kok",
+        "mai",
+        "mr",
+        "ne",
+        "new",
+        "sa",
+        "sat",
+        "en"
+      ],
+      "locales": [
+        "bho",
+        "hi",
+        "kok",
+        "mai",
+        "mr",
+        "ne",
+        "sa",
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "greek",
+      "title": "Greek script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-greek"
+      ],
+      "scripts": [
+        "Grek"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "el",
+        "en"
+      ],
+      "locales": [
+        "el",
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "thai",
+      "title": "Thai script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-thai"
+      ],
+      "scripts": [
+        "Thai"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "th",
+        "en"
+      ],
+      "locales": [
+        "th",
+        "en"
+      ],
+      "coverageExceptions": {
+        "th": "ฃ๎"
+      }
+    },
+    {
+      "id": "tamil",
+      "title": "Tamil script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-tamil"
+      ],
+      "scripts": [
+        "Taml"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "ta",
+        "en"
+      ],
+      "locales": [
+        "ta",
+        "en"
+      ],
+      "coverageExceptions": {}
+    },
+    {
+      "id": "telugu",
+      "title": "Telugu script",
+      "rootModelIds": [
+        "pp-ocrv5-mobile-rec-telugu"
+      ],
+      "scripts": [
+        "Telu"
+      ],
+      "suggestPriority": 30,
+      "trainedLocales": [
+        "te",
+        "en"
+      ],
+      "locales": [
+        "te",
+        "en"
+      ],
+      "coverageExceptions": {}
+    }
+  ]
+}

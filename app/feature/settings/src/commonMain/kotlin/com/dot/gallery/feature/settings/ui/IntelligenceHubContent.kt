@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -70,6 +71,8 @@ import com.dot.gallery.feature.settings.generated.resources.hub_privacy
 import com.dot.gallery.feature.settings.generated.resources.hub_storage_label
 import com.dot.gallery.feature.settings.generated.resources.hub_summary_body
 import com.dot.gallery.feature.settings.generated.resources.hub_summary_title
+import com.dot.gallery.feature.settings.generated.resources.ocr_hub_summary
+import com.dot.gallery.feature.settings.generated.resources.ocr_settings_title
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
@@ -85,6 +88,8 @@ import dev.chrisbanes.haze.hazeSource
 fun AiModelsManagerContent(
     state: AiModelsManagerState,
     actions: AiModelsManagerActions,
+    /** Text recognition's state for its row; null leaves the row out (previews). */
+    textRecognition: TextRecognitionState? = null,
 ) {
     val hazeState = LocalHazeState.current
     val listState = rememberLazyListState()
@@ -98,7 +103,10 @@ fun AiModelsManagerContent(
         }
     ) { padding ->
         val layoutDirection = LocalLayoutDirection.current
-        val features = IntelligenceFeature.entries
+        // Builds that can neither download nor bundle models still read text: language packs can be
+        // added from files. There the hub lists text recognition alone, without the model summary.
+        val features = if (state.canInstallModels) IntelligenceFeature.entries else emptyList()
+        val rowCount = features.size + if (textRecognition != null) 1 else 0
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().hazeSource(hazeState),
@@ -109,9 +117,11 @@ fun AiModelsManagerContent(
                 bottom = padding.calculateBottomPadding() + 24.dp
             )
         ) {
-            item(key = "summary") {
-                // Same gap a settings group leaves above the next header.
-                HubSummaryCard(state = state, modifier = Modifier.padding(bottom = 16.dp))
+            if (state.canInstallModels) {
+                item(key = "summary") {
+                    // Same gap a settings group leaves above the next header.
+                    HubSummaryCard(state = state, modifier = Modifier.padding(bottom = 16.dp))
+                }
             }
             item(key = "features_label") {
                 HubSectionLabel(title = stringResource(Res.string.hub_features))
@@ -121,8 +131,17 @@ fun AiModelsManagerContent(
                     FeatureRow(
                         feature = feature,
                         state = state,
-                        position = positionOf(index, features.size),
+                        position = positionOf(index, rowCount),
                         onClick = { actions.onOpenFeature(feature) },
+                    )
+                }
+            }
+            if (textRecognition != null) {
+                item(key = "feature_text_recognition") {
+                    TextRecognitionRow(
+                        state = textRecognition,
+                        position = positionOf(rowCount - 1, rowCount),
+                        onClick = actions.onOpenTextRecognition,
                     )
                 }
             }
@@ -201,7 +220,7 @@ private fun HubSummaryCard(state: AiModelsManagerState, modifier: Modifier = Mod
 }
 
 @Composable
-private fun HubStat(value: String, label: String, modifier: Modifier = Modifier) {
+internal fun HubStat(value: String, label: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
@@ -340,5 +359,26 @@ private fun FeatureRow(
                 modifier = Modifier.padding(12.dp)
             )
         },
+    )
+}
+
+/** Text recognition's row: it runs on language packs rather than the hub's model groups. */
+@Composable
+private fun TextRecognitionRow(state: TextRecognitionState, position: Position, onClick: () -> Unit) {
+    val summary = buildAnnotatedString {
+        append(stringResource(Res.string.ocr_hub_summary))
+        append('\n')
+        append(textRecognitionStatusLine(state))
+    }
+    SettingsItem(
+        item = SettingsEntity.Preference(
+            icon = Icons.Outlined.TextFields,
+            title = stringResource(Res.string.ocr_settings_title),
+            summary = summary.text,
+            summaryAnnotated = summary,
+            screenPosition = position,
+            onClick = onClick,
+        ),
+        customTrailingContent = { Chevron() },
     )
 }

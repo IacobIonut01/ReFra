@@ -160,7 +160,7 @@ fun MediaViewerOverlayHost(
         args.path.endsWith("_search") -> {
             val searchState = injectViewModel<SearchViewModel> {searchViewModel}
                 .searchResultsState.collectAsStateWithLifecycle()
-            val mediaState = rememberUpdatedState(searchState.value.results)
+            val mediaState = rememberUpdatedState(searchState.value.viewerResults)
             OverlayMediaViewer(
                 args = args,
                 controller = controller,

@@ -48,6 +48,7 @@ fun SmartScanPreferenceDetailScreen(
             onEmbeddings = viewModel::refreshEmbeddings,
             onCategories = viewModel::refreshCategories,
             onPersons = viewModel::refreshPersons,
+            onText = viewModel::refreshText,
             onAll = viewModel::refreshAll,
             onFullRefresh = viewModel::fullRefresh,
             onCancel = viewModel::cancelActiveScan,

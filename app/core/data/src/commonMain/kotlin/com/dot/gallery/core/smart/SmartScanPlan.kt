@@ -19,6 +19,7 @@ object SmartScanPlan {
         SmartScanPhase.METADATA,
         SmartScanPhase.SEARCH_INDEX,
         SmartScanPhase.CATEGORY_CLASSIFICATION,
+        SmartScanPhase.OCR_INDEX,
         SmartScanPhase.FACE_INDEX,
         SmartScanPhase.FACE_CLUSTER
     )
@@ -38,6 +39,7 @@ object SmartScanPlan {
                 add(SmartScanPhase.FACE_INDEX)
                 add(SmartScanPhase.FACE_CLUSTER)
             }
+            if (expanded and SmartScanFeature.TEXT.bit != 0) add(SmartScanPhase.OCR_INDEX)
         }
     }
 
@@ -48,6 +50,9 @@ object SmartScanPlan {
             buildList {
                 if (SmartScanPhase.SEARCH_INDEX in phases) add(SmartScanPhase.SEARCH_INDEX)
                 if (SmartScanPhase.CATEGORY_CLASSIFICATION in phases) add(SmartScanPhase.CATEGORY_CLASSIFICATION)
+                // Text indexing follows the image-search models rather than loading its own
+                // models beside them.
+                if (SmartScanPhase.OCR_INDEX in phases) add(SmartScanPhase.OCR_INDEX)
             }.takeIf { it.isNotEmpty() },
             buildList {
                 if (SmartScanPhase.FACE_INDEX in phases) add(SmartScanPhase.FACE_INDEX)

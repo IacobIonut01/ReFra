@@ -65,6 +65,11 @@ import com.dot.gallery.feature.classifier.ui.search.SearchHelper
 import com.dot.gallery.feature.classifier.ui.search.SearchIndexerState
 import com.dot.gallery.feature.classifier.ui.search.SearchMediaItem
 import com.dot.gallery.feature.classifier.ui.search.SearchResultsState
+import com.dot.gallery.feature.classifier.ui.search.TextPhotoMatch
+import com.dot.gallery.core.insight.ImageQuad
+import com.dot.gallery.core.ocr.domain.NormalizedQuad
+import com.dot.gallery.core.ocr.repository.OcrRepository
+import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.feature.classifier.ui.search.TypedSearchSuggestion
 import com.dot.gallery.feature.classifier.ui.search.matchTypedSuggestions
 import com.dot.gallery.feature.classifier.ui.components.CategoryCarouselItem
@@ -155,6 +160,7 @@ class SearchViewModel @Inject constructor(
     private val offlineModeManager: OfflineModeManager,
     private val videoFrameSampler: VideoFrameSampler,
     private val remoteSearchProvider: RemoteSearchProvider,
+    private val ocrRepository: OcrRepository,
     private val context: Context
 ) : ViewModel() {
 
@@ -708,6 +714,35 @@ class SearchViewModel @Inject constructor(
      * under its own cloud id is absent from `media`/`searchableMediaIds` and would
      * be filtered out of the result state entirely.
      */
+    /**
+     * Library photos whose indexed text matches [query], in index rank order, each with the line to
+     * crop around and the words to highlight. Ids not in [pool] (deleted, ignored, vault) are dropped.
+     */
+    private suspend fun textPhotoMatches(query: String, pool: List<UriMedia>): List<TextPhotoMatch> {
+        val ids = runCatching { ocrRepository.search(query) }
+            .onFailure { printWarn("search.ocr", "Text index search failed", mapOf("error" to it.toString())) }
+            .getOrDefault(emptyList())
+        if (ids.isEmpty()) return emptyList()
+        val byId = pool.associateBy { it.id }
+        val regions = runCatching { ocrRepository.matchRegions(query, ids) }
+            .onFailure { printWarn("search.ocr", "Reading text matches failed", mapOf("error" to it.toString())) }
+            .getOrDefault(emptyMap())
+        return ids.mapNotNull { id ->
+            val media = byId[id] ?: return@mapNotNull null
+            val region = regions[id]
+            TextPhotoMatch(
+                media = media,
+                aspectRatio = region?.aspectRatio ?: 0f,
+                line = region?.line?.toImageQuad(),
+                words = region?.words.orEmpty().map { it.toImageQuad() },
+            )
+        }
+    }
+
+    private fun NormalizedQuad.toImageQuad() = ImageQuad(
+        topLeft.x, topLeft.y, topRight.x, topRight.y, bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y,
+    )
+
     private fun resolveRemoteHits(
         remoteHits: List<UriMedia>,
         pool: List<UriMedia>
@@ -1035,6 +1070,9 @@ class SearchViewModel @Inject constructor(
             val handoverSearch = if (allowRemoteSearch) {
                 async { remoteSearchProvider.search(query) }
             } else null
+            val remoteTextSearch = if (allowRemoteSearch) {
+                async { cloudRepository.textSearch(query) }
+            } else null
             val metadataMatchIds = metadata.value.metadata
                 .filter { it.searchableText.contains(query, ignoreCase = true) }
                 .mapTo(HashSet()) { it.mediaId }
@@ -1044,6 +1082,10 @@ class SearchViewModel @Inject constructor(
                     filteredMedia.map { 1f to it }
                 )
             }
+            // Text in photos: their own section, never merged into the results grid. Library only;
+            // the index never holds vault media.
+            val textMatches = textPhotoMatches(query, allMedia)
+            val textIds = textMatches.mapTo(HashSet()) { it.media.id }
             // Server tags synced into Room (e.g. Immich tags) act as metadata matches.
             val tagMediaIds = cloudRepository.findTagMediaIds(query).toHashSet()
             if (tagMediaIds.isNotEmpty()) {
@@ -1071,7 +1113,7 @@ class SearchViewModel @Inject constructor(
 
                     results.mergeWithHighestScore(searchResultsMedia)
                     val (mediaState, dateMediaState) = mapRelevanceResults(
-                        currentlySearchable(results.map { it.second })
+                        currentlySearchable(results.map { it.second }.filterNot { it.id in textIds })
                     )
                     _searchResultsState.tryEmit(
                         SearchResultsState(
@@ -1080,7 +1122,8 @@ class SearchViewModel @Inject constructor(
                             isRelevanceSearch = true,
                             progress = 0.5f,
                             results = mediaState,
-                            dateResults = dateMediaState
+                            dateResults = dateMediaState,
+                            textMatches = textMatches,
                         )
                     )
                 }
@@ -1100,8 +1143,15 @@ class SearchViewModel @Inject constructor(
                     }
                 )
             }
+            // Server-recognized text (Immich OCR) under the same switch as server smart search.
+            val serverText = remoteTextSearch?.await()?.getOrNull()?.mapNotNull { it as? UriMedia }.orEmpty()
+            val allTextMatches = textMatches + resolveRemoteHits(serverText, allMedia)
+                .filterNot { it.id in textIds }
+                .distinctBy { it.id }
+                .map { TextPhotoMatch(media = it, fromServer = true) }
+            val allTextIds = allTextMatches.mapTo(HashSet()) { it.media.id }
             val remoteById = resolvedRemoteHits.associateBy { it.id }
-            val mergedMedia = currentlySearchable(results.map { it.second }, remoteById)
+            val mergedMedia = currentlySearchable(results.map { it.second }.filterNot { it.id in allTextIds }, remoteById)
             val (mediaState, dateMediaState) = mapRelevanceResults(mergedMedia)
             _searchResultsState.tryEmit(
                 SearchResultsState(
@@ -1110,7 +1160,8 @@ class SearchViewModel @Inject constructor(
                     isRelevanceSearch = true,
                     progress = 1f,
                     results = mediaState,
-                    dateResults = dateMediaState
+                    dateResults = dateMediaState,
+                    textMatches = allTextMatches,
                 )
             )
             } catch (error: CancellationException) {

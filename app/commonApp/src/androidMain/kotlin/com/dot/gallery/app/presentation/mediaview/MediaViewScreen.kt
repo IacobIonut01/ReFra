@@ -90,6 +90,25 @@ import com.dot.gallery.feature.viewer.insight.insightKey
 import com.dot.gallery.feature.viewer.insight.insightSupported
 import com.dot.gallery.feature.viewer.insight.rememberCodeScanOnTap
 import com.dot.gallery.feature.viewer.insight.rememberViewerInsightController
+import com.dot.gallery.feature.viewer.insight.LocalOcrRuntime
+import com.dot.gallery.feature.viewer.insight.LocalTextInsightController
+import com.dot.gallery.feature.viewer.insight.LocalTextSelectionHolder
+import com.dot.gallery.feature.viewer.insight.OcrRuntime
+import com.dot.gallery.feature.viewer.insight.TextInsightChrome
+import com.dot.gallery.feature.viewer.insight.TextChip
+import com.dot.gallery.feature.viewer.insight.TextChipMode
+import com.dot.gallery.feature.viewer.insight.TextFirstRunSheet
+import com.dot.gallery.feature.viewer.insight.TextSearchHighlight
+import com.dot.gallery.core.ui.settings.rememberPreference
+import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.BuildConfig
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import com.dot.gallery.feature.viewer.insight.TextSelectionHolder
+import com.dot.gallery.feature.viewer.insight.rememberOcrOnRequest
+import com.dot.gallery.feature.viewer.insight.rememberViewerTextController
+import com.dot.gallery.core.work.WorkComponentHolder
+import com.dot.gallery.core.logging.printWarn
 import androidx.compose.runtime.DisallowComposableCalls
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -301,6 +320,7 @@ import com.dot.gallery.core.ui.util.rememberedDerivedState
 import com.dot.gallery.core.ui.mediaview.tintIcon
 import com.dot.gallery.core.rememberMediaViewerNavigate
 import com.dot.gallery.injection.injectViewModel
+import com.dot.gallery.feature.search.SearchViewModel
 import com.dot.gallery.feature.viewer.slideshowDwellMillis
 import com.dot.gallery.core.ui.mediaview.resolveVisualSearchTarget
 import com.dot.gallery.core.ui.mediaview.needsVisualSearchConvert
@@ -680,6 +700,26 @@ private const val ENTRY_TRANSITION_START_GRACE_FRAMES = 4
 private const val ENTRY_TRANSITION_SETTLE_FRAMES = 180
 
 /**
+ * Whether the overlay viewer's drag-down-to-dismiss may arm. It reads the Initial pointer pass on
+ * the outermost box, so anything that owns vertical drags on the media must turn it off: zoom,
+ * cutout, the details sheet and, while selecting text, the selection handles (dragging a handle
+ * down to take more lines used to start the dismiss instead).
+ */
+internal fun viewerDismissGestureEnabled(
+    overlayMode: Boolean,
+    metadataCoverShown: Boolean,
+    locked: Boolean,
+    imageZoomed: Boolean,
+    videoZoomed: Boolean,
+    cutoutActive: Boolean,
+    slideshowActive: Boolean,
+    pagerScrolling: Boolean,
+    sheetOpening: Boolean,
+    selectingText: Boolean,
+): Boolean = overlayMode && !metadataCoverShown && !locked && !imageZoomed && !videoZoomed &&
+        !cutoutActive && !slideshowActive && !pagerScrolling && !sheetOpening && !selectingText
+
+/**
  * True when a pointer down at [downUptime] lands inside the double-tap window after a tap
  * released at [lastTapUpUptime]. That second press belongs to the image's one-finger zoom
  * (double-tap-hold and drag), so the viewer's swipe-to-dismiss must not arm on it.
@@ -857,8 +897,21 @@ fun <T : Media> MediaViewScreen(
     }
     // Codes in photos: one controller per viewer screen, null while the setting is off.
     val insightController = rememberViewerInsightController()
+    // Text in photos: null while off, without a ready pack, or without the app graph (previews).
+    val ocrRuntime = remember {
+        runCatching { WorkComponentHolder.component.let { OcrRuntime(it.ocrPackStore, it.ppOcrV5Engine, it.ocrRepository) } }
+            .onFailure { printWarn("insight.ocr", "No OCR runtime for the viewer", mapOf("error" to it.toString())) }
+            .getOrNull()
+    }
+    val textController = rememberViewerTextController(ocrRuntime)
+    val textSelection = remember { TextSelectionHolder() }
+    val ocrSwitchedOn by rememberPreference(SettingsKeys.ocrEnabled)
+    val textFirstRunSheet = rememberAppBottomSheetState()
     CompositionLocalProvider(
     LocalInsightController provides insightController,
+    LocalTextInsightController provides textController,
+    LocalTextSelectionHolder provides textSelection,
+    LocalOcrRuntime provides ocrRuntime,
     // Viewer-owned backdrop. The activity haze state also carries gallery sources for as
     // long as the overlay is up; remembering this state here (not on chrome or page keys)
     // keeps media sources and every viewer consumer on one backdrop across hide/show.
@@ -1199,7 +1252,8 @@ fun <T : Media> MediaViewScreen(
             transitionSettled = navigationTransitionSettled,
             transitionRunning = animatedContentScope.transition.isRunning,
         )
-        val showViewerChrome = showUI && navigationChromeVisible
+        // Text selection replaces the viewer chrome with its own header and bar.
+        val showViewerChrome = showUI && navigationChromeVisible && !textSelection.active
         // With animations off the dismiss gesture still tracks the finger but commits,
         // cancels and predictive back all resolve instantly — no flights or springs.
         viewerDismissState.animationsEnabled = sharedElementsEnabled
@@ -1708,6 +1762,33 @@ fun <T : Media> MediaViewScreen(
             CodeScanNothingFoundToast(insightController)
         }
 
+        // Text in photos: read the settled photo after codes. Leaving the page ends selection mode.
+        val ocrOnRequest = rememberOcrOnRequest()
+        // A highlight carried from Search belongs to this viewer only.
+        DisposableEffect(Unit) { onDispose { TextSearchHighlight.query = null } }
+        val selectionOrientation = LocalConfiguration.current.orientation
+        LaunchedEffect(selectionOrientation, isCutoutActive, slideshowActive) {
+            textSelection.close()
+        }
+        if (textController != null) {
+            LaunchedEffect(textController, ocrOnRequest, slideshowActive) {
+                snapshotFlow { if (pagerState.isScrollInProgress) null else latestMediaForInsights }
+                    .distinctUntilChanged { old, new -> old?.id == new?.id && old?.let(::insightKey) == new?.let(::insightKey) }
+                    .collectLatest { media ->
+                        textSelection.close()
+                        when {
+                            media == null -> textController.cancel()
+                            slideshowActive || !insightSupported(media) -> textController.clear()
+                            else -> textController.request(
+                                insightKey(media),
+                                media,
+                                if (ocrOnRequest) InsightTrigger.PASSIVE else InsightTrigger.AUTO,
+                            )
+                        }
+                    }
+            }
+        }
+
         // set HDR Gain map (only on displays that can actually render HDR — skips the probe decode on
         // SDR-only devices, where the window would never enter COLOR_MODE_HDR anyway)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
@@ -2000,15 +2081,18 @@ fun <T : Media> MediaViewScreen(
                     },
                 )
             }
-            val dismissGestureEnabled = overlayMode &&
-                    metadataCover == null &&
-                    !isLocked &&
-                    !isImageZoomed &&
-                    !isVideoZoomed &&
-                    !isCutoutActive &&
-                    !slideshowActive &&
-                    !pagerState.isScrollInProgress &&
-                    sheetState.progress(imageOnlyDetent, expandedDetent) == 0f
+            val dismissGestureEnabled = viewerDismissGestureEnabled(
+                overlayMode = overlayMode,
+                metadataCoverShown = metadataCover != null,
+                locked = isLocked,
+                imageZoomed = isImageZoomed,
+                videoZoomed = isVideoZoomed,
+                cutoutActive = isCutoutActive,
+                slideshowActive = slideshowActive,
+                pagerScrolling = pagerState.isScrollInProgress,
+                sheetOpening = sheetState.progress(imageOnlyDetent, expandedDetent) != 0f,
+                selectingText = textSelection.active,
+            )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -2135,6 +2219,7 @@ fun <T : Media> MediaViewScreen(
                             !isLocked &&
                             !isVideoZoomed &&
                             !isCutoutActive &&
+                            !textSelection.active &&
                             (!slideshowActive || slideshowPaused),
                     state = pagerState,
                     flingBehavior = PagerDefaults.flingBehavior(
@@ -3283,6 +3368,50 @@ fun <T : Media> MediaViewScreen(
                             )
                         }
                     }
+                }
+
+                // Text in photos: the Text chip, and the selection header and bar in selection mode.
+                if (textController != null && viewerInteractive && !isCutoutActive && !slideshowActive) {
+                    // Videos and unsupported formats get no chip, not even Read text.
+                    val textMedia = currentMedia?.takeIf(::insightSupported)
+                    val searchViewModel = injectViewModel<SearchViewModel> { searchViewModel }
+                    TextInsightChrome(
+                        controller = textController,
+                        holder = textSelection,
+                        media = textMedia,
+                        key = textMedia?.let(::insightKey),
+                        onRequest = ocrOnRequest,
+                        chromeVisible = showViewerChrome,
+                        isVault = textMedia?.isEncrypted == true,
+                        onSearch = { text ->
+                            // Search opens with the selected words already searched.
+                            searchViewModel.setQuery(text.replace('\n', ' ').trim(), apply = true)
+                            navigateFromViewer(Screen.SearchScreen.route)
+                        },
+                    )
+                } else if (ocrRuntime != null && ocrSwitchedOn && viewerInteractive && showViewerChrome &&
+                    !isCutoutActive && !slideshowActive && currentMedia?.let(::insightSupported) == true
+                ) {
+                    // Switched on, but no pack is ready (removed, access to a picked file revoked or a
+                    // restored setting): Read text explains packs instead of reading nothing.
+                    Box(Modifier.fillMaxSize()) {
+                        TextChip(
+                            mode = TextChipMode.READ,
+                            lineCount = 0,
+                            onClick = { scope.launch { textFirstRunSheet.show() } },
+                            modifier = Modifier.align(Alignment.BottomStart)
+                                .windowInsetsPadding(WindowInsets.navigationBars)
+                                .padding(start = 16.dp, bottom = 92.dp),
+                        )
+                    }
+                }
+                if (ocrRuntime != null) {
+                    TextFirstRunSheet(
+                        sheetState = textFirstRunSheet,
+                        downloadsAllowed = !BuildConfig.OFFLINE_MODE,
+                        onChooseLanguages = { navigateFromViewer(Screen.OcrPacksScreen.route) },
+                        onLearnMore = { navigateFromViewer(Screen.TextRecognitionSettingsScreen.route) },
+                    )
                 }
 
                 // Cutout controls: replaces the quick-actions bar in the same bottom slot while a

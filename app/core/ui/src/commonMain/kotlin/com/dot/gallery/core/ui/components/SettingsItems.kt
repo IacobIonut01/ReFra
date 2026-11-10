@@ -154,7 +154,9 @@ fun SettingsItem(
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     borderModifier: @Composable (Shape) -> Modifier = { Modifier },
     customIcon: (@Composable (icon: ImageVector?, iconUri: String?, iconRes: Int?) -> Unit)? = null,
-    customTrailingContent: (@Composable () -> Unit)? = null
+    customTrailingContent: (@Composable () -> Unit)? = null,
+    /** Shown after the title on its line, such as a "Suggested" badge. */
+    titleBadge: (@Composable () -> Unit)? = null,
 ) {
     val mutableInteractionSource = remember {
         MutableInteractionSource()
@@ -604,15 +606,29 @@ fun SettingsItem(
                                     ),
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Text(
-                                    text = item.titleAnnotated ?: AnnotatedString(item.title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontSize = 16.sp,
-                                    fontWeight = if (isLog) FontWeight.Medium else FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    maxLines = if (isLog) 2 else Int.MAX_VALUE,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                val titleText: @Composable (Modifier) -> Unit = { textModifier ->
+                                    Text(
+                                        text = item.titleAnnotated ?: AnnotatedString(item.title),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontSize = 16.sp,
+                                        fontWeight = if (isLog) FontWeight.Medium else FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = if (isLog) 2 else Int.MAX_VALUE,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = textModifier,
+                                    )
+                                }
+                                if (titleBadge != null) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        titleText(Modifier.weight(1f, fill = false))
+                                        titleBadge()
+                                    }
+                                } else {
+                                    titleText(Modifier)
+                                }
                                 supportingContent?.invoke()
                             }
                         }

@@ -113,6 +113,16 @@ object SettingsKeys {
         "code_scan_formats",
         default = setOf(CODE_SCAN_GROUP_QR, CODE_SCAN_GROUP_MATRIX, CODE_SCAN_GROUP_PRODUCT, CODE_SCAN_GROUP_LINEAR),
     )
+    /** Text in photos (on-device OCR). Off until the person turns it on with a pack installed. */
+    val ocrEnabled = PrefKey.bool("ocr_enabled", default = false)
+    /** [OCR_MODE_AUTO] or [OCR_MODE_ON_REQUEST]. */
+    val ocrMode = PrefKey.string("ocr_mode", default = OCR_MODE_AUTO)
+    /** Index the library so Search finds photos by their text. Vault media is never indexed. */
+    val ocrIndexLibrary = PrefKey.bool("ocr_index_library", default = true)
+    /** Pack ids the person chose to use. Nothing is preselected. */
+    val ocrPacks = PrefKey.stringSet("ocr_packs", default = emptySet())
+    /** Picked model files, as `OcrExternalLink.encode()` values. */
+    val ocrExternalModelUris = PrefKey.stringSet("ocr_external_model_uris", default = emptySet())
     val reencodeQualityMode = PrefKey.string("reencode_quality_mode", default = REENCODE_MODE_AUTO)
     val reencodeLossyQuality = PrefKey.int("reencode_lossy_quality", default = 90)
     val reencodeJxlEffort = PrefKey.int("reencode_jxl_effort", default = 7)
@@ -326,6 +336,10 @@ fun resolveLongPressAction(storedValue: String?, legacyCutout: Boolean): String 
         LONG_PRESS_ACTION_ROTATE, LONG_PRESS_ACTION_CUTOUT, LONG_PRESS_ACTION_NONE -> storedValue
         else -> if (legacyCutout) LONG_PRESS_ACTION_CUTOUT else LONG_PRESS_ACTION_ROTATE
     }
+
+/** Text recognition modes stored in [SettingsKeys.ocrMode]. */
+const val OCR_MODE_AUTO = "auto"
+const val OCR_MODE_ON_REQUEST = "on_request"
 
 /** Viewer code-scan modes stored in [SettingsKeys.codeScanMode]. */
 const val CODE_SCAN_MODE_AUTO = "auto"

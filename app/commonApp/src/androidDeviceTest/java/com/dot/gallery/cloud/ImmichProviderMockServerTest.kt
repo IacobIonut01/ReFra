@@ -517,6 +517,29 @@ class ImmichProviderMockServerTest {
     }
 
     @Test
+    fun textSearchPostsOcrQueryAndNeverCachesForeignAssets() = runBlocking {
+        server.dispatcher = dispatcher { req ->
+            if (req.path?.endsWith("/api/search/metadata") == true) {
+                val requestJson = JsonParser.parseString(req.body.readUtf8()).asJsonObject
+                assertEquals("harbour", requestJson["ocr"].asString)
+                json(assetsJson)
+            } else {
+                null
+            }
+        }
+        provider.configure(
+            CloudServerConfig(id = 9, providerType = ProviderType.IMMICH, serverUrl = baseUrl(), apiKey = "KEY")
+        )
+
+        val result = provider.textSearch("harbour")
+
+        assertTrue("text search should succeed: ${result.exceptionOrNull()}", result.isSuccess)
+        // Hits outside the account's synced library are dropped, and nothing is written to cloud_media.
+        assertEquals(0, result.getOrThrow().size)
+        assertEquals(0, dao.getByServerConfig(9L).first().size)
+    }
+
+    @Test
     fun smartSearchByAssetSendsQueryAssetIdAndDropsAnchor() = runBlocking {
         server.dispatcher = dispatcher { req ->
             if (req.path?.endsWith("/api/search/smart") == true) {
@@ -619,7 +642,7 @@ class ImmichProviderMockServerTest {
         assertNotNull(caps)
         listOf(
             "REMOTE_ASSETS", "REMOTE_ALBUMS", "SYNC", "ALBUM_WRITE", "PEOPLE", "MAP",
-            "SMART_SEARCH", "SHARE_CREATE", "SHARE_MANAGE", "ARCHIVE", "MEMORIES", "TAGS"
+            "SMART_SEARCH", "TEXT_SEARCH", "SHARE_CREATE", "SHARE_MANAGE", "ARCHIVE", "MEMORIES", "TAGS"
         ).forEach { assertTrue("Immich must declare $it", it in caps) }
     }
 

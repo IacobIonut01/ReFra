@@ -37,7 +37,9 @@ fun AIModelsManagerScreen(
             onOpenFeature = { feature ->
                 handler.navigate(Screen.IntelligenceFeatureScreen.feature(feature.name))
             },
+            onOpenTextRecognition = { handler.navigate(Screen.TextRecognitionSettingsScreen()) },
         ),
+        textRecognition = rememberTextRecognitionState(),
     )
 }
 

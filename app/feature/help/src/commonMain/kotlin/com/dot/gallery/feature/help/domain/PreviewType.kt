@@ -38,5 +38,6 @@ enum class PreviewType {
     CASTING,
     PANORAMA,
     CODE_SCAN,
+    TEXT_RECOGNITION,
     NONE
 }

@@ -77,6 +77,15 @@ class BackupModelsTest {
     }
 
     @Test
+    fun textRecognitionRestoresChoicesButNeverTheSwitchPacksOrFileGrants() {
+        assertEquals(PortableSettingType.STRING, PortableBackupSettings.typeFor("ocr_mode"))
+        assertEquals(PortableSettingType.BOOLEAN, PortableBackupSettings.typeFor("ocr_index_library"))
+        assertEquals(null, PortableBackupSettings.typeFor("ocr_enabled"))
+        assertEquals(null, PortableBackupSettings.typeFor("ocr_packs"))
+        assertEquals(null, PortableBackupSettings.typeFor("ocr_external_model_uris"))
+    }
+
+    @Test
     fun schemaTwoRecordsShareStableBackupLocalAccountIdentity() {
         val sourceAccountId = backupSourceAccountId("IMMICH", 42L)
         val manifest = BackupManifest(

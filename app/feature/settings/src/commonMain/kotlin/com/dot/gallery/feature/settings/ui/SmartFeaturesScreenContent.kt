@@ -35,6 +35,7 @@ import com.dot.gallery.feature.settings.generated.resources.smart_features_inclu
 import com.dot.gallery.feature.settings.generated.resources.smart_features_include_ignored_albums_scan_running
 import com.dot.gallery.feature.settings.generated.resources.smart_features_include_ignored_albums_summary
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_manager_title
+import com.dot.gallery.feature.settings.generated.resources.ocr_settings_entry_summary
 import com.dot.gallery.core.presentation.components.GalleryPageTopBar
 import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
 import com.dot.gallery.core.presentation.util.LocalHazeState
@@ -78,6 +79,7 @@ fun SmartFeaturesScreenContent(
         val cloudIndexingTitle = stringResource(Res.string.smart_features_cloud_section)
         val cloudIndexingSummary = stringResource(Res.string.smart_features_cloud_indexing_summary)
         val handoverTitle = stringResource(Res.string.handover_title)
+        val textRecognitionSummary = stringResource(Res.string.ocr_settings_entry_summary)
 
         LazyColumn(
             state = listState,
@@ -90,9 +92,9 @@ fun SmartFeaturesScreenContent(
             )
         ) {
             settings {
-                if (state.aiAvailable) {
-                    Header(smartFeaturesHeader)
+                Header(smartFeaturesHeader)
 
+                if (state.aiAvailable) {
                     SwitchPreference(
                         title = includeIgnoredAlbumsTitle,
                         summary = includeIgnoredAlbumsSummary,
@@ -100,13 +102,17 @@ fun SmartFeaturesScreenContent(
                         isChecked = state.includeIgnoredAlbums,
                         onCheck = actions.onIncludeIgnoredAlbumsChange
                     )
+                }
 
-                    Preference(
-                        title = aiModelsManagerTitle,
-                        summary = state.modelSummary,
-                        onClick = actions.onOpenAiModels
-                    )
+                // Offered in every build: text recognition lives in the hub, and its language packs are
+                // downloaded or, without internet, added from files.
+                Preference(
+                    title = aiModelsManagerTitle,
+                    summary = state.modelSummary.ifEmpty { textRecognitionSummary },
+                    onClick = actions.onOpenAiModels
+                )
 
+                if (state.aiAvailable) {
                     Preference(
                         title = categoriesTitle,
                         summary = state.categoriesSummary,

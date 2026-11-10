@@ -8,6 +8,7 @@ package com.dot.gallery.cloud.core
 import com.dot.gallery.cloud.core.capabilities.MapCapableProvider
 import com.dot.gallery.cloud.core.capabilities.MemoriesCapableProvider
 import com.dot.gallery.cloud.core.capabilities.OcrCapableProvider
+import com.dot.gallery.cloud.core.capabilities.TextSearchCapableProvider
 import com.dot.gallery.cloud.core.capabilities.PeopleCapableProvider
 import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.capabilities.ShareLinkCapableProvider
@@ -93,6 +94,7 @@ class ProviderRegistry @Inject constructor() {
     fun getPeopleProviders(): List<PeopleCapableProvider> = getByCapability()
     fun getOcrProviders(): List<OcrCapableProvider> = getByCapability()
     fun getSmartSearchProviders(): List<SmartSearchCapableProvider> = getByCapability()
+    fun getTextSearchProviders(): List<TextSearchCapableProvider> = getByCapability()
     fun getMapProviders(): List<MapCapableProvider> = getByCapability()
     fun getShareLinkProviders(): List<ShareLinkCapableProvider> = getByCapability()
     fun getSyncProviders(): List<SyncCapableProvider> = getByCapability()

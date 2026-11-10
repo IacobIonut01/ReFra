@@ -43,6 +43,7 @@ fun HelpRoute.toScreenRoute(): String = when (this) {
         HelpRoute.Target.COLOR_PALETTE -> Screen.ColorPaletteScreen()
         HelpRoute.Target.DATE_FORMAT -> Screen.DateFormatScreen()
         HelpRoute.Target.AI_MODELS_MANAGER -> Screen.AIModelsManagerScreen()
+        HelpRoute.Target.TEXT_RECOGNITION -> Screen.TextRecognitionSettingsScreen()
         HelpRoute.Target.EDIT_BACKUPS_VIEWER -> Screen.EditBackupsViewerScreen()
         HelpRoute.Target.SLIDESHOW_SETTINGS -> Screen.SlideshowSettingsScreen()
         HelpRoute.Target.STORY_CARDS_SETTINGS -> Screen.StoryCardsSettingsScreen()

@@ -19,6 +19,7 @@ import com.dot.gallery.feature.settings.generated.resources.smart_scan_phase_peo
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_phase_people_grouping
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_phase_search_index
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_phase_source_sync
+import com.dot.gallery.feature.settings.generated.resources.smart_scan_phase_text
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_status_blocked
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_status_cancelled
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_status_complete
@@ -50,6 +51,7 @@ fun SmartScanPhase.label(): String = stringResource(
         SmartScanPhase.CATEGORY_CLASSIFICATION -> Res.string.smart_scan_phase_categories
         SmartScanPhase.FACE_INDEX -> Res.string.smart_scan_phase_people
         SmartScanPhase.FACE_CLUSTER -> Res.string.smart_scan_phase_people_grouping
+        SmartScanPhase.OCR_INDEX -> Res.string.smart_scan_phase_text
     }
 )
 

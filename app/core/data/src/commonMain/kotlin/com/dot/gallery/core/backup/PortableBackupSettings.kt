@@ -91,7 +91,11 @@ object PortableBackupSettings {
         "library_show_location_categories",
         "gallery_dual_pane",
         "visual_search_enabled",
-        "visual_search_allow_vault"
+        "visual_search_allow_vault",
+        // Text in photos: only the choices. "ocr_enabled", "ocr_packs" and
+        // "ocr_external_model_uris" stay out, so a restore never turns reading on without a
+        // pack on this device or carries file grants that do not exist here.
+        "ocr_index_library"
     )
 
     private val intNames = setOf(
@@ -141,7 +145,8 @@ object PortableBackupSettings {
         "visual_search_provider",
         "visual_search_position",
         "visual_search_convert",
-        "visual_search_convert_format"
+        "visual_search_convert_format",
+        "ocr_mode"
     )
 
     private val stringSetNames = setOf(

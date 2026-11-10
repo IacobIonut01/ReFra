@@ -158,7 +158,7 @@ enum class SearchPhase { Home, Typing, Searching, Error, NoResults, Results }
 fun searchPhase(results: SearchResultsState, query: String): SearchPhase = when {
     results.isSearching -> SearchPhase.Searching
     results.results.error.isNotEmpty() -> SearchPhase.Error
-    results.hasSearched && results.results.media.isEmpty() -> SearchPhase.NoResults
+    results.hasSearched && results.results.media.isEmpty() && results.textMatches.isEmpty() -> SearchPhase.NoResults
     results.hasSearched -> SearchPhase.Results
     query.isNotBlank() -> SearchPhase.Typing
     else -> SearchPhase.Home
@@ -893,14 +893,22 @@ private fun SearchResults(
 
     // Index progress and Help & Tips ride above the grid as a single full-width leading
     // item so they scroll seamlessly with the media results.
+    val textMatches = searchResults.textMatches
     val aboveGridContent: (@Composable () -> Unit)? =
-        if (searchIndexerState.isIndexing || tipsContent != null) {
+        if (searchIndexerState.isIndexing || tipsContent != null || textMatches.isNotEmpty()) {
             {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     if (searchIndexerState.isIndexing) {
                         SearchIndexStatusCard(searchIndexerState)
                     }
                     tipsContent?.invoke()
+                    if (textMatches.isNotEmpty()) {
+                        TextInPhotosSection(
+                            matches = textMatches,
+                            otherCount = searchResults.results.media.size,
+                            onOpen = { actions.onOpenTextMatch(it.media.id) },
+                        )
+                    }
                 }
             }
         } else null

@@ -378,6 +378,18 @@ class CloudRepositoryImpl @Inject constructor(
         return Result.success(allResults)
     }
 
+    override suspend fun textSearch(query: String): Result<List<Media>> {
+        val providers = registry.getTextSearchProviders().filter { it.isAvailable }
+        val allResults = mutableListOf<Media>()
+        for (provider in providers) {
+            // Servers without OCR (or too old for it) answer with an error: no hits from them.
+            provider.textSearch(query)
+                .onSuccess { allResults.addAll(it) }
+                .onFailure { printWarn("cloud.search", "Server text search failed", mapOf("provider" to provider.providerType.name, "error" to it.toString())) }
+        }
+        return Result.success(allResults)
+    }
+
     override suspend fun smartSearchByAsset(
         type: ProviderType,
         configId: Long,

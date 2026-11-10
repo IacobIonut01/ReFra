@@ -203,6 +203,30 @@ class InsightControllerTest {
     }
 
     @Test
+    fun aFailedReadIsNotCachedAsNothingFound() = runTest {
+        var calls = 0
+        val engine = object : InsightEngine<String> {
+            override suspend fun analyze(target: String, thorough: Boolean): List<Insight> {
+                calls++
+                if (calls == 1) throw IllegalStateException("session failed to open")
+                return listOf(code("hello"))
+            }
+
+            override fun release() = Unit
+        }
+        val controller = InsightController(engine, StandardTestDispatcher(testScheduler), onError = {})
+        controller.request(key(1), "a", InsightTrigger.MANUAL)
+        advanceUntilIdle()
+        assertTrue(controller.state.value.insights.isEmpty())
+        // Tapping Read text again must read again, not answer "nothing found" from the cache.
+        controller.request(key(1), "a", InsightTrigger.MANUAL)
+        advanceUntilIdle()
+        assertEquals(2, calls)
+        assertEquals(1, controller.state.value.insights.size)
+        controller.dispose()
+    }
+
+    @Test
     fun disposeCancelsReleasesAndIgnoresLaterRequests() = runTest {
         val engine = FakeEngine(analyzeMs = 100)
         val controller = controller(engine)

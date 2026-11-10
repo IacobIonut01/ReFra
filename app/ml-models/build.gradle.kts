@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKmpLibrary)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 // ML engine layer: ONNX runtime sessions, model download/install management
@@ -25,6 +26,9 @@ kotlin {
     }
 
     sourceSets {
+        // The OCR catalog and recognizer dictionaries ship as class-path resources (ocr/...). The
+        // model weights are never bundled; the CLDR coverage snapshot under catalog/coverage is test-only.
+        androidMain.get().resources.srcDir("catalog/runtime")
         androidMain.dependencies {
             implementation(project(":app:core:domain"))
             implementation(project(":app:core:data"))
@@ -36,6 +40,7 @@ kotlin {
             implementation(libs.javax.inject)
             implementation(libs.kotlin.inject.runtime)
             implementation(libs.cmp.components.resources)
+            implementation(libs.kotlinx.serialization.json)
         }
     }
 }

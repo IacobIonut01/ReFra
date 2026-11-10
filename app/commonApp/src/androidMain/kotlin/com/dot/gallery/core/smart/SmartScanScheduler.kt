@@ -59,7 +59,8 @@ internal fun smartScanConstraintsFor(
 private val SMART_SCAN_HEAVY_PHASES = setOf(
     SmartScanPhase.SEARCH_INDEX,
     SmartScanPhase.CATEGORY_CLASSIFICATION,
-    SmartScanPhase.FACE_INDEX
+    SmartScanPhase.FACE_INDEX,
+    SmartScanPhase.OCR_INDEX
 )
 
 @Singleton

@@ -40,6 +40,7 @@ sealed interface HelpRoute {
         COLOR_PALETTE,
         DATE_FORMAT,
         AI_MODELS_MANAGER,
+        TEXT_RECOGNITION,
         EDIT_BACKUPS_VIEWER,
         SLIDESHOW_SETTINGS,
         STORY_CARDS_SETTINGS,

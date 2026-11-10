@@ -15,5 +15,6 @@ enum class MediaFeature(val storedValue: String) {
     METADATA("metadata"),
     SEARCH_EMBEDDING("search_embedding"),
     FACE_DETECTION("face_detection"),
-    CATEGORY_CLASSIFICATION("category_classification")
+    CATEGORY_CLASSIFICATION("category_classification"),
+    OCR("ocr")
 }

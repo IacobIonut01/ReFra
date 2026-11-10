@@ -105,6 +105,8 @@ sealed class Screen(val route: String) {
     data object SettingsHandoverScreen : Screen("settings_handover_screen")
     data object SmartScanPreferenceDetailScreen : Screen("smart_scan_preference_detail_screen")
     data object AIModelsManagerScreen : Screen("ai_models_manager_screen")
+    data object TextRecognitionSettingsScreen : Screen("text_recognition_settings_screen")
+    data object OcrPacksScreen : Screen("ocr_packs_screen")
 
     /**
      * Preview and management page of one Intelligence Hub feature (`IntelligenceFeature` name).

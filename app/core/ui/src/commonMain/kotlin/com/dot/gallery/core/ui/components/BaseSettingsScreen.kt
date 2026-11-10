@@ -6,6 +6,7 @@
 package com.dot.gallery.core.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,6 +57,8 @@ fun BaseSettingsScreen(
     searchSink: ((String, List<String>) -> Unit)? = null,
     /** Overrides the app-navigation back action — for hosts outside the nav graph (the editors). */
     onBack: (() -> Unit)? = null,
+    /** Top-bar actions, built from `GalleryPageTopBarAction`. */
+    actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     if (searchRoute != null && searchSink != null) {
         val toggleTitles = settingsList
@@ -88,7 +91,7 @@ fun BaseSettingsScreen(
     Scaffold(
         modifier = Modifier.semantics { paneTitle = title },
         topBar = {
-            GalleryPageTopBar(title = title, onBack = onBack, hazeState = hazeState, scrolled = scrolled)
+            GalleryPageTopBar(title = title, onBack = onBack, hazeState = hazeState, scrolled = scrolled, actions = actions)
         }
     ) { padding ->
         LazyColumn(

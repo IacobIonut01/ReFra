@@ -26,7 +26,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +53,14 @@ import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.feature.viewer.insight.CodeOverlay
 import com.dot.gallery.feature.viewer.insight.CodeResultSheet
 import com.dot.gallery.feature.viewer.insight.LocalInsightController
+import com.dot.gallery.core.insight.TextInsight
+import com.dot.gallery.feature.viewer.insight.LocalTextInsightController
+import com.dot.gallery.feature.viewer.insight.LocalTextSelectionHolder
+import com.dot.gallery.feature.viewer.insight.TextOverlay
+import com.dot.gallery.feature.viewer.insight.TextSelection
+import com.dot.gallery.feature.viewer.insight.lineAtScreen
+import com.dot.gallery.feature.viewer.insight.nearestLineAtScreen
+import com.dot.gallery.feature.viewer.insight.selectionHandleAt
 import com.dot.gallery.feature.viewer.insight.hitTestCodes
 import com.dot.gallery.feature.viewer.insight.insightKey
 import androidx.compose.foundation.layout.WindowInsets
@@ -62,6 +72,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -376,6 +387,14 @@ fun <T : Media> ZoomablePagerImage(
     val zoomState = rememberSketchZoomState()
     val currentOnZoomTransformChange by rememberUpdatedState(onZoomTransformChange)
     val currentOnImmediateTap by rememberUpdatedState(onImmediateTap)
+    // Text in photos: set below once the page's text result is known; consulted before the caller's tap.
+    val textTapRef = remember { arrayOf<(Offset) -> Boolean>({ false }) }
+    // Selection handles: returns a drag callback when a press lands on a handle, so the drag is
+    // taken before the zoomable sees it; every other gesture still reaches pinch, pan and taps.
+    val textHandleRef = remember { arrayOf<(Offset) -> ((Offset) -> Unit)?>({ null }) }
+    val textHolder = LocalTextSelectionHolder.current
+    val textSelecting = isSelected && textHolder?.active == true
+    val textHandleSlop = with(LocalDensity.current) { 36.dp.toPx() }
     LaunchedEffect(zoomState.zoomable, isSelected) {
         if (isSelected) {
             snapshotFlow { zoomState.zoomable.userTransform }.collect {
@@ -387,6 +406,20 @@ fun <T : Media> ZoomablePagerImage(
     // dynamic mediumScale. See ExtendedZoomScalesCalculator.
     LaunchedEffect(zoomState) {
         zoomState.zoomable.setScalesCalculator(ExtendedZoomScalesCalculator(EXTENDED_MAX_NATIVE_SCALE))
+    }
+    // While selecting text the page (photo and text overlay together) can be pinched smaller than
+    // "fit", so lines under the selection header and action bar can be moved clear of them.
+    // zoomimage clamps its own minimum to the fit scale, so this is a separate layer scale; it
+    // springs back to full size when selection ends. See ViewerZoomScales.
+    var selectionShrink by remember(media.id) { mutableFloatStateOf(1f) }
+    LaunchedEffect(textSelecting) {
+        if (!textSelecting && selectionShrink < 1f) {
+            if (animationsEnabled) {
+                animate(selectionShrink, 1f) { value, _ -> selectionShrink = value }
+            } else {
+                selectionShrink = 1f
+            }
+        }
     }
     val scope = rememberCoroutineScope()
 
@@ -779,6 +812,18 @@ fun <T : Media> ZoomablePagerImage(
                     requireUnconsumed = false,
                     pass = PointerEventPass.Initial,
                 )
+                val handleDrag = textHandleRef[0](down.position)
+                if (handleDrag != null) {
+                    down.consume()
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        change.consume()
+                        if (!change.pressed) break
+                        handleDrag(change.position)
+                    }
+                    return@awaitEachGesture
+                }
                 var isTap = true
                 var tracked = down
                 while (tracked.pressed) {
@@ -796,14 +841,14 @@ fun <T : Media> ZoomablePagerImage(
                 }
                 if (isTap &&
                     tracked.uptimeMillis - down.uptimeMillis < viewConfiguration.longPressTimeoutMillis &&
-                    currentOnImmediateTap(tracked.position)
+                    (textTapRef[0](tracked.position) || currentOnImmediateTap(tracked.position))
                 ) {
                     tracked.consume()
                 }
             }
         }
         .swipe(
-            enabled = swipeToDismissEnabled,
+            enabled = swipeToDismissEnabled && !textSelecting,
             onSwipeDown = onSwipeDown,
             onOffset = { swipeOffsetY = it.y },
         )
@@ -944,6 +989,49 @@ fun <T : Media> ZoomablePagerImage(
         if (codeSheetState.isVisible && (codes.isEmpty() || !isSelected)) codeSheetState.hide()
     }
 
+    // --- Text in photos ---
+    // Like codes: the viewer-wide text controller reads only the settled page; this page draws the
+    // lines when the result is for this exact media version. Selection lives in the viewer.
+    val textController = LocalTextInsightController.current
+    val textSnapshot = textController?.state?.collectAsState()?.value
+    val pageText = remember(textSnapshot, isSelected, pageInsightKey) {
+        if (textSnapshot == null || !isSelected || textSnapshot.key != pageInsightKey) null
+        else textSnapshot.insights.filterIsInstance<TextInsight>().firstOrNull()
+    }
+    val pageSelection = textHolder?.selection?.takeIf { isSelected && textHolder.insight == pageText && pageText != null }
+    val showText = pageText != null && !cutoutState.isActive && !cutoutState.isProcessing
+    textTapRef[0] = { offset ->
+        val insight = pageText
+        if (insight == null || textHolder == null || !showText) {
+            false
+        } else {
+            val line = insight.lineAtScreen(zoomState.zoomable, offset)
+            when {
+                pageSelection != null -> {
+                    if (line >= 0) textHolder.update(TextSelection.single(line))
+                    true
+                }
+                line >= 0 -> {
+                    textHolder.start(insight, TextSelection.single(line))
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+    textHandleRef[0] = handle@{ offset ->
+        val insight = pageText ?: return@handle null
+        val selection = pageSelection ?: return@handle null
+        val start = insight.selectionHandleAt(zoomState.zoomable, selection, offset, textHandleSlop)
+            ?: return@handle null
+        val drag: (Offset) -> Unit = { position ->
+            val current = textHolder?.selection ?: selection
+            val index = insight.nearestLineAtScreen(zoomState.zoomable, position)
+            textHolder?.update(if (start) current.withStart(index) else current.withEnd(index))
+        }
+        drag
+    }
+
     // Tap handler: while a cutout session is active, add/remove a prompt point; otherwise pass through.
     val onImageTap: (Offset) -> Unit = { offset ->
         val session = cutoutState.session
@@ -995,7 +1083,9 @@ fun <T : Media> ZoomablePagerImage(
     // Configurable long-press action (default: rotate). Disabled entirely when cut-out is off
     // (e.g. during a slideshow).
     val onImageLongPress: (Offset) -> Unit = { offset ->
-        if (cutoutEnabled) {
+        // Never while selecting text: rotating or cutting out under a selection (a long press, or
+        // a slow pinch zoomimage reads as one) turned the photo and dropped the highlights.
+        if (cutoutEnabled && !textSelecting) {
             when (longPressAction) {
                 // Cut-out can't run on TIFF/PSD/JP2 (BitmapFactory can't decode them); rotate instead.
                 LONG_PRESS_ACTION_CUTOUT -> if (cutoutSupported) startCutoutAt(offset) else rotateImage()
@@ -1057,7 +1147,39 @@ fun <T : Media> ZoomablePagerImage(
         onDispose { if (isSelected) onCutoutController(null) }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            // Pinch-in past "fit" while selecting text shrinks the page; pinch-out grows it back
+            // before zoomimage zooms in. Read on the Initial pass, outside the layer, so the steps
+            // that belong to the shrink never reach zoomimage (it would rubber-band at fit).
+            .pointerInput(textSelecting) {
+                if (!textSelecting) return@pointerInput
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    do {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.changes.count { it.pressed } >= 2) {
+                            val zoomable = zoomState.zoomable
+                            val next = ViewerZoomScales.shrinkAfterPinch(
+                                current = selectionShrink,
+                                zoom = event.calculateZoom(),
+                                zoomableAtMinimum = zoomable.transform.scaleX <= zoomable.minScale * 1.001f,
+                            )
+                            if (next != null) {
+                                selectionShrink = next
+                                event.changes.forEach { it.consume() }
+                            }
+                        }
+                    } while (event.changes.any { it.pressed })
+                }
+            }
+            // Photo and overlays scale together, so highlights, taps and handles stay aligned.
+            .graphicsLayer {
+                scaleX = selectionShrink
+                scaleY = selectionShrink
+            }
+    ) {
         if (usePixelPerfect) {
             // Pixel-art path: nearest-neighbor rendering with subsampling.
             PixelPerfectZoomImage(
@@ -1105,13 +1227,25 @@ fun <T : Media> ZoomablePagerImage(
             translationY = swipeOffsetY.toFloat()
         )
 
-        if (showCodes) {
+        if (showText) {
+            TextOverlay(
+                insight = pageText!!,
+                zoomable = zoomState.zoomable,
+                selection = pageSelection,
+                animationsEnabled = animationsEnabled,
+                translationY = { swipeOffsetY.toFloat() },
+                onSelectionChange = { textHolder?.update(it) },
+            )
+        }
+        if (showCodes && pageSelection == null) {
             CodeOverlay(
                 insights = codes,
                 zoomable = zoomState.zoomable,
                 showChip = uiVisible,
                 animationsEnabled = animationsEnabled,
-                bottomReserve = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 96.dp,
+                // The Text chip sits above the quick bar, so code chips keep clear of it too.
+                bottomReserve = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
+                    if (textController != null) 156.dp else 96.dp,
                 translationY = { swipeOffsetY.toFloat() },
                 onOpen = openCode,
             )
@@ -1151,7 +1285,7 @@ fun <T : Media> ZoomablePagerImage(
             }
         }
 
-        val chromeVisible = isSelected && uiVisible && !cutoutState.isActive && !cutoutState.isProcessing
+        val chromeVisible = isSelected && uiVisible && !textSelecting && !cutoutState.isActive && !cutoutState.isProcessing
 
         if (longPressAction == LONG_PRESS_ACTION_CUTOUT) {
             // Long-press does cutout → offer Rotate as a pill.

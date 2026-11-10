@@ -1,0 +1,3 @@
+# Bundled OCR dictionaries are pinned by size and SHA-256 in the model catalog and checked at
+# runtime. Keep their bytes exactly as committed: a CRLF checkout (core.autocrlf=true) breaks the pin.
+app/ml-models/catalog/runtime/ocr/dictionaries/*.yml -text

@@ -496,4 +496,23 @@ class MediaViewerVisualPolicyTest {
             )
         )
     }
+
+    @Test
+    fun selectingTextTurnsOffTheOverlayDragToDismiss() {
+        fun enabled(selectingText: Boolean) = viewerDismissGestureEnabled(
+            overlayMode = true,
+            metadataCoverShown = false,
+            locked = false,
+            imageZoomed = false,
+            videoZoomed = false,
+            cutoutActive = false,
+            slideshowActive = false,
+            pagerScrolling = false,
+            sheetOpening = false,
+            selectingText = selectingText,
+        )
+        assertTrue(enabled(selectingText = false))
+        // Dragging a selection handle down to take more lines must reach the selection, not dismiss.
+        assertFalse(enabled(selectingText = true))
+    }
 }

@@ -5,15 +5,10 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Downloaded text recognition models: large, and downloaded again on the new device. -->
+        <exclude domain="file" path="models/ocr/" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="file" path="models/ocr/" />
     </device-transfer>
-    -->
 </data-extraction-rules>
