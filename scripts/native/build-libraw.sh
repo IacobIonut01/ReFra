@@ -14,7 +14,8 @@
 #   scripts/native/build-libraw.sh            # builds arm64-v8a (device/dev ABI)
 #   scripts/native/build-libraw.sh all        # builds all four ABIs for release
 #
-# Requires: internet access, the pinned NDK, and SDK CMake 3.31.x.
+# Requires: internet access, the pinned NDK, and CMake (SDK 3.31.x preferred; 4.x works via
+# NATIVE_CMAKE_POLICY_MIN).
 set -euo pipefail
 
 # --- Pinned versions -------------------------------------------------------------------------
@@ -107,6 +108,7 @@ build_abi() {
         -DCMAKE_INSTALL_PREFIX="$STAGE"
         -DCMAKE_FIND_ROOT_PATH="$STAGE"
         -DCMAKE_PREFIX_PATH="$STAGE"
+        "$NATIVE_CMAKE_POLICY_MIN"
     )
 
     # 1) zlib (needed by libtiff deflate + LibRaw deflated DNG)

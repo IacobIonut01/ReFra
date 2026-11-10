@@ -12,15 +12,16 @@
 #   scripts/native/build-heif.sh            # builds arm64-v8a (device/dev ABI)
 #   scripts/native/build-heif.sh all        # builds all four ABIs for release
 #
-# Requires: internet access, the pinned NDK, and SDK CMake 3.31.x (NOT 4.x — CMake 4 breaks
-# libde265's cmake_minimum_required(<3.5)).
+# Requires: internet access, the pinned NDK, and CMake — SDK CMake 3.31.x is preferred, but a
+# CMake 4 system cmake also works via NATIVE_CMAKE_POLICY_MIN (libde265 declares
+# cmake_minimum_required below 3.5).
 set -euo pipefail
 
 # --- Pinned versions -------------------------------------------------------------------------
 LIBDE265_VERSION="1.0.15"
 LIBHEIF_VERSION="1.19.8"
 ANDROID_API=29                          # matches app minSdk
-CMAKE_VERSION="3.31.6"                   # must be a 3.x SDK CMake, not 4.x
+CMAKE_VERSION="3.31.6"                   # preferred SDK CMake; 4.x works via NATIVE_CMAKE_POLICY_MIN
 
 # --- Paths -----------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -91,7 +92,7 @@ build_abi() {
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_C_FLAGS="$NATIVE_REPRO_FLAGS" -DCMAKE_CXX_FLAGS="$NATIVE_REPRO_FLAGS" \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_SKIP_RPATH=ON \
-        -DBUILD_SHARED_LIBS=OFF \
+        -DBUILD_SHARED_LIBS=OFF "$NATIVE_CMAKE_POLICY_MIN" \
         -DENABLE_SDL=OFF -DENABLE_DECODER=OFF -DENABLE_ENCODER=OFF \
         -DCMAKE_INSTALL_PREFIX="$STAGE"
     "$CMAKE_BIN" --build "$WORK/de265-$ABI" --target install
@@ -104,7 +105,7 @@ build_abi() {
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_C_FLAGS="$NATIVE_REPRO_FLAGS" -DCMAKE_CXX_FLAGS="$NATIVE_REPRO_FLAGS" \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_SKIP_RPATH=ON \
-        -DBUILD_SHARED_LIBS=OFF \
+        -DBUILD_SHARED_LIBS=OFF "$NATIVE_CMAKE_POLICY_MIN" \
         -DWITH_EXAMPLES=OFF -DWITH_GDK_PIXBUF=OFF -DBUILD_TESTING=OFF \
         -DWITH_AOM_DECODER=OFF -DWITH_AOM_ENCODER=OFF -DWITH_DAV1D=OFF \
         -DWITH_X265=OFF -DWITH_SvtEnc=OFF -DWITH_RAV1E=OFF \

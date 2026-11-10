@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Some pinned third-party sources declare cmake_minimum_required below 3.5, which CMake 4
+# refuses to configure. Passing the policy floor keeps them building on both CMake 3.x
+# (where the variable is ignored) and 4.x system toolchains.
+NATIVE_CMAKE_POLICY_MIN="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+
 native_sha256() {
     # GNU coreutils prefixes the output with a backslash when the file name itself contains
     # one (Windows paths passed in through the environment), so drop that escape marker.

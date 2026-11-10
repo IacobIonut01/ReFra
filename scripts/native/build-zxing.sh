@@ -70,7 +70,7 @@ build_abi() {
         -DCMAKE_C_FLAGS="$NATIVE_REPRO_FLAGS -ffunction-sections -fdata-sections" \
         -DCMAKE_CXX_FLAGS="$NATIVE_REPRO_FLAGS -ffunction-sections -fdata-sections" \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-        -DBUILD_SHARED_LIBS=OFF \
+        -DBUILD_SHARED_LIBS=OFF "$NATIVE_CMAKE_POLICY_MIN" \
         -DZXING_READERS=ON \
         -DZXING_WRITERS=OFF \
         -DZXING_C_API=OFF \

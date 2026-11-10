@@ -15,7 +15,8 @@
 #   scripts/native/build-heif-encode.sh            # arm64-v8a
 #   scripts/native/build-heif-encode.sh all        # all four ABIs
 #
-# Requires: internet access (curl + git), the pinned NDK, and SDK CMake 3.31.x.
+# Requires: internet access (curl + git), the pinned NDK, and CMake (SDK 3.31.x preferred;
+# 4.x works via NATIVE_CMAKE_POLICY_MIN).
 set -euo pipefail
 
 # --- Pinned versions -------------------------------------------------------------------------
@@ -114,6 +115,7 @@ build_abi() {
         -DCMAKE_INSTALL_PREFIX="$STAGE"
         -DCMAKE_PREFIX_PATH="$STAGE"
         -DCMAKE_FIND_ROOT_PATH="$STAGE"
+        "$NATIVE_CMAKE_POLICY_MIN"
     )
 
     # 1) libde265 (HEVC decoder — libheif needs a decoder present)
