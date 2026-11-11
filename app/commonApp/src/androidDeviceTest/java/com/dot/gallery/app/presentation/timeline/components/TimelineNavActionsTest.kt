@@ -25,10 +25,11 @@ import com.dot.gallery.core.util.getString
 import com.dot.gallery.domain.settings.MapSettingsStore
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.generated.resources.Res
+import com.dot.gallery.generated.resources.cloud_backup_dashboard_title
+import com.dot.gallery.generated.resources.cloud_memories
 import com.dot.gallery.generated.resources.favorites
 import com.dot.gallery.generated.resources.help_whats_new
-import com.dot.gallery.core.util.SdkCompat
-import org.junit.Assume.assumeTrue
+import com.dot.gallery.generated.resources.settings_title
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +38,7 @@ import org.junit.runner.RunWith
 /**
  * Regression coverage for the header's overflow sheet: the unread-release entry and the
  * dot that points at it travel together, and the entry is hidden once the release is read.
+ * Favorites and Memories live elsewhere, so the sheet must not list them.
  */
 @MediumTest
 @RunWith(AndroidJUnit4::class)
@@ -49,12 +51,9 @@ class TimelineNavActionsTest {
         get() = InstrumentationRegistry.getInstrumentation()
             .targetContext.getString(Res.string.help_whats_new)
 
-    private fun showMenu(lastSeenVersion: String, showFavoritesPreference: Boolean = true) {
+    private fun showMenu(lastSeenVersion: String) {
         val store = MapSettingsStore().apply {
-            seed(
-                SettingsKeys.lastSeenVersion to lastSeenVersion,
-                SettingsKeys.showSearchBarFavButton to showFavoritesPreference,
-            )
+            seed(SettingsKeys.lastSeenVersion to lastSeenVersion)
         }
         rule.setContent {
             CompositionLocalProvider(LocalSettingsStore provides store) {
@@ -104,16 +103,18 @@ class TimelineNavActionsTest {
     }
 
     @Test
-    fun favoritesStaysListedAfterItsOldSettingWasTurnedOff() {
-        // The Favourites shortcut setting left with the old search bar, so a stored "off"
-        // must not hide the menu entry with no way left to bring it back.
-        assumeTrue(SdkCompat.supportsFavorites)
-        showMenu(lastSeenVersion = BuildConfig.VERSION_NAME, showFavoritesPreference = false)
+    fun favoritesAndMemoriesAreNotListed() {
+        // Favorites moved to a top-bar button and Memories is a Library shortcut, so the
+        // sheet keeps only Backup, What's new and Settings (issue #1389).
+        showMenu(lastSeenVersion = BuildConfig.VERSION_NAME)
 
         openMenuSheet()
 
-        val favoritesLabel = InstrumentationRegistry.getInstrumentation()
-            .targetContext.getString(Res.string.favorites)
-        rule.onNodeWithText(favoritesLabel).assertExists()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        rule.onNodeWithTag(TimelineMenuSheetTag).assertIsDisplayed()
+        rule.onAllNodesWithText(context.getString(Res.string.favorites)).assertCountEquals(0)
+        rule.onAllNodesWithText(context.getString(Res.string.cloud_memories)).assertCountEquals(0)
+        rule.onNodeWithText(context.getString(Res.string.cloud_backup_dashboard_title)).assertExists()
+        rule.onNodeWithText(context.getString(Res.string.settings_title)).assertExists()
     }
 }
