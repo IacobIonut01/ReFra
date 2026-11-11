@@ -417,7 +417,6 @@ private fun DocsAlbumsPage(
                 actions = libraryActions,
                 routes = libraryRoutes,
                 layout = LibraryHeaderLayout.COMPACT,
-                onEnterEditMode = { editMode = true },
                 modifier = Modifier.padding(horizontal = 8.dp),
             )
         },

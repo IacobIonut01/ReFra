@@ -101,7 +101,6 @@ fun LibraryEditContent(
             editMode = true,
             layout = layout,
             onNavigate = {},
-            onEnterEditMode = {},
         )
         LibrarySectionsEditCard(
             modifier = Modifier.padding(top = 20.dp),
@@ -130,7 +129,6 @@ fun LibraryEditContent(
                 layout = layout,
                 mapContent = mapContent,
                 onNavigate = {},
-                onLongPress = {},
             )
         }
     }

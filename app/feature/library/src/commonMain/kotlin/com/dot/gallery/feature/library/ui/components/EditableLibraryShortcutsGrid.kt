@@ -12,10 +12,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +32,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.UnfoldMore
@@ -71,7 +68,6 @@ import com.dot.gallery.feature.library.ui.RuntimeShortcut
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.library.generated.resources.Res
-import com.dot.gallery.feature.library.generated.resources.library_customize
 import com.dot.gallery.feature.library.generated.resources.library_section_hidden
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_hide
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_show
@@ -127,22 +123,21 @@ private fun computeSlots(
 /**
  * Quick-Settings-style, in-place editable shortcut grid.
  *
- * Normal mode: tiles fill the row, tap navigates, long-press enters edit mode. With [collapsible],
- * long lists fold behind a "more" tile so the shortcuts do not push the albums off screen.
+ * Normal mode: tiles fill the row and tap navigates; editing opens from the Library overflow
+ * menu. With [collapsible], long lists fold behind a "Show more" tile so the shortcuts do not
+ * push the albums off screen.
  * Edit mode: drag to reorder live, drag the side handle to resize half/full,
  * tap the × to remove, and re-add hidden tiles from the tray below.
  *
  * [working] is the controlled list of every AVAILABLE shortcut (visible +
  * hidden), in order. Mutations are reported via [onChange]; the caller persists.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EditableLibraryShortcutsGrid(
     working: List<LibraryShortcutPref>,
     runtime: Map<LibraryShortcut, RuntimeShortcut>,
     editMode: Boolean,
     onClick: (String) -> Unit,
-    onEnterEditMode: () -> Unit,
     onChange: (List<LibraryShortcutPref>) -> Unit,
     modifier: Modifier = Modifier,
     columns: Int = LibraryShortcutSpan.COLUMNS,
@@ -226,42 +221,6 @@ fun EditableLibraryShortcutsGrid(
             allVisibleTiles.take(COLLAPSED_VISIBLE_TILES)
         } else allVisibleTiles
 
-        // With every shortcut hidden there is no tile left to long-press, so
-        // edit mode would be unreachable and the tiles could never be brought
-        // back. Show an obvious entry point into customization instead.
-        if (!editMode && visibleTiles.isEmpty() && hiddenTiles.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(tileHeight)
-                    .testTag("library-shortcuts-customize")
-                    .dashedBorder(
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = TILE_SHAPE,
-                        gapLength = 8.dp
-                    )
-                    .clip(TILE_SHAPE)
-                    .clickable(onClick = onEnterEditMode),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(
-                    8.dp,
-                    Alignment.CenterHorizontally
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = stringResource(Res.string.library_customize),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val spacingPx = with(density) { TILE_SPACING.toPx() }
             val tileHeightPx = with(density) { tileHeight.toPx() }
@@ -270,12 +229,18 @@ fun EditableLibraryShortcutsGrid(
                 .coerceIn(1, columns)
             val unitPx = (maxWidthPx - spacingPx * (fittingColumns - 1)) / fittingColumns
 
+            val spans = visibleTiles.map { it.span }.toMutableList()
+            if (canCollapse) spans.add(COLLAPSED_VISIBLE_TILES, LibraryShortcutSpan.HALF)
             val (slots, totalHeightPx) = computeSlots(
-                visibleTiles.map { it.span } + if (canCollapse) listOf(LibraryShortcutSpan.HALF) else emptyList(),
-                unitPx, spacingPx, tileHeightPx, fittingColumns
+                spans, unitPx, spacingPx, tileHeightPx, fittingColumns
             )
+            // The toggle keeps the slot right after the collapsed tiles, so it does not move when
+            // the list expands; the extra tiles flow in after it.
+            val tileSlots = if (canCollapse) {
+                slots.filterIndexed { index, _ -> index != COLLAPSED_VISIBLE_TILES }
+            } else slots
             // Keep the geometry holder fresh for drag hit-testing.
-            geo.slots = slots
+            geo.slots = tileSlots
             geo.visibleIds = visibleTiles.map { it.id }
             geo.tileHeightPx = tileHeightPx
             geo.unitPx = unitPx
@@ -285,7 +250,7 @@ fun EditableLibraryShortcutsGrid(
                 .height(with(density) { totalHeightPx.toDp() })
             ) {
                 if (canCollapse) {
-                    val slot = slots.last()
+                    val slot = slots[COLLAPSED_VISIBLE_TILES]
                     Box(
                         modifier = Modifier
                             .graphicsLayer {
@@ -302,10 +267,7 @@ fun EditableLibraryShortcutsGrid(
                             title = if (expanded) {
                                 stringResource(Res.string.library_shortcuts_less)
                             } else {
-                                stringResource(
-                                    Res.string.library_shortcuts_more,
-                                    allVisibleTiles.size - COLLAPSED_VISIBLE_TILES
-                                )
+                                stringResource(Res.string.library_shortcuts_more)
                             },
                             icon = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
                             shape = TILE_SHAPE,
@@ -315,7 +277,7 @@ fun EditableLibraryShortcutsGrid(
                 }
                 visibleTiles.forEachIndexed { index, pref ->
                     val data = LibraryShortcut.fromId(pref.id)?.let { runtime[it] } ?: return@forEachIndexed
-                    val slot = slots.getOrNull(index) ?: return@forEachIndexed
+                    val slot = tileSlots.getOrNull(index) ?: return@forEachIndexed
                     // Identity-keyed so each tile's gesture/state moves WITH it
                     // across reorders instead of being torn down (which froze the
                     // active drag the moment a tile collided with another).
@@ -359,6 +321,7 @@ fun EditableLibraryShortcutsGrid(
                             }
                             .width(widthDp)
                             .height(tileHeight)
+                            .testTag("library-shortcut-${pref.id}")
                             .then(
                                 if (editMode) Modifier.pointerInput(pref.id) {
                                     detectDragGestures(
@@ -402,13 +365,7 @@ fun EditableLibraryShortcutsGrid(
                                             reorderByHover(cx, cy, pref.id)
                                         }
                                     )
-                                } else Modifier.combinedClickable(
-                                    onClick = { onClick(data.route) },
-                                    onLongClick = {
-                                        onEnterEditMode()
-                                        feedbackManager.vibrateStrong()
-                                    },
-                                )
+                                } else Modifier.clickable { onClick(data.route) }
                             )
                     ) {
                         ShortcutTile(

@@ -5,9 +5,8 @@
 
 package com.dot.gallery.feature.library.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -45,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
 import com.dot.gallery.core.ui.settings.rememberPreference
-import com.dot.gallery.core.util.rememberFeedbackManager
 import com.dot.gallery.domain.settings.SECTION_CATEGORIES
 import com.dot.gallery.domain.settings.SECTION_PEOPLE
 import com.dot.gallery.domain.settings.SettingsKeys
@@ -110,12 +108,10 @@ fun LibraryHeader(
     actions: LibraryActions,
     routes: LibraryRoutes,
     layout: LibraryHeaderLayout,
-    onEnterEditMode: () -> Unit,
     modifier: Modifier = Modifier,
     mapContent: (@Composable BoxScope.(latitude: Double, longitude: Double) -> Unit)? = null,
 ) {
     val sections = rememberLibrarySections(state)
-    val feedbackManager = rememberFeedbackManager()
     Column(modifier = modifier.fillMaxWidth()) {
         LibraryShortcuts(
             state = state,
@@ -123,7 +119,6 @@ fun LibraryHeader(
             editMode = false,
             layout = layout,
             onNavigate = actions.onNavigate,
-            onEnterEditMode = onEnterEditMode,
         )
         LibraryExploreCards(
             state = state,
@@ -132,10 +127,6 @@ fun LibraryHeader(
             layout = layout,
             mapContent = mapContent,
             onNavigate = actions.onNavigate,
-            onLongPress = {
-                onEnterEditMode()
-                feedbackManager.vibrateStrong()
-            },
             modifier = Modifier.padding(top = 8.dp),
         )
     }
@@ -148,7 +139,6 @@ internal fun LibraryShortcuts(
     editMode: Boolean,
     layout: LibraryHeaderLayout,
     onNavigate: (String) -> Unit,
-    onEnterEditMode: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val runtime = rememberLibraryRuntimeShortcuts(
@@ -170,7 +160,6 @@ internal fun LibraryShortcuts(
         columns = if (layout == LibraryHeaderLayout.WIDE) 4 else LibraryShortcutSpan.COLUMNS,
         collapsible = layout == LibraryHeaderLayout.COMPACT,
         onClick = onNavigate,
-        onEnterEditMode = onEnterEditMode,
         onChange = { newWorking ->
             val availableIds = runtime.keys.map { it.id }.toSet()
             val leftovers = shortcutsLayout.filter { it.id !in availableIds }
@@ -187,17 +176,16 @@ internal fun LibraryExploreCards(
     layout: LibraryHeaderLayout,
     mapContent: (@Composable BoxScope.(latitude: Double, longitude: Double) -> Unit)?,
     onNavigate: (String) -> Unit,
-    onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val locations: @Composable (Modifier) -> Unit = { cardModifier ->
-        LocationsCard(state, mapContent, cardModifier, { onNavigate(routes.locations) }, onLongPress)
+        LocationsCard(state, mapContent, cardModifier) { onNavigate(routes.locations) }
     }
     val people: @Composable (Modifier) -> Unit = { cardModifier ->
-        PeopleCard(state, cardModifier, { onNavigate(routes.people) }, onLongPress)
+        PeopleCard(state, cardModifier) { onNavigate(routes.people) }
     }
     val categories: @Composable (Modifier) -> Unit = { cardModifier ->
-        CategoriesCard(state, cardModifier, { onNavigate(routes.categories) }, onLongPress)
+        CategoriesCard(state, cardModifier) { onNavigate(routes.categories) }
     }
     val spacing = Arrangement.spacedBy(8.dp)
     when (exploreArrangement(sections, layout)) {
@@ -240,9 +228,8 @@ internal fun LibraryExploreCards(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-private fun Modifier.exploreCard(onClick: () -> Unit, onLongPress: () -> Unit): Modifier =
-    clip(RoundedCornerShape(24.dp)).combinedClickable(onClick = onClick, onLongClick = onLongPress)
+private fun Modifier.exploreCard(onClick: () -> Unit): Modifier =
+    clip(RoundedCornerShape(24.dp)).clickable(onClick = onClick)
 
 private fun exploreCount(count: Int): String =
     if (count > 99) "99+" else count.toString()
@@ -284,10 +271,9 @@ private fun LocationsCard(
     mapContent: (@Composable BoxScope.(latitude: Double, longitude: Double) -> Unit)?,
     modifier: Modifier,
     onClick: () -> Unit,
-    onLongPress: () -> Unit,
 ) {
     val latestGeo = state.snapshot.latestGeo
-    Box(modifier = modifier.testTag("library-locations").exploreCard(onClick, onLongPress)) {
+    Box(modifier = modifier.testTag("library-locations").exploreCard(onClick)) {
         MapPreviewCard(
             modifier = Modifier.fillMaxSize(),
             height = null,
@@ -333,7 +319,6 @@ private fun PeopleCard(
     state: LibraryState,
     modifier: Modifier,
     onClick: () -> Unit,
-    onLongPress: () -> Unit,
 ) {
     val renderer = LocalMediaImageRenderer.current
     val people = state.snapshot.cloud.people
@@ -341,7 +326,7 @@ private fun PeopleCard(
     Column(
         modifier = modifier
             .testTag("library-people")
-            .exploreCard(onClick, onLongPress)
+            .exploreCard(onClick)
             .background(surface)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -397,14 +382,13 @@ private fun CategoriesCard(
     state: LibraryState,
     modifier: Modifier,
     onClick: () -> Unit,
-    onLongPress: () -> Unit,
 ) {
     val renderer = LocalMediaImageRenderer.current
     val thumbnail = state.snapshot.categories.orEmpty().firstNotNullOfOrNull { it.thumbnailMedia }
     Box(
         modifier = modifier
             .testTag("library-categories")
-            .exploreCard(onClick, onLongPress)
+            .exploreCard(onClick)
             .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         if (thumbnail != null) {

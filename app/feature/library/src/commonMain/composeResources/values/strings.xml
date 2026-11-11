@@ -7,7 +7,7 @@
     <string name="library_customize_title">Customize library</string>
     <string name="library_customize_hint">Shortcuts: drag to reorder, use the side handle to resize</string>
     <string name="library_preview">Preview</string>
-    <string name="library_shortcuts_more">%1$d more</string>
+    <string name="library_shortcuts_more">Show more</string>
     <string name="library_shortcuts_less">Show less</string>
     <string name="library_section_locations_summary">Map preview and places</string>
     <string name="library_section_people_summary">People in your photos</string>
@@ -19,7 +19,6 @@
     <string name="library_section_media_types">Media types</string>
     <string name="library_section_media_types_summary">Videos, photos, GIFs and RAW as albums</string>
     <string name="library_edit_done">Done</string>
-    <string name="library_customize">Customize shortcuts</string>
     <string name="library_shortcut_hide">Hide shortcut</string>
     <string name="library_shortcut_size_half">Half width</string>
     <string name="library_shortcut_size_full">Full width</string>

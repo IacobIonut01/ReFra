@@ -9,6 +9,9 @@ import android.net.Uri
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -170,7 +173,6 @@ class LibrarySnapshotNavigationTest {
                         actions = LibraryActions(onNavigate = { rig.navigated += it }),
                         routes = routes,
                         layout = LibraryHeaderLayout.COMPACT,
-                        onEnterEditMode = {},
                     )
                 }
             }
@@ -211,6 +213,16 @@ class LibrarySnapshotNavigationTest {
         rule.onNodeWithTag("library-categories").performClick()
         rule.waitForIdle()
         assertEquals(listOf("locations", "people", "categories"), rig.navigated)
+    }
+
+    @Test
+    fun sectionCardsOfferNoLongPressAction() {
+        setHeader(populatedSnapshot())
+        listOf("library-locations", "library-people", "library-categories").forEach { tag ->
+            rule.onNodeWithTag(tag)
+                .assert(SemanticsMatcher.keyIsDefined(SemanticsActions.OnClick))
+                .assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnLongClick))
+        }
     }
 
     @Test

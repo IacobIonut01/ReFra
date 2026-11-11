@@ -168,7 +168,6 @@ fun LibraryScreen(
                 actions = actions,
                 routes = routes,
                 layout = layout,
-                onEnterEditMode = { onEditModeChange(true) },
                 mapContent = mapContent,
                 modifier = modifier,
             )
