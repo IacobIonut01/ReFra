@@ -767,7 +767,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                     logSelectionAction("info")
                     showInfoSheet = true
                 },
-                actions = bottomActionItems,
+                actions = if (selectedMedia.isEmpty()) ({}) else bottomActionItems,
             )
         }
         val owner = remember { Any() }
@@ -926,69 +926,74 @@ fun <T : Media> BoxScope.SelectionSheet(
                     }
                 }
             }
-            // Middle actions — full-width pill buttons
-            sanitizedConfig.middleActions.forEach { action ->
-                val isVisible = isActionVisible(action, collectionId, showFavoriteButton, isInVault)
-                if (isVisible) {
-                    when (action) {
-                        SelectionAction.COLLECTION -> {
-                            val inCollection = collectionId != null
-                            MiddleActionButton(
-                                icon = action.icon,
-                                text = stringResource(
-                                    if (inCollection) Res.string.remove_from_collection
-                                    else Res.string.add_to_collection
-                                ),
-                                surfaceColor = surfaceColor,
-                                onClick = {
-                                    logSelectionAction(
-                                        if (inCollection) "collection_remove" else "collection_add"
-                                    )
-                                    if (inCollection) {
-                                        scope.launch {
-                                            selectedMedia.forEach { media ->
-                                                collectionViewModel.removeMediaFromCollection(collectionId, media.id)
+            // Selection mode can start empty (the home Select button); actions wait for items.
+            AnimatedVisibility(visible = selectedMedia.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Middle actions — full-width pill buttons
+                    sanitizedConfig.middleActions.forEach { action ->
+                        val isVisible = isActionVisible(action, collectionId, showFavoriteButton, isInVault)
+                        if (isVisible) {
+                            when (action) {
+                                SelectionAction.COLLECTION -> {
+                                    val inCollection = collectionId != null
+                                    MiddleActionButton(
+                                        icon = action.icon,
+                                        text = stringResource(
+                                            if (inCollection) Res.string.remove_from_collection
+                                            else Res.string.add_to_collection
+                                        ),
+                                        surfaceColor = surfaceColor,
+                                        onClick = {
+                                            logSelectionAction(
+                                                if (inCollection) "collection_remove" else "collection_add"
+                                            )
+                                            if (inCollection) {
+                                                scope.launch {
+                                                    selectedMedia.forEach { media ->
+                                                        collectionViewModel.removeMediaFromCollection(collectionId, media.id)
+                                                    }
+                                                    selector.clearSelection()
+                                                }
+                                            } else {
+                                                showCollectionSheet = true
                                             }
-                                            selector.clearSelection()
                                         }
-                                    } else {
-                                        showCollectionSheet = true
-                                    }
+                                    )
                                 }
-                            )
-                        }
-                        else -> {
-                            MiddleActionButton(
-                                icon = action.icon,
-                                text = resStringResource(action.labelRes),
-                                surfaceColor = surfaceColor,
-                                onClick = {}
-                            )
+                                else -> {
+                                    MiddleActionButton(
+                                        icon = action.icon,
+                                        text = resStringResource(action.labelRes),
+                                        surfaceColor = surfaceColor,
+                                        onClick = {}
+                                    )
+                                }
+                            }
                         }
                     }
+                    Row(
+                        modifier = Modifier
+                            .then(sizeModifier)
+                            .then(backgroundModifier)
+                            .clip(shape)
+                            .shadow(
+                                elevation = 4.dp,
+                                shape = shape
+                            )
+                            .hazeEffectScaled(
+                                state = LocalHazeState.current,
+                                style = HazeMaterials.regular(
+                                    containerColor = surfaceColor
+                                ),
+                                glassContainerColor = surfaceColor
+                            )
+                            .horizontalScroll(rememberScrollState()),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        bottomActionItems()
+                    }
                 }
-            }
-            Row(
-                modifier = Modifier
-                    .then(sizeModifier)
-                    .then(backgroundModifier)
-                    .clip(shape)
-                    .shadow(
-                        elevation = 4.dp,
-                        shape = shape
-                    )
-                    .hazeEffectScaled(
-                        state = LocalHazeState.current,
-                        style = HazeMaterials.regular(
-                            containerColor = surfaceColor
-                        ),
-                        glassContainerColor = surfaceColor
-                    )
-                    .horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                bottomActionItems()
             }
         }
     }

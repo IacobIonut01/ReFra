@@ -11,7 +11,6 @@ import com.dot.gallery.core.ui.components.PreviewIconBadge
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.Title
 import androidx.compose.material.icons.outlined.VerticalAlignBottom
 import androidx.compose.material.icons.outlined.VerticalSplit
@@ -74,9 +73,6 @@ import com.dot.gallery.feature.settings.generated.resources.auto
 import com.dot.gallery.feature.settings.generated.resources.auto_hide_navigationbar
 import com.dot.gallery.feature.settings.generated.resources.auto_hide_navigationbar_description
 import com.dot.gallery.feature.settings.generated.resources.auto_hide_navigationbar_summary
-import com.dot.gallery.feature.settings.generated.resources.auto_hide_searchbar
-import com.dot.gallery.feature.settings.generated.resources.auto_hide_searchbar_description
-import com.dot.gallery.feature.settings.generated.resources.auto_hide_searchbar_summary
 import com.dot.gallery.feature.settings.generated.resources.auto_open_search_keyboard
 import com.dot.gallery.feature.settings.generated.resources.auto_open_search_keyboard_description
 import com.dot.gallery.feature.settings.generated.resources.auto_open_search_keyboard_summary
@@ -108,7 +104,6 @@ import com.dot.gallery.feature.settings.generated.resources.use_last_opened_scre
 
 private const val DETAIL_LAUNCH_SCREEN = "launch_screen"
 private const val DETAIL_OLD_NAVBAR = "old_navbar"
-private const val DETAIL_HIDE_SEARCH = "hide_search"
 private const val DETAIL_OPEN_KEYBOARD = "open_keyboard"
 private const val DETAIL_HIDE_NAV = "hide_nav"
 private const val DETAIL_SELECTION_TITLES = "selection_titles"
@@ -125,7 +120,6 @@ fun SettingsNavigationContent(
     var lastScreen by rememberPreference(SettingsKeys.lastScreen)
     var forcedLastScreen by rememberPreference(SettingsKeys.forcedLastScreen)
     var showOldNavbar by rememberPreference(SettingsKeys.oldNavbar)
-    var autoHideSearch by rememberPreference(SettingsKeys.autoHideSearchBar)
     var autoOpenKeyboard by rememberPreference(SettingsKeys.autoOpenSearchKeyboard)
     var autoHideNavBar by rememberPreference(SettingsKeys.autoHideNavBar)
     var showSelectionTitles by rememberPreference(SettingsKeys.selectionTitles)
@@ -187,15 +181,6 @@ fun SettingsNavigationContent(
                 useColumnLayout = true,
             )
         }
-        DETAIL_HIDE_SEARCH -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.auto_hide_searchbar),
-                isChecked = autoHideSearch,
-                onCheckedChange = { autoHideSearch = it },
-                description = stringResource(Res.string.auto_hide_searchbar_description),
-            )
-        }
         DETAIL_OPEN_KEYBOARD -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -245,8 +230,6 @@ fun SettingsNavigationContent(
                 forcedLastScreen = forcedLastScreen,
                 showOldNavbar = showOldNavbar,
                 onOldNavbarChange = { showOldNavbar = it },
-                autoHideSearch = autoHideSearch,
-                onAutoHideSearchChange = { autoHideSearch = it },
                 autoOpenKeyboard = autoOpenKeyboard,
                 onAutoOpenKeyboardChange = { autoOpenKeyboard = it },
                 autoHideNavBar = autoHideNavBar,
@@ -272,8 +255,6 @@ private fun NavigationListScreen(
     forcedLastScreen: Boolean,
     showOldNavbar: Boolean,
     onOldNavbarChange: (Boolean) -> Unit,
-    autoHideSearch: Boolean,
-    onAutoHideSearchChange: (Boolean) -> Unit,
     autoOpenKeyboard: Boolean,
     onAutoOpenKeyboardChange: (Boolean) -> Unit,
     autoHideNavBar: Boolean,
@@ -342,17 +323,6 @@ private fun NavigationListScreen(
         screenPosition = Position.Top
     )
 
-    val autoHideSearchPref = rememberSwitchPreference(
-        autoHideSearch,
-        title = stringResource(Res.string.auto_hide_searchbar),
-        icon = Icons.Outlined.SearchOff,
-        summary = stringResource(Res.string.auto_hide_searchbar_summary),
-        isChecked = autoHideSearch,
-        onCheck = onAutoHideSearchChange,
-        onClick = { onDetailClick(DETAIL_HIDE_SEARCH) },
-        screenPosition = Position.Middle
-    )
-
     val autoOpenKeyboardPref = rememberSwitchPreference(
         autoOpenKeyboard,
         title = stringResource(Res.string.auto_open_search_keyboard),
@@ -412,7 +382,7 @@ private fun NavigationListScreen(
 
     val settingsList: SnapshotStateList<SettingsEntity> = remember(
         launchHeader, forcedLastScreenPref, barsHeader, showOldNavbarPref,
-        autoHideSearchPref, autoOpenKeyboardPref, autoHideNavBarPref, dualPanePref,
+        autoOpenKeyboardPref, autoHideNavBarPref, dualPanePref,
         interfaceHeader, showSelectionTitlesPref, selectionActionsPref
     ) {
         mutableStateListOf(
@@ -420,7 +390,6 @@ private fun NavigationListScreen(
             forcedLastScreenPref,
             barsHeader,
             showOldNavbarPref,
-            autoHideSearchPref,
             autoOpenKeyboardPref,
             autoHideNavBarPref,
             dualPanePref,

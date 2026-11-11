@@ -10,7 +10,7 @@ import androidx.compose.material.icons.outlined.BurstMode
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import com.dot.gallery.core.ui.components.PreviewFocusPhoto
-import com.dot.gallery.core.ui.components.PreviewHomeHeader
+import androidx.compose.material.icons.outlined.WebAsset
 import com.dot.gallery.core.ui.components.PreviewPhoto
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_preview_album
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_preview_merged
@@ -74,6 +74,8 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gif
@@ -235,9 +237,11 @@ import com.dot.gallery.feature.settings.generated.resources.section_type_custom
 import com.dot.gallery.feature.settings.generated.resources.section_type_uncategorized
 import com.dot.gallery.feature.settings.generated.resources.settings_display_header
 import com.dot.gallery.feature.settings.generated.resources.settings_timeline_albums
-import com.dot.gallery.feature.settings.generated.resources.show_filter_button
-import com.dot.gallery.feature.settings.generated.resources.show_filter_button_description
-import com.dot.gallery.feature.settings.generated.resources.show_filter_button_summary
+import com.dot.gallery.feature.settings.generated.resources.top_bar_favorites
+import com.dot.gallery.feature.settings.generated.resources.top_bar_filter
+import com.dot.gallery.feature.settings.generated.resources.top_bar_select
+import com.dot.gallery.feature.settings.generated.resources.top_bar_settings
+import com.dot.gallery.feature.settings.generated.resources.top_bar_summary_none
 import com.dot.gallery.feature.settings.generated.resources.sort_ascending
 import com.dot.gallery.feature.settings.generated.resources.sort_by_date_modified
 import com.dot.gallery.feature.settings.generated.resources.sort_descending
@@ -273,7 +277,11 @@ private const val DETAIL_TIMELINE_LAYOUT = "timeline_layout"
 private const val DETAIL_TIMELINE_ORDER = "timeline_order"
 private const val DETAIL_GROUP_SIMILAR = "group_similar"
 private const val DETAIL_GIF_ANIMATION = "gif_animation"
-private const val DETAIL_FILTER_BUTTON = "filter_button"
+private const val DETAIL_TOP_BAR = "top_bar"
+
+/** The Top bar row's summary: the extra buttons that are on, or [none] when there are none. */
+internal fun topBarButtonsSummary(enabled: List<String>, none: String): String =
+    enabled.joinToString(", ").ifEmpty { none }
 private const val DETAIL_MERGE_ALBUMS = "merge_albums"
 private const val DETAIL_ALBUM_SECTIONS = "album_sections"
 private const val DETAIL_FAV_ICON = "fav_icon"
@@ -302,7 +310,9 @@ fun SettingsTimelineAlbumsContent(
     var groupBurstSequences by rememberPreference(SettingsKeys.groupBurstSequences)
     var groupCloudLocal by rememberPreference(SettingsKeys.groupCloudLocal)
     var allowGifAnimation by rememberPreference(SettingsKeys.allowGifAnimation)
-    var showFilterButton by rememberPreference(SettingsKeys.showFilterButton)
+    val showFilterButton by rememberPreference(SettingsKeys.showFilterButton)
+    val showFavoritesButton by rememberPreference(SettingsKeys.showHomeFavoritesButton)
+    val showSelectButton by rememberPreference(SettingsKeys.showHomeSelectButton)
     var dateHeaderAlbums by rememberPreference(SettingsKeys.albumGroupByDate)
     var mergeAlbumsByName by rememberPreference(SettingsKeys.mergeAlbumsByName)
     var albumSectionsEnabled by rememberPreference(SettingsKeys.albumSectionsEnabled)
@@ -425,16 +435,9 @@ fun SettingsTimelineAlbumsContent(
                 preview = { checked -> AnimateGifsPreview(checked) },
             )
         }
-        DETAIL_FILTER_BUTTON -> {
+        DETAIL_TOP_BAR -> {
             BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.show_filter_button),
-                isChecked = showFilterButton,
-                onCheckedChange = { showFilterButton = it },
-                description = stringResource(Res.string.show_filter_button_description),
-                useColumnLayout = true,
-                preview = { checked -> PreviewHomeHeader(showControls = checked, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) },
-            )
+            TopBarSettingsDetail(supportsFavorites = state.supportsFavorites)
         }
         DETAIL_MERGE_ALBUMS -> {
             BackHandler { detailKey = null }
@@ -624,7 +627,8 @@ fun SettingsTimelineAlbumsContent(
                 allowGifAnimation = allowGifAnimation,
                 onGifAnimationChange = { allowGifAnimation = it },
                 showFilterButton = showFilterButton,
-                onShowFilterButtonChange = { showFilterButton = it },
+                showFavoritesButton = showFavoritesButton,
+                showSelectButton = showSelectButton,
                 mergeAlbumsByName = mergeAlbumsByName,
                 onMergeAlbumsChange = { mergeAlbumsByName = it },
                 albumSectionsEnabled = albumSectionsEnabled,
@@ -665,7 +669,8 @@ private fun TimelineAlbumsListContent(
     allowGifAnimation: Boolean,
     onGifAnimationChange: (Boolean) -> Unit,
     showFilterButton: Boolean,
-    onShowFilterButtonChange: (Boolean) -> Unit,
+    showFavoritesButton: Boolean,
+    showSelectButton: Boolean,
     mergeAlbumsByName: Boolean,
     onMergeAlbumsChange: (Boolean) -> Unit,
     albumSectionsEnabled: Boolean = false,
@@ -807,14 +812,20 @@ private fun TimelineAlbumsListContent(
             screenPosition = Position.Middle
         )
 
-        val showFilterButtonPref = rememberSwitchPreference(
-            showFilterButton,
-            title = stringResource(Res.string.show_filter_button),
-            icon = Icons.Outlined.FilterList,
-            summary = stringResource(Res.string.show_filter_button_summary),
-            isChecked = showFilterButton,
-            onCheck = onShowFilterButtonChange,
-            onClick = { onDetailClick(DETAIL_FILTER_BUTTON) },
+        val topBarSummary = topBarButtonsSummary(
+            listOfNotNull(
+                stringResource(Res.string.top_bar_select).takeIf { showSelectButton },
+                stringResource(Res.string.top_bar_favorites).takeIf { showFavoritesButton && state.supportsFavorites },
+                stringResource(Res.string.top_bar_filter).takeIf { showFilterButton },
+            ),
+            none = stringResource(Res.string.top_bar_summary_none),
+        )
+        val topBarPref = rememberPreference(
+            topBarSummary,
+            title = stringResource(Res.string.top_bar_settings),
+            icon = Icons.Outlined.WebAsset,
+            summary = topBarSummary,
+            onClick = { onDetailClick(DETAIL_TOP_BAR) },
             screenPosition = Position.Middle
         )
 
@@ -973,8 +984,7 @@ private fun TimelineAlbumsListContent(
         return remember(
             timelineHeader, timelineLayoutPref, timelineOrderPref, groupSimilarMediaPref,
             allowGifAnimationPref, monthHighlightsPref, headerPlacesPref, floatingDateLabelPref,
-            dateHeaderPref, recheckCaptureDatesPref, showFilterButtonPref,
-            storyCardsPref,
+            dateHeaderPref, recheckCaptureDatesPref, topBarPref, storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
             showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
             dateHeadersPref, groupMethodPref, libraryHeader, locationCategoriesPref,
@@ -991,7 +1001,7 @@ private fun TimelineAlbumsListContent(
                 add(floatingDateLabelPref)
                 add(dateHeaderPref)
                 add(recheckCaptureDatesPref)
-                add(showFilterButtonPref)
+                add(topBarPref)
                 add(storyCardsPref)
 
                 add(albumsHeader)

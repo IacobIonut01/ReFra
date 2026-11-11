@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.MoreVert
@@ -42,6 +43,7 @@ import com.dot.gallery.domain.settings.MapSettingsStore
 import com.dot.gallery.domain.settings.SettingsKeys
 import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -139,5 +141,58 @@ class GalleryHomeChromeTest {
             assertEquals(1, brandClicks)
             assertEquals(1, menuClicks)
         }
+    }
+
+    @Test
+    fun shortcutsSitNearestTheBrandAndToggleInPlace() {
+        var favoritesVisible by mutableStateOf(true)
+        var favoritesClicks = 0
+        rule.setContent {
+            PreviewHost {
+                Box(Modifier.width(360.dp)) {
+                    GalleryHomeTopBar(
+                        onBrandClick = {},
+                        brandDescription = "Settings",
+                        statusBarInsets = WindowInsets(0, 0, 0, 0),
+                        actions = listOf(
+                            GalleryHomeAction(
+                                key = "favorites",
+                                icon = Icons.Outlined.FavoriteBorder,
+                                contentDescription = "Favorites",
+                                visible = favoritesVisible,
+                                onClick = { favoritesClicks++ },
+                            ),
+                        ),
+                        menu = {
+                            IconButton(onClick = {}) {
+                                Icon(Icons.Outlined.MoreVert, contentDescription = "More options")
+                            }
+                        },
+                        filter = {
+                            IconButton(onClick = {}) {
+                                Icon(Icons.Outlined.FilterList, contentDescription = "Filter")
+                            }
+                        },
+                    )
+                }
+            }
+        }
+
+        val favorites = rule.onNodeWithTag(galleryHomeActionTag("favorites"))
+            .assertHeightIsEqualTo(48.dp)
+            .assertContentDescriptionEquals("Favorites")
+        val favoritesRight = favorites.fetchSemanticsNode().boundsInRoot.right
+        val filterLeft = rule.onNodeWithContentDescription("Filter")
+            .fetchSemanticsNode().boundsInRoot.left
+        assertTrue(favoritesRight <= filterLeft)
+        favorites.performClick()
+        rule.runOnIdle {
+            assertEquals(1, favoritesClicks)
+            favoritesVisible = false
+        }
+        rule.onNodeWithTag(galleryHomeActionTag("favorites")).assertDoesNotExist()
+        rule.onNodeWithContentDescription("Filter").assertIsDisplayed()
+        rule.runOnIdle { favoritesVisible = true }
+        rule.onNodeWithTag(galleryHomeActionTag("favorites")).assertIsDisplayed()
     }
 }

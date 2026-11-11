@@ -89,11 +89,11 @@
     <string name="help_tip_nav_launch_screen_p1_s2">Tap 'Default launch screen'</string>
     <string name="help_tip_nav_launch_screen_p1_s3">Choose Auto, Timeline, Albums, or Library</string>
     <string name="help_tip_nav_auto_hide_bars_title">Auto-hide bars on scroll</string>
-    <string name="help_tip_nav_auto_hide_bars_subtitle">Hide the search and navigation bars when scrolling</string>
+    <string name="help_tip_nav_auto_hide_bars_subtitle">Hide the top and navigation bars when scrolling</string>
     <string name="help_tip_nav_auto_hide_bars_p1_title">Auto-hide bars</string>
-    <string name="help_tip_nav_auto_hide_bars_p1_desc">For a more immersive browsing experience, enable auto-hide for the search bar and/or navigation bar. They'll slide away as you scroll down through your photos and reappear when you scroll back up. This is especially useful on smaller screens where every pixel counts. You can control each bar independently.</string>
-    <string name="help_tip_nav_auto_hide_bars_p1_s1">Go to Settings > Navigation</string>
-    <string name="help_tip_nav_auto_hide_bars_p1_s2">Toggle 'Auto-hide search bar' and/or 'Auto-hide navigation bar'</string>
+    <string name="help_tip_nav_auto_hide_bars_p1_desc">For a more immersive browsing experience, enable auto-hide for the top bar and/or navigation bar. They'll slide away as you scroll down through your photos and reappear when you scroll back up. This is especially useful on smaller screens where every pixel counts. You can control each bar independently.</string>
+    <string name="help_tip_nav_auto_hide_bars_p1_s1">For the top bar, go to Settings > Timeline &amp; albums > Top bar and turn on 'Hide on scroll'</string>
+    <string name="help_tip_nav_auto_hide_bars_p1_s2">For the navigation bar, go to Settings > Navigation and turn on 'Hide navigation bar on scroll'</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s3">Scroll down to see them hide, scroll up to bring them back</string>
 
     <!-- GET STARTED: PERSONALIZATION -->
@@ -1536,7 +1536,7 @@
     <string name="allow_vibrations">Allow vibrations</string>
     <string name="edit_backups">Edit Backups</string>
     <string name="set_default_screen">Set default screen</string>
-    <string name="auto_hide_searchbar">Hide search bar on scroll</string>
+    <string name="auto_hide_searchbar">Hide top bar on scroll</string>
     <string name="auto_hide_navigationbar">Hide navigation bar on scroll</string>
     <string name="auto_open_search_keyboard">Open keyboard on search</string>
     <string name="full_brightness_view_title">Full Brightness when viewing</string>

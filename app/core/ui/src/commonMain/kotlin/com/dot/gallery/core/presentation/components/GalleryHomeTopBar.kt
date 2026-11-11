@@ -8,6 +8,7 @@ package com.dot.gallery.core.presentation.components
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -39,8 +40,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Constraints
@@ -66,13 +70,29 @@ const val GalleryHomeBrandTag = "Gallery.HomeBrand"
 const val GalleryHomeActionsTag = "Gallery.HomeActions"
 const val GalleryHomeRevealTag = "Gallery.HomeReveal"
 
+fun galleryHomeActionTag(key: String) = "Gallery.HomeAction.$key"
+
+/**
+ * A shortcut in the home action group, placed before the filter. Keep it in the list and flip
+ * [visible] instead of removing it, so it can grow in and shrink out of the group in place.
+ */
+@Immutable
+class GalleryHomeAction(
+    val key: String,
+    val icon: ImageVector,
+    val contentDescription: String,
+    val visible: Boolean = true,
+    val onClick: () -> Unit,
+)
+
 /**
  * Home chrome keeps the imagery in charge: one brand/status control and a joined action group.
  * Slots let the app supply live backup progress without bringing a ViewModel into this surface.
  *
  * With a [revealState], [expandedStatus] follows the reveal fraction: the header can be dragged
- * open or closed, and the leading status and filter step aside while the detail is visible.
- * Without one, [expandedStatus] simply animates in and out when it is supplied.
+ * open or closed, and the leading status, shortcuts and filter step aside while the detail is
+ * visible. Without one, [expandedStatus] simply animates in and out when it is supplied.
+ * [actions] sit at the start of the group, nearest the brand, in list order.
  */
 @Composable
 fun GalleryHomeTopBar(
@@ -80,6 +100,7 @@ fun GalleryHomeTopBar(
     brandDescription: String,
     menu: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    actions: List<GalleryHomeAction> = emptyList(),
     filter: (@Composable () -> Unit)? = null,
     status: (@Composable () -> Unit)? = null,
     expandedStatus: (@Composable () -> Unit)? = null,
@@ -166,8 +187,39 @@ fun GalleryHomeTopBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Hairline),
             ) {
-                val filterVisible = filter != null &&
-                    (!revealing || !revealState!!.expanded)
+                val stepAside = revealing && revealState!!.expanded
+                actions.forEach { action ->
+                    key(action.key) {
+                        // The segment keeps its fill while it resizes so the capsule never
+                        // shows a hole; only the icon fades and scales.
+                        AnimatedVisibility(
+                            visible = action.visible && !stepAside,
+                            enter = expandHorizontally(expandFrom = Alignment.End),
+                            exit = shrinkHorizontally(shrinkTowards = Alignment.End),
+                        ) {
+                            IconButton(
+                                onClick = action.onClick,
+                                modifier = Modifier
+                                    .background(controlColor)
+                                    .size(GalleryChrome.ToolbarButtonSize)
+                                    .testTag(galleryHomeActionTag(action.key)),
+                            ) {
+                                Icon(
+                                    imageVector = action.icon,
+                                    contentDescription = action.contentDescription,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.animateEnterExit(
+                                        enter = fadeIn(tween(ActionFadeMillis, delayMillis = ActionFadeMillis / 2)) +
+                                            scaleIn(initialScale = 0.6f),
+                                        exit = fadeOut(tween(ActionFadeMillis)) +
+                                            scaleOut(targetScale = 0.6f),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+                val filterVisible = filter != null && !stepAside
                 AnimatedVisibility(
                     visible = filterVisible,
                     enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
@@ -197,6 +249,8 @@ fun GalleryHomeTopBar(
         }
     }
 }
+
+private const val ActionFadeMillis = 150
 
 /**
  * Lays the status out at full size but reports only the revealed share of its height, so the

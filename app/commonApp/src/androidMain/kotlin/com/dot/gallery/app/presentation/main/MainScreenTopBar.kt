@@ -62,9 +62,21 @@ import com.dot.gallery.cloud.ui.backup.UploadDetailsViewModel
 import com.dot.gallery.cloud.ui.backup.visibleBackupProgressItems
 import com.dot.gallery.app.presentation.timeline.components.TimelineNavActions
 import com.dot.gallery.app.presentation.timeline.components.timelineBackupProgressFraction
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Search
 import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.navigate
+import com.dot.gallery.core.presentation.components.GalleryHomeAction
 import com.dot.gallery.core.presentation.components.GalleryHomeTopBar
+import com.dot.gallery.core.presentation.components.homeShortcutVisibility
+import com.dot.gallery.core.util.SdkCompat
+import com.dot.gallery.core.ui.generated.resources.Res as UiRes
+import com.dot.gallery.core.ui.generated.resources.search
+import com.dot.gallery.generated.resources.favorites
+import com.dot.gallery.generated.resources.select
 import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.ui.settings.rememberPreference
@@ -92,15 +104,58 @@ const val TimelineBackupChipTag = "Timeline.BackupChip"
 const val TimelineBackupProgressTag = "Timeline.BackupProgress"
 const val TimelineBackupTrackTag = "Timeline.BackupTrack"
 const val TimelineBackupCollapseTag = "Timeline.BackupCollapse"
+const val HomeActionSelect = "select"
+const val HomeActionFavorites = "favorites"
+const val HomeActionSearch = "search"
 
+/**
+ * [timelineShortcuts] adds the Select and Favorites buttons, which only make sense on the
+ * Timeline. Each can be turned off in Settings › Timeline & albums › Top bar.
+ */
 @Composable
 fun MainScreenTopBar(
     isScrolling: MutableState<Boolean>,
     filter: (@Composable () -> Unit)? = null,
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
     menuItems: List<OptionItem> = emptyList(),
+    timelineShortcuts: Boolean = false,
 ) {
     val eventHandler = LocalEventHandler.current
+    val selector = LocalMediaSelector.current
+    val selectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()
+    val showFavorites by rememberPreference(SettingsKeys.showHomeFavoritesButton)
+    val showSelect by rememberPreference(SettingsKeys.showHomeSelectButton)
+    val shortcuts = homeShortcutVisibility(
+        timelineShortcuts = timelineShortcuts,
+        selectionActive = selectionActive,
+        supportsFavorites = SdkCompat.supportsFavorites,
+        showFavorites = showFavorites,
+        showSelect = showSelect,
+    )
+    val actions = listOf(
+        GalleryHomeAction(
+            key = HomeActionSelect,
+            icon = Icons.Outlined.CheckCircle,
+            contentDescription = stringResource(Res.string.select),
+            visible = shortcuts.select,
+            onClick = selector::startSelection,
+        ),
+        GalleryHomeAction(
+            key = HomeActionFavorites,
+            icon = Icons.Outlined.FavoriteBorder,
+            contentDescription = stringResource(Res.string.favorites),
+            visible = shortcuts.favorites,
+            onClick = { eventHandler.navigate(Screen.FavoriteScreen()) },
+        ),
+        // Search keeps the selection, so more items can be found and added to it.
+        GalleryHomeAction(
+            key = HomeActionSearch,
+            icon = Icons.Outlined.Search,
+            contentDescription = stringResource(UiRes.string.search),
+            visible = shortcuts.search,
+            onClick = { eventHandler.navigate(Screen.SearchScreen()) },
+        ),
+    )
     val autoHide by rememberPreference(SettingsKeys.autoHideSearchBar)
     val activeBackup by remember {
         workScheduler().taggedTasksFlow(CloudUploadWorker.TAG_BACKUP)
@@ -141,6 +196,7 @@ fun MainScreenTopBar(
             onBrandClick = { eventHandler.navigate(Screen.SettingsScreen()) },
             onOpenBackupDetails = { eventHandler.navigate(Screen.UploadDetailsScreen()) },
             menu = { TimelineNavActions(extraItems = menuItems) },
+            actions = actions,
             filter = filter,
             statusBarInsets = statusBarInsets,
         )
@@ -155,6 +211,7 @@ internal fun MainScreenTopBarContent(
     onOpenBackupDetails: () -> Unit,
     menu: @Composable () -> Unit,
     filter: (@Composable () -> Unit)?,
+    actions: List<GalleryHomeAction> = emptyList(),
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
 ) {
     GalleryHomeTopBar(
@@ -163,6 +220,7 @@ internal fun MainScreenTopBarContent(
         statusBarInsets = if (LocalGalleryPaneChrome.current) WindowInsets(0, 0, 0, 0)
             else statusBarInsets,
         menu = menu,
+        actions = actions,
         filter = filter,
         revealState = revealState,
         status = if (backup != null) {

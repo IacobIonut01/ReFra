@@ -227,7 +227,6 @@ object HelpSearchIndex {
             // Navigation
             Toggle(Res.string.set_default_screen, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Toggle(Res.string.old_navbar, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
-            Toggle(Res.string.auto_hide_searchbar, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Toggle(Res.string.auto_open_search_keyboard, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Toggle(Res.string.auto_hide_navigationbar, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Toggle(Res.string.show_selection_titles, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
@@ -253,6 +252,7 @@ object HelpSearchIndex {
             Toggle(Res.string.vault_gate_lock_all, HelpRoute.Target.VAULT, HelpCategory.VAULT),
             // Timeline & albums
             Toggle(Res.string.timeline_layout_type, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
+            Toggle(Res.string.auto_hide_searchbar, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.group_similar_media_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.allow_gif_animation_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.group_raw_jpg_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),

@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-08T13:42:20.811Z",
-  "capturedAtMs": 1794142646426,
+  "generatedAt": "2026-11-10T18:16:28.881Z",
+  "capturedAtMs": 1794334516345,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
   ],
-  "sceneCount": 107,
+  "sceneCount": 108,
   "scenes": {
     "album-transfer": {
       "id": "album-transfer",
@@ -11756,6 +11756,70 @@
               "src": "captures/settings-timeline-albums/tablet-sections.webp",
               "type": "image",
               "file": "settings-timeline-albums/tablet-sections.webp"
+            }
+          }
+        }
+      }
+    },
+    "settings-top-bar": {
+      "id": "settings-top-bar",
+      "title": "Top bar settings",
+      "path": [
+        "Settings",
+        "Timeline & albums",
+        "Top bar"
+      ],
+      "states": [
+        "default",
+        "selecting"
+      ],
+      "presentation": "screen",
+      "widthDp": 412,
+      "heightDp": 915,
+      "live": false,
+      "fidelity": "capture",
+      "assets": {
+        "phone": {
+          "default": {
+            "src": "captures/settings-top-bar/light/phone-default.webp",
+            "type": "image",
+            "file": "settings-top-bar/light/phone-default.webp",
+            "width": 1079,
+            "height": 2396,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "selecting": {
+            "src": "captures/settings-top-bar/light/phone-selecting.webp",
+            "type": "image",
+            "file": "settings-top-bar/light/phone-selecting.webp",
+            "width": 1079,
+            "height": 2396,
+            "widthDp": 412,
+            "heightDp": 915
+          }
+        }
+      },
+      "themes": {
+        "light": {
+          "phone": {
+            "default": {
+              "src": "captures/settings-top-bar/light/phone-default.webp",
+              "type": "image",
+              "file": "settings-top-bar/light/phone-default.webp",
+              "width": 1079,
+              "height": 2396,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "selecting": {
+              "src": "captures/settings-top-bar/light/phone-selecting.webp",
+              "type": "image",
+              "file": "settings-top-bar/light/phone-selecting.webp",
+              "width": 1079,
+              "height": 2396,
+              "widthDp": 412,
+              "heightDp": 915
             }
           }
         }

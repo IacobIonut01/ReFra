@@ -15,6 +15,12 @@ interface MediaSelector {
 
     fun clearSelection()
 
+    /**
+     * Enters selection mode before anything is picked, so taps on media select them. The mode
+     * stays active with an empty selection until [clearSelection].
+     */
+    fun startSelection()
+
     fun <T: Media> toggleSelection(
         mediaState: MediaState<T>,
         index: Int

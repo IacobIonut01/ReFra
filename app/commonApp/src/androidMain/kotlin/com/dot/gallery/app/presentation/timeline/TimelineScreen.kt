@@ -157,6 +157,7 @@ fun TimelineScreen(
             MainScreenTopBar(
                 isScrolling = isScrolling,
                 filter = trailingIcon,
+                timelineShortcuts = true,
             )
         },
     )

@@ -24,8 +24,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
+import com.dot.gallery.core.presentation.components.GalleryHomeAction
+import com.dot.gallery.core.presentation.components.GalleryHomeTopBar
+import com.dot.gallery.core.presentation.components.HomeShortcutVisibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -189,69 +201,70 @@ fun MiniHomeScreen(
 }
 
 /**
- * The top of the Timeline home at full size: the brand button, the actions capsule (with the
- * Timeline controls button when [showControls] is on) and the tops of the highlight cards.
+ * The top of the Timeline home at full size, drawn by the real [GalleryHomeTopBar] so buttons
+ * grow and shrink in place exactly as they do on Timeline, over the tops of the highlight
+ * cards. [shortcuts] decides Select, Favorites and Search; [showFilter] the sort and filter
+ * button. It is a picture: touches are swallowed and accessibility reads only [description]
+ * and [visibleButtons], the names of the buttons it currently shows.
  */
 @Composable
-fun PreviewHomeHeader(
-    showControls: Boolean,
+fun PreviewHomeTopBar(
+    shortcuts: HomeShortcutVisibility,
+    showFilter: Boolean,
+    description: String,
+    visibleButtons: String,
     modifier: Modifier = Modifier,
 ) {
-    val c = MaterialTheme.colorScheme
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(96.dp)
-            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    Box(
+        modifier = modifier.fillMaxWidth().clearAndSetSemantics {
+            contentDescription = description
+            stateDescription = visibleButtons
+        },
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(112.dp)
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(GalleryChrome.ToolbarButtonSize)
-                    .clip(CircleShape)
-                    .background(c.surfaceContainerHigh),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.refra_mark),
-                    contentDescription = null,
-                    tint = c.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp).graphicsLayer { scaleX = 2.35f; scaleY = 2.35f },
-                )
-            }
-            Box(Modifier.weight(1f))
+            GalleryHomeTopBar(
+                onBrandClick = {},
+                brandDescription = "",
+                statusBarInsets = WindowInsets(0, 0, 0, 0),
+                actions = listOf(
+                    GalleryHomeAction("select", Icons.Outlined.CheckCircle, "", shortcuts.select) {},
+                    GalleryHomeAction("favorites", Icons.Outlined.FavoriteBorder, "", shortcuts.favorites) {},
+                    GalleryHomeAction("search", Icons.Outlined.Search, "", shortcuts.search) {},
+                ),
+                filter = if (showFilter) {
+                    { PreviewToolbarIcon(Icons.Outlined.FilterList, tint) }
+                } else null,
+                menu = { PreviewToolbarIcon(Icons.Outlined.MoreVert, tint) },
+            )
             Row(
-                modifier = Modifier.clip(RoundedCornerShape(GalleryChrome.ToolbarCornerRadius)),
-                horizontalArrangement = Arrangement.spacedBy(1.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (showControls) {
-                    Box(
-                        Modifier.size(52.dp, GalleryChrome.ToolbarButtonSize).background(c.surfaceContainerHigh),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(Icons.Outlined.FilterList, null, tint = c.onSurfaceVariant)
-                    }
-                }
-                Box(
-                    Modifier.size(52.dp, GalleryChrome.ToolbarButtonSize).background(c.surfaceContainerHigh),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Outlined.MoreVert, null, tint = c.onSurfaceVariant)
-                }
+                PreviewPhoto(3, Modifier.weight(1.4f).height(120.dp).clip(RoundedCornerShape(28.dp)))
+                PreviewPhoto(1, Modifier.weight(1f).height(120.dp).clip(RoundedCornerShape(28.dp)))
+                PreviewPhoto(4, Modifier.weight(0.4f).height(120.dp).clip(RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp)))
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            PreviewPhoto(3, Modifier.weight(1.4f).height(120.dp).clip(RoundedCornerShape(28.dp)))
-            PreviewPhoto(1, Modifier.weight(1f).height(120.dp).clip(RoundedCornerShape(28.dp)))
-            PreviewPhoto(4, Modifier.weight(0.4f).height(120.dp).clip(RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp)))
-        }
+        Box(
+            Modifier.matchParentSize().pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun PreviewToolbarIcon(icon: ImageVector, tint: Color) {
+    Box(Modifier.size(GalleryChrome.ToolbarButtonSize), contentAlignment = Alignment.Center) {
+        Icon(icon, contentDescription = null, tint = tint)
     }
 }
 

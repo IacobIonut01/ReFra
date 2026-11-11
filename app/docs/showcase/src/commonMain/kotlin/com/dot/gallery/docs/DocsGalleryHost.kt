@@ -27,7 +27,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Photo
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +58,7 @@ import com.dot.gallery.core.navigation.Routes
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.FilterOption
 import com.dot.gallery.core.presentation.components.GalleryNavigationBarContent
+import com.dot.gallery.core.presentation.components.GalleryHomeAction
 import com.dot.gallery.core.presentation.components.GalleryHomeTopBar
 import com.dot.gallery.core.presentation.components.SelectionAction
 import com.dot.gallery.core.presentation.components.rememberSelectionSheetConfig
@@ -87,11 +91,40 @@ private val NAV_BAR_INSET = 112.dp
 private fun DocsHomeTopBar(
     statusBarInsets: WindowInsets,
     filter: (@Composable () -> Unit)? = null,
+    timelineShortcuts: Boolean = false,
 ) {
     val navigator = LocalDocsNavigator.current
+    val selector = LocalMediaSelector.current
+    val selectionActive by selector.isSelectionActive.collectAsState()
+    // Mirrors MainScreenTopBar: Timeline shortcuts step aside while a selection is active and
+    // Search takes their place, since the hidden dock holds the search pill.
+    val showShortcuts = timelineShortcuts && !selectionActive
     GalleryHomeTopBar(
         onBrandClick = { navigator?.navigateTo("settings-hub") },
         brandDescription = "Settings",
+        actions = listOf(
+            GalleryHomeAction(
+                key = "select",
+                icon = Icons.Outlined.CheckCircle,
+                contentDescription = "Select",
+                visible = showShortcuts,
+                onClick = selector::startSelection,
+            ),
+            GalleryHomeAction(
+                key = "favorites",
+                icon = Icons.Outlined.FavoriteBorder,
+                contentDescription = "Favorites",
+                visible = showShortcuts,
+                onClick = { navigator?.navigateTo("browse-favorites") },
+            ),
+            GalleryHomeAction(
+                key = "search",
+                icon = Icons.Outlined.Search,
+                contentDescription = "Search",
+                visible = selectionActive,
+                onClick = { navigator?.navigateTo("search-library") },
+            ),
+        ),
         filter = filter,
         menu = {
             IconButton(onClick = { navigator?.navigateTo("settings-hub") }) {
@@ -273,6 +306,7 @@ private fun DocsTimelinePage(
             DocsHomeTopBar(
                 filter = trailing,
                 statusBarInsets = WindowInsets(top = padding.calculateTopPadding()),
+                timelineShortcuts = true,
             )
         },
     )
