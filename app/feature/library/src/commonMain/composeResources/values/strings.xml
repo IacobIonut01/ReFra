@@ -5,13 +5,15 @@
     <string name="categories">Categories</string>
     <string name="categorise_your_media">Categorise your media</string>
     <string name="library_customize_title">Customize library</string>
-    <string name="library_customize_hint">Shortcuts: drag to reorder, use the side handle to resize</string>
+    <string name="library_customize_hint">Shortcuts: drag to reorder. Tap a tile, then drag its edge to resize</string>
     <string name="library_preview">Preview</string>
     <string name="library_shortcuts_more">Show more</string>
     <string name="library_shortcuts_less">Show less</string>
     <string name="library_section_locations_summary">Map preview and places</string>
     <string name="library_section_people_summary">People in your photos</string>
     <string name="library_section_categories_summary">Photos grouped by what is in them</string>
+    <string name="library_section_all_shortcuts">All shortcuts</string>
+    <string name="library_section_all_shortcuts_summary">Show every shortcut instead of Show more</string>
     <string name="library_section_pinned">Pinned albums</string>
     <string name="library_section_pinned_summary">Carousel above your albums</string>
     <string name="library_section_album_sections">Album sections</string>
@@ -20,8 +22,22 @@
     <string name="library_section_media_types_summary">Videos, photos, GIFs and RAW as albums</string>
     <string name="library_edit_done">Done</string>
     <string name="library_shortcut_hide">Hide shortcut</string>
-    <string name="library_shortcut_size_half">Half width</string>
-    <string name="library_shortcut_size_full">Full width</string>
+    <string name="library_shortcut_resize_width">Change width, now %1$s</string>
+    <string name="library_shortcut_resize_height">Change height, now %1$s</string>
+    <string name="library_shortcut_select">Select to resize</string>
+    <string name="library_shortcut_cover">Photos on the Favorites tile</string>
+    <string name="library_shortcut_cover_latest">Latest</string>
+    <string name="library_shortcut_cover_oldest">Oldest</string>
+    <string name="library_vault_locked">Locked</string>
+    <plurals name="library_vault_count">
+        <item quantity="one">%1$d vault</item>
+        <item quantity="other">%1$d vaults</item>
+    </plurals>
+    <plurals name="library_trash_next_expiry">
+        <item quantity="one">Next item goes in %1$d day</item>
+        <item quantity="other">Next item goes in %1$d days</item>
+    </plurals>
+    <string name="library_trash_expiry_today">Next item goes today</string>
     <string name="library_section_hidden">Hidden</string>
     <string name="library_shortcut_show">Show shortcut</string>
     <string name="library_section_locations_empty">No locations to show yet</string>

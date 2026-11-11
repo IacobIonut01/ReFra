@@ -12,6 +12,7 @@ import com.dot.gallery.cloud.core.cloudMediaId
 import com.dot.gallery.core.startup.mediaStoreUriId
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.feature.library.ui.LibrarySnapshot
+import com.dot.gallery.feature.library.ui.MAX_SHORTCUT_PREVIEW_MEDIA
 import com.dot.gallery.feature.library.ui.LibraryScrollPosition
 import kotlinx.serialization.Serializable
 import java.io.File
@@ -39,8 +40,8 @@ private fun validCoordinates(latitude: Double?, longitude: Double?): Boolean =
     (latitude == null || (latitude.isFinite() && latitude in -90.0..90.0)) &&
         (longitude == null || (longitude.isFinite() && longitude in -180.0..180.0))
 
-fun validateCachedLibraryMedia(media: UriMedia): Boolean {
-    if (media.size < 0 || media.trashed != 0) return false
+fun validateCachedLibraryMedia(media: UriMedia, trashed: Boolean = false): Boolean {
+    if (media.size < 0 || (media.trashed != 0) != trashed) return false
     val uri = try {
         media.uri.toString()
     } catch (_: Exception) {
@@ -137,6 +138,15 @@ fun validateLibrarySnapshot(
                 !validateCachedLibraryMedia(it.media as UriMedia)
             }
         ) return false
+    }
+    snapshot.shortcutPreviews.let { previews ->
+        val favorites = previews.latestFavorites + previews.oldestFavorites
+        if (listOf(previews.latestFavorites, previews.oldestFavorites, previews.recentTrash)
+                .any { it.size > MAX_SHORTCUT_PREVIEW_MEDIA }
+        ) return false
+        if (favorites.any { !validateCachedLibraryMedia(it) }) return false
+        if (previews.recentTrash.any { !validateCachedLibraryMedia(it, trashed = true) }) return false
+        if (previews.nextTrashExpiry?.let { it < 0 } == true) return false
     }
     snapshot.latestGeo?.let { geo ->
         if (!validCoordinates(geo.latitude, geo.longitude)) return false

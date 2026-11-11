@@ -27,6 +27,7 @@ data class LibrarySnapshot(
     val sharedLinkCountsByAccount: Map<Long, Int> = emptyMap(),
     val cloud: CloudLibraryState = CloudLibraryState(),
     val indicators: LibraryIndicatorState = LibraryIndicatorState(),
+    val shortcutPreviews: LibraryShortcutPreviews = LibraryShortcutPreviews(),
     val viewport: LibraryViewport = LibraryViewport()
 )
 

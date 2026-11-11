@@ -5,8 +5,17 @@
 
 package com.dot.gallery.app.presentation.library.components
 
+import android.net.Uri
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.unit.dp
+import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
+import com.dot.gallery.core.presentation.components.MockedMediaImageRenderer
+import com.dot.gallery.domain.model.UriMedia
+import com.dot.gallery.feature.library.ui.LibraryShortcutSize
+import com.dot.gallery.feature.library.ui.LibraryShortcutSpan
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -72,7 +81,10 @@ class EditableLibraryShortcutsGridTest {
         onChange: (List<LibraryShortcutPref>) -> Unit = {},
     ) {
         rule.setContent {
-            CompositionLocalProvider(LocalSettingsStore provides MapSettingsStore()) {
+            CompositionLocalProvider(
+                LocalSettingsStore provides MapSettingsStore(),
+                LocalMediaImageRenderer provides MockedMediaImageRenderer,
+            ) {
                 GalleryTheme(ignoreUserPreference = true) {
                     EditableLibraryShortcutsGrid(
                         working = working,
@@ -170,6 +182,145 @@ class EditableLibraryShortcutsGridTest {
 
         assertNull(emitted)
     }
+
+    @Test
+    fun tappingATileInEditModeShowsItsResizeHandles() {
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.TRASH.id)),
+            editMode = true,
+        )
+        val handle = "library-shortcut-resize-width-${LibraryShortcut.TRASH.id}"
+        rule.onNodeWithTag(handle).assertDoesNotExist()
+
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.TRASH.id}").performClick()
+
+        rule.onNodeWithTag(handle).assertIsDisplayed()
+        rule.onNodeWithTag("library-shortcut-resize-height-${LibraryShortcut.TRASH.id}").assertIsDisplayed()
+    }
+
+    @Test
+    fun handleTapsStepTheWidthAndHeight() {
+        var emitted: List<LibraryShortcutPref>? = null
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.TRASH.id)),
+            editMode = true,
+            onChange = { emitted = it },
+        )
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.TRASH.id}").performClick()
+
+        rule.onNodeWithTag("library-shortcut-resize-width-${LibraryShortcut.TRASH.id}").performClick()
+        rule.waitForIdle()
+        assertEquals(LibraryShortcutSize.FULL, emitted!!.single().size)
+        assertEquals(LibraryShortcutSpan.FULL, emitted!!.single().span)
+
+        rule.onNodeWithTag("library-shortcut-resize-height-${LibraryShortcut.TRASH.id}").performClick()
+        rule.waitForIdle()
+        assertEquals(LibraryShortcutSize.WIDE_CARD, emitted!!.single().size)
+    }
+
+    @Test
+    fun draggingTheSideHandleLeftSnapsToAnIcon() {
+        var emitted: List<LibraryShortcutPref>? = null
+        var writes = 0
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.TRASH.id)),
+            editMode = true,
+            onChange = { emitted = it; writes++ },
+        )
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.TRASH.id}").performClick()
+
+        rule.onNodeWithTag("library-shortcut-resize-width-${LibraryShortcut.TRASH.id}")
+            .performTouchInput { swipeLeft(startX = centerX, endX = centerX - 300f) }
+        rule.waitForIdle()
+
+        assertEquals(LibraryShortcutSize.ICON, emitted!!.single().size)
+        assertEquals(1, writes)
+        rule.onNodeWithTag("library-shortcut-resize-height-${LibraryShortcut.TRASH.id}").assertDoesNotExist()
+    }
+
+    @Test
+    fun dragReorderingWritesTheLayoutOnceWhenTheDragEnds() {
+        val writes = mutableListOf<List<LibraryShortcutPref>>()
+        setGrid(
+            working = listOf(
+                LibraryShortcutPref(id = LibraryShortcut.TRASH.id),
+                LibraryShortcutPref(id = LibraryShortcut.FAVORITES.id),
+                LibraryShortcutPref(id = LibraryShortcut.VAULT.id),
+            ),
+            editMode = true,
+            onChange = { writes += it },
+        )
+        val vault = rule.onNodeWithTag("library-shortcut-${LibraryShortcut.VAULT.id}").getUnclippedBoundsInRoot()
+        val trash = rule.onNodeWithTag("library-shortcut-${LibraryShortcut.TRASH.id}").getUnclippedBoundsInRoot()
+
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.VAULT.id}").performTouchInput {
+            val dx = (trash.left - vault.left).toPx()
+            val dy = (trash.top - vault.top).toPx()
+            down(center)
+            repeat(20) { step -> moveTo(center + Offset(dx * (step + 1) / 20f, dy * (step + 1) / 20f)) }
+            up()
+        }
+        rule.waitForIdle()
+
+        assertEquals(1, writes.size)
+        assertEquals(LibraryShortcut.VAULT.id, writes.single().first().id)
+    }
+
+    @Test
+    fun aTallCardTakesThreeRows() {
+        setGrid(
+            working = listOf(
+                LibraryShortcutPref(id = LibraryShortcut.TRASH.id).withSize(LibraryShortcutSize.TALL_CARD),
+                LibraryShortcutPref(id = LibraryShortcut.VAULT.id),
+            ),
+        )
+        val card = rule.onNodeWithTag("library-shortcut-${LibraryShortcut.TRASH.id}").getUnclippedBoundsInRoot()
+        val beside = rule.onNodeWithTag("library-shortcut-${LibraryShortcut.VAULT.id}").getUnclippedBoundsInRoot()
+
+        assertEquals((56.dp * 3 + 8.dp * 2).value, (card.bottom - card.top).value, 1f)
+        assertEquals(card.top, beside.top)
+        assertTrue(beside.left > card.left)
+    }
+
+    @Test
+    fun favouritesCardOffersLatestOrOldest() {
+        var emitted: List<LibraryShortcutPref>? = null
+        val favorites = runtimeShortcut(LibraryShortcut.FAVORITES, "Favorites").copy(
+            previewMedia = listOf(media(2)),
+            oldestPreviewMedia = listOf(media(1)),
+        )
+        setGrid(
+            working = listOf(
+                LibraryShortcutPref(id = LibraryShortcut.FAVORITES.id).withSize(LibraryShortcutSize.CARD),
+            ),
+            runtime = linkedMapOf(LibraryShortcut.FAVORITES to favorites),
+            editMode = true,
+            onChange = { emitted = it },
+        )
+        rule.onNodeWithTag("library-shortcut-cover-order").assertDoesNotExist()
+
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.FAVORITES.id}").performClick()
+        rule.onNodeWithText("Oldest").assertIsDisplayed().performClick()
+        rule.waitForIdle()
+
+        assertTrue(emitted!!.single().oldestFirst)
+    }
+
+    private fun media(id: Long) = UriMedia(
+        id = id,
+        label = "photo-$id.jpg",
+        uri = Uri.parse("content://media/external/images/media/$id"),
+        path = "/storage/emulated/0/DCIM/photo-$id.jpg",
+        relativePath = "DCIM/",
+        albumID = 10L,
+        albumLabel = "Camera",
+        timestamp = 1_700_000_000L + id,
+        fullDate = "2023-11-14",
+        mimeType = "image/jpeg",
+        favorite = 1,
+        trashed = 0,
+        size = 1_024L
+    )
 
     private fun runtimeShortcut(shortcut: LibraryShortcut, title: String) = RuntimeShortcut(
         shortcut = shortcut,

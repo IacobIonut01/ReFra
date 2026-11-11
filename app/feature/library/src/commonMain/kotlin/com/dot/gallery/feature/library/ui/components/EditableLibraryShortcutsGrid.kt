@@ -11,8 +11,11 @@ import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -21,10 +24,12 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -34,9 +39,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.UnfoldMore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +54,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -56,81 +64,90 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.dot.gallery.core.util.rememberFeedbackManager
 import com.dot.gallery.core.ui.components.dashedBorder
 import com.dot.gallery.feature.library.ui.LibraryShortcut
 import com.dot.gallery.feature.library.ui.LibraryShortcutPref
-import com.dot.gallery.feature.library.ui.LibraryShortcutSpan
+import com.dot.gallery.feature.library.ui.LibraryShortcutSize
 import com.dot.gallery.feature.library.ui.RuntimeShortcut
+import com.dot.gallery.feature.library.ui.ShortcutCell
+import com.dot.gallery.feature.library.ui.foldShortcutGrid
+import com.dot.gallery.feature.library.ui.nextShortcutHeight
+import com.dot.gallery.feature.library.ui.nextShortcutWidth
+import com.dot.gallery.feature.library.ui.packShortcutGrid
+import com.dot.gallery.feature.library.ui.resizeShortcutHeight
+import com.dot.gallery.feature.library.ui.resizeShortcutWidth
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.library.generated.resources.Res
 import com.dot.gallery.feature.library.generated.resources.library_section_hidden
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_cover
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_cover_latest
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_cover_oldest
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_hide
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_resize_height
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_resize_width
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_select
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_show
-import com.dot.gallery.feature.library.generated.resources.library_shortcut_size_full
-import com.dot.gallery.feature.library.generated.resources.library_shortcut_size_half
 import com.dot.gallery.feature.library.generated.resources.library_shortcuts_less
 import com.dot.gallery.feature.library.generated.resources.library_shortcuts_more
 
 
-private val TILE_HEIGHT = 56.dp
+private val ROW_HEIGHT = 56.dp
 private val TILE_SPACING = 8.dp
-private const val COLLAPSED_VISIBLE_TILES = 3
-/** Below this, an icon and a label no longer fit, so a narrow pane stacks its tiles instead. */
-private val MIN_TILE_WIDTH = 150.dp
-private val TILE_SHAPE = RoundedCornerShape(28.dp)
+/** Below this a half-row tile (two units) no longer fits an icon and a label, so a narrow pane uses fewer units. */
+private val MIN_UNIT_WIDTH = 71.dp
+private val SELECTION_INSET = 4.dp
+private val HANDLE_TOUCH = 48.dp
 
-private data class Slot(val x: Float, val y: Float, val width: Float)
+private data class Slot(val x: Float, val y: Float, val width: Float, val height: Float)
 
 /** Mutable, non-reactive holder for the latest computed geometry so drag
  *  callbacks always read fresh values without triggering recomposition. */
 private class GeoHolder {
     var slots: List<Slot> = emptyList()
     var visibleIds: List<String> = emptyList()
-    var tileHeightPx: Float = 0f
     var unitPx: Float = 0f
+    var rowPx: Float = 0f
+    var spacingPx: Float = 0f
+    var columns: Int = LibraryShortcutSize.COLUMNS
 }
 
-private fun computeSlots(
-    spans: List<Int>,
-    unitPx: Float,
-    spacingPx: Float,
-    tileHeightPx: Float,
-    columns: Int,
-): Pair<List<Slot>, Float> {
-    if (spans.isEmpty()) return emptyList<Slot>() to 0f
-    val slots = ArrayList<Slot>(spans.size)
-    var x = 0f
-    var y = 0f
-    var used = 0
-    for (s in spans) {
-        val span = s.coerceIn(1, minOf(LibraryShortcutSpan.FULL, columns))
-        if (used > 0 && used + span > columns) {
-            x = 0f; y += tileHeightPx + spacingPx; used = 0
-        }
-        val w = if (span >= 2) unitPx * 2 + spacingPx else unitPx
-        slots += Slot(x, y, w)
-        x += w + spacingPx
-        used += span
-    }
-    return slots to (y + tileHeightPx)
+private fun slotFor(cell: ShortcutCell, unitPx: Float, rowPx: Float, spacingPx: Float) = Slot(
+    x = cell.column * (unitPx + spacingPx),
+    y = cell.row * (rowPx + spacingPx),
+    width = cell.width * unitPx + (cell.width - 1) * spacingPx,
+    height = cell.height * rowPx + (cell.height - 1) * spacingPx,
+)
+
+/** The widest power-of-two unit count up to [columns] whose units stay at least [MIN_UNIT_WIDTH]. */
+private fun fittingColumns(maxWidth: Dp, columns: Int): Int {
+    val fit = ((maxWidth + TILE_SPACING) / (MIN_UNIT_WIDTH + TILE_SPACING)).toInt().coerceIn(1, columns)
+    var units = 1
+    while (units * 2 <= fit) units *= 2
+    return units
 }
 
 /**
  * Quick-Settings-style, in-place editable shortcut grid.
  *
- * Normal mode: tiles fill the row and tap navigates; editing opens from the Library overflow
- * menu. With [collapsible], long lists fold behind a "Show more" tile so the shortcuts do not
- * push the albums off screen.
- * Edit mode: drag to reorder live, drag the side handle to resize half/full,
- * tap the × to remove, and re-add hidden tiles from the tray below.
+ * Tiles take a [LibraryShortcutSize] on a grid [columns] units wide (four on a phone): a 1×1
+ * icon, half or full rows, and taller cards. Normal mode: tap navigates; editing opens from the
+ * Library overflow menu. With [collapsible], long lists fold behind a "Show more" tile so the
+ * shortcuts do not push the albums off screen.
+ * Edit mode: drag to reorder live, tap a tile to select it and drag its side or bottom handle to
+ * resize, tap the × to remove, and re-add hidden tiles from the tray below.
  *
  * [working] is the controlled list of every AVAILABLE shortcut (visible +
- * hidden), in order. Mutations are reported via [onChange]; the caller persists.
+ * hidden), in order. Mutations are reported via [onChange]; the caller persists. A drag
+ * (reorder or resize) reports once, when it ends, so it does not write the preferences on
+ * every step.
  */
 @Composable
 fun EditableLibraryShortcutsGrid(
@@ -140,26 +157,29 @@ fun EditableLibraryShortcutsGrid(
     onClick: (String) -> Unit,
     onChange: (List<LibraryShortcutPref>) -> Unit,
     modifier: Modifier = Modifier,
-    columns: Int = LibraryShortcutSpan.COLUMNS,
+    columns: Int = LibraryShortcutSize.COLUMNS,
     collapsible: Boolean = false,
 ) {
     val feedbackManager = rememberFeedbackManager()
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val tileHeight = TILE_HEIGHT
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     val tiles = remember {
         mutableStateListOf<LibraryShortcutPref>().also { it.addAll(working) }
     }
     var draggingId by remember { mutableStateOf<String?>(null) }
+    var resizingId by remember { mutableStateOf<String?>(null) }
+    var selectedId by remember { mutableStateOf<String?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(working, draggingId) {
-        if (draggingId == null && working != tiles.toList()) {
+        if (draggingId == null && resizingId == null && working != tiles.toList()) {
             tiles.clear()
             tiles.addAll(working)
         }
     }
+    LaunchedEffect(editMode) { if (!editMode) selectedId = null }
 
     fun emit() = onChange(tiles.toList())
 
@@ -170,12 +190,25 @@ fun EditableLibraryShortcutsGrid(
         val moved = visible.toMutableList()
         moved.add(toVisible, moved.removeAt(fromV))
         val hidden = tiles.filter { !it.visible }
-        tiles.clear(); tiles.addAll(moved + hidden); emit()
+        tiles.clear(); tiles.addAll(moved + hidden)
     }
 
-    fun setSpan(id: String, span: Int) {
+    fun sizeOf(id: String): LibraryShortcutSize? = tiles.firstOrNull { it.id == id }?.size
+
+    fun setSize(id: String, size: LibraryShortcutSize) {
         val i = tiles.indexOfFirst { it.id == id }
-        if (i >= 0 && tiles[i].span != span) { tiles[i] = tiles[i].copy(span = span); emit() }
+        if (i >= 0 && tiles[i].size != size) {
+            tiles[i] = tiles[i].withSize(size)
+            if (resizingId == null) emit()
+            feedbackManager.vibrate()
+        }
+    }
+
+    fun setOldestFirst(id: String, oldestFirst: Boolean) {
+        val i = tiles.indexOfFirst { it.id == id }
+        if (i >= 0 && tiles[i].oldestFirst != oldestFirst) {
+            tiles[i] = tiles[i].copy(oldestFirst = oldestFirst); emit()
+        }
     }
 
     fun setVisible(id: String, visible: Boolean) {
@@ -186,7 +219,10 @@ fun EditableLibraryShortcutsGrid(
         if (visible) {
             val at = tiles.indexOfFirst { !it.visible }.let { if (it < 0) tiles.size else it }
             tiles.add(at, pref)
-        } else tiles.add(pref)
+        } else {
+            tiles.add(pref)
+            if (selectedId == id) selectedId = null
+        }
         emit()
     }
 
@@ -202,7 +238,7 @@ fun EditableLibraryShortcutsGrid(
 
     fun reorderByHover(centerX: Float, centerY: Float, id: String) {
         val to = geo.slots.indexOfFirst { sl ->
-            centerX in sl.x..(sl.x + sl.width) && centerY in sl.y..(sl.y + geo.tileHeightPx)
+            centerX in sl.x..(sl.x + sl.width) && centerY in sl.y..(sl.y + sl.height)
         }
         if (to < 0) return
         val targetId = geo.visibleIds.getOrNull(to) ?: return
@@ -216,63 +252,82 @@ fun EditableLibraryShortcutsGrid(
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(TILE_SPACING)) {
         val allVisibleTiles = tiles.filter { it.visible }
         val hiddenTiles = tiles.filter { !it.visible }
-        val canCollapse = !editMode && collapsible && allVisibleTiles.size > COLLAPSED_VISIBLE_TILES + 1
-        val visibleTiles = if (canCollapse && !expanded) {
-            allVisibleTiles.take(COLLAPSED_VISIBLE_TILES)
-        } else allVisibleTiles
 
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val units = fittingColumns(maxWidth, columns)
             val spacingPx = with(density) { TILE_SPACING.toPx() }
-            val tileHeightPx = with(density) { tileHeight.toPx() }
+            val rowPx = with(density) { ROW_HEIGHT.toPx() }
             val maxWidthPx = with(density) { maxWidth.toPx() }
-            val fittingColumns = ((maxWidth + TILE_SPACING) / (MIN_TILE_WIDTH + TILE_SPACING)).toInt()
-                .coerceIn(1, columns)
-            val unitPx = (maxWidthPx - spacingPx * (fittingColumns - 1)) / fittingColumns
+            val unitPx = (maxWidthPx - spacingPx * (units - 1)) / units
 
-            val spans = visibleTiles.map { it.span }.toMutableList()
-            if (canCollapse) spans.add(COLLAPSED_VISIBLE_TILES, LibraryShortcutSpan.HALF)
-            val (slots, totalHeightPx) = computeSlots(
-                spans, unitPx, spacingPx, tileHeightPx, fittingColumns
-            )
+            val sizes = allVisibleTiles.map { it.size }
             // The toggle keeps the slot right after the collapsed tiles, so it does not move when
             // the list expands; the extra tiles flow in after it.
-            val tileSlots = if (canCollapse) {
-                slots.filterIndexed { index, _ -> index != COLLAPSED_VISIBLE_TILES }
-            } else slots
+            val fold = if (!editMode && collapsible) foldShortcutGrid(sizes, units) else null
+            val toggleAt = fold?.count
+            val packed = packShortcutGrid(
+                if (fold != null) {
+                    sizes.toMutableList().apply { add(fold.count, fold.toggle) }
+                } else sizes,
+                units
+            )
+            val shownCells = if (toggleAt != null && !expanded) packed.take(toggleAt + 1) else packed
+            val totalHeightPx = shownCells.maxOfOrNull { it.bottom }?.let { rows ->
+                rows * rowPx + (rows - 1) * spacingPx
+            } ?: 0f
+            val toggleSlot = toggleAt?.let { slotFor(packed[it], unitPx, rowPx, spacingPx) }
+            val visibleTiles = if (toggleAt != null && !expanded) allVisibleTiles.take(toggleAt) else allVisibleTiles
+            val tileSlots = packed.filterIndexed { index, _ -> index != toggleAt }
+                .take(visibleTiles.size)
+                .map { slotFor(it, unitPx, rowPx, spacingPx) }
             // Keep the geometry holder fresh for drag hit-testing.
             geo.slots = tileSlots
             geo.visibleIds = visibleTiles.map { it.id }
-            geo.tileHeightPx = tileHeightPx
             geo.unitPx = unitPx
+            geo.rowPx = rowPx
+            geo.spacingPx = spacingPx
+            geo.columns = units
 
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .height(with(density) { totalHeightPx.toDp() })
             ) {
-                if (canCollapse) {
-                    val slot = slots[COLLAPSED_VISIBLE_TILES]
+                if (toggleSlot != null) {
                     Box(
                         modifier = Modifier
                             .graphicsLayer {
-                                translationX = slot.x
-                                translationY = slot.y
+                                translationX = toggleSlot.x
+                                translationY = toggleSlot.y
                             }
-                            .width(with(density) { slot.width.toDp() })
-                            .height(tileHeight)
+                            .width(with(density) { toggleSlot.width.toDp() })
+                            .height(with(density) { toggleSlot.height.toDp() })
                             .testTag("library-shortcuts-more")
                             .clip(TILE_SHAPE)
                             .clickable { expanded = !expanded }
                     ) {
-                        LibrarySmallItem(
-                            title = if (expanded) {
-                                stringResource(Res.string.library_shortcuts_less)
-                            } else {
-                                stringResource(Res.string.library_shortcuts_more)
-                            },
-                            icon = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                            shape = TILE_SHAPE,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        val toggleTitle = if (expanded) {
+                            stringResource(Res.string.library_shortcuts_less)
+                        } else {
+                            stringResource(Res.string.library_shortcuts_more)
+                        }
+                        val toggleIcon = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore
+                        if (fold?.toggle == LibraryShortcutSize.ICON) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(imageVector = toggleIcon, contentDescription = toggleTitle)
+                            }
+                        } else {
+                            LibrarySmallItem(
+                                title = toggleTitle,
+                                icon = toggleIcon,
+                                shape = TILE_SHAPE,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
                 visibleTiles.forEachIndexed { index, pref ->
@@ -287,6 +342,7 @@ fun EditableLibraryShortcutsGrid(
                         offsets.getOrPut(pref.id) { Animatable(target, Offset.VectorConverter) }
                     }
                     val isDragging = draggingId == pref.id
+                    val isSelected = editMode && selectedId == pref.id
 
                     // Non-dragged tiles reflow to their slot. The dragged tile is
                     // driven directly by [dragOffset] and is skipped here.
@@ -309,69 +365,81 @@ fun EditableLibraryShortcutsGrid(
                             )
                         }
                     }
-
-                    val widthDp = with(density) { slot.width.toDp() }
+                    val sizeSpec = if (editMode) spring<Float>(dampingRatio = Spring.DampingRatioLowBouncy) else snap()
+                    val width by animateFloatAsState(slot.width, sizeSpec)
+                    val height by animateFloatAsState(slot.height, sizeSpec)
+                    val widthDp = with(density) { width.toDp() }
+                    val heightDp = with(density) { height.toDp() }
                     val renderOffset = if (isDragging) dragOffset else anim.value
+                    val size = pref.size
+                    val selectLabel = stringResource(Res.string.library_shortcut_select)
                     Box(
                         modifier = Modifier
-                            .zIndex(if (isDragging) 1f else 0f)
+                            .zIndex(if (isDragging || isSelected) 1f else 0f)
                             .graphicsLayer {
                                 translationX = renderOffset.x
                                 translationY = renderOffset.y
                             }
                             .width(widthDp)
-                            .height(tileHeight)
+                            .height(heightDp)
                             .testTag("library-shortcut-${pref.id}")
                             .then(
-                                if (editMode) Modifier.pointerInput(pref.id) {
-                                    detectDragGestures(
-                                        onDragStart = {
-                                            val v = geo.visibleIds.indexOf(pref.id)
-                                            val sl = geo.slots.getOrNull(v)
-                                            dragOffset = if (sl != null) Offset(sl.x, sl.y) else anim.value
-                                            draggingId = pref.id
-                                            feedbackManager.vibrateStrong()
-                                        },
-                                        onDragEnd = {
-                                            val id = draggingId
-                                            if (id != null) scope.launch {
-                                                val v = geo.visibleIds.indexOf(id)
+                                if (editMode) Modifier
+                                    .pointerInput(pref.id) {
+                                        detectDragGestures(
+                                            onDragStart = {
+                                                val v = geo.visibleIds.indexOf(pref.id)
                                                 val sl = geo.slots.getOrNull(v)
-                                                if (sl != null) {
-                                                    val dest = Offset(sl.x, sl.y)
-                                                    animate(
-                                                        typeConverter = Offset.VectorConverter,
-                                                        initialValue = dragOffset,
-                                                        targetValue = dest,
-                                                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-                                                    ) { value, _ -> dragOffset = value }
-                                                    offsets[id]?.snapTo(dest)
+                                                dragOffset = if (sl != null) Offset(sl.x, sl.y) else anim.value
+                                                draggingId = pref.id
+                                                feedbackManager.vibrateStrong()
+                                            },
+                                            onDragEnd = {
+                                                val id = draggingId
+                                                if (id != null) scope.launch {
+                                                    val v = geo.visibleIds.indexOf(id)
+                                                    val sl = geo.slots.getOrNull(v)
+                                                    if (sl != null) {
+                                                        val dest = Offset(sl.x, sl.y)
+                                                        animate(
+                                                            typeConverter = Offset.VectorConverter,
+                                                            initialValue = dragOffset,
+                                                            targetValue = dest,
+                                                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                                                        ) { value, _ -> dragOffset = value }
+                                                        offsets[id]?.snapTo(dest)
+                                                    }
+                                                    draggingId = null
+                                                    emit()
+                                                } else {
+                                                    draggingId = null
+                                                    emit()
                                                 }
-                                                draggingId = null
-                                                emit()
-                                            } else {
-                                                draggingId = null
-                                                emit()
+                                            },
+                                            onDragCancel = { draggingId = null; emit() },
+                                            onDrag = { change, amount ->
+                                                change.consume()
+                                                dragOffset += amount
+                                                val v = geo.visibleIds.indexOf(pref.id)
+                                                val sl = geo.slots.getOrNull(v) ?: slot
+                                                val cx = dragOffset.x + sl.width / 2f
+                                                val cy = dragOffset.y + sl.height / 2f
+                                                reorderByHover(cx, cy, pref.id)
                                             }
-                                        },
-                                        onDragCancel = { draggingId = null; emit() },
-                                        onDrag = { change, amount ->
-                                            change.consume()
-                                            dragOffset += amount
-                                            val v = geo.visibleIds.indexOf(pref.id)
-                                            val w = geo.slots.getOrNull(v)?.width ?: slot.width
-                                            val cx = dragOffset.x + w / 2f
-                                            val cy = dragOffset.y + geo.tileHeightPx / 2f
-                                            reorderByHover(cx, cy, pref.id)
-                                        }
-                                    )
-                                } else Modifier.clickable { onClick(data.route) }
+                                        )
+                                    }
+                                    .clickable(onClickLabel = selectLabel) {
+                                        selectedId = if (isSelected) null else pref.id
+                                    }
+                                else Modifier.clickable { onClick(data.route) }
                             )
                     ) {
                         ShortcutTile(
                             data = data,
+                            size = size,
+                            oldestFirst = pref.oldestFirst,
                             showIndicator = !editMode,
-                            modifier = Modifier.fillMaxWidth().height(tileHeight)
+                            modifier = Modifier.fillMaxSize()
                         )
                         if (editMode) {
                             // Hiding is reversible from the tray below, so the badge stays
@@ -400,62 +468,34 @@ fun EditableLibraryShortcutsGrid(
                                     )
                                 }
                             }
-                            // Resize handle (center-end): a clear vertical grabber.
-                            // Drag horizontally to resize, or tap to toggle.
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .size(width = 48.dp, height = tileHeight)
-                                    .pointerInput(pref.id, pref.span) {
-                                        var dx = 0f
-                                        val threshold = geo.unitPx * 0.35f
-                                        detectDragGestures(
-                                            onDragStart = { dx = 0f },
-                                            onDrag = { change, amount ->
-                                                change.consume()
-                                                dx += amount.x
-                                                if (dx > threshold && pref.span < LibraryShortcutSpan.FULL) {
-                                                    setSpan(pref.id, LibraryShortcutSpan.FULL); dx = 0f
-                                                    feedbackManager.vibrate()
-                                                } else if (dx < -threshold && pref.span > LibraryShortcutSpan.HALF) {
-                                                    setSpan(pref.id, LibraryShortcutSpan.HALF); dx = 0f
-                                                    feedbackManager.vibrate()
-                                                }
-                                            }
-                                        )
+                        }
+                        if (isSelected) {
+                            SelectionOutline(
+                                id = pref.id,
+                                size = size,
+                                width = widthDp,
+                                height = heightDp,
+                                resizing = resizingId == pref.id,
+                                onWidthDrag = { startUnits, dx ->
+                                    val delta = (if (rtl) -dx else dx) / (geo.unitPx + geo.spacingPx)
+                                    sizeOf(pref.id)?.let { current ->
+                                        setSize(pref.id, resizeShortcutWidth(current, startUnits + delta, geo.columns))
                                     }
-                                    .clickable {
-                                        setSpan(
-                                            pref.id,
-                                            if (pref.span == LibraryShortcutSpan.FULL) LibraryShortcutSpan.HALF
-                                            else LibraryShortcutSpan.FULL
-                                        )
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(width = 20.dp, height = 38.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(data.contentColor.copy(alpha = 0.18f)),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.UnfoldMore,
-                                        contentDescription = stringResource(
-                                            if (pref.span == LibraryShortcutSpan.FULL) {
-                                                Res.string.library_shortcut_size_half
-                                            } else {
-                                                Res.string.library_shortcut_size_full
-                                            }
-                                        ),
-                                        tint = data.contentColor,
-                                        modifier = Modifier
-                                            .size(18.dp)
-                                            .graphicsLayer { rotationZ = 90f }
-                                    )
-                                }
-                            }
+                                },
+                                onHeightDrag = { startRows, dy ->
+                                    val delta = dy / (geo.rowPx + geo.spacingPx)
+                                    sizeOf(pref.id)?.let { current ->
+                                        setSize(pref.id, resizeShortcutHeight(current, startRows + delta))
+                                    }
+                                },
+                                onResizingChange = { resizing ->
+                                    resizingId = if (resizing) pref.id else null
+                                    if (!resizing) emit()
+                                },
+                                onWidthTap = { setSize(pref.id, nextShortcutWidth(size, geo.columns)) },
+                                onHeightTap = { setSize(pref.id, nextShortcutHeight(size)) },
+                                displayedWidth = minOf(size.width, units),
+                            )
                         }
                     }
                     }
@@ -463,15 +503,30 @@ fun EditableLibraryShortcutsGrid(
             }
         }
 
+        val selected = selectedId?.let { id -> tiles.firstOrNull { it.id == id && it.visible } }
+        val selectedData = selected?.let { LibraryShortcut.fromId(it.id) }?.let { runtime[it] }
+        AnimatedVisibility(
+            visible = editMode && selected != null && selectedData?.hasCoverOrder == true &&
+                selected.size != LibraryShortcutSize.ICON && selected.size != LibraryShortcutSize.HALF
+        ) {
+            if (selected != null) {
+                CoverOrderPicker(
+                    oldestFirst = selected.oldestFirst,
+                    onChange = { setOldestFirst(selected.id, it) },
+                )
+            }
+        }
+
         // Hidden tiles tray (edit mode only)
         AnimatedVisibility(visible = editMode && hiddenTiles.isNotEmpty()) {
+            val perRow = (columns / 2).coerceAtLeast(1)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = stringResource(Res.string.library_section_hidden),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                hiddenTiles.chunked(columns).forEach { row ->
+                hiddenTiles.chunked(perRow).forEach { row ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(TILE_SPACING)
@@ -481,7 +536,7 @@ fun EditableLibraryShortcutsGrid(
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(tileHeight)
+                                    .height(ROW_HEIGHT)
                                     .dashedBorder(
                                         color = MaterialTheme.colorScheme.outline,
                                         shape = TILE_SHAPE,
@@ -506,7 +561,7 @@ fun EditableLibraryShortcutsGrid(
                                 )
                             }
                         }
-                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                        repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }
             }
@@ -514,21 +569,143 @@ fun EditableLibraryShortcutsGrid(
     }
 }
 
+/**
+ * The outline of the selected tile with its resize handles: the side handle changes the width
+ * and, where the width allows more than one height, the bottom handle changes the height. Drags
+ * report the starting size in units plus the distance moved; a tap steps to the next size.
+ */
 @Composable
-private fun ShortcutTile(
-    data: RuntimeShortcut,
-    showIndicator: Boolean,
-    modifier: Modifier = Modifier,
+private fun androidx.compose.foundation.layout.BoxScope.SelectionOutline(
+    id: String,
+    size: LibraryShortcutSize,
+    width: Dp,
+    height: Dp,
+    resizing: Boolean,
+    onWidthDrag: (startUnits: Float, dx: Float) -> Unit,
+    onHeightDrag: (startRows: Float, dy: Float) -> Unit,
+    onResizingChange: (Boolean) -> Unit,
+    onWidthTap: () -> Unit,
+    onHeightTap: () -> Unit,
+    displayedWidth: Int,
 ) {
-    Box(modifier = modifier.clip(TILE_SHAPE)) {
-        LibrarySmallItem(
-            title = data.title,
-            icon = data.icon,
-            contentColor = data.contentColor,
-            shape = TILE_SHAPE,
-            useIndicator = data.useIndicator && showIndicator,
-            indicatorCounter = data.indicatorCounter,
-            modifier = Modifier.fillMaxWidth()
+    val primary = MaterialTheme.colorScheme.primary
+    val radius = if (size.isCard) 24.dp else 28.dp
+    val currentWidth by rememberUpdatedState(displayedWidth)
+    val currentHeight by rememberUpdatedState(size.height)
+    val widthDrag by rememberUpdatedState(onWidthDrag)
+    val heightDrag by rememberUpdatedState(onHeightDrag)
+    val resizingChange by rememberUpdatedState(onResizingChange)
+    Box(
+        modifier = Modifier
+            .align(Alignment.Center)
+            .requiredSize(width + SELECTION_INSET * 2, height + SELECTION_INSET * 2)
+            .border(2.dp, primary, RoundedCornerShape(radius + SELECTION_INSET))
+    )
+    val widthLabel = stringResource(Res.string.library_shortcut_resize_width, size.label)
+    Box(
+        modifier = Modifier
+            .align(Alignment.CenterEnd)
+            .offset(x = HANDLE_TOUCH / 2 + SELECTION_INSET)
+            .size(HANDLE_TOUCH)
+            .testTag("library-shortcut-resize-width-$id")
+            .pointerInput(id) {
+                var dx = 0f
+                var start = 0f
+                detectDragGestures(
+                    onDragStart = { dx = 0f; start = currentWidth.toFloat(); resizingChange(true) },
+                    onDragEnd = { resizingChange(false) },
+                    onDragCancel = { resizingChange(false) },
+                    onDrag = { change, amount ->
+                        change.consume()
+                        dx += amount.x
+                        widthDrag(start, dx)
+                    }
+                )
+            }
+            .clickable(onClickLabel = widthLabel, onClick = onWidthTap),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            Modifier
+                .size(width = 6.dp, height = 28.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(primary)
         )
+    }
+    if (LibraryShortcutSize.heightsFor(size.width).size > 1) {
+        val heightLabel = stringResource(Res.string.library_shortcut_resize_height, size.label)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = HANDLE_TOUCH / 2 + SELECTION_INSET)
+                .size(HANDLE_TOUCH)
+                .testTag("library-shortcut-resize-height-$id")
+                .pointerInput(id) {
+                    var dy = 0f
+                    var start = 0f
+                    detectDragGestures(
+                        onDragStart = { dy = 0f; start = currentHeight.toFloat(); resizingChange(true) },
+                        onDragEnd = { resizingChange(false) },
+                        onDragCancel = { resizingChange(false) },
+                        onDrag = { change, amount ->
+                            change.consume()
+                            dy += amount.y
+                            heightDrag(start, dy)
+                        }
+                    )
+                }
+                .clickable(onClickLabel = heightLabel, onClick = onHeightTap),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                Modifier
+                    .size(width = 28.dp, height = 6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(primary)
+            )
+        }
+    }
+    if (resizing) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(y = -(SELECTION_INSET + 26.dp))
+                .clip(RoundedCornerShape(11.dp))
+                .background(primary)
+                .padding(horizontal = 10.dp, vertical = 3.dp)
+        ) {
+            Text(
+                text = size.label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CoverOrderPicker(oldestFirst: Boolean, onChange: (Boolean) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(Res.string.library_shortcut_cover),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.testTag("library-shortcut-cover-order")) {
+            SegmentedButton(
+                selected = !oldestFirst,
+                onClick = { onChange(false) },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+            ) {
+                Text(stringResource(Res.string.library_shortcut_cover_latest))
+            }
+            SegmentedButton(
+                selected = oldestFirst,
+                onClick = { onChange(true) },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+            ) {
+                Text(stringResource(Res.string.library_shortcut_cover_oldest))
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
@@ -42,9 +43,10 @@ object VaultPasswordManager {
     private val PRIVATE_FOLDER_MODE_KEY = stringPreferencesKey("private_folder_gate_mode")
     private val VAULT_LOCK_ALL_KEY = booleanPreferencesKey("vault_lock_all")
 
-    suspend fun getGateMode(context: Context): GateMode {
-        val raw = context.activeDataStore.data.first()[GATE_MODE_KEY]
-        return raw?.let { runCatching { GateMode.valueOf(it) }.getOrNull() } ?: GateMode.NONE
+    suspend fun getGateMode(context: Context): GateMode = gateModeFlow(context).first()
+
+    fun gateModeFlow(context: Context): Flow<GateMode> = context.activeDataStore.data.map { prefs ->
+        prefs[GATE_MODE_KEY]?.let { runCatching { GateMode.valueOf(it) }.getOrNull() } ?: GateMode.NONE
     }
 
     suspend fun setGateMode(context: Context, mode: GateMode) {

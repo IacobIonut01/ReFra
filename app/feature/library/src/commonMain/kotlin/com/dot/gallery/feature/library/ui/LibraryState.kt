@@ -23,4 +23,9 @@ data class LibraryState(
     val supportsTrash: Boolean = true,
     /** `SdkCompat.supportsFavorites` — platform capability, measured app-side. */
     val supportsFavorites: Boolean = true,
+    /**
+     * How many vaults exist, or null while the vault list sits behind a lock. Never cached in
+     * [snapshot], so a locked list does not leak its size through the startup cache.
+     */
+    val vaultCount: Int? = null,
 )

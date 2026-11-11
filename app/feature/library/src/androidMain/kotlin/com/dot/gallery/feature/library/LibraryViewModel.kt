@@ -33,6 +33,11 @@ class LibraryViewModel @Inject constructor(
 
     val state: StateFlow<LibrarySnapshot> = source.state
 
+    /** Null until the vault list loads. The caller decides whether the count may be shown. */
+    val vaultCount: StateFlow<Int?> = repository.getVaults()
+        .map { it.data?.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun onVisible() = source.onVisible()
 
     fun onHidden() = source.onHidden()

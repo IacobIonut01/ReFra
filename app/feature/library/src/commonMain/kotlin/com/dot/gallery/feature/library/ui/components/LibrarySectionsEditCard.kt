@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.PermMedia
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.UnfoldMore
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +37,8 @@ import com.dot.gallery.feature.library.generated.resources.Res
 import com.dot.gallery.feature.library.generated.resources.categories
 import com.dot.gallery.feature.library.generated.resources.cloud_people
 import com.dot.gallery.feature.library.generated.resources.library_section_album_sections
+import com.dot.gallery.feature.library.generated.resources.library_section_all_shortcuts
+import com.dot.gallery.feature.library.generated.resources.library_section_all_shortcuts_summary
 import com.dot.gallery.feature.library.generated.resources.library_section_album_sections_summary
 import com.dot.gallery.feature.library.generated.resources.library_section_categories_summary
 import com.dot.gallery.feature.library.generated.resources.library_section_categories_unavailable
@@ -99,6 +102,8 @@ fun LibrarySectionsEditCard(
     onMediaTypesChange: ((Boolean) -> Unit)? = null,
     groupAlbumsIntoSections: Boolean = false,
     onGroupAlbumsIntoSectionsChange: ((Boolean) -> Unit)? = null,
+    showAllShortcuts: Boolean = false,
+    onShowAllShortcutsChange: ((Boolean) -> Unit)? = null,
 ) {
     val rows = listOf(
         SectionEditRow(
@@ -136,6 +141,16 @@ fun LibrarySectionsEditCard(
             onChange = onCategoriesChange
         )
     ) + listOfNotNull(
+        onShowAllShortcutsChange?.let {
+            SectionEditRow(
+                id = "all_shortcuts",
+                titleRes = Res.string.library_section_all_shortcuts,
+                icon = Icons.Outlined.UnfoldMore,
+                checked = showAllShortcuts,
+                hintRes = Res.string.library_section_all_shortcuts_summary,
+                onChange = it
+            )
+        },
         onPinnedChange?.let {
             SectionEditRow(
                 id = "pinned",

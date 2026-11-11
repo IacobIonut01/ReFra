@@ -11,8 +11,20 @@ import com.dot.gallery.core.expandLocationMediaIds
 import com.dot.gallery.core.matchingLocationMediaIds
 import com.dot.gallery.feature.library.ui.LibraryShortcut
 import com.dot.gallery.feature.library.ui.LibraryShortcutPref
+import com.dot.gallery.feature.library.ui.LibraryShortcutSize
 import com.dot.gallery.feature.library.ui.LibraryShortcutSpan
 import com.dot.gallery.feature.library.ui.RuntimeShortcut
+import com.dot.gallery.feature.library.ui.ShortcutCell
+import com.dot.gallery.feature.library.ui.ShortcutFold
+import com.dot.gallery.feature.library.ui.foldShortcutGrid
+import com.dot.gallery.feature.library.ui.nextShortcutHeight
+import com.dot.gallery.feature.library.ui.nextShortcutWidth
+import com.dot.gallery.feature.library.ui.packShortcutGrid
+import com.dot.gallery.feature.library.ui.resizeShortcutHeight
+import com.dot.gallery.feature.library.ui.resizeShortcutWidth
+import com.dot.gallery.feature.library.ui.trashDaysLeft
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -39,6 +51,146 @@ class LibraryShortcutTest {
         )
         assertTrue(merged.all { it.visible })
         assertTrue(merged.all { it.span == LibraryShortcutSpan.HALF })
+        assertTrue(merged.all { it.size == LibraryShortcutSize.HALF })
+    }
+
+    @Test
+    fun layoutsSavedBeforeTileHeightsKeepTheirWidths() {
+        val stored = """[{"id":"trash","span":2},{"id":"favorites"},{"id":"vault","visible":false}]"""
+        val prefs = Json.decodeFromString(ListSerializer(LibraryShortcutPref.serializer()), stored)
+
+        assertEquals(
+            listOf(LibraryShortcutSize.FULL, LibraryShortcutSize.HALF, LibraryShortcutSize.HALF),
+            prefs.map { it.size }
+        )
+        assertFalse(prefs.last().visible)
+    }
+
+    @Test
+    fun newSizesRoundTripAndStillWriteALegacySpan() {
+        val serializer = ListSerializer(LibraryShortcutPref.serializer())
+        val prefs = LibraryShortcutSize.entries.map {
+            LibraryShortcutPref(id = it.name).withSize(it)
+        }
+        val decoded = Json.decodeFromString(serializer, Json.encodeToString(serializer, prefs))
+
+        assertEquals(LibraryShortcutSize.entries, decoded.map { it.size })
+        assertEquals(LibraryShortcutSpan.FULL, decoded.first { it.size == LibraryShortcutSize.WIDE_CARD }.span)
+        assertEquals(LibraryShortcutSpan.HALF, decoded.first { it.size == LibraryShortcutSize.TALL_CARD }.span)
+    }
+
+    @Test
+    fun unknownStoredSizesSnapToAnAllowedOne() {
+        assertEquals(LibraryShortcutSize.HALF, LibraryShortcutPref(id = "a", width = 3, height = 1).size)
+        assertEquals(LibraryShortcutSize.ICON, LibraryShortcutPref(id = "a", width = 1, height = 3).size)
+        assertEquals(LibraryShortcutSize.WIDE_CARD, LibraryShortcutPref(id = "a", width = 9, height = 3).size)
+    }
+
+    @Test
+    fun tilesBesideATallCardFillTheSpaceNextToIt() {
+        val cells = packShortcutGrid(
+            listOf(
+                LibraryShortcutSize.TALL_CARD,
+                LibraryShortcutSize.HALF,
+                LibraryShortcutSize.ICON,
+                LibraryShortcutSize.ICON,
+                LibraryShortcutSize.HALF,
+                LibraryShortcutSize.FULL,
+            ),
+            columns = 4
+        )
+
+        assertEquals(
+            listOf(
+                ShortcutCell(0, 0, 2, 3),
+                ShortcutCell(2, 0, 2, 1),
+                ShortcutCell(2, 1, 1, 1),
+                ShortcutCell(3, 1, 1, 1),
+                ShortcutCell(2, 2, 2, 1),
+                ShortcutCell(0, 3, 4, 1),
+            ),
+            cells
+        )
+    }
+
+    @Test
+    fun packingKeepsReadingOrderAndNarrowsTilesToTheGrid() {
+        val cells = packShortcutGrid(
+            listOf(LibraryShortcutSize.ICON, LibraryShortcutSize.FULL, LibraryShortcutSize.ICON, LibraryShortcutSize.WIDE_CARD),
+            columns = 2
+        )
+
+        assertEquals(
+            listOf(
+                ShortcutCell(0, 0, 1, 1),
+                ShortcutCell(0, 1, 2, 1),
+                ShortcutCell(0, 2, 1, 1),
+                ShortcutCell(0, 3, 2, 2),
+            ),
+            cells
+        )
+    }
+
+    @Test
+    fun foldedGridShowsTwoRowsOfHalfTilesLikeBefore() {
+        val half = List(5) { LibraryShortcutSize.HALF }
+
+        assertEquals(ShortcutFold(3, LibraryShortcutSize.HALF), foldShortcutGrid(half, columns = 4))
+        assertEquals(null, foldShortcutGrid(half.take(4), columns = 4))
+    }
+
+    @Test
+    fun foldedGridKeepsALargeCardAfterAnIconVisible() {
+        val sizes = listOf(LibraryShortcutSize.ICON, LibraryShortcutSize.TALL_CARD, LibraryShortcutSize.HALF)
+
+        assertEquals(ShortcutFold(2, LibraryShortcutSize.ICON), foldShortcutGrid(sizes, columns = 4))
+    }
+
+    @Test
+    fun foldedGridNeverCutsATallFirstCard() {
+        val sizes = listOf(
+            LibraryShortcutSize.TALL_CARD,
+            LibraryShortcutSize.HALF,
+            LibraryShortcutSize.HALF,
+            LibraryShortcutSize.HALF,
+            LibraryShortcutSize.HALF,
+        )
+
+        assertEquals(ShortcutFold(3, LibraryShortcutSize.HALF), foldShortcutGrid(sizes, columns = 4))
+    }
+
+    @Test
+    fun dragSnapsPastTheHalfwayPointBetweenWidths() {
+        val half = LibraryShortcutSize.HALF
+
+        assertEquals(LibraryShortcutSize.HALF, resizeShortcutWidth(half, 1.6f, columns = 4))
+        assertEquals(LibraryShortcutSize.ICON, resizeShortcutWidth(half, 1.4f, columns = 4))
+        assertEquals(LibraryShortcutSize.FULL, resizeShortcutWidth(half, 3.1f, columns = 4))
+        assertEquals(LibraryShortcutSize.HALF, resizeShortcutWidth(half, 3.1f, columns = 2))
+    }
+
+    @Test
+    fun changingWidthKeepsTheTallestHeightTheNewWidthAllows() {
+        assertEquals(LibraryShortcutSize.WIDE_CARD, resizeShortcutWidth(LibraryShortcutSize.TALL_CARD, 4f, 4))
+        assertEquals(LibraryShortcutSize.CARD, resizeShortcutWidth(LibraryShortcutSize.WIDE_CARD, 2f, 4))
+        assertEquals(LibraryShortcutSize.ICON, resizeShortcutWidth(LibraryShortcutSize.TALL_CARD, 1f, 4))
+        assertEquals(LibraryShortcutSize.TALL_CARD, resizeShortcutHeight(LibraryShortcutSize.HALF, 2.6f))
+        assertEquals(LibraryShortcutSize.WIDE_CARD, resizeShortcutHeight(LibraryShortcutSize.FULL, 3f))
+        assertEquals(LibraryShortcutSize.ICON, resizeShortcutHeight(LibraryShortcutSize.ICON, 3f))
+    }
+
+    @Test
+    fun tappingAHandleStepsThroughTheSizes() {
+        assertEquals(LibraryShortcutSize.FULL, nextShortcutWidth(LibraryShortcutSize.HALF, 4))
+        assertEquals(LibraryShortcutSize.ICON, nextShortcutWidth(LibraryShortcutSize.FULL, 4))
+        assertEquals(LibraryShortcutSize.CARD, nextShortcutHeight(LibraryShortcutSize.HALF))
+        assertEquals(LibraryShortcutSize.HALF, nextShortcutHeight(LibraryShortcutSize.TALL_CARD))
+    }
+
+    @Test
+    fun trashExpiryCountsWholeDaysAndNeverGoesNegative() {
+        assertEquals(3, trashDaysLeft(expirySeconds = 4 * 86_400L - 1, nowSeconds = 0))
+        assertEquals(0, trashDaysLeft(expirySeconds = 10, nowSeconds = 100))
     }
 
     @Test

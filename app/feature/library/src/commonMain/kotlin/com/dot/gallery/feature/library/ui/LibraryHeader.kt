@@ -146,9 +146,12 @@ internal fun LibraryShortcuts(
         cloudState = state.snapshot.cloud,
         routes = routes,
         supportsTrash = state.supportsTrash,
-        supportsFavorites = state.supportsFavorites
+        supportsFavorites = state.supportsFavorites,
+        previews = state.snapshot.shortcutPreviews,
+        vaultCount = state.vaultCount,
     )
     var shortcutsLayout by rememberPreference(libraryShortcutsLayoutKey)
+    val showAllShortcuts by rememberPreference(SettingsKeys.showAllLibraryShortcuts)
     val working = remember(runtime, shortcutsLayout) {
         mergeShortcutPrefs(shortcutsLayout, runtime).map { it.pref }
     }
@@ -157,8 +160,10 @@ internal fun LibraryShortcuts(
         working = working,
         runtime = runtime,
         editMode = editMode,
-        columns = if (layout == LibraryHeaderLayout.WIDE) 4 else LibraryShortcutSpan.COLUMNS,
-        collapsible = layout == LibraryHeaderLayout.COMPACT,
+        columns = if (layout == LibraryHeaderLayout.WIDE) {
+            LibraryShortcutSize.COLUMNS * 2
+        } else LibraryShortcutSize.COLUMNS,
+        collapsible = layout == LibraryHeaderLayout.COMPACT && !showAllShortcuts,
         onClick = onNavigate,
         onChange = { newWorking ->
             val availableIds = runtime.keys.map { it.id }.toSet()

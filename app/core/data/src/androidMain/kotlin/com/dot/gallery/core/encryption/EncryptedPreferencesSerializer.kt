@@ -75,9 +75,11 @@ class EncryptedPreferencesSerializer(context: Context) : Serializer<Preferences>
             val iv = allBytes.copyOfRange(0, GCM_IV_SIZE)
             val ciphertext = allBytes.copyOfRange(GCM_IV_SIZE, allBytes.size)
 
-            val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_BITS, iv))
-            val plainBytes = cipher.doFinal(ciphertext)
+            val plainBytes = retryKeystoreOperation("decrypt") {
+                val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
+                cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_BITS, iv))
+                cipher.doFinal(ciphertext)
+            }
 
             // Deserialize the preferences proto via Okio
             val protoSerializer = androidx.datastore.preferences.core.PreferencesSerializer
@@ -101,10 +103,11 @@ class EncryptedPreferencesSerializer(context: Context) : Serializer<Preferences>
             plainStream.sink().buffer().use { sink -> protoSerializer.writeTo(t, sink) }
             val plainBytes = plainStream.toByteArray()
 
-            val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-            val iv = cipher.iv
-            val ciphertext = cipher.doFinal(plainBytes)
+            val (iv, ciphertext) = retryKeystoreOperation("encrypt") {
+                val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+                cipher.iv to cipher.doFinal(plainBytes)
+            }
 
             output.write(iv)
             output.write(ciphertext)
@@ -117,6 +120,29 @@ class EncryptedPreferencesSerializer(context: Context) : Serializer<Preferences>
     }
 
     companion object {
+        /** Attempts per cipher operation; see [retryKeystoreOperation]. */
+        const val KEYSTORE_ATTEMPTS = 3
+
+        /**
+         * Runs [block] again with a fresh cipher when Keystore fails it. Keystore prunes the
+         * oldest open operations of an app under load (`INVALID_OPERATION_HANDLE`, "Pruned"),
+         * which surfaces as an [GeneralSecurityException] from `doFinal`; a new operation then
+         * succeeds. Without the retry, a write throws out of DataStore and crashes the caller,
+         * and a read falls back to empty preferences.
+         */
+        fun <T> retryKeystoreOperation(name: String, block: () -> T): T {
+            var attempt = 1
+            while (true) {
+                try {
+                    return block()
+                } catch (e: GeneralSecurityException) {
+                    if (attempt >= KEYSTORE_ATTEMPTS) throw e
+                    printWarning("EncryptedPreferencesSerializer: $name attempt $attempt failed, retrying: ${e.message}")
+                    attempt++
+                }
+            }
+        }
+
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
         private const val KEY_ALIAS = "gallery_encrypted_prefs_key"
         private const val AES_GCM_TRANSFORMATION = "AES/GCM/NoPadding"

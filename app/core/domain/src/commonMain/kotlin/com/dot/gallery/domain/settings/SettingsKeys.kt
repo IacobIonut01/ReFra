@@ -191,6 +191,8 @@ object SettingsKeys {
     val albumSectionsEnabled = PrefKey.bool("album_sections_enabled", default = false)
     val showMediaTypeAlbums = PrefKey.bool("show_media_type_albums", default = true)
     val showPinnedAlbums = PrefKey.bool("show_pinned_albums", default = true)
+    /** Show every Library shortcut instead of folding long lists behind "Show more". */
+    val showAllLibraryShortcuts = PrefKey.bool("show_all_library_shortcuts", default = false)
     val updateModifiedDate = PrefKey.bool("update_modified_date", default = false)
     val hideTimelineOnAlbum = PrefKey.bool("hide_timeline_on_album", default = false)
     val timelineGroupByDate = PrefKey.bool("timeline_group_by_date", default = true)

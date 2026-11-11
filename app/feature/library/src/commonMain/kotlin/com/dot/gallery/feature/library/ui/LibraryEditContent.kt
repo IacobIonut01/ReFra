@@ -63,6 +63,7 @@ fun LibraryEditContent(
     var hiddenSections by rememberPreference(SettingsKeys.hiddenSections)
     val noClassification by rememberPreference(SettingsKeys.noClassification)
     var showPinned by rememberPreference(SettingsKeys.showPinnedAlbums)
+    var showAllShortcuts by rememberPreference(SettingsKeys.showAllLibraryShortcuts)
     var showMediaTypes by rememberPreference(SettingsKeys.showMediaTypeAlbums)
     var groupAlbumsIntoSections by rememberPreference(SettingsKeys.albumSectionsEnabled)
 
@@ -119,6 +120,8 @@ fun LibraryEditContent(
             onMediaTypesChange = { showMediaTypes = it },
             groupAlbumsIntoSections = groupAlbumsIntoSections,
             onGroupAlbumsIntoSectionsChange = { groupAlbumsIntoSections = it },
+            showAllShortcuts = showAllShortcuts,
+            onShowAllShortcutsChange = { showAllShortcuts = it },
         )
         if (sections.count > 0) {
             EditLabel(stringResource(Res.string.library_preview))

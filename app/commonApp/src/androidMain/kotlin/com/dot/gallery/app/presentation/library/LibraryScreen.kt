@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -55,6 +56,8 @@ import com.dot.gallery.feature.library.ui.LibraryHeaderLayout
 import com.dot.gallery.feature.library.ui.LibraryRoutes
 import com.dot.gallery.feature.library.ui.LibraryState
 import com.dot.gallery.feature.library.ui.rememberLibrarySections
+import com.dot.gallery.feature.vault.domain.model.GateMode
+import com.dot.gallery.feature.vault.utils.VaultPasswordManager
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.app.presentation.util.StaticMapPreview
 import com.dot.gallery.ui.theme.isDarkTheme
@@ -91,6 +94,11 @@ fun LibraryScreen(
     val viewModel = injectViewModel<LibraryViewModel> { libraryViewModel }
     val snapshot by viewModel.state.collectAsStateWithLifecycle()
     val modelStatus by viewModel.modelStatus.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val vaultGateMode by remember(context) { VaultPasswordManager.gateModeFlow(context) }
+        .collectAsStateWithLifecycle(GateMode.DEVICE)
+    val vaultCount by viewModel.vaultCount.collectAsStateWithLifecycle()
+    val shownVaultCount = vaultCount.takeIf { vaultGateMode == GateMode.NONE }
 
     LifecycleStartEffect(Unit) {
         viewModel.onVisible()
@@ -113,7 +121,7 @@ fun LibraryScreen(
     val actions = remember(eventHandler) {
         LibraryActions(onNavigate = { route -> eventHandler.navigate(route) })
     }
-    val state = remember(snapshot, modelStatus) {
+    val state = remember(snapshot, modelStatus, shownVaultCount) {
         LibraryState(
             snapshot = snapshot,
             modelStatus = modelStatus,
@@ -121,6 +129,7 @@ fun LibraryScreen(
             mapsEnabled = BuildConfig.MAPS_ENABLED,
             supportsTrash = SdkCompat.supportsTrash,
             supportsFavorites = SdkCompat.supportsFavorites,
+            vaultCount = shownVaultCount,
         )
     }
     val routes = rememberLibraryRoutes()

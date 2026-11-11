@@ -24,8 +24,14 @@ import com.dot.gallery.domain.settings.PrefKey
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.ui.core.icons.Encrypted
 import com.dot.gallery.ui.core.Icons as GalleryIcons
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Clock
 import com.dot.gallery.feature.library.generated.resources.Res
+import com.dot.gallery.feature.library.generated.resources.library_trash_expiry_today
+import com.dot.gallery.feature.library.generated.resources.library_trash_next_expiry
+import com.dot.gallery.feature.library.generated.resources.library_vault_count
+import com.dot.gallery.feature.library.generated.resources.library_vault_locked
 import com.dot.gallery.feature.library.generated.resources.cloud_accounts
 import com.dot.gallery.feature.library.generated.resources.cloud_archive
 import com.dot.gallery.feature.library.generated.resources.cloud_backup_and_sync
@@ -45,6 +51,8 @@ import com.dot.gallery.feature.library.generated.resources.vault
  *
  * [supportsTrash]/[supportsFavorites] are platform capabilities measured
  * app-side (`SdkCompat`); [routes] carries the app's route strings.
+ * [vaultCount] is null while the vault list is behind a lock, so the tile never says how many
+ * vaults there are.
  */
 @Composable
 fun rememberLibraryRuntimeShortcuts(
@@ -53,12 +61,15 @@ fun rememberLibraryRuntimeShortcuts(
     routes: LibraryRoutes,
     supportsTrash: Boolean,
     supportsFavorites: Boolean,
+    previews: LibraryShortcutPreviews = LibraryShortcutPreviews(),
+    vaultCount: Int? = null,
 ): Map<LibraryShortcut, RuntimeShortcut> {
     val privateFolderUri by rememberPreference(SettingsKeys.privateFolderUri)
     val colorScheme = MaterialTheme.colorScheme
     val map = LinkedHashMap<LibraryShortcut, RuntimeShortcut>()
 
     if (supportsTrash) {
+        val expiryDays = previews.nextTrashExpiry?.let { trashDaysLeft(it, Clock.System.now().epochSeconds) }
         map[LibraryShortcut.TRASH] = RuntimeShortcut(
             shortcut = LibraryShortcut.TRASH,
             title = stringResource(Res.string.trash),
@@ -67,7 +78,14 @@ fun rememberLibraryRuntimeShortcuts(
             useIndicator = true,
             indicatorCounter = indicatorState.trashCount,
             route = routes.trash,
-            available = true
+            available = true,
+            subtitle = when {
+                indicatorState.trashCount == 0 || expiryDays == null -> null
+                expiryDays == 0 -> stringResource(Res.string.library_trash_expiry_today)
+                else -> pluralStringResource(Res.plurals.library_trash_next_expiry, expiryDays, expiryDays)
+            },
+            previewMedia = previews.recentTrash,
+            dimPreview = true,
         )
     }
     if (supportsFavorites) {
@@ -79,7 +97,9 @@ fun rememberLibraryRuntimeShortcuts(
             useIndicator = true,
             indicatorCounter = indicatorState.favoriteCount,
             route = routes.favorites,
-            available = true
+            available = true,
+            previewMedia = previews.latestFavorites,
+            oldestPreviewMedia = previews.oldestFavorites,
         )
     }
     map[LibraryShortcut.VAULT] = RuntimeShortcut(
@@ -90,7 +110,10 @@ fun rememberLibraryRuntimeShortcuts(
         useIndicator = false,
         indicatorCounter = 0,
         route = routes.vault,
-        available = true
+        available = true,
+        subtitle = if (vaultCount == null) {
+            stringResource(Res.string.library_vault_locked)
+        } else pluralStringResource(Res.plurals.library_vault_count, vaultCount, vaultCount),
     )
     map[LibraryShortcut.IGNORED] = RuntimeShortcut(
         shortcut = LibraryShortcut.IGNORED,
@@ -173,3 +196,7 @@ fun rememberLibraryRuntimeShortcuts(
     }
     return map
 }
+
+/** Whole days until [expirySeconds], counted from [nowSeconds]; 0 once it is due today or past. */
+fun trashDaysLeft(expirySeconds: Long, nowSeconds: Long): Int =
+    ((expirySeconds - nowSeconds).coerceAtLeast(0) / 86_400L).toInt()

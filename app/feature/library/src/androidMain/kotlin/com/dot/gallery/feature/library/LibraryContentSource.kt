@@ -86,8 +86,10 @@ import com.dot.gallery.core.ml.ModelManager
 import com.dot.gallery.feature.library.location.MapGeoMediaSource
 import com.dot.gallery.feature.library.ui.LibraryCategoryPreview
 import com.dot.gallery.feature.library.ui.LibraryGeoPreview
+import com.dot.gallery.feature.library.ui.LibraryShortcutPreviews
 import com.dot.gallery.feature.library.ui.LibrarySnapshot
 import com.dot.gallery.feature.library.ui.LibraryViewport
+import com.dot.gallery.feature.library.ui.shortcutPreviews
 import com.dot.gallery.cloud.core.LOCAL_PEOPLE_CONFIG_ID
 import com.dot.gallery.feature.library.ui.resolveCloudLibraryAvailability
 import com.dot.gallery.feature.library.ui.mergeLibraryViewport
@@ -444,6 +446,15 @@ class LibraryContentSource public constructor(
             indicators = if (policy.hasMediaAccess) {
                 snapshot.indicators
             } else LibraryIndicatorState(),
+            shortcutPreviews = if (policy.hasMediaAccess) {
+                snapshot.shortcutPreviews.let { previews ->
+                    previews.copy(
+                        latestFavorites = previews.latestFavorites.filter(policy::allowsMedia),
+                        oldestFavorites = previews.oldestFavorites.filter(policy::allowsMedia),
+                        recentTrash = previews.recentTrash.filter(policy::allowsMedia),
+                    )
+                }
+            } else LibraryShortcutPreviews(),
             peopleCountsByAccount = peopleCounts,
             sharedLinkCountsByAccount = linkCounts,
             peopleCount = peopleCounts.values.sum().coerceAtLeast(people.size),
@@ -712,11 +723,14 @@ class LibraryContentSource public constructor(
                     LibraryIndicatorState(
                         trashCount = trashed.media.size,
                         favoriteCount = favorites.media.size
-                    )
+                    ) to shortcutPreviews(trashed.media, favorites.media)
                 } else null
-            }.collect { indicators ->
-                if (indicators != null) {
-                    publishIfCurrent(gen) { it.copy(indicators = indicators) }
+            }.collect { result ->
+                if (result != null) {
+                    val (indicators, previews) = result
+                    publishIfCurrent(gen) {
+                        it.copy(indicators = indicators, shortcutPreviews = previews)
+                    }
                 }
             }
         } catch (e: CancellationException) {

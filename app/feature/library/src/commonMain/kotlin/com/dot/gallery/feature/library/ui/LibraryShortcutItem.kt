@@ -32,5 +32,6 @@ data class LibraryShortcutItem(
     val pref: LibraryShortcutPref
 ) {
     val span: Int get() = pref.span
+    val size: LibraryShortcutSize get() = pref.size
     val visible: Boolean get() = pref.visible
 }

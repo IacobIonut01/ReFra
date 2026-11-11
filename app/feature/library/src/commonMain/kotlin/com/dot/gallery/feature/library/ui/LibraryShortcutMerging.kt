@@ -42,32 +42,87 @@ fun mergeShortcutPrefs(
 }
 
 /**
- * Pack span-aware [items] into rows of [columns] units. Items keep their order.
- * A new row is started whenever the next item would overflow the current row.
- *
- * Rendering uses weight, so every row always fills the full width regardless of
- * how many units it actually holds — this is what makes the layout adapt and
- * "fill the remaining space" instead of leaving the empty gaps the old
- * hard-coded two-column rows produced.
+ * Place [sizes] in a grid [columns] units wide, in order. Each tile takes the first free spot at
+ * or after the previous tile's, reading row by row, so tiles beside a taller card fill the space
+ * next to it while the stored order still decides the reading order. Tiles wider than the grid
+ * are narrowed to fit.
  */
-fun <T> packShortcutRows(
-    items: List<T>,
-    columns: Int = LibraryShortcutSpan.COLUMNS,
-    spanOf: (T) -> Int
-): List<List<T>> {
-    val rows = ArrayList<MutableList<T>>()
-    var current = ArrayList<T>()
-    var used = 0
-    for (item in items) {
-        val span = spanOf(item).coerceIn(1, columns)
-        if (current.isNotEmpty() && used + span > columns) {
-            rows += current
-            current = ArrayList()
-            used = 0
-        }
-        current += item
-        used += span
+fun packShortcutGrid(sizes: List<LibraryShortcutSize>, columns: Int): List<ShortcutCell> {
+    val cols = columns.coerceAtLeast(1)
+    val taken = ArrayList<BooleanArray>()
+    fun isFree(row: Int, column: Int, width: Int, height: Int) = (row until row + height).all { r ->
+        r >= taken.size || (column until column + width).none { taken[r][it] }
     }
-    if (current.isNotEmpty()) rows += current
-    return rows
+    var row = 0
+    var column = 0
+    return sizes.map { size ->
+        val width = size.width.coerceAtMost(cols)
+        val height = size.height
+        while (column + width > cols || !isFree(row, column, width, height)) {
+            if (column + width > cols) {
+                column = 0
+                row++
+            } else column++
+        }
+        while (taken.size < row + height) taken += BooleanArray(cols)
+        for (r in row until row + height) for (c in column until column + width) taken[r][c] = true
+        ShortcutCell(column, row, width, height).also { column += width }
+    }
+}
+
+private fun LibraryShortcutSize.withWidth(width: Int): LibraryShortcutSize {
+    val heights = LibraryShortcutSize.heightsFor(width)
+    return LibraryShortcutSize.of(width, heights.lastOrNull { it <= height } ?: heights.first())
+}
+
+/**
+ * The size a tile snaps to while its side edge is dragged to [targetUnits] grid units wide: the
+ * nearest width that fits [columns], so it changes once the edge passes halfway between two
+ * widths. A height the new width does not allow drops to the tallest one it does.
+ */
+fun resizeShortcutWidth(current: LibraryShortcutSize, targetUnits: Float, columns: Int): LibraryShortcutSize {
+    val widths = LibraryShortcutSize.widths.filter { it <= columns }.ifEmpty { listOf(1) }
+    return current.withWidth(widths.minBy { kotlin.math.abs(it - targetUnits) })
+}
+
+/** As [resizeShortcutWidth], for the bottom edge dragged to [targetRows] rows tall. */
+fun resizeShortcutHeight(current: LibraryShortcutSize, targetRows: Float): LibraryShortcutSize {
+    val heights = LibraryShortcutSize.heightsFor(current.width)
+    return LibraryShortcutSize.of(current.width, heights.minBy { kotlin.math.abs(it - targetRows) })
+}
+
+/** The next width on a tap of the side handle, wrapping from the widest that fits to 1. */
+fun nextShortcutWidth(current: LibraryShortcutSize, columns: Int): LibraryShortcutSize {
+    val widths = LibraryShortcutSize.widths.filter { it <= columns }.ifEmpty { listOf(1) }
+    return current.withWidth(widths.firstOrNull { it > current.width } ?: widths.first())
+}
+
+/** The next height on a tap of the bottom handle, wrapping to one row. */
+fun nextShortcutHeight(current: LibraryShortcutSize): LibraryShortcutSize {
+    val heights = LibraryShortcutSize.heightsFor(current.width)
+    return LibraryShortcutSize.of(current.width, heights.firstOrNull { it > current.height } ?: heights.first())
+}
+
+/** Rows a folded shortcut grid may use, unless its first tile is taller. */
+const val COLLAPSED_SHORTCUT_ROWS = 2
+
+/**
+ * How a long grid folds; null when every tile fits in the folded height, so no toggle is needed.
+ * The folded height is [COLLAPSED_SHORTCUT_ROWS], or the tallest tile's if that is taller, so a
+ * card the user made large is not hidden. The toggle shrinks to an icon when that keeps one
+ * more tile visible.
+ */
+fun foldShortcutGrid(sizes: List<LibraryShortcutSize>, columns: Int): ShortcutFold? {
+    if (sizes.isEmpty()) return null
+    val maxRows = maxOf(COLLAPSED_SHORTCUT_ROWS, sizes.maxOf { it.height })
+    fun rows(cells: List<ShortcutCell>) = cells.maxOfOrNull { it.bottom } ?: 0
+    if (rows(packShortcutGrid(sizes, columns)) <= maxRows) return null
+    for (count in sizes.size - 1 downTo 0) {
+        for (toggle in listOf(LibraryShortcutSize.HALF, LibraryShortcutSize.ICON)) {
+            if (rows(packShortcutGrid(sizes.take(count) + toggle, columns)) <= maxRows) {
+                return ShortcutFold(count, toggle)
+            }
+        }
+    }
+    return ShortcutFold(0, LibraryShortcutSize.ICON)
 }

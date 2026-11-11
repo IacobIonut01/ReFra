@@ -23,6 +23,7 @@ object PortableBackupSettings {
         "merge_albums_by_name",
         "album_sections_enabled",
         "show_pinned_albums",
+        "show_all_library_shortcuts",
         "show_media_type_albums",
         "update_modified_date",
         "slideshow_random_order",
