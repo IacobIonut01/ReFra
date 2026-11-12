@@ -11,6 +11,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,8 +40,10 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -302,17 +306,25 @@ fun CategoryTile(
     coverModifier: Modifier = Modifier,
     sorting: Boolean = false,
 ) {
+    // The whole tile takes the tap, but nothing is clipped: the press ripple draws on the
+    // rounded cover only, so the labels under it are never cut by the corner.
+    val interaction = remember { MutableInteractionSource() }
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .combinedClickable(role = Role.Button, onClick = onClick, onLongClick = onLongClick),
+        modifier = modifier.combinedClickable(
+            interactionSource = interaction,
+            indication = null,
+            role = Role.Button,
+            onClick = onClick,
+            onLongClick = onLongClick,
+        ),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
             modifier = coverModifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(24.dp)),
+                .clip(RoundedCornerShape(24.dp))
+                .indication(interaction, ripple()),
         ) {
             CategoryCover(media = media, contentDescription = name, modifier = Modifier.fillMaxSize())
             if (pinned) PinBadge(Modifier.padding(10.dp))
