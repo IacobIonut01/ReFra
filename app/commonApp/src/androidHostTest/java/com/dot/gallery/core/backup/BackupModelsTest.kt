@@ -78,6 +78,14 @@ class BackupModelsTest {
     }
 
     @Test
+    fun instantSideTapsChoiceIsPortable() {
+        assertEquals(
+            PortableSettingType.BOOLEAN,
+            PortableBackupSettings.typeFor("instant_side_taps")
+        )
+    }
+
+    @Test
     fun globalLoopVideosChoiceIsPortable() {
         assertEquals(
             PortableSettingType.BOOLEAN,

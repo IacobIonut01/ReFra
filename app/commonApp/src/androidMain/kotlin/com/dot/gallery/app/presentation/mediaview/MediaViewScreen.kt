@@ -394,11 +394,40 @@ internal fun resolveTapNavigationTarget(
     }
 }
 
-internal fun shouldHandleTapImmediately(
+/** How a tap in a side zone should page the viewer. */
+internal enum class SideTapNavigation {
+    /** Page on pointer-up, before a double tap could be detected. */
+    Immediate,
+
+    /**
+     * Leave the tap to the media's own single-tap callback, which only fires once the
+     * double-tap timeout has passed without a second tap. A double tap zooms or seeks instead.
+     */
+    OnSingleTap,
+
+    /** The tap does not page (centre zone, tap sides off, zoomed, or nothing to page to). */
+    None,
+}
+
+internal fun resolveSideTapNavigation(
     tapNavigationEnabled: Boolean,
+    instantSideTaps: Boolean,
+    zoomed: Boolean,
     zone: TapNavigationZone,
     canNavigate: Boolean,
-): Boolean = tapNavigationEnabled && zone != TapNavigationZone.Center && canNavigate
+): SideTapNavigation = when {
+    !tapNavigationEnabled || zoomed || zone == TapNavigationZone.Center || !canNavigate ->
+        SideTapNavigation.None
+    instantSideTaps -> SideTapNavigation.Immediate
+    else -> SideTapNavigation.OnSingleTap
+}
+
+/**
+ * Whether a deferred single tap from [tappedPage] may still page the viewer. The callback
+ * arrives after the double-tap timeout, so a page change in between drops it.
+ */
+internal fun isDeferredSideTapCurrent(tappedPage: Int, settledPage: Int): Boolean =
+    tappedPage == settledPage
 
 internal fun isTapNavigationPromptEligible(
     tapNavigationEnabled: Boolean,
@@ -1189,6 +1218,7 @@ fun <T : Media> MediaViewScreen(
         }
         val canAutoPlay by rememberVideoAutoplay()
         var tapSidesToNavigate by Settings.Misc.rememberTapSidesToNavigate()
+        val instantSideTaps by rememberPreference(SettingsKeys.instantSideTaps)
         val playWhenReady by rememberedDerivedState(
             currentMedia,
             canAutoPlay,
@@ -1618,14 +1648,28 @@ fun <T : Media> MediaViewScreen(
                 }
             }
         }
+        val sideTapNavigation: (TapNavigationZone) -> SideTapNavigation = { zone ->
+            resolveSideTapNavigation(
+                tapNavigationEnabled = tapSidesToNavigate,
+                instantSideTaps = instantSideTaps,
+                zoomed = isImageZoomed || isVideoZoomed,
+                zone = zone,
+                canNavigate = tapNavigationTarget(zone) != null,
+            )
+        }
+        // Single-tap callback from the page at [page]. With instant side taps off it arrives after
+        // the double-tap timeout, so a side tap from a page that is no longer settled is dropped.
+        val onPageTap: (Int, TapNavigationZone) -> Unit = { page, zone ->
+            val wouldNavigate = tapSidesToNavigate &&
+                    zone != TapNavigationZone.Center &&
+                    canNavigateByTap
+            if (!wouldNavigate || isDeferredSideTapCurrent(page, pagerState.settledPage)) {
+                onMediaTap(zone)
+            }
+        }
         val onImageImmediateTap: (Offset) -> Boolean = { offset ->
             val zone = tapZoneAt(offset)
-            if (shouldHandleTapImmediately(
-                    tapSidesToNavigate,
-                    zone,
-                    tapNavigationTarget(zone) != null
-                )
-            ) {
+            if (sideTapNavigation(zone) == SideTapNavigation.Immediate) {
                 onMediaTap(zone)
                 true
             } else {
@@ -2501,7 +2545,7 @@ fun <T : Media> MediaViewScreen(
                                     },
                                     onItemClick = { if (viewerInteractive) onMediaClick() },
                                     onImageTap = { offset ->
-                                        if (viewerInteractive) onMediaTap(tapZoneAt(offset))
+                                        if (viewerInteractive) onPageTap(index, tapZoneAt(offset))
                                     },
                                     onImageImmediateTap = if (viewerInteractive) {
                                         onImageImmediateTap
@@ -2621,19 +2665,15 @@ fun <T : Media> MediaViewScreen(
                                         val videoConfiguration = LocalConfiguration.current
                                         val width =
                                             remember(videoConfiguration) { resources.displayMetrics.widthPixels }
-                                        val navigateEndImmediately = shouldHandleTapImmediately(
-                                            tapNavigationEnabled = tapSidesToNavigate,
-                                            zone = TapNavigationZone.End,
-                                            canNavigate = tapNavigationTarget(TapNavigationZone.End) != null,
-                                        )
+                                        // Immediate side taps page on pointer-up. Otherwise the zones keep
+                                        // combinedClickable, whose onClick waits out the double-tap timeout,
+                                        // so a double tap still seeks and a single tap pages.
+                                        val endSideTap = sideTapNavigation(TapNavigationZone.End)
+                                        val startSideTap = sideTapNavigation(TapNavigationZone.Start)
+                                        val navigateEndImmediately =
+                                            endSideTap == SideTapNavigation.Immediate
                                         val navigateStartImmediately =
-                                            shouldHandleTapImmediately(
-                                                tapNavigationEnabled = tapSidesToNavigate,
-                                                zone = TapNavigationZone.Start,
-                                                canNavigate = tapNavigationTarget(
-                                                    TapNavigationZone.Start
-                                                ) != null,
-                                            )
+                                            startSideTap == SideTapNavigation.Immediate
                                         if (!isVideoZoomed && viewerInteractive) {
                                             Spacer(
                                                 modifier = Modifier
@@ -2668,7 +2708,13 @@ fun <T : Media> MediaViewScreen(
                                                                         player.play()
                                                                     }
                                                                 },
-                                                                onClick = { onMediaClick() },
+                                                                onClick = {
+                                                                    if (endSideTap == SideTapNavigation.OnSingleTap) {
+                                                                        onPageTap(index, TapNavigationZone.End)
+                                                                    } else {
+                                                                        onMediaClick()
+                                                                    }
+                                                                },
                                                             )
                                                         }
                                                     )
@@ -2718,7 +2764,13 @@ fun <T : Media> MediaViewScreen(
                                                                         player.play()
                                                                     }
                                                                 },
-                                                                onClick = { onMediaClick() },
+                                                                onClick = {
+                                                                    if (startSideTap == SideTapNavigation.OnSingleTap) {
+                                                                        onPageTap(index, TapNavigationZone.Start)
+                                                                    } else {
+                                                                        onMediaClick()
+                                                                    }
+                                                                },
                                                             )
                                                         }
                                                     )

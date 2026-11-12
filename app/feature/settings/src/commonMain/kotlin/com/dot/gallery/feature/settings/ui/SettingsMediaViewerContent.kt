@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import com.dot.gallery.core.ui.components.PreviewPhoto
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.BrightnessHigh
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.DarkMode
@@ -160,6 +161,8 @@ import com.dot.gallery.feature.settings.generated.resources.slideshow_settings_s
 import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_description
 import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_summary
 import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_title
+import com.dot.gallery.feature.settings.generated.resources.instant_side_taps_summary
+import com.dot.gallery.feature.settings.generated.resources.instant_side_taps_title
 import com.dot.gallery.feature.settings.generated.resources.video_playback
 import com.dot.gallery.feature.settings.generated.resources.video_surface_rebind
 import com.dot.gallery.feature.settings.generated.resources.video_surface_rebind_description
@@ -250,6 +253,7 @@ fun SettingsMediaViewerContent(
     var visualSearchAllowVault by rememberPreference(SettingsKeys.visualSearchAllowVault)
     var visualSearchConvertMode by rememberPreference(SettingsKeys.visualSearchConvertMode)
     var visualSearchConvertFormat by rememberPreference(SettingsKeys.visualSearchConvertFormat)
+    var instantSideTaps by rememberPreference(SettingsKeys.instantSideTaps)
     val onTapNavigationChange: (Boolean) -> Unit = { enabled ->
         tapSidesToNavigate = enabled
         actions.onTapSidesChanged()
@@ -472,6 +476,8 @@ fun SettingsMediaViewerContent(
                 onDateHeaderChange = { showMediaDateHeader = it },
                 tapSidesToNavigate = tapSidesToNavigate,
                 onTapNavigationChange = onTapNavigationChange,
+                instantSideTaps = instantSideTaps,
+                onInstantSideTapsChange = { instantSideTaps = it },
                 defaultEditor = defaultEditor,
                 defaultVideoEditor = defaultVideoEditor,
                 disableSmoothing = disableSmoothing,
@@ -525,6 +531,8 @@ private fun MediaViewerListContent(
     onDateHeaderChange: (Boolean) -> Unit,
     tapSidesToNavigate: Boolean,
     onTapNavigationChange: (Boolean) -> Unit,
+    instantSideTaps: Boolean,
+    onInstantSideTapsChange: (Boolean) -> Unit,
     defaultEditor: String,
     defaultVideoEditor: String,
     disableSmoothing: Boolean,
@@ -595,6 +603,18 @@ private fun MediaViewerListContent(
             isChecked = tapSidesToNavigate,
             onCheck = onTapNavigationChange,
             onClick = { onDetailClick(DETAIL_TAP_NAVIGATION) },
+            screenPosition = Position.Middle,
+        )
+
+        // Only meaningful while side taps navigate; off defers them so a double tap can zoom.
+        val instantSideTapsPref = rememberSwitchPreference(
+            instantSideTaps, tapSidesToNavigate,
+            title = stringResource(Res.string.instant_side_taps_title),
+            icon = Icons.Outlined.Bolt,
+            summary = stringResource(Res.string.instant_side_taps_summary),
+            isChecked = instantSideTaps,
+            onCheck = onInstantSideTapsChange,
+            enabled = tapSidesToNavigate,
             screenPosition = Position.Middle,
         )
 
@@ -821,6 +841,7 @@ private fun MediaViewerListContent(
 
         return remember(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
+            instantSideTapsPref,
             viewerActionBarPref, defaultEditorPref, disableSmoothingPref,
             darkMediaViewerPref,
             longPressActionPref,
@@ -835,6 +856,7 @@ private fun MediaViewerListContent(
                 add(fullBrightnessViewPref)
                 add(showMediaDateHeaderPref)
                 add(tapNavigationPref)
+                add(instantSideTapsPref)
                 add(viewerActionBarPref)
                 add(defaultEditorPref)
                 add(defaultVideoEditorPref)

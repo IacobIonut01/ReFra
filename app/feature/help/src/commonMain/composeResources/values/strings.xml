@@ -1561,6 +1561,7 @@
     <string name="smart_features_include_ignored_albums">Include ignored albums</string>
     <string name="smart_scan_manager_title">Smart Features data</string>
     <string name="show_date_header">Show Media Date Header</string>
+    <string name="instant_side_taps_title">Instant side taps</string>
     <string name="show_selection_titles">Display Selection Item's Title</string>
     <string name="visual_search_title">Visual search</string>
     <string name="settings_trash_confirmation_title">Require confirmation on trash</string>

@@ -45,6 +45,7 @@ import com.dot.gallery.feature.help.generated.resources.group_method_title
 import com.dot.gallery.feature.help.generated.resources.group_raw_jpg_title
 import com.dot.gallery.feature.help.generated.resources.group_similar_media_title
 import com.dot.gallery.feature.help.generated.resources.hdr_video_playback
+import com.dot.gallery.feature.help.generated.resources.instant_side_taps_title
 import com.dot.gallery.feature.help.generated.resources.help_cat_personalization
 import com.dot.gallery.feature.help.generated.resources.help_cat_selection_actions
 import com.dot.gallery.feature.help.generated.resources.help_cat_settings_appearance
@@ -231,6 +232,7 @@ object HelpSearchIndex {
             Toggle(Res.string.show_selection_titles, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             // Media viewer
             Toggle(Res.string.full_brightness_view_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.instant_side_taps_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.show_date_header, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.default_image_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.default_video_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),

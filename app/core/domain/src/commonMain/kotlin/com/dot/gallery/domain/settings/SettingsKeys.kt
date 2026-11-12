@@ -80,6 +80,8 @@ object SettingsKeys {
     val mediaViewDateHeader = PrefKey.bool("media_view_date_header", default = true)
     val tapSidesToNavigate = PrefKey.bool("tap_sides_to_navigate", default = false)
     val tapSidesPromptShown = PrefKey.bool("tap_sides_to_navigate_prompt_shown", default = false)
+    /** With tap sides on, page on the first side tap. Off waits for the double-tap timeout so a double tap zooms. */
+    val instantSideTaps = PrefKey.bool("instant_side_taps", default = true)
     /** Retired "Favorite button in viewer" switch — read only by the one-time viewer action-bar migration and old backups. */
     val showFavoriteButton = PrefKey.bool("show_favorite_button", default = true)
     /**

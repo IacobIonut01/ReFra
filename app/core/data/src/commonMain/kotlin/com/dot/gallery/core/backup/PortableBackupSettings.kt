@@ -58,6 +58,7 @@ object PortableBackupSettings {
         "auto_hide_navigationbar",
         "full_brightness_view",
         "tap_sides_to_navigate",
+        "instant_side_taps",
         "auto_hide_on_video_play",
         "no_classification",
         "categories_exclude_videos",

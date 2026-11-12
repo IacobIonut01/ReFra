@@ -543,6 +543,8 @@
     <string name="tap_sides_to_navigate_description">When enabled, tap the left or right side of an unzoomed photo or video to move through the viewer instantly. Tap the center to show or hide controls. Side taps take priority over video seeking; panoramas, slideshows, and locked or standalone viewers keep their existing gestures.</string>
     <string name="tap_sides_to_navigate_summary">Tap either side of a photo or video to open the previous or next item</string>
     <string name="tap_sides_to_navigate_title">Tap sides to navigate</string>
+    <string name="instant_side_taps_title">Instant side taps</string>
+    <string name="instant_side_taps_summary">Change photos as soon as you tap a side. Turn off to double-tap the sides to zoom.</string>
     <string name="video_playback">Video Playback</string>
     <string name="video_surface_rebind">Fix black video on hide</string>
     <string name="video_surface_rebind_description">On some devices the video can turn black when you hide or show the playback controls, even though the audio keeps playing. This re-binds the video surface on each change to keep it visible. Enabled by default on devices where the issue is known to occur.</string>

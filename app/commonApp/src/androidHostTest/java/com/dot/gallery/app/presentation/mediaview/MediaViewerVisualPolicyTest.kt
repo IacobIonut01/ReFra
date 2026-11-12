@@ -7,6 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.dot.gallery.ui.theme.isDarkTheme
 import com.dot.gallery.feature.viewer.MediaViewerVisualPolicy
+import com.dot.gallery.domain.settings.SettingsKeys
 
 
 
@@ -133,43 +134,88 @@ class MediaViewerVisualPolicyTest {
         assertEquals(TapNavigationZone.Center, resolveTapNavigationZone(10f, 0, isRtl = false))
     }
 
+    private fun sideTap(
+        zone: TapNavigationZone,
+        tapNavigationEnabled: Boolean = true,
+        instantSideTaps: Boolean = true,
+        zoomed: Boolean = false,
+        canNavigate: Boolean = true,
+    ) = resolveSideTapNavigation(
+        tapNavigationEnabled = tapNavigationEnabled,
+        instantSideTaps = instantSideTaps,
+        zoomed = zoomed,
+        zone = zone,
+        canNavigate = canNavigate,
+    )
+
     @Test
     fun sideNavigationHandlesEligibleTapsImmediately() {
-        assertTrue(
-            shouldHandleTapImmediately(
-                tapNavigationEnabled = true,
-                zone = TapNavigationZone.Start,
-                canNavigate = true,
-            )
+        assertEquals(SideTapNavigation.Immediate, sideTap(TapNavigationZone.Start))
+        assertEquals(SideTapNavigation.Immediate, sideTap(TapNavigationZone.End))
+        assertEquals(SideTapNavigation.None, sideTap(TapNavigationZone.Center))
+        assertEquals(
+            SideTapNavigation.None,
+            sideTap(TapNavigationZone.End, tapNavigationEnabled = false)
         )
-        assertTrue(
-            shouldHandleTapImmediately(
-                tapNavigationEnabled = true,
-                zone = TapNavigationZone.End,
-                canNavigate = true,
-            )
+        assertEquals(
+            SideTapNavigation.None,
+            sideTap(TapNavigationZone.End, canNavigate = false)
         )
-        assertFalse(
-            shouldHandleTapImmediately(
-                tapNavigationEnabled = true,
-                zone = TapNavigationZone.Center,
-                canNavigate = true,
-            )
+    }
+
+    @Test
+    fun sideTapsWithInstantOffWaitForTheSingleTapSoADoubleTapCanZoom() {
+        // Not handled on pointer-up: the tap reaches the zoomable, whose single-tap callback
+        // only fires after the double-tap timeout. A second tap in time is a double tap, which
+        // zooms (or seeks on video) and never reaches the single-tap navigation.
+        assertEquals(
+            SideTapNavigation.OnSingleTap,
+            sideTap(TapNavigationZone.Start, instantSideTaps = false)
         )
-        assertFalse(
-            shouldHandleTapImmediately(
-                tapNavigationEnabled = false,
-                zone = TapNavigationZone.End,
-                canNavigate = true,
-            )
+        assertEquals(
+            SideTapNavigation.OnSingleTap,
+            sideTap(TapNavigationZone.End, instantSideTaps = false)
         )
-        assertFalse(
-            shouldHandleTapImmediately(
-                tapNavigationEnabled = true,
-                zone = TapNavigationZone.End,
-                canNavigate = false,
-            )
+        assertEquals(
+            SideTapNavigation.None,
+            sideTap(TapNavigationZone.End, instantSideTaps = false, canNavigate = false)
         )
+        assertEquals(
+            SideTapNavigation.None,
+            sideTap(TapNavigationZone.End, tapNavigationEnabled = false, instantSideTaps = false)
+        )
+    }
+
+    @Test
+    fun zoomedSideTapsNeverNavigate() {
+        assertEquals(SideTapNavigation.None, sideTap(TapNavigationZone.Start, zoomed = true))
+        assertEquals(SideTapNavigation.None, sideTap(TapNavigationZone.End, zoomed = true))
+        assertEquals(
+            SideTapNavigation.None,
+            sideTap(TapNavigationZone.End, instantSideTaps = false, zoomed = true)
+        )
+    }
+
+    @Test
+    fun centreTapsIgnoreTheInstantSideTapsSetting() {
+        assertEquals(SideTapNavigation.None, sideTap(TapNavigationZone.Center, instantSideTaps = true))
+        assertEquals(SideTapNavigation.None, sideTap(TapNavigationZone.Center, instantSideTaps = false))
+    }
+
+    @Test
+    fun instantSideTapsDefaultKeepsTodaysImmediatePaging() {
+        assertEquals("instant_side_taps", SettingsKeys.instantSideTaps.name)
+        assertTrue(SettingsKeys.instantSideTaps.default)
+        assertEquals(
+            SideTapNavigation.Immediate,
+            sideTap(TapNavigationZone.End, instantSideTaps = SettingsKeys.instantSideTaps.default)
+        )
+    }
+
+    @Test
+    fun deferredSideTapIsDroppedAfterThePageChanges() {
+        assertTrue(isDeferredSideTapCurrent(tappedPage = 3, settledPage = 3))
+        assertFalse(isDeferredSideTapCurrent(tappedPage = 3, settledPage = 4))
     }
 
     @Test
