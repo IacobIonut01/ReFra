@@ -62,6 +62,11 @@ class MediaSelectorImpl : MediaSelector {
         isSelectionActive.value = true
     }
 
+    override fun deselectAll() {
+        explicitMode = true
+        publish(emptySet())
+    }
+
     override fun clearSelection() {
         explicitMode = false
         selectedMedia.tryEmit(emptySet())

@@ -871,7 +871,6 @@ fun <T : Media> BoxScope.SelectionSheet(
                                                     },
                                                     imageVector = Icons.Outlined.Info,
                                                     contentDescription = stringResource(Res.string.media_details),
-                                                    text = stringResource(Res.string.media_details)
                                                 )
                                             }
                                         }
@@ -915,7 +914,6 @@ fun <T : Media> BoxScope.SelectionSheet(
                                             },
                                             imageVector = Icons.Outlined.Info,
                                             contentDescription = stringResource(Res.string.media_details),
-                                            text = stringResource(Res.string.media_details)
                                         )
                                     }
                                 }
@@ -1493,7 +1491,7 @@ fun <T: Media> SelectAllAddon(
     SelectionAddon(
         onClick = {
             scope.launch {
-                if (selectedAll) selector.clearSelection()
+                if (selectedAll) selector.deselectAll()
                 else selector.addToSelection(allMedia.media.map { it.id })
             }
         },

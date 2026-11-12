@@ -347,7 +347,7 @@ private fun BoxScope.DocsTimelineSelectionSheet(
             infoVisible = selectedMediaList.size == 1,
             onClose = { selector.clearSelection() },
             onSelectAll = {
-                if (selectedAll) selector.clearSelection()
+                if (selectedAll) selector.deselectAll()
                 else selector.addToSelection(allMedia.media.map { it.id })
             },
             onAction = { action ->

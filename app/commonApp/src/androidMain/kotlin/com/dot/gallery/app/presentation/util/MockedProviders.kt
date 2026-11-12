@@ -237,6 +237,7 @@ class MockedMediaSelector: MediaSelector {
     override val isSelectionActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun clearSelection() = Unit
     override fun startSelection() = Unit
+    override fun deselectAll() = Unit
     override fun <T : Media> toggleSelection(mediaState: MediaState<T>, index: Int) = Unit
     override fun <T : Media> toggleSelectionById(mediaState: MediaState<T>, mediaId: Long) = Unit
     override fun addToSelection(list: List<Long>) = Unit

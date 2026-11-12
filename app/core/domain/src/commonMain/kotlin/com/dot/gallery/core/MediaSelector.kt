@@ -21,6 +21,12 @@ interface MediaSelector {
      */
     fun startSelection()
 
+    /**
+     * Empties the selection but keeps selection mode active, as [startSelection] does, so only
+     * an explicit close ([clearSelection]) ends it.
+     */
+    fun deselectAll()
+
     fun <T: Media> toggleSelection(
         mediaState: MediaState<T>,
         index: Int

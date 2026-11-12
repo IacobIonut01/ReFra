@@ -52,6 +52,33 @@ class MediaSelectorImplTest {
     }
 
     @Test
+    fun deselectAllKeepsALongPressSelectionOpen() {
+        // Select all then Deselect all must not end the selection (issue #1433).
+        val selector = MediaSelectorImpl()
+        selector.toggleSelectionById(state, 1L)
+        selector.addToSelection(listOf(2L, 3L))
+
+        selector.deselectAll()
+
+        assertTrue(selector.isSelectionActive.value)
+        assertEquals(emptySet<Long>(), selector.selectedMedia.value)
+    }
+
+    @Test
+    fun deselectAllThenPickingAgainStaysOpenUntilClosed() {
+        val selector = MediaSelectorImpl()
+        selector.toggleSelectionById(state, 1L)
+        selector.deselectAll()
+
+        selector.toggleSelectionById(state, 2L)
+        selector.toggleSelectionById(state, 2L)
+        assertTrue(selector.isSelectionActive.value)
+
+        selector.clearSelection()
+        assertFalse(selector.isSelectionActive.value)
+    }
+
+    @Test
     fun longPressSelectionStillEndsWithItsLastItem() {
         val selector = MediaSelectorImpl()
 

@@ -918,20 +918,23 @@ private fun TopActionPreviewPill(
             modifier = Modifier.size(24.dp),
             imageVector = if (isSelectAll) Icons.Outlined.Deselect else action.icon,
             colorFilter = ColorFilter.tint(pillContentColor),
-            contentDescription = null
+            // Details is icon-only in the real bar, so its label moves to the description.
+            contentDescription = if (action == SelectionAction.INFO) stringResource(action.labelRes) else null
         )
-        Text(
-            text = when (action) {
-                SelectionAction.CLOSE -> count.toString()
-                else -> if (isSelectAll) {
-                    // commonApp's clear_selection string is module-internal here.
-                    "Remove All"
-                } else {
-                    stringResource(action.labelRes)
-                }
-            },
-            style = MaterialTheme.typography.titleMedium,
-            color = pillContentColor
-        )
+        if (action != SelectionAction.INFO) {
+            Text(
+                text = when (action) {
+                    SelectionAction.CLOSE -> count.toString()
+                    else -> if (isSelectAll) {
+                        // commonApp's clear_selection string is module-internal here.
+                        "Remove All"
+                    } else {
+                        stringResource(action.labelRes)
+                    }
+                },
+                style = MaterialTheme.typography.titleMedium,
+                color = pillContentColor
+            )
+        }
     }
 }

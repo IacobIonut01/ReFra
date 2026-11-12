@@ -125,7 +125,7 @@ private fun <T : Media> RailSelectAllButton(allMedia: MediaState<T>) {
             else MaterialTheme.colorScheme.onSurface,
         onClick = {
             scope.launch {
-                if (selectedAll) selector.clearSelection()
+                if (selectedAll) selector.deselectAll()
                 else selector.addToSelection(allMedia.media.map { it.id })
             }
         },
