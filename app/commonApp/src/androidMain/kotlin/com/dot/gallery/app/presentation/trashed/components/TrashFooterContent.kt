@@ -9,8 +9,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -87,7 +90,11 @@ fun TrashFooterContent(
             exit = exitAnimation
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Buttons share the tallest intrinsic height so a two-line label
+                    // cannot leave its sibling shorter.
+                    .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 SheetButton(
@@ -95,14 +102,18 @@ fun TrashFooterContent(
                     onClick = onRestoreAll,
                     style = SheetButtonStyle.Tonal,
                     icon = Icons.Outlined.Restore,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
                 )
                 SheetButton(
                     text = stringResource(Res.string.action_delete_all_permanently),
                     onClick = onDeleteAll,
                     style = SheetButtonStyle.Error,
                     icon = Icons.Outlined.DeleteForever,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
                 )
             }
         }
