@@ -66,12 +66,12 @@ class TopBarSettingsDetailTest {
     }
 
     @Test
-    fun selectingPreviewSwapsTheShortcutsForSearch() {
+    fun selectingPreviewTurnsSelectIntoCloseAndFavoritesIntoSearch() {
         show()
 
         rule.onNodeWithText("Selecting").performClick()
 
-        previewShows("Search, Sort and filter")
+        previewShows("Close selection, Search, Sort and filter")
     }
 
     @Test

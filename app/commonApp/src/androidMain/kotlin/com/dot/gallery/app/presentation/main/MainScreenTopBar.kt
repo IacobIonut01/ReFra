@@ -64,6 +64,7 @@ import com.dot.gallery.app.presentation.timeline.components.TimelineNavActions
 import com.dot.gallery.app.presentation.timeline.components.timelineBackupProgressFraction
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Search
 import com.dot.gallery.core.LocalEventHandler
@@ -77,6 +78,7 @@ import com.dot.gallery.core.ui.generated.resources.Res as UiRes
 import com.dot.gallery.core.ui.generated.resources.search
 import com.dot.gallery.generated.resources.favorites
 import com.dot.gallery.generated.resources.select
+import com.dot.gallery.generated.resources.selection_dialog_close_cd
 import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.ui.settings.rememberPreference
@@ -110,7 +112,8 @@ const val HomeActionSearch = "search"
 
 /**
  * [timelineShortcuts] adds the Select and Favorites buttons, which only make sense on the
- * Timeline. Each can be turned off in Settings › Timeline & albums › Top bar.
+ * Timeline. Each can be turned off in Settings › Timeline & albums › Top bar. While a
+ * selection is active, Select turns into the button that closes it.
  */
 @Composable
 fun MainScreenTopBar(
@@ -133,12 +136,15 @@ fun MainScreenTopBar(
         showSelect = showSelect,
     )
     val actions = listOf(
+        // Select stays in place during a selection and becomes its Close button.
         GalleryHomeAction(
             key = HomeActionSelect,
-            icon = Icons.Outlined.CheckCircle,
-            contentDescription = stringResource(Res.string.select),
+            icon = if (shortcuts.selectCloses) Icons.Outlined.Close else Icons.Outlined.CheckCircle,
+            contentDescription = stringResource(
+                if (shortcuts.selectCloses) Res.string.selection_dialog_close_cd else Res.string.select,
+            ),
             visible = shortcuts.select,
-            onClick = selector::startSelection,
+            onClick = if (shortcuts.selectCloses) selector::clearSelection else selector::startSelection,
         ),
         GalleryHomeAction(
             key = HomeActionFavorites,

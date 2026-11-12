@@ -7,6 +7,7 @@ package com.dot.gallery.core.presentation.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
@@ -204,17 +205,25 @@ fun GalleryHomeTopBar(
                                     .size(GalleryChrome.ToolbarButtonSize)
                                     .testTag(galleryHomeActionTag(action.key)),
                             ) {
-                                Icon(
-                                    imageVector = action.icon,
-                                    contentDescription = action.contentDescription,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                // A shortcut that changes role (Select into Close) keeps its
+                                // place and crossfades between the two icons.
+                                Crossfade(
+                                    targetState = action.icon,
+                                    animationSpec = tween(ActionFadeMillis * 2),
                                     modifier = Modifier.animateEnterExit(
                                         enter = fadeIn(tween(ActionFadeMillis, delayMillis = ActionFadeMillis / 2)) +
                                             scaleIn(initialScale = 0.6f),
                                         exit = fadeOut(tween(ActionFadeMillis)) +
                                             scaleOut(targetScale = 0.6f),
                                     ),
-                                )
+                                    label = "homeActionIcon",
+                                ) { icon ->
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = action.contentDescription,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                         }
                     }

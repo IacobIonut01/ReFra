@@ -645,8 +645,9 @@
     <string name="top_bar_filter_summary">Order by date and filter by type, year or album</string>
     <string name="top_bar_hide_on_scroll">Hide on scroll</string>
     <string name="top_bar_hide_on_scroll_summary">Slide the top bar away while you scroll down, on Timeline and Library</string>
-    <string name="top_bar_footnote">While you are selecting, Search takes the place of Select and Favorites, because the bottom bar is hidden.</string>
-    <string name="top_bar_footnote_no_favorites">While you are selecting, Search takes the place of Select, because the bottom bar is hidden.</string>
+    <string name="top_bar_footnote">While you are selecting, Select turns into Close, and Search takes the place of Favorites because the bottom bar is hidden.</string>
+    <string name="top_bar_footnote_no_favorites">While you are selecting, Select turns into Close, and Search appears because the bottom bar is hidden.</string>
+    <string name="top_bar_close_selection">Close selection</string>
     <string name="timeline_order">Timeline order</string>
     <string name="timeline_order_description">Choose which date places and groups items on the Timeline. Capture time uses embedded photo and video dates when available.</string>
     <string name="recheck_capture_dates">Recheck capture dates</string>

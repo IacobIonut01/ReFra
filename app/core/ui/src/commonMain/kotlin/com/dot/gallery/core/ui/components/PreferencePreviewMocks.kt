@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.MoreVert
@@ -233,7 +234,12 @@ fun PreviewHomeTopBar(
                 brandDescription = "",
                 statusBarInsets = WindowInsets(0, 0, 0, 0),
                 actions = listOf(
-                    GalleryHomeAction("select", Icons.Outlined.CheckCircle, "", shortcuts.select) {},
+                    GalleryHomeAction(
+                        "select",
+                        if (shortcuts.selectCloses) Icons.Outlined.Close else Icons.Outlined.CheckCircle,
+                        "",
+                        shortcuts.select,
+                    ) {},
                     GalleryHomeAction("favorites", Icons.Outlined.FavoriteBorder, "", shortcuts.favorites) {},
                     GalleryHomeAction("search", Icons.Outlined.Search, "", shortcuts.search) {},
                 ),

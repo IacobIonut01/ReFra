@@ -8,6 +8,7 @@ package com.dot.gallery.app.presentation.main
 import com.dot.gallery.core.presentation.components.HomeShortcutVisibility
 import com.dot.gallery.core.presentation.components.homeShortcutVisibility
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -60,13 +61,24 @@ class HomeShortcutVisibilityTest {
     }
 
     @Test
-    fun searchReplacesTheShortcutsDuringSelection() {
+    fun selectBecomesCloseAndSearchReplacesFavoritesDuringSelection() {
         // The dock with the search pill hides while selecting, so search must move to the
-        // top bar or it cannot be opened at all (issue #1400).
+        // top bar or it cannot be opened at all (issue #1400). Select stays in place as the
+        // button that ends the selection (issue #1412).
         assertEquals(
-            HomeShortcutVisibility(select = false, favorites = false, search = true),
+            HomeShortcutVisibility(select = true, favorites = false, search = true, selectCloses = true),
             visibility(selectionActive = true),
         )
+    }
+
+    @Test
+    fun closeFollowsTheSelectSetting() {
+        assertEquals(
+            HomeShortcutVisibility(select = false, favorites = false, search = true, selectCloses = false),
+            visibility(selectionActive = true, showSelect = false),
+        )
+        assertFalse(visibility(selectionActive = true, timelineShortcuts = false).selectCloses)
+        assertFalse(visibility().selectCloses)
     }
 
     @Test

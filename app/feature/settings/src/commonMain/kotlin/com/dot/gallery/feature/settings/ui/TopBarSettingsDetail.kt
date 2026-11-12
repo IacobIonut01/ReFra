@@ -36,6 +36,7 @@ import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.feature.settings.generated.resources.Res
 import com.dot.gallery.feature.settings.generated.resources.search
+import com.dot.gallery.feature.settings.generated.resources.top_bar_close_selection
 import com.dot.gallery.feature.settings.generated.resources.top_bar_summary_none
 import com.dot.gallery.feature.settings.generated.resources.top_bar_behavior_header
 import com.dot.gallery.feature.settings.generated.resources.top_bar_buttons_header
@@ -59,8 +60,8 @@ const val TopBarPreviewTag = "Settings.TopBarPreview"
 
 /**
  * Every setting of the home top bar on one page, under a live preview drawn by the real top
- * bar. The Browsing / Selecting chips switch only the preview, to show that Search replaces
- * Select and Favorites during a selection.
+ * bar. The Browsing / Selecting chips switch only the preview, to show that Select turns into
+ * Close and Search replaces Favorites during a selection.
  */
 @Composable
 fun TopBarSettingsDetail(supportsFavorites: Boolean, initialPreviewSelecting: Boolean = false) {
@@ -96,7 +97,10 @@ fun TopBarSettingsDetail(supportsFavorites: Boolean, initialPreviewSelecting: Bo
                             description = stringResource(Res.string.top_bar_preview_description),
                             visibleButtons = topBarButtonsSummary(
                                 listOfNotNull(
-                                    stringResource(Res.string.top_bar_select).takeIf { shortcuts.select },
+                                    stringResource(
+                                        if (shortcuts.selectCloses) Res.string.top_bar_close_selection
+                                        else Res.string.top_bar_select,
+                                    ).takeIf { shortcuts.select },
                                     stringResource(Res.string.top_bar_favorites).takeIf { shortcuts.favorites },
                                     stringResource(Res.string.search).takeIf { shortcuts.search },
                                     stringResource(Res.string.top_bar_filter).takeIf { showFilter },

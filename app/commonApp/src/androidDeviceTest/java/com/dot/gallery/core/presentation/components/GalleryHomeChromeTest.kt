@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.FolderOpen
@@ -194,5 +196,47 @@ class GalleryHomeChromeTest {
         rule.onNodeWithContentDescription("Filter").assertIsDisplayed()
         rule.runOnIdle { favoritesVisible = true }
         rule.onNodeWithTag(galleryHomeActionTag("favorites")).assertIsDisplayed()
+    }
+
+    @Test
+    fun selectTurnsIntoCloseInPlaceWhileSelecting() {
+        var selecting by mutableStateOf(false)
+        rule.setContent {
+            PreviewHost {
+                Box(Modifier.width(360.dp)) {
+                    GalleryHomeTopBar(
+                        onBrandClick = {},
+                        brandDescription = "Settings",
+                        statusBarInsets = WindowInsets(0, 0, 0, 0),
+                        actions = listOf(
+                            GalleryHomeAction(
+                                key = "select",
+                                icon = if (selecting) Icons.Outlined.Close else Icons.Outlined.CheckCircle,
+                                contentDescription = if (selecting) "Close selection" else "Select",
+                                onClick = { selecting = !selecting },
+                            ),
+                        ),
+                        menu = {
+                            IconButton(onClick = {}) {
+                                Icon(Icons.Outlined.MoreVert, contentDescription = "More options")
+                            }
+                        },
+                    )
+                }
+            }
+        }
+
+        val select = rule.onNodeWithTag(galleryHomeActionTag("select"))
+        val bounds = select.assertContentDescriptionEquals("Select").fetchSemanticsNode().boundsInRoot
+        select.performClick()
+        rule.waitForIdle()
+        val close = rule.onNodeWithTag(galleryHomeActionTag("select"))
+            .assertIsDisplayed()
+            .assertContentDescriptionEquals("Close selection")
+        assertEquals(bounds, close.fetchSemanticsNode().boundsInRoot)
+        close.performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag(galleryHomeActionTag("select")).assertContentDescriptionEquals("Select")
+        rule.runOnIdle { assertEquals(false, selecting) }
     }
 }
