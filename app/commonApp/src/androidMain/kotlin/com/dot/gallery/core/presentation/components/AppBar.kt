@@ -450,6 +450,9 @@ fun AppBarContainer(
                                     backStackEntry = backStackEntry,
                                     navigationItems = bottomNavItems,
                                     onClick = { onNavItemClick(navController, it, scrollToTop) },
+                                    onSearchClick = searchActionFor(currentRoute) {
+                                        navController.navigate(Screen.SearchScreen())
+                                    },
                                 )
                             } else {
                                 GalleryNavigationRailContent(
@@ -457,8 +460,9 @@ fun AppBarContainer(
                                     navigationItems = bottomNavItems,
                                     onClick = { onNavItemClick(navController, it, scrollToTop) },
                                     // On search itself the circle leaves, growing into the bar.
-                                    onSearchClick = if (currentRoute == Screen.SearchScreen()) null
-                                        else ({ navController.navigate(Screen.SearchScreen()) }),
+                                    onSearchClick = searchActionFor(currentRoute) {
+                                        navController.navigate(Screen.SearchScreen())
+                                    },
                                     sharedTransitionScope = this@SharedTransitionLayout
                                         .takeIf { showNavRail },
                                     onBackClick = railBackHost.action.takeIf { !anySelectedRoute },
@@ -477,6 +481,9 @@ fun AppBarContainer(
                                 backStackEntry = backStackEntry,
                                 navigationItems = bottomNavItems,
                                 onClick = { onNavItemClick(navController, it, scrollToTop) },
+                                onSearchClick = searchActionFor(currentRoute) {
+                                    navController.navigate(Screen.SearchScreen())
+                                },
                             )
                         }
                         AnimatedVisibility(
@@ -601,24 +608,32 @@ fun GalleryNavBar(
     animatedVisibilityScope = animatedVisibilityScope,
 )
 
+/** The search action for navigation chrome, or null on the search screen itself so it hides. */
+internal fun searchActionFor(currentRoute: String?, openSearch: () -> Unit): (() -> Unit)? =
+    if (currentRoute == Screen.SearchScreen()) null else openSearch
+
 @Composable
 fun ClassicNavBar(
     backStackEntry: NavBackStackEntry?,
     navigationItems: List<NavigationItem>,
-    onClick: (route: String) -> Unit
+    onClick: (route: String) -> Unit,
+    onSearchClick: (() -> Unit)? = null,
 ) = ClassicNavigationBarContent(
     selectedRoute = backStackEntry?.destination?.route,
     navigationItems = navigationItems,
     onClick = onClick,
+    onSearchClick = onSearchClick,
 )
 
 @Composable
 private fun ClassicNavigationRail(
     backStackEntry: NavBackStackEntry?,
     navigationItems: List<NavigationItem>,
-    onClick: (route: String) -> Unit
+    onClick: (route: String) -> Unit,
+    onSearchClick: (() -> Unit)? = null,
 ) = ClassicNavigationRailContent(
     selectedRoute = backStackEntry?.destination?.route,
     navigationItems = navigationItems,
     onClick = onClick,
+    onSearchClick = onSearchClick,
 )

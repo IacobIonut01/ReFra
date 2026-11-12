@@ -203,6 +203,7 @@ fun DocsNavigationBarScene(state: String?) {
                 selectedRoute = selected,
                 navigationItems = items,
                 onClick = { selected = it },
+                onSearchClick = { navigator?.navigateTo("search-library") },
             )
         } else {
             GalleryNavigationBarContent(
