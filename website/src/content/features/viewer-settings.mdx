@@ -18,7 +18,8 @@ order: 6
 
 - **Full Brightness when viewing**: raises the screen to maximum brightness while a photo or video is open. Your normal brightness is restored when you leave the viewer.
 - **Show Media Date Header**: puts the current item's date and time in the viewer's top bar.
-- **Tap sides to navigate**: tapping the left or right edge of an unzoomed item jumps to the previous or next one; tapping the center shows or hides the controls. Side taps take priority over video seeking. Zoomed images, panoramas, slideshows, and locked or standalone viewers keep their usual gestures.
+- **Tap sides to navigate**: tapping the left or right edge of an unzoomed item jumps to the previous or next one; tapping the center shows or hides the controls. Zoomed images, panoramas, slideshows, and locked or standalone viewers keep their usual gestures.
+- **Instant side taps**: on by default, and only available while **Tap sides to navigate** is on. When on, a side tap changes the item straight away and takes priority over video seeking. When off, a single side tap changes the item only after the double-tap timeout, so a double tap on a side zooms a photo or skips a video 10 seconds back or forward instead. Taps on a zoomed photo or video never change the item.
 - **Default image editor**: picks which app the edit button opens: the **ReFra editor (preview)** (the default), the **Built-in editor**, or any compatible external editor installed on the device. Formats the ReFra editor cannot open still go to the built-in editor; see [the ReFra editor](/ReFra/features/editor).
 - **Default video editor**: the app that opens when you edit a video: the **ReFra editor** (the default), **Ask every time** for the system's app chooser, or a video editor installed on the device. See [video editor](/ReFra/features/video-editor).
 - **Viewer action bar**: picks the quick actions shown under the media in the viewer and their order. Drag to reorder, and add or remove actions; an action only appears when it applies to the current item. **Favorite** needs Android 11 or later.
@@ -40,6 +41,7 @@ See [codes in photos](/ReFra/features/codes-in-photos).
 
 - **Hide UI on Video Play**: the top and bottom bars hide themselves a couple of seconds after a video starts; tap the screen to bring them back.
 - **Video Auto-Play**: videos begin playing as soon as you swipe to them. Off means a manual tap to play.
+- **Loop videos**: on by default. A video starts again from the beginning when it reaches the end. This applies to videos on the device, in the vault, and in cloud accounts. When it is off, a video stops on its last frame and the controls come back; **Play video** starts it again from the beginning. Slideshows always play each video once.
 - **Fix black video on hide**: re-binds the video surface when controls hide or show, for devices where the picture otherwise goes black while audio continues. It is already enabled on devices where the issue is known.
 - **HDR video playback**: switches the screen into HDR mode for Dolby Vision, HDR10, and HLG videos. It only works on an HDR-capable display and does nothing otherwise.
 - **Visual search**: opens the handoff options for searching the current image with another app; see [visual search](/ReFra/features/visual-search).
@@ -61,4 +63,5 @@ See [codes in photos](/ReFra/features/codes-in-photos).
 
 - **Save quality**'s sliders only appear in **Manual** mode.
 - **HDR video playback** has no visible effect on a display that cannot do HDR.
+- **Instant side taps** stays greyed out until **Tap sides to navigate** is on.
 - A prompt about side tapping that appears the first time the viewer opens is the same setting; **Enable** and **Keep off** map to it, and you can change it here later.

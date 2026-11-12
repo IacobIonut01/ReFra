@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-12T12:22:30.568Z",
-  "capturedAtMs": 1794485613298,
+  "generatedAt": "2026-11-12T15:37:09.548Z",
+  "capturedAtMs": 1794497448783,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
   ],
-  "sceneCount": 108,
+  "sceneCount": 107,
   "scenes": {
     "album-transfer": {
       "id": "album-transfer",
@@ -4109,93 +4109,6 @@
               "height": 2396,
               "widthDp": 412,
               "heightDp": 915
-            }
-          }
-        }
-      }
-    },
-    "cloud-viewer-options": {
-      "id": "cloud-viewer-options",
-      "title": "Cloud viewer options",
-      "path": [
-        "Settings",
-        "Cloud accounts",
-        "Home photos",
-        "Viewer"
-      ],
-      "states": [
-        "default",
-        "scrolled"
-      ],
-      "presentation": "component",
-      "widthDp": 412,
-      "heightDp": 320,
-      "live": false,
-      "fidelity": "capture",
-      "assets": {
-        "phone": {
-          "default": {
-            "src": "captures/cloud-viewer-options/light/phone-default.webp",
-            "type": "image",
-            "file": "cloud-viewer-options/light/phone-default.webp",
-            "width": 1079,
-            "height": 838,
-            "widthDp": 412,
-            "heightDp": 320
-          },
-          "scrolled": {
-            "src": "captures/cloud-viewer-options/light/phone-scrolled.webp",
-            "type": "image",
-            "file": "cloud-viewer-options/light/phone-scrolled.webp",
-            "width": 1079,
-            "height": 838,
-            "widthDp": 412,
-            "heightDp": 320
-          }
-        }
-      },
-      "themes": {
-        "dark": {
-          "phone": {
-            "default": {
-              "src": "captures/cloud-viewer-options/dark/phone-default.webp",
-              "type": "image",
-              "file": "cloud-viewer-options/dark/phone-default.webp",
-              "width": 1079,
-              "height": 838,
-              "widthDp": 412,
-              "heightDp": 320
-            },
-            "scrolled": {
-              "src": "captures/cloud-viewer-options/dark/phone-scrolled.webp",
-              "type": "image",
-              "file": "cloud-viewer-options/dark/phone-scrolled.webp",
-              "width": 1079,
-              "height": 838,
-              "widthDp": 412,
-              "heightDp": 320
-            }
-          }
-        },
-        "light": {
-          "phone": {
-            "default": {
-              "src": "captures/cloud-viewer-options/light/phone-default.webp",
-              "type": "image",
-              "file": "cloud-viewer-options/light/phone-default.webp",
-              "width": 1079,
-              "height": 838,
-              "widthDp": 412,
-              "heightDp": 320
-            },
-            "scrolled": {
-              "src": "captures/cloud-viewer-options/light/phone-scrolled.webp",
-              "type": "image",
-              "file": "cloud-viewer-options/light/phone-scrolled.webp",
-              "width": 1079,
-              "height": 838,
-              "widthDp": 412,
-              "heightDp": 320
             }
           }
         }

@@ -274,7 +274,7 @@
         "scene": "navigation-bar",
         "state": "classic",
         "title": "Classic navigation bar",
-        "caption": "The classic bar style.",
+        "caption": "The classic bar, with Search between Timeline and Library.",
         "section": "making-the-bar-yours"
       }
     ],
@@ -1128,13 +1128,6 @@
         "scene": "cloud-notification-options",
         "title": "Notification options",
         "caption": "Total progress, per-file progress and failure notifications for a sample account.",
-        "section": "preferences",
-        "interactive": false
-      },
-      {
-        "scene": "cloud-viewer-options",
-        "title": "Viewer options",
-        "caption": "Loop videos is the per-account viewer switch.",
         "section": "preferences",
         "interactive": false
       },
