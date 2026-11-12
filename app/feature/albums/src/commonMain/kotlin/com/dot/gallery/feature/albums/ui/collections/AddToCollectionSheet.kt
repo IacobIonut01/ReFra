@@ -21,7 +21,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +37,7 @@ import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.ExpressiveSheetColumn
 import com.dot.gallery.core.presentation.components.ExpressiveSheetShape
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
+import com.dot.gallery.core.presentation.components.RequestSheetFieldFocus
 import com.dot.gallery.core.presentation.components.SheetButton
 import com.dot.gallery.core.presentation.components.SheetButtonStyle
 import com.dot.gallery.core.presentation.components.SheetHeader
@@ -189,6 +189,6 @@ fun ColumnScope.AddToCollectionSheetContent(
                 .padding(top = 12.dp)
                 .fillMaxWidth(),
         )
-        LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }
+        RequestSheetFieldFocus(focusRequester)
     }
 }

@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import com.dot.gallery.core.ui.generated.resources.Res
 import com.dot.gallery.core.ui.generated.resources.action_cancel
@@ -27,6 +28,7 @@ import com.dot.gallery.core.ui.generated.resources.rename_section
 import com.dot.gallery.core.ui.generated.resources.section_name
 import com.dot.gallery.core.ui.generated.resources.section_name_hint
 import com.dot.gallery.core.ui.util.AppBottomSheetState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -109,6 +111,24 @@ fun ColumnScope.SheetNameInputContent(
         confirmEnabled = value.isNotBlank(),
     )
     if (requestFocus) {
-        LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }
+        RequestSheetFieldFocus(focusRequester)
+    }
+}
+
+/**
+ * Focuses a sheet text field as soon as it is composed and asks the IME to show
+ * right away, so the keyboard animates together with the sheet instead of waiting
+ * for the dialog window to settle. Focus requests can still be dropped while the
+ * sheet window is being set up, so retry briefly.
+ */
+@Composable
+fun RequestSheetFieldFocus(focusRequester: FocusRequester) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(focusRequester) {
+        repeat(3) { attempt ->
+            val focused = runCatching { focusRequester.requestFocus() }.isSuccess
+            if (focused) keyboardController?.show()
+            if (attempt < 2) delay(150)
+        }
     }
 }

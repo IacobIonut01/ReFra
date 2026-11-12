@@ -78,6 +78,8 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -206,6 +208,8 @@ fun SearchContent(
     }
 
     val searchFieldFocus = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val autoOpenKeyboard by rememberPreference(SettingsKeys.autoOpenSearchKeyboard)
     // Requesting focus while the shared-bounds morph is still running is dropped by
     // the IME — wait for the transition to settle, then open the keyboard on its own.
@@ -245,7 +249,17 @@ fun SearchContent(
                     !searchResults.isSearching,
                 isModelAvailable = state.isModelAvailable,
                 focusRequester = searchFieldFocus,
-                onBack = { if (shouldClearOnBack) actions.onClearQuery() else actions.onBack() },
+                onBack = {
+                    if (shouldClearOnBack) {
+                        actions.onClearQuery()
+                    } else {
+                        // Hide the IME up front — otherwise the keyboard stays visible
+                        // until the shared-bounds exit transition removes the field.
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                        actions.onBack()
+                    }
+                },
                 actions = actions,
                 onPreviewImage = { showPreviewDialog = true },
                 onPickImage = { showPickerSheet = true },
