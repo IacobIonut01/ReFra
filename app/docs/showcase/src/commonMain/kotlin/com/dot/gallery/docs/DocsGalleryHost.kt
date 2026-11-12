@@ -447,6 +447,7 @@ private fun DocsAlbumsPage(
             layout = LibraryHeaderLayout.COMPACT,
             statusBarInsets = WindowInsets(top = padding.calculateTopPadding()),
             onDone = { editMode = false },
+            onArrangeAlbums = { editMode = false },
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }

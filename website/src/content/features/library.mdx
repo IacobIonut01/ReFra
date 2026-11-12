@@ -17,14 +17,15 @@ The Library tab gathers everything that is not the plain timeline: shortcuts to 
 
 - **Search bar**: at the top, same as the timeline.
 - **Settings**: tap the ReFra mark in the shared header, or pick Settings from its menu sheet.
-- **Shortcuts**: a grid of tiles that jump straight to a destination. Available tiles are **Trash**, **Favorites**, **Vault**, **Ignored**, **Private folder** (once configured), and, when a cloud account is connected, **Cloud archive**, **Shared links**, **Cloud backup & sync**, and **Cloud accounts**. Tiles only appear when their feature is available; a device that cannot use the system trash does not show Trash. Tiles that count items, like Trash and Favorites, show the current count. A tile can be a 1×1 icon, a half or full row, or a larger card (2×2, 2×3 or 4×2) on a phone row four units wide. As a card, Favorites shows recent favourites, Trash shows its most recent items in grey with when the next one is deleted, and Vault and Private folder never show any photos. Vault shows how many vaults you have only when the vault list has no lock. On a phone-width screen where the tiles do not fit in two rows (or the height of the tallest card), the grid ends with a **Show more** tile; tap it to reveal the rest. It turns into **Show less** and stays in the same spot, with the extra tiles laid out after it.
-- **Locations**: a map preview and rows of places, when your photos carry location data.
-- **People**: recognized faces, when people grouping is set up.
-- **Categories**: AI-sorted groups such as nature or food, when the AI models are installed; otherwise the section explains how to turn them on.
+- **Shortcuts**: a grid of tiles that jump straight to a destination. Available tiles are **Trash**, **Favorites**, **Vault**, **Ignored**, **Memories**, **Private folder** (once configured), **Locations**, **People**, **Categories**, and, when a cloud account is connected, **Cloud archive**, **Shared links**, **Cloud backup & sync**, and **Cloud accounts**. Tiles only appear when their feature is available; a device that cannot use the system trash does not show Trash.
+  - **Counts**: tiles that count items show the count right after their name, as in "Favorites · 12".
+  - **Sizes**: on a phone row four units wide, a tile can be a 1×1 icon, a row 2, 3 or 4 units wide, or a larger card (2×2, 2×3 or 4×2). Tiles are placed in order and the grid does not go back to fill a gap, so a 3-unit tile shares its row only with a 1×1 that follows it.
+  - **Cards**: as a card, Favorites shows recent favourites, and Trash shows its most recent items in grey with when the next one is deleted. Locations shows the place of your latest photo on a map, People shows faces, and Categories shows a few category thumbnails side by side. Vault shows blurred colour shapes instead of photos, locked or not, and Private folder shows no photos either. Vault shows how many vaults you have only when the vault list has no lock.
+  - **Show more**: on a phone-width screen, tiles that do not fit in two rows (five while Locations, People or Categories is shown, or the height of the tallest card) fold behind a **Show more** tile. It turns into **Show less** and stays in the same spot, with the extra tiles laid out after it.
 
-Below the sections come your **albums** and collections, with their own filters, pinned carousel, and sections; see [albums](/ReFra/features/albums).
+Locations appears when your photos carry location data, People when people grouping is set up, and Categories when the AI models are installed.
 
-Empty sections hide themselves rather than showing blank boxes, so the Library only displays what has content.
+Below the shortcuts come your **albums** and collections, with their own filters, pinned carousel, and sections; see [albums](/ReFra/features/albums).
 
 ## Customize the shortcuts and sections
 
@@ -34,25 +35,24 @@ Empty sections hide themselves rather than showing blank boxes, so the Library o
 2. The **Customize library** editor opens. Touching and holding a tile or a section does not open it.
 3. Now you can:
    - **Drag** a tile to reorder it.
-   - **Tap a tile** to select it, then **drag its side handle** to snap between 1, 2 and 4 units wide, or **drag its bottom handle** to make it taller. Tapping a handle steps to the next size.
-   - With a Favorites card selected, pick **Latest** or **Oldest** to choose which favourites it shows.
-   - **Tap the ×** on a tile to remove it; it moves to a tray below.
+   - **Tap a tile** to select it, then **drag its side handle** to snap between 1, 2, 3 and 4 units wide, or **drag its bottom handle** to make it taller. Tapping a handle steps to the next size. The handles work at the screen edge too; dragging one there does not trigger the back gesture.
+   - With a Favorites tile selected, pick **Latest**, **Oldest** or **Shuffle** to choose which favourites it shows. Shuffle picks again each time you open the Library. On a card, **Layout** switches between **Grid** and **Scrapbook**, which lays the photos over each other like prints.
+   - **Tap the ×** on a tile to remove it; it moves to a tray below. Locations, People and Categories are hidden and brought back the same way.
    - **Tap a tile in the tray** to bring a hidden shortcut back.
-4. In the same edit mode, a **Sections** card appears with a switch per section to show or hide it: **Locations**, **People**, **Categories**, **Pinned albums**, **Album sections**, and **Media types**. Its **All shortcuts** switch shows every tile instead of folding them behind **Show more**.
-5. Tap **Done** to keep the layout.
-
-The same section switches also live under **Settings › Timeline & Albums**, so a hidden section can always be brought back from settings too.
+4. Below the tiles, a **Sections** card has switches for **All shortcuts** (show every tile instead of folding them behind **Show more**), **Pinned albums**, **Album sections**, and **Media types**.
+5. **Albums order** at the bottom opens the album arrange screen; see [albums](/ReFra/features/albums). It explains why when the albums cannot be arranged.
+6. Tap **Done** to keep the layout.
 
 ## Example: a minimal library
 
 1. Open **Library**, tap **⋮**, and pick **Customize library**.
 2. Tap the × on **Ignored** and **Cloud accounts**; they move to the tray marked hidden.
-3. In the **Sections** card, switch off **Categories** if you do not use AI grouping.
+3. Tap the × on **Categories** if you do not use AI grouping.
 4. Drag **Favorites** to the first position and tap **Done**.
-5. The Library now opens straight to Favorites plus the sections you kept.
+5. The Library now opens straight to Favorites plus the tiles you kept.
 
 ## If something is missing
 
-- **A tile you expect is absent.** The feature behind it may be off or unavailable on this device: Trash requires the system trash, and the cloud tiles need a connected account. Check the hidden tray in **⋮ › Customize library** first; hidden tiles can be re-added from there, even when every tile is hidden.
+- **A tile you expect is absent.** The feature behind it may be off or unavailable on this device: Trash requires the system trash, the cloud tiles need a connected account, and Locations, People and Categories need something to show. Check the hidden tray in **⋮ › Customize library** first; hidden tiles can be re-added from there, even when every tile is hidden.
 - **People or Categories are empty.** They need the AI models; see **Settings › Smart Features**.
 - **Locations shows nothing.** Media needs location data, and the optional media-location permission must be granted. See [first launch](/ReFra/features/first-launch) for that permission.

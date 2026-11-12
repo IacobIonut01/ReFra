@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-10T18:16:28.881Z",
-  "capturedAtMs": 1794334516345,
+  "generatedAt": "2026-11-12T12:22:30.568Z",
+  "capturedAtMs": 1794485613298,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
