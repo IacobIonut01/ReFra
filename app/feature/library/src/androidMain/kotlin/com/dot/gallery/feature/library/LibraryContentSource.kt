@@ -451,6 +451,7 @@ class LibraryContentSource public constructor(
                     previews.copy(
                         latestFavorites = previews.latestFavorites.filter(policy::allowsMedia),
                         oldestFavorites = previews.oldestFavorites.filter(policy::allowsMedia),
+                        favoritePool = previews.favoritePool.filter(policy::allowsMedia),
                         recentTrash = previews.recentTrash.filter(policy::allowsMedia),
                     )
                 }

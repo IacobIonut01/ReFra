@@ -6,12 +6,8 @@
     <string name="categorise_your_media">Categorise your media</string>
     <string name="library_customize_title">Customize library</string>
     <string name="library_customize_hint">Shortcuts: drag to reorder. Tap a tile, then drag its edge to resize</string>
-    <string name="library_preview">Preview</string>
     <string name="library_shortcuts_more">Show more</string>
     <string name="library_shortcuts_less">Show less</string>
-    <string name="library_section_locations_summary">Map preview and places</string>
-    <string name="library_section_people_summary">People in your photos</string>
-    <string name="library_section_categories_summary">Photos grouped by what is in them</string>
     <string name="library_section_all_shortcuts">All shortcuts</string>
     <string name="library_section_all_shortcuts_summary">Show every shortcut instead of Show more</string>
     <string name="library_section_pinned">Pinned albums</string>
@@ -28,6 +24,13 @@
     <string name="library_shortcut_cover">Photos on the Favorites tile</string>
     <string name="library_shortcut_cover_latest">Latest</string>
     <string name="library_shortcut_cover_oldest">Oldest</string>
+    <string name="library_shortcut_cover_shuffle">Shuffle</string>
+    <string name="library_shortcut_layout">Layout</string>
+    <string name="library_shortcut_layout_grid">Grid</string>
+    <string name="library_shortcut_layout_scrapbook">Scrapbook</string>
+    <string name="library_albums_order">Albums order</string>
+    <string name="library_albums_order_summary">Drag albums into the order you want</string>
+    <string name="library_albums_order_unavailable">Needs two or more albums, with album sections off</string>
     <string name="library_vault_locked">Locked</string>
     <plurals name="library_vault_count">
         <item quantity="one">%1$d vault</item>
@@ -40,9 +43,6 @@
     <string name="library_trash_expiry_today">Next item goes today</string>
     <string name="library_section_hidden">Hidden</string>
     <string name="library_shortcut_show">Show shortcut</string>
-    <string name="library_section_locations_empty">No locations to show yet</string>
-    <string name="library_section_people_unavailable">No people to show yet</string>
-    <string name="library_section_categories_unavailable">Smart categories are turned off</string>
     <string name="library_sections_title">Sections</string>
     <string name="trash">Trash</string>
     <string name="favorites">Favorites</string>

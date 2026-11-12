@@ -14,6 +14,7 @@
     <string name="arrange_albums_done">Done</string>
     <string name="arrange_albums_move_earlier">Move earlier</string>
     <string name="arrange_albums_move_later">Move later</string>
+    <string name="rearrange">Rearrange</string>
     <string name="images_videos"><![CDATA[%1$s Images & Videos]]></string>
     <string name="n_albums">%1$d albums</string>
     <string name="album_shared_badge">Shared</string>

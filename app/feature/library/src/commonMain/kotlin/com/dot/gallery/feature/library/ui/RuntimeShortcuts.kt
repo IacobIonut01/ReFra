@@ -13,11 +13,16 @@ import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import kotlin.random.Random
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.model.LibraryIndicatorState
 import com.dot.gallery.domain.settings.PrefKey
@@ -32,6 +37,9 @@ import com.dot.gallery.feature.library.generated.resources.library_trash_expiry_
 import com.dot.gallery.feature.library.generated.resources.library_trash_next_expiry
 import com.dot.gallery.feature.library.generated.resources.library_vault_count
 import com.dot.gallery.feature.library.generated.resources.library_vault_locked
+import com.dot.gallery.feature.library.generated.resources.categories
+import com.dot.gallery.feature.library.generated.resources.cloud_people
+import com.dot.gallery.feature.library.generated.resources.locations
 import com.dot.gallery.feature.library.generated.resources.cloud_accounts
 import com.dot.gallery.feature.library.generated.resources.cloud_archive
 import com.dot.gallery.feature.library.generated.resources.cloud_backup_and_sync
@@ -52,7 +60,8 @@ import com.dot.gallery.feature.library.generated.resources.vault
  * [supportsTrash]/[supportsFavorites] are platform capabilities measured
  * app-side (`SdkCompat`); [routes] carries the app's route strings.
  * [vaultCount] is null while the vault list is behind a lock, so the tile never says how many
- * vaults there are.
+ * vaults there are. [explore] carries the Locations, People and Categories tiles, and
+ * [shuffleSeed] picks the shuffled Favorites cover, so it changes only when the seed does.
  */
 @Composable
 fun rememberLibraryRuntimeShortcuts(
@@ -63,10 +72,15 @@ fun rememberLibraryRuntimeShortcuts(
     supportsFavorites: Boolean,
     previews: LibraryShortcutPreviews = LibraryShortcutPreviews(),
     vaultCount: Int? = null,
+    explore: LibraryExploreData = LibraryExploreData(),
+    shuffleSeed: Int = 0,
 ): Map<LibraryShortcut, RuntimeShortcut> {
     val privateFolderUri by rememberPreference(SettingsKeys.privateFolderUri)
     val colorScheme = MaterialTheme.colorScheme
     val map = LinkedHashMap<LibraryShortcut, RuntimeShortcut>()
+    val shuffledFavorites = remember(previews.favoritePool, shuffleSeed) {
+        previews.favoritePool.shuffled(Random(shuffleSeed)).take(MAX_SHORTCUT_PREVIEW_MEDIA)
+    }
 
     if (supportsTrash) {
         val expiryDays = previews.nextTrashExpiry?.let { trashDaysLeft(it, Clock.System.now().epochSeconds) }
@@ -100,6 +114,7 @@ fun rememberLibraryRuntimeShortcuts(
             available = true,
             previewMedia = previews.latestFavorites,
             oldestPreviewMedia = previews.oldestFavorites,
+            shufflePreviewMedia = shuffledFavorites,
         )
     }
     map[LibraryShortcut.VAULT] = RuntimeShortcut(
@@ -114,6 +129,7 @@ fun rememberLibraryRuntimeShortcuts(
         subtitle = if (vaultCount == null) {
             stringResource(Res.string.library_vault_locked)
         } else pluralStringResource(Res.plurals.library_vault_count, vaultCount, vaultCount),
+        previewStyle = ShortcutPreviewStyle.PLACEHOLDER,
     )
     map[LibraryShortcut.IGNORED] = RuntimeShortcut(
         shortcut = LibraryShortcut.IGNORED,
@@ -192,6 +208,50 @@ fun rememberLibraryRuntimeShortcuts(
             indicatorCounter = 0,
             route = routes.cloudAccounts,
             available = true
+        )
+    }
+    if (explore.locations) {
+        map[LibraryShortcut.LOCATIONS] = RuntimeShortcut(
+            shortcut = LibraryShortcut.LOCATIONS,
+            title = stringResource(Res.string.locations),
+            icon = Icons.Outlined.LocationOn,
+            contentColor = colorScheme.primary,
+            useIndicator = true,
+            indicatorCounter = explore.locationCount,
+            route = routes.locations,
+            available = true,
+            previewMedia = listOfNotNull(explore.latestGeo?.media),
+            previewStyle = ShortcutPreviewStyle.MAP,
+            mapLatitude = explore.latestGeo?.latitude,
+            mapLongitude = explore.latestGeo?.longitude,
+        )
+    }
+    if (explore.people) {
+        map[LibraryShortcut.PEOPLE] = RuntimeShortcut(
+            shortcut = LibraryShortcut.PEOPLE,
+            title = stringResource(Res.string.cloud_people),
+            icon = Icons.Outlined.People,
+            contentColor = colorScheme.secondary,
+            useIndicator = true,
+            indicatorCounter = explore.peopleCount,
+            route = routes.people,
+            available = true,
+            previewStyle = ShortcutPreviewStyle.FACES,
+            previewFaces = explore.faces,
+        )
+    }
+    if (explore.categories) {
+        map[LibraryShortcut.CATEGORIES] = RuntimeShortcut(
+            shortcut = LibraryShortcut.CATEGORIES,
+            title = stringResource(Res.string.categories),
+            icon = Icons.Outlined.ImageSearch,
+            contentColor = colorScheme.tertiary,
+            useIndicator = true,
+            indicatorCounter = explore.categoryCount,
+            route = routes.categories,
+            available = true,
+            previewMedia = explore.categoryThumbnails,
+            previewStyle = ShortcutPreviewStyle.SPREAD,
         )
     }
     return map

@@ -43,6 +43,7 @@ import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.SdCard
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.Wallpaper
+import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -116,6 +117,7 @@ import com.dot.gallery.feature.albums.generated.resources.merge_subfolders
 import com.dot.gallery.feature.albums.generated.resources.move_album_to_trash
 import com.dot.gallery.feature.albums.generated.resources.move_to_section
 import com.dot.gallery.feature.albums.generated.resources.pin
+import com.dot.gallery.feature.albums.generated.resources.rearrange
 import com.dot.gallery.feature.albums.generated.resources.remove_album_from_group
 import com.dot.gallery.feature.albums.generated.resources.s_items
 import com.dot.gallery.feature.albums.generated.resources.select_new_thumbnail
@@ -149,6 +151,7 @@ fun AlbumComponent(
     onToggleMergeSubfolders: ((Album) -> Unit)? = null,
     onMergeParentSubfolders: ((Album) -> Unit)? = null,
     onToggleMergedSubfolderDisplayMode: ((Album) -> Unit)? = null,
+    onRearrange: (() -> Unit)? = null,
     isMergedSubfolder: Boolean = false,
     isSubGallery: Boolean = false,
     supportsTrash: Boolean = true,
@@ -176,6 +179,7 @@ fun AlbumComponent(
             onToggleMergeSubfolders = onToggleMergeSubfolders,
             onMergeParentSubfolders = onMergeParentSubfolders,
             onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+            onRearrange = onRearrange,
             isMergedSubfolder = isMergedSubfolder,
             isSubGallery = isSubGallery,
             supportsTrash = supportsTrash,
@@ -321,6 +325,7 @@ fun AlbumRowComponent(
     onToggleMergeSubfolders: ((Album) -> Unit)? = null,
     onMergeParentSubfolders: ((Album) -> Unit)? = null,
     onToggleMergedSubfolderDisplayMode: ((Album) -> Unit)? = null,
+    onRearrange: (() -> Unit)? = null,
     isMergedSubfolder: Boolean = false,
     isSubGallery: Boolean = false,
     supportsTrash: Boolean = true,
@@ -360,6 +365,7 @@ fun AlbumRowComponent(
             onToggleMergeSubfolders = onToggleMergeSubfolders,
             onMergeParentSubfolders = onMergeParentSubfolders,
             onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+            onRearrange = onRearrange,
             isMergedSubfolder = isMergedSubfolder,
             isSubGallery = isSubGallery,
             supportsTrash = supportsTrash,
@@ -445,12 +451,15 @@ fun AlbumOptionSheet(
     onToggleMergeSubfolders: ((Album) -> Unit)? = null,
     onMergeParentSubfolders: ((Album) -> Unit)? = null,
     onToggleMergedSubfolderDisplayMode: ((Album) -> Unit)? = null,
+    /** Opens the album arrange screen; null while the albums cannot be arranged. */
+    onRearrange: (() -> Unit)? = null,
     isMergedSubfolder: Boolean = false,
     isSubGallery: Boolean = false,
     supportsTrash: Boolean = true,
     thumbnailActions: AlbumThumbnailActions? = null,
 ) {
     val isCloudAlbum = remember(album) { album.relativePath.startsWith("cloud/") }
+    val rearrangeTitle = stringResource(Res.string.rearrange)
     val scope = rememberCoroutineScope()
     val trashEnabled by rememberPreference(SettingsKeys.trashEnabled)
     val useRecoverableTrash = !isCloudAlbum && trashEnabled && supportsTrash
@@ -540,7 +549,9 @@ fun AlbumOptionSheet(
         mergeSubfoldersTitle,
         mergedLayoutTitle,
         mergeParentSubfoldersTitle,
-        trashTitle
+        trashTitle,
+        onRearrange,
+        rearrangeTitle,
     ) {
         mutableListOf<OptionItem>().apply {
             add(
@@ -693,6 +704,20 @@ fun AlbumOptionSheet(
                             scope.launch {
                                 appBottomSheetState.hide()
                                 onToggleMergedSubfolderDisplayMode(album)
+                            }
+                        }
+                    )
+                )
+            }
+            if (onRearrange != null && !isCloudAlbum) {
+                add(
+                    OptionItem(
+                        icon = Icons.Rounded.DragIndicator,
+                        text = rearrangeTitle,
+                        onClick = {
+                            scope.launch {
+                                appBottomSheetState.hide()
+                                onRearrange()
                             }
                         }
                     )

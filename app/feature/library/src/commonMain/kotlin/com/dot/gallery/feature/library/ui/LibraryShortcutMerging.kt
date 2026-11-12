@@ -11,14 +11,15 @@ package com.dot.gallery.feature.library.ui
  *
  * - Items present in [prefs] keep their stored order, span and visibility.
  * - Newly introduced shortcuts (not yet in [prefs]) are appended in their
- *   natural enum order, shown by default.
+ *   natural enum order, with the layout [defaults] gives them.
  * - Stored entries whose shortcut id is unknown are dropped.
  *
  * The result is ordered exactly as it should be rendered/edited.
  */
 fun mergeShortcutPrefs(
     prefs: List<LibraryShortcutPref>,
-    runtime: Map<LibraryShortcut, RuntimeShortcut>
+    runtime: Map<LibraryShortcut, RuntimeShortcut>,
+    defaults: (LibraryShortcut) -> LibraryShortcutPref = { LibraryShortcutPref(id = it.id) },
 ): List<LibraryShortcutItem> {
     val byId = prefs.associateBy { it.id }
     val seen = LinkedHashSet<LibraryShortcut>()
@@ -35,10 +36,27 @@ fun mergeShortcutPrefs(
     for (shortcut in LibraryShortcut.entries) {
         if (shortcut in seen) continue
         val data = runtime[shortcut] ?: continue
-        val pref = byId[shortcut.id] ?: LibraryShortcutPref(id = shortcut.id)
+        val pref = byId[shortcut.id] ?: defaults(shortcut)
         result += data.toItem(pref)
     }
     return result
+}
+
+/**
+ * The layout a shortcut starts with before the user stores one. Locations, People and Categories
+ * keep the visibility their old switches gave them ([showLocations], the Library's
+ * [hiddenSections]), and Locations starts as a 2×2 card so its map stays visible.
+ */
+fun defaultShortcutPref(
+    shortcut: LibraryShortcut,
+    showLocations: Boolean,
+    hiddenSections: Set<String>,
+): LibraryShortcutPref = when (shortcut) {
+    LibraryShortcut.LOCATIONS -> LibraryShortcutPref(id = shortcut.id, visible = showLocations)
+        .withSize(LibraryShortcutSize.CARD)
+    LibraryShortcut.PEOPLE, LibraryShortcut.CATEGORIES ->
+        LibraryShortcutPref(id = shortcut.id, visible = shortcut.id !in hiddenSections)
+    else -> LibraryShortcutPref(id = shortcut.id)
 }
 
 /**
@@ -107,14 +125,29 @@ fun nextShortcutHeight(current: LibraryShortcutSize): LibraryShortcutSize {
 const val COLLAPSED_SHORTCUT_ROWS = 2
 
 /**
- * How a long grid folds; null when every tile fits in the folded height, so no toggle is needed.
- * The folded height is [COLLAPSED_SHORTCUT_ROWS], or the tallest tile's if that is taller, so a
- * card the user made large is not hidden. The toggle shrinks to an icon when that keeps one
- * more tile visible.
+ * Rows a folded grid may use while Locations, People or Categories is shown: about the height
+ * the shortcuts and the fixed cards below them took together before those became tiles.
  */
-fun foldShortcutGrid(sizes: List<LibraryShortcutSize>, columns: Int): ShortcutFold? {
+const val COLLAPSED_EXPLORE_SHORTCUT_ROWS = 5
+
+/** The folded height for [working]: taller while it shows a Locations, People or Categories tile. */
+fun collapsedShortcutRows(working: List<LibraryShortcutPref>): Int =
+    if (working.any { it.visible && LibraryShortcut.fromId(it.id)?.isExplore == true }) {
+        COLLAPSED_EXPLORE_SHORTCUT_ROWS
+    } else COLLAPSED_SHORTCUT_ROWS
+
+/**
+ * How a long grid folds; null when every tile fits in the folded height, so no toggle is needed.
+ * The folded height is [rows], or the tallest tile's if that is taller, so a card the user made
+ * large is not hidden. The toggle shrinks to an icon when that keeps one more tile visible.
+ */
+fun foldShortcutGrid(
+    sizes: List<LibraryShortcutSize>,
+    columns: Int,
+    rows: Int = COLLAPSED_SHORTCUT_ROWS,
+): ShortcutFold? {
     if (sizes.isEmpty()) return null
-    val maxRows = maxOf(COLLAPSED_SHORTCUT_ROWS, sizes.maxOf { it.height })
+    val maxRows = maxOf(rows, sizes.maxOf { it.height })
     fun rows(cells: List<ShortcutCell>) = cells.maxOfOrNull { it.bottom } ?: 0
     if (rows(packShortcutGrid(sizes, columns)) <= maxRows) return null
     for (count in sizes.size - 1 downTo 0) {

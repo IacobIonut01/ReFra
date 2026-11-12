@@ -22,7 +22,13 @@ enum class LibraryShortcut(val id: String) {
     CLOUD_ARCHIVE("cloud_archive"),
     CLOUD_SHARED_LINKS("cloud_shared_links"),
     CLOUD_BACKUP("cloud_backup"),
-    CLOUD_ACCOUNTS("cloud_accounts");
+    CLOUD_ACCOUNTS("cloud_accounts"),
+    LOCATIONS("locations"),
+    PEOPLE("people"),
+    CATEGORIES("categories");
+
+    /** Locations, People and Categories, which used to be fixed cards below the shortcuts. */
+    val isExplore: Boolean get() = this == LOCATIONS || this == PEOPLE || this == CATEGORIES
 
     companion object {
         fun fromId(id: String): LibraryShortcut? = entries.firstOrNull { it.id == id }

@@ -55,7 +55,6 @@ import com.dot.gallery.feature.help.generated.resources.help_cat_settings_smart
 import com.dot.gallery.feature.help.generated.resources.help_cat_timeline_albums
 import com.dot.gallery.feature.help.generated.resources.help_cat_viewer_settings
 import com.dot.gallery.feature.help.generated.resources.help_search_section_settings
-import com.dot.gallery.feature.help.generated.resources.location_categories_title
 import com.dot.gallery.feature.help.generated.resources.long_press_action_title
 import com.dot.gallery.feature.help.generated.resources.map_appearance_title
 import com.dot.gallery.feature.help.generated.resources.media_type_albums_setting_title
@@ -261,7 +260,6 @@ object HelpSearchIndex {
             Toggle(Res.string.album_sections_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.media_type_albums_setting_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.date_headers_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
-            Toggle(Res.string.location_categories_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.group_method_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.date_header, HelpRoute.Target.DATE_FORMAT, HelpCategory.TIMELINE_ALBUMS),
             // Slideshow

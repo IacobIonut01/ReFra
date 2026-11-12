@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -48,6 +49,8 @@ import com.dot.gallery.core.presentation.util.effectiveCartoBasemapKey
 import com.dot.gallery.core.presentation.util.rememberBottomBarInset
 import com.dot.gallery.core.ui.generated.resources.customize_library
 import com.dot.gallery.core.util.SdkCompat
+import com.dot.gallery.feature.albums.ui.util.AlbumArrangeRequest
+import com.dot.gallery.feature.albums.ui.util.LocalAlbumArrangeRequest
 import com.dot.gallery.feature.library.LibraryViewModel
 import com.dot.gallery.feature.library.ui.LibraryActions
 import com.dot.gallery.feature.library.ui.LibraryEditContent
@@ -160,6 +163,7 @@ fun LibraryScreen(
     }
     val sections = rememberLibrarySections(state)
     val layoutDirection = LocalLayoutDirection.current
+    val arrangeRequest = remember { AlbumArrangeRequest() }
 
     // The window width needs no subcomposition above the album grid, unlike measuring this box.
     Box(modifier = Modifier.fillMaxSize()) {
@@ -211,21 +215,24 @@ fun LibraryScreen(
                     .weight(1f)
                     .then(if (sidePane) Modifier.padding(start = PaneGap).clip(PaneShape) else Modifier)
             ) {
-                albums(
-                    if (sidePane) {
-                        PaddingValues(
-                            top = paddingValues.calculateTopPadding(),
-                            bottom = paddingValues.calculateBottomPadding(),
-                            end = paddingValues.calculateEndPadding(layoutDirection),
-                        )
-                    } else paddingValues,
-                    if (sidePane) null else {
-                        { header(Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp)) }
-                    },
-                    menuItems,
-                    viewModel::onContentDrawn,
-                    if (sidePane) SidePaneMinCellWidth else null,
-                )
+                // Customize library opens the album grid's arrange screen through this.
+                CompositionLocalProvider(LocalAlbumArrangeRequest provides arrangeRequest) {
+                    albums(
+                        if (sidePane) {
+                            PaddingValues(
+                                top = paddingValues.calculateTopPadding(),
+                                bottom = paddingValues.calculateBottomPadding(),
+                                end = paddingValues.calculateEndPadding(layoutDirection),
+                            )
+                        } else paddingValues,
+                        if (sidePane) null else {
+                            { header(Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp)) }
+                        },
+                        menuItems,
+                        viewModel::onContentDrawn,
+                        if (sidePane) SidePaneMinCellWidth else null,
+                    )
+                }
             }
         }
 
@@ -237,6 +244,11 @@ fun LibraryScreen(
                 statusBarInsets = if (LocalGalleryPaneChrome.current) WindowInsets(0, 0, 0, 0) else WindowInsets.statusBars,
                 onDone = { onEditModeChange(false) },
                 mapContent = mapContent,
+                onArrangeAlbums = {
+                    onEditModeChange(false)
+                    arrangeRequest.request()
+                },
+                canArrangeAlbums = arrangeRequest.available,
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background)
                     .padding(

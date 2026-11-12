@@ -12,6 +12,7 @@ import com.dot.gallery.cloud.core.cloudMediaId
 import com.dot.gallery.core.startup.mediaStoreUriId
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.feature.library.ui.LibrarySnapshot
+import com.dot.gallery.feature.library.ui.MAX_SHORTCUT_FAVORITE_POOL
 import com.dot.gallery.feature.library.ui.MAX_SHORTCUT_PREVIEW_MEDIA
 import com.dot.gallery.feature.library.ui.LibraryScrollPosition
 import kotlinx.serialization.Serializable
@@ -140,10 +141,11 @@ fun validateLibrarySnapshot(
         ) return false
     }
     snapshot.shortcutPreviews.let { previews ->
-        val favorites = previews.latestFavorites + previews.oldestFavorites
+        val favorites = previews.latestFavorites + previews.oldestFavorites + previews.favoritePool
         if (listOf(previews.latestFavorites, previews.oldestFavorites, previews.recentTrash)
                 .any { it.size > MAX_SHORTCUT_PREVIEW_MEDIA }
         ) return false
+        if (previews.favoritePool.size > MAX_SHORTCUT_FAVORITE_POOL) return false
         if (favorites.any { !validateCachedLibraryMedia(it) }) return false
         if (previews.recentTrash.any { !validateCachedLibraryMedia(it, trashed = true) }) return false
         if (previews.nextTrashExpiry?.let { it < 0 } == true) return false

@@ -5,6 +5,8 @@
 
 package com.dot.gallery.feature.library.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -14,10 +16,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,23 +35,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.ui.settings.rememberPreference
-import com.dot.gallery.domain.settings.SECTION_CATEGORIES
-import com.dot.gallery.domain.settings.SECTION_PEOPLE
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.feature.library.generated.resources.Res
+import com.dot.gallery.feature.library.generated.resources.library_albums_order
+import com.dot.gallery.feature.library.generated.resources.library_albums_order_summary
+import com.dot.gallery.feature.library.generated.resources.library_albums_order_unavailable
 import com.dot.gallery.feature.library.generated.resources.library_customize_hint
 import com.dot.gallery.feature.library.generated.resources.library_customize_title
 import com.dot.gallery.feature.library.generated.resources.library_edit_done
-import com.dot.gallery.feature.library.generated.resources.library_preview
 import com.dot.gallery.feature.library.ui.components.LibrarySectionsEditCard
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Customizing the Library as its own focused screen: shortcuts, section switches, and a live
- * preview of the block those switches reflow. Changes apply immediately, so Done only leaves.
+ * Customizing the Library as its own focused screen: the shortcut tiles, Locations, People and
+ * Categories among them, the section switches, and an entry to the albums' own arrange screen.
+ * Changes apply immediately, so Done only leaves.
+ *
+ * [onArrangeAlbums] opens the album arrange screen; null hides the entry. [canArrangeAlbums] is
+ * false while the albums cannot be arranged, so the entry says why instead of opening.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -55,21 +69,14 @@ fun LibraryEditContent(
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
     mapContent: (@Composable BoxScope.(latitude: Double, longitude: Double) -> Unit)? = null,
+    onArrangeAlbums: (() -> Unit)? = null,
+    canArrangeAlbums: Boolean = true,
 ) {
     BackHandler(onBack = onDone)
-    val snapshot = state.snapshot
-    val sections = rememberLibrarySections(state)
-    var showLocations by rememberPreference(SettingsKeys.showLocationCategories)
-    var hiddenSections by rememberPreference(SettingsKeys.hiddenSections)
-    val noClassification by rememberPreference(SettingsKeys.noClassification)
     var showPinned by rememberPreference(SettingsKeys.showPinnedAlbums)
     var showAllShortcuts by rememberPreference(SettingsKeys.showAllLibraryShortcuts)
     var showMediaTypes by rememberPreference(SettingsKeys.showMediaTypeAlbums)
     var groupAlbumsIntoSections by rememberPreference(SettingsKeys.albumSectionsEnabled)
-
-    fun setSectionVisible(id: String, visible: Boolean) {
-        hiddenSections = if (visible) hiddenSections - id else hiddenSections + id
-    }
 
     Column(
         modifier = modifier
@@ -101,19 +108,11 @@ fun LibraryEditContent(
             routes = routes,
             editMode = true,
             layout = layout,
+            mapContent = mapContent,
             onNavigate = {},
         )
         LibrarySectionsEditCard(
             modifier = Modifier.padding(top = 20.dp),
-            showLocations = showLocations,
-            onLocationsChange = { showLocations = it },
-            hasLocations = !snapshot.locations.isNullOrEmpty(),
-            peopleAvailable = snapshot.cloud.hasPeople,
-            showPeople = SECTION_PEOPLE !in hiddenSections,
-            onPeopleChange = { setSectionVisible(SECTION_PEOPLE, it) },
-            categoriesAvailable = state.aiAvailable && !noClassification,
-            showCategories = SECTION_CATEGORIES !in hiddenSections,
-            onCategoriesChange = { setSectionVisible(SECTION_CATEGORIES, it) },
             showPinned = showPinned,
             onPinnedChange = { showPinned = it },
             showMediaTypes = showMediaTypes,
@@ -123,17 +122,57 @@ fun LibraryEditContent(
             showAllShortcuts = showAllShortcuts,
             onShowAllShortcutsChange = { showAllShortcuts = it },
         )
-        if (sections.count > 0) {
-            EditLabel(stringResource(Res.string.library_preview))
-            LibraryExploreCards(
-                state = state,
-                routes = routes,
-                sections = sections,
-                layout = layout,
-                mapContent = mapContent,
-                onNavigate = {},
+        if (onArrangeAlbums != null) {
+            AlbumsOrderEntry(
+                modifier = Modifier.padding(top = 12.dp),
+                enabled = canArrangeAlbums,
+                onClick = onArrangeAlbums,
             )
         }
+    }
+}
+
+/** A row that leaves for the album arrange screen, kept apart so this page stays short. */
+@Composable
+private fun AlbumsOrderEntry(enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("library-albums-order")
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .alpha(if (enabled) 1f else 0.38f),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.DragIndicator,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(22.dp),
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(Res.string.library_albums_order),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(
+                    if (enabled) Res.string.library_albums_order_summary
+                    else Res.string.library_albums_order_unavailable
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material.icons.outlined.EventRepeat
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.outlined.GifBox
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.MergeType
-import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.PermMedia
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Sort
@@ -152,8 +150,6 @@ import com.dot.gallery.domain.settings.GROUP_NORMAL
 import com.dot.gallery.domain.settings.GROUP_YEARLY
 import com.dot.gallery.domain.settings.LAYOUT_GRID
 import com.dot.gallery.domain.settings.LAYOUT_MOSAIC
-import com.dot.gallery.domain.settings.SECTION_CATEGORIES
-import com.dot.gallery.domain.settings.SECTION_PEOPLE
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.util.OrderType
 import kotlinx.coroutines.launch
@@ -213,13 +209,6 @@ import com.dot.gallery.feature.settings.generated.resources.group_raw_jpg_title
 import com.dot.gallery.feature.settings.generated.resources.group_similar_media_description
 import com.dot.gallery.feature.settings.generated.resources.group_similar_media_summary
 import com.dot.gallery.feature.settings.generated.resources.group_similar_media_title
-import com.dot.gallery.feature.settings.generated.resources.library
-import com.dot.gallery.feature.settings.generated.resources.library_categories_section_summary
-import com.dot.gallery.feature.settings.generated.resources.library_categories_section_title
-import com.dot.gallery.feature.settings.generated.resources.library_people_section_summary
-import com.dot.gallery.feature.settings.generated.resources.library_people_section_title
-import com.dot.gallery.feature.settings.generated.resources.location_categories_summary
-import com.dot.gallery.feature.settings.generated.resources.location_categories_title
 import com.dot.gallery.feature.settings.generated.resources.media_grouping_restart_note
 import com.dot.gallery.feature.settings.generated.resources.media_type_albums_setting_summary
 import com.dot.gallery.feature.settings.generated.resources.media_type_albums_setting_title
@@ -330,12 +319,10 @@ fun SettingsTimelineAlbumsContent(
     var groupMethodFavorites by rememberPreference(SettingsKeys.favoritesGroupMethod)
     var groupMethodVault by rememberPreference(SettingsKeys.vaultGroupMethod)
     var groupMethodCloudArchive by rememberPreference(SettingsKeys.cloudArchiveGroupMethod)
-    var showLocationCategories by rememberPreference(SettingsKeys.showLocationCategories)
     var monthHighlights by rememberPreference(SettingsKeys.timelineMonthHighlights)
     var monthRecaps by rememberPreference(SettingsKeys.timelineMonthRecaps)
     var headerPlaces by rememberPreference(SettingsKeys.timelineHeaderPlaces)
     var floatingDateLabel by rememberPreference(SettingsKeys.timelineFloatingDateLabel)
-    var hiddenSections by rememberPreference(SettingsKeys.hiddenSections)
 
     when (detailKey) {
         DETAIL_TIMELINE_LAYOUT -> {
@@ -640,10 +627,6 @@ fun SettingsTimelineAlbumsContent(
                 updateModifiedDate = updateModifiedDate,
                 onUpdateModifiedDateChange = { updateModifiedDate = it },
                 favIconPosition = favIconPosition,
-                showLocationCategories = showLocationCategories,
-                onShowLocationCategoriesChange = { showLocationCategories = it },
-                hiddenSections = hiddenSections,
-                onHiddenSectionsChange = { hiddenSections = it },
                 monthHighlights = monthHighlights,
                 onMonthHighlightsChange = { monthHighlights = it },
                 headerPlaces = headerPlaces,
@@ -682,10 +665,6 @@ private fun TimelineAlbumsListContent(
     updateModifiedDate: Boolean,
     onUpdateModifiedDateChange: (Boolean) -> Unit,
     favIconPosition: String,
-    showLocationCategories: Boolean = true,
-    onShowLocationCategoriesChange: (Boolean) -> Unit = {},
-    hiddenSections: Set<String> = emptySet(),
-    onHiddenSectionsChange: (Set<String>) -> Unit = {},
     monthHighlights: Boolean = true,
     onMonthHighlightsChange: (Boolean) -> Unit = {},
     headerPlaces: Boolean = true,
@@ -938,59 +917,13 @@ private fun TimelineAlbumsListContent(
             screenPosition = if (hasFavorites) Position.Middle else Position.Bottom
         )
 
-        val libraryHeaderTitle = stringResource(Res.string.library)
-        val libraryHeader = remember(libraryHeaderTitle) {
-            SettingsEntity.Header(title = libraryHeaderTitle)
-        }
-
-        val locationCategoriesPref = rememberSwitchPreference(
-            showLocationCategories,
-            title = stringResource(Res.string.location_categories_title),
-            icon = Icons.Outlined.Place,
-            summary = stringResource(Res.string.location_categories_summary),
-            isChecked = showLocationCategories,
-            onCheck = onShowLocationCategoriesChange,
-            screenPosition = Position.Top
-        )
-
-        // Section visibility parity with the Library edit-mode Sections card.
-        val peopleSectionPref = rememberSwitchPreference(
-            hiddenSections,
-            title = stringResource(Res.string.library_people_section_title),
-            icon = Icons.Outlined.People,
-            summary = stringResource(Res.string.library_people_section_summary),
-            isChecked = SECTION_PEOPLE !in hiddenSections,
-            onCheck = { checked ->
-                onHiddenSectionsChange(
-                    if (checked) hiddenSections - SECTION_PEOPLE
-                    else hiddenSections + SECTION_PEOPLE
-                )
-            },
-            screenPosition = Position.Middle
-        )
-        val categoriesSectionPref = rememberSwitchPreference(
-            hiddenSections,
-            title = stringResource(Res.string.library_categories_section_title),
-            icon = Icons.Outlined.Category,
-            summary = stringResource(Res.string.library_categories_section_summary),
-            isChecked = SECTION_CATEGORIES !in hiddenSections,
-            onCheck = { checked ->
-                onHiddenSectionsChange(
-                    if (checked) hiddenSections - SECTION_CATEGORIES
-                    else hiddenSections + SECTION_CATEGORIES
-                )
-            },
-            screenPosition = Position.Bottom
-        )
-
         return remember(
             timelineHeader, timelineLayoutPref, timelineOrderPref, groupSimilarMediaPref,
             allowGifAnimationPref, monthHighlightsPref, headerPlacesPref, floatingDateLabelPref,
             dateHeaderPref, recheckCaptureDatesPref, topBarPref, storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
             showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
-            dateHeadersPref, groupMethodPref, libraryHeader, locationCategoriesPref,
-            peopleSectionPref, categoriesSectionPref
+            dateHeadersPref, groupMethodPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
@@ -1018,11 +951,6 @@ private fun TimelineAlbumsListContent(
                 if (state.supportsFavorites) {
                     add(favIconPositionPref)
                 }
-
-                add(libraryHeader)
-                add(locationCategoriesPref)
-                add(peopleSectionPref)
-                add(categoriesSectionPref)
             }
         }
     }

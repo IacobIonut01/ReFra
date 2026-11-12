@@ -23,8 +23,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import com.dot.gallery.feature.library.ui.ShortcutPreviewStyle
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -210,6 +215,12 @@ class EditableLibraryShortcutsGridTest {
 
         rule.onNodeWithTag("library-shortcut-resize-width-${LibraryShortcut.TRASH.id}").performClick()
         rule.waitForIdle()
+        assertEquals(LibraryShortcutSize.THREE_QUARTER, emitted!!.single().size)
+        // 3×1 has one height, so the bottom handle goes away until the next width.
+        rule.onNodeWithTag("library-shortcut-resize-height-${LibraryShortcut.TRASH.id}").assertDoesNotExist()
+
+        rule.onNodeWithTag("library-shortcut-resize-width-${LibraryShortcut.TRASH.id}").performClick()
+        rule.waitForIdle()
         assertEquals(LibraryShortcutSize.FULL, emitted!!.single().size)
         assertEquals(LibraryShortcutSpan.FULL, emitted!!.single().span)
 
@@ -304,6 +315,98 @@ class EditableLibraryShortcutsGridTest {
         rule.waitForIdle()
 
         assertTrue(emitted!!.single().oldestFirst)
+    }
+
+    @Test
+    fun anEmptyCardDrawsItsIconOnce() {
+        val trash = runtimeShortcut(LibraryShortcut.TRASH, "Trash").copy(icon = Icons.Outlined.Delete)
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.TRASH.id).withSize(LibraryShortcutSize.WIDE_CARD)),
+            runtime = linkedMapOf(LibraryShortcut.TRASH to trash),
+        )
+
+        rule.onAllNodesWithTag("library-shortcut-icon", useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    @Test
+    fun theCountSitsRightAfterTheTitle() {
+        val favorites = runtimeShortcut(LibraryShortcut.FAVORITES, "Favorites").copy(
+            useIndicator = true,
+            indicatorCounter = 12,
+            previewMedia = listOf(media(1), media(2), media(3)),
+        )
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.FAVORITES.id).withSize(LibraryShortcutSize.FULL)),
+            runtime = linkedMapOf(LibraryShortcut.FAVORITES to favorites),
+        )
+
+        val title = rule.onNodeWithText("Favorites", useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val count = rule.onNodeWithText("· 12", useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val tile = rule.onNodeWithTag("library-shortcut-${LibraryShortcut.FAVORITES.id}").getUnclippedBoundsInRoot()
+        assertTrue("count should follow the title", (count.left - title.right).value in 0f..12f)
+        assertTrue("photos stay at the end", (tile.right - count.right).value > 100f)
+    }
+
+    @Test
+    fun theVaultCardShowsPlaceholdersInsteadOfPhotos() {
+        val vault = runtimeShortcut(LibraryShortcut.VAULT, "Vault").copy(
+            previewMedia = listOf(media(1)),
+            previewStyle = ShortcutPreviewStyle.PLACEHOLDER,
+        )
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.VAULT.id).withSize(LibraryShortcutSize.TALL_CARD)),
+            runtime = linkedMapOf(LibraryShortcut.VAULT to vault),
+        )
+
+        rule.onNodeWithTag("library-shortcut-placeholder", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun favouritesCanShuffleAndUseAScrapbookLayout() {
+        var emitted: List<LibraryShortcutPref>? = null
+        val favorites = runtimeShortcut(LibraryShortcut.FAVORITES, "Favorites").copy(
+            previewMedia = listOf(media(3), media(4)),
+            oldestPreviewMedia = listOf(media(1)),
+            shufflePreviewMedia = listOf(media(2)),
+        )
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.FAVORITES.id).withSize(LibraryShortcutSize.CARD)),
+            runtime = linkedMapOf(LibraryShortcut.FAVORITES to favorites),
+            editMode = true,
+            onChange = { emitted = it },
+        )
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.FAVORITES.id}").performClick()
+
+        rule.onNodeWithText("Shuffle").assertIsDisplayed().performClick()
+        rule.waitForIdle()
+        assertTrue(emitted!!.single().shuffle)
+
+        rule.onNodeWithText("Scrapbook").assertIsDisplayed().performClick()
+        rule.waitForIdle()
+        assertTrue(emitted!!.single().scrapbook)
+        rule.onNodeWithTag("library-shortcut-scrapbook", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun exploreTilesResizeLikeAnyOtherShortcut() {
+        var emitted: List<LibraryShortcutPref>? = null
+        val people = runtimeShortcut(LibraryShortcut.PEOPLE, "People").copy(
+            previewStyle = ShortcutPreviewStyle.FACES,
+            previewFaces = listOf(null, null),
+        )
+        setGrid(
+            working = listOf(LibraryShortcutPref(id = LibraryShortcut.PEOPLE.id)),
+            runtime = linkedMapOf(LibraryShortcut.PEOPLE to people),
+            editMode = true,
+            onChange = { emitted = it },
+        )
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.PEOPLE.id}").performClick()
+
+        rule.onNodeWithTag("library-shortcut-resize-height-${LibraryShortcut.PEOPLE.id}").performClick()
+        rule.waitForIdle()
+
+        assertEquals(LibraryShortcutSize.CARD, emitted!!.single().size)
+        rule.onNodeWithText("People", useUnmergedTree = true).assertExists()
     }
 
     private fun media(id: Long) = UriMedia(

@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.PermMedia
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.UnfoldMore
@@ -34,24 +31,15 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.library.generated.resources.Res
-import com.dot.gallery.feature.library.generated.resources.categories
-import com.dot.gallery.feature.library.generated.resources.cloud_people
 import com.dot.gallery.feature.library.generated.resources.library_section_album_sections
 import com.dot.gallery.feature.library.generated.resources.library_section_all_shortcuts
 import com.dot.gallery.feature.library.generated.resources.library_section_all_shortcuts_summary
 import com.dot.gallery.feature.library.generated.resources.library_section_album_sections_summary
-import com.dot.gallery.feature.library.generated.resources.library_section_categories_summary
-import com.dot.gallery.feature.library.generated.resources.library_section_categories_unavailable
-import com.dot.gallery.feature.library.generated.resources.library_section_locations_empty
-import com.dot.gallery.feature.library.generated.resources.library_section_locations_summary
 import com.dot.gallery.feature.library.generated.resources.library_section_media_types
 import com.dot.gallery.feature.library.generated.resources.library_section_media_types_summary
-import com.dot.gallery.feature.library.generated.resources.library_section_people_summary
-import com.dot.gallery.feature.library.generated.resources.library_section_people_unavailable
 import com.dot.gallery.feature.library.generated.resources.library_section_pinned
 import com.dot.gallery.feature.library.generated.resources.library_section_pinned_summary
 import com.dot.gallery.feature.library.generated.resources.library_sections_title
-import com.dot.gallery.feature.library.generated.resources.locations
 
 
 /** Outer corners round the group, inner corners stay tight, as in the settings lists. */
@@ -79,22 +67,13 @@ private data class SectionEditRow(
 )
 
 /**
- * "Sections" list shown under the shortcuts grid while edit mode is on:
- * manual visibility toggles for the Library's Locations / People / Categories
- * cards and, when their callbacks are set, pinned and media type albums. Toggles
- * apply immediately so the preview below reflows.
+ * "Sections" list shown under the shortcuts grid while edit mode is on: the switches whose
+ * callbacks are set, for every shortcut, pinned albums, album sections and media type albums.
+ * Locations, People and Categories are shortcut tiles, so they are hidden and resized in the
+ * grid above instead. Toggles apply immediately.
  */
 @Composable
 fun LibrarySectionsEditCard(
-    showLocations: Boolean,
-    onLocationsChange: (Boolean) -> Unit,
-    hasLocations: Boolean,
-    peopleAvailable: Boolean,
-    showPeople: Boolean,
-    onPeopleChange: (Boolean) -> Unit,
-    categoriesAvailable: Boolean,
-    showCategories: Boolean,
-    onCategoriesChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     showPinned: Boolean = true,
     onPinnedChange: ((Boolean) -> Unit)? = null,
@@ -105,42 +84,7 @@ fun LibrarySectionsEditCard(
     showAllShortcuts: Boolean = false,
     onShowAllShortcutsChange: ((Boolean) -> Unit)? = null,
 ) {
-    val rows = listOf(
-        SectionEditRow(
-            id = "locations",
-            titleRes = Res.string.locations,
-            icon = Icons.Outlined.LocationOn,
-            checked = showLocations,
-            // The switch stays enabled even when empty — it also gates location
-            // collection, not only display.
-            hintRes = if (!hasLocations) {
-                Res.string.library_section_locations_empty
-            } else Res.string.library_section_locations_summary,
-            onChange = onLocationsChange
-        ),
-        SectionEditRow(
-            id = "people",
-            titleRes = Res.string.cloud_people,
-            icon = Icons.Outlined.People,
-            checked = showPeople,
-            enabled = peopleAvailable,
-            hintRes = if (!peopleAvailable) {
-                Res.string.library_section_people_unavailable
-            } else Res.string.library_section_people_summary,
-            onChange = onPeopleChange
-        ),
-        SectionEditRow(
-            id = "categories",
-            titleRes = Res.string.categories,
-            icon = Icons.Outlined.AutoAwesome,
-            checked = showCategories,
-            enabled = categoriesAvailable,
-            hintRes = if (!categoriesAvailable) {
-                Res.string.library_section_categories_unavailable
-            } else Res.string.library_section_categories_summary,
-            onChange = onCategoriesChange
-        )
-    ) + listOfNotNull(
+    val rows = listOfNotNull(
         onShowAllShortcutsChange?.let {
             SectionEditRow(
                 id = "all_shortcuts",

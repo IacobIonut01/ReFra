@@ -308,9 +308,8 @@ object Settings {
             rememberPreference(libraryShortcutsLayoutKey)
 
         /**
-         * Whether the Library screen shows the Locations carousel section.
-         * Also read by `LibraryContentInputs` as the data-collection gate — it is a
-         * data switch, not just a display toggle.
+         * Retired Locations switch. Locations is a shortcut tile now, and this is read only as
+         * the tile's starting visibility until the shortcut layout is first saved.
          */
         @Composable
         fun rememberShowLocationCategories() =
@@ -321,8 +320,8 @@ object Settings {
         const val SECTION_CATEGORIES = "categories"
 
         /**
-         * Sections the user hid via the Library edit mode. Locations is not in this
-         * set — it keeps [rememberShowLocationCategories], which also gates collection.
+         * Retired People and Categories switches, read only as those tiles' starting
+         * visibility until the shortcut layout is first saved.
          */
         @Composable
         fun rememberHiddenSections() =

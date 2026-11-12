@@ -15,7 +15,11 @@ import com.dot.gallery.feature.library.ui.LibraryShortcutSize
 import com.dot.gallery.feature.library.ui.LibraryShortcutSpan
 import com.dot.gallery.feature.library.ui.RuntimeShortcut
 import com.dot.gallery.feature.library.ui.ShortcutCell
+import com.dot.gallery.feature.library.ui.COLLAPSED_EXPLORE_SHORTCUT_ROWS
+import com.dot.gallery.feature.library.ui.COLLAPSED_SHORTCUT_ROWS
 import com.dot.gallery.feature.library.ui.ShortcutFold
+import com.dot.gallery.feature.library.ui.collapsedShortcutRows
+import com.dot.gallery.feature.library.ui.defaultShortcutPref
 import com.dot.gallery.feature.library.ui.foldShortcutGrid
 import com.dot.gallery.feature.library.ui.nextShortcutHeight
 import com.dot.gallery.feature.library.ui.nextShortcutWidth
@@ -81,7 +85,7 @@ class LibraryShortcutTest {
 
     @Test
     fun unknownStoredSizesSnapToAnAllowedOne() {
-        assertEquals(LibraryShortcutSize.HALF, LibraryShortcutPref(id = "a", width = 3, height = 1).size)
+        assertEquals(LibraryShortcutSize.THREE_QUARTER, LibraryShortcutPref(id = "a", width = 3, height = 2).size)
         assertEquals(LibraryShortcutSize.ICON, LibraryShortcutPref(id = "a", width = 1, height = 3).size)
         assertEquals(LibraryShortcutSize.WIDE_CARD, LibraryShortcutPref(id = "a", width = 9, height = 3).size)
     }
@@ -111,6 +115,22 @@ class LibraryShortcutTest {
             ),
             cells
         )
+    }
+
+    @Test
+    fun aThreeQuarterTileSharesItsRowOnlyWithAnIcon() {
+        val three = LibraryShortcutSize.THREE_QUARTER
+        assertEquals(
+            listOf(ShortcutCell(0, 0, 3, 1), ShortcutCell(3, 0, 1, 1), ShortcutCell(0, 1, 2, 1)),
+            packShortcutGrid(listOf(three, LibraryShortcutSize.ICON, LibraryShortcutSize.HALF), columns = 4)
+        )
+        // A half tile does not fit the last unit, so it starts the next row.
+        assertEquals(
+            listOf(ShortcutCell(0, 0, 3, 1), ShortcutCell(0, 1, 2, 1)),
+            packShortcutGrid(listOf(three, LibraryShortcutSize.HALF), columns = 4)
+        )
+        assertEquals(listOf(ShortcutCell(0, 0, 2, 1)), packShortcutGrid(listOf(three), columns = 2))
+        assertEquals(LibraryShortcutSpan.HALF, LibraryShortcutPref(id = "a").withSize(three).span)
     }
 
     @Test
@@ -165,7 +185,8 @@ class LibraryShortcutTest {
 
         assertEquals(LibraryShortcutSize.HALF, resizeShortcutWidth(half, 1.6f, columns = 4))
         assertEquals(LibraryShortcutSize.ICON, resizeShortcutWidth(half, 1.4f, columns = 4))
-        assertEquals(LibraryShortcutSize.FULL, resizeShortcutWidth(half, 3.1f, columns = 4))
+        assertEquals(LibraryShortcutSize.THREE_QUARTER, resizeShortcutWidth(half, 3.1f, columns = 4))
+        assertEquals(LibraryShortcutSize.FULL, resizeShortcutWidth(half, 3.6f, columns = 4))
         assertEquals(LibraryShortcutSize.HALF, resizeShortcutWidth(half, 3.1f, columns = 2))
     }
 
@@ -181,10 +202,76 @@ class LibraryShortcutTest {
 
     @Test
     fun tappingAHandleStepsThroughTheSizes() {
-        assertEquals(LibraryShortcutSize.FULL, nextShortcutWidth(LibraryShortcutSize.HALF, 4))
+        assertEquals(LibraryShortcutSize.THREE_QUARTER, nextShortcutWidth(LibraryShortcutSize.HALF, 4))
+        assertEquals(LibraryShortcutSize.FULL, nextShortcutWidth(LibraryShortcutSize.THREE_QUARTER, 4))
+        assertEquals(LibraryShortcutSize.THREE_QUARTER, resizeShortcutWidth(LibraryShortcutSize.WIDE_CARD, 3f, 4))
         assertEquals(LibraryShortcutSize.ICON, nextShortcutWidth(LibraryShortcutSize.FULL, 4))
         assertEquals(LibraryShortcutSize.CARD, nextShortcutHeight(LibraryShortcutSize.HALF))
         assertEquals(LibraryShortcutSize.HALF, nextShortcutHeight(LibraryShortcutSize.TALL_CARD))
+    }
+
+    @Test
+    fun exploreTilesKeepWhatTheRetiredSwitchesHid() {
+        val explore = linkedMapOf(
+            LibraryShortcut.LOCATIONS to runtimeShortcut(LibraryShortcut.LOCATIONS),
+            LibraryShortcut.PEOPLE to runtimeShortcut(LibraryShortcut.PEOPLE),
+            LibraryShortcut.CATEGORIES to runtimeShortcut(LibraryShortcut.CATEGORIES),
+        )
+
+        val merged = mergeShortcutPrefs(emptyList(), explore) {
+            defaultShortcutPref(it, showLocations = false, hiddenSections = setOf(LibraryShortcut.PEOPLE.id))
+        }
+
+        assertEquals(
+            mapOf(
+                LibraryShortcut.LOCATIONS to false,
+                LibraryShortcut.PEOPLE to false,
+                LibraryShortcut.CATEGORIES to true,
+            ),
+            merged.associate { it.shortcut to it.visible }
+        )
+        assertEquals(LibraryShortcutSize.CARD, merged.first { it.shortcut == LibraryShortcut.LOCATIONS }.size)
+    }
+
+    @Test
+    fun aStoredExploreTileIgnoresTheRetiredSwitches() {
+        val merged = mergeShortcutPrefs(
+            prefs = listOf(LibraryShortcutPref(id = LibraryShortcut.PEOPLE.id, visible = true)),
+            runtime = linkedMapOf(LibraryShortcut.PEOPLE to runtimeShortcut(LibraryShortcut.PEOPLE)),
+        ) { defaultShortcutPref(it, showLocations = true, hiddenSections = setOf(LibraryShortcut.PEOPLE.id)) }
+
+        assertTrue(merged.single().visible)
+    }
+
+    @Test
+    fun theFoldGrowsWhileAnExploreTileIsShown() {
+        val shortcuts = List(5) { LibraryShortcutPref(id = LibraryShortcut.TRASH.id) }
+        assertEquals(COLLAPSED_SHORTCUT_ROWS, collapsedShortcutRows(shortcuts))
+        assertEquals(
+            COLLAPSED_SHORTCUT_ROWS,
+            collapsedShortcutRows(shortcuts + LibraryShortcutPref(id = LibraryShortcut.PEOPLE.id, visible = false))
+        )
+        assertEquals(
+            COLLAPSED_EXPLORE_SHORTCUT_ROWS,
+            collapsedShortcutRows(shortcuts + LibraryShortcutPref(id = LibraryShortcut.PEOPLE.id))
+        )
+
+        // Five half tiles, then Locations 2×2, People and Categories: all fit five rows.
+        val sizes = List(5) { LibraryShortcutSize.HALF } +
+            listOf(LibraryShortcutSize.CARD, LibraryShortcutSize.HALF, LibraryShortcutSize.HALF)
+        assertEquals(null, foldShortcutGrid(sizes, columns = 4, rows = COLLAPSED_EXPLORE_SHORTCUT_ROWS))
+        assertEquals(ShortcutFold(3, LibraryShortcutSize.HALF), foldShortcutGrid(sizes, columns = 4))
+    }
+
+    @Test
+    fun coverChoicesRoundTripAndOldLayoutsReadAsLatestInAGrid() {
+        val serializer = ListSerializer(LibraryShortcutPref.serializer())
+        val prefs = listOf(LibraryShortcutPref(id = "favorites", shuffle = true, scrapbook = true))
+        assertEquals(prefs, Json.decodeFromString(serializer, Json.encodeToString(serializer, prefs)))
+
+        val old = Json.decodeFromString(serializer, """[{"id":"favorites","oldestFirst":true}]""").single()
+        assertFalse(old.shuffle)
+        assertFalse(old.scrapbook)
     }
 
     @Test

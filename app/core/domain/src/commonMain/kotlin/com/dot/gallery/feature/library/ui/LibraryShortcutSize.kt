@@ -9,10 +9,13 @@ package com.dot.gallery.feature.library.ui
 /**
  * The sizes a Library shortcut can take, in grid units: a phone row is [COLUMNS] units wide and
  * every row is one tile tall. Taller sizes are cards that show more than an icon and a label.
+ * [THREE_QUARTER] fills a row only next to a 1×1; the grid places tiles in order and does not go
+ * back to fill a gap, so any other neighbour leaves one empty unit beside it.
  */
 enum class LibraryShortcutSize(val width: Int, val height: Int) {
     ICON(1, 1),
     HALF(2, 1),
+    THREE_QUARTER(3, 1),
     FULL(4, 1),
     CARD(2, 2),
     TALL_CARD(2, 3),

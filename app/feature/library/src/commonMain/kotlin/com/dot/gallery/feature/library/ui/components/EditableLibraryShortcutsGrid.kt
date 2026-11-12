@@ -66,12 +66,18 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.roundToInt
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.dot.gallery.core.util.rememberFeedbackManager
 import com.dot.gallery.core.ui.components.dashedBorder
+import com.dot.gallery.core.ui.util.excludeSystemGestures
+import com.dot.gallery.feature.library.ui.COLLAPSED_SHORTCUT_ROWS
 import com.dot.gallery.feature.library.ui.LibraryShortcut
 import com.dot.gallery.feature.library.ui.LibraryShortcutPref
 import com.dot.gallery.feature.library.ui.LibraryShortcutSize
@@ -90,6 +96,10 @@ import com.dot.gallery.feature.library.generated.resources.library_section_hidde
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_cover
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_cover_latest
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_cover_oldest
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_cover_shuffle
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_layout
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_layout_grid
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_layout_scrapbook
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_hide
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_resize_height
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_resize_width
@@ -159,6 +169,8 @@ fun EditableLibraryShortcutsGrid(
     modifier: Modifier = Modifier,
     columns: Int = LibraryShortcutSize.COLUMNS,
     collapsible: Boolean = false,
+    collapsedRows: Int = COLLAPSED_SHORTCUT_ROWS,
+    mapContent: ShortcutMapContent? = null,
 ) {
     val feedbackManager = rememberFeedbackManager()
     val scope = rememberCoroutineScope()
@@ -204,10 +216,12 @@ fun EditableLibraryShortcutsGrid(
         }
     }
 
-    fun setOldestFirst(id: String, oldestFirst: Boolean) {
+    fun update(id: String, change: (LibraryShortcutPref) -> LibraryShortcutPref) {
         val i = tiles.indexOfFirst { it.id == id }
-        if (i >= 0 && tiles[i].oldestFirst != oldestFirst) {
-            tiles[i] = tiles[i].copy(oldestFirst = oldestFirst); emit()
+        if (i < 0) return
+        val updated = change(tiles[i])
+        if (updated != tiles[i]) {
+            tiles[i] = updated; emit()
         }
     }
 
@@ -263,7 +277,7 @@ fun EditableLibraryShortcutsGrid(
             val sizes = allVisibleTiles.map { it.size }
             // The toggle keeps the slot right after the collapsed tiles, so it does not move when
             // the list expands; the extra tiles flow in after it.
-            val fold = if (!editMode && collapsible) foldShortcutGrid(sizes, units) else null
+            val fold = if (!editMode && collapsible) foldShortcutGrid(sizes, units, collapsedRows) else null
             val toggleAt = fold?.count
             val packed = packShortcutGrid(
                 if (fold != null) {
@@ -292,6 +306,29 @@ fun EditableLibraryShortcutsGrid(
                 .fillMaxWidth()
                 .height(with(density) { totalHeightPx.toDp() })
             ) {
+                // Tiles move by graphics layer, which does not report a new position, so the
+                // selected tile's resize handles keep the back gesture off through this
+                // layout-placed zone instead: the tile plus its handles, which reach past the
+                // grid towards the screen edge.
+                val selectedSlot = selectedId?.takeIf { editMode }
+                    ?.let { id -> tileSlots.getOrNull(visibleTiles.indexOfFirst { it.id == id }) }
+                if (selectedSlot != null) {
+                    val reach = with(density) { (HANDLE_TOUCH + SELECTION_INSET).toPx() }
+                    Box(
+                        modifier = Modifier
+                            // Tile translations are not mirrored, so neither is the zone.
+                            .absoluteOffset {
+                                IntOffset((selectedSlot.x - reach).roundToInt(), selectedSlot.y.roundToInt())
+                            }
+                            // Unbounded so a full-width tile's zone is not clamped and re-centred.
+                            .wrapContentSize(Alignment.TopStart, unbounded = true)
+                            .size(
+                                width = with(density) { (selectedSlot.width + reach * 2).toDp() },
+                                height = with(density) { (selectedSlot.height + reach).toDp() },
+                            )
+                            .excludeSystemGestures()
+                    )
+                }
                 if (toggleSlot != null) {
                     Box(
                         modifier = Modifier
@@ -436,10 +473,10 @@ fun EditableLibraryShortcutsGrid(
                     ) {
                         ShortcutTile(
                             data = data,
-                            size = size,
-                            oldestFirst = pref.oldestFirst,
+                            pref = pref,
                             showIndicator = !editMode,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            mapContent = mapContent,
                         )
                         if (editMode) {
                             // Hiding is reversible from the tray below, so the badge stays
@@ -510,9 +547,10 @@ fun EditableLibraryShortcutsGrid(
                 selected.size != LibraryShortcutSize.ICON && selected.size != LibraryShortcutSize.HALF
         ) {
             if (selected != null) {
-                CoverOrderPicker(
-                    oldestFirst = selected.oldestFirst,
-                    onChange = { setOldestFirst(selected.id, it) },
+                CoverPicker(
+                    pref = selected,
+                    canShuffle = selectedData?.hasShuffle == true,
+                    onChange = { change -> update(selected.id, change) },
                 )
             }
         }
@@ -683,8 +721,25 @@ private fun androidx.compose.foundation.layout.BoxScope.SelectionOutline(
     }
 }
 
+/** Which favourites the tile shows and, on a card, whether they sit in a grid or a scrapbook. */
 @Composable
-private fun CoverOrderPicker(oldestFirst: Boolean, onChange: (Boolean) -> Unit) {
+private fun CoverPicker(
+    pref: LibraryShortcutPref,
+    canShuffle: Boolean,
+    onChange: ((LibraryShortcutPref) -> LibraryShortcutPref) -> Unit,
+) {
+    val orders = listOfNotNull(
+        Res.string.library_shortcut_cover_latest to { p: LibraryShortcutPref -> p.copy(oldestFirst = false, shuffle = false) },
+        Res.string.library_shortcut_cover_oldest to { p: LibraryShortcutPref -> p.copy(oldestFirst = true, shuffle = false) },
+        if (canShuffle) {
+            Res.string.library_shortcut_cover_shuffle to { p: LibraryShortcutPref -> p.copy(shuffle = true) }
+        } else null,
+    )
+    val selectedOrder = when {
+        pref.shuffle && canShuffle -> 2
+        pref.oldestFirst -> 1
+        else -> 0
+    }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(Res.string.library_shortcut_cover),
@@ -692,19 +747,35 @@ private fun CoverOrderPicker(oldestFirst: Boolean, onChange: (Boolean) -> Unit) 
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         SingleChoiceSegmentedButtonRow(modifier = Modifier.testTag("library-shortcut-cover-order")) {
-            SegmentedButton(
-                selected = !oldestFirst,
-                onClick = { onChange(false) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) {
-                Text(stringResource(Res.string.library_shortcut_cover_latest))
+            orders.forEachIndexed { index, (label, change) ->
+                SegmentedButton(
+                    selected = index == selectedOrder,
+                    onClick = { onChange(change) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = orders.size)
+                ) {
+                    Text(stringResource(label))
+                }
             }
-            SegmentedButton(
-                selected = oldestFirst,
-                onClick = { onChange(true) },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) {
-                Text(stringResource(Res.string.library_shortcut_cover_oldest))
+        }
+        if (pref.size.isCard) {
+            Text(
+                text = stringResource(Res.string.library_shortcut_layout),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.testTag("library-shortcut-cover-layout")) {
+                listOf(
+                    Res.string.library_shortcut_layout_grid to false,
+                    Res.string.library_shortcut_layout_scrapbook to true,
+                ).forEachIndexed { index, (label, scrapbook) ->
+                    SegmentedButton(
+                        selected = pref.scrapbook == scrapbook,
+                        onClick = { onChange { it.copy(scrapbook = scrapbook) } },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 2)
+                    ) {
+                        Text(stringResource(label))
+                    }
+                }
             }
         }
     }

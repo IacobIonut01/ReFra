@@ -617,8 +617,6 @@
     <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
     <string name="media_type_albums_setting_title">Show media type albums</string>
     <string name="media_type_albums_setting_summary">Add quick albums for Videos, Photos, GIFs and Raw files at the top of the Albums tab</string>
-    <string name="location_categories_title">Location categories</string>
-    <string name="location_categories_summary">Show the locations row on the Library tab</string>
     <string name="album_sections_title">Organize albums by sections</string>
     <string name="album_sections_summary">Automatically categorize albums into Common, Apps and other sections with headers</string>
     <string name="create_section">Create section</string>
@@ -678,10 +676,6 @@
     <string name="customize_date_formats">Customize date formats</string>
     <string name="story_cards_settings_title">Story Cards</string>
     <string name="story_cards_settings_summary">Configure story cards above the timeline</string>
-    <string name="library_people_section_title">People</string>
-    <string name="library_people_section_summary">Show the People section on the Library page</string>
-    <string name="library_categories_section_title">Categories</string>
-    <string name="library_categories_section_summary">Show smart categories on the Library page</string>
     <string name="back_cd">Back</string>
     <string name="classic_date">Classic Date</string>
     <string name="date_format_following_system">Following system format</string>

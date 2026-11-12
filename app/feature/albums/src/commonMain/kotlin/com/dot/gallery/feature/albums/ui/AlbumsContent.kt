@@ -52,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.produceState
@@ -121,6 +122,7 @@ import com.dot.gallery.feature.albums.ui.components.CarouselPinnedAlbums
 import com.dot.gallery.feature.albums.ui.components.CloudAlbumSectionHeader
 import com.dot.gallery.feature.albums.ui.components.ProviderIconSlot
 import com.dot.gallery.feature.albums.ui.util.AlbumArrangement
+import com.dot.gallery.feature.albums.ui.util.LocalAlbumArrangeRequest
 import com.dot.gallery.feature.albums.ui.util.AlbumsFilter
 import com.dot.gallery.feature.albums.ui.util.AlbumsFilterKind
 import com.dot.gallery.feature.albums.ui.util.KEY_ALBUMS_HEADING
@@ -372,6 +374,15 @@ fun AlbumsContent(
             albumsState.value.albumsUnpinned.size > 1
     var arranging by rememberSaveable { mutableStateOf(false) }
     if (arranging && !canArrange) arranging = false
+    val arrangeRequest = LocalAlbumArrangeRequest.current
+    SideEffect { arrangeRequest?.available = canArrange }
+    LaunchedEffect(arrangeRequest?.pending, canArrange) {
+        if (arrangeRequest?.pending == true) {
+            if (canArrange) arranging = true
+            arrangeRequest.consume()
+        }
+    }
+    val onRearrange: (() -> Unit)? = if (canArrange && !arranging) ({ arranging = true }) else null
 
     // Re-tapping the Albums tab scrolls the active view back to the top.
     ScrollToTopHandler(scrollToTopRoute) {
@@ -394,7 +405,7 @@ fun AlbumsContent(
             .padding(horizontalInsets)
             .consumeWindowInsets(horizontalInsets),
         containerColor = pageColor,
-        topBar = { topBar(if (canArrange && !arranging) ({ arranging = true }) else null) }
+        topBar = { topBar(onRearrange) }
     ) { innerPaddingValues ->
         // hazeSource stays attached in every content state so the search bar keeps its
         // frosted effect when the grid is empty/loading/error (#areas.isEmpty = no draw).
@@ -604,6 +615,7 @@ fun AlbumsContent(
                                     onToggleMergeSubfolders = onToggleMergeSubfolders,
                                     onMergeParentSubfolders = onMergeParentSubfolders,
                                     onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+                                    onRearrange = onRearrange,
                                     isMergedSubfolder = item.id in mergedSubfolderIds,
                                     isSubGallery = item.id in subGalleryIds,
                                     supportsTrash = supportsTrash,
@@ -652,6 +664,7 @@ fun AlbumsContent(
                                     onToggleMergeSubfolders = onToggleMergeSubfolders,
                                     onMergeParentSubfolders = onMergeParentSubfolders,
                                     onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+                                    onRearrange = onRearrange,
                                     isMergedSubfolder = item.id in mergedSubfolderIds,
                                     isSubGallery = item.id in subGalleryIds,
                                     supportsTrash = supportsTrash,
@@ -673,6 +686,7 @@ fun AlbumsContent(
                                     onDelete = onCollectionDelete,
                                     onTogglePin = onCollectionTogglePin,
                                     onEditAlbums = onCollectionEditAlbums,
+                                    onRearrange = onRearrange,
                                     collectionThumbnailModel = collectionThumbnailModel
                                 )
                             }
@@ -946,6 +960,7 @@ fun AlbumsContent(
                                 onToggleMergeSubfolders = onToggleMergeSubfolders,
                                 onMergeParentSubfolders = onMergeParentSubfolders,
                                 onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+                                onRearrange = onRearrange,
                                 isMergedSubfolder = item.id in mergedSubfolderIds,
                                 isSubGallery = item.id in subGalleryIds,
                                 supportsTrash = supportsTrash,
@@ -990,6 +1005,7 @@ fun AlbumsContent(
                                 onToggleMergeSubfolders = onToggleMergeSubfolders,
                                 onMergeParentSubfolders = onMergeParentSubfolders,
                                 onToggleMergedSubfolderDisplayMode = onToggleMergedSubfolderDisplayMode,
+                                onRearrange = onRearrange,
                                 isMergedSubfolder = item.id in mergedSubfolderIds,
                                 isSubGallery = item.id in subGalleryIds,
                                 supportsTrash = supportsTrash,
@@ -1010,6 +1026,7 @@ fun AlbumsContent(
                                 onDelete = onCollectionDelete,
                                 onTogglePin = onCollectionTogglePin,
                                 onEditAlbums = onCollectionEditAlbums,
+                                onRearrange = onRearrange,
                                 collectionThumbnailModel = collectionThumbnailModel
                             )
                         }

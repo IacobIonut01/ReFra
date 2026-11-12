@@ -25,6 +25,10 @@ data class LibraryShortcutPref(
     val height: Int = 1,
     /** Tiles that show photos (Favorites) show the oldest instead of the latest. */
     val oldestFirst: Boolean = false,
+    /** Favorites shows random favourites, picked again each time Library opens. Wins over [oldestFirst]. */
+    val shuffle: Boolean = false,
+    /** Favorites cards lay their photos out as overlapping prints instead of a grid. */
+    val scrapbook: Boolean = false,
 ) {
     val size: LibraryShortcutSize
         get() = LibraryShortcutSize.of(

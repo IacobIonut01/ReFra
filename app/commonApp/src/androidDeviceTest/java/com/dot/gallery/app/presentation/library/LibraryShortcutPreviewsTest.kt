@@ -8,8 +8,13 @@ package com.dot.gallery.app.presentation.library
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import androidx.compose.ui.graphics.Color
 import com.dot.gallery.domain.model.UriMedia
+import com.dot.gallery.feature.library.ui.LibraryShortcut
 import com.dot.gallery.feature.library.ui.LibraryShortcutPreviews
+import com.dot.gallery.feature.library.ui.MAX_SHORTCUT_FAVORITE_POOL
+import com.dot.gallery.feature.library.ui.RuntimeShortcut
+import com.dot.gallery.feature.library.ui.ShortcutPreviewStyle
 import com.dot.gallery.feature.library.ui.LibrarySnapshot
 import com.dot.gallery.feature.library.ui.shortcutPreviews
 import com.dot.gallery.feature.library.validateLibrarySnapshot
@@ -52,6 +57,59 @@ class LibraryShortcutPreviewsTest {
     }
 
     @Test
+    fun shufflePoolSpreadsAcrossEveryFavouriteAndStaysTheSame() {
+        val favorites = (1L..100L).map { media(it) }
+
+        val pool = shortcutPreviews(trash = emptyList(), favorites = favorites.shuffled()).favoritePool
+        val again = shortcutPreviews(trash = emptyList(), favorites = favorites.shuffled()).favoritePool
+
+        assertEquals(MAX_SHORTCUT_FAVORITE_POOL, pool.size)
+        assertEquals(pool, again)
+        assertTrue(pool.first().id > 90L)
+        assertTrue(pool.last().id < 10L)
+        assertEquals(
+            (1L..3L).toSet(),
+            shortcutPreviews(emptyList(), (1L..3L).map { media(it) }).favoritePool.map { it.id }.toSet()
+        )
+    }
+
+    @Test
+    fun aPlaceholderTileNeverDrawsMediaItWasGiven() {
+        val media = listOf(media(1))
+        val vault = runtimeShortcut(LibraryShortcut.VAULT).copy(
+            previewMedia = media,
+            oldestPreviewMedia = media,
+            shufflePreviewMedia = media,
+            previewStyle = ShortcutPreviewStyle.PLACEHOLDER,
+        )
+
+        listOf(false, true).forEach { oldest ->
+            listOf(false, true).forEach { shuffle ->
+                assertTrue(vault.preview(oldestFirst = oldest, shuffle = shuffle).isEmpty())
+            }
+        }
+    }
+
+    @Test
+    fun shuffleWinsOverOldestOnlyWhenThereIsAShuffledCover() {
+        val latest = listOf(media(3))
+        val oldest = listOf(media(1))
+        val shuffled = listOf(media(2))
+        val favorites = runtimeShortcut(LibraryShortcut.FAVORITES).copy(
+            previewMedia = latest,
+            oldestPreviewMedia = oldest,
+            shufflePreviewMedia = shuffled,
+        )
+
+        assertEquals(shuffled, favorites.preview(oldestFirst = true, shuffle = true))
+        assertEquals(oldest, favorites.preview(oldestFirst = true, shuffle = false))
+        assertEquals(
+            oldest,
+            favorites.copy(shufflePreviewMedia = emptyList()).preview(oldestFirst = true, shuffle = true)
+        )
+    }
+
+    @Test
     fun trashShowsTheMostRecentlyDeletedAndTheNextExpiry() {
         val trash = listOf(
             media(1, trashed = 1, expiry = 5_000),
@@ -85,5 +143,28 @@ class LibraryShortcutPreviewsTest {
             shortcutPreviews = valid.shortcutPreviews.copy(latestFavorites = (1L..5L).map { media(it) })
         )
         assertFalse(validateLibrarySnapshot(tooMany))
+
+        val trashedInPool = valid.copy(
+            shortcutPreviews = valid.shortcutPreviews.copy(favoritePool = listOf(media(4, trashed = 1)))
+        )
+        assertFalse(validateLibrarySnapshot(trashedInPool))
+
+        val poolTooBig = valid.copy(
+            shortcutPreviews = valid.shortcutPreviews.copy(
+                favoritePool = (1L..MAX_SHORTCUT_FAVORITE_POOL + 1L).map { media(it) }
+            )
+        )
+        assertFalse(validateLibrarySnapshot(poolTooBig))
     }
+
+    private fun runtimeShortcut(shortcut: LibraryShortcut) = RuntimeShortcut(
+        shortcut = shortcut,
+        title = shortcut.id,
+        icon = null,
+        contentColor = Color.Unspecified,
+        useIndicator = false,
+        indicatorCounter = 0,
+        route = shortcut.id,
+        available = true
+    )
 }

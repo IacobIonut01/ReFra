@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -57,6 +58,7 @@ import com.dot.gallery.feature.albums.generated.resources.Res
 import com.dot.gallery.feature.albums.generated.resources.delete_collection
 import com.dot.gallery.feature.albums.generated.resources.n_items_in_collection
 import com.dot.gallery.feature.albums.generated.resources.pin_collection
+import com.dot.gallery.feature.albums.generated.resources.rearrange
 import com.dot.gallery.feature.albums.generated.resources.rename_collection
 import com.dot.gallery.feature.albums.generated.resources.select_albums_for_collection
 import com.dot.gallery.feature.albums.generated.resources.unpin_collection
@@ -78,6 +80,8 @@ fun CollectionComponent(
     onDelete: ((CollectionWithCount) -> Unit)? = null,
     onTogglePin: ((CollectionWithCount) -> Unit)? = null,
     onEditAlbums: ((CollectionWithCount) -> Unit)? = null,
+    /** Opens the album arrange screen; null while the albums cannot be arranged. */
+    onRearrange: (() -> Unit)? = null,
     collectionThumbnailModel: CollectionThumbnailModel = { null },
 ) {
     val scope = rememberCoroutineScope()
@@ -88,6 +92,7 @@ fun CollectionComponent(
     val renameTitle = stringResource(Res.string.rename_collection)
     val deleteTitle = stringResource(Res.string.delete_collection)
     val addAlbumsTitle = stringResource(Res.string.select_albums_for_collection)
+    val rearrangeTitle = stringResource(Res.string.rearrange)
     val pinTitle = stringResource(
         if (collection.isPinned) Res.string.unpin_collection else Res.string.pin_collection
     )
@@ -98,7 +103,7 @@ fun CollectionComponent(
     val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
     val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryContainer
 
-    val optionList = remember(collection.isPinned, onRename, onDelete, onTogglePin, onEditAlbums) {
+    val optionList = remember(collection.isPinned, onRename, onDelete, onTogglePin, onEditAlbums, onRearrange) {
         mutableListOf(
             OptionItem(
                 icon = Icons.Outlined.LibraryAdd,
@@ -152,7 +157,20 @@ fun CollectionComponent(
                     }
                 }
             )
-        ).toMutableStateList()
+        ).apply {
+            if (onRearrange != null) add(
+                OptionItem(
+                    icon = Icons.Rounded.DragIndicator,
+                    text = rearrangeTitle,
+                    onClick = {
+                        scope.launch {
+                            appBottomSheetState.hide()
+                            onRearrange()
+                        }
+                    }
+                )
+            )
+        }.toMutableStateList()
     }
 
     OptionSheet(
@@ -291,6 +309,8 @@ fun CollectionRowComponent(
     onDelete: ((CollectionWithCount) -> Unit)? = null,
     onTogglePin: ((CollectionWithCount) -> Unit)? = null,
     onEditAlbums: ((CollectionWithCount) -> Unit)? = null,
+    /** Opens the album arrange screen; null while the albums cannot be arranged. */
+    onRearrange: (() -> Unit)? = null,
     collectionThumbnailModel: CollectionThumbnailModel = { null },
 ) {
     val scope = rememberCoroutineScope()
@@ -301,6 +321,7 @@ fun CollectionRowComponent(
     val renameTitle = stringResource(Res.string.rename_collection)
     val deleteTitle = stringResource(Res.string.delete_collection)
     val addAlbumsTitle = stringResource(Res.string.select_albums_for_collection)
+    val rearrangeTitle = stringResource(Res.string.rearrange)
     val pinTitle = stringResource(
         if (collection.isPinned) Res.string.unpin_collection else Res.string.pin_collection
     )
@@ -311,7 +332,7 @@ fun CollectionRowComponent(
     val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
     val onTertiaryContainer = MaterialTheme.colorScheme.onTertiaryContainer
 
-    val optionList = remember(collection.isPinned, onRename, onDelete, onTogglePin, onEditAlbums) {
+    val optionList = remember(collection.isPinned, onRename, onDelete, onTogglePin, onEditAlbums, onRearrange) {
         mutableListOf(
             OptionItem(
                 icon = Icons.Outlined.LibraryAdd,
@@ -365,7 +386,20 @@ fun CollectionRowComponent(
                     }
                 }
             )
-        ).toMutableStateList()
+        ).apply {
+            if (onRearrange != null) add(
+                OptionItem(
+                    icon = Icons.Rounded.DragIndicator,
+                    text = rearrangeTitle,
+                    onClick = {
+                        scope.launch {
+                            appBottomSheetState.hide()
+                            onRearrange()
+                        }
+                    }
+                )
+            )
+        }.toMutableStateList()
     }
 
     OptionSheet(
