@@ -52,6 +52,14 @@ fun availableAlbumFilters(
 fun resolveAlbumFilter(selected: AlbumsFilter, available: List<AlbumsFilter>): AlbumsFilter =
     if (selected in available) selected else AlbumsFilter.All
 
+/**
+ * Whether the chip already names its section, so that view drops the section header. Section
+ * chips carry the section's name; the media-types chip's label is the section title. Cloud
+ * provider headers keep their own names, which the "Cloud" chip does not repeat.
+ */
+fun AlbumsFilterKind.chipNamesSection(): Boolean =
+    this == AlbumsFilterKind.SECTION || this == AlbumsFilterKind.MEDIA_TYPES
+
 internal const val KEY_LIBRARY_HEADER = "libraryHeader"
 internal const val KEY_ALBUMS_HEADING = "albumsHeading"
 internal const val KEY_PINNED_ALBUMS = "pinnedAlbums"

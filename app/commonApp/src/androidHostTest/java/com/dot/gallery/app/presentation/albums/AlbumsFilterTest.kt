@@ -9,6 +9,7 @@ import com.dot.gallery.feature.albums.ui.util.AlbumsFilter
 import com.dot.gallery.feature.albums.ui.util.AlbumsFilterKind
 import com.dot.gallery.feature.albums.ui.util.albumsFilterBarPinned
 import com.dot.gallery.feature.albums.ui.util.availableAlbumFilters
+import com.dot.gallery.feature.albums.ui.util.chipNamesSection
 import com.dot.gallery.feature.albums.ui.util.resolveAlbumFilter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -71,6 +72,14 @@ class AlbumsFilterTest {
             hasDevice = true, sectionIds = listOf(1L), hasCollections = true, hasCloud = false, hasMediaTypes = false,
         )
         assertEquals(AlbumsFilter.All, resolveAlbumFilter(AlbumsFilter(AlbumsFilterKind.SECTION, 9L), filters))
+    }
+
+    @Test
+    fun `only chips that name their section drop the header`() {
+        AlbumsFilterKind.entries.forEach { kind ->
+            val expected = kind == AlbumsFilterKind.SECTION || kind == AlbumsFilterKind.MEDIA_TYPES
+            assertEquals(expected, kind.chipNamesSection())
+        }
     }
 
     @Test

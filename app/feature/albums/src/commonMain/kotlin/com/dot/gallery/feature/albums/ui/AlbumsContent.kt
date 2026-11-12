@@ -130,6 +130,7 @@ import com.dot.gallery.feature.albums.ui.util.KEY_PINNED_ALBUMS
 import com.dot.gallery.feature.albums.ui.util.albumsFilterBarPinned
 import com.dot.gallery.feature.albums.ui.util.bleedHorizontally
 import com.dot.gallery.feature.albums.ui.util.availableAlbumFilters
+import com.dot.gallery.feature.albums.ui.util.chipNamesSection
 import com.dot.gallery.feature.albums.ui.util.resolveAlbumFilter
 import com.dot.gallery.feature.albums.ui.util.albumScreenHorizontalInsets
 import com.dot.gallery.feature.albums.ui.util.rememberBottomBarInset
@@ -293,7 +294,7 @@ fun AlbumsContent(
     val showMediaTypes = showAll || activeKind == AlbumsFilterKind.MEDIA_TYPES
     val visibleGroups = if (showDevice) albumsState.value.albumGroups else emptyList()
     // A chip already names its section, so that view drops the header and ignores collapsing.
-    val showSectionHeaders = activeKind != AlbumsFilterKind.SECTION
+    val showSectionHeaders = !activeKind.chipNamesSection()
     val visibleSections = remember(activeFilter, albumsState.value.albumSections) {
         when {
             showDevice -> albumsState.value.albumSections
@@ -720,7 +721,8 @@ fun AlbumsContent(
                                 key = "mediaTypesHeader"
                             ) {
                                 AnimatedVisibility(
-                                    visible = visibleMediaTypes.isNotEmpty(),
+                                    visible = visibleMediaTypes.isNotEmpty() &&
+                                        !activeKind.chipNamesSection(),
                                     enter = enterAnimation,
                                     exit = exitAnimation
                                 ) {
@@ -1048,7 +1050,8 @@ fun AlbumsContent(
                         // bottom, below every real and cloud album.
                         item("mediaTypesHeader") {
                             AnimatedVisibility(
-                                visible = visibleMediaTypes.isNotEmpty(),
+                                visible = visibleMediaTypes.isNotEmpty() &&
+                                    !activeKind.chipNamesSection(),
                                 enter = enterAnimation,
                                 exit = exitAnimation
                             ) {
