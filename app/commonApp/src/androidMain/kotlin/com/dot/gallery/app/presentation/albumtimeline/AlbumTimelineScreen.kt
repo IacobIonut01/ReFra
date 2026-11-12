@@ -80,6 +80,7 @@ import com.github.panpf.sketch.AsyncImage
 import com.github.panpf.sketch.request.ComposableImageRequest
 import com.github.panpf.sketch.request.ImageRequest
 import com.dot.gallery.core.presentation.components.GridPinchZoomLayout
+import com.dot.gallery.core.presentation.components.selectionAwareBottomPadding
 import com.dot.gallery.cloud.core.CloudAlbumIdentity
 import com.dot.gallery.cloud.core.CloudRuntimeSettings
 import com.dot.gallery.core.LocalEventHandler
@@ -337,7 +338,7 @@ fun AlbumTimelineScreen(
         ) {
             val gridPaddingValues = PaddingValues(
                 top = topBarHeight,
-                bottom = paddingValues.calculateBottomPadding() + 128.dp
+                bottom = selectionAwareBottomPadding(paddingValues.calculateBottomPadding() + 128.dp)
             )
             if (isMosaicLayout) {
                 val mosaicGridState = mosaicPinchState.gridState

@@ -6,6 +6,7 @@
 package com.dot.gallery.feature.classifier.ui.search
 
 import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.core.presentation.components.selectionAwareBottomPadding
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
@@ -948,11 +949,8 @@ private fun SearchResults(
             val headers by rememberedDerivedState(mediaState.value) {
                 mediaState.value.headers
             }
-            val mosaicPaddingValues = remember(contentPadding) {
-                PaddingValues(
-                    bottom = contentPadding.calculateBottomPadding() + 128.dp
-                )
-            }
+            val mosaicBottom = selectionAwareBottomPadding(contentPadding.calculateBottomPadding() + 128.dp)
+            val mosaicPaddingValues = remember(mosaicBottom) { PaddingValues(bottom = mosaicBottom) }
             MosaicPinchZoomLayout(
                 state = mosaicPinchState,
                 indicatorTopPadding = contentPadding.calculateTopPadding() + 16.dp,
@@ -1007,11 +1005,8 @@ private fun SearchResults(
                     showSearchBar = false,
                     enableStickyHeaders = !useRelevanceOrder,
                     hasToolbarOffset = false,
-                    paddingValues = remember(contentPadding) {
-                        PaddingValues(
-                            bottom = contentPadding.calculateBottomPadding() + 128.dp
-                        )
-                    },
+                    paddingValues = selectionAwareBottomPadding(contentPadding.calculateBottomPadding() + 128.dp)
+                        .let { bottom -> remember(bottom) { PaddingValues(bottom = bottom) } },
                     canScroll = canScroll,
                     allowHeaders = !useRelevanceOrder,
 

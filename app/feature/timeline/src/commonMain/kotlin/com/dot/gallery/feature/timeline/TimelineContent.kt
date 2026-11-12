@@ -44,6 +44,7 @@ import com.dot.gallery.core.presentation.components.LocalGalleryPaneChrome
 import com.dot.gallery.core.presentation.components.TimelineMonth
 import com.dot.gallery.core.presentation.components.TimelinePlace
 import com.dot.gallery.core.presentation.components.rememberGalleryHeaderRevealState
+import com.dot.gallery.core.presentation.components.selectionAwareBottomPadding
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.dot.gallery.core.presentation.util.selectedMedia
@@ -210,7 +211,7 @@ fun TimelineContent(
                             mediaState = filteredMediaState,
                             metadataState = metadataState,
                             scaffoldPadding = scaffoldPadding,
-                            bottomPadding = bottomBarInset + 128.dp,
+                            bottomPadding = selectionAwareBottomPadding(bottomBarInset + 128.dp),
                             screenTopPadding = if (paneChrome) 0.dp else paddingValues.calculateTopPadding(),
                             showSearchBar = true,
                             aboveGridContent = aboveGridContent,

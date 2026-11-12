@@ -37,6 +37,7 @@ import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.logging.logEvent
 import com.dot.gallery.core.presentation.components.SelectAllAddon
+import com.dot.gallery.core.presentation.components.reportSelectionBarHeight
 import com.dot.gallery.core.presentation.components.SelectionAddon
 import com.dot.gallery.core.presentation.components.SheetButton
 import com.dot.gallery.core.presentation.components.SheetButtonStyle
@@ -89,6 +90,7 @@ fun <T : Media> BoxScope.FavoritesSelectionSheet(
     ) {
         Column(
             modifier = Modifier
+                .reportSelectionBarHeight()
                 .navigationBarsPadding()
                 .widthIn(max = 600.dp)
                 .fillMaxWidth()

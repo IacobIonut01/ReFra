@@ -225,7 +225,7 @@ fun <T: Media> MediaScreen(
                     top = if (showSearchBar) {
                         SearchBarDefaults.InputFieldHeight + paddingValues.calculateTopPadding() + 8.dp
                     } else topBarHeight,
-                    bottom = paddingValues.calculateBottomPadding() + 128.dp
+                    bottom = selectionAwareBottomPadding(paddingValues.calculateBottomPadding() + 128.dp)
                 )
                 MosaicPinchZoomLayout(
                     state = mosaicPinchState,
@@ -295,7 +295,7 @@ fun <T: Media> MediaScreen(
                         metadataState = metadataState,
                         paddingValues = PaddingValues(
                             top = contentTopPadding,
-                            bottom = paddingValues.calculateBottomPadding() + 128.dp
+                            bottom = selectionAwareBottomPadding(paddingValues.calculateBottomPadding() + 128.dp)
                         ),
                         searchBarPaddingTop = remember(paddingValues) {
                             paddingValues.calculateTopPadding()

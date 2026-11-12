@@ -798,6 +798,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         val shape = Shapes.extraLarge
         Column(
             modifier = Modifier
+                .reportSelectionBarHeight()
                 .padding(horizontal = 32.dp)
                 .navigationBarsPadding()
                 .then(sizeModifier)

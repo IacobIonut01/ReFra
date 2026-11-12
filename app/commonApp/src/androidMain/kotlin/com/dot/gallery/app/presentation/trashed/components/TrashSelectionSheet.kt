@@ -77,6 +77,7 @@ import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.core.presentation.components.rememberShowSelectionTitles
 import com.dot.gallery.core.presentation.components.TrashDialog
+import com.dot.gallery.core.presentation.components.reportSelectionBarHeight
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.action_delete
@@ -140,6 +141,7 @@ fun <T : Media> BoxScope.TrashSelectionSheet(
         val shape = Shapes.extraLarge
         Column(
             modifier = Modifier
+                .reportSelectionBarHeight()
                 .padding(horizontal = 32.dp)
                 .navigationBarsPadding()
                 .then(sizeModifier)
