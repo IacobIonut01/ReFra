@@ -494,7 +494,6 @@ val sceneRegistry: List<DocsScene> = listOf(
         SettingsMediaViewerContent(
             state = SettingsMediaViewerState(
                 hdrDisplayCapable = true,
-                supportsFavorites = true,
                 visualSearchTargets = if (state == "no-visual-search") emptyList() else listOf(
                     VisualSearchTarget(
                         packageName = "com.google.ar.lens",

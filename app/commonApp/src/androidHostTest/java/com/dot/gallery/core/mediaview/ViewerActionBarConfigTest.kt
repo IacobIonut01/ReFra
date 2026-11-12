@@ -8,6 +8,7 @@ package com.dot.gallery.core.mediaview
 import com.dot.gallery.core.ui.mediaview.ViewerActionBarConfig
 import com.dot.gallery.core.ui.mediaview.ViewerQuickAction
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class ViewerActionBarConfigTest {
@@ -54,6 +55,27 @@ class ViewerActionBarConfigTest {
             ViewerActionBarConfig.DEFAULT_ACTIONS,
             ViewerActionBarConfig(actions = emptyList()).sanitized().actions
         )
+    }
+
+    @Test
+    fun favoriteMigrationDropsOnlyTheFavoriteAction() {
+        val config = ViewerActionBarConfig(
+            actions = listOf(ViewerQuickAction.SHARE, ViewerQuickAction.FAVORITE, ViewerQuickAction.EDIT)
+        )
+
+        assertEquals(
+            listOf(ViewerQuickAction.SHARE, ViewerQuickAction.EDIT),
+            config.withoutFavorite().actions
+        )
+    }
+
+    @Test
+    fun favoriteMigrationNeverLeavesAnEmptyBar() {
+        val onlyFavorite = ViewerActionBarConfig(actions = listOf(ViewerQuickAction.FAVORITE))
+
+        val migrated = onlyFavorite.withoutFavorite()
+        assertFalse(migrated.actions.contains(ViewerQuickAction.FAVORITE))
+        assertEquals(migrated.sanitized().actions, migrated.actions)
     }
 
     @Test

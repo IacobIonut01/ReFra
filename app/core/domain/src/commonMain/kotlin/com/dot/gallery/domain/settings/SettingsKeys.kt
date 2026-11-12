@@ -80,6 +80,7 @@ object SettingsKeys {
     val mediaViewDateHeader = PrefKey.bool("media_view_date_header", default = true)
     val tapSidesToNavigate = PrefKey.bool("tap_sides_to_navigate", default = false)
     val tapSidesPromptShown = PrefKey.bool("tap_sides_to_navigate_prompt_shown", default = false)
+    /** Retired "Favorite button in viewer" switch — read only by the one-time viewer action-bar migration and old backups. */
     val showFavoriteButton = PrefKey.bool("show_favorite_button", default = true)
     /**
      * [EDITOR_STUDIO], [EDITOR_BUILTIN] for the built-in editor, or the package

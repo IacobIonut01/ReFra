@@ -108,7 +108,6 @@ fun <T : Media> MediaViewQuickBottomBar(
     // User-arranged quick actions; each one is still gated by the item's capabilities.
     val actionBarConfig by rememberViewerActionBarConfig()
     val quickActions = remember(actionBarConfig) { actionBarConfig.sanitized().actions }
-    val showFavoriteButton by rememberPreference(SettingsKeys.showFavoriteButton)
     val trashEnabled by rememberPreference(SettingsKeys.trashEnabled)
     CompositionLocalProvider(LocalContentColor provides contentColor) {
     if (currentMedia != null) {
@@ -160,9 +159,7 @@ fun <T : Media> MediaViewQuickBottomBar(
                                 onCopyToClipboard = onCopyToClipboard
                             )
                         }
-                        ViewerQuickAction.FAVORITE -> if (
-                            showFavoriteButton && capabilities.favorite
-                        ) {
+                        ViewerQuickAction.FAVORITE -> if (capabilities.favorite) {
                             FavoriteButton(
                                 media = currentMedia,
                                 isFavorite = isFavorite,

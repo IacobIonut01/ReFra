@@ -75,7 +75,6 @@ import com.dot.gallery.feature.help.generated.resources.settings_trash_confirmat
 import com.dot.gallery.feature.help.generated.resources.settings_trash_title
 import com.dot.gallery.feature.help.generated.resources.shared_elements
 import com.dot.gallery.feature.help.generated.resources.show_date_header
-import com.dot.gallery.feature.help.generated.resources.show_favorite_button
 import com.dot.gallery.feature.help.generated.resources.show_selection_titles
 import com.dot.gallery.feature.help.generated.resources.slideshow_include_gifs
 import com.dot.gallery.feature.help.generated.resources.slideshow_include_videos
@@ -233,7 +232,6 @@ object HelpSearchIndex {
             // Media viewer
             Toggle(Res.string.full_brightness_view_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.show_date_header, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
-            Toggle(Res.string.show_favorite_button, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.default_image_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.default_video_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.disable_smoothing_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),

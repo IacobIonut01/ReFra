@@ -67,6 +67,7 @@ import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.presentation.components.util.OnLifecycleEvent
 import com.dot.gallery.core.presentation.components.util.permissionGranted
 import com.dot.gallery.core.startup.rememberStartupDestination
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.toggleNavigationBar
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.MediaState
@@ -1397,7 +1398,7 @@ fun NavigationComp(
                 SettingsSelectionActionsContent()
             }
             composable(Screen.SettingsViewerActionsScreen()) {
-                SettingsViewerActionsContent()
+                SettingsViewerActionsContent(supportsFavorites = SdkCompat.supportsFavorites)
             }
             composable(Screen.SlideshowSettingsScreen()) {
                 SlideshowSettingsScreen()

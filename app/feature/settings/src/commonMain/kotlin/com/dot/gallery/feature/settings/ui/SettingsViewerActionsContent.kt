@@ -50,21 +50,14 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.core.Position
-import com.dot.gallery.core.SettingsEntity
-import com.dot.gallery.core.ui.components.SettingsItem
 import com.dot.gallery.core.ui.components.settingsFocusGroup
 import com.dot.gallery.core.ui.mediaview.ViewerActionBarConfig
 import com.dot.gallery.core.ui.mediaview.ViewerQuickAction
 import com.dot.gallery.core.ui.mediaview.rememberViewerActionBarConfig
-import com.dot.gallery.core.ui.settings.rememberPreference
-import com.dot.gallery.domain.settings.SettingsKeys
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.settings.generated.resources.Res
 import com.dot.gallery.feature.settings.generated.resources.minimum_one_action
 import com.dot.gallery.feature.settings.generated.resources.reset_to_defaults
-import com.dot.gallery.feature.settings.generated.resources.show_favorite_button
-import com.dot.gallery.feature.settings.generated.resources.show_favorite_button_summary
 import com.dot.gallery.feature.settings.generated.resources.viewer_action_bar
 import com.dot.gallery.feature.settings.generated.resources.viewer_actions_description
 import com.dot.gallery.feature.settings.generated.resources.viewer_actions_list_header
@@ -80,10 +73,14 @@ import dev.chrisbanes.haze.hazeSource
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsViewerActionsContent() {
+fun SettingsViewerActionsContent(supportsFavorites: Boolean = true) {
     var config by rememberViewerActionBarConfig()
     val sanitizedConfig = remember(config) { config.sanitized() }
-    var showFavoriteButton by rememberPreference(SettingsKeys.showFavoriteButton)
+    // Favorite needs MediaStore favorites (API 30+); on older devices it is neither
+    // listed nor offered, so it cannot be configured.
+    val displayActions = remember(sanitizedConfig, supportsFavorites) {
+        sanitizedConfig.actions.filter { supportsFavorites || it != ViewerQuickAction.FAVORITE }
+    }
 
     val listState = rememberLazyListState()
 
@@ -98,7 +95,7 @@ fun SettingsViewerActionsContent() {
     val itemHeightPx = remember(density) { with(density) { 72.dp.toPx() } }
 
     fun moveAction(from: Int, to: Int) {
-        val list = sanitizedConfig.actions.toMutableList()
+        val list = displayActions.toMutableList()
         val item = list.removeAt(from)
         list.add(to, item)
         config = config.copy(actions = list)
@@ -128,8 +125,7 @@ fun SettingsViewerActionsContent() {
             // ── Live Preview ──
             item(key = "preview") {
                 ViewerActionBarPreview(
-                    config = sanitizedConfig,
-                    showFavoriteButton = showFavoriteButton,
+                    actions = displayActions,
                     modifier = Modifier
                         .widthIn(max = 600.dp)
                         .fillMaxWidth()
@@ -176,23 +172,6 @@ fun SettingsViewerActionsContent() {
                 }
             }
 
-            // ── Favorite master switch ──
-            item(key = "favorite_switch") {
-                SettingsItem(
-                    item = SettingsEntity.SwitchPreference(
-                        title = stringResource(Res.string.show_favorite_button),
-                        summary = stringResource(Res.string.show_favorite_button_summary),
-                        isChecked = showFavoriteButton,
-                        onCheck = { showFavoriteButton = it },
-                        screenPosition = Position.Alone
-                    ),
-                    modifier = Modifier
-                        .widthIn(max = 600.dp)
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                )
-            }
-
             // ── Actions header ──
             item(key = "actions_header") {
                 ActionEditorSectionHeader(
@@ -207,10 +186,10 @@ fun SettingsViewerActionsContent() {
 
             // ── Actions list ──
             itemsIndexed(
-                items = sanitizedConfig.actions,
+                items = displayActions,
                 key = { _, action -> "viewer_${action.name}" }
             ) { index, action ->
-                val position = actionEditorPosition(index, sanitizedConfig.actions.size)
+                val position = actionEditorPosition(index, displayActions.size)
                 val isDragged = draggingIndex == index
                 ActionEditorListItem(
                     entry = ActionEditorEntry(
@@ -220,7 +199,7 @@ fun SettingsViewerActionsContent() {
                     ),
                     position = position,
                     isLocked = false,
-                    canRemove = sanitizedConfig.actions.size > 1,
+                    canRemove = displayActions.size > 1,
                     isDragging = isDragged,
                     dragOffset = if (isDragged) dragOffsetY else 0f,
                     onDragStart = {
@@ -233,7 +212,7 @@ fun SettingsViewerActionsContent() {
                             dragOffsetY += delta
                             val swapThreshold = itemHeightPx * 0.5f
                             if (dragOffsetY > swapThreshold &&
-                                draggingIndex < sanitizedConfig.actions.lastIndex
+                                draggingIndex < displayActions.lastIndex
                             ) {
                                 moveAction(draggingIndex, draggingIndex + 1)
                                 draggingIndex++
@@ -254,13 +233,13 @@ fun SettingsViewerActionsContent() {
                     onMoveUp = if (index > 0) {
                         { moveAction(index, index - 1) }
                     } else null,
-                    onMoveDown = if (index < sanitizedConfig.actions.lastIndex) {
+                    onMoveDown = if (index < displayActions.lastIndex) {
                         { moveAction(index, index + 1) }
                     } else null,
                     onRemove = {
-                        if (sanitizedConfig.actions.size > 1) {
+                        if (displayActions.size > 1) {
                             config = config.copy(
-                                actions = sanitizedConfig.actions
+                                actions = displayActions
                                     .toMutableList()
                                     .apply { removeAt(index) }
                             )
@@ -274,9 +253,10 @@ fun SettingsViewerActionsContent() {
 
             // ── Add action ──
             item(key = "add_action") {
-                val available = remember(sanitizedConfig) {
+                val available = remember(displayActions, supportsFavorites) {
                     ViewerQuickAction.entries
-                        .filter { it !in sanitizedConfig.actions }
+                        .filter { supportsFavorites || it != ViewerQuickAction.FAVORITE }
+                        .filter { it !in displayActions }
                 }
                 if (available.isNotEmpty()) {
                     ActionEditorAddButton(
@@ -293,8 +273,10 @@ fun SettingsViewerActionsContent() {
     }
 
     if (showAddSheet) {
-        val available = remember(sanitizedConfig) {
-            ViewerQuickAction.entries.filter { it !in sanitizedConfig.actions }
+        val available = remember(displayActions, supportsFavorites) {
+            ViewerQuickAction.entries
+                .filter { supportsFavorites || it != ViewerQuickAction.FAVORITE }
+                .filter { it !in displayActions }
         }
         ActionEditorAddSheet(
             actions = available,
@@ -321,15 +303,9 @@ fun SettingsViewerActionsContent() {
  */
 @Composable
 private fun ViewerActionBarPreview(
-    config: ViewerActionBarConfig,
-    showFavoriteButton: Boolean,
+    actions: List<ViewerQuickAction>,
     modifier: Modifier = Modifier,
 ) {
-    val actions = remember(config, showFavoriteButton) {
-        config.sanitized().actions.filter {
-            it != ViewerQuickAction.FAVORITE || showFavoriteButton
-        }
-    }
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))

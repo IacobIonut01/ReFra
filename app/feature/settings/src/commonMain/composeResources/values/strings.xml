@@ -536,9 +536,6 @@
     <string name="show_date_header">Show Media Date Header</string>
     <string name="show_date_header_description">Displays the date and time of the current photo at the top of the media viewer screen.</string>
     <string name="show_date_header_summary">Show the media date in the media view top bar header.</string>
-    <string name="show_favorite_button">Favorite button in viewer</string>
-    <string name="show_favorite_button_description">Shows a heart button in the media viewer toolbar, allowing you to quickly add or remove the current photo from your favorites.</string>
-    <string name="show_favorite_button_summary">Show the favorite toggle button in the media viewer</string>
     <string name="slideshow_settings_summary">Interval, transitions, shuffle and more</string>
     <string name="tap_sides_to_navigate_description">When enabled, tap the left or right side of an unzoomed photo or video to move through the viewer instantly. Tap the center to show or hide controls. Side taps take priority over video seeking; panoramas, slideshows, and locked or standalone viewers keep their existing gestures.</string>
     <string name="tap_sides_to_navigate_summary">Tap either side of a photo or video to open the previous or next item</string>

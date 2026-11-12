@@ -122,6 +122,18 @@ data class ViewerActionBarConfig(
         return if (cleaned.isEmpty()) ViewerActionBarConfig() else ViewerActionBarConfig(cleaned)
     }
 
+    /**
+     * Retired `show_favorite_button` switch migration: users who had it off keep the
+     * favorite action out of their bar. A bar that would be left empty falls back to the
+     * defaults minus favorite so [sanitized] cannot resurrect it.
+     */
+    fun withoutFavorite(): ViewerActionBarConfig {
+        val cleaned = sanitized().actions - ViewerQuickAction.FAVORITE
+        return ViewerActionBarConfig(
+            actions = cleaned.ifEmpty { DEFAULT_ACTIONS - ViewerQuickAction.FAVORITE }
+        )
+    }
+
     companion object {
         val DEFAULT_ACTIONS = listOf(
             ViewerQuickAction.SHARE,

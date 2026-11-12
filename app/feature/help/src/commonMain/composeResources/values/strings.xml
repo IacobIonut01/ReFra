@@ -1515,7 +1515,6 @@
     <string name="help_tip_advanced_developer_p1_s4">Copy, share a zip, or report via GitHub</string>
     <!-- General settings/app strings referenced by the help search index -->
     <string name="change_app_name">App name</string>
-    <string name="show_favorite_button">Favorite button in viewer</string>
     <string name="default_image_editor">Default image editor</string>
     <string name="default_video_editor">Default video editor</string>
     <string name="settings_title">Settings</string>

@@ -133,7 +133,6 @@ import com.dot.gallery.feature.albums.ui.collections.CollectionViewModel
 import com.dot.gallery.feature.vault.privatefolder.PrivateFolderMoveViewModel
 import com.dot.gallery.feature.vault.VaultViewModel
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
-import com.dot.gallery.core.Settings.Misc.rememberShowFavoriteButton
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.domain.util.isCloud
 import com.dot.gallery.app.presentation.exif.CopyMediaSheet
@@ -376,7 +375,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         }
         base
     }
-    val showFavoriteButton by rememberShowFavoriteButton()
+    val supportsFavorites = SdkCompat.supportsFavorites
     val trashEnabled by rememberTrashEnabled()
     val effectiveTrashAction = resolveTrashDialogAction(
         trashRequested = shouldMoveToTrash,
@@ -475,7 +474,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                 }
             }
             // Favorite — only when every selected item's provider supports server favorites.
-            if (cloudActionCapabilities.favorite && showFavoriteButton) {
+            if (cloudActionCapabilities.favorite) {
                 SelectionBarColumn(
                     imageVector = SelectionAction.FAVORITE.icon,
                     title = resStringResource(SelectionAction.FAVORITE.labelRes)
@@ -534,7 +533,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                 }
             }
         } else sanitizedConfig.bottomActions.forEach { action ->
-            val isVisible = isActionVisible(action, collectionId, showFavoriteButton, isInVault)
+            val isVisible = isActionVisible(action, collectionId, supportsFavorites, isInVault)
             if (isVisible) {
                 when (action) {
                     SelectionAction.SHARE -> {
@@ -931,7 +930,7 @@ fun <T : Media> BoxScope.SelectionSheet(
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     // Middle actions — full-width pill buttons
                     sanitizedConfig.middleActions.forEach { action ->
-                        val isVisible = isActionVisible(action, collectionId, showFavoriteButton, isInVault)
+                        val isVisible = isActionVisible(action, collectionId, supportsFavorites, isInVault)
                         if (isVisible) {
                             when (action) {
                                 SelectionAction.COLLECTION -> {
@@ -1435,7 +1434,7 @@ fun <T : Media> BoxScope.SelectionSheet(
 private fun isActionVisible(
     action: SelectionAction,
     collectionId: Long?,
-    showFavoriteButton: Boolean,
+    supportsFavorites: Boolean,
     isInVault: Boolean = false,
 ): Boolean {
     if (isInVault) {
@@ -1450,7 +1449,7 @@ private fun isActionVisible(
     }
     return when (action.requiresCondition) {
         ActionCondition.NONE -> true
-        ActionCondition.SUPPORTS_FAVORITES -> showFavoriteButton
+        ActionCondition.SUPPORTS_FAVORITES -> supportsFavorites
         ActionCondition.IN_COLLECTION -> collectionId != null
     }
 }

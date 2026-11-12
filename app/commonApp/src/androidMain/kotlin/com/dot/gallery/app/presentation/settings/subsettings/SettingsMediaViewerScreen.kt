@@ -30,7 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
@@ -123,7 +122,6 @@ fun SettingsMediaViewerScreen(
     val state = remember(context) {
         SettingsMediaViewerState(
             hdrDisplayCapable = HdrCapabilities.isHdrDisplay(context),
-            supportsFavorites = SdkCompat.supportsFavorites,
             surfaceRebindDefault = SdkCompat.isSamsung,
             editApps = rawEditApps.map {
                 EditAppEntry(
@@ -144,7 +142,6 @@ fun SettingsMediaViewerScreen(
         MediaViewerPreviews(
             dateHeader = { DateHeaderPreview(it) },
             tapNavigation = { TapNavigationPreview(enabled = it) },
-            favoriteButton = { FavoriteButtonPreview(it) },
             editor = { current, _ -> EditorPreview(current, rawEditApps) },
             smoothing = { SmoothingPreview(disableSmoothing = it) },
             visualSearch = { enabled, icon, position ->
@@ -312,74 +309,6 @@ private fun DateHeaderPreview(isChecked: Boolean) {
                     tint = contentColor,
                     modifier = Modifier.height(48.dp)
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun FavoriteButtonPreview(isChecked: Boolean) {
-    val iconTint = MaterialTheme.colorScheme.onSurface
-    val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(128.dp)
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(12.dp))
-    ) {
-        Image(
-            painter = painterResource(Res.drawable.image_sample_2),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(8.dp),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Color.Black.copy(alpha = 0.1f))
-        )
-        // Bottom floating action pill matching MediaViewQuickBottomBar
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 12.dp)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(100))
-                    .background(surfaceContainer.copy(alpha = 0.85f))
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                // Share
-                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Share, null, Modifier.size(18.dp), tint = iconTint)
-                }
-                // Copy to Clipboard
-                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.ContentCopy, null, Modifier.size(18.dp), tint = iconTint)
-                }
-                // Favorite (conditionally shown based on setting)
-                if (isChecked) {
-                    Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Filled.Favorite, null, Modifier.size(18.dp), tint = iconTint)
-                    }
-                }
-                // Edit
-                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp), tint = iconTint)
-                }
-                // Trash
-                Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.DeleteOutline, null, Modifier.size(18.dp), tint = iconTint)
-                }
             }
         }
     }

@@ -1246,10 +1246,6 @@ object Settings {
             rememberPreference(SettingsKeys.favoriteIconPosition)
 
         @Composable
-        fun rememberShowFavoriteButton() =
-            rememberPreference(SettingsKeys.showFavoriteButton)
-
-        @Composable
         fun rememberVisualSearchEnabled() =
             rememberPreference(SettingsKeys.visualSearchEnabled)
 

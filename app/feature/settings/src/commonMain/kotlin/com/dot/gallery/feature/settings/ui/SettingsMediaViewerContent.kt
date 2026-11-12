@@ -13,7 +13,6 @@ import androidx.compose.material.icons.outlined.BrightnessHigh
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Grain
 import androidx.compose.material.icons.outlined.HdrOn
 import androidx.compose.material.icons.outlined.HighQuality
@@ -152,9 +151,6 @@ import com.dot.gallery.feature.settings.generated.resources.settings_media_viewe
 import com.dot.gallery.feature.settings.generated.resources.show_date_header
 import com.dot.gallery.feature.settings.generated.resources.show_date_header_description
 import com.dot.gallery.feature.settings.generated.resources.show_date_header_summary
-import com.dot.gallery.feature.settings.generated.resources.show_favorite_button
-import com.dot.gallery.feature.settings.generated.resources.show_favorite_button_description
-import com.dot.gallery.feature.settings.generated.resources.show_favorite_button_summary
 import com.dot.gallery.feature.settings.generated.resources.slideshow
 import com.dot.gallery.feature.settings.generated.resources.slideshow_settings_summary
 import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_description
@@ -201,7 +197,6 @@ import com.dot.gallery.feature.settings.generated.resources.visual_search_with
 private const val DETAIL_BRIGHTNESS = "brightness"
 private const val DETAIL_DATE_HEADER = "date_header"
 private const val DETAIL_TAP_NAVIGATION = "tap_navigation"
-private const val DETAIL_FAV_BUTTON = "fav_button"
 private const val DETAIL_EDITOR = "editor"
 private const val DETAIL_VIDEO_EDITOR = "video_editor"
 private const val DETAIL_AUTO_HIDE_VIDEO = "auto_hide_video"
@@ -226,7 +221,6 @@ fun SettingsMediaViewerContent(
     var fullBrightnessView by rememberPreference(SettingsKeys.fullBrightnessView)
     var showMediaDateHeader by rememberPreference(SettingsKeys.mediaViewDateHeader)
     var tapSidesToNavigate by rememberPreference(SettingsKeys.tapSidesToNavigate)
-    var showFavoriteButton by rememberPreference(SettingsKeys.showFavoriteButton)
     var defaultEditor by rememberPreference(SettingsKeys.defaultImageEditor)
     var imageEditorChoiceExplicit by rememberPreference(SettingsKeys.imageEditorChoiceExplicit)
     var defaultVideoEditor by rememberPreference(SettingsKeys.defaultVideoEditor)
@@ -287,17 +281,6 @@ fun SettingsMediaViewerContent(
                 preview = { checked -> previews.tapNavigation(checked) },
                 useColumnLayout = true,
                 previewBelowSwitch = true,
-            )
-        }
-        DETAIL_FAV_BUTTON -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.show_favorite_button),
-                isChecked = showFavoriteButton,
-                onCheckedChange = { showFavoriteButton = it },
-                description = stringResource(Res.string.show_favorite_button_description),
-                preview = { checked -> previews.favoriteButton(checked) },
-                useColumnLayout = true,
             )
         }
         DETAIL_EDITOR -> {
@@ -474,8 +457,6 @@ fun SettingsMediaViewerContent(
                 onDateHeaderChange = { showMediaDateHeader = it },
                 tapSidesToNavigate = tapSidesToNavigate,
                 onTapNavigationChange = onTapNavigationChange,
-                showFavoriteButton = showFavoriteButton,
-                onFavButtonChange = { showFavoriteButton = it },
                 defaultEditor = defaultEditor,
                 defaultVideoEditor = defaultVideoEditor,
                 disableSmoothing = disableSmoothing,
@@ -527,8 +508,6 @@ private fun MediaViewerListContent(
     onDateHeaderChange: (Boolean) -> Unit,
     tapSidesToNavigate: Boolean,
     onTapNavigationChange: (Boolean) -> Unit,
-    showFavoriteButton: Boolean,
-    onFavButtonChange: (Boolean) -> Unit,
     defaultEditor: String,
     defaultVideoEditor: String,
     disableSmoothing: Boolean,
@@ -598,17 +577,6 @@ private fun MediaViewerListContent(
             onCheck = onTapNavigationChange,
             onClick = { onDetailClick(DETAIL_TAP_NAVIGATION) },
             screenPosition = Position.Middle,
-        )
-
-        val showFavoriteButtonPref = rememberSwitchPreference(
-            showFavoriteButton,
-            title = stringResource(Res.string.show_favorite_button),
-            icon = Icons.Outlined.FavoriteBorder,
-            summary = stringResource(Res.string.show_favorite_button_summary),
-            isChecked = showFavoriteButton,
-            onCheck = onFavButtonChange,
-            onClick = { onDetailClick(DETAIL_FAV_BUTTON) },
-            screenPosition = Position.Middle
         )
 
         val viewerActionBarTitle = stringResource(Res.string.viewer_action_bar)
@@ -823,7 +791,7 @@ private fun MediaViewerListContent(
 
         return remember(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
-            showFavoriteButtonPref, viewerActionBarPref, defaultEditorPref, disableSmoothingPref,
+            viewerActionBarPref, defaultEditorPref, disableSmoothingPref,
             darkMediaViewerPref,
             longPressActionPref,
             visualSearchPref, slideshowPref,
@@ -836,9 +804,6 @@ private fun MediaViewerListContent(
                 add(fullBrightnessViewPref)
                 add(showMediaDateHeaderPref)
                 add(tapNavigationPref)
-                if (state.supportsFavorites) {
-                    add(showFavoriteButtonPref)
-                }
                 add(viewerActionBarPref)
                 add(defaultEditorPref)
                 add(defaultVideoEditorPref)
