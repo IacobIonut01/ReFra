@@ -184,7 +184,10 @@ object SettingsKeys {
     val allowGifAnimation = PrefKey.bool("allow_gif_animation", default = true)
     val showFilterButton = PrefKey.bool("show_filter_button", default = true)
     val showSearchBarFavButton = PrefKey.bool("show_searchbar_favorite_button", default = true)
+    /** The old on/off Favorites shortcut; read only to resolve an unset [homeShortcut]. */
     val showHomeFavoritesButton = PrefKey.bool("show_home_favorites_button", default = true)
+    /** `HomeShortcut.storedValue` of the Timeline shortcut slot; empty until first chosen. */
+    val homeShortcut = PrefKey.string("home_shortcut", default = "")
     val showHomeSelectButton = PrefKey.bool("show_home_select_button", default = true)
     val favoriteIconPosition = PrefKey.string("favorite_icon_position", default = FAV_ICON_BOTTOM_END)
     val albumGroupByDate = PrefKey.bool("album_group_by_date", default = true)

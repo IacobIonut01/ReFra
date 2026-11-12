@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.navigate
+import com.dot.gallery.core.presentation.components.HomeShortcutSupport
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.workers.enqueueCaptureTimeIndex
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsActions
@@ -49,6 +50,10 @@ fun SettingsTimelineAlbumsScreen() {
     SettingsTimelineAlbumsContent(
         state = SettingsTimelineAlbumsState(
             supportsFavorites = SdkCompat.supportsFavorites,
+            homeShortcutSupport = HomeShortcutSupport(
+                favorites = SdkCompat.supportsFavorites,
+                trash = SdkCompat.supportsTrash,
+            ),
             albumSections = sections,
             albumCountBySection = albumCountBySection,
         ),

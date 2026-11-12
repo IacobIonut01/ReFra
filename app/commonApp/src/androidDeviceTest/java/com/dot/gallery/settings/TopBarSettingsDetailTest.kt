@@ -11,6 +11,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -21,8 +22,12 @@ import androidx.test.filters.MediumTest
 import com.dot.gallery.app.presentation.util.PreviewHost
 import com.dot.gallery.core.ui.settings.LocalSettingsStore
 import com.dot.gallery.domain.settings.MapSettingsStore
+import com.dot.gallery.core.presentation.components.HomeShortcut
+import com.dot.gallery.core.presentation.components.HomeShortcutSupport
+import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.feature.settings.ui.TopBarPreviewTag
 import com.dot.gallery.feature.settings.ui.TopBarSettingsDetail
+import com.dot.gallery.feature.settings.ui.topBarShortcutTag
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -43,10 +48,10 @@ class TopBarSettingsDetailTest {
 
     private val store = MapSettingsStore()
 
-    private fun show(supportsFavorites: Boolean = true) {
+    private fun show(support: HomeShortcutSupport = HomeShortcutSupport()) {
         rule.setContent {
             CompositionLocalProvider(LocalSettingsStore provides store) {
-                PreviewHost { TopBarSettingsDetail(supportsFavorites = supportsFavorites) }
+                PreviewHost { TopBarSettingsDetail(support = support) }
             }
         }
     }
@@ -95,9 +100,40 @@ class TopBarSettingsDetailTest {
 
     @Test
     fun favoritesIsNotOfferedWithoutPlatformSupport() {
-        show(supportsFavorites = false)
+        show(HomeShortcutSupport(favorites = false))
 
         rule.onAllNodesWithText("Favorites").assertCountEquals(0)
         previewShows("Select, Sort and filter")
+    }
+
+    @Test
+    fun choosingAShortcutUpdatesThePreviewAndTheSetting() {
+        show()
+
+        rule.onNodeWithTag(topBarShortcutTag(HomeShortcut.TRASH)).performScrollTo().performClick()
+
+        previewShows("Select, Trash, Sort and filter")
+        assertEquals("trash", stored("home_shortcut"))
+
+        rule.onNodeWithTag(topBarShortcutTag(HomeShortcut.NONE)).performScrollTo().performClick()
+
+        previewShows("Select, Sort and filter")
+        assertEquals("none", stored("home_shortcut"))
+    }
+
+    @Test
+    fun turnedOffFavoritesButtonMigratesToNoShortcut() {
+        store.seed(SettingsKeys.showHomeFavoritesButton to false)
+        show()
+
+        previewShows("Select, Sort and filter")
+    }
+
+    @Test
+    fun unsupportedShortcutsAreNotOffered() {
+        show(HomeShortcutSupport(trash = false))
+
+        rule.onAllNodesWithTag(topBarShortcutTag(HomeShortcut.TRASH)).assertCountEquals(0)
+        rule.onNodeWithTag(topBarShortcutTag(HomeShortcut.VAULT)).assertExists()
     }
 }

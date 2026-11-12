@@ -129,6 +129,7 @@ object PortableBackupSettings {
         "app_name_alias",
         "app_logo_alias",
         "favorite_icon_position",
+        "home_shortcut",
         "timeline_group_method",
         "albums_group_method",
         "favorites_group_method",

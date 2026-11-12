@@ -117,6 +117,7 @@ import com.dot.gallery.feature.settings.ui.SettingsSelectionActionsContent
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsActions
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsContent
 import com.dot.gallery.feature.settings.ui.TopBarSettingsDetail
+import com.dot.gallery.core.presentation.components.HomeShortcutSupport
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsState
 import com.dot.gallery.feature.settings.ui.SettingsNavigationContent
 import com.dot.gallery.feature.settings.ui.SettingsNavigationState
@@ -483,7 +484,7 @@ val sceneRegistry: List<DocsScene> = listOf(
         pathTrace = listOf("Settings", "Timeline & albums", "Top bar"),
         states = listOf("default", "selecting"),
     ) { state ->
-        TopBarSettingsDetail(supportsFavorites = true, initialPreviewSelecting = state == "selecting")
+        TopBarSettingsDetail(support = HomeShortcutSupport(), initialPreviewSelecting = state == "selecting")
     },
     DocsScene(
         id = "settings-media-viewer",

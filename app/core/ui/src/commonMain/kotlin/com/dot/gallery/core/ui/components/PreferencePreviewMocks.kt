@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
@@ -38,10 +37,16 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
 import com.dot.gallery.core.presentation.components.GalleryHomeAction
 import com.dot.gallery.core.presentation.components.GalleryHomeTopBar
+import com.dot.gallery.core.presentation.components.HomeShortcut
 import com.dot.gallery.core.presentation.components.HomeShortcutVisibility
+import com.dot.gallery.core.presentation.components.icon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -204,7 +209,7 @@ fun MiniHomeScreen(
 /**
  * The top of the Timeline home at full size, drawn by the real [GalleryHomeTopBar] so buttons
  * grow and shrink in place exactly as they do on Timeline, over the tops of the highlight
- * cards. [shortcuts] decides Select, Favorites and Search; [showFilter] the sort and filter
+ * cards. [shortcuts] decides Select, the shortcut slot and Search; [showFilter] the sort and filter
  * button. It is a picture: touches are swallowed and accessibility reads only [description]
  * and [visibleButtons], the names of the buttons it currently shows.
  */
@@ -217,6 +222,9 @@ fun PreviewHomeTopBar(
     modifier: Modifier = Modifier,
 ) {
     val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    // Keep the last shown shortcut so the slot keeps its icon while it shrinks away.
+    var lastShortcut by remember { mutableStateOf(HomeShortcut.FAVORITES) }
+    shortcuts.shortcut?.let { lastShortcut = it }
     Box(
         modifier = modifier.fillMaxWidth().clearAndSetSemantics {
             contentDescription = description
@@ -240,7 +248,7 @@ fun PreviewHomeTopBar(
                         "",
                         shortcuts.select,
                     ) {},
-                    GalleryHomeAction("favorites", Icons.Outlined.FavoriteBorder, "", shortcuts.favorites) {},
+                    GalleryHomeAction("shortcut", lastShortcut.icon, "", shortcuts.shortcut != null) {},
                     GalleryHomeAction("search", Icons.Outlined.Search, "", shortcuts.search) {},
                 ),
                 filter = if (showFilter) {

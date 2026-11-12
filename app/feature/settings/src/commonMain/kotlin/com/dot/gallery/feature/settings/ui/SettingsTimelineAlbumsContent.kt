@@ -237,7 +237,6 @@ import com.dot.gallery.feature.settings.generated.resources.section_type_custom
 import com.dot.gallery.feature.settings.generated.resources.section_type_uncategorized
 import com.dot.gallery.feature.settings.generated.resources.settings_display_header
 import com.dot.gallery.feature.settings.generated.resources.settings_timeline_albums
-import com.dot.gallery.feature.settings.generated.resources.top_bar_favorites
 import com.dot.gallery.feature.settings.generated.resources.top_bar_filter
 import com.dot.gallery.feature.settings.generated.resources.top_bar_select
 import com.dot.gallery.feature.settings.generated.resources.top_bar_settings
@@ -269,6 +268,9 @@ import com.dot.gallery.feature.settings.generated.resources.timeline_order_descr
 import com.dot.gallery.feature.settings.generated.resources.update_modified_date_summary
 import com.dot.gallery.feature.settings.generated.resources.update_modified_date_title
 import com.dot.gallery.core.presentation.components.GalleryPageTopBar
+import com.dot.gallery.core.presentation.components.HomeShortcut
+import com.dot.gallery.core.presentation.components.label
+import com.dot.gallery.core.presentation.components.rememberHomeShortcut
 import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.hazeSource
@@ -311,7 +313,7 @@ fun SettingsTimelineAlbumsContent(
     var groupCloudLocal by rememberPreference(SettingsKeys.groupCloudLocal)
     var allowGifAnimation by rememberPreference(SettingsKeys.allowGifAnimation)
     val showFilterButton by rememberPreference(SettingsKeys.showFilterButton)
-    val showFavoritesButton by rememberPreference(SettingsKeys.showHomeFavoritesButton)
+    val homeShortcut = rememberHomeShortcut()
     val showSelectButton by rememberPreference(SettingsKeys.showHomeSelectButton)
     var dateHeaderAlbums by rememberPreference(SettingsKeys.albumGroupByDate)
     var mergeAlbumsByName by rememberPreference(SettingsKeys.mergeAlbumsByName)
@@ -437,7 +439,7 @@ fun SettingsTimelineAlbumsContent(
         }
         DETAIL_TOP_BAR -> {
             BackHandler { detailKey = null }
-            TopBarSettingsDetail(supportsFavorites = state.supportsFavorites)
+            TopBarSettingsDetail(support = state.homeShortcutSupport)
         }
         DETAIL_MERGE_ALBUMS -> {
             BackHandler { detailKey = null }
@@ -627,7 +629,7 @@ fun SettingsTimelineAlbumsContent(
                 allowGifAnimation = allowGifAnimation,
                 onGifAnimationChange = { allowGifAnimation = it },
                 showFilterButton = showFilterButton,
-                showFavoritesButton = showFavoritesButton,
+                homeShortcut = homeShortcut,
                 showSelectButton = showSelectButton,
                 mergeAlbumsByName = mergeAlbumsByName,
                 onMergeAlbumsChange = { mergeAlbumsByName = it },
@@ -669,7 +671,7 @@ private fun TimelineAlbumsListContent(
     allowGifAnimation: Boolean,
     onGifAnimationChange: (Boolean) -> Unit,
     showFilterButton: Boolean,
-    showFavoritesButton: Boolean,
+    homeShortcut: HomeShortcut,
     showSelectButton: Boolean,
     mergeAlbumsByName: Boolean,
     onMergeAlbumsChange: (Boolean) -> Unit,
@@ -815,7 +817,7 @@ private fun TimelineAlbumsListContent(
         val topBarSummary = topBarButtonsSummary(
             listOfNotNull(
                 stringResource(Res.string.top_bar_select).takeIf { showSelectButton },
-                stringResource(Res.string.top_bar_favorites).takeIf { showFavoritesButton && state.supportsFavorites },
+                homeShortcut.takeIf { it != HomeShortcut.NONE && state.homeShortcutSupport.supports(it) }?.label(),
                 stringResource(Res.string.top_bar_filter).takeIf { showFilterButton },
             ),
             none = stringResource(Res.string.top_bar_summary_none),

@@ -106,6 +106,10 @@
     <string name="video">Video</string>
     <string name="collecting_metadata">Collecting metadata…</string>
     <string name="search">Search</string>
+    <string name="home_shortcut_favorites">Favorites</string>
+    <string name="home_shortcut_trash">Trash</string>
+    <string name="home_shortcut_vault">Vault</string>
+    <string name="home_shortcut_none">None</string>
     <string name="search_media">Search media</string>
     <string name="gallery_pane_resize">Resize gallery and viewer panes</string>
     <string name="gallery_pane_resize_state">Gallery uses %1$d% of the width</string>

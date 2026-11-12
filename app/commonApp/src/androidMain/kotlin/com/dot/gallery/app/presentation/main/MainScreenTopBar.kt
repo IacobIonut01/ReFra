@@ -65,18 +65,23 @@ import com.dot.gallery.app.presentation.timeline.components.timelineBackupProgre
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Search
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.GalleryHomeAction
 import com.dot.gallery.core.presentation.components.GalleryHomeTopBar
+import com.dot.gallery.core.presentation.components.HomeShortcut
+import com.dot.gallery.core.presentation.components.HomeShortcutSupport
 import com.dot.gallery.core.presentation.components.homeShortcutVisibility
+import com.dot.gallery.core.presentation.components.icon
+import com.dot.gallery.core.presentation.components.label
+import com.dot.gallery.core.presentation.components.rememberHomeShortcut
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.ui.generated.resources.Res as UiRes
 import com.dot.gallery.core.ui.generated.resources.search
-import com.dot.gallery.generated.resources.favorites
 import com.dot.gallery.generated.resources.select
 import com.dot.gallery.generated.resources.selection_dialog_close_cd
 import com.dot.gallery.core.presentation.components.OptionItem
@@ -107,12 +112,13 @@ const val TimelineBackupProgressTag = "Timeline.BackupProgress"
 const val TimelineBackupTrackTag = "Timeline.BackupTrack"
 const val TimelineBackupCollapseTag = "Timeline.BackupCollapse"
 const val HomeActionSelect = "select"
-const val HomeActionFavorites = "favorites"
+const val HomeActionShortcut = "shortcut"
 const val HomeActionSearch = "search"
 
 /**
- * [timelineShortcuts] adds the Select and Favorites buttons, which only make sense on the
- * Timeline. Each can be turned off in Settings › Timeline & albums › Top bar. While a
+ * [timelineShortcuts] adds the Select button and the configurable shortcut (Favorites by
+ * default), which only make sense on the Timeline. Both are set in Settings › Timeline &
+ * albums › Top bar. While a
  * selection is active, Select turns into the button that closes it.
  */
 @Composable
@@ -126,15 +132,20 @@ fun MainScreenTopBar(
     val eventHandler = LocalEventHandler.current
     val selector = LocalMediaSelector.current
     val selectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()
-    val showFavorites by rememberPreference(SettingsKeys.showHomeFavoritesButton)
     val showSelect by rememberPreference(SettingsKeys.showHomeSelectButton)
     val shortcuts = homeShortcutVisibility(
         timelineShortcuts = timelineShortcuts,
         selectionActive = selectionActive,
-        supportsFavorites = SdkCompat.supportsFavorites,
-        showFavorites = showFavorites,
+        support = HomeShortcutSupport(
+            favorites = SdkCompat.supportsFavorites,
+            trash = SdkCompat.supportsTrash,
+        ),
+        shortcut = rememberHomeShortcut(),
         showSelect = showSelect,
     )
+    // Keep the last shown shortcut so the slot keeps its icon while it shrinks away.
+    var lastShortcut by remember { mutableStateOf(HomeShortcut.FAVORITES) }
+    shortcuts.shortcut?.let { lastShortcut = it }
     val actions = listOf(
         // Select stays in place during a selection and becomes its Close button.
         GalleryHomeAction(
@@ -147,11 +158,18 @@ fun MainScreenTopBar(
             onClick = if (shortcuts.selectCloses) selector::clearSelection else selector::startSelection,
         ),
         GalleryHomeAction(
-            key = HomeActionFavorites,
-            icon = Icons.Outlined.FavoriteBorder,
-            contentDescription = stringResource(Res.string.favorites),
-            visible = shortcuts.favorites,
-            onClick = { eventHandler.navigate(Screen.FavoriteScreen()) },
+            key = HomeActionShortcut,
+            icon = lastShortcut.icon,
+            contentDescription = lastShortcut.label(),
+            visible = shortcuts.shortcut != null,
+            onClick = {
+                when (lastShortcut) {
+                    HomeShortcut.FAVORITES -> eventHandler.navigate(Screen.FavoriteScreen())
+                    HomeShortcut.TRASH -> eventHandler.navigate(Screen.TrashedScreen())
+                    HomeShortcut.VAULT -> eventHandler.navigate(Screen.VaultScreen())
+                    HomeShortcut.NONE -> Unit
+                }
+            },
         ),
         // Search keeps the selection, so more items can be found and added to it.
         GalleryHomeAction(
