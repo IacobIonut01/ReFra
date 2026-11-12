@@ -8,7 +8,6 @@ package com.dot.gallery.feature.library.ui
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -20,16 +19,6 @@ import kotlin.random.Random
 
 /** How much room the header has: phone column, full-width tablet column, or side pane. */
 enum class LibraryHeaderLayout { COMPACT, WIDE, SIDE_PANE }
-
-/** Which of Locations, People and Categories have something to show and are shown as tiles. */
-@Immutable
-data class LibrarySections(
-    val locations: Boolean,
-    val people: Boolean,
-    val categories: Boolean,
-) {
-    val count: Int get() = listOf(locations, people, categories).count { it }
-}
 
 /**
  * The layout each shortcut starts with. The retired Library switches for Locations, People and
