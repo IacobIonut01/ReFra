@@ -9,10 +9,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.dot.gallery.core.ui.generated.resources.Res
+import com.dot.gallery.core.ui.generated.resources.home_shortcut_camera
 import com.dot.gallery.core.ui.generated.resources.home_shortcut_favorites
 import com.dot.gallery.core.ui.generated.resources.home_shortcut_none
 import com.dot.gallery.core.ui.generated.resources.home_shortcut_trash
@@ -28,6 +30,7 @@ val HomeShortcut.icon: ImageVector
         HomeShortcut.FAVORITES -> Icons.Outlined.FavoriteBorder
         HomeShortcut.TRASH -> Icons.Outlined.DeleteOutline
         HomeShortcut.VAULT -> GalleryIcons.Encrypted
+        HomeShortcut.CAMERA -> Icons.Outlined.PhotoCamera
         HomeShortcut.NONE -> Icons.Outlined.Block
     }
 
@@ -37,6 +40,7 @@ fun HomeShortcut.label(): String = stringResource(
         HomeShortcut.FAVORITES -> Res.string.home_shortcut_favorites
         HomeShortcut.TRASH -> Res.string.home_shortcut_trash
         HomeShortcut.VAULT -> Res.string.home_shortcut_vault
+        HomeShortcut.CAMERA -> Res.string.home_shortcut_camera
         HomeShortcut.NONE -> Res.string.home_shortcut_none
     },
 )

@@ -18,6 +18,7 @@ import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.presentation.components.HomeShortcutSupport
 import com.dot.gallery.core.util.SdkCompat
+import com.dot.gallery.core.util.hasStillCamera
 import com.dot.gallery.core.workers.enqueueCaptureTimeIndex
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsActions
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsContent
@@ -53,6 +54,7 @@ fun SettingsTimelineAlbumsScreen() {
             homeShortcutSupport = HomeShortcutSupport(
                 favorites = SdkCompat.supportsFavorites,
                 trash = SdkCompat.supportsTrash,
+                camera = remember(context) { context.hasStillCamera() },
             ),
             albumSections = sections,
             albumCountBySection = albumCountBySection,

@@ -76,6 +76,10 @@
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="image/*" />
         </intent>
+        <!-- The Timeline Camera shortcut is offered only when a camera app handles this. -->
+        <intent>
+            <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+        </intent>
     </queries>
 
     <application

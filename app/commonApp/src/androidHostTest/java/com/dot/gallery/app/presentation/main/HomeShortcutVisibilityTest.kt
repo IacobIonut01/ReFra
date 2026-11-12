@@ -78,13 +78,26 @@ class HomeShortcutVisibilityTest {
     @Test
     fun settingsOfferOnlySupportedChoices() {
         assertEquals(
-            listOf(HomeShortcut.FAVORITES, HomeShortcut.TRASH, HomeShortcut.VAULT, HomeShortcut.NONE),
+            listOf(
+                HomeShortcut.FAVORITES, HomeShortcut.TRASH, HomeShortcut.VAULT,
+                HomeShortcut.CAMERA, HomeShortcut.NONE,
+            ),
             HomeShortcutSupport().choices,
         )
         assertEquals(
             listOf(HomeShortcut.VAULT, HomeShortcut.NONE),
-            HomeShortcutSupport(favorites = false, trash = false).choices,
+            HomeShortcutSupport(favorites = false, trash = false, camera = false).choices,
         )
+    }
+
+    @Test
+    fun cameraIsHiddenWithoutACameraApp() {
+        // Camera is offered only when something handles the still camera intent (issue #1430).
+        assertEquals(HomeShortcut.CAMERA, visibility(shortcut = HomeShortcut.CAMERA).shortcut)
+        assertNull(
+            visibility(support = HomeShortcutSupport(camera = false), shortcut = HomeShortcut.CAMERA).shortcut,
+        )
+        assertEquals(HomeShortcut.CAMERA, HomeShortcut.resolve("camera", legacyShowFavorites = true))
     }
 
     @Test

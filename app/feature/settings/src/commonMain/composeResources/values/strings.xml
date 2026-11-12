@@ -643,6 +643,7 @@
     <string name="top_bar_favorites_summary">Open your favorites in one tap</string>
     <string name="top_bar_shortcut_trash_summary">Open the trash in one tap</string>
     <string name="top_bar_shortcut_vault_summary">Open your vaults in one tap</string>
+    <string name="top_bar_shortcut_camera_summary">Open your camera app to take a photo</string>
     <string name="top_bar_shortcut_none_summary">Show no shortcut button</string>
     <string name="top_bar_filter">Sort and filter</string>
     <string name="top_bar_filter_summary">Order by date and filter by type, year or album</string>

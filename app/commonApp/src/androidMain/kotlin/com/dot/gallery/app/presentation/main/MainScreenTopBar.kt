@@ -80,6 +80,9 @@ import com.dot.gallery.core.presentation.components.rememberHomeShortcut
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.dot.gallery.core.util.SdkCompat
+import com.dot.gallery.core.util.hasStillCamera
+import com.dot.gallery.core.util.launchStillCamera
+import androidx.compose.ui.platform.LocalContext
 import com.dot.gallery.core.ui.generated.resources.Res as UiRes
 import com.dot.gallery.core.ui.generated.resources.search
 import com.dot.gallery.generated.resources.select
@@ -133,12 +136,15 @@ fun MainScreenTopBar(
     val selector = LocalMediaSelector.current
     val selectionActive by selector.isSelectionActive.collectAsStateWithLifecycle()
     val showSelect by rememberPreference(SettingsKeys.showHomeSelectButton)
+    val context = LocalContext.current
+    val hasCamera = remember(context) { context.hasStillCamera() }
     val shortcuts = homeShortcutVisibility(
         timelineShortcuts = timelineShortcuts,
         selectionActive = selectionActive,
         support = HomeShortcutSupport(
             favorites = SdkCompat.supportsFavorites,
             trash = SdkCompat.supportsTrash,
+            camera = hasCamera,
         ),
         shortcut = rememberHomeShortcut(),
         showSelect = showSelect,
@@ -167,6 +173,7 @@ fun MainScreenTopBar(
                     HomeShortcut.FAVORITES -> eventHandler.navigate(Screen.FavoriteScreen())
                     HomeShortcut.TRASH -> eventHandler.navigate(Screen.TrashedScreen())
                     HomeShortcut.VAULT -> eventHandler.navigate(Screen.VaultScreen())
+                    HomeShortcut.CAMERA -> context.launchStillCamera()
                     HomeShortcut.NONE -> Unit
                 }
             },

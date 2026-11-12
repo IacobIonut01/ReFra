@@ -10,6 +10,7 @@ enum class HomeShortcut(val storedValue: String) {
     FAVORITES("favorites"),
     TRASH("trash"),
     VAULT("vault"),
+    CAMERA("camera"),
     NONE("none");
 
     companion object {
@@ -23,16 +24,21 @@ enum class HomeShortcut(val storedValue: String) {
     }
 }
 
-/** Which [HomeShortcut]s this platform can open. [NONE] is always available. */
+/**
+ * Which [HomeShortcut]s this platform can open. [NONE] is always available; [camera] needs an
+ * installed app that opens the still camera.
+ */
 data class HomeShortcutSupport(
     val favorites: Boolean = true,
     val trash: Boolean = true,
     val vault: Boolean = true,
+    val camera: Boolean = true,
 ) {
     fun supports(shortcut: HomeShortcut) = when (shortcut) {
         HomeShortcut.FAVORITES -> favorites
         HomeShortcut.TRASH -> trash
         HomeShortcut.VAULT -> vault
+        HomeShortcut.CAMERA -> camera
         HomeShortcut.NONE -> true
     }
 

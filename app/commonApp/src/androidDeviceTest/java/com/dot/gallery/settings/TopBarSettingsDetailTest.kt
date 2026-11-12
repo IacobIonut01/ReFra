@@ -131,9 +131,20 @@ class TopBarSettingsDetailTest {
 
     @Test
     fun unsupportedShortcutsAreNotOffered() {
-        show(HomeShortcutSupport(trash = false))
+        show(HomeShortcutSupport(trash = false, camera = false))
 
         rule.onAllNodesWithTag(topBarShortcutTag(HomeShortcut.TRASH)).assertCountEquals(0)
+        rule.onAllNodesWithTag(topBarShortcutTag(HomeShortcut.CAMERA)).assertCountEquals(0)
         rule.onNodeWithTag(topBarShortcutTag(HomeShortcut.VAULT)).assertExists()
+    }
+
+    @Test
+    fun cameraCanBeChosenWhenACameraAppExists() {
+        show()
+
+        rule.onNodeWithTag(topBarShortcutTag(HomeShortcut.CAMERA)).performScrollTo().performClick()
+
+        previewShows("Select, Camera, Sort and filter")
+        assertEquals("camera", stored("home_shortcut"))
     }
 }

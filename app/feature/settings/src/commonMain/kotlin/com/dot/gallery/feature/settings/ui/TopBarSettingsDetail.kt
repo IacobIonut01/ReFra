@@ -49,6 +49,7 @@ import com.dot.gallery.feature.settings.generated.resources.top_bar_favorites_su
 import com.dot.gallery.feature.settings.generated.resources.top_bar_filter
 import com.dot.gallery.feature.settings.generated.resources.top_bar_filter_summary
 import com.dot.gallery.feature.settings.generated.resources.top_bar_footnote
+import com.dot.gallery.feature.settings.generated.resources.top_bar_shortcut_camera_summary
 import com.dot.gallery.feature.settings.generated.resources.top_bar_shortcut_header
 import com.dot.gallery.feature.settings.generated.resources.top_bar_shortcut_none_summary
 import com.dot.gallery.feature.settings.generated.resources.top_bar_shortcut_trash_summary
@@ -198,5 +199,6 @@ private val HomeShortcut.summaryRes: StringResource
         HomeShortcut.FAVORITES -> Res.string.top_bar_favorites_summary
         HomeShortcut.TRASH -> Res.string.top_bar_shortcut_trash_summary
         HomeShortcut.VAULT -> Res.string.top_bar_shortcut_vault_summary
+        HomeShortcut.CAMERA -> Res.string.top_bar_shortcut_camera_summary
         HomeShortcut.NONE -> Res.string.top_bar_shortcut_none_summary
     }
