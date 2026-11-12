@@ -15,7 +15,9 @@ import androidx.datastore.preferences.core.emptyPreferences
 import java.io.ByteArrayOutputStream
 import com.dot.gallery.core.metrics.StartupTracer
 import com.dot.gallery.core.logging.printDebug
+import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.core.logging.printWarning
+import kotlinx.coroutines.delay
 import okio.buffer
 import okio.sink
 import okio.source
@@ -121,23 +123,42 @@ class EncryptedPreferencesSerializer(context: Context) : Serializer<Preferences>
 
     companion object {
         /** Attempts per cipher operation; see [retryKeystoreOperation]. */
-        const val KEYSTORE_ATTEMPTS = 3
+        const val KEYSTORE_ATTEMPTS = 5
+
+        /** Pause before the second attempt; it doubles before each later one. */
+        const val KEYSTORE_RETRY_BASE_DELAY_MS = 20L
 
         /**
-         * Runs [block] again with a fresh cipher when Keystore fails it. Keystore prunes the
-         * oldest open operations of an app under load (`INVALID_OPERATION_HANDLE`, "Pruned"),
-         * which surfaces as an [GeneralSecurityException] from `doFinal`; a new operation then
-         * succeeds. Without the retry, a write throws out of DataStore and crashes the caller,
-         * and a read falls back to empty preferences.
+         * Runs [block] again with a fresh cipher when Keystore fails it. Keystore prunes open
+         * operations when KeyMint is out of slots (`INVALID_OPERATION_HANDLE`, "Pruned"), which
+         * surfaces as an [GeneralSecurityException] from `doFinal`. Each attempt holds
+         * [KeystoreOperations] so the app's other Keystore work cannot prune it, and the
+         * attempts back off ([pause]) so slots held by other processes can drain. A read that
+         * still fails falls back to empty preferences; a write rethrows to DataStore.
          */
-        fun <T> retryKeystoreOperation(name: String, block: () -> T): T {
+        suspend fun <T> retryKeystoreOperation(
+            name: String,
+            pause: suspend (Long) -> Unit = { delay(it) },
+            block: () -> T,
+        ): T {
             var attempt = 1
+            var backoff = KEYSTORE_RETRY_BASE_DELAY_MS
             while (true) {
                 try {
-                    return block()
+                    return KeystoreOperations.run(block)
                 } catch (e: GeneralSecurityException) {
                     if (attempt >= KEYSTORE_ATTEMPTS) throw e
-                    printWarning("EncryptedPreferencesSerializer: $name attempt $attempt failed, retrying: ${e.message}")
+                    printWarn(
+                        tag = "app.prefs",
+                        message = "Encrypted settings $name failed, retrying",
+                        ctx = mapOf(
+                            "attempt" to attempt.toString(),
+                            "backoffMs" to backoff.toString(),
+                            "exception" to "${e.javaClass.name}: ${e.message}",
+                        ),
+                    )
+                    pause(backoff)
+                    backoff *= 2
                     attempt++
                 }
             }

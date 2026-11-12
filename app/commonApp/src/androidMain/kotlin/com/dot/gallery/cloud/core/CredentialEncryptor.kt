@@ -14,6 +14,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
+import com.dot.gallery.core.encryption.KeystoreOperations
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.core.util.or
 import com.dot.gallery.core.logging.printError
@@ -51,11 +52,12 @@ class CredentialEncryptor @Inject constructor() {
 
     fun encrypt(plaintext: String): String {
         if (plaintext.isBlank()) return ""
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val iv = cipher.iv // 12 bytes for GCM
-        val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
-        val combined = iv + ciphertext
+        val combined = KeystoreOperations.run {
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+            val iv = cipher.iv // 12 bytes for GCM
+            iv + cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+        }
         return Base64.encodeToString(combined, Base64.NO_WRAP)
     }
 
@@ -73,9 +75,12 @@ class CredentialEncryptor @Inject constructor() {
             require(combined.size >= GCM_IV_LENGTH + GCM_TAG_LENGTH_BYTES)
             val iv = combined.copyOfRange(0, GCM_IV_LENGTH)
             val ciphertext = combined.copyOfRange(GCM_IV_LENGTH, combined.size)
-            val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_LENGTH, iv))
-            String(cipher.doFinal(ciphertext), Charsets.UTF_8)
+            val plain = KeystoreOperations.run {
+                val cipher = Cipher.getInstance(TRANSFORMATION)
+                cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_LENGTH, iv))
+                cipher.doFinal(ciphertext)
+            }
+            String(plain, Charsets.UTF_8)
         } catch (e: Exception) {
             printError("cloud.auth", "credential decrypt failed", e)
             null

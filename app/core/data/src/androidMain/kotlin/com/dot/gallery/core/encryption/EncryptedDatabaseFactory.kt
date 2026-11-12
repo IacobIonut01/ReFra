@@ -500,11 +500,11 @@ object EncryptedDatabaseFactory {
     }
 
     private fun wrapPassphrase(key: SecretKey, passphrase: ByteArray): String {
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, key)
-        val iv = cipher.iv
-        val ciphertext = cipher.doFinal(passphrase)
-        val blob = iv + ciphertext
+        val blob = KeystoreOperations.run {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.ENCRYPT_MODE, key)
+            cipher.iv + cipher.doFinal(passphrase)
+        }
         return Base64.encodeToString(blob, Base64.NO_WRAP)
     }
 
@@ -512,8 +512,10 @@ object EncryptedDatabaseFactory {
         val blob = Base64.decode(wrapped, Base64.NO_WRAP)
         val iv = blob.copyOfRange(0, 12)
         val ciphertext = blob.copyOfRange(12, blob.size)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
-        return cipher.doFinal(ciphertext)
+        return KeystoreOperations.run {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
+            cipher.doFinal(ciphertext)
+        }
     }
 }
