@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -978,7 +972,6 @@
     <string name="cloud_adv_experimental_note">實驗性功能：遠端刪除的同步機制可能會在未來的版本中有所變更。</string>
     <string name="cloud_adv_clear_cache_summary">所有帳戶的快取縮圖與預覽</string>
     <string name="cloud_adv_footnote">這些選項僅適用於 %1$s。圖片快取由所有帳戶共用。</string>
-    <string name="cloud_viewer_footnote">僅適用於來自 %1$s 的影片。</string>
     <string name="library_sections_title">章節</string>
     <string name="library_section_locations_empty">目前尚無地點可顯示</string>
     <string name="library_section_people_unavailable">目前尚無人員顯示</string>

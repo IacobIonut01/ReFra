@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -979,7 +973,6 @@
     <string name="cloud_adv_experimental_note">ניסיוני: סנכרון מחיקות מרחוק עשוי להשתנות בגרסה עתידית.</string>
     <string name="cloud_adv_clear_cache_summary">תמונות ממוזערות ותצוגות מקדימות שמורות במטמון עבור כל החשבונות</string>
     <string name="cloud_adv_footnote">אפשרויות אלה חלות רק על %1$s. מטמון התמונות משותף לכל החשבונות.</string>
-    <string name="cloud_viewer_footnote">חל רק על סרטונים מ-%1$s.</string>
     <string name="library_sections_title">פרקים</string>
     <string name="library_section_locations_empty">אין עדיין מיקומים להציג</string>
     <string name="library_section_people_unavailable">עדיין אין אנשים להציג</string>

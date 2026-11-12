@@ -25,7 +25,6 @@ import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Notifications
@@ -142,8 +141,6 @@ import com.dot.gallery.generated.resources.cloud_sync_now_summary
 import com.dot.gallery.generated.resources.cloud_sync_now_syncing
 import com.dot.gallery.generated.resources.cloud_sync_wifi_only
 import com.dot.gallery.generated.resources.cloud_syncing
-import com.dot.gallery.generated.resources.cloud_viewer
-import com.dot.gallery.generated.resources.cloud_viewer_load_preview
 import com.dot.gallery.generated.resources.cloud_wifi_only_summary
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -369,12 +366,6 @@ fun CloudProviderSettingsContent(
             title = stringResource(Res.string.cloud_notifications),
             summary = stringResource(Res.string.cloud_notif_background_backup),
             onClick = { eventHandler.navigate(Screen.CloudNotificationSettingsScreen.configId(config.id)) },
-        ),
-        SettingsEntity.Preference(
-            icon = Icons.Outlined.Image,
-            title = stringResource(Res.string.cloud_viewer),
-            summary = stringResource(Res.string.cloud_viewer_load_preview),
-            onClick = { eventHandler.navigate(Screen.CloudViewerSettingsScreen.configId(config.id)) },
         ),
         SettingsEntity.Preference(
             icon = Icons.Outlined.OfflinePin,

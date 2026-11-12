@@ -1547,6 +1547,7 @@
     <string name="date_header">Date Formats</string>
     <string name="categories">Categories</string>
     <string name="auto_play_video">Video Auto-Play</string>
+    <string name="loop_videos">Loop videos</string>
     <string name="video_surface_rebind">Fix black video on hide</string>
     <string name="shared_elements">Animate media items</string>
     <string name="vault_encrypt_behavior">Vault encrypt behavior</string>

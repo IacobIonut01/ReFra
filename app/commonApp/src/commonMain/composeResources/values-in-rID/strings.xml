@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -978,7 +972,6 @@
     <string name="cloud_adv_experimental_note">Eksperimental: sinkronisasi penghapusan jarak jauh mungkin akan berubah pada versi mendatang.</string>
     <string name="cloud_adv_clear_cache_summary">Gambar mini dan pratinjau yang disimpan dalam cache untuk semua akun</string>
     <string name="cloud_adv_footnote">Opsi-opsi ini hanya berlaku untuk %1$s. Cache gambar digunakan bersama oleh semua akun.</string>
-    <string name="cloud_viewer_footnote">Berlaku hanya untuk video dari %1$s.</string>
     <string name="library_sections_title">Bagian</string>
     <string name="library_section_locations_empty">Belum ada lokasi yang ditampilkan</string>
     <string name="library_section_people_unavailable">Belum ada orang yang ditampilkan</string>

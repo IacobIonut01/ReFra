@@ -142,7 +142,6 @@ import com.dot.gallery.cloud.ui.settings.CloudNetworkingScreen
 import com.dot.gallery.cloud.ui.settings.CloudNotificationSettingsScreen
 import com.dot.gallery.cloud.ui.offline.OfflineModeScreen
 import com.dot.gallery.cloud.ui.settings.CloudProviderSettingsScreen
-import com.dot.gallery.cloud.ui.settings.CloudViewerSettingsScreen
 import com.dot.gallery.cloud.ui.space.FreeUpSpaceScreen
 import com.dot.gallery.app.presentation.setup.SetupScreen
 import com.dot.gallery.app.presentation.storycards.StoryCardsSettingsScreen
@@ -1707,20 +1706,6 @@ fun NavigationComp(
                 )
             ) { backStackEntry ->
                 CloudNetworkingScreen(
-                    configId = backStackEntry.arguments?.getLong("configId") ?: -1L
-                )
-            }
-
-            composable(
-                route = Screen.CloudViewerSettingsScreen.configId(),
-                arguments = listOf(
-                    navArgument(name = "configId") {
-                        type = NavType.LongType
-                        defaultValue = -1L
-                    }
-                )
-            ) { backStackEntry ->
-                CloudViewerSettingsScreen(
                     configId = backStackEntry.arguments?.getLong("configId") ?: -1L
                 )
             }

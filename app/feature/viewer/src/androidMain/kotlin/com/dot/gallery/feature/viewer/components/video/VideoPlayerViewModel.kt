@@ -27,18 +27,14 @@ import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.domain.model.SubtitleTrack
 import java.util.Locale
-import com.dot.gallery.cloud.core.CloudAccountRuntimeSettings
-import com.dot.gallery.cloud.core.CloudRuntimeSettings
 import com.dot.gallery.domain.model.Media
+import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.util.getUri
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -102,12 +98,8 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
     private var loadTimeoutJob: Job? = null
     private val _manualSubtitleConfigs = mutableListOf<MediaItem.SubtitleConfiguration>()
 
-    private val mediaUriString = media.getUri().toString()
-    private var configuredRepeatMode = videoRepeatMode(
-        isCloud = media.isCloud,
-        mediaUri = mediaUriString,
-        settingsByConfigId = CloudRuntimeSettings.settingsByConfigId.value,
-    )
+    // Starts from the key default until the composable passes the stored value to setLoopVideos().
+    private var configuredRepeatMode = videoRepeatMode(SettingsKeys.loopVideos.default)
     private var slideshowActive = false
 
     // Public immutable flow
@@ -124,7 +116,6 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
 
     init {
         restoreFromSavedState()
-        observeCloudLoopSetting()
         prepareMedia()
         startProgressLoop()
     }
@@ -211,17 +202,15 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
         }
     }
 
-    private fun observeCloudLoopSetting() {
-        if (!media.isCloud) return
-        viewModelScope.launch {
-            CloudRuntimeSettings.settingsByConfigId
-                .map { videoRepeatMode(true, mediaUriString, it) }
-                .distinctUntilChanged()
-                .collect { repeatMode ->
-                    configuredRepeatMode = repeatMode
-                    applyRepeatMode()
-                }
-        }
+    /**
+     * Applies the global Loop videos setting, which covers local and cloud videos alike. The
+     * composable feeds it from the preference, so toggling it updates players that are already open.
+     */
+    fun setLoopVideos(loopVideos: Boolean) {
+        val repeatMode = videoRepeatMode(loopVideos)
+        if (repeatMode == configuredRepeatMode) return
+        configuredRepeatMode = repeatMode
+        applyRepeatMode()
     }
 
     private fun effectiveRepeatMode(): Int =
@@ -384,7 +373,7 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
     }
 
     fun togglePlay() {
-        if (player.isPlaying) player.pause() else player.play()
+        if (player.isPlaying) player.pause() else player.playOrReplay()
     }
 
     fun pause() {
@@ -402,8 +391,12 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
     fun setUserPlayWhenReady(play: Boolean, canAutoPlay: Boolean) {
         // Apply user intended state respecting autoplay rules externally
         val targetPlay = if (!play && canAutoPlay) false else play
-        player.playWhenReady = targetPlay
-        if (targetPlay) player.play() else player.pause()
+        if (targetPlay) {
+            player.playOrReplay()
+        } else {
+            player.playWhenReady = false
+            player.pause()
+        }
         _state.update { it.copy(isPlaying = targetPlay) }
     }
 
@@ -449,7 +442,8 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
         loadTimeoutJob = null
         runCatching {
             if (!player.isReleased) {
-                savedStateHandle[KEY_POSITION] = player.currentPosition
+                savedStateHandle[KEY_POSITION] =
+                    videoResumePosition(player.playbackState, player.currentPosition)
                 savedStateHandle[KEY_PLAYING] = player.isPlaying
                 player.release()
             }
@@ -465,7 +459,8 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
         try {
             if (!player.isReleased) {
                 // Persist position & play state
-                savedStateHandle[KEY_POSITION] = player.currentPosition
+                savedStateHandle[KEY_POSITION] =
+                    videoResumePosition(player.playbackState, player.currentPosition)
                 savedStateHandle[KEY_PLAYING] = player.isPlaying
                 player.release()
             }
@@ -639,14 +634,30 @@ class VideoPlayerViewModel @me.tatarka.inject.annotations.Inject constructor(
 fun effectiveVideoRepeatMode(configuredRepeatMode: Int, slideshowActive: Boolean): Int =
     if (slideshowActive) Player.REPEAT_MODE_OFF else configuredRepeatMode
 
-fun videoRepeatMode(
-    isCloud: Boolean,
-    mediaUri: String,
-    settingsByConfigId: Map<Long, CloudAccountRuntimeSettings>,
-): Int {
-    if (!isCloud) return Player.REPEAT_MODE_ONE
-    val loopVideos = CloudRuntimeSettings
-        .settingsForCloudUri(mediaUri, settingsByConfigId)
-        .loopVideos
-    return if (loopVideos) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+/**
+ * Repeat mode for the global Loop videos setting. It takes no media on purpose: local, vault and
+ * cloud videos all follow the same setting.
+ */
+fun videoRepeatMode(loopVideos: Boolean): Int =
+    if (loopVideos) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+
+/**
+ * A video that played to its end with looping off sits in [Player.STATE_ENDED], where `play()`
+ * does nothing, so starting it again must first seek back to the beginning.
+ */
+fun shouldRestartVideoBeforePlay(playbackState: Int): Boolean =
+    playbackState == Player.STATE_ENDED
+
+/**
+ * Position to restore when the page comes back. An ended video restores to the start, otherwise
+ * reopening it would seek to the end and finish at once instead of playing.
+ */
+fun videoResumePosition(playbackState: Int, currentPositionMs: Long): Long =
+    if (shouldRestartVideoBeforePlay(playbackState)) 0L else currentPositionMs
+
+/** Plays the video, replaying it from the start when it already reached the end. */
+fun Player.playOrReplay() {
+    if (shouldRestartVideoBeforePlay(playbackState)) seekTo(0L)
+    playWhenReady = true
+    play()
 }

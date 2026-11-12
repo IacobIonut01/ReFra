@@ -165,6 +165,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.composables.core.BottomSheet
@@ -2555,6 +2556,27 @@ fun <T : Media> MediaViewScreen(
                                     ) {
                                         val hideUiOnPlay by rememberAutoHideOnVideoPlay()
                                         var uiInteracted by remember { mutableStateOf(false) }
+                                        // With Loop videos off the clip stops on its last frame; bring
+                                        // the controls back so the play button can replay it. Slideshows
+                                        // advance on their own, so they keep their minimal chrome.
+                                        val revealOnEnd by rememberUpdatedState(!slideshowActive)
+                                        DisposableEffect(player) {
+                                            val endListener = object : Player.Listener {
+                                                override fun onPlaybackStateChanged(playbackState: Int) {
+                                                    if (playbackState == Player.STATE_ENDED &&
+                                                        revealOnEnd && !showUI &&
+                                                        sheetState.currentDetent == imageOnlyDetent
+                                                    ) {
+                                                        showUI = true
+                                                        windowInsetsController.toggleSystemBars(true)
+                                                    }
+                                                }
+                                            }
+                                            player.addListener(endListener)
+                                            onDispose {
+                                                if (!player.isReleased) player.removeListener(endListener)
+                                            }
+                                        }
                                         LaunchedEffect(isPlaying.value, hideUiOnPlay, showUI) {
                                             if (isPlaying.value && showUI && hideUiOnPlay && !uiInteracted) {
                                                 // Wait up to 2s, but abort the auto-hide the moment the

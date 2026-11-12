@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -975,7 +969,6 @@
     <string name="cloud_adv_experimental_note">পরীক্ষামূলক: ভবিষ্যতের কোনো সংস্করণে দূরবর্তী মুছে ফেলা সিঙ্ক করার পদ্ধতি পরিবর্তিত হতে পারে।</string>
     <string name="cloud_adv_clear_cache_summary">সকল অ্যাকাউন্টের ক্যাশ করা থাম্বনেইল এবং প্রিভিউ</string>
     <string name="cloud_adv_footnote">এই বিকল্পগুলি শুধুমাত্র %1$s-এ প্রযোজ্য। ইমেজ ক্যাশ প্রতিটি অ্যাকাউন্টের মধ্যে ভাগ করা হয়।</string>
-    <string name="cloud_viewer_footnote">শুধুমাত্র %1$s-এর ভিডিওগুলিতে প্রযোজ্য।</string>
     <string name="library_sections_title">বিভাগসমূহ</string>
     <string name="library_section_locations_empty">এখনও দেখানোর কোনো অবস্থান নেই</string>
     <string name="library_section_people_unavailable">এখনও দেখানোর জন্য কোনো মানুষ নেই</string>

@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -1046,7 +1040,6 @@ de(s) 'ਤੇ ਕੀਤਾ ਗਿਆ</string>
     <string name="people_merge_into_confirm">%1$s ਨੂੰ %2$s ਵਿੱਚ ਮਿਲਾਓ?</string>
     <string name="cloud_free_space_removing_count">%1$d ਦੀਆਂ ਸਥਾਨਕ ਕਾਪੀਆਂ ਹਟਾਉਂਦੇ ਹੋਏ…</string>
     <string name="cloud_download_remote_confirm">ਇਹ ਇਸ ਖਾਤੇ ਤੋਂ ਹਰ ਉਹ ਆਈਟਮ ਡਾਊਨਲੋਡ ਕਰੇਗਾ ਜੋ ਸਿਰਫ਼ ਰਿਮੋਟ 'ਤੇ ਉਪਲਬਧ ਹੈ (%1$d ਆਈਟਮ, ਲਗਭਗ %2$s)। ਜੋ ਆਈਟਮ ਪਹਿਲਾਂ ਹੀ ਇਸ ਡਿਵਾਈਸ 'ਤੇ ਮੌਜੂਦ ਹਨ, ਉਹਨਾਂ ਨੂੰ ਮੁੜ ਡਾਊਨਲੋਡ ਕਰਨ ਦੀ ਬਜਾਏ ਲਿੰਕ ਕੀਤਾ ਜਾਵੇਗਾ।</string>
-    <string name="cloud_viewer_footnote">ਸਿਰਫ਼ %1$s ਦੀਆਂ ਵੀਡੀਓਜ਼ 'ਤੇ ਲਾਗੂ ਹੁੰਦਾ ਹੈ।</string>
     <plurals name="places_count">
         <item quantity="one">%1$d ਸਥਾਨ</item>
         <item quantity="other">%1$d ਥਾਵਾਂ</item>

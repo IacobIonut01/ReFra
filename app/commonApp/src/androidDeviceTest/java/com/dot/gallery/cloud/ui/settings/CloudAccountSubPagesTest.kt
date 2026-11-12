@@ -35,7 +35,6 @@ import com.dot.gallery.generated.resources.cloud_adv_clearing_cache
 import com.dot.gallery.generated.resources.cloud_adv_sync_deletions_desc
 import com.dot.gallery.generated.resources.cloud_net_auto_url
 import com.dot.gallery.generated.resources.cloud_notif_detail_progress
-import com.dot.gallery.generated.resources.cloud_viewer_loop
 import com.dot.gallery.ui.theme.GalleryTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -48,7 +47,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The redesigned account sub-pages (Networking, Notifications, Viewer, Advanced) keep every
+ * The redesigned account sub-pages (Networking, Notifications, Advanced) keep every
  * action wired to the config, title the page with the account, and no longer show the
  * experimental marker inside the sync-deletions summary.
  */
@@ -165,15 +164,5 @@ class CloudAccountSubPagesTest {
         rule.onNodeWithText("Home photos").assertExists()
         rule.onNodeWithText(string(Res.string.cloud_notif_detail_progress)).performClick()
         assertTrue(current.showBackupDetailProgress)
-    }
-
-    @Test
-    fun viewerSwitchUpdatesTheConfig() {
-        var current by mutableStateOf(config().copy(loopVideos = false))
-        host {
-            CloudViewerSettingsContent(config = current, onUpdateConfig = { current = current.it() })
-        }
-        rule.onNodeWithText(string(Res.string.cloud_viewer_loop)).performClick()
-        assertTrue(current.loopVideos)
     }
 }

@@ -62,6 +62,7 @@ object PortableBackupSettings {
         "no_classification",
         "categories_exclude_videos",
         "video_autoplay",
+        "loop_videos",
         "video_surface_rebind",
         "shared_elements",
         "media_view_date_header",

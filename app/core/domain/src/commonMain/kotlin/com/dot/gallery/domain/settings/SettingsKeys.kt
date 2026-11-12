@@ -129,6 +129,8 @@ object SettingsKeys {
     val reencodeJxlEffort = PrefKey.int("reencode_jxl_effort", default = 7)
     val autoHideOnVideoPlay = PrefKey.bool("auto_hide_on_video_play", default = true)
     val videoAutoplay = PrefKey.bool("video_autoplay", default = true)
+    /** Restart every video, local and cloud, when it reaches the end. Slideshows and stories always play once. */
+    val loopVideos = PrefKey.bool("loop_videos", default = true)
     /** App default is `SdkCompat.isSamsung` — wrapper resolves via `withDefault`. */
     val videoSurfaceRebind = PrefKey.bool("video_surface_rebind", default = false)
     val videoHdrPlayback = PrefKey.bool("video_hdr_playback", default = true)

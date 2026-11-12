@@ -81,6 +81,8 @@ import com.dot.gallery.core.Constants.Animation.enterAnimation
 import com.dot.gallery.core.Constants.Animation.exitAnimation
 import com.dot.gallery.core.Settings.Misc.rememberVideoAutoplay
 import com.dot.gallery.core.Settings.Misc.rememberVideoSurfaceRebind
+import com.dot.gallery.core.ui.settings.rememberPreference
+import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.domain.util.volume
 import com.dot.gallery.feature.viewer.LocalViewerRuntime
@@ -178,6 +180,12 @@ fun <T : Media> VideoPlayer(
     val canAutoPlay by rememberVideoAutoplay()
     LaunchedEffect(playWhenReady.value, canAutoPlay) {
         vm.setUserPlayWhenReady(playWhenReady.value, canAutoPlay)
+    }
+
+    // Global Loop videos setting (local and cloud). Slideshows and stories still play once.
+    val loopVideos by rememberPreference(SettingsKeys.loopVideos)
+    LaunchedEffect(vm, loopVideos) {
+        vm.setLoopVideos(loopVideos)
     }
 
     // Safety net: release player when leaving composition (e.g. fast scroll disposing page)

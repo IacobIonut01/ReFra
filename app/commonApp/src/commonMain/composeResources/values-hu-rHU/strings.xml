@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Videók ismétlése</string>
-    <string name="cloud_viewer_loop_summary">A videók újraindítása, amikor a végükre érnek</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -975,7 +969,6 @@
     <string name="cloud_adv_experimental_note">Kísérleti funkció: a távoli törlések szinkronizálása egy jövőbeli verzióban változhat.</string>
     <string name="cloud_adv_clear_cache_summary">Minden fiókhoz tartozó gyorsítótárazott miniatűrök és előnézetek</string>
     <string name="cloud_adv_footnote">Ezek a beállítások kizárólag a %1$s-ra vonatkoznak. A képgyorsítótárat minden fiók közösen használja.</string>
-    <string name="cloud_viewer_footnote">Csak a %1$s-tól származó videókra vonatkozik.</string>
     <string name="library_sections_title">Szekciók</string>
     <string name="library_section_locations_empty">Még nincs megjeleníthető helyszín</string>
     <string name="library_section_people_unavailable">Még nincs megjeleníthető személy</string>

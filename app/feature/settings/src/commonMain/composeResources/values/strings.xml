@@ -500,6 +500,9 @@
     <string name="auto_play_video">Video Auto-Play</string>
     <string name="auto_play_video_description">Videos start playing automatically when you swipe to them in the media viewer. Disable this to require a manual tap to play.</string>
     <string name="auto_play_video_summary">Play the video automatically while viewing media</string>
+    <string name="loop_videos">Loop videos</string>
+    <string name="loop_videos_description">Videos start again from the beginning when they reach the end. Turn this off to stop on the last frame, then tap play to watch again. Applies to videos on this device and in cloud accounts. Slideshows always play each video once.</string>
+    <string name="loop_videos_summary">Restart videos when they reach the end</string>
     <string name="dark_media_viewer_description">When enabled, photos and videos are always shown on a black background — like most gallery apps — even when the app theme is light. Turn it off to let the viewer follow the light theme.</string>
     <string name="dark_media_viewer_summary">Keep the media viewer background black in Light Theme</string>
     <string name="dark_media_viewer_title">Dark viewer background</string>

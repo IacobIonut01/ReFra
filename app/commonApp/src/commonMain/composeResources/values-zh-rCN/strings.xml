@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">禁用所有写入操作（选择、共享、删除）</string>
     <string name="cloud_adv_cache">缓存</string>
     <string name="cloud_adv_clear_cache">清除图像缓存</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">查看器设置</string>
-    <string name="cloud_viewer_load_preview">加载预览图像</string>
-    <string name="cloud_viewer_videos">视频</string>
-    <string name="cloud_viewer_loop">循环播放</string>
-    <string name="cloud_viewer_loop_summary">视频播放到结尾时自动重播</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">添加 %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -978,7 +972,6 @@
     <string name="cloud_adv_experimental_note">实验性功能：远程删除的同步行为可能会在未来版本中发生变化。</string>
     <string name="cloud_adv_clear_cache_summary">所有账户的缓存缩略图和预览</string>
     <string name="cloud_adv_footnote">这些选项仅适用于 %1$s。图像缓存由所有账户共享。</string>
-    <string name="cloud_viewer_footnote">仅适用于来自 %1$s 的视频。</string>
     <string name="library_sections_title">章节</string>
     <string name="library_section_locations_empty">目前尚无地点可显示</string>
     <string name="library_section_people_unavailable">目前尚无人员显示</string>

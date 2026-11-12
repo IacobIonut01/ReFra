@@ -13,7 +13,6 @@ import com.dot.gallery.cloud.ui.backup.BackupOptionsScreen
 import com.dot.gallery.cloud.ui.settings.CloudAdvancedSettingsScreen
 import com.dot.gallery.cloud.ui.settings.CloudNetworkingScreen
 import com.dot.gallery.cloud.ui.settings.CloudNotificationSettingsScreen
-import com.dot.gallery.cloud.ui.settings.CloudViewerSettingsScreen
 
 
 class CloudAccountSettingsRouteTest {
@@ -25,7 +24,6 @@ class CloudAccountSettingsRouteTest {
         val routeBuilders = listOf<(Long) -> String>(
             Screen.CloudNetworkingScreen::configId,
             Screen.CloudNotificationSettingsScreen::configId,
-            Screen.CloudViewerSettingsScreen::configId,
             Screen.CloudAdvancedSettingsScreen::configId,
             Screen.BackupOptionsScreen::configId
         )

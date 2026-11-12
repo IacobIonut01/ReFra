@@ -21,7 +21,6 @@ import com.dot.gallery.cloud.ui.settings.CloudProviderSettingsContent
 import com.dot.gallery.cloud.ui.settings.CloudProviderSettingsContentActions
 import com.dot.gallery.cloud.ui.settings.CloudProviderSettingsContentState
 import com.dot.gallery.cloud.ui.settings.CloudProviderSettingsDialog
-import com.dot.gallery.cloud.ui.settings.CloudViewerSettingsContent
 import com.dot.gallery.data.dao.PendingDownloadInfo
 import com.dot.gallery.data.entity.CloudServerConfigEntity
 
@@ -57,16 +56,6 @@ val cloudSettingsScenes: List<DocsScene> = listOf(
         widthDp = 412,
         heightDp = 540,
     ) { DocsNotificationOptionsScene() },
-    DocsScene(
-        id = "cloud-viewer-options",
-        title = "Cloud viewer options",
-        pathTrace = listOf("Settings", "Cloud accounts", "Home photos", "Viewer"),
-        states = listOf("default", "scrolled"),
-        swipedStates = listOf("scrolled"),
-        presentation = "component",
-        widthDp = 412,
-        heightDp = 320,
-    ) { DocsViewerOptionsScene() },
     DocsScene(
         id = "cloud-advanced-options",
         title = "Cloud advanced options",
@@ -186,15 +175,6 @@ fun DocsCloudAccountSettingsScene(
 fun DocsNotificationOptionsScene() {
     var config by remember { mutableStateOf(sampleAccountConfig()) }
     CloudNotificationSettingsContent(
-        config = config,
-        onUpdateConfig = { transform -> config = config.transform() },
-    )
-}
-
-@Composable
-fun DocsViewerOptionsScene() {
-    var config by remember { mutableStateOf(sampleAccountConfig().copy(loopVideos = true)) }
-    CloudViewerSettingsContent(
         config = config,
         onUpdateConfig = { transform -> config = config.transform() },
     )

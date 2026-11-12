@@ -40,8 +40,8 @@ class CloudRuntimeSettingsTest {
     fun twoAccountsResolveOnlySettingsFromUriConfigId() {
         CloudRuntimeSettings.applyAll(
             listOf(
-                config(id = 101L, readOnly = true, loopVideos = false),
-                config(id = 202L, readOnly = false, loopVideos = true),
+                config(id = 101L, readOnly = true, loadOriginalImage = false),
+                config(id = 202L, readOnly = false, loadOriginalImage = true),
             )
         )
 
@@ -56,19 +56,19 @@ class CloudRuntimeSettingsTest {
         )
 
         assertTrue(first.readOnlyMode)
-        assertFalse(first.loopVideos)
+        assertFalse(first.loadOriginalImage)
         assertFalse(second.readOnlyMode)
-        assertTrue(second.loopVideos)
+        assertTrue(second.loadOriginalImage)
         assertFalse(missing.readOnlyMode)
-        assertFalse(missing.loopVideos)
+        assertFalse(missing.loadOriginalImage)
     }
 
     @Test
     fun accountUpdateEmitsAndDoesNotOverwriteOtherAccount() = runBlocking {
         CloudRuntimeSettings.applyAll(
             listOf(
-                config(id = 101L, readOnly = false, loopVideos = false),
-                config(id = 202L, readOnly = false, loopVideos = true),
+                config(id = 101L, readOnly = false, loadOriginalImage = false),
+                config(id = 202L, readOnly = false, loadOriginalImage = true),
             )
         )
         val observed = async(start = CoroutineStart.UNDISPATCHED) {
@@ -79,10 +79,10 @@ class CloudRuntimeSettingsTest {
                 .toList()
         }
 
-        CloudRuntimeSettings.apply(config(id = 101L, readOnly = true, loopVideos = false))
+        CloudRuntimeSettings.apply(config(id = 101L, readOnly = true, loadOriginalImage = false))
 
         assertEquals(listOf(false, true), observed.await())
-        assertTrue(CloudRuntimeSettings.settingsByConfigId.value.getValue(202L).loopVideos)
+        assertTrue(CloudRuntimeSettings.settingsByConfigId.value.getValue(202L).loadOriginalImage)
     }
 
     @Test
@@ -108,12 +108,12 @@ class CloudRuntimeSettingsTest {
     private fun config(
         id: Long,
         readOnly: Boolean,
-        loopVideos: Boolean,
+        loadOriginalImage: Boolean,
     ) = CloudServerConfig(
         id = id,
         providerType = ProviderType.IMMICH,
         serverUrl = "https://$id.example.test",
         readOnlyMode = readOnly,
-        loopVideos = loopVideos,
+        loadOriginalImage = loadOriginalImage,
     )
 }

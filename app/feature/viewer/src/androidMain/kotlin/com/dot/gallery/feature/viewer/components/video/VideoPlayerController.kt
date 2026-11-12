@@ -636,8 +636,8 @@ fun VideoPlayerController(
                 val newState = !isPlaying.value
                 isPlaying.value = newState
                 if (newState) {
-                    player.playWhenReady = true
-                    player.play()
+                    // With Loop videos off an ended clip replays from the start.
+                    player.playOrReplay()
                 } else {
                     player.pause()
                 }

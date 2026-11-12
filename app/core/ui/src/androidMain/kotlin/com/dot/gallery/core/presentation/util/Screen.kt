@@ -331,12 +331,6 @@ sealed class Screen(val route: String) {
     }
     data object PeopleListScreen : Screen("people_list_screen")
 
-    // Phase 12 – Viewer Settings
-    data object CloudViewerSettingsScreen : Screen("cloud_viewer_settings_screen") {
-        fun configId() = "$route?configId={configId}"
-        fun configId(id: Long) = "$route?configId=$id"
-    }
-
     // Phase 13 – Advanced Settings
     data object CloudAdvancedSettingsScreen : Screen("cloud_advanced_settings_screen") {
         fun configId() = "$route?configId={configId}"

@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -978,7 +972,6 @@
     <string name="cloud_adv_experimental_note">Tính năng thử nghiệm: việc đồng bộ hóa các thao tác xóa từ xa có thể sẽ thay đổi trong các phiên bản sau.</string>
     <string name="cloud_adv_clear_cache_summary">Hình thu nhỏ và bản xem trước được lưu trong bộ nhớ đệm cho tất cả các tài khoản</string>
     <string name="cloud_adv_footnote">Các tùy chọn này chỉ áp dụng cho %1$s. Bộ nhớ đệm hình ảnh được chia sẻ chung cho tất cả các tài khoản.</string>
-    <string name="cloud_viewer_footnote">Chỉ áp dụng cho các video từ %1$s.</string>
     <string name="library_sections_title">Các phần</string>
     <string name="library_section_locations_empty">Hiện chưa có địa điểm nào để hiển thị</string>
     <string name="library_section_people_unavailable">Chưa có ai để hiển thị</string>

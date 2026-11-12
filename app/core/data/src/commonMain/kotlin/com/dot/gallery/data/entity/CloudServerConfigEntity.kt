@@ -50,6 +50,7 @@ data class CloudServerConfigEntity(
     @ColumnInfo(defaultValue = "1") val loadPreviewImage: Boolean = true,
     @ColumnInfo(defaultValue = "0") val loadOriginalImage: Boolean = false,
     @ColumnInfo(defaultValue = "1") val autoPlayVideos: Boolean = true,
+    // Retired: playback follows the global Loop videos setting. Kept so the schema and old backups stay unchanged.
     @ColumnInfo(defaultValue = "0") val loopVideos: Boolean = false,
     @ColumnInfo(defaultValue = "0") val forceOriginalVideo: Boolean = false,
     // Advanced settings

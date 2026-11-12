@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -960,7 +954,6 @@
     <string name="cloud_adv_experimental_note">Experimental: la sincronització d'eliminacions remotes pot canviar en una versió futura.</string>
     <string name="cloud_adv_clear_cache_summary">Miniatures i previsualitzacions en memòria cau per a tots els comptes</string>
     <string name="cloud_adv_footnote">Aquestes opcions s'apliquen només a %1$s. La memòria cau d'imatges és compartida per tots els comptes.</string>
-    <string name="cloud_viewer_footnote">S'aplica només als vídeos de %1$s.</string>
     <string name="library_sections_title">Seccions</string>
     <string name="library_section_locations_empty">Encara no hi ha cap ubicació per mostrar</string>
     <string name="library_section_people_unavailable">Encara no hi ha persones per mostrar</string>

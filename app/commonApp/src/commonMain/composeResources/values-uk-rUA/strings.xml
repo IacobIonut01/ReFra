@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -978,7 +972,6 @@
     <string name="cloud_adv_experimental_note">Експериментальна функція: синхронізація видалень на віддалених пристроях може зазнати змін у майбутніх версіях.</string>
     <string name="cloud_adv_clear_cache_summary">Збережені в кеші мініатюри та попередні перегляди для всіх облікових записів</string>
     <string name="cloud_adv_footnote">Ці параметри застосовуються лише до %1$s. Кеш зображень є спільним для всіх облікових записів.</string>
-    <string name="cloud_viewer_footnote">Стосується лише відео з %1$s.</string>
     <string name="library_sections_title">Розділи</string>
     <string name="library_section_locations_empty">Поки що немає місць для показу</string>
     <string name="library_section_people_unavailable">Поки що немає людей, яких можна показати</string>

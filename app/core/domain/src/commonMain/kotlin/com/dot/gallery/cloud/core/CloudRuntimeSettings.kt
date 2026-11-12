@@ -76,6 +76,5 @@ private fun CloudServerConfig.toRuntimeSettings() = CloudAccountRuntimeSettings(
     loadPreviewImage = loadPreviewImage,
     loadOriginalImage = loadOriginalImage,
     autoPlayVideos = autoPlayVideos,
-    loopVideos = loopVideos,
     forceOriginalVideo = forceOriginalVideo,
 )

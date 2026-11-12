@@ -22,6 +22,5 @@ data class CloudAccountRuntimeSettings(
     val loadPreviewImage: Boolean = true,
     val loadOriginalImage: Boolean = false,
     val autoPlayVideos: Boolean = true,
-    val loopVideos: Boolean = false,
     val forceOriginalVideo: Boolean = false,
 )

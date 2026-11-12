@@ -5,6 +5,7 @@
 
 package com.dot.gallery.core.backup
 
+import com.dot.gallery.domain.settings.SettingsKeys
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -73,6 +74,14 @@ class BackupModelsTest {
         assertEquals(
             null,
             PortableBackupSettings.typeFor("tap_sides_to_navigate_prompt_shown")
+        )
+    }
+
+    @Test
+    fun globalLoopVideosChoiceIsPortable() {
+        assertEquals(
+            PortableSettingType.BOOLEAN,
+            PortableBackupSettings.typeFor(SettingsKeys.loopVideos.name)
         )
     }
 

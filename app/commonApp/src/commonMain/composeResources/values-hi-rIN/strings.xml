@@ -369,12 +369,6 @@
     <string name="cloud_adv_readonly_summary">Disable all write operations (select, share, delete)</string>
     <string name="cloud_adv_cache">Cache</string>
     <string name="cloud_adv_clear_cache">Clear image cache</string>
-    <!-- Viewer -->
-    <string name="cloud_viewer">Viewer Settings</string>
-    <string name="cloud_viewer_load_preview">Load preview image</string>
-    <string name="cloud_viewer_videos">Videos</string>
-    <string name="cloud_viewer_loop">Loop videos</string>
-    <string name="cloud_viewer_loop_summary">Restart videos when they reach the end</string>
     <!-- Cloud Accounts Screen (redesigned) -->
     <string name="cloud_add_provider">Add %1$s</string>
     <!-- Cloud Provider Settings Screen -->
@@ -961,7 +955,6 @@
     <string name="cloud_adv_experimental_note">प्रयोगात्मक: दूरस्थ हटावों को सिंक करने का तरीका भविष्य के संस्करण में बदल सकता है।</string>
     <string name="cloud_adv_clear_cache_summary">सभी खातों के लिए कैश किए गए थंबनेल और पूर्वावलोकन</string>
     <string name="cloud_adv_footnote">ये विकल्प केवल %1$s पर लागू होते हैं। इमेज कैश सभी खातों के बीच साझा किया जाता है।</string>
-    <string name="cloud_viewer_footnote">केवल %1$s के वीडियो पर लागू होता है।</string>
     <string name="library_sections_title">अनुभाग</string>
     <string name="library_section_locations_empty">अभी दिखाने के लिए कोई स्थान नहीं हैं</string>
     <string name="library_section_people_unavailable">अभी दिखाने के लिए कोई लोग नहीं हैं</string>

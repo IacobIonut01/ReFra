@@ -39,6 +39,7 @@ data class CloudServerConfig(
     val loadPreviewImage: Boolean = true,
     val loadOriginalImage: Boolean = false,
     val autoPlayVideos: Boolean = true,
+    /** Retired: playback follows the global Loop videos setting. Kept for serialization compatibility. */
     val loopVideos: Boolean = false,
     val forceOriginalVideo: Boolean = false,
     // Advanced settings

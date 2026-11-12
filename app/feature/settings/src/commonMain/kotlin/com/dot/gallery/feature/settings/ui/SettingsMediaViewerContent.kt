@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.HighQuality
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material.icons.outlined.SmartButton
 import androidx.compose.material.icons.outlined.Speed
@@ -140,6 +141,9 @@ import com.dot.gallery.feature.settings.generated.resources.long_press_action_de
 import com.dot.gallery.feature.settings.generated.resources.long_press_action_none
 import com.dot.gallery.feature.settings.generated.resources.long_press_action_rotate
 import com.dot.gallery.feature.settings.generated.resources.long_press_action_title
+import com.dot.gallery.feature.settings.generated.resources.loop_videos
+import com.dot.gallery.feature.settings.generated.resources.loop_videos_description
+import com.dot.gallery.feature.settings.generated.resources.loop_videos_summary
 import com.dot.gallery.feature.settings.generated.resources.media_view
 import com.dot.gallery.feature.settings.generated.resources.reencode_quality_jxl_effort
 import com.dot.gallery.feature.settings.generated.resources.reencode_quality_lossy
@@ -201,6 +205,7 @@ private const val DETAIL_EDITOR = "editor"
 private const val DETAIL_VIDEO_EDITOR = "video_editor"
 private const val DETAIL_AUTO_HIDE_VIDEO = "auto_hide_video"
 private const val DETAIL_AUTO_PLAY = "auto_play"
+private const val DETAIL_LOOP_VIDEOS = "loop_videos"
 private const val DETAIL_SURFACE_REBIND = "surface_rebind"
 private const val DETAIL_HDR_VIDEO = "hdr_video"
 private const val DETAIL_DISABLE_SMOOTHING = "disable_smoothing"
@@ -226,6 +231,7 @@ fun SettingsMediaViewerContent(
     var defaultVideoEditor by rememberPreference(SettingsKeys.defaultVideoEditor)
     var autoHideOnVideoPlay by rememberPreference(SettingsKeys.autoHideOnVideoPlay)
     var autoPlayVideo by rememberPreference(SettingsKeys.videoAutoplay)
+    var loopVideos by rememberPreference(SettingsKeys.loopVideos)
     var videoSurfaceRebind by rememberPreference(
         SettingsKeys.videoSurfaceRebind.withDefault(state.surfaceRebindDefault)
     )
@@ -390,6 +396,15 @@ fun SettingsMediaViewerContent(
                 description = stringResource(Res.string.auto_play_video_description),
             )
         }
+        DETAIL_LOOP_VIDEOS -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.loop_videos),
+                isChecked = loopVideos,
+                onCheckedChange = { loopVideos = it },
+                description = stringResource(Res.string.loop_videos_description),
+            )
+        }
         DETAIL_SURFACE_REBIND -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -468,6 +483,8 @@ fun SettingsMediaViewerContent(
                 onAutoHideChange = { autoHideOnVideoPlay = it },
                 autoPlayVideo = autoPlayVideo,
                 onAutoPlayChange = { autoPlayVideo = it },
+                loopVideos = loopVideos,
+                onLoopVideosChange = { loopVideos = it },
                 videoSurfaceRebind = videoSurfaceRebind,
                 onSurfaceRebindChange = { videoSurfaceRebind = it },
                 hdrVideoPlayback = hdrVideoPlayback,
@@ -519,6 +536,8 @@ private fun MediaViewerListContent(
     onAutoHideChange: (Boolean) -> Unit,
     autoPlayVideo: Boolean,
     onAutoPlayChange: (Boolean) -> Unit,
+    loopVideos: Boolean,
+    onLoopVideosChange: (Boolean) -> Unit,
     videoSurfaceRebind: Boolean,
     onSurfaceRebindChange: (Boolean) -> Unit,
     hdrVideoPlayback: Boolean,
@@ -766,6 +785,17 @@ private fun MediaViewerListContent(
             screenPosition = Position.Middle
         )
 
+        val loopVideosPref = rememberSwitchPreference(
+            loopVideos,
+            title = stringResource(Res.string.loop_videos),
+            icon = Icons.Outlined.Repeat,
+            summary = stringResource(Res.string.loop_videos_summary),
+            isChecked = loopVideos,
+            onCheck = onLoopVideosChange,
+            onClick = { onDetailClick(DETAIL_LOOP_VIDEOS) },
+            screenPosition = Position.Middle
+        )
+
         val videoSurfaceRebindPref = rememberSwitchPreference(
             videoSurfaceRebind,
             title = stringResource(Res.string.video_surface_rebind),
@@ -796,7 +826,8 @@ private fun MediaViewerListContent(
             longPressActionPref,
             visualSearchPref, slideshowPref,
             saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
-            videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, videoSurfaceRebindPref,
+            videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, loopVideosPref,
+            videoSurfaceRebindPref,
             hdrVideoPlaybackPref, codeScanSettings
         ) {
             mutableStateListOf<SettingsEntity>().apply {
@@ -825,6 +856,7 @@ private fun MediaViewerListContent(
                 add(videoPlaybackHeader)
                 add(autoHideOnVideoPlayPref)
                 add(autoPlayVideoPref)
+                add(loopVideosPref)
                 add(hdrVideoPlaybackPref)
                 add(videoSurfaceRebindPref)
             }
