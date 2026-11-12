@@ -80,6 +80,7 @@ fun rememberFilteredTimelineState(
     groupByYear: Boolean,
     groupSimilarMedia: Boolean,
     enabledGroupTypes: Set<MediaGroupType>,
+    albumId: Long = -1L,
 ): State<MediaState<UriMedia>> = produceState(
     initialValue = if (timelineFilter.isActive) {
         MediaState(
@@ -95,6 +96,7 @@ fun rememberFilteredTimelineState(
     groupByYear,
     groupSimilarMedia,
     enabledGroupTypes,
+    albumId,
 ) {
     val source = mediaState.value
     if (!timelineFilter.isActive) {
@@ -119,7 +121,7 @@ fun rememberFilteredTimelineState(
     value = mapMediaToItem(
         data = filtered,
         error = source.error,
-        albumId = -1L,
+        albumId = albumId,
         groupByMonth = groupByMonth,
         groupByYear = groupByYear,
         groupSimilarMedia = groupSimilarMedia,

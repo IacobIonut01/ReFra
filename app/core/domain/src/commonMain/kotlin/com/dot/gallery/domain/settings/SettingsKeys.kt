@@ -180,6 +180,12 @@ object SettingsKeys {
         default = LastSort(OrderType.Descending, FilterKind.DATE),
         serializer = LastSort.serializer(),
     )
+    /** Order of the Favorites page, set apart from [timelineSort]. */
+    val favoritesSort = PrefKey.serializable(
+        "favorites_sort_obj",
+        default = LastSort(OrderType.Descending, FilterKind.DATE),
+        serializer = LastSort.serializer(),
+    )
     val groupSimilarMedia = PrefKey.bool("group_similar_media", default = true)
     val groupRawJpg = PrefKey.bool("group_raw_jpg", default = true)
     val groupEditedCopies = PrefKey.bool("group_edited_copies", default = true)

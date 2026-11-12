@@ -171,6 +171,7 @@ fun DocsFavoritesScene(state: String?) {
             sharedTransitionScope = sts,
             animatedContentScope = acs,
             initialFirstVisibleItemIndex = if (state == "scrolled") 6 else 0,
+            initialFiltersOpen = state == "filters",
         )
     }
 }
@@ -228,14 +229,18 @@ fun DocsTimelineFiltersScene(state: String?) {
     DocsGalleryHost(DocsGalleryPage.TIMELINE, null)
     val sheetState = rememberAppBottomSheetState()
     LaunchedEffect(Unit) { sheetState.show() }
+    // Filters apply as they are tapped, as in the app; the order is kept until the sheet closes.
+    var filter by remember { mutableStateOf(TimelineFilter()) }
+    var sort by remember { mutableStateOf(LastSort(OrderType.Descending, FilterKind.DATE)) }
     TimelineFilterSheet(
         sheetState = sheetState,
-        currentFilter = TimelineFilter(),
-        currentSort = LastSort(OrderType.Descending, FilterKind.DATE),
+        filter = filter,
+        sort = sort,
         availableYears = listOf(2025, 2024),
         availableAlbums = DocsGalleryData.albums(),
         indexProgress = null,
-        onApply = { _, _ -> },
+        onFilterChange = { filter = it },
+        onSortCommit = { sort = it },
     )
 }
 

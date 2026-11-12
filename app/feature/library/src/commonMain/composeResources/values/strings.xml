@@ -54,7 +54,6 @@
     <string name="cloud_shared_links">Shared Links</string>
     <string name="cloud_backup_and_sync">Backup &amp; Sync</string>
     <string name="cloud_accounts">Cloud Accounts</string>
-    <string name="favorites_group_by_date">Group by date</string>
     <string name="favorites_info_title">Your Favorites</string>
     <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="unknown_location">Unknown Location</string>

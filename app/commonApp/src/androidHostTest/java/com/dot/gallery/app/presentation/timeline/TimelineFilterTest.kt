@@ -5,11 +5,22 @@
 
 package com.dot.gallery.app.presentation.timeline
 
+import com.dot.gallery.core.presentation.components.FilterKind
+import com.dot.gallery.domain.model.LastSort
+import com.dot.gallery.domain.util.OrderType
+import com.dot.gallery.feature.timeline.DefaultTimelineSort
+import com.dot.gallery.feature.timeline.decodeTimelineFilter
+import com.dot.gallery.feature.timeline.encodeTimelineFilter
 import com.dot.gallery.feature.timeline.resolveTimelineAlbumSourceIds
 import com.dot.gallery.feature.timeline.filterTimelineItems
+import com.dot.gallery.feature.timeline.sortToCommit
+import com.dot.gallery.feature.timeline.timelineControlsActive
 import com.dot.gallery.domain.model.MediaTypeFilter
 import com.dot.gallery.domain.model.TimelineFilter
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.dot.gallery.domain.util.isFavorite
 import com.dot.gallery.domain.util.isImage
@@ -62,6 +73,35 @@ class TimelineFilterTest {
         )
 
         assertEquals(listOf(matching), filter(items, filter, setOf(10L, 11L)))
+    }
+
+    @Test
+    fun sortIsCommittedOnCloseOnlyWhenItChanged() {
+        val saved = LastSort(OrderType.Descending, FilterKind.DATE)
+        assertNull(sortToCommit(saved, saved))
+        val oldest = saved.copy(orderType = OrderType.Ascending)
+        assertEquals(oldest, sortToCommit(saved, oldest))
+    }
+
+    @Test
+    fun controlsAreActiveForAFilterOrANonDefaultSort() {
+        assertFalse(timelineControlsActive(TimelineFilter(), DefaultTimelineSort))
+        assertTrue(timelineControlsActive(TimelineFilter(mediaType = MediaTypeFilter.VIDEOS), DefaultTimelineSort))
+        assertTrue(
+            timelineControlsActive(TimelineFilter(), DefaultTimelineSort.copy(kind = FilterKind.DATE_MODIFIED))
+        )
+    }
+
+    @Test
+    fun pageFilterSurvivesSaveAndRestore() {
+        val filter = TimelineFilter(
+            mediaType = MediaTypeFilter.PHOTOS,
+            favoritesOnly = true,
+            selectedYears = setOf(2024, 2025),
+            selectedAlbumIds = setOf(10L, -4L),
+        )
+        assertEquals(filter, decodeTimelineFilter(encodeTimelineFilter(filter)))
+        assertEquals(TimelineFilter(), decodeTimelineFilter(emptyList()))
     }
 
     private fun filter(

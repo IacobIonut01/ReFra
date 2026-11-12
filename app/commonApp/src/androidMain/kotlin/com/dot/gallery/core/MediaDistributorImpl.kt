@@ -175,6 +175,23 @@ internal fun usesLiveCloudAlbumMembership(providerType: ProviderType): Boolean =
 internal fun List<CloudMediaEntity>.excludingTrashedAlbumMembers(): List<CloudMediaEntity> =
     filter { !it.trashed }
 
+/**
+ * The saved order of a media page: the timeline, an album and Favorites each have their own.
+ * Trash has none and keeps the default newest-first order.
+ */
+internal fun mediaFlowSort(
+    albumId: Long,
+    target: String?,
+    timelineSort: Settings.Album.LastSort,
+    albumSort: Settings.Album.LastSort,
+    favoritesSort: Settings.Album.LastSort,
+): Settings.Album.LastSort? = when {
+    target == null && albumId == -1L -> timelineSort
+    target == null && albumId > 0 -> albumSort
+    target == Constants.Target.TARGET_FAVORITES -> favoritesSort
+    else -> null
+}
+
 private fun Settings.Album.LastSort.toMediaOrder(): MediaOrder = when (kind) {
     FilterKind.DATE -> MediaOrder.Date(orderType)
     FilterKind.DATE_MODIFIED -> MediaOrder.DateModified(orderType)
@@ -374,6 +391,11 @@ class MediaDistributorImpl @Inject constructor(
 
     private val timelineSortFlow: StateFlow<Settings.Album.LastSort> =
         Settings.Misc.getTimelineSortFlow(context)
+            .distinctUntilChanged()
+            .stateIn(appScope, SharingStarted.Eagerly, Settings.Album.LastSort(OrderType.Descending, FilterKind.DATE))
+
+    private val favoritesSortFlow: StateFlow<Settings.Album.LastSort> =
+        Settings.Misc.getFavoritesSortFlow(context)
             .distinctUntilChanged()
             .stateIn(appScope, SharingStarted.Eagerly, Settings.Album.LastSort(OrderType.Descending, FilterKind.DATE))
 
@@ -1350,6 +1372,7 @@ class MediaDistributorImpl @Inject constructor(
             _cloudAlbumsFlow,
             _cloudAlbumMembers,
             timelineDateHeaders,
+            favoritesSortFlow,
         ) { values ->
             combineEmissionCount++
             val combineSpan = StartupTracer.begin("$tag.combine_body(#$combineEmissionCount)")
@@ -1375,6 +1398,7 @@ class MediaDistributorImpl @Inject constructor(
             @Suppress("UNCHECKED_CAST")
             val cloudAlbums = values[10] as List<CloudAlbum>
             val timelineDateHeadersEnabled = values[12] as Boolean
+            val favoritesSort = values[13] as Settings.Album.LastSort
             @Suppress("UNCHECKED_CAST")
             val cloudAlbumMembers = values[11] as Map<CloudAlbumMemberId, Set<CloudAlbumMemberId>>
             
@@ -1387,12 +1411,13 @@ class MediaDistributorImpl @Inject constructor(
                     isLoading = false
                 )
             }
-            // Use custom sort for timeline/album media, default sort for favorites/trash
-            val activeSort = when {
-                isMainTimeline -> timelineSort
-                target == null && albumId > 0 -> albumSort
-                else -> null
-            }
+            val activeSort = mediaFlowSort(
+                albumId = albumId,
+                target = target,
+                timelineSort = timelineSort,
+                albumSort = albumSort,
+                favoritesSort = favoritesSort,
+            )
             val sorter = activeSort?.toMediaOrder() ?: MediaOrder.Default
             val dateSource = activeSort?.dateSource ?: TimelineDateSource.CAPTURE_TIME
             val lockedAlbumIds = lockedAlbums.mapTo(HashSet()) { it.id }

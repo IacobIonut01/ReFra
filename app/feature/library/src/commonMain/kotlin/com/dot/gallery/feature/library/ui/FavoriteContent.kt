@@ -13,35 +13,49 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
+import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.presentation.components.EmptyFavorites
-import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
 import com.dot.gallery.core.presentation.components.MediaScreen
 import com.dot.gallery.core.ui.components.SettingsItem
 import com.dot.gallery.core.ui.settings.rememberPreference
+import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
+import com.dot.gallery.domain.model.TimelineFilter
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.domain.settings.GROUP_NORMAL
 import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.feature.timeline.KeepFilterAlbumsAvailable
+import com.dot.gallery.feature.timeline.MediaPageFilterAction
+import com.dot.gallery.feature.timeline.TimelineFilterSaver
+import com.dot.gallery.feature.timeline.TimelineFilterSheet
+import com.dot.gallery.feature.timeline.mediaPageControlsTitle
+import com.dot.gallery.feature.timeline.rememberAvailableTimelineYears
+import com.dot.gallery.feature.timeline.rememberFilteredMediaPageState
+import com.dot.gallery.feature.timeline.sourceAlbumsFor
+import com.dot.gallery.feature.timeline.timelineControlsActive
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.library.generated.resources.Res
 import com.dot.gallery.feature.library.generated.resources.favorites
-import com.dot.gallery.feature.library.generated.resources.favorites_group_by_date
 import com.dot.gallery.feature.library.generated.resources.favorites_info_summary
 import com.dot.gallery.feature.library.generated.resources.favorites_info_title
 
@@ -67,15 +81,30 @@ fun FavoriteContent(
     animatedContentScope: AnimatedContentScope,
     /** Docs seam: opens the grid scrolled to this item. */
     initialFirstVisibleItemIndex: Int = 0,
+    /** Docs seam: opens with the sort and filter sheet showing. */
+    initialFiltersOpen: Boolean = false,
 ) {
     var groupByDate by rememberPreference(SettingsKeys.favoritesGroupByDate)
     val favoritesGroupMethod by rememberPreference(SettingsKeys.favoritesGroupMethod)
+    var favoritesSort by rememberPreference(SettingsKeys.favoritesSort)
+    var filter by rememberSaveable(stateSaver = TimelineFilterSaver) { mutableStateOf(TimelineFilter()) }
+    val filterSheetState = rememberAppBottomSheetState()
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(initialFiltersOpen) { if (initialFiltersOpen) filterSheetState.show() }
+
+    val albumsState by LocalMediaDistributor.current.albumsFlow.collectAsState()
+    val sourceAlbums = remember(albumsState.albums, mediaState.value.media) {
+        sourceAlbumsFor(albumsState.albums, mediaState.value.media)
+    }
+    KeepFilterAlbumsAvailable(sourceAlbums, filter) { filter = it }
+    val filteredState = rememberFilteredMediaPageState(mediaState, filter, sourceAlbums)
+    val availableYears = rememberAvailableTimelineYears(mediaState)
 
     MediaScreen(
         paddingValues = paddingValues,
         target = TARGET_FAVORITES,
         albumName = stringResource(Res.string.favorites),
-        mediaState = mediaState,
+        mediaState = filteredState,
         metadataState = metadataState,
         allowHeaders = groupByDate,
         groupMethod = if (groupByDate) favoritesGroupMethod else GROUP_NORMAL,
@@ -85,11 +114,9 @@ fun FavoriteContent(
         searchBar = searchBar,
         selectionSheetContent = selectionSheetContent,
         navActionsContent = {
-            GalleryPageTopBarAction(
-                icon = Icons.Outlined.CalendarMonth,
-                contentDescription = stringResource(Res.string.favorites_group_by_date),
-                onClick = { groupByDate = !groupByDate },
-                tint = if (groupByDate) MaterialTheme.colorScheme.primary else Color.Unspecified,
+            MediaPageFilterAction(
+                active = timelineControlsActive(filter, favoritesSort),
+                onClick = { scope.launch { filterSheetState.show() } },
             )
         },
         emptyContent = { EmptyFavorites() },
@@ -109,5 +136,20 @@ fun FavoriteContent(
         sharedTransitionScope = sharedTransitionScope,
         animatedContentScope = animatedContentScope,
         initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
+    )
+
+    TimelineFilterSheet(
+        sheetState = filterSheetState,
+        filter = filter,
+        sort = favoritesSort,
+        availableYears = availableYears,
+        availableAlbums = sourceAlbums,
+        indexProgress = null,
+        onFilterChange = { filter = it },
+        onSortCommit = { favoritesSort = it },
+        title = mediaPageControlsTitle(),
+        showFavoritesFilter = false,
+        dateHeaders = groupByDate,
+        onDateHeadersChange = { groupByDate = it },
     )
 }

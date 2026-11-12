@@ -98,8 +98,17 @@ import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
 import com.dot.gallery.core.presentation.components.galleryDetailTopBarHeight
 import com.dot.gallery.core.presentation.components.mediaDateRangeLabel
 import com.dot.gallery.core.presentation.components.rememberDetailHeaderCollapsed
-import com.dot.gallery.feature.albums.ui.components.AlbumSortPill
-import com.dot.gallery.feature.albums.ui.components.AlbumSortTopBarAction
+import com.dot.gallery.domain.model.TimelineFilter
+import com.dot.gallery.feature.timeline.KeepFilterAlbumsAvailable
+import com.dot.gallery.feature.timeline.MediaPageFilterAction
+import com.dot.gallery.feature.timeline.MediaPageFilterPill
+import com.dot.gallery.feature.timeline.TimelineFilterSaver
+import com.dot.gallery.feature.timeline.TimelineFilterSheet
+import com.dot.gallery.feature.timeline.mediaPageControlsTitle
+import com.dot.gallery.feature.timeline.rememberAvailableTimelineYears
+import com.dot.gallery.feature.timeline.rememberFilteredMediaPageState
+import com.dot.gallery.feature.timeline.sourceAlbumsFor
+import com.dot.gallery.feature.timeline.timelineControlsActive
 import androidx.compose.material.icons.outlined.PhotoAlbum
 import com.dot.gallery.generated.resources.more_options
 import com.dot.gallery.generated.resources.s_items
@@ -215,8 +224,19 @@ fun AlbumTimelineScreen(
     // Sort preferences - saved to DataStore, read by MediaDistributor
     var albumMediaSort by rememberAlbumMediaSort()
 
+    var albumFilter by rememberSaveable(albumId, stateSaver = TimelineFilterSaver) {
+        mutableStateOf(TimelineFilter())
+    }
+    val filterSheetState = rememberAppBottomSheetState()
+    val sourceAlbums = remember(constituentAlbums, albumMediaState.value.media) {
+        sourceAlbumsFor(constituentAlbums, albumMediaState.value.media).takeIf { it.size > 1 }.orEmpty()
+    }
+    KeepFilterAlbumsAvailable(sourceAlbums, albumFilter) { albumFilter = it }
+    val availableYears = rememberAvailableTimelineYears(albumMediaState)
+    val openFilters: () -> Unit = { refreshScope.launch { filterSheetState.show() } }
+
     // Media state is already sorted by MediaDistributor based on albumMediaSort
-    val mediaState = albumMediaState
+    val mediaState = rememberFilteredMediaPageState(albumMediaState, albumFilter, sourceAlbums, albumId)
     val selectedMediaList by selectedMedia(
         media = mediaState.value.media,
         selectedSet = selectedMedia
@@ -251,7 +271,7 @@ fun AlbumTimelineScreen(
         lastMosaicCellIndex = mosaicPinchState.currentColumnsIndex
     }
 
-    val albumGroupByDate by rememberAlbumGroupByDate()
+    var albumGroupByDate by rememberAlbumGroupByDate()
     val albumsGroupMethod by rememberAlbumsGroupMethod()
     val timelineLayoutType by rememberTimelineLayoutType()
     val isMosaicLayout = timelineLayoutType == Settings.Misc.LAYOUT_MOSAIC
@@ -288,10 +308,7 @@ fun AlbumTimelineScreen(
                             onClick = openSlideshow,
                         )
                     }
-                    AlbumSortPill(
-                        currentSort = albumMediaSort,
-                        onSortChange = { newSort -> albumMediaSort = newSort },
-                    )
+                    MediaPageFilterPill(onClick = openFilters)
                 },
             )
             if (showMergeContent) {
@@ -450,9 +467,9 @@ fun AlbumTimelineScreen(
                     }
                 }
                 add {
-                    AlbumSortTopBarAction(
-                        currentSort = albumMediaSort,
-                        onSortChange = { newSort -> albumMediaSort = newSort },
+                    MediaPageFilterAction(
+                        active = timelineControlsActive(albumFilter, albumMediaSort),
+                        onClick = openFilters,
                     )
                 }
             },
@@ -495,6 +512,20 @@ fun AlbumTimelineScreen(
                     )
                 }
             }
+        )
+        TimelineFilterSheet(
+            sheetState = filterSheetState,
+            filter = albumFilter,
+            sort = albumMediaSort,
+            availableYears = availableYears,
+            availableAlbums = sourceAlbums,
+            indexProgress = null,
+            onFilterChange = { albumFilter = it },
+            onSortCommit = { albumMediaSort = it },
+            title = mediaPageControlsTitle(),
+            showNameSort = true,
+            dateHeaders = albumGroupByDate,
+            onDateHeadersChange = { albumGroupByDate = it },
         )
     }
 }

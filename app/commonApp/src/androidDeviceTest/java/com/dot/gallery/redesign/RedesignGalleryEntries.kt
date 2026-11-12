@@ -227,7 +227,6 @@ object RedesignGalleryEntries {
                 onFilterChange = {},
                 onSortChange = {},
                 onReset = {},
-                onApply = {},
             )
         },
         GalleryEntry.Sheet("slideshow-options") {

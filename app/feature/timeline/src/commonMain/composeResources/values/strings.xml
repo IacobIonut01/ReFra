@@ -8,6 +8,13 @@
     <string name="modified_time_summary">When the file was last changed</string>
     <string name="sort_descending">Newest first</string>
     <string name="sort_ascending">Oldest first</string>
+    <string name="sort_by_file_name">File name</string>
+    <string name="file_name_summary">Alphabetical by file name</string>
+    <string name="sort_name_ascending">A to Z</string>
+    <string name="sort_name_descending">Z to A</string>
+    <string name="filter_display">Display</string>
+    <string name="show_date_headers">Show date headers</string>
+    <string name="show_date_headers_summary">Group the grid under date titles</string>
     <string name="capture_time_indexing">Checking capture dates: %1$d%</string>
     <string name="filter_type">Type</string>
     <string name="filter_all">All</string>
@@ -18,7 +25,6 @@
     <string name="filter_time">Time</string>
     <string name="filter_source">Source</string>
     <string name="filter_reset">Reset</string>
-    <string name="filter_apply">Apply</string>
     <string name="sort_and_filter">Sort and filter</string>
     <string name="story_this_year">This year</string>
     <string name="story_highlight_count">%1$d highlights from %2$d items</string>

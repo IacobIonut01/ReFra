@@ -115,6 +115,7 @@ object PortableBackupSettings {
         "album_last_view_obj",
         "album_custom_order",
         "album_media_sort_obj",
+        "favorites_sort_obj",
         "slideshow_transition",
         "library_shortcuts_layout",
         "theme_color_seed",

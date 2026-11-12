@@ -10,17 +10,19 @@ scenes: [timeline-filters]
 order: 3
 ---
 
-The filter icon in the timeline's top-right control group opens the **Timeline controls** sheet. It combines sorting and filtering in one place: pick what to show, pick the order, tap **Apply**.
+The filter icon in the timeline's top-right control group opens the **Timeline controls** sheet. It combines sorting and filtering in one place. There is no Apply button: each filter takes effect as soon as you tap it.
 
 ## Open the sheet
 
 1. Go to the **Timeline** tab.
 2. Tap the filter icon beside the overflow menu.
-3. Choose the options you need; sections below.
-4. Tap **Apply**. The grid reloads with only matching items.
+3. Choose the options you need; sections below. The grid behind the sheet narrows with every filter chip you tap.
+4. Close the sheet by swiping it down or pressing back. A new order takes effect at that point, and the timeline returns to the top.
 5. To clear everything, open the sheet again and tap **Reset**.
 
-A small dot appears on the slider icon while a filter or a non-default sort is active, so you can tell at a glance that the timeline is narrowed.
+A small dot appears on the filter icon while a filter or a non-default sort is active, so you can tell at a glance that the timeline is narrowed.
+
+[Favorites](/ReFra/features/favorites) and every album have the same sheet, titled **Sort and filter**; each keeps its own filter and its own order.
 
 ## Options
 
@@ -35,22 +37,22 @@ A small dot appears on the slider icon while a filter or a non-default sort is a
 | Time | One chip per year present in the library | Shows only items from the tapped year or years. |
 | Source | One chip per filterable album | Shows only items in the tapped album or albums. Merged albums include every folder they merged. Locked and cloud-internal folders are not offered. |
 
-Sections combine: choosing **Videos**, the year 2025, and the album **Camera** shows only videos from 2025 that live in Camera. Nothing applies until you tap **Apply**, so you can set several sections in one pass.
+Sections combine: choosing **Videos**, the year 2025, and the album **Camera** shows only videos from 2025 that live in Camera. Filters belong to the screen you set them on and are not saved; the order is saved.
 
 While ReFra is still checking embedded capture dates, the sheet shows a "Checking capture dates" progress line. Ordering may shift as dates are read; files without an embedded date keep sorting by their modified time.
 
 ## Example: favorite videos from 2025 in Camera
 
-1. On the Timeline, tap the slider icon.
+1. On the Timeline, tap the filter icon.
 2. Under **Type**, choose **Videos**.
 3. Under **Status**, choose **Favorites**.
 4. Under **Time**, tap **2025**.
-5. Under **Source**, tap **Camera**.
-6. Tap **Apply**. The grid now holds only favorited videos recorded in 2025 that sit in the Camera album.
+5. Under **Source**, tap **Camera**. The grid now holds only favorited videos recorded in 2025 that sit in the Camera album.
+6. Swipe the sheet down to look at them.
 7. When done, reopen the sheet and tap **Reset**. The full timeline returns.
 
 ## If a filter seems to hide too much
 
-- Filters add up: an item must match every active section. If the grid is unexpectedly empty, tap **Reset** and apply one section at a time.
+- Filters add up: an item must match every active section. If the grid is unexpectedly empty, tap **Reset** and set one section at a time.
 - A device folder that does not appear under **Source** is probably covered by an ignore rule or locked. Check the rules under **Library › Ignored** (see [ignored albums](/ReFra/features/ignored-albums)) or unlock it first.
-- Filtering is a view, not a change. Nothing is moved, hidden, or deleted when you apply or reset it.
+- Filtering is a view, not a change. Nothing is moved, hidden, or deleted when you set or reset it.

@@ -856,6 +856,15 @@ object Settings {
                 } ?: Album.LastSort(OrderType.Descending, FilterKind.DATE)
             }
 
+        private val FAVORITES_SORT = stringPreferencesKey("favorites_sort_obj")
+
+        fun getFavoritesSortFlow(context: Context): Flow<Album.LastSort> =
+            context.activeDataStore.data.map { prefs ->
+                prefs[FAVORITES_SORT]?.let {
+                    runCatching { Json.decodeFromString<Album.LastSort>(it) }.getOrNull()
+                } ?: Album.LastSort(OrderType.Descending, FilterKind.DATE)
+            }
+
         @Composable
         fun rememberTimelineSort() =
             rememberPreference(SettingsKeys.timelineSort)

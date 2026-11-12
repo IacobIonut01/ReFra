@@ -21,7 +21,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -38,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.LocalScrollToTop
 import com.dot.gallery.core.presentation.components.EmptyMedia
-import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.LocalGalleryHeaderReveal
 import com.dot.gallery.core.presentation.components.LocalGalleryPaneChrome
 import com.dot.gallery.core.presentation.components.TimelineMonth
@@ -58,7 +56,6 @@ import com.dot.gallery.domain.model.TimelineFilter
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.util.MediaGroupType
-import com.dot.gallery.domain.util.OrderType
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.timeline.generated.resources.Res
@@ -118,13 +115,7 @@ fun TimelineContent(
         albums.filterableOnTimeline().sortedBy { it.label }
     }
 
-    LaunchedEffect(availableAlbums) {
-        val supportedIds = availableAlbums.mapTo(hashSetOf()) { it.id }
-        val supportedSelection = timelineFilter.selectedAlbumIds.intersect(supportedIds)
-        if (supportedSelection != timelineFilter.selectedAlbumIds) {
-            timelineFilter = timelineFilter.copy(selectedAlbumIds = supportedSelection)
-        }
-    }
+    KeepFilterAlbumsAvailable(availableAlbums, timelineFilter) { timelineFilter = it }
 
     val availableYears = rememberAvailableTimelineYears(mediaState)
 
@@ -173,9 +164,7 @@ fun TimelineContent(
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
-                                    if (timelineFilter.isActive || timelineSort.kind != FilterKind.DATE ||
-                                        timelineSort.orderType != OrderType.Descending
-                                    ) {
+                                    if (timelineControlsActive(timelineFilter, timelineSort)) {
                                         Badge(
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
@@ -241,16 +230,15 @@ fun TimelineContent(
 
     TimelineFilterSheet(
         sheetState = filterSheetState,
-        currentFilter = timelineFilter,
-        currentSort = timelineSort,
+        filter = timelineFilter,
+        sort = timelineSort,
         availableYears = availableYears,
         availableAlbums = availableAlbums,
         indexProgress = indexProgress,
-        onApply = { newFilter, newSort ->
-            val sortChanged = newSort != timelineSort
-            timelineFilter = newFilter
+        onFilterChange = { timelineFilter = it },
+        onSortCommit = { newSort ->
             timelineSort = newSort
-            if (sortChanged) scrollToTop.requestScrollToTop(scrollToTopRoute)
-        }
+            scrollToTop.requestScrollToTop(scrollToTopRoute)
+        },
     )
 }

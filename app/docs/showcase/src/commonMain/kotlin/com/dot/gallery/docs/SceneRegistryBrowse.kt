@@ -61,6 +61,13 @@ val browseScenes: List<DocsScene> = listOf(
         states = listOf("filled", "scrolled", "empty"),
     ) { state -> DocsFavoritesScene(state) },
     DocsScene(
+        id = "favorites-filters",
+        title = "Favorites sort and filter",
+        pathTrace = listOf("Library", "Favorites", "Sort and filter"),
+        states = listOf("open"),
+        captureWindow = true,
+    ) { DocsFavoritesScene("filters") },
+    DocsScene(
         id = "collection-grid",
         title = "Collection",
         pathTrace = listOf("Albums", "Collections", "Holiday 2025"),

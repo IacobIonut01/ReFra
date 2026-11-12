@@ -29,6 +29,7 @@ kotlin {
             implementation(project(":app:core:ui"))
             implementation(project(":app:core:domain"))
             implementation(project(":app:core:data"))
+            implementation(project(":app:feature:timeline"))
             implementation(libs.cmp.runtime)
             implementation(libs.cmp.foundation)
             implementation(libs.cmp.material3)

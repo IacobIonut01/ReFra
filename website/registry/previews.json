@@ -543,6 +543,13 @@
         "title": "The Favorites screen",
         "caption": "Every item marked with a heart, grouped by date. The empty state is a second pose.",
         "section": "browse-favorites"
+      },
+      {
+        "scene": "favorites-filters",
+        "state": "open",
+        "title": "Sort and filter on Favorites",
+        "caption": "The order, the date headers switch and the filters. Each change shows in the grid as you tap it.",
+        "section": "sort-and-filter-favorites"
       }
     ],
     "sharing": [
