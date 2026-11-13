@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-13T18:17:34.863Z",
-  "capturedAtMs": 1794513389973,
+  "generatedAt": "2026-11-13T20:15:45.120Z",
+  "capturedAtMs": 1794599718397,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
@@ -5648,13 +5648,33 @@
       "live": true,
       "fidelity": "live",
       "assets": {
+        "foldable": {
+          "default": {
+            "src": "captures/help-browser/light/foldable-default.webp",
+            "type": "image",
+            "file": "help-browser/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "scrolled": {
+            "src": "captures/help-browser/light/foldable-scrolled.webp",
+            "type": "image",
+            "file": "help-browser/light/foldable-scrolled.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          }
+        },
         "phone": {
           "default": {
             "src": "captures/help-browser/light/phone-default.webp",
             "type": "image",
             "file": "help-browser/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -5662,22 +5682,62 @@
             "src": "captures/help-browser/light/phone-scrolled.webp",
             "type": "image",
             "file": "help-browser/light/phone-scrolled.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
+          }
+        },
+        "tablet": {
+          "default": {
+            "src": "captures/help-browser/light/tablet-default.webp",
+            "type": "image",
+            "file": "help-browser/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "scrolled": {
+            "src": "captures/help-browser/light/tablet-scrolled.webp",
+            "type": "image",
+            "file": "help-browser/light/tablet-scrolled.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "default": {
+              "src": "captures/help-browser/dark/foldable-default.webp",
+              "type": "image",
+              "file": "help-browser/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/help-browser/dark/foldable-scrolled.webp",
+              "type": "image",
+              "file": "help-browser/dark/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "default": {
               "src": "captures/help-browser/dark/phone-default.webp",
               "type": "image",
               "file": "help-browser/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5685,21 +5745,61 @@
               "src": "captures/help-browser/dark/phone-scrolled.webp",
               "type": "image",
               "file": "help-browser/dark/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/help-browser/dark/tablet-default.webp",
+              "type": "image",
+              "file": "help-browser/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/help-browser/dark/tablet-scrolled.webp",
+              "type": "image",
+              "file": "help-browser/dark/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
+          "foldable": {
+            "default": {
+              "src": "captures/help-browser/light/foldable-default.webp",
+              "type": "image",
+              "file": "help-browser/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/help-browser/light/foldable-scrolled.webp",
+              "type": "image",
+              "file": "help-browser/light/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "default": {
               "src": "captures/help-browser/light/phone-default.webp",
               "type": "image",
               "file": "help-browser/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -5707,10 +5807,30 @@
               "src": "captures/help-browser/light/phone-scrolled.webp",
               "type": "image",
               "file": "help-browser/light/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/help-browser/light/tablet-default.webp",
+              "type": "image",
+              "file": "help-browser/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/help-browser/light/tablet-scrolled.webp",
+              "type": "image",
+              "file": "help-browser/light/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -6232,7 +6352,7 @@
       "title": "Long-press action",
       "path": [
         "Settings",
-        "Media viewer",
+        "Gestures",
         "Long-press action"
       ],
       "states": [
@@ -6245,13 +6365,42 @@
       "live": true,
       "fidelity": "live",
       "assets": {
+        "foldable": {
+          "cutout-unavailable": {
+            "src": "captures/long-press-action/light/foldable-cutout-unavailable.webp",
+            "type": "image",
+            "file": "long-press-action/light/foldable-cutout-unavailable.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "rotate": {
+            "src": "captures/long-press-action/light/foldable-rotate.webp",
+            "type": "image",
+            "file": "long-press-action/light/foldable-rotate.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "default": {
+            "src": "captures/long-press-action/light/foldable-rotate.webp",
+            "type": "image",
+            "file": "long-press-action/light/foldable-rotate.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          }
+        },
         "phone": {
           "cutout-unavailable": {
             "src": "captures/long-press-action/light/phone-cutout-unavailable.webp",
             "type": "image",
             "file": "long-press-action/light/phone-cutout-unavailable.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -6259,8 +6408,8 @@
             "src": "captures/long-press-action/light/phone-rotate.webp",
             "type": "image",
             "file": "long-press-action/light/phone-rotate.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -6268,22 +6417,80 @@
             "src": "captures/long-press-action/light/phone-rotate.webp",
             "type": "image",
             "file": "long-press-action/light/phone-rotate.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
+          }
+        },
+        "tablet": {
+          "cutout-unavailable": {
+            "src": "captures/long-press-action/light/tablet-cutout-unavailable.webp",
+            "type": "image",
+            "file": "long-press-action/light/tablet-cutout-unavailable.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "rotate": {
+            "src": "captures/long-press-action/light/tablet-rotate.webp",
+            "type": "image",
+            "file": "long-press-action/light/tablet-rotate.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "default": {
+            "src": "captures/long-press-action/light/tablet-rotate.webp",
+            "type": "image",
+            "file": "long-press-action/light/tablet-rotate.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "cutout-unavailable": {
+              "src": "captures/long-press-action/dark/foldable-cutout-unavailable.webp",
+              "type": "image",
+              "file": "long-press-action/dark/foldable-cutout-unavailable.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "rotate": {
+              "src": "captures/long-press-action/dark/foldable-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/dark/foldable-rotate.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/long-press-action/dark/foldable-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/dark/foldable-rotate.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "cutout-unavailable": {
               "src": "captures/long-press-action/dark/phone-cutout-unavailable.webp",
               "type": "image",
               "file": "long-press-action/dark/phone-cutout-unavailable.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6291,8 +6498,8 @@
               "src": "captures/long-press-action/dark/phone-rotate.webp",
               "type": "image",
               "file": "long-press-action/dark/phone-rotate.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6300,21 +6507,79 @@
               "src": "captures/long-press-action/dark/phone-rotate.webp",
               "type": "image",
               "file": "long-press-action/dark/phone-rotate.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "cutout-unavailable": {
+              "src": "captures/long-press-action/dark/tablet-cutout-unavailable.webp",
+              "type": "image",
+              "file": "long-press-action/dark/tablet-cutout-unavailable.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "rotate": {
+              "src": "captures/long-press-action/dark/tablet-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/dark/tablet-rotate.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/long-press-action/dark/tablet-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/dark/tablet-rotate.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
+          "foldable": {
+            "cutout-unavailable": {
+              "src": "captures/long-press-action/light/foldable-cutout-unavailable.webp",
+              "type": "image",
+              "file": "long-press-action/light/foldable-cutout-unavailable.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "rotate": {
+              "src": "captures/long-press-action/light/foldable-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/light/foldable-rotate.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/long-press-action/light/foldable-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/light/foldable-rotate.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "cutout-unavailable": {
               "src": "captures/long-press-action/light/phone-cutout-unavailable.webp",
               "type": "image",
               "file": "long-press-action/light/phone-cutout-unavailable.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6322,8 +6587,8 @@
               "src": "captures/long-press-action/light/phone-rotate.webp",
               "type": "image",
               "file": "long-press-action/light/phone-rotate.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -6331,10 +6596,39 @@
               "src": "captures/long-press-action/light/phone-rotate.webp",
               "type": "image",
               "file": "long-press-action/light/phone-rotate.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "cutout-unavailable": {
+              "src": "captures/long-press-action/light/tablet-cutout-unavailable.webp",
+              "type": "image",
+              "file": "long-press-action/light/tablet-cutout-unavailable.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "rotate": {
+              "src": "captures/long-press-action/light/tablet-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/light/tablet-rotate.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/long-press-action/light/tablet-rotate.webp",
+              "type": "image",
+              "file": "long-press-action/light/tablet-rotate.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -8011,24 +8305,40 @@
       "assets": {
         "foldable": {
           "downloading": {
-            "src": "captures/settings-ai-models/foldable-downloading.webp",
+            "src": "captures/settings-ai-models/light/foldable-downloading.webp",
             "type": "image",
-            "file": "settings-ai-models/foldable-downloading.webp"
+            "file": "settings-ai-models/light/foldable-downloading.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "not-installed": {
-            "src": "captures/settings-ai-models/foldable-not-installed.webp",
+            "src": "captures/settings-ai-models/light/foldable-not-installed.webp",
             "type": "image",
-            "file": "settings-ai-models/foldable-not-installed.webp"
+            "file": "settings-ai-models/light/foldable-not-installed.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "ready": {
-            "src": "captures/settings-ai-models/foldable-ready.webp",
+            "src": "captures/settings-ai-models/light/foldable-ready.webp",
             "type": "image",
-            "file": "settings-ai-models/foldable-ready.webp"
+            "file": "settings-ai-models/light/foldable-ready.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "default": {
-            "src": "captures/settings-ai-models/foldable-not-installed.webp",
+            "src": "captures/settings-ai-models/light/foldable-not-installed.webp",
             "type": "image",
-            "file": "settings-ai-models/foldable-not-installed.webp"
+            "file": "settings-ai-models/light/foldable-not-installed.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -8036,8 +8346,8 @@
             "src": "captures/settings-ai-models/light/phone-downloading.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-downloading.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8045,8 +8355,8 @@
             "src": "captures/settings-ai-models/light/phone-not-installed.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-not-installed.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8054,8 +8364,8 @@
             "src": "captures/settings-ai-models/light/phone-ready.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-ready.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8063,44 +8373,98 @@
             "src": "captures/settings-ai-models/light/phone-not-installed.webp",
             "type": "image",
             "file": "settings-ai-models/light/phone-not-installed.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "downloading": {
-            "src": "captures/settings-ai-models/tablet-downloading.webp",
+            "src": "captures/settings-ai-models/light/tablet-downloading.webp",
             "type": "image",
-            "file": "settings-ai-models/tablet-downloading.webp"
+            "file": "settings-ai-models/light/tablet-downloading.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "not-installed": {
-            "src": "captures/settings-ai-models/tablet-not-installed.webp",
+            "src": "captures/settings-ai-models/light/tablet-not-installed.webp",
             "type": "image",
-            "file": "settings-ai-models/tablet-not-installed.webp"
+            "file": "settings-ai-models/light/tablet-not-installed.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "ready": {
-            "src": "captures/settings-ai-models/tablet-ready.webp",
+            "src": "captures/settings-ai-models/light/tablet-ready.webp",
             "type": "image",
-            "file": "settings-ai-models/tablet-ready.webp"
+            "file": "settings-ai-models/light/tablet-ready.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "default": {
-            "src": "captures/settings-ai-models/tablet-not-installed.webp",
+            "src": "captures/settings-ai-models/light/tablet-not-installed.webp",
             "type": "image",
-            "file": "settings-ai-models/tablet-not-installed.webp"
+            "file": "settings-ai-models/light/tablet-not-installed.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "downloading": {
+              "src": "captures/settings-ai-models/dark/foldable-downloading.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/foldable-downloading.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "not-installed": {
+              "src": "captures/settings-ai-models/dark/foldable-not-installed.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/foldable-not-installed.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "ready": {
+              "src": "captures/settings-ai-models/dark/foldable-ready.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/foldable-ready.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-ai-models/dark/foldable-not-installed.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/foldable-not-installed.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "downloading": {
               "src": "captures/settings-ai-models/dark/phone-downloading.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-downloading.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8108,8 +8472,8 @@
               "src": "captures/settings-ai-models/dark/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-not-installed.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8117,8 +8481,8 @@
               "src": "captures/settings-ai-models/dark/phone-ready.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8126,34 +8490,88 @@
               "src": "captures/settings-ai-models/dark/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/dark/phone-not-installed.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "downloading": {
+              "src": "captures/settings-ai-models/dark/tablet-downloading.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/tablet-downloading.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "not-installed": {
+              "src": "captures/settings-ai-models/dark/tablet-not-installed.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/tablet-not-installed.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "ready": {
+              "src": "captures/settings-ai-models/dark/tablet-ready.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/tablet-ready.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-ai-models/dark/tablet-not-installed.webp",
+              "type": "image",
+              "file": "settings-ai-models/dark/tablet-not-installed.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "downloading": {
-              "src": "captures/settings-ai-models/foldable-downloading.webp",
+              "src": "captures/settings-ai-models/light/foldable-downloading.webp",
               "type": "image",
-              "file": "settings-ai-models/foldable-downloading.webp"
+              "file": "settings-ai-models/light/foldable-downloading.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "not-installed": {
-              "src": "captures/settings-ai-models/foldable-not-installed.webp",
+              "src": "captures/settings-ai-models/light/foldable-not-installed.webp",
               "type": "image",
-              "file": "settings-ai-models/foldable-not-installed.webp"
+              "file": "settings-ai-models/light/foldable-not-installed.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "ready": {
-              "src": "captures/settings-ai-models/foldable-ready.webp",
+              "src": "captures/settings-ai-models/light/foldable-ready.webp",
               "type": "image",
-              "file": "settings-ai-models/foldable-ready.webp"
+              "file": "settings-ai-models/light/foldable-ready.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "default": {
-              "src": "captures/settings-ai-models/foldable-not-installed.webp",
+              "src": "captures/settings-ai-models/light/foldable-not-installed.webp",
               "type": "image",
-              "file": "settings-ai-models/foldable-not-installed.webp"
+              "file": "settings-ai-models/light/foldable-not-installed.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -8161,8 +8579,8 @@
               "src": "captures/settings-ai-models/light/phone-downloading.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-downloading.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8170,8 +8588,8 @@
               "src": "captures/settings-ai-models/light/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-not-installed.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8179,8 +8597,8 @@
               "src": "captures/settings-ai-models/light/phone-ready.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8188,32 +8606,48 @@
               "src": "captures/settings-ai-models/light/phone-not-installed.webp",
               "type": "image",
               "file": "settings-ai-models/light/phone-not-installed.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "downloading": {
-              "src": "captures/settings-ai-models/tablet-downloading.webp",
+              "src": "captures/settings-ai-models/light/tablet-downloading.webp",
               "type": "image",
-              "file": "settings-ai-models/tablet-downloading.webp"
+              "file": "settings-ai-models/light/tablet-downloading.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "not-installed": {
-              "src": "captures/settings-ai-models/tablet-not-installed.webp",
+              "src": "captures/settings-ai-models/light/tablet-not-installed.webp",
               "type": "image",
-              "file": "settings-ai-models/tablet-not-installed.webp"
+              "file": "settings-ai-models/light/tablet-not-installed.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "ready": {
-              "src": "captures/settings-ai-models/tablet-ready.webp",
+              "src": "captures/settings-ai-models/light/tablet-ready.webp",
               "type": "image",
-              "file": "settings-ai-models/tablet-ready.webp"
+              "file": "settings-ai-models/light/tablet-ready.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "default": {
-              "src": "captures/settings-ai-models/tablet-not-installed.webp",
+              "src": "captures/settings-ai-models/light/tablet-not-installed.webp",
               "type": "image",
-              "file": "settings-ai-models/tablet-not-installed.webp"
+              "file": "settings-ai-models/light/tablet-not-installed.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -8321,19 +8755,31 @@
       "assets": {
         "foldable": {
           "default": {
-            "src": "captures/settings-appearance/foldable-default.webp",
+            "src": "captures/settings-appearance/light/foldable-default.webp",
             "type": "image",
-            "file": "settings-appearance/foldable-default.webp"
+            "file": "settings-appearance/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "maps": {
-            "src": "captures/settings-appearance/foldable-maps.webp",
+            "src": "captures/settings-appearance/light/foldable-maps.webp",
             "type": "image",
-            "file": "settings-appearance/foldable-maps.webp"
+            "file": "settings-appearance/light/foldable-maps.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "wallpaper": {
-            "src": "captures/settings-appearance/foldable-wallpaper.webp",
+            "src": "captures/settings-appearance/light/foldable-wallpaper.webp",
             "type": "image",
-            "file": "settings-appearance/foldable-wallpaper.webp"
+            "file": "settings-appearance/light/foldable-wallpaper.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -8341,8 +8787,8 @@
             "src": "captures/settings-appearance/light/phone-default.webp",
             "type": "image",
             "file": "settings-appearance/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8350,8 +8796,8 @@
             "src": "captures/settings-appearance/light/phone-maps.webp",
             "type": "image",
             "file": "settings-appearance/light/phone-maps.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8359,39 +8805,80 @@
             "src": "captures/settings-appearance/light/phone-wallpaper.webp",
             "type": "image",
             "file": "settings-appearance/light/phone-wallpaper.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "default": {
-            "src": "captures/settings-appearance/tablet-default.webp",
+            "src": "captures/settings-appearance/light/tablet-default.webp",
             "type": "image",
-            "file": "settings-appearance/tablet-default.webp"
+            "file": "settings-appearance/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "maps": {
-            "src": "captures/settings-appearance/tablet-maps.webp",
+            "src": "captures/settings-appearance/light/tablet-maps.webp",
             "type": "image",
-            "file": "settings-appearance/tablet-maps.webp"
+            "file": "settings-appearance/light/tablet-maps.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "wallpaper": {
-            "src": "captures/settings-appearance/tablet-wallpaper.webp",
+            "src": "captures/settings-appearance/light/tablet-wallpaper.webp",
             "type": "image",
-            "file": "settings-appearance/tablet-wallpaper.webp"
+            "file": "settings-appearance/light/tablet-wallpaper.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "default": {
+              "src": "captures/settings-appearance/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-appearance/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "maps": {
+              "src": "captures/settings-appearance/dark/foldable-maps.webp",
+              "type": "image",
+              "file": "settings-appearance/dark/foldable-maps.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "wallpaper": {
+              "src": "captures/settings-appearance/dark/foldable-wallpaper.webp",
+              "type": "image",
+              "file": "settings-appearance/dark/foldable-wallpaper.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "default": {
               "src": "captures/settings-appearance/dark/phone-default.webp",
               "type": "image",
               "file": "settings-appearance/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8399,8 +8886,8 @@
               "src": "captures/settings-appearance/dark/phone-maps.webp",
               "type": "image",
               "file": "settings-appearance/dark/phone-maps.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8408,29 +8895,70 @@
               "src": "captures/settings-appearance/dark/phone-wallpaper.webp",
               "type": "image",
               "file": "settings-appearance/dark/phone-wallpaper.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/settings-appearance/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-appearance/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "maps": {
+              "src": "captures/settings-appearance/dark/tablet-maps.webp",
+              "type": "image",
+              "file": "settings-appearance/dark/tablet-maps.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "wallpaper": {
+              "src": "captures/settings-appearance/dark/tablet-wallpaper.webp",
+              "type": "image",
+              "file": "settings-appearance/dark/tablet-wallpaper.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "default": {
-              "src": "captures/settings-appearance/foldable-default.webp",
+              "src": "captures/settings-appearance/light/foldable-default.webp",
               "type": "image",
-              "file": "settings-appearance/foldable-default.webp"
+              "file": "settings-appearance/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "maps": {
-              "src": "captures/settings-appearance/foldable-maps.webp",
+              "src": "captures/settings-appearance/light/foldable-maps.webp",
               "type": "image",
-              "file": "settings-appearance/foldable-maps.webp"
+              "file": "settings-appearance/light/foldable-maps.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "wallpaper": {
-              "src": "captures/settings-appearance/foldable-wallpaper.webp",
+              "src": "captures/settings-appearance/light/foldable-wallpaper.webp",
               "type": "image",
-              "file": "settings-appearance/foldable-wallpaper.webp"
+              "file": "settings-appearance/light/foldable-wallpaper.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -8438,8 +8966,8 @@
               "src": "captures/settings-appearance/light/phone-default.webp",
               "type": "image",
               "file": "settings-appearance/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8447,8 +8975,8 @@
               "src": "captures/settings-appearance/light/phone-maps.webp",
               "type": "image",
               "file": "settings-appearance/light/phone-maps.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8456,27 +8984,39 @@
               "src": "captures/settings-appearance/light/phone-wallpaper.webp",
               "type": "image",
               "file": "settings-appearance/light/phone-wallpaper.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "default": {
-              "src": "captures/settings-appearance/tablet-default.webp",
+              "src": "captures/settings-appearance/light/tablet-default.webp",
               "type": "image",
-              "file": "settings-appearance/tablet-default.webp"
+              "file": "settings-appearance/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "maps": {
-              "src": "captures/settings-appearance/tablet-maps.webp",
+              "src": "captures/settings-appearance/light/tablet-maps.webp",
               "type": "image",
-              "file": "settings-appearance/tablet-maps.webp"
+              "file": "settings-appearance/light/tablet-maps.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "wallpaper": {
-              "src": "captures/settings-appearance/tablet-wallpaper.webp",
+              "src": "captures/settings-appearance/light/tablet-wallpaper.webp",
               "type": "image",
-              "file": "settings-appearance/tablet-wallpaper.webp"
+              "file": "settings-appearance/light/tablet-wallpaper.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -9538,9 +10078,114 @@
       "widthDp": 412,
       "heightDp": 915,
       "live": false,
-      "fidelity": "pending",
-      "assets": {},
-      "themes": {}
+      "fidelity": "capture",
+      "assets": {
+        "foldable": {
+          "default": {
+            "src": "captures/settings-editors/light/foldable-default.webp",
+            "type": "image",
+            "file": "settings-editors/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          }
+        },
+        "phone": {
+          "default": {
+            "src": "captures/settings-editors/light/phone-default.webp",
+            "type": "image",
+            "file": "settings-editors/light/phone-default.webp",
+            "width": 721,
+            "height": 1601,
+            "widthDp": 412,
+            "heightDp": 915
+          }
+        },
+        "tablet": {
+          "default": {
+            "src": "captures/settings-editors/light/tablet-default.webp",
+            "type": "image",
+            "file": "settings-editors/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          }
+        }
+      },
+      "themes": {
+        "dark": {
+          "foldable": {
+            "default": {
+              "src": "captures/settings-editors/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-editors/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
+          "phone": {
+            "default": {
+              "src": "captures/settings-editors/dark/phone-default.webp",
+              "type": "image",
+              "file": "settings-editors/dark/phone-default.webp",
+              "width": 721,
+              "height": 1601,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/settings-editors/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-editors/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            }
+          }
+        },
+        "light": {
+          "foldable": {
+            "default": {
+              "src": "captures/settings-editors/light/foldable-default.webp",
+              "type": "image",
+              "file": "settings-editors/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
+          "phone": {
+            "default": {
+              "src": "captures/settings-editors/light/phone-default.webp",
+              "type": "image",
+              "file": "settings-editors/light/phone-default.webp",
+              "width": 721,
+              "height": 1601,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/settings-editors/light/tablet-default.webp",
+              "type": "image",
+              "file": "settings-editors/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            }
+          }
+        }
+      }
     },
     "settings-general": {
       "id": "settings-general",
@@ -9558,9 +10203,13 @@
       "assets": {
         "foldable": {
           "default": {
-            "src": "captures/settings-general/foldable.webp",
+            "src": "captures/settings-general/light/foldable-default.webp",
             "type": "image",
-            "file": "settings-general/foldable.webp"
+            "file": "settings-general/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -9568,40 +10217,70 @@
             "src": "captures/settings-general/light/phone-default.webp",
             "type": "image",
             "file": "settings-general/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "default": {
-            "src": "captures/settings-general/tablet.webp",
+            "src": "captures/settings-general/light/tablet-default.webp",
             "type": "image",
-            "file": "settings-general/tablet.webp"
+            "file": "settings-general/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "default": {
+              "src": "captures/settings-general/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-general/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "default": {
               "src": "captures/settings-general/dark/phone-default.webp",
               "type": "image",
               "file": "settings-general/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/settings-general/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-general/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "default": {
-              "src": "captures/settings-general/foldable.webp",
+              "src": "captures/settings-general/light/foldable-default.webp",
               "type": "image",
-              "file": "settings-general/foldable.webp"
+              "file": "settings-general/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -9609,17 +10288,21 @@
               "src": "captures/settings-general/light/phone-default.webp",
               "type": "image",
               "file": "settings-general/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "default": {
-              "src": "captures/settings-general/tablet.webp",
+              "src": "captures/settings-general/light/tablet-default.webp",
               "type": "image",
-              "file": "settings-general/tablet.webp"
+              "file": "settings-general/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -9640,9 +10323,195 @@
       "widthDp": 412,
       "heightDp": 915,
       "live": false,
-      "fidelity": "pending",
-      "assets": {},
-      "themes": {}
+      "fidelity": "capture",
+      "assets": {
+        "foldable": {
+          "cutout-unavailable": {
+            "src": "captures/settings-gestures/light/foldable-cutout-unavailable.webp",
+            "type": "image",
+            "file": "settings-gestures/light/foldable-cutout-unavailable.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "default": {
+            "src": "captures/settings-gestures/light/foldable-default.webp",
+            "type": "image",
+            "file": "settings-gestures/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          }
+        },
+        "phone": {
+          "cutout-unavailable": {
+            "src": "captures/settings-gestures/light/phone-cutout-unavailable.webp",
+            "type": "image",
+            "file": "settings-gestures/light/phone-cutout-unavailable.webp",
+            "width": 721,
+            "height": 1601,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "default": {
+            "src": "captures/settings-gestures/light/phone-default.webp",
+            "type": "image",
+            "file": "settings-gestures/light/phone-default.webp",
+            "width": 721,
+            "height": 1601,
+            "widthDp": 412,
+            "heightDp": 915
+          }
+        },
+        "tablet": {
+          "cutout-unavailable": {
+            "src": "captures/settings-gestures/light/tablet-cutout-unavailable.webp",
+            "type": "image",
+            "file": "settings-gestures/light/tablet-cutout-unavailable.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "default": {
+            "src": "captures/settings-gestures/light/tablet-default.webp",
+            "type": "image",
+            "file": "settings-gestures/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          }
+        }
+      },
+      "themes": {
+        "dark": {
+          "foldable": {
+            "cutout-unavailable": {
+              "src": "captures/settings-gestures/dark/foldable-cutout-unavailable.webp",
+              "type": "image",
+              "file": "settings-gestures/dark/foldable-cutout-unavailable.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-gestures/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-gestures/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
+          "phone": {
+            "cutout-unavailable": {
+              "src": "captures/settings-gestures/dark/phone-cutout-unavailable.webp",
+              "type": "image",
+              "file": "settings-gestures/dark/phone-cutout-unavailable.webp",
+              "width": 721,
+              "height": 1601,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/settings-gestures/dark/phone-default.webp",
+              "type": "image",
+              "file": "settings-gestures/dark/phone-default.webp",
+              "width": 721,
+              "height": 1601,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          },
+          "tablet": {
+            "cutout-unavailable": {
+              "src": "captures/settings-gestures/dark/tablet-cutout-unavailable.webp",
+              "type": "image",
+              "file": "settings-gestures/dark/tablet-cutout-unavailable.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-gestures/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-gestures/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            }
+          }
+        },
+        "light": {
+          "foldable": {
+            "cutout-unavailable": {
+              "src": "captures/settings-gestures/light/foldable-cutout-unavailable.webp",
+              "type": "image",
+              "file": "settings-gestures/light/foldable-cutout-unavailable.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-gestures/light/foldable-default.webp",
+              "type": "image",
+              "file": "settings-gestures/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
+          "phone": {
+            "cutout-unavailable": {
+              "src": "captures/settings-gestures/light/phone-cutout-unavailable.webp",
+              "type": "image",
+              "file": "settings-gestures/light/phone-cutout-unavailable.webp",
+              "width": 721,
+              "height": 1601,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "default": {
+              "src": "captures/settings-gestures/light/phone-default.webp",
+              "type": "image",
+              "file": "settings-gestures/light/phone-default.webp",
+              "width": 721,
+              "height": 1601,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          },
+          "tablet": {
+            "cutout-unavailable": {
+              "src": "captures/settings-gestures/light/tablet-cutout-unavailable.webp",
+              "type": "image",
+              "file": "settings-gestures/light/tablet-cutout-unavailable.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-gestures/light/tablet-default.webp",
+              "type": "image",
+              "file": "settings-gestures/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            }
+          }
+        }
+      }
     },
     "settings-hub": {
       "id": "settings-hub",
@@ -9664,24 +10533,49 @@
       "assets": {
         "foldable": {
           "banner": {
-            "src": "captures/settings-hub/foldable-banner.webp",
+            "src": "captures/settings-hub/light/foldable-banner.webp",
             "type": "image",
-            "file": "settings-hub/foldable-banner.webp"
+            "file": "settings-hub/light/foldable-banner.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "banner-dismissed": {
-            "src": "captures/settings-hub/foldable-banner-dismissed.webp",
+            "src": "captures/settings-hub/light/foldable-banner-dismissed.webp",
             "type": "image",
-            "file": "settings-hub/foldable-banner-dismissed.webp"
+            "file": "settings-hub/light/foldable-banner-dismissed.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "developer": {
-            "src": "captures/settings-hub/foldable-developer.webp",
+            "src": "captures/settings-hub/light/foldable-developer.webp",
             "type": "image",
-            "file": "settings-hub/foldable-developer.webp"
+            "file": "settings-hub/light/foldable-developer.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "scrolled": {
+            "src": "captures/settings-hub/light/foldable-scrolled.webp",
+            "type": "image",
+            "file": "settings-hub/light/foldable-scrolled.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "default": {
-            "src": "captures/settings-hub/foldable-banner.webp",
+            "src": "captures/settings-hub/light/foldable-banner.webp",
             "type": "image",
-            "file": "settings-hub/foldable-banner.webp"
+            "file": "settings-hub/light/foldable-banner.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -9689,8 +10583,8 @@
             "src": "captures/settings-hub/light/phone-banner.webp",
             "type": "image",
             "file": "settings-hub/light/phone-banner.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -9698,8 +10592,8 @@
             "src": "captures/settings-hub/light/phone-banner-dismissed.webp",
             "type": "image",
             "file": "settings-hub/light/phone-banner-dismissed.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -9707,8 +10601,8 @@
             "src": "captures/settings-hub/light/phone-developer.webp",
             "type": "image",
             "file": "settings-hub/light/phone-developer.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -9716,8 +10610,8 @@
             "src": "captures/settings-hub/light/phone-scrolled.webp",
             "type": "image",
             "file": "settings-hub/light/phone-scrolled.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -9725,44 +10619,116 @@
             "src": "captures/settings-hub/light/phone-banner.webp",
             "type": "image",
             "file": "settings-hub/light/phone-banner.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "banner": {
-            "src": "captures/settings-hub/tablet-banner.webp",
+            "src": "captures/settings-hub/light/tablet-banner.webp",
             "type": "image",
-            "file": "settings-hub/tablet-banner.webp"
+            "file": "settings-hub/light/tablet-banner.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "banner-dismissed": {
-            "src": "captures/settings-hub/tablet-banner-dismissed.webp",
+            "src": "captures/settings-hub/light/tablet-banner-dismissed.webp",
             "type": "image",
-            "file": "settings-hub/tablet-banner-dismissed.webp"
+            "file": "settings-hub/light/tablet-banner-dismissed.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "developer": {
-            "src": "captures/settings-hub/tablet-developer.webp",
+            "src": "captures/settings-hub/light/tablet-developer.webp",
             "type": "image",
-            "file": "settings-hub/tablet-developer.webp"
+            "file": "settings-hub/light/tablet-developer.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "scrolled": {
+            "src": "captures/settings-hub/light/tablet-scrolled.webp",
+            "type": "image",
+            "file": "settings-hub/light/tablet-scrolled.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "default": {
-            "src": "captures/settings-hub/tablet-banner.webp",
+            "src": "captures/settings-hub/light/tablet-banner.webp",
             "type": "image",
-            "file": "settings-hub/tablet-banner.webp"
+            "file": "settings-hub/light/tablet-banner.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "banner": {
+              "src": "captures/settings-hub/dark/foldable-banner.webp",
+              "type": "image",
+              "file": "settings-hub/dark/foldable-banner.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "banner-dismissed": {
+              "src": "captures/settings-hub/dark/foldable-banner-dismissed.webp",
+              "type": "image",
+              "file": "settings-hub/dark/foldable-banner-dismissed.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "developer": {
+              "src": "captures/settings-hub/dark/foldable-developer.webp",
+              "type": "image",
+              "file": "settings-hub/dark/foldable-developer.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/settings-hub/dark/foldable-scrolled.webp",
+              "type": "image",
+              "file": "settings-hub/dark/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-hub/dark/foldable-banner.webp",
+              "type": "image",
+              "file": "settings-hub/dark/foldable-banner.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "banner": {
               "src": "captures/settings-hub/dark/phone-banner.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-banner.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9770,8 +10736,8 @@
               "src": "captures/settings-hub/dark/phone-banner-dismissed.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-banner-dismissed.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9779,8 +10745,8 @@
               "src": "captures/settings-hub/dark/phone-developer.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-developer.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9788,8 +10754,8 @@
               "src": "captures/settings-hub/dark/phone-scrolled.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9797,34 +10763,106 @@
               "src": "captures/settings-hub/dark/phone-banner.webp",
               "type": "image",
               "file": "settings-hub/dark/phone-banner.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "banner": {
+              "src": "captures/settings-hub/dark/tablet-banner.webp",
+              "type": "image",
+              "file": "settings-hub/dark/tablet-banner.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "banner-dismissed": {
+              "src": "captures/settings-hub/dark/tablet-banner-dismissed.webp",
+              "type": "image",
+              "file": "settings-hub/dark/tablet-banner-dismissed.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "developer": {
+              "src": "captures/settings-hub/dark/tablet-developer.webp",
+              "type": "image",
+              "file": "settings-hub/dark/tablet-developer.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/settings-hub/dark/tablet-scrolled.webp",
+              "type": "image",
+              "file": "settings-hub/dark/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-hub/dark/tablet-banner.webp",
+              "type": "image",
+              "file": "settings-hub/dark/tablet-banner.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "banner": {
-              "src": "captures/settings-hub/foldable-banner.webp",
+              "src": "captures/settings-hub/light/foldable-banner.webp",
               "type": "image",
-              "file": "settings-hub/foldable-banner.webp"
+              "file": "settings-hub/light/foldable-banner.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "banner-dismissed": {
-              "src": "captures/settings-hub/foldable-banner-dismissed.webp",
+              "src": "captures/settings-hub/light/foldable-banner-dismissed.webp",
               "type": "image",
-              "file": "settings-hub/foldable-banner-dismissed.webp"
+              "file": "settings-hub/light/foldable-banner-dismissed.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "developer": {
-              "src": "captures/settings-hub/foldable-developer.webp",
+              "src": "captures/settings-hub/light/foldable-developer.webp",
               "type": "image",
-              "file": "settings-hub/foldable-developer.webp"
+              "file": "settings-hub/light/foldable-developer.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/settings-hub/light/foldable-scrolled.webp",
+              "type": "image",
+              "file": "settings-hub/light/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "default": {
-              "src": "captures/settings-hub/foldable-banner.webp",
+              "src": "captures/settings-hub/light/foldable-banner.webp",
               "type": "image",
-              "file": "settings-hub/foldable-banner.webp"
+              "file": "settings-hub/light/foldable-banner.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -9832,8 +10870,8 @@
               "src": "captures/settings-hub/light/phone-banner.webp",
               "type": "image",
               "file": "settings-hub/light/phone-banner.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9841,8 +10879,8 @@
               "src": "captures/settings-hub/light/phone-banner-dismissed.webp",
               "type": "image",
               "file": "settings-hub/light/phone-banner-dismissed.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9850,8 +10888,8 @@
               "src": "captures/settings-hub/light/phone-developer.webp",
               "type": "image",
               "file": "settings-hub/light/phone-developer.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9859,8 +10897,8 @@
               "src": "captures/settings-hub/light/phone-scrolled.webp",
               "type": "image",
               "file": "settings-hub/light/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -9868,32 +10906,57 @@
               "src": "captures/settings-hub/light/phone-banner.webp",
               "type": "image",
               "file": "settings-hub/light/phone-banner.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "banner": {
-              "src": "captures/settings-hub/tablet-banner.webp",
+              "src": "captures/settings-hub/light/tablet-banner.webp",
               "type": "image",
-              "file": "settings-hub/tablet-banner.webp"
+              "file": "settings-hub/light/tablet-banner.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "banner-dismissed": {
-              "src": "captures/settings-hub/tablet-banner-dismissed.webp",
+              "src": "captures/settings-hub/light/tablet-banner-dismissed.webp",
               "type": "image",
-              "file": "settings-hub/tablet-banner-dismissed.webp"
+              "file": "settings-hub/light/tablet-banner-dismissed.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "developer": {
-              "src": "captures/settings-hub/tablet-developer.webp",
+              "src": "captures/settings-hub/light/tablet-developer.webp",
               "type": "image",
-              "file": "settings-hub/tablet-developer.webp"
+              "file": "settings-hub/light/tablet-developer.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/settings-hub/light/tablet-scrolled.webp",
+              "type": "image",
+              "file": "settings-hub/light/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "default": {
-              "src": "captures/settings-hub/tablet-banner.webp",
+              "src": "captures/settings-hub/light/tablet-banner.webp",
               "type": "image",
-              "file": "settings-hub/tablet-banner.webp"
+              "file": "settings-hub/light/tablet-banner.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -9909,7 +10972,8 @@
       "states": [
         "default",
         "disabled",
-        "horizontal"
+        "horizontal",
+        "split"
       ],
       "presentation": "component",
       "widthDp": 412,
@@ -9939,8 +11003,8 @@
             "src": "captures/settings-item/light/phone-default.webp",
             "type": "image",
             "file": "settings-item/light/phone-default.webp",
-            "width": 1079,
-            "height": 576,
+            "width": 721,
+            "height": 385,
             "widthDp": 412,
             "heightDp": 220
           },
@@ -9948,8 +11012,8 @@
             "src": "captures/settings-item/light/phone-disabled.webp",
             "type": "image",
             "file": "settings-item/light/phone-disabled.webp",
-            "width": 1079,
-            "height": 576,
+            "width": 721,
+            "height": 385,
             "widthDp": 412,
             "heightDp": 220
           },
@@ -9957,8 +11021,17 @@
             "src": "captures/settings-item/light/phone-horizontal.webp",
             "type": "image",
             "file": "settings-item/light/phone-horizontal.webp",
-            "width": 1079,
-            "height": 576,
+            "width": 721,
+            "height": 385,
+            "widthDp": 412,
+            "heightDp": 220
+          },
+          "split": {
+            "src": "captures/settings-item/light/phone-split.webp",
+            "type": "image",
+            "file": "settings-item/light/phone-split.webp",
+            "width": 721,
+            "height": 385,
             "widthDp": 412,
             "heightDp": 220
           }
@@ -9988,8 +11061,8 @@
               "src": "captures/settings-item/dark/phone-default.webp",
               "type": "image",
               "file": "settings-item/dark/phone-default.webp",
-              "width": 1079,
-              "height": 576,
+              "width": 721,
+              "height": 385,
               "widthDp": 412,
               "heightDp": 220
             },
@@ -9997,8 +11070,8 @@
               "src": "captures/settings-item/dark/phone-disabled.webp",
               "type": "image",
               "file": "settings-item/dark/phone-disabled.webp",
-              "width": 1079,
-              "height": 576,
+              "width": 721,
+              "height": 385,
               "widthDp": 412,
               "heightDp": 220
             },
@@ -10006,8 +11079,17 @@
               "src": "captures/settings-item/dark/phone-horizontal.webp",
               "type": "image",
               "file": "settings-item/dark/phone-horizontal.webp",
-              "width": 1079,
-              "height": 576,
+              "width": 721,
+              "height": 385,
+              "widthDp": 412,
+              "heightDp": 220
+            },
+            "split": {
+              "src": "captures/settings-item/dark/phone-split.webp",
+              "type": "image",
+              "file": "settings-item/dark/phone-split.webp",
+              "width": 721,
+              "height": 385,
               "widthDp": 412,
               "heightDp": 220
             }
@@ -10036,8 +11118,8 @@
               "src": "captures/settings-item/light/phone-default.webp",
               "type": "image",
               "file": "settings-item/light/phone-default.webp",
-              "width": 1079,
-              "height": 576,
+              "width": 721,
+              "height": 385,
               "widthDp": 412,
               "heightDp": 220
             },
@@ -10045,8 +11127,8 @@
               "src": "captures/settings-item/light/phone-disabled.webp",
               "type": "image",
               "file": "settings-item/light/phone-disabled.webp",
-              "width": 1079,
-              "height": 576,
+              "width": 721,
+              "height": 385,
               "widthDp": 412,
               "heightDp": 220
             },
@@ -10054,8 +11136,17 @@
               "src": "captures/settings-item/light/phone-horizontal.webp",
               "type": "image",
               "file": "settings-item/light/phone-horizontal.webp",
-              "width": 1079,
-              "height": 576,
+              "width": 721,
+              "height": 385,
+              "widthDp": 412,
+              "heightDp": 220
+            },
+            "split": {
+              "src": "captures/settings-item/light/phone-split.webp",
+              "type": "image",
+              "file": "settings-item/light/phone-split.webp",
+              "width": 721,
+              "height": 385,
               "widthDp": 412,
               "heightDp": 220
             }
@@ -10181,14 +11272,22 @@
       "assets": {
         "foldable": {
           "default": {
-            "src": "captures/settings-media-viewer/foldable-default.webp",
+            "src": "captures/settings-media-viewer/light/foldable-default.webp",
             "type": "image",
-            "file": "settings-media-viewer/foldable-default.webp"
+            "file": "settings-media-viewer/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "no-visual-search": {
-            "src": "captures/settings-media-viewer/foldable-no-visual-search.webp",
+            "src": "captures/settings-media-viewer/light/foldable-no-visual-search.webp",
             "type": "image",
-            "file": "settings-media-viewer/foldable-no-visual-search.webp"
+            "file": "settings-media-viewer/light/foldable-no-visual-search.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -10196,8 +11295,8 @@
             "src": "captures/settings-media-viewer/light/phone-default.webp",
             "type": "image",
             "file": "settings-media-viewer/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -10205,34 +11304,62 @@
             "src": "captures/settings-media-viewer/light/phone-no-visual-search.webp",
             "type": "image",
             "file": "settings-media-viewer/light/phone-no-visual-search.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "default": {
-            "src": "captures/settings-media-viewer/tablet-default.webp",
+            "src": "captures/settings-media-viewer/light/tablet-default.webp",
             "type": "image",
-            "file": "settings-media-viewer/tablet-default.webp"
+            "file": "settings-media-viewer/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "no-visual-search": {
-            "src": "captures/settings-media-viewer/tablet-no-visual-search.webp",
+            "src": "captures/settings-media-viewer/light/tablet-no-visual-search.webp",
             "type": "image",
-            "file": "settings-media-viewer/tablet-no-visual-search.webp"
+            "file": "settings-media-viewer/light/tablet-no-visual-search.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "default": {
+              "src": "captures/settings-media-viewer/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-media-viewer/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "no-visual-search": {
+              "src": "captures/settings-media-viewer/dark/foldable-no-visual-search.webp",
+              "type": "image",
+              "file": "settings-media-viewer/dark/foldable-no-visual-search.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "default": {
               "src": "captures/settings-media-viewer/dark/phone-default.webp",
               "type": "image",
               "file": "settings-media-viewer/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10240,24 +11367,52 @@
               "src": "captures/settings-media-viewer/dark/phone-no-visual-search.webp",
               "type": "image",
               "file": "settings-media-viewer/dark/phone-no-visual-search.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/settings-media-viewer/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-media-viewer/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "no-visual-search": {
+              "src": "captures/settings-media-viewer/dark/tablet-no-visual-search.webp",
+              "type": "image",
+              "file": "settings-media-viewer/dark/tablet-no-visual-search.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "default": {
-              "src": "captures/settings-media-viewer/foldable-default.webp",
+              "src": "captures/settings-media-viewer/light/foldable-default.webp",
               "type": "image",
-              "file": "settings-media-viewer/foldable-default.webp"
+              "file": "settings-media-viewer/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "no-visual-search": {
-              "src": "captures/settings-media-viewer/foldable-no-visual-search.webp",
+              "src": "captures/settings-media-viewer/light/foldable-no-visual-search.webp",
               "type": "image",
-              "file": "settings-media-viewer/foldable-no-visual-search.webp"
+              "file": "settings-media-viewer/light/foldable-no-visual-search.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -10265,8 +11420,8 @@
               "src": "captures/settings-media-viewer/light/phone-default.webp",
               "type": "image",
               "file": "settings-media-viewer/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10274,22 +11429,30 @@
               "src": "captures/settings-media-viewer/light/phone-no-visual-search.webp",
               "type": "image",
               "file": "settings-media-viewer/light/phone-no-visual-search.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "default": {
-              "src": "captures/settings-media-viewer/tablet-default.webp",
+              "src": "captures/settings-media-viewer/light/tablet-default.webp",
               "type": "image",
-              "file": "settings-media-viewer/tablet-default.webp"
+              "file": "settings-media-viewer/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "no-visual-search": {
-              "src": "captures/settings-media-viewer/tablet-no-visual-search.webp",
+              "src": "captures/settings-media-viewer/light/tablet-no-visual-search.webp",
               "type": "image",
-              "file": "settings-media-viewer/tablet-no-visual-search.webp"
+              "file": "settings-media-viewer/light/tablet-no-visual-search.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -10311,9 +11474,13 @@
       "assets": {
         "foldable": {
           "default": {
-            "src": "captures/settings-navigation/foldable.webp",
+            "src": "captures/settings-navigation/light/foldable-default.webp",
             "type": "image",
-            "file": "settings-navigation/foldable.webp"
+            "file": "settings-navigation/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -10321,40 +11488,70 @@
             "src": "captures/settings-navigation/light/phone-default.webp",
             "type": "image",
             "file": "settings-navigation/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "default": {
-            "src": "captures/settings-navigation/tablet.webp",
+            "src": "captures/settings-navigation/light/tablet-default.webp",
             "type": "image",
-            "file": "settings-navigation/tablet.webp"
+            "file": "settings-navigation/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "default": {
+              "src": "captures/settings-navigation/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-navigation/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "default": {
               "src": "captures/settings-navigation/dark/phone-default.webp",
               "type": "image",
               "file": "settings-navigation/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/settings-navigation/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-navigation/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "default": {
-              "src": "captures/settings-navigation/foldable.webp",
+              "src": "captures/settings-navigation/light/foldable-default.webp",
               "type": "image",
-              "file": "settings-navigation/foldable.webp"
+              "file": "settings-navigation/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -10362,17 +11559,21 @@
               "src": "captures/settings-navigation/light/phone-default.webp",
               "type": "image",
               "file": "settings-navigation/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "default": {
-              "src": "captures/settings-navigation/tablet.webp",
+              "src": "captures/settings-navigation/light/tablet-default.webp",
               "type": "image",
-              "file": "settings-navigation/tablet.webp"
+              "file": "settings-navigation/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -10383,7 +11584,7 @@
       "title": "Private folder detail",
       "path": [
         "Settings",
-        "Security",
+        "Security & privacy",
         "Private folder"
       ],
       "states": [
@@ -10400,24 +11601,49 @@
       "assets": {
         "foldable": {
           "configured": {
-            "src": "captures/settings-private-folder/foldable-configured.webp",
+            "src": "captures/settings-private-folder/light/foldable-configured.webp",
             "type": "image",
-            "file": "settings-private-folder/foldable-configured.webp"
+            "file": "settings-private-folder/light/foldable-configured.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "how-it-works": {
+            "src": "captures/settings-private-folder/light/foldable-how-it-works.webp",
+            "type": "image",
+            "file": "settings-private-folder/light/foldable-how-it-works.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "none": {
-            "src": "captures/settings-private-folder/foldable-none.webp",
+            "src": "captures/settings-private-folder/light/foldable-none.webp",
             "type": "image",
-            "file": "settings-private-folder/foldable-none.webp"
+            "file": "settings-private-folder/light/foldable-none.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "saf-uri": {
-            "src": "captures/settings-private-folder/foldable-saf-uri.webp",
+            "src": "captures/settings-private-folder/light/foldable-saf-uri.webp",
             "type": "image",
-            "file": "settings-private-folder/foldable-saf-uri.webp"
+            "file": "settings-private-folder/light/foldable-saf-uri.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "default": {
-            "src": "captures/settings-private-folder/foldable-none.webp",
+            "src": "captures/settings-private-folder/light/foldable-none.webp",
             "type": "image",
-            "file": "settings-private-folder/foldable-none.webp"
+            "file": "settings-private-folder/light/foldable-none.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -10425,8 +11651,8 @@
             "src": "captures/settings-private-folder/light/phone-configured.webp",
             "type": "image",
             "file": "settings-private-folder/light/phone-configured.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -10434,8 +11660,8 @@
             "src": "captures/settings-private-folder/light/phone-how-it-works.webp",
             "type": "image",
             "file": "settings-private-folder/light/phone-how-it-works.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -10443,8 +11669,8 @@
             "src": "captures/settings-private-folder/light/phone-none.webp",
             "type": "image",
             "file": "settings-private-folder/light/phone-none.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -10452,8 +11678,8 @@
             "src": "captures/settings-private-folder/light/phone-saf-uri.webp",
             "type": "image",
             "file": "settings-private-folder/light/phone-saf-uri.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -10461,44 +11687,116 @@
             "src": "captures/settings-private-folder/light/phone-none.webp",
             "type": "image",
             "file": "settings-private-folder/light/phone-none.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "configured": {
-            "src": "captures/settings-private-folder/tablet-configured.webp",
+            "src": "captures/settings-private-folder/light/tablet-configured.webp",
             "type": "image",
-            "file": "settings-private-folder/tablet-configured.webp"
+            "file": "settings-private-folder/light/tablet-configured.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "how-it-works": {
+            "src": "captures/settings-private-folder/light/tablet-how-it-works.webp",
+            "type": "image",
+            "file": "settings-private-folder/light/tablet-how-it-works.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "none": {
-            "src": "captures/settings-private-folder/tablet-none.webp",
+            "src": "captures/settings-private-folder/light/tablet-none.webp",
             "type": "image",
-            "file": "settings-private-folder/tablet-none.webp"
+            "file": "settings-private-folder/light/tablet-none.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "saf-uri": {
-            "src": "captures/settings-private-folder/tablet-saf-uri.webp",
+            "src": "captures/settings-private-folder/light/tablet-saf-uri.webp",
             "type": "image",
-            "file": "settings-private-folder/tablet-saf-uri.webp"
+            "file": "settings-private-folder/light/tablet-saf-uri.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "default": {
-            "src": "captures/settings-private-folder/tablet-none.webp",
+            "src": "captures/settings-private-folder/light/tablet-none.webp",
             "type": "image",
-            "file": "settings-private-folder/tablet-none.webp"
+            "file": "settings-private-folder/light/tablet-none.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "configured": {
+              "src": "captures/settings-private-folder/dark/foldable-configured.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/foldable-configured.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "how-it-works": {
+              "src": "captures/settings-private-folder/dark/foldable-how-it-works.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/foldable-how-it-works.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "none": {
+              "src": "captures/settings-private-folder/dark/foldable-none.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/foldable-none.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "saf-uri": {
+              "src": "captures/settings-private-folder/dark/foldable-saf-uri.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/foldable-saf-uri.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-private-folder/dark/foldable-none.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/foldable-none.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "configured": {
               "src": "captures/settings-private-folder/dark/phone-configured.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-configured.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10506,8 +11804,8 @@
               "src": "captures/settings-private-folder/dark/phone-how-it-works.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-how-it-works.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10515,8 +11813,8 @@
               "src": "captures/settings-private-folder/dark/phone-none.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-none.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10524,8 +11822,8 @@
               "src": "captures/settings-private-folder/dark/phone-saf-uri.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-saf-uri.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10533,34 +11831,106 @@
               "src": "captures/settings-private-folder/dark/phone-none.webp",
               "type": "image",
               "file": "settings-private-folder/dark/phone-none.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "configured": {
+              "src": "captures/settings-private-folder/dark/tablet-configured.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/tablet-configured.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "how-it-works": {
+              "src": "captures/settings-private-folder/dark/tablet-how-it-works.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/tablet-how-it-works.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "none": {
+              "src": "captures/settings-private-folder/dark/tablet-none.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/tablet-none.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "saf-uri": {
+              "src": "captures/settings-private-folder/dark/tablet-saf-uri.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/tablet-saf-uri.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-private-folder/dark/tablet-none.webp",
+              "type": "image",
+              "file": "settings-private-folder/dark/tablet-none.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "configured": {
-              "src": "captures/settings-private-folder/foldable-configured.webp",
+              "src": "captures/settings-private-folder/light/foldable-configured.webp",
               "type": "image",
-              "file": "settings-private-folder/foldable-configured.webp"
+              "file": "settings-private-folder/light/foldable-configured.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "how-it-works": {
+              "src": "captures/settings-private-folder/light/foldable-how-it-works.webp",
+              "type": "image",
+              "file": "settings-private-folder/light/foldable-how-it-works.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "none": {
-              "src": "captures/settings-private-folder/foldable-none.webp",
+              "src": "captures/settings-private-folder/light/foldable-none.webp",
               "type": "image",
-              "file": "settings-private-folder/foldable-none.webp"
+              "file": "settings-private-folder/light/foldable-none.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "saf-uri": {
-              "src": "captures/settings-private-folder/foldable-saf-uri.webp",
+              "src": "captures/settings-private-folder/light/foldable-saf-uri.webp",
               "type": "image",
-              "file": "settings-private-folder/foldable-saf-uri.webp"
+              "file": "settings-private-folder/light/foldable-saf-uri.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "default": {
-              "src": "captures/settings-private-folder/foldable-none.webp",
+              "src": "captures/settings-private-folder/light/foldable-none.webp",
               "type": "image",
-              "file": "settings-private-folder/foldable-none.webp"
+              "file": "settings-private-folder/light/foldable-none.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -10568,8 +11938,8 @@
               "src": "captures/settings-private-folder/light/phone-configured.webp",
               "type": "image",
               "file": "settings-private-folder/light/phone-configured.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10577,8 +11947,8 @@
               "src": "captures/settings-private-folder/light/phone-how-it-works.webp",
               "type": "image",
               "file": "settings-private-folder/light/phone-how-it-works.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10586,8 +11956,8 @@
               "src": "captures/settings-private-folder/light/phone-none.webp",
               "type": "image",
               "file": "settings-private-folder/light/phone-none.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10595,8 +11965,8 @@
               "src": "captures/settings-private-folder/light/phone-saf-uri.webp",
               "type": "image",
               "file": "settings-private-folder/light/phone-saf-uri.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10604,32 +11974,57 @@
               "src": "captures/settings-private-folder/light/phone-none.webp",
               "type": "image",
               "file": "settings-private-folder/light/phone-none.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "configured": {
-              "src": "captures/settings-private-folder/tablet-configured.webp",
+              "src": "captures/settings-private-folder/light/tablet-configured.webp",
               "type": "image",
-              "file": "settings-private-folder/tablet-configured.webp"
+              "file": "settings-private-folder/light/tablet-configured.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "how-it-works": {
+              "src": "captures/settings-private-folder/light/tablet-how-it-works.webp",
+              "type": "image",
+              "file": "settings-private-folder/light/tablet-how-it-works.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "none": {
-              "src": "captures/settings-private-folder/tablet-none.webp",
+              "src": "captures/settings-private-folder/light/tablet-none.webp",
               "type": "image",
-              "file": "settings-private-folder/tablet-none.webp"
+              "file": "settings-private-folder/light/tablet-none.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "saf-uri": {
-              "src": "captures/settings-private-folder/tablet-saf-uri.webp",
+              "src": "captures/settings-private-folder/light/tablet-saf-uri.webp",
               "type": "image",
-              "file": "settings-private-folder/tablet-saf-uri.webp"
+              "file": "settings-private-folder/light/tablet-saf-uri.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "default": {
-              "src": "captures/settings-private-folder/tablet-none.webp",
+              "src": "captures/settings-private-folder/light/tablet-none.webp",
               "type": "image",
-              "file": "settings-private-folder/tablet-none.webp"
+              "file": "settings-private-folder/light/tablet-none.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -10781,7 +12176,7 @@
       "title": "Security settings",
       "path": [
         "Settings",
-        "Security"
+        "Security & privacy"
       ],
       "states": [
         "default",
@@ -10795,14 +12190,22 @@
       "assets": {
         "foldable": {
           "aapm": {
-            "src": "captures/settings-security/foldable-aapm.webp",
+            "src": "captures/settings-security/light/foldable-aapm.webp",
             "type": "image",
-            "file": "settings-security/foldable-aapm.webp"
+            "file": "settings-security/light/foldable-aapm.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "default": {
-            "src": "captures/settings-security/foldable-default.webp",
+            "src": "captures/settings-security/light/foldable-default.webp",
             "type": "image",
-            "file": "settings-security/foldable-default.webp"
+            "file": "settings-security/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -10810,8 +12213,8 @@
             "src": "captures/settings-security/light/phone-aapm.webp",
             "type": "image",
             "file": "settings-security/light/phone-aapm.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -10819,34 +12222,62 @@
             "src": "captures/settings-security/light/phone-default.webp",
             "type": "image",
             "file": "settings-security/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "aapm": {
-            "src": "captures/settings-security/tablet-aapm.webp",
+            "src": "captures/settings-security/light/tablet-aapm.webp",
             "type": "image",
-            "file": "settings-security/tablet-aapm.webp"
+            "file": "settings-security/light/tablet-aapm.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "default": {
-            "src": "captures/settings-security/tablet-default.webp",
+            "src": "captures/settings-security/light/tablet-default.webp",
             "type": "image",
-            "file": "settings-security/tablet-default.webp"
+            "file": "settings-security/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "aapm": {
+              "src": "captures/settings-security/dark/foldable-aapm.webp",
+              "type": "image",
+              "file": "settings-security/dark/foldable-aapm.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-security/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-security/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "aapm": {
               "src": "captures/settings-security/dark/phone-aapm.webp",
               "type": "image",
               "file": "settings-security/dark/phone-aapm.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10854,24 +12285,52 @@
               "src": "captures/settings-security/dark/phone-default.webp",
               "type": "image",
               "file": "settings-security/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "aapm": {
+              "src": "captures/settings-security/dark/tablet-aapm.webp",
+              "type": "image",
+              "file": "settings-security/dark/tablet-aapm.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-security/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-security/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "aapm": {
-              "src": "captures/settings-security/foldable-aapm.webp",
+              "src": "captures/settings-security/light/foldable-aapm.webp",
               "type": "image",
-              "file": "settings-security/foldable-aapm.webp"
+              "file": "settings-security/light/foldable-aapm.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "default": {
-              "src": "captures/settings-security/foldable-default.webp",
+              "src": "captures/settings-security/light/foldable-default.webp",
               "type": "image",
-              "file": "settings-security/foldable-default.webp"
+              "file": "settings-security/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -10879,8 +12338,8 @@
               "src": "captures/settings-security/light/phone-aapm.webp",
               "type": "image",
               "file": "settings-security/light/phone-aapm.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10888,22 +12347,30 @@
               "src": "captures/settings-security/light/phone-default.webp",
               "type": "image",
               "file": "settings-security/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "aapm": {
-              "src": "captures/settings-security/tablet-aapm.webp",
+              "src": "captures/settings-security/light/tablet-aapm.webp",
               "type": "image",
-              "file": "settings-security/tablet-aapm.webp"
+              "file": "settings-security/light/tablet-aapm.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "default": {
-              "src": "captures/settings-security/tablet-default.webp",
+              "src": "captures/settings-security/light/tablet-default.webp",
               "type": "image",
-              "file": "settings-security/tablet-default.webp"
+              "file": "settings-security/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -11324,19 +12791,31 @@
       "assets": {
         "foldable": {
           "ai-ready": {
-            "src": "captures/settings-smart-features/foldable-ai-ready.webp",
+            "src": "captures/settings-smart-features/light/foldable-ai-ready.webp",
             "type": "image",
-            "file": "settings-smart-features/foldable-ai-ready.webp"
+            "file": "settings-smart-features/light/foldable-ai-ready.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "ai-unavailable": {
-            "src": "captures/settings-smart-features/foldable-ai-unavailable.webp",
+            "src": "captures/settings-smart-features/light/foldable-ai-unavailable.webp",
             "type": "image",
-            "file": "settings-smart-features/foldable-ai-unavailable.webp"
+            "file": "settings-smart-features/light/foldable-ai-unavailable.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "default": {
-            "src": "captures/settings-smart-features/foldable-ai-ready.webp",
+            "src": "captures/settings-smart-features/light/foldable-ai-ready.webp",
             "type": "image",
-            "file": "settings-smart-features/foldable-ai-ready.webp"
+            "file": "settings-smart-features/light/foldable-ai-ready.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -11344,8 +12823,8 @@
             "src": "captures/settings-smart-features/light/phone-ai-ready.webp",
             "type": "image",
             "file": "settings-smart-features/light/phone-ai-ready.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11353,8 +12832,8 @@
             "src": "captures/settings-smart-features/light/phone-ai-unavailable.webp",
             "type": "image",
             "file": "settings-smart-features/light/phone-ai-unavailable.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11362,39 +12841,80 @@
             "src": "captures/settings-smart-features/light/phone-ai-ready.webp",
             "type": "image",
             "file": "settings-smart-features/light/phone-ai-ready.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "ai-ready": {
-            "src": "captures/settings-smart-features/tablet-ai-ready.webp",
+            "src": "captures/settings-smart-features/light/tablet-ai-ready.webp",
             "type": "image",
-            "file": "settings-smart-features/tablet-ai-ready.webp"
+            "file": "settings-smart-features/light/tablet-ai-ready.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "ai-unavailable": {
-            "src": "captures/settings-smart-features/tablet-ai-unavailable.webp",
+            "src": "captures/settings-smart-features/light/tablet-ai-unavailable.webp",
             "type": "image",
-            "file": "settings-smart-features/tablet-ai-unavailable.webp"
+            "file": "settings-smart-features/light/tablet-ai-unavailable.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "default": {
-            "src": "captures/settings-smart-features/tablet-ai-ready.webp",
+            "src": "captures/settings-smart-features/light/tablet-ai-ready.webp",
             "type": "image",
-            "file": "settings-smart-features/tablet-ai-ready.webp"
+            "file": "settings-smart-features/light/tablet-ai-ready.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "ai-ready": {
+              "src": "captures/settings-smart-features/dark/foldable-ai-ready.webp",
+              "type": "image",
+              "file": "settings-smart-features/dark/foldable-ai-ready.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "ai-unavailable": {
+              "src": "captures/settings-smart-features/dark/foldable-ai-unavailable.webp",
+              "type": "image",
+              "file": "settings-smart-features/dark/foldable-ai-unavailable.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-smart-features/dark/foldable-ai-ready.webp",
+              "type": "image",
+              "file": "settings-smart-features/dark/foldable-ai-ready.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "ai-ready": {
               "src": "captures/settings-smart-features/dark/phone-ai-ready.webp",
               "type": "image",
               "file": "settings-smart-features/dark/phone-ai-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11402,8 +12922,8 @@
               "src": "captures/settings-smart-features/dark/phone-ai-unavailable.webp",
               "type": "image",
               "file": "settings-smart-features/dark/phone-ai-unavailable.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11411,29 +12931,70 @@
               "src": "captures/settings-smart-features/dark/phone-ai-ready.webp",
               "type": "image",
               "file": "settings-smart-features/dark/phone-ai-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "ai-ready": {
+              "src": "captures/settings-smart-features/dark/tablet-ai-ready.webp",
+              "type": "image",
+              "file": "settings-smart-features/dark/tablet-ai-ready.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "ai-unavailable": {
+              "src": "captures/settings-smart-features/dark/tablet-ai-unavailable.webp",
+              "type": "image",
+              "file": "settings-smart-features/dark/tablet-ai-unavailable.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-smart-features/dark/tablet-ai-ready.webp",
+              "type": "image",
+              "file": "settings-smart-features/dark/tablet-ai-ready.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "ai-ready": {
-              "src": "captures/settings-smart-features/foldable-ai-ready.webp",
+              "src": "captures/settings-smart-features/light/foldable-ai-ready.webp",
               "type": "image",
-              "file": "settings-smart-features/foldable-ai-ready.webp"
+              "file": "settings-smart-features/light/foldable-ai-ready.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "ai-unavailable": {
-              "src": "captures/settings-smart-features/foldable-ai-unavailable.webp",
+              "src": "captures/settings-smart-features/light/foldable-ai-unavailable.webp",
               "type": "image",
-              "file": "settings-smart-features/foldable-ai-unavailable.webp"
+              "file": "settings-smart-features/light/foldable-ai-unavailable.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "default": {
-              "src": "captures/settings-smart-features/foldable-ai-ready.webp",
+              "src": "captures/settings-smart-features/light/foldable-ai-ready.webp",
               "type": "image",
-              "file": "settings-smart-features/foldable-ai-ready.webp"
+              "file": "settings-smart-features/light/foldable-ai-ready.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -11441,8 +13002,8 @@
               "src": "captures/settings-smart-features/light/phone-ai-ready.webp",
               "type": "image",
               "file": "settings-smart-features/light/phone-ai-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11450,8 +13011,8 @@
               "src": "captures/settings-smart-features/light/phone-ai-unavailable.webp",
               "type": "image",
               "file": "settings-smart-features/light/phone-ai-unavailable.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11459,27 +13020,39 @@
               "src": "captures/settings-smart-features/light/phone-ai-ready.webp",
               "type": "image",
               "file": "settings-smart-features/light/phone-ai-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "ai-ready": {
-              "src": "captures/settings-smart-features/tablet-ai-ready.webp",
+              "src": "captures/settings-smart-features/light/tablet-ai-ready.webp",
               "type": "image",
-              "file": "settings-smart-features/tablet-ai-ready.webp"
+              "file": "settings-smart-features/light/tablet-ai-ready.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "ai-unavailable": {
-              "src": "captures/settings-smart-features/tablet-ai-unavailable.webp",
+              "src": "captures/settings-smart-features/light/tablet-ai-unavailable.webp",
               "type": "image",
-              "file": "settings-smart-features/tablet-ai-unavailable.webp"
+              "file": "settings-smart-features/light/tablet-ai-unavailable.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "default": {
-              "src": "captures/settings-smart-features/tablet-ai-ready.webp",
+              "src": "captures/settings-smart-features/light/tablet-ai-ready.webp",
               "type": "image",
-              "file": "settings-smart-features/tablet-ai-ready.webp"
+              "file": "settings-smart-features/light/tablet-ai-ready.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -11507,19 +13080,49 @@
       "assets": {
         "foldable": {
           "idle": {
-            "src": "captures/settings-smart-scan/foldable-idle.webp",
+            "src": "captures/settings-smart-scan/light/foldable-idle.webp",
             "type": "image",
-            "file": "settings-smart-scan/foldable-idle.webp"
+            "file": "settings-smart-scan/light/foldable-idle.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "partial": {
+            "src": "captures/settings-smart-scan/light/foldable-partial.webp",
+            "type": "image",
+            "file": "settings-smart-scan/light/foldable-partial.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "running": {
-            "src": "captures/settings-smart-scan/foldable-running.webp",
+            "src": "captures/settings-smart-scan/light/foldable-running.webp",
             "type": "image",
-            "file": "settings-smart-scan/foldable-running.webp"
+            "file": "settings-smart-scan/light/foldable-running.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "scrolled": {
+            "src": "captures/settings-smart-scan/light/foldable-scrolled.webp",
+            "type": "image",
+            "file": "settings-smart-scan/light/foldable-scrolled.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "default": {
-            "src": "captures/settings-smart-scan/foldable-idle.webp",
+            "src": "captures/settings-smart-scan/light/foldable-idle.webp",
             "type": "image",
-            "file": "settings-smart-scan/foldable-idle.webp"
+            "file": "settings-smart-scan/light/foldable-idle.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -11527,8 +13130,8 @@
             "src": "captures/settings-smart-scan/light/phone-idle.webp",
             "type": "image",
             "file": "settings-smart-scan/light/phone-idle.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11536,8 +13139,8 @@
             "src": "captures/settings-smart-scan/light/phone-partial.webp",
             "type": "image",
             "file": "settings-smart-scan/light/phone-partial.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11545,8 +13148,8 @@
             "src": "captures/settings-smart-scan/light/phone-running.webp",
             "type": "image",
             "file": "settings-smart-scan/light/phone-running.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11554,8 +13157,8 @@
             "src": "captures/settings-smart-scan/light/phone-scrolled.webp",
             "type": "image",
             "file": "settings-smart-scan/light/phone-scrolled.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11563,39 +13166,116 @@
             "src": "captures/settings-smart-scan/light/phone-idle.webp",
             "type": "image",
             "file": "settings-smart-scan/light/phone-idle.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "idle": {
-            "src": "captures/settings-smart-scan/tablet-idle.webp",
+            "src": "captures/settings-smart-scan/light/tablet-idle.webp",
             "type": "image",
-            "file": "settings-smart-scan/tablet-idle.webp"
+            "file": "settings-smart-scan/light/tablet-idle.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "partial": {
+            "src": "captures/settings-smart-scan/light/tablet-partial.webp",
+            "type": "image",
+            "file": "settings-smart-scan/light/tablet-partial.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "running": {
-            "src": "captures/settings-smart-scan/tablet-running.webp",
+            "src": "captures/settings-smart-scan/light/tablet-running.webp",
             "type": "image",
-            "file": "settings-smart-scan/tablet-running.webp"
+            "file": "settings-smart-scan/light/tablet-running.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "scrolled": {
+            "src": "captures/settings-smart-scan/light/tablet-scrolled.webp",
+            "type": "image",
+            "file": "settings-smart-scan/light/tablet-scrolled.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "default": {
-            "src": "captures/settings-smart-scan/tablet-idle.webp",
+            "src": "captures/settings-smart-scan/light/tablet-idle.webp",
             "type": "image",
-            "file": "settings-smart-scan/tablet-idle.webp"
+            "file": "settings-smart-scan/light/tablet-idle.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "idle": {
+              "src": "captures/settings-smart-scan/dark/foldable-idle.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/foldable-idle.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "partial": {
+              "src": "captures/settings-smart-scan/dark/foldable-partial.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/foldable-partial.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "running": {
+              "src": "captures/settings-smart-scan/dark/foldable-running.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/foldable-running.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/settings-smart-scan/dark/foldable-scrolled.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "default": {
+              "src": "captures/settings-smart-scan/dark/foldable-idle.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/foldable-idle.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "idle": {
               "src": "captures/settings-smart-scan/dark/phone-idle.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-idle.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11603,8 +13283,8 @@
               "src": "captures/settings-smart-scan/dark/phone-partial.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-partial.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11612,8 +13292,8 @@
               "src": "captures/settings-smart-scan/dark/phone-running.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-running.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11621,8 +13301,8 @@
               "src": "captures/settings-smart-scan/dark/phone-scrolled.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11630,29 +13310,106 @@
               "src": "captures/settings-smart-scan/dark/phone-idle.webp",
               "type": "image",
               "file": "settings-smart-scan/dark/phone-idle.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "idle": {
+              "src": "captures/settings-smart-scan/dark/tablet-idle.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/tablet-idle.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "partial": {
+              "src": "captures/settings-smart-scan/dark/tablet-partial.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/tablet-partial.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "running": {
+              "src": "captures/settings-smart-scan/dark/tablet-running.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/tablet-running.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/settings-smart-scan/dark/tablet-scrolled.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "default": {
+              "src": "captures/settings-smart-scan/dark/tablet-idle.webp",
+              "type": "image",
+              "file": "settings-smart-scan/dark/tablet-idle.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "idle": {
-              "src": "captures/settings-smart-scan/foldable-idle.webp",
+              "src": "captures/settings-smart-scan/light/foldable-idle.webp",
               "type": "image",
-              "file": "settings-smart-scan/foldable-idle.webp"
+              "file": "settings-smart-scan/light/foldable-idle.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "partial": {
+              "src": "captures/settings-smart-scan/light/foldable-partial.webp",
+              "type": "image",
+              "file": "settings-smart-scan/light/foldable-partial.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "running": {
-              "src": "captures/settings-smart-scan/foldable-running.webp",
+              "src": "captures/settings-smart-scan/light/foldable-running.webp",
               "type": "image",
-              "file": "settings-smart-scan/foldable-running.webp"
+              "file": "settings-smart-scan/light/foldable-running.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/settings-smart-scan/light/foldable-scrolled.webp",
+              "type": "image",
+              "file": "settings-smart-scan/light/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "default": {
-              "src": "captures/settings-smart-scan/foldable-idle.webp",
+              "src": "captures/settings-smart-scan/light/foldable-idle.webp",
               "type": "image",
-              "file": "settings-smart-scan/foldable-idle.webp"
+              "file": "settings-smart-scan/light/foldable-idle.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -11660,8 +13417,8 @@
               "src": "captures/settings-smart-scan/light/phone-idle.webp",
               "type": "image",
               "file": "settings-smart-scan/light/phone-idle.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11669,8 +13426,8 @@
               "src": "captures/settings-smart-scan/light/phone-partial.webp",
               "type": "image",
               "file": "settings-smart-scan/light/phone-partial.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11678,8 +13435,8 @@
               "src": "captures/settings-smart-scan/light/phone-running.webp",
               "type": "image",
               "file": "settings-smart-scan/light/phone-running.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11687,8 +13444,8 @@
               "src": "captures/settings-smart-scan/light/phone-scrolled.webp",
               "type": "image",
               "file": "settings-smart-scan/light/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11696,27 +13453,57 @@
               "src": "captures/settings-smart-scan/light/phone-idle.webp",
               "type": "image",
               "file": "settings-smart-scan/light/phone-idle.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "idle": {
-              "src": "captures/settings-smart-scan/tablet-idle.webp",
+              "src": "captures/settings-smart-scan/light/tablet-idle.webp",
               "type": "image",
-              "file": "settings-smart-scan/tablet-idle.webp"
+              "file": "settings-smart-scan/light/tablet-idle.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "partial": {
+              "src": "captures/settings-smart-scan/light/tablet-partial.webp",
+              "type": "image",
+              "file": "settings-smart-scan/light/tablet-partial.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "running": {
-              "src": "captures/settings-smart-scan/tablet-running.webp",
+              "src": "captures/settings-smart-scan/light/tablet-running.webp",
               "type": "image",
-              "file": "settings-smart-scan/tablet-running.webp"
+              "file": "settings-smart-scan/light/tablet-running.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/settings-smart-scan/light/tablet-scrolled.webp",
+              "type": "image",
+              "file": "settings-smart-scan/light/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "default": {
-              "src": "captures/settings-smart-scan/tablet-idle.webp",
+              "src": "captures/settings-smart-scan/light/tablet-idle.webp",
               "type": "image",
-              "file": "settings-smart-scan/tablet-idle.webp"
+              "file": "settings-smart-scan/light/tablet-idle.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
@@ -11742,14 +13529,31 @@
       "assets": {
         "foldable": {
           "default": {
-            "src": "captures/settings-timeline-albums/foldable-default.webp",
+            "src": "captures/settings-timeline-albums/light/foldable-default.webp",
             "type": "image",
-            "file": "settings-timeline-albums/foldable-default.webp"
+            "file": "settings-timeline-albums/light/foldable-default.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
+          },
+          "scrolled": {
+            "src": "captures/settings-timeline-albums/light/foldable-scrolled.webp",
+            "type": "image",
+            "file": "settings-timeline-albums/light/foldable-scrolled.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           },
           "sections": {
-            "src": "captures/settings-timeline-albums/foldable-sections.webp",
+            "src": "captures/settings-timeline-albums/light/foldable-sections.webp",
             "type": "image",
-            "file": "settings-timeline-albums/foldable-sections.webp"
+            "file": "settings-timeline-albums/light/foldable-sections.webp",
+            "width": 1344,
+            "height": 1631,
+            "widthDp": 768,
+            "heightDp": 932
           }
         },
         "phone": {
@@ -11757,8 +13561,8 @@
             "src": "captures/settings-timeline-albums/light/phone-default.webp",
             "type": "image",
             "file": "settings-timeline-albums/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11766,8 +13570,8 @@
             "src": "captures/settings-timeline-albums/light/phone-scrolled.webp",
             "type": "image",
             "file": "settings-timeline-albums/light/phone-scrolled.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -11775,34 +13579,80 @@
             "src": "captures/settings-timeline-albums/light/phone-sections.webp",
             "type": "image",
             "file": "settings-timeline-albums/light/phone-sections.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 721,
+            "height": 1601,
             "widthDp": 412,
             "heightDp": 915
           }
         },
         "tablet": {
           "default": {
-            "src": "captures/settings-timeline-albums/tablet-default.webp",
+            "src": "captures/settings-timeline-albums/light/tablet-default.webp",
             "type": "image",
-            "file": "settings-timeline-albums/tablet-default.webp"
+            "file": "settings-timeline-albums/light/tablet-default.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
+          },
+          "scrolled": {
+            "src": "captures/settings-timeline-albums/light/tablet-scrolled.webp",
+            "type": "image",
+            "file": "settings-timeline-albums/light/tablet-scrolled.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           },
           "sections": {
-            "src": "captures/settings-timeline-albums/tablet-sections.webp",
+            "src": "captures/settings-timeline-albums/light/tablet-sections.webp",
             "type": "image",
-            "file": "settings-timeline-albums/tablet-sections.webp"
+            "file": "settings-timeline-albums/light/tablet-sections.webp",
+            "width": 1470,
+            "height": 2065,
+            "widthDp": 840,
+            "heightDp": 1180
           }
         }
       },
       "themes": {
         "dark": {
+          "foldable": {
+            "default": {
+              "src": "captures/settings-timeline-albums/dark/foldable-default.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/dark/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/settings-timeline-albums/dark/foldable-scrolled.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/dark/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "sections": {
+              "src": "captures/settings-timeline-albums/dark/foldable-sections.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/dark/foldable-sections.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            }
+          },
           "phone": {
             "default": {
               "src": "captures/settings-timeline-albums/dark/phone-default.webp",
               "type": "image",
               "file": "settings-timeline-albums/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11810,8 +13660,8 @@
               "src": "captures/settings-timeline-albums/dark/phone-scrolled.webp",
               "type": "image",
               "file": "settings-timeline-albums/dark/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11819,24 +13669,70 @@
               "src": "captures/settings-timeline-albums/dark/phone-sections.webp",
               "type": "image",
               "file": "settings-timeline-albums/dark/phone-sections.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
+            }
+          },
+          "tablet": {
+            "default": {
+              "src": "captures/settings-timeline-albums/dark/tablet-default.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/dark/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/settings-timeline-albums/dark/tablet-scrolled.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/dark/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "sections": {
+              "src": "captures/settings-timeline-albums/dark/tablet-sections.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/dark/tablet-sections.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         },
         "light": {
           "foldable": {
             "default": {
-              "src": "captures/settings-timeline-albums/foldable-default.webp",
+              "src": "captures/settings-timeline-albums/light/foldable-default.webp",
               "type": "image",
-              "file": "settings-timeline-albums/foldable-default.webp"
+              "file": "settings-timeline-albums/light/foldable-default.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
+            },
+            "scrolled": {
+              "src": "captures/settings-timeline-albums/light/foldable-scrolled.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/light/foldable-scrolled.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             },
             "sections": {
-              "src": "captures/settings-timeline-albums/foldable-sections.webp",
+              "src": "captures/settings-timeline-albums/light/foldable-sections.webp",
               "type": "image",
-              "file": "settings-timeline-albums/foldable-sections.webp"
+              "file": "settings-timeline-albums/light/foldable-sections.webp",
+              "width": 1344,
+              "height": 1631,
+              "widthDp": 768,
+              "heightDp": 932
             }
           },
           "phone": {
@@ -11844,8 +13740,8 @@
               "src": "captures/settings-timeline-albums/light/phone-default.webp",
               "type": "image",
               "file": "settings-timeline-albums/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11853,8 +13749,8 @@
               "src": "captures/settings-timeline-albums/light/phone-scrolled.webp",
               "type": "image",
               "file": "settings-timeline-albums/light/phone-scrolled.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -11862,22 +13758,39 @@
               "src": "captures/settings-timeline-albums/light/phone-sections.webp",
               "type": "image",
               "file": "settings-timeline-albums/light/phone-sections.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 721,
+              "height": 1601,
               "widthDp": 412,
               "heightDp": 915
             }
           },
           "tablet": {
             "default": {
-              "src": "captures/settings-timeline-albums/tablet-default.webp",
+              "src": "captures/settings-timeline-albums/light/tablet-default.webp",
               "type": "image",
-              "file": "settings-timeline-albums/tablet-default.webp"
+              "file": "settings-timeline-albums/light/tablet-default.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
+            },
+            "scrolled": {
+              "src": "captures/settings-timeline-albums/light/tablet-scrolled.webp",
+              "type": "image",
+              "file": "settings-timeline-albums/light/tablet-scrolled.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             },
             "sections": {
-              "src": "captures/settings-timeline-albums/tablet-sections.webp",
+              "src": "captures/settings-timeline-albums/light/tablet-sections.webp",
               "type": "image",
-              "file": "settings-timeline-albums/tablet-sections.webp"
+              "file": "settings-timeline-albums/light/tablet-sections.webp",
+              "width": 1470,
+              "height": 2065,
+              "widthDp": 840,
+              "heightDp": 1180
             }
           }
         }
