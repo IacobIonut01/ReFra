@@ -11,6 +11,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -28,9 +29,11 @@ import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_backup_dashboard_title
 import com.dot.gallery.generated.resources.cloud_memories
 import com.dot.gallery.generated.resources.favorites
+import com.dot.gallery.generated.resources.help_title
 import com.dot.gallery.generated.resources.help_whats_new
 import com.dot.gallery.generated.resources.settings_title
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -105,7 +108,7 @@ class TimelineNavActionsTest {
     @Test
     fun favoritesAndMemoriesAreNotListed() {
         // Favorites moved to a top-bar button and Memories is a Library shortcut, so the
-        // sheet keeps only Backup, What's new and Settings (issue #1389).
+        // sheet keeps only Backup, Help and Settings (issue #1389; Help added in #1421).
         showMenu(lastSeenVersion = BuildConfig.VERSION_NAME)
 
         openMenuSheet()
@@ -116,5 +119,19 @@ class TimelineNavActionsTest {
         rule.onAllNodesWithText(context.getString(Res.string.cloud_memories)).assertCountEquals(0)
         rule.onNodeWithText(context.getString(Res.string.cloud_backup_dashboard_title)).assertExists()
         rule.onNodeWithText(context.getString(Res.string.settings_title)).assertExists()
+    }
+
+    @Test
+    fun helpRowSitsAboveSettings() {
+        showMenu(lastSeenVersion = BuildConfig.VERSION_NAME)
+
+        openMenuSheet()
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val helpTop = rule.onAllNodesWithText(context.getString(Res.string.help_title))
+            .onFirst().fetchSemanticsNode().boundsInRoot.top
+        val settingsTop = rule.onAllNodesWithText(context.getString(Res.string.settings_title))
+            .onFirst().fetchSemanticsNode().boundsInRoot.top
+        assertTrue("Help should sit above Settings in the sheet", helpTop < settingsTop)
     }
 }

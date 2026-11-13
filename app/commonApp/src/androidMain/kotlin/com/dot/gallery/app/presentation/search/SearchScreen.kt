@@ -72,7 +72,7 @@ import com.dot.gallery.generated.resources.help_tips_section_title
 /**
  * App shell for `:feature:classifier`'s [SearchContent] — collects the
  * [SearchViewModel] state, wires routes through `Screen`, and supplies the
- * "Help & Tips" block (kept app-side: it depends on `:feature:help` types).
+ * "Help" block (kept app-side: it depends on `:feature:help` types).
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -199,7 +199,7 @@ fun SearchScreen(
 }
 
 /**
- * "Help & Tips" for the current query, shown above the media results. It starts as a single
+ * "Help" for the current query, shown above the media results. It starts as a single
  * compact row with the match count, since tips are rarely what a search is for; tapping it
  * expands the top matching tips and a "See all" row that opens the full Help screen. Tapping
  * a tip navigates to its detail (never mutates search state).

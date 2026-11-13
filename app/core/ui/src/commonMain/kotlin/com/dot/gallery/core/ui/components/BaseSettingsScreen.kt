@@ -40,7 +40,7 @@ import dev.chrisbanes.haze.rememberHazeState
  * list scrolls under it), grouped preference list, initial focus for the first actionable row.
  *
  * [searchSink], when provided, receives `(route, titles)` for every non-header
- * toggle row so a platform search registry (Android: Help & Tips settings
+ * toggle row so a platform search registry (Android: Help settings
  * search) can index them without this module knowing the registry exists.
  */
 @Composable

@@ -1146,7 +1146,7 @@
 
 
     <!-- HELP SEARCH -->
-    <string name="help_search_hint">Search help &amp; tips</string>
+    <string name="help_search_hint">Search help</string>
     <string name="help_search_no_results">No help found for "%1$s"</string>
     <string name="help_search_section_tips">Tips &amp; how-to</string>
     <string name="help_search_section_settings">Settings</string>
@@ -1572,7 +1572,7 @@
     <string name="dismiss">Dismiss</string>
     <string name="media_type_albums_setting_title">Show media type albums</string>
     <string name="album_sections_title">Organize albums by sections</string>
-    <string name="help_title">Help &amp; tips</string>
+    <string name="help_title">Help</string>
     <string name="help_whats_new">What's new</string>
     <string name="help_whats_new_subtitle">Discover the latest Gallery features</string>
     <string name="help_whats_new_in_version">What's new in v%1$s</string>

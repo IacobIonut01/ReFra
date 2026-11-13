@@ -97,7 +97,7 @@
     <string name="setup_tip_pinch_summary">Zoom the timeline in or out with two fingers</string>
     <string name="setup_tip_select">Long-press, then drag</string>
     <string name="setup_tip_select_summary">Select a whole run of photos in one move</string>
-    <string name="setup_tip_help">Help &amp; tips</string>
+    <string name="setup_tip_help">Help</string>
     <string name="setup_tip_help_summary">Tutorials and what's new, any time in Settings</string>
     <string name="setup_start_browsing">Start browsing</string>
 </resources>

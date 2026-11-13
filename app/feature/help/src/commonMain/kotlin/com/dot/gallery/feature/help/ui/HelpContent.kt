@@ -63,7 +63,7 @@ import dev.chrisbanes.haze.hazeSource
 import androidx.compose.foundation.lazy.rememberLazyListState
 
 /**
- * Help & tips hub: unified fuzzy search over tips/settings/quick actions/
+ * Help hub: unified fuzzy search over tips/settings/quick actions/
  * changelog plus grouped category entry points.
  *
  * The app wrapper supplies [state] (releases come from the asset-bound

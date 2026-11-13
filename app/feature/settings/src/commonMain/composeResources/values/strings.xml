@@ -23,7 +23,7 @@
     <string name="settings_cloud_accounts_summary">Immich, Nextcloud, ownCloud, WebDAV, SMB and NFS</string>
     <string name="ai_category">Smart features</string>
     <string name="ai_category_summary">Search, categories, people and on-device models</string>
-    <string name="help_title">Help &amp; tips</string>
+    <string name="help_title">Help</string>
     <string name="help_summary">Tutorials, tips and what's new</string>
     <string name="dev_menu_title">Developer</string>
     <string name="dev_menu_summary">Logs, diagnostics and bug reports</string>

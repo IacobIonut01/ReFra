@@ -27,7 +27,7 @@ import com.dot.gallery.core.ui.generated.resources.help_search_clear
 /**
  * The app's standard search pill — borderless CircleShape field on a
  * surfaceContainer fill, search glyph on the left, clear button on the right.
- * Same visual as the Help & tips search bar.
+ * Same visual as the Help search bar.
  */
 @Composable
 fun AppSearchField(

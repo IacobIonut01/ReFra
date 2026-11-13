@@ -17,7 +17,7 @@ import com.dot.gallery.feature.help.domain.HelpSearchEngine
  * JVM/Android-only, so this engine lives in `androidMain` — other targets fall
  * back to [com.dot.gallery.feature.help.domain.BasicHelpSearchEngine].
  *
- * The same matcher powers both the Help screen search bar and the "Help & Tips"
+ * The same matcher powers both the Help screen search bar and the "Help"
  * section injected into the timeline media search, guaranteeing one ranking
  * behavior across the app.
  */

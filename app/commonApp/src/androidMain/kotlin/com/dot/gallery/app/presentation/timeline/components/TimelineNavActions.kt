@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Settings
@@ -50,6 +51,7 @@ import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_backup_dashboard_title
+import com.dot.gallery.generated.resources.help_title
 import com.dot.gallery.generated.resources.help_whats_new
 import com.dot.gallery.generated.resources.more_options
 import com.dot.gallery.generated.resources.settings_title
@@ -119,6 +121,13 @@ fun TimelineNavActions(extraItems: List<OptionItem> = emptyList()) {
                 ),
             )
         }
+        add(
+            OptionItem(
+                icon = Icons.AutoMirrored.Outlined.HelpOutline,
+                text = stringResource(Res.string.help_title),
+                onClick = { openRoute(Screen.HelpScreen()) },
+            ),
+        )
         add(
             OptionItem(
                 icon = Icons.Outlined.Settings,

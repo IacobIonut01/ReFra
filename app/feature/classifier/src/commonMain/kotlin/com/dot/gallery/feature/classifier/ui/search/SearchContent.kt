@@ -172,7 +172,7 @@ fun searchPhase(results: SearchResultsState, query: String): SearchPhase = when 
  * grids (grid or mosaic) with a floating sort dock.
  *
  * App shell collects the [state] from the search ViewModel and supplies:
- * - [tipsContent] — optional "Help & Tips" results block, rendered inline in
+ * - [tipsContent] — optional "Help" results block, rendered inline in
  *   whichever scroll container is active; `null` hides it entirely.
  * - [selectionSheetContent] — the platform selection overlay (e.g. the app's
  *   `SelectionSheet`), anchored bottom-end.
@@ -906,7 +906,7 @@ private fun SearchResults(
 
     val isMosaicLayout = timelineLayoutType == LAYOUT_MOSAIC && !useRelevanceOrder
 
-    // Index progress and Help & Tips ride above the grid as a single full-width leading
+    // Index progress and Help results ride above the grid as a single full-width leading
     // item so they scroll seamlessly with the media results.
     val textMatches = searchResults.textMatches
     val aboveGridContent: (@Composable () -> Unit)? =

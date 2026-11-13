@@ -182,7 +182,7 @@ class SearchViewModel @Inject constructor(
     private var _query = MutableStateFlow("")
     val query = _query.asStateFlow()
 
-    /** In-memory help/tips index backing the inline "Help & Tips" search section. */
+    /** In-memory help/tips index backing the inline "Help" search section. */
     private var helpSearchItemsCache: List<HelpSearchItem>? = null
     private suspend fun helpSearchItems(): List<HelpSearchItem> =
         helpSearchItemsCache ?: HelpSearchIndex.buildTips().also { helpSearchItemsCache = it }

@@ -393,7 +393,8 @@
     <string name="add_to_collection">Add to collection</string>
     <string name="remove_from_collection">Remove from collection</string>
 
-    <!-- Help & Tips Screen -->
+    <!-- Help Screen -->
+    <string name="help_title">Help</string>
     <string name="help_whats_new">What's new</string>
 
     <!-- FCast -->
