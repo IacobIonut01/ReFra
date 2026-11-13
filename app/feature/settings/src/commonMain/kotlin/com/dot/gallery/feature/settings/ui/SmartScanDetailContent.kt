@@ -204,6 +204,13 @@ private fun refreshRows(
     )
     val modelsMissing = stringResource(Res.string.ai_models_unavailable)
     return listOf(
+        SettingsEntity.Header(stringResource(Res.string.smart_scan_rebuild_header)),
+        row(
+            Icons.Outlined.RestartAlt,
+            stringResource(Res.string.smart_scan_full_refresh),
+            stringResource(Res.string.smart_scan_full_refresh_summary),
+            Position.Alone, true, actions.onFullRefresh,
+        ),
         SettingsEntity.Header(refreshHeader),
         row(
             Icons.Outlined.Info,
@@ -235,13 +242,6 @@ private fun refreshRows(
             stringResource(Res.string.smart_scan_row_text),
             stringResource(Res.string.smart_scan_row_text_summary),
             Position.Bottom, true, actions.onText,
-        ),
-        SettingsEntity.Header(stringResource(Res.string.smart_scan_rebuild_header)),
-        row(
-            Icons.Outlined.RestartAlt,
-            stringResource(Res.string.smart_scan_full_refresh),
-            stringResource(Res.string.smart_scan_full_refresh_summary),
-            Position.Alone, true, actions.onFullRefresh,
         ),
     )
 }

@@ -222,9 +222,9 @@ object HelpSearchIndex {
             Toggle(Res.string.shared_elements, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.use_system_font_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.map_appearance_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
+            Toggle(Res.string.old_navbar, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             // Navigation
             Toggle(Res.string.set_default_screen, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
-            Toggle(Res.string.old_navbar, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Toggle(Res.string.auto_open_search_keyboard, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Toggle(Res.string.auto_hide_navigationbar, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Toggle(Res.string.show_selection_titles, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
@@ -262,7 +262,7 @@ object HelpSearchIndex {
             Toggle(Res.string.group_cloud_local_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.merge_albums_by_name, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.album_sections_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
-            Toggle(Res.string.media_type_albums_setting_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
+            Toggle(Res.string.media_type_albums_setting_title, HelpRoute.Target.LIBRARY, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.date_headers_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.group_method_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.date_header, HelpRoute.Target.DATE_FORMAT, HelpCategory.TIMELINE_ALBUMS),
@@ -278,7 +278,7 @@ object HelpSearchIndex {
             // Smart features
             Toggle(Res.string.smart_features_include_ignored_albums, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),
             Toggle(Res.string.ai_models_manager, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),
-            Toggle(Res.string.categories, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),
+            Toggle(Res.string.categories, HelpRoute.Target.CATEGORIES, HelpCategory.SETTINGS_SMART),
             Toggle(Res.string.smart_scan_manager_title, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),
             Toggle(Res.string.categories_exclude_videos, HelpRoute.Target.CATEGORIES_SETTINGS, HelpCategory.SETTINGS_SMART),
             Toggle(Res.string.refresh_metadata, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),

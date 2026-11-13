@@ -399,20 +399,27 @@ fun SettingsItem(
     }
 
     val splitSwitchTrailing: @Composable () -> Unit = {
-        Switch(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .focusProperties { canFocus = item.enabled }
-                .semantics { stateDescription = switchStateDescription },
-            checked = checked,
-            enabled = item.enabled,
-            onCheckedChange = { isChecked ->
-                item.onCheck?.let {
-                    checked = isChecked
-                    it(isChecked)
-                }
-            },
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .size(width = 1.dp, height = 32.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+            )
+            Switch(
+                modifier = Modifier
+                    .focusProperties { canFocus = item.enabled }
+                    .semantics { stateDescription = switchStateDescription },
+                checked = checked,
+                enabled = item.enabled,
+                onCheckedChange = { isChecked ->
+                    item.onCheck?.let {
+                        checked = isChecked
+                        it(isChecked)
+                    }
+                },
+            )
+        }
     }
     val trailingContent: (@Composable () -> Unit)? = when {
         customTrailingContent != null -> {

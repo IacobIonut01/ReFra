@@ -10,8 +10,6 @@ import androidx.compose.runtime.Stable
 @Stable
 class SmartFeaturesScreenActions(
     val onIncludeIgnoredAlbumsChange: (Boolean) -> Unit = {},
-    val onOpenAiModels: () -> Unit = {},
-    val onOpenCategories: () -> Unit = {},
     val onOpenCloudIndexing: () -> Unit = {},
     val onOpenScanManager: () -> Unit = {},
     val onOpenEditBackups: () -> Unit = {},

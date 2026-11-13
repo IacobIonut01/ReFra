@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.ui.components.SettingsItem
 import com.dot.gallery.core.ui.components.settings
@@ -22,6 +23,21 @@ import com.dot.gallery.core.ui.components.settings
 @Composable
 fun SettingsItemScene(state: String?) {
     when (state) {
+        "split" -> LazyColumn(Modifier.fillMaxSize()) {
+            item {
+                SettingsItem(
+                    item = SettingsEntity.SwitchPreference(
+                        title = "Album sections",
+                        summary = "Groups albums into custom sections",
+                        isChecked = true,
+                        onCheck = {},
+                        onClick = {},
+                        screenPosition = Position.Alone,
+                    )
+                )
+            }
+        }
+
         "disabled" -> LazyColumn(Modifier.fillMaxSize()) {
             settings {
                 Preference(

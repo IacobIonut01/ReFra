@@ -93,6 +93,7 @@ import com.dot.gallery.core.ml.DownloadInfo
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.feature.settings.ui.AiModelGroupUi
+import com.dot.gallery.feature.settings.ui.TextRecognitionState
 import com.dot.gallery.feature.settings.ui.AiModelsManagerActions
 import com.dot.gallery.feature.settings.ui.AiModelsManagerContent
 import com.dot.gallery.feature.settings.ui.AiModelsManagerState
@@ -131,7 +132,7 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "settings-item",
         title = "Settings item",
         pathTrace = listOf("Settings", "Any section row"),
-        states = listOf("default", "disabled", "horizontal"),
+        states = listOf("default", "disabled", "horizontal", "split"),
         presentation = "component",
         widthDp = 412,
         heightDp = 220,
@@ -281,11 +282,30 @@ val sceneRegistry: List<DocsScene> = listOf(
         SmartFeaturesScreenContent(
             state = SmartFeaturesScreenState(
                 aiAvailable = state == "ai-ready",
-                modelsReady = state == "ai-ready",
-                modelSummary = "AI-powered search and classification are available",
-                categoriesSummary = "Categorise your media",
+                includeIgnoredAlbums = state == "ai-ready",
                 scanSummary = "Refresh and repair metadata, search, categories, and persons",
                 hasCloudProviders = true,
+            ),
+            hubState = AiModelsManagerState(
+                canInstallModels = state == "ai-ready",
+                embeddingsReady = state == "ai-ready",
+                groups = ModelGroup.entries.map { group ->
+                    AiModelGroupUi(
+                        group = group,
+                        status = if (state == "ai-ready") ModelStatus.READY else ModelStatus.NOT_INSTALLED,
+                        installedSize = if (state == "ai-ready") 132_000_000 else 0L,
+                    )
+                },
+            ),
+            textRecognition = TextRecognitionState(
+                canEnable = state == "ai-ready",
+                enabled = state == "ai-ready",
+                onRequest = false,
+                indexLibrary = true,
+                installedPackIds = if (state == "ai-ready") listOf("english") else emptyList(),
+                modelBytes = 18_000_000,
+                indexBytes = 4_000_000,
+                indexedPhotos = if (state == "ai-ready") 1_240 else 0,
             ),
         )
     },

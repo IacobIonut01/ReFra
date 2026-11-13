@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Balance
 import androidx.compose.material.icons.outlined.BatteryChargingFull
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.CompareArrows
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.Delete
@@ -87,6 +88,9 @@ import com.dot.gallery.feature.settings.generated.resources.ai_models_delete_tit
 import com.dot.gallery.feature.settings.generated.resources.ai_models_offline_unavailable_summary
 import com.dot.gallery.feature.settings.generated.resources.ai_models_preparing_summary
 import com.dot.gallery.feature.settings.generated.resources.ai_models_status_in_use
+import com.dot.gallery.feature.settings.generated.resources.ai_models_unavailable
+import com.dot.gallery.feature.settings.generated.resources.categories
+import com.dot.gallery.feature.settings.generated.resources.categorise_your_media
 import com.dot.gallery.feature.settings.generated.resources.cta_cutout
 import com.dot.gallery.feature.settings.generated.resources.cta_faces
 import com.dot.gallery.feature.settings.generated.resources.cta_install
@@ -237,6 +241,22 @@ fun IntelligenceFeatureContent(
                                 summary = stringResource(Res.string.ai_models_compare_summary),
                                 screenPosition = Position.Bottom,
                                 onClick = { scope.launch { compareSheet.show() } }
+                            ),
+                            customTrailingContent = { Chevron() },
+                        )
+                    }
+                    item(key = "categories") {
+                        SettingsItem(
+                            item = SettingsEntity.Preference(
+                                icon = Icons.Outlined.Category,
+                                title = stringResource(Res.string.categories),
+                                summary = stringResource(
+                                    if (state.embeddingsReady) Res.string.categorise_your_media
+                                    else Res.string.ai_models_unavailable
+                                ),
+                                enabled = state.embeddingsReady,
+                                screenPosition = Position.Alone,
+                                onClick = actions.onOpenCategories,
                             ),
                             customTrailingContent = { Chevron() },
                         )

@@ -31,7 +31,6 @@ import androidx.compose.material.icons.outlined.GifBox
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.MergeType
-import androidx.compose.material.icons.outlined.PermMedia
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.material.icons.outlined.ViewAgenda
@@ -210,8 +209,6 @@ import com.dot.gallery.feature.settings.generated.resources.group_similar_media_
 import com.dot.gallery.feature.settings.generated.resources.group_similar_media_summary
 import com.dot.gallery.feature.settings.generated.resources.group_similar_media_title
 import com.dot.gallery.feature.settings.generated.resources.media_grouping_restart_note
-import com.dot.gallery.feature.settings.generated.resources.media_type_albums_setting_summary
-import com.dot.gallery.feature.settings.generated.resources.media_type_albums_setting_title
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name_description
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name_summary
@@ -225,6 +222,8 @@ import com.dot.gallery.feature.settings.generated.resources.section_type_common
 import com.dot.gallery.feature.settings.generated.resources.section_type_custom
 import com.dot.gallery.feature.settings.generated.resources.section_type_uncategorized
 import com.dot.gallery.feature.settings.generated.resources.settings_display_header
+import com.dot.gallery.feature.settings.generated.resources.settings_off
+import com.dot.gallery.feature.settings.generated.resources.settings_on
 import com.dot.gallery.feature.settings.generated.resources.settings_timeline_albums
 import com.dot.gallery.feature.settings.generated.resources.top_bar_filter
 import com.dot.gallery.feature.settings.generated.resources.top_bar_select
@@ -307,7 +306,6 @@ fun SettingsTimelineAlbumsContent(
     var dateHeaderAlbums by rememberPreference(SettingsKeys.albumGroupByDate)
     var mergeAlbumsByName by rememberPreference(SettingsKeys.mergeAlbumsByName)
     var albumSectionsEnabled by rememberPreference(SettingsKeys.albumSectionsEnabled)
-    var showMediaTypeAlbums by rememberPreference(SettingsKeys.showMediaTypeAlbums)
     var updateModifiedDate by rememberPreference(SettingsKeys.updateModifiedDate)
     var favIconPosition by rememberPreference(SettingsKeys.favoriteIconPosition)
     var dateHeaderTimeline by rememberPreference(SettingsKeys.timelineGroupByDate)
@@ -621,9 +619,6 @@ fun SettingsTimelineAlbumsContent(
                 mergeAlbumsByName = mergeAlbumsByName,
                 onMergeAlbumsChange = { mergeAlbumsByName = it },
                 albumSectionsEnabled = albumSectionsEnabled,
-                onAlbumSectionsChange = { albumSectionsEnabled = it },
-                showMediaTypeAlbums = showMediaTypeAlbums,
-                onShowMediaTypeAlbumsChange = { showMediaTypeAlbums = it },
                 updateModifiedDate = updateModifiedDate,
                 onUpdateModifiedDateChange = { updateModifiedDate = it },
                 favIconPosition = favIconPosition,
@@ -659,9 +654,6 @@ private fun TimelineAlbumsListContent(
     mergeAlbumsByName: Boolean,
     onMergeAlbumsChange: (Boolean) -> Unit,
     albumSectionsEnabled: Boolean = false,
-    onAlbumSectionsChange: (Boolean) -> Unit = {},
-    showMediaTypeAlbums: Boolean = true,
-    onShowMediaTypeAlbumsChange: (Boolean) -> Unit = {},
     updateModifiedDate: Boolean,
     onUpdateModifiedDateChange: (Boolean) -> Unit,
     favIconPosition: String,
@@ -844,24 +836,15 @@ private fun TimelineAlbumsListContent(
             screenPosition = Position.Middle
         )
 
-        val albumSectionsPref = rememberSwitchPreference(
+        val albumSectionsStateLabel =
+            if (albumSectionsEnabled) stringResource(Res.string.settings_on)
+            else stringResource(Res.string.settings_off)
+        val albumSectionsPref = rememberPreference(
             albumSectionsEnabled,
             title = stringResource(Res.string.album_sections_title),
             icon = Icons.Outlined.ViewAgenda,
-            summary = stringResource(Res.string.album_sections_summary),
-            isChecked = albumSectionsEnabled,
-            onCheck = onAlbumSectionsChange,
+            summary = albumSectionsStateLabel,
             onClick = { onDetailClick(DETAIL_ALBUM_SECTIONS) },
-            screenPosition = Position.Middle
-        )
-
-        val showMediaTypeAlbumsPref = rememberSwitchPreference(
-            showMediaTypeAlbums,
-            title = stringResource(Res.string.media_type_albums_setting_title),
-            icon = Icons.Outlined.PermMedia,
-            summary = stringResource(Res.string.media_type_albums_setting_summary),
-            isChecked = showMediaTypeAlbums,
-            onCheck = onShowMediaTypeAlbumsChange,
             screenPosition = Position.Bottom
         )
 
@@ -922,7 +905,7 @@ private fun TimelineAlbumsListContent(
             allowGifAnimationPref, monthHighlightsPref, headerPlacesPref, floatingDateLabelPref,
             dateHeaderPref, recheckCaptureDatesPref, topBarPref, storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
-            showMediaTypeAlbumsPref, displayHeader, favIconPositionPref,
+            displayHeader, favIconPositionPref,
             dateHeadersPref, groupMethodPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
@@ -943,7 +926,6 @@ private fun TimelineAlbumsListContent(
                 add(mergeAlbumsByNamePref)
                 add(updateModifiedDatePref)
                 add(albumSectionsPref)
-                add(showMediaTypeAlbumsPref)
 
                 add(displayHeader)
                 add(dateHeadersPref)

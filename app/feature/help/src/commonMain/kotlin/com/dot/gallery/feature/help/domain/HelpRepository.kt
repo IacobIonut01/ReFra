@@ -1604,7 +1604,7 @@ object HelpRepository {
             quickActions = listOf(QuickAction(Res.string.help_qa_open_search, Icons.Outlined.ImageSearch, HelpRoute.Target.SEARCH))),
         HelpTip(id = "nav_old_navbar", title = Res.string.help_tip_nav_old_navbar_title, subtitle = Res.string.help_tip_nav_old_navbar_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.History), category = HelpCategory.GET_STARTED_NAVIGATION,
-            deepLink = HelpRoute.Target.SETTINGS_NAVIGATION,
+            deepLink = HelpRoute.Target.COLOR_PALETTE,
             pages = listOf(
                 TutorialPage(title = Res.string.help_tip_nav_old_navbar_p1_title, description = Res.string.help_tip_nav_old_navbar_p1_desc, steps = listOf(Res.string.help_tip_nav_old_navbar_p1_s1, Res.string.help_tip_nav_old_navbar_p1_s2), previewType = PreviewType.NAV_BAR_PREVIEW)
             ), sinceVersion = "4.0.0"),
@@ -1760,7 +1760,7 @@ object HelpRepository {
             ), sinceVersion = "5.0.0"),
         HelpTip(id = "media_type_albums", title = Res.string.help_tip_media_type_albums_title, subtitle = Res.string.help_tip_media_type_albums_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.PermMedia), category = HelpCategory.TIMELINE_ALBUMS,
-            deepLink = HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS,
+            deepLink = HelpRoute.Target.LIBRARY,
             pages = listOf(
                 TutorialPage(title = Res.string.help_tip_media_type_albums_p1_title, description = Res.string.help_tip_media_type_albums_p1_desc, steps = listOf(Res.string.help_tip_media_type_albums_p1_s1, Res.string.help_tip_media_type_albums_p1_s2, Res.string.help_tip_media_type_albums_p1_s3), previewType = PreviewType.ALBUM_GRID)
             ), sinceVersion = "5.1.0"),
@@ -2440,7 +2440,7 @@ object HelpRepository {
             pages = listOf(TutorialPage(title = Res.string.help_tip_settings_launch_screen_p1_title, description = Res.string.help_tip_settings_launch_screen_p1_desc, steps = listOf(Res.string.help_tip_settings_launch_screen_p1_s1, Res.string.help_tip_settings_launch_screen_p1_s2, Res.string.help_tip_settings_launch_screen_p1_s3))), sinceVersion = "4.0.0"),
         HelpTip(id = "settings_old_navbar", title = Res.string.help_tip_settings_old_navbar_title, subtitle = Res.string.help_tip_settings_old_navbar_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.History), category = HelpCategory.SETTINGS_NAVIGATION,
-            deepLink = HelpRoute.Target.SETTINGS_NAVIGATION,
+            deepLink = HelpRoute.Target.COLOR_PALETTE,
             pages = listOf(TutorialPage(title = Res.string.help_tip_settings_old_navbar_p1_title, description = Res.string.help_tip_settings_old_navbar_p1_desc, steps = listOf(Res.string.help_tip_settings_old_navbar_p1_s1, Res.string.help_tip_settings_old_navbar_p1_s2, Res.string.help_tip_settings_old_navbar_p1_s3), previewType = PreviewType.NAV_BAR_PREVIEW)), sinceVersion = "4.0.0"),
         HelpTip(id = "settings_selection_titles", title = Res.string.help_tip_settings_selection_titles_title, subtitle = Res.string.help_tip_settings_selection_titles_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Title), category = HelpCategory.SETTINGS_NAVIGATION,

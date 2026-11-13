@@ -53,6 +53,7 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.ViewDay
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
@@ -141,6 +142,10 @@ import com.dot.gallery.feature.settings.generated.resources.map_appearance_heade
 import com.dot.gallery.feature.settings.generated.resources.map_appearance_light
 import com.dot.gallery.feature.settings.generated.resources.map_appearance_system
 import com.dot.gallery.feature.settings.generated.resources.map_appearance_title
+import com.dot.gallery.feature.settings.generated.resources.navigation
+import com.dot.gallery.feature.settings.generated.resources.old_navbar
+import com.dot.gallery.feature.settings.generated.resources.old_navbar_description
+import com.dot.gallery.feature.settings.generated.resources.old_navbar_summary
 import com.dot.gallery.feature.settings.generated.resources.save
 import com.dot.gallery.feature.settings.generated.resources.settings_appearance
 import com.dot.gallery.feature.settings.generated.resources.settings_font_header
@@ -170,6 +175,7 @@ private const val DETAIL_SHARED = "shared"
 private const val DETAIL_SYSTEM_FONT = "system_font"
 private const val DETAIL_MAP_APPEARANCE = "map_appearance"
 private const val DETAIL_APP_ICON = "app_icon"
+private const val DETAIL_OLD_NAVBAR = "old_navbar"
 
 /** Which circle of the Appearance theme picker is selected, in display order. */
 private enum class ThemeMode { Light, Auto, Dark }
@@ -199,6 +205,7 @@ fun ColorPaletteContent(
     var sharedElements by rememberPreference(SettingsKeys.sharedElements)
     var useSystemFont by rememberPreference(SettingsKeys.useSystemFont)
     var mapAppearance by rememberMapAppearance()
+    var oldNavbar by rememberPreference(SettingsKeys.oldNavbar)
     var userCartoKey by rememberPreference(SettingsKeys.cartoBasemapKey)
     var cartoKeyDraft by remember { mutableStateOf("") }
     var showCartoKeyDialog by remember { mutableStateOf(false) }
@@ -286,6 +293,18 @@ fun ColorPaletteContent(
             )
             return
         }
+        DETAIL_OLD_NAVBAR -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.old_navbar),
+                isChecked = oldNavbar,
+                onCheckedChange = { oldNavbar = it },
+                description = stringResource(Res.string.old_navbar_description),
+                preview = { checked -> ClassicNavigationPreview(checked) },
+                useColumnLayout = true,
+            )
+            return
+        }
     }
 
     var selectedTab by rememberSaveable(themeColorSeed) {
@@ -366,6 +385,18 @@ fun ColorPaletteContent(
         onCheck = { sharedElements = it },
         onClick = { detailKey = DETAIL_SHARED },
         screenPosition = Position.Bottom
+    )
+    val navigationHeaderTitle = stringResource(Res.string.navigation)
+    val navigationHeader = remember(navigationHeaderTitle) { SettingsEntity.Header(title = navigationHeaderTitle) }
+    val oldNavbarPref = rememberSwitchPreference(
+        oldNavbar,
+        title = stringResource(Res.string.old_navbar),
+        icon = Icons.Outlined.ViewDay,
+        summary = stringResource(Res.string.old_navbar_summary),
+        isChecked = oldNavbar,
+        onCheck = { oldNavbar = it },
+        onClick = { detailKey = DETAIL_OLD_NAVBAR },
+        screenPosition = Position.Alone
     )
     val fontHeaderTitle = stringResource(Res.string.settings_font_header)
     val fontHeader = remember(fontHeaderTitle) { SettingsEntity.Header(title = fontHeaderTitle) }
@@ -540,6 +571,9 @@ fun ColorPaletteContent(
         SettingsItem(item = allowBlurPref)
         SettingsItem(item = autoContrastPref)
         SettingsItem(item = sharedElementsPref)
+
+        SettingsItem(item = navigationHeader)
+        SettingsItem(item = oldNavbarPref)
 
         SettingsItem(item = fontHeader)
         SettingsItem(item = useSystemFontPref)

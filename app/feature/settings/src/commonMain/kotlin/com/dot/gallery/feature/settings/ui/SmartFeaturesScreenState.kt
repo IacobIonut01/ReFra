@@ -9,7 +9,7 @@ import androidx.compose.runtime.Stable
 
 /**
  * State for [SmartFeaturesScreenContent]. The wrapper resolves entity-driven
- * summaries ([scanSummary], [modelSummary]) so the content composable never
+ * summaries ([scanSummary], [handoverSummary]) so the content composable never
  * touches `SmartScanPlan`, Room entities, or `ModelManager`.
  */
 @Stable
@@ -17,9 +17,6 @@ data class SmartFeaturesScreenState(
     val aiAvailable: Boolean = false,
     val includeIgnoredAlbums: Boolean = false,
     val scanRunning: Boolean = false,
-    val modelsReady: Boolean = false,
-    val modelSummary: String = "",
-    val categoriesSummary: String = "",
     val scanSummary: String = "",
     val hasCloudProviders: Boolean = false,
     val handoverEnabled: Boolean = false,

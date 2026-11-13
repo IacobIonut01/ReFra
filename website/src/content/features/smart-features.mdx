@@ -12,14 +12,17 @@ order: 2
 
 **Settings › Smart Features** is the hub for everything the on-device AI powers: descriptive search, automatic categories, people grouping, subject cutout, and face blur. Model processing happens on your device. Two features deliberately hand data elsewhere when you use them: letting a connected cloud provider answer searches on its server, and [visual search](/ReFra/features/visual-search), which sends an image to another app. Sharing or casting media to other apps works as usual and is outside this scope.
 
-## The hub rows
+## The Intelligence Hub
 
 <PreviewCollection feature="smart-features" section="the-hub-rows" />
 
+The page opens with the **Intelligence Hub**: a summary card counting ready models and the space they use, then one row per feature — **Smart search**, **Face grouping**, and **Subject cutout** — each with its status (**Not downloaded** with the size, **Downloading** with a percentage, or **Ready** with the size on disk), plus a **Text recognition** row for the on-device OCR language packs. Tapping a row opens that feature's own page with its options and download button; see [AI models](/ReFra/features/ai-models). A privacy note closes the hub: everything is computed and stored on the device.
+
+## The settings rows
+
 - **Include ignored albums**: whether media hidden by ignore rules still feeds Smart Features and Smart Search. Changing it starts a full refresh, and locked albums stay private either way. The switch is unavailable while a Smart Scan is running; wait for it or cancel it in the Smart Scan manager.
-- **Intelligence Hub**: download, install, or remove the models each feature needs. See [AI models](/ReFra/features/ai-models).
-- **Categories**: opens the categories manager; enabled once the models are ready. See [categories](/ReFra/features/categories).
 - **Cloud libraries**: appears once a cloud account is configured. **Server-side smart search** is one global switch that applies to connected servers with their own AI (currently Immich) and lets the server answer searches itself. Per-provider **Index on this device** switches; one per provider type, covering every account of that type, and make the app analyze that provider's media with the local AI, so even a provider with no AI of its own (a NAS share over SMB or WebDAV, for example) can join local search results. Leaving the switches off skips that provider's media in local scans.
+- **Remote inference**: sends searches to a configured handover server instead of running the models on the phone. See [remote inference](/ReFra/features/remote-inference).
 - **Smart Features data**: the scan manager for refreshing and repairing the data Smart Features rely on. See [Smart Features data](/ReFra/features/smart-scan).
 - **Edit Backups**: manages the original-image backups the editor keeps when you overwrite a photo, with their storage usage and cleanup controls.
 
@@ -36,6 +39,6 @@ Search indexes, categories, people groups, and cutouts are computed by the on-de
 
 ## If a feature is missing
 
-- Rows like **Intelligence Hub** and **Categories** only appear on builds that include the AI feature; a build without it does not show them.
-- **Categories** stays disabled until the required models are downloaded in the Intelligence Hub.
+- The hub's feature rows only appear on builds that include the AI feature; a build without it shows only the settings rows below.
+- **Categories** lives on the Smart search feature page inside the hub and stays disabled until the search models are ready; see [categories](/ReFra/features/categories).
 - **Cloud libraries** needs a connected cloud account; with none, the row does not appear.

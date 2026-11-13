@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -103,10 +104,6 @@ fun AiModelsManagerContent(
         }
     ) { padding ->
         val layoutDirection = LocalLayoutDirection.current
-        // Builds that can neither download nor bundle models still read text: language packs can be
-        // added from files. There the hub lists text recognition alone, without the model summary.
-        val features = if (state.canInstallModels) IntelligenceFeature.entries else emptyList()
-        val rowCount = features.size + if (textRecognition != null) 1 else 0
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().hazeSource(hazeState),
@@ -117,37 +114,55 @@ fun AiModelsManagerContent(
                 bottom = padding.calculateBottomPadding() + 24.dp
             )
         ) {
-            if (state.canInstallModels) {
-                item(key = "summary") {
-                    // Same gap a settings group leaves above the next header.
-                    HubSummaryCard(state = state, modifier = Modifier.padding(bottom = 16.dp))
-                }
-            }
-            item(key = "features_label") {
-                HubSectionLabel(title = stringResource(Res.string.hub_features))
-            }
-            features.forEachIndexed { index, feature ->
-                item(key = "feature_${feature.name}") {
-                    FeatureRow(
-                        feature = feature,
-                        state = state,
-                        position = positionOf(index, rowCount),
-                        onClick = { actions.onOpenFeature(feature) },
-                    )
-                }
-            }
-            if (textRecognition != null) {
-                item(key = "feature_text_recognition") {
-                    TextRecognitionRow(
-                        state = textRecognition,
-                        position = positionOf(rowCount - 1, rowCount),
-                        onClick = actions.onOpenTextRecognition,
-                    )
-                }
-            }
-            item(key = "privacy") { HubPrivacyNote() }
+            intelligenceHubItems(state, actions, textRecognition)
         }
     }
+}
+
+/**
+ * The Intelligence Hub body as lazy-list items — the model summary card, one row per
+ * feature, the text recognition row and the privacy note. Shared by [AiModelsManagerContent]
+ * and the top of [SmartFeaturesScreenContent], which passes its own hub state.
+ */
+fun LazyListScope.intelligenceHubItems(
+    state: AiModelsManagerState,
+    actions: AiModelsManagerActions,
+    /** Text recognition's state for its row; null leaves the row out (previews). */
+    textRecognition: TextRecognitionState?,
+) {
+    // Builds that can neither download nor bundle models still read text: language packs can be
+    // added from files. There the hub lists text recognition alone, without the model summary.
+    val features = if (state.canInstallModels) IntelligenceFeature.entries else emptyList()
+    val rowCount = features.size + if (textRecognition != null) 1 else 0
+    if (state.canInstallModels) {
+        item(key = "hub_summary") {
+            // Same gap a settings group leaves above the next header.
+            HubSummaryCard(state = state, modifier = Modifier.padding(bottom = 16.dp))
+        }
+    }
+    item(key = "hub_features_label") {
+        HubSectionLabel(title = stringResource(Res.string.hub_features))
+    }
+    features.forEachIndexed { index, feature ->
+        item(key = "hub_feature_${feature.name}") {
+            FeatureRow(
+                feature = feature,
+                state = state,
+                position = positionOf(index, rowCount),
+                onClick = { actions.onOpenFeature(feature) },
+            )
+        }
+    }
+    if (textRecognition != null) {
+        item(key = "hub_feature_text_recognition") {
+            TextRecognitionRow(
+                state = textRecognition,
+                position = positionOf(rowCount - 1, rowCount),
+                onClick = actions.onOpenTextRecognition,
+            )
+        }
+    }
+    item(key = "hub_privacy") { HubPrivacyNote() }
 }
 
 /**

@@ -74,9 +74,9 @@
     <string name="help_tip_nav_old_navbar_title">Classic navigation bar</string>
     <string name="help_tip_nav_old_navbar_subtitle">Switch between modern and classic navigation styles</string>
     <string name="help_tip_nav_old_navbar_p1_title">Navigation bar styles</string>
-    <string name="help_tip_nav_old_navbar_p1_desc">Gallery offers two navigation bar styles. The modern style shows labeled icons for Timeline, Albums, and Library. The classic compact style uses smaller icons without labels, giving you more screen space for your photos. Try both to see which you prefer.</string>
-    <string name="help_tip_nav_old_navbar_p1_s1">Go to Settings > Navigation</string>
-    <string name="help_tip_nav_old_navbar_p1_s2">Toggle 'Old navigation bar style'</string>
+    <string name="help_tip_nav_old_navbar_p1_desc">ReFra navigates with a floating dock: Timeline and Library tabs plus a separate search button. The classic style replaces it with a full-width bar that labels Timeline, Search and Library, and becomes a side rail on larger screens and windows.</string>
+    <string name="help_tip_nav_old_navbar_p1_s1">Go to Settings > Appearance</string>
+    <string name="help_tip_nav_old_navbar_p1_s2">Turn on 'Classic navigation style'</string>
     <string name="help_tip_nav_library_title">Use the library</string>
     <string name="help_tip_nav_library_subtitle">Quick access to favorites, trash, vault, and more</string>
     <string name="help_tip_nav_library_p1_title">The Library</string>
@@ -757,10 +757,10 @@
     <string name="help_tip_settings_old_navbar_title">Classic navigation bar</string>
     <string name="help_tip_settings_old_navbar_subtitle">Use the compact navigation bar style</string>
     <string name="help_tip_settings_old_navbar_p1_title">Navigation bar style</string>
-    <string name="help_tip_settings_old_navbar_p1_desc">The modern style shows labeled icons (Timeline, Albums, Library) for clarity. The classic compact style uses smaller icons without labels, giving you more vertical screen space for photos. Try both to see which feels more comfortable for your workflow.</string>
-    <string name="help_tip_settings_old_navbar_p1_s1">Go to Settings > Navigation</string>
-    <string name="help_tip_settings_old_navbar_p1_s2">Toggle 'Old navigation bar style'</string>
-    <string name="help_tip_settings_old_navbar_p1_s3">Modern: labeled icons, Classic: compact icons</string>
+    <string name="help_tip_settings_old_navbar_p1_desc">The default floating dock keeps Timeline and Library tabs compact with a separate search button. The classic style uses a full-width bar with text labels for Timeline, Search and Library, and becomes a side rail on larger screens and windows.</string>
+    <string name="help_tip_settings_old_navbar_p1_s1">Go to Settings > Appearance</string>
+    <string name="help_tip_settings_old_navbar_p1_s2">Turn on 'Classic navigation style'</string>
+    <string name="help_tip_settings_old_navbar_p1_s3">Floating dock: compact buttons, Classic: labelled bar</string>
     <string name="help_tip_settings_selection_titles_title">Show selection titles</string>
     <string name="help_tip_settings_selection_titles_subtitle">Display titles in the selection action sheet</string>
     <string name="help_tip_settings_selection_titles_p1_title">Selection titles</string>
@@ -1266,10 +1266,10 @@
     <string name="help_tip_media_type_albums_title">Browse by media type</string>
     <string name="help_tip_media_type_albums_subtitle">Automatic albums for photos, videos, GIFs and RAW files</string>
     <string name="help_tip_media_type_albums_p1_title">Media-type albums</string>
-    <string name="help_tip_media_type_albums_p1_desc">ReFra creates virtual albums from your unified library so you can open all photos, videos, GIFs or RAW files together. Their visibility is controlled from Timeline &amp; Albums settings.</string>
+    <string name="help_tip_media_type_albums_p1_desc">ReFra creates virtual albums from your unified library so you can open all photos, videos, GIFs or RAW files together. Their visibility is controlled from Customize library on the Library tab.</string>
     <string name="help_tip_media_type_albums_p1_s1">Open Albums and scroll to Media types</string>
     <string name="help_tip_media_type_albums_p1_s2">Open a type to browse matching media</string>
-    <string name="help_tip_media_type_albums_p1_s3">Use Timeline &amp; Albums settings to show or hide the section</string>
+    <string name="help_tip_media_type_albums_p1_s3">Use Customize library on the Library tab to show or hide the section</string>
 
     <string name="help_tip_raw_develop_title">Develop RAW photos</string>
     <string name="help_tip_raw_develop_subtitle">Adjust sensor data before exporting</string>
@@ -1531,7 +1531,7 @@
     <string name="use_system_font_title">Use system font</string>
     <string name="fancy_blur">Fancy Blur</string>
     <string name="auto_contrast">Auto Contrast (Beta)</string>
-    <string name="old_navbar">Use Material Navigation</string>
+    <string name="old_navbar">Classic navigation style</string>
     <string name="allow_vibrations">Allow vibrations</string>
     <string name="edit_backups">Edit Backups</string>
     <string name="set_default_screen">Set default screen</string>

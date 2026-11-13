@@ -13,19 +13,21 @@ order: 7
 
 **Settings › Smart Features › Smart Features data** manages the indexes Smart Features rely on: file metadata, search data, category matches, and people groups. Refreshes are incremental: they keep valid results and continue past files that cannot be processed.
 
+## Rebuild data
+
+The page opens with the rebuild control, ahead of the per-feature refresh rows:
+
+- **Full refresh**: reprocesses every item even where its data is already complete. Slower, but the way to force a clean rebuild after changing models or fixing a bad scan.
+
 ## Refresh data
 
-Each row re-processes one kind of data:
+Each row under **Refresh data** re-processes one kind of data:
 
 - **Refresh Metadata**: re-reads local and cached cloud metadata without rebuilding unrelated Smart Features.
 - **Refresh search embeddings**: repairs missing or stale local and cloud search data. Marked unavailable until the AI models are installed.
 - **Refresh categories**: repairs embeddings first, then updates automatic category matches.
 - **Refresh persons**: scans local photos and available cloud previews for faces; requires the face detection and recognition models.
 - **Refresh all Smart Features**: runs metadata, search, categories, and persons one after another.
-
-## Rebuild data
-
-- **Full refresh**: reprocesses every item even where its data is already complete. Slower, but the way to force a clean rebuild after changing models or fixing a bad scan.
 
 ## Scan controls
 

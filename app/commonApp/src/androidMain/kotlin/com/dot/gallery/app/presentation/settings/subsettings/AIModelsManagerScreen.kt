@@ -7,9 +7,13 @@ package com.dot.gallery.app.presentation.settings.subsettings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.BuildConfig
 import com.dot.gallery.core.LocalEventHandler
+import com.dot.gallery.core.ml.ModelStatus
+import com.dot.gallery.handover.HandoverConfig
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.presentation.util.Screen
@@ -63,17 +67,23 @@ fun IntelligenceFeatureScreen(
                 viewModel.refreshPersons()
                 onScanForPeople()
             },
+            onOpenCategories = { handler.navigate(Screen.CategoriesScreen()) },
             onNotNow = if (showNotNow) ({ handler.navigateUpAction() }) else null,
         ),
     )
 }
 
 @Composable
-private fun rememberAiModelsManagerState(viewModel: SmartFeaturesViewModel): AiModelsManagerState {
+internal fun rememberAiModelsManagerState(viewModel: SmartFeaturesViewModel): AiModelsManagerState {
     val activeSearchModel by viewModel.activeSearchModel.collectAsStateWithLifecycle()
     val activeFaceModel by viewModel.activeFaceModel.collectAsStateWithLifecycle()
     val scanOnlyWhileCharging by viewModel.scanOnlyWhileCharging.collectAsStateWithLifecycle()
     val includeIgnoredAlbums by viewModel.includeIgnoredAlbums.collectAsStateWithLifecycle()
+    val searchModelStatus by viewModel.activeSearchModelStatus().collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val handoverReady by remember {
+        HandoverConfig.configuredFlow(context)
+    }.collectAsStateWithLifecycle(initialValue = false)
     val groups = ModelGroup.entries.map { group ->
         val status by viewModel.modelStatus(group).collectAsStateWithLifecycle()
         val progress by viewModel.downloadProgress(group).collectAsStateWithLifecycle()
@@ -96,10 +106,13 @@ private fun rememberAiModelsManagerState(viewModel: SmartFeaturesViewModel): AiM
         groups = groups,
         scanOnlyWhileCharging = scanOnlyWhileCharging,
         skipHiddenAlbums = !includeIgnoredAlbums,
+        // Categories classify stored image_embeddings — remote inference produces
+        // them too, so a configured server satisfies the readiness gate.
+        embeddingsReady = searchModelStatus == ModelStatus.READY || handoverReady,
     )
 }
 
-private fun aiModelsManagerActions(viewModel: SmartFeaturesViewModel) = AiModelsManagerActions(
+internal fun aiModelsManagerActions(viewModel: SmartFeaturesViewModel) = AiModelsManagerActions(
     onDownload = viewModel::downloadModels,
     onCancelDownload = viewModel::cancelDownload,
     onDelete = viewModel::deleteModels,

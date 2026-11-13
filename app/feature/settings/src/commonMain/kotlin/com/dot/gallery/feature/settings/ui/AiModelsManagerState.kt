@@ -22,6 +22,11 @@ data class AiModelsManagerState(
     val scanOnlyWhileCharging: Boolean = true,
     /** "Skip hidden albums" — the inverse of the include-ignored-albums setting. */
     val skipHiddenAlbums: Boolean = true,
+    /**
+     * Embeddings are usable for Categories: the active search model is installed, or a
+     * configured handover server answers searches remotely.
+     */
+    val embeddingsReady: Boolean = false,
 ) {
     fun groupsOf(feature: IntelligenceFeature): List<ModelGroup> =
         feature.groups(activeSearchModel, activeFaceModel)

@@ -23,8 +23,6 @@ import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.settings.generated.resources.Res
 import com.dot.gallery.feature.settings.generated.resources.ai_category
 import com.dot.gallery.feature.settings.generated.resources.handover_title
-import com.dot.gallery.feature.settings.generated.resources.ai_models_manager
-import com.dot.gallery.feature.settings.generated.resources.categories
 import com.dot.gallery.feature.settings.generated.resources.database
 import com.dot.gallery.feature.settings.generated.resources.edit_backups
 import com.dot.gallery.feature.settings.generated.resources.edit_backups_storage
@@ -35,18 +33,26 @@ import com.dot.gallery.feature.settings.generated.resources.smart_features_inclu
 import com.dot.gallery.feature.settings.generated.resources.smart_features_include_ignored_albums_scan_running
 import com.dot.gallery.feature.settings.generated.resources.smart_features_include_ignored_albums_summary
 import com.dot.gallery.feature.settings.generated.resources.smart_scan_manager_title
-import com.dot.gallery.feature.settings.generated.resources.ocr_settings_entry_summary
 import com.dot.gallery.core.presentation.components.GalleryPageTopBar
 import com.dot.gallery.core.presentation.components.rememberScrolledUnderTopBar
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.hazeSource
 import androidx.compose.foundation.lazy.rememberLazyListState
 
+/**
+ * Smart Features settings: the Intelligence Hub itself on top (when [hubState] is provided —
+ * previews pass null and get only the settings rows), then the page's own options, the
+ * Smart Features data entry and Edit backups.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SmartFeaturesScreenContent(
     state: SmartFeaturesScreenState,
     actions: SmartFeaturesScreenActions = SmartFeaturesScreenActions(),
+    hubState: AiModelsManagerState? = null,
+    hubActions: AiModelsManagerActions = AiModelsManagerActions(),
+    /** Text recognition's state for its hub row; null leaves the row out (previews). */
+    textRecognition: TextRecognitionState? = null,
 ) {
     val listState = rememberLazyListState()
 
@@ -69,8 +75,6 @@ fun SmartFeaturesScreenContent(
                 Res.string.smart_features_include_ignored_albums_summary
             }
         )
-        val aiModelsManagerTitle = if (state.aiAvailable) stringResource(Res.string.ai_models_manager) else ""
-        val categoriesTitle = if (state.aiAvailable) stringResource(Res.string.categories) else ""
         val databaseHeader = stringResource(Res.string.database)
         val scanManagerTitle = stringResource(Res.string.smart_scan_manager_title)
         val storageHeader = stringResource(Res.string.edit_backups_storage)
@@ -79,7 +83,6 @@ fun SmartFeaturesScreenContent(
         val cloudIndexingTitle = stringResource(Res.string.smart_features_cloud_section)
         val cloudIndexingSummary = stringResource(Res.string.smart_features_cloud_indexing_summary)
         val handoverTitle = stringResource(Res.string.handover_title)
-        val textRecognitionSummary = stringResource(Res.string.ocr_settings_entry_summary)
 
         LazyColumn(
             state = listState,
@@ -91,6 +94,9 @@ fun SmartFeaturesScreenContent(
                 bottom = padding.calculateBottomPadding()
             )
         ) {
+            if (hubState != null) {
+                intelligenceHubItems(hubState, hubActions, textRecognition)
+            }
             settings {
                 Header(smartFeaturesHeader)
 
@@ -101,23 +107,6 @@ fun SmartFeaturesScreenContent(
                         enabled = !state.scanRunning,
                         isChecked = state.includeIgnoredAlbums,
                         onCheck = actions.onIncludeIgnoredAlbumsChange
-                    )
-                }
-
-                // Offered in every build: text recognition lives in the hub, and its language packs are
-                // downloaded or, without internet, added from files.
-                Preference(
-                    title = aiModelsManagerTitle,
-                    summary = state.modelSummary.ifEmpty { textRecognitionSummary },
-                    onClick = actions.onOpenAiModels
-                )
-
-                if (state.aiAvailable) {
-                    Preference(
-                        title = categoriesTitle,
-                        summary = state.categoriesSummary,
-                        enabled = state.modelsReady,
-                        onClick = actions.onOpenCategories
                     )
                 }
 

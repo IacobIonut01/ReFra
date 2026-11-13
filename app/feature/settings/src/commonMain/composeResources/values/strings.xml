@@ -55,6 +55,8 @@
     <string name="slideshow_transition_ken_burns">Ken Burns</string>
     <string name="slideshow_content_header">Content</string>
     <string name="action_ok">OK</string>
+    <string name="settings_on">On</string>
+    <string name="settings_off">Off</string>
     <string name="backup_warning">The backup may contain decrypted vault media. Store it somewhere safe.</string>
     <string name="backup_intro">Save your settings, library data, cloud accounts and vaults to a file, or merge them back from a backup.</string>
     <string name="smart_features_include_ignored_albums">Include ignored albums</string>
@@ -229,11 +231,14 @@
     <string name="launch_on_albums">Launch on Albums</string>
     <string name="launch_on_library">Launch on Library</string>
     <string name="launch_auto">Launch last screen when the app was closed</string>
+    <string name="launch_auto_description">Opens the screen you used last</string>
+    <string name="launch_on_timeline_description">Always opens on Timeline</string>
+    <string name="launch_on_library_description">Always opens on Library</string>
     <string name="set_default_screen">Set default screen</string>
     <string name="navigation">Navigation</string>
-    <string name="old_navbar">Use Material Navigation</string>
-    <string name="old_navbar_description">Switches to the classic Material navigation bar with text labels. On larger screens, this shows a navigation rail on the side instead.</string>
-    <string name="old_navbar_summary">Show the old navigation bar UI (with rails for bigger screens)</string>
+    <string name="old_navbar">Classic navigation style</string>
+    <string name="old_navbar_description">Uses a full-width bar with text labels for Timeline, Search and Library. On larger screens and windows it becomes a side rail instead of the floating dock.</string>
+    <string name="old_navbar_summary">A labelled Material bar instead of the floating dock</string>
     <string name="gallery_dual_pane">Gallery beside viewer</string>
     <string name="gallery_dual_pane_summary">On large screens, keep the gallery open next to the photo</string>
     <string name="gallery_dual_pane_description">On tablets, foldables and other large windows, opening a photo from the Timeline keeps the gallery visible beside the viewer. Drag the divider between them to resize the panes, or double-tap it to restore the default size. Turn this off to always open photos fullscreen.</string>
@@ -622,8 +627,6 @@
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
     <string name="update_modified_date_title">Update modified date</string>
     <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>
-    <string name="media_type_albums_setting_title">Show media type albums</string>
-    <string name="media_type_albums_setting_summary">Add quick albums for Videos, Photos, GIFs and Raw files at the top of the Albums tab</string>
     <string name="album_sections_title">Organize albums by sections</string>
     <string name="album_sections_summary">Automatically categorize albums into Common, Apps and other sections with headers</string>
     <string name="create_section">Create section</string>
