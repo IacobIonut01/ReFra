@@ -733,7 +733,7 @@
     <string name="help_tip_settings_secure_mode_subtitle">Hide from recents and block screenshots</string>
     <string name="help_tip_settings_secure_mode_p1_title">Secure mode</string>
     <string name="help_tip_settings_secure_mode_p1_desc">When activated, Gallery is hidden from the recent apps screen (the task switcher shows a blank preview) and screenshots within the app are blocked. This is an extra privacy measure if you don't want others to see what you were browsing when they glance at your recent apps. Ideal when combined with the vault for maximum privacy.</string>
-    <string name="help_tip_settings_secure_mode_p1_s1">Go to Settings > General</string>
+    <string name="help_tip_settings_secure_mode_p1_s1">Go to Settings > Security &amp; privacy</string>
     <string name="help_tip_settings_secure_mode_p1_s2">Toggle 'Secure mode'</string>
     <string name="help_tip_settings_secure_mode_p1_s3">Gallery disappears from recent apps</string>
     <string name="help_tip_settings_secure_mode_p1_s4">Screenshots are blocked within the app</string>
@@ -924,7 +924,7 @@
     <string name="help_tip_security_sandbox_p1_desc">Sandboxing protects the app by processing untrusted files — such as HEIF, AVIF, and JXL images — in isolated system processes. If a malicious file exploits a decoder vulnerability, the damage is contained in the sandbox and cannot reach the main app or your data.</string>
     <string name="help_tip_security_sandbox_p2_title">Configuring sandbox protection</string>
     <string name="help_tip_security_sandbox_p2_desc">You can control how aggressively files are sandboxed. Metadata isolation determines whether EXIF parsing happens in a shared process, per-file process, or a hybrid of both. Sandboxed image decoding routes HEIF/AVIF/JXL through an isolated decoder service using shared memory.</string>
-    <string name="help_tip_security_sandbox_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_sandbox_p2_s1">Go to Settings → Security &amp; privacy</string>
     <string name="help_tip_security_sandbox_p2_s2">Choose a metadata isolation mode (Shared, Hybrid, or Per-file)</string>
     <string name="help_tip_security_sandbox_p2_s3">Toggle sandboxed image decoding on or off</string>
 
@@ -933,8 +933,8 @@
     <string name="help_tip_security_encrypted_storage_p1_title">What gets encrypted?</string>
     <string name="help_tip_security_encrypted_storage_p1_desc">ReFra automatically protects preferences with Android Keystore-backed encryption and the Room database with SQLCipher. Existing data is migrated without requiring a manual encryption toggle.</string>
     <string name="help_tip_security_encrypted_storage_p2_title">Check active protection</string>
-    <string name="help_tip_security_encrypted_storage_p2_desc">The Security screen reports the storage protection actually in use. If encrypted settings or the database cannot be opened, ReFra clearly identifies the affected plaintext fallback instead of claiming that everything is encrypted.</string>
-    <string name="help_tip_security_encrypted_storage_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_encrypted_storage_p2_desc">The Security &amp; privacy screen reports the storage protection actually in use. If encrypted settings or the database cannot be opened, ReFra clearly identifies the affected plaintext fallback instead of claiming that everything is encrypted.</string>
+    <string name="help_tip_security_encrypted_storage_p2_s1">Go to Settings → Security &amp; privacy</string>
     <string name="help_tip_security_encrypted_storage_p2_s2">Find the Encryption status row</string>
     <string name="help_tip_security_encrypted_storage_p2_s3">Review any fallback warning before storing sensitive configuration</string>
 
@@ -944,7 +944,7 @@
     <string name="help_tip_security_private_folder_p1_desc">The private folder uses Android's Storage Access Framework (SAF) to store files outside of MediaStore. Files in your private folder never appear in the normal timeline, are not indexed by other apps, and are protected behind the app's security gate.</string>
     <string name="help_tip_security_private_folder_p2_title">Setting up a private folder</string>
     <string name="help_tip_security_private_folder_p2_desc">Pick any folder on your device as the private folder. The app takes persistent access permission so it survives reboots. You can browse, view, and manage private files just like regular media.</string>
-    <string name="help_tip_security_private_folder_p2_s1">Go to Settings → Security</string>
+    <string name="help_tip_security_private_folder_p2_s1">Go to Settings → Security &amp; privacy</string>
     <string name="help_tip_security_private_folder_p2_s2">Tap Private folder and select a directory</string>
     <string name="help_tip_security_private_folder_p2_s3">Access your private files from the Library</string>
 

@@ -67,6 +67,7 @@ import com.dot.gallery.feature.settings.generated.resources.settings_section_abo
 import com.dot.gallery.feature.settings.generated.resources.settings_section_intelligence
 import com.dot.gallery.feature.settings.generated.resources.settings_section_personalize
 import com.dot.gallery.feature.settings.generated.resources.settings_section_privacy_data
+import com.dot.gallery.feature.settings.generated.resources.settings_section_viewer
 import com.dot.gallery.feature.settings.generated.resources.settings_security
 import com.dot.gallery.feature.settings.generated.resources.settings_security_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_timeline_albums
@@ -75,7 +76,7 @@ import com.dot.gallery.feature.settings.generated.resources.settings_title
 
 /**
  * Settings hub — whole screen, state + callbacks only: the app card, the
- * Personalize, Privacy and data, Intelligence and About groups with coloured
+ * Personalize, Viewer, Privacy and data, Intelligence and About groups with coloured
  * circle row icons, then a footnote. The platform wrapper owns preferences ([state]),
  * navigation ([actions]), the support sheet, and the developer-unlock toast.
  */
@@ -108,14 +109,7 @@ fun SettingsScreenContent(
             title = stringResource(Res.string.settings_media_viewer),
             summary = stringResource(Res.string.settings_media_viewer_summary),
             onClick = { actions.onNavigate(SettingsRoute.MEDIA_VIEWER) },
-            screenPosition = Position.Middle
-        )
-        val editorsPref = rememberPreference(
-            icon = Icons.Outlined.Edit,
-            title = stringResource(Res.string.settings_editors),
-            summary = stringResource(Res.string.settings_editors_summary),
-            onClick = { actions.onNavigate(SettingsRoute.EDITORS) },
-            screenPosition = Position.Middle
+            screenPosition = Position.Top
         )
         val gesturesPref = rememberPreference(
             icon = Icons.Outlined.Swipe,
@@ -124,6 +118,13 @@ fun SettingsScreenContent(
             onClick = { actions.onNavigate(SettingsRoute.GESTURES) },
             screenPosition = Position.Middle
         )
+        val editorsPref = rememberPreference(
+            icon = Icons.Outlined.Edit,
+            title = stringResource(Res.string.settings_editors),
+            summary = stringResource(Res.string.settings_editors_summary),
+            onClick = { actions.onNavigate(SettingsRoute.EDITORS) },
+            screenPosition = Position.Bottom
+        )
         val navigationPref = rememberPreference(
             icon = Icons.Outlined.Explore,
             title = stringResource(Res.string.settings_navigation),
@@ -131,18 +132,18 @@ fun SettingsScreenContent(
             onClick = { actions.onNavigate(SettingsRoute.NAVIGATION) },
             screenPosition = Position.Bottom
         )
-        val generalPref = rememberPreference(
-            icon = Icons.Outlined.Dashboard,
-            title = stringResource(Res.string.settings_general),
-            summary = stringResource(Res.string.settings_general_summary),
-            onClick = { actions.onNavigate(SettingsRoute.GENERAL) },
-            screenPosition = Position.Top
-        )
         val securityPref = rememberPreference(
             icon = Icons.Outlined.Shield,
             title = stringResource(Res.string.settings_security),
             summary = stringResource(Res.string.settings_security_summary),
             onClick = { actions.onNavigate(SettingsRoute.SECURITY) },
+            screenPosition = Position.Top
+        )
+        val generalPref = rememberPreference(
+            icon = Icons.Outlined.Dashboard,
+            title = stringResource(Res.string.settings_general),
+            summary = stringResource(Res.string.settings_general_summary),
+            onClick = { actions.onNavigate(SettingsRoute.GENERAL) },
             screenPosition = Position.Middle
         )
         val backupPref = rememberPreference(
@@ -181,19 +182,22 @@ fun SettingsScreenContent(
             screenPosition = Position.Bottom
         )
         val personalizeHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_personalize))
+        val viewerHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_viewer))
         val privacyHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_privacy_data))
         val intelligenceHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_intelligence))
         val aboutHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_about))
         return remember(
-            appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref, gesturesPref,
-            navigationPref, generalPref, securityPref, backupPref, cloudPref, smartPref, helpPref,
-            developerPref, personalizeHeader, privacyHeader, intelligenceHeader, aboutHeader,
+            appearancePref, timelineAlbumsPref, mediaViewerPref, gesturesPref, editorsPref,
+            navigationPref, securityPref, generalPref, backupPref, cloudPref, smartPref, helpPref,
+            developerPref, personalizeHeader, viewerHeader, privacyHeader, intelligenceHeader, aboutHeader,
         ) {
             mutableStateListOf<SettingsEntity>(
                 personalizeHeader,
-                appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref, gesturesPref, navigationPref,
+                appearancePref, timelineAlbumsPref, navigationPref,
+                viewerHeader,
+                mediaViewerPref, gesturesPref, editorsPref,
                 privacyHeader,
-                generalPref, securityPref, backupPref,
+                securityPref, generalPref, backupPref,
             ).apply {
                 if (cloudPref != null) add(cloudPref)
                 addAll(listOf(intelligenceHeader, smartPref, aboutHeader, helpPref, developerPref))

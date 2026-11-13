@@ -207,7 +207,7 @@ val sceneRegistry: List<DocsScene> = listOf(
     DocsScene(
         id = "settings-private-folder",
         title = "Private folder detail",
-        pathTrace = listOf("Settings", "Security", "Private folder"),
+        pathTrace = listOf("Settings", "Security & privacy", "Private folder"),
         states = listOf("none", "configured", "saf-uri", "how-it-works"),
     ) { state ->
         PrivateFolderDetailScreen(
@@ -318,7 +318,7 @@ val sceneRegistry: List<DocsScene> = listOf(
     DocsScene(
         id = "settings-security",
         title = "Security settings",
-        pathTrace = listOf("Settings", "Security"),
+        pathTrace = listOf("Settings", "Security & privacy"),
         states = listOf("default", "aapm"),
     ) { state ->
         SettingsSecurityContent(

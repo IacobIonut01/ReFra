@@ -58,7 +58,7 @@
     <string name="security_private_folder">Private folder</string>
     <string name="private_folder_security_title">Private folder security</string>
     <string name="private_folder_unlock_title">How should the private folder unlock?</string>
-    <string name="private_folder_unlock_body">Pick what you’ll use each time you open the private folder. You can change it later in Security settings.</string>
+    <string name="private_folder_unlock_body">Pick what you’ll use each time you open the private folder. You can change it later in Security &amp; privacy settings.</string>
     <string name="private_folder_pin_summary">6 to 16 digits, just for the private folder</string>
     <string name="private_folder_no_lock_summary">Anyone using your phone can open the private folder</string>
 <string name="vault_items_encrypted">%1$d item(s) encrypted successfully</string>
