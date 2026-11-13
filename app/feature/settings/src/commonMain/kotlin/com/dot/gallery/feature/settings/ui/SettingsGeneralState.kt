@@ -10,8 +10,5 @@ import androidx.compose.foundation.lazy.LazyListState
 data class SettingsGeneralState(
     /** `SdkCompat.supportsTrash` on Android; hides the trash section when false. */
     val supportsTrash: Boolean = true,
-    /** Launcher alias values — owned by the wrapper (applying them is platform work). */
-    val appNameAlias: String = "",
-    val appLogoAlias: String = "",
     val listState: LazyListState? = null,
 )

@@ -2,7 +2,7 @@
 <resources>
     <string name="settings_title">Settings</string>
     <string name="settings_appearance">Appearance</string>
-    <string name="settings_appearance_summary">Theme, colors, dark mode and visual effects</string>
+    <string name="settings_appearance_summary">Theme, colors, dark mode, app icon and visual effects</string>
     <string name="settings_timeline_albums">Timeline &amp; albums</string>
     <string name="settings_timeline_albums_summary">Layout, grouping, date format and album behavior</string>
     <string name="settings_media_viewer">Media viewer</string>
@@ -10,7 +10,7 @@
     <string name="settings_navigation">Navigation</string>
     <string name="settings_navigation_summary">Launch screen, bars and interface behavior</string>
     <string name="settings_general">General</string>
-    <string name="settings_general_summary">Trash, vibrations and app icon</string>
+    <string name="settings_general_summary">Trash, deletion scope and vibrations</string>
     <string name="settings_security">Security</string>
     <string name="settings_security_summary">Secure mode, sandboxing, encryption, private folder and vault</string>
     <string name="settings_backup">Backup &amp; restore</string>
@@ -203,12 +203,12 @@
     <string name="allow_vibrations">Allow vibrations</string>
     <string name="allow_vibrations_description">Allows the app to send haptic feedback during certain actions and gestures, such as long-pressing to select or pinch-to-zoom transitions.</string>
     <string name="allow_vibrations_summary">Allow sending feedback as vibrations while performing some actions or gestures</string>
-    <string name="change_app_name">App name</string>
-    <string name="app_name_description">Change the name and icon displayed on your home screen launcher. The app will restart to apply the change.</string>
-    <string name="change_app_name_summary">Change the app name shown on your launcher</string>
-    <string name="change_app_logo">App logo</string>
     <string name="app_logo_description">Choose the launcher icon used on your home screen and app drawer. The app will restart to apply the change.</string>
-    <string name="change_app_logo_summary">Switch between the ReFra and classic Gallery launcher icon</string>
+    <string name="app_icon_and_name">App icon &amp; name</string>
+    <string name="app_icon_logo_header">Logo</string>
+    <string name="app_icon_name_header">Name</string>
+    <string name="app_icon_apply">Apply</string>
+    <string name="app_icon_restart_note">The app restarts once to apply the change.</string>
     <string name="vault_encrypt_behavior">Vault encrypt behavior</string>
     <string name="vault_encrypt_behavior_summary">Choose what happens to originals when adding media to a vault</string>
     <string name="vault_encrypt_ask">Always ask</string>
@@ -456,6 +456,7 @@
     <string name="use_system_font_summary">Use your device's default font instead of the built-in one</string>
     <string name="settings_visual_effects_header">Visual effects</string>
     <string name="settings_font_header">Font</string>
+    <string name="appearance_app_icon_header">App icon</string>
     <string name="map_appearance_title">Map appearance</string>
     <string name="map_appearance_description">Choose whether maps follow ReFra’s appearance or always use bright or dark map colors.</string>
     <string name="map_appearance_system">Follow app appearance</string>

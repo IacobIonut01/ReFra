@@ -211,9 +211,9 @@ object HelpSearchIndex {
             Toggle(Res.string.settings_trash_title, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.settings_trash_confirmation_title, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.allow_vibrations, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
-            Toggle(Res.string.change_app_name, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
-            Toggle(Res.string.change_app_logo, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             // Appearance and color
+            Toggle(Res.string.change_app_name, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
+            Toggle(Res.string.change_app_logo, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.settings_follow_system_theme_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.settings_dark_mode_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.amoled_mode_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),

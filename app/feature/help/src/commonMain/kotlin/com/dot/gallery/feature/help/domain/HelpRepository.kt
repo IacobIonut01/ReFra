@@ -1669,11 +1669,11 @@ object HelpRepository {
             pages = listOf(TutorialPage(title = Res.string.help_tip_personalize_shared_elements_p1_title, description = Res.string.help_tip_personalize_shared_elements_p1_desc, steps = listOf(Res.string.help_tip_personalize_shared_elements_p1_s1, Res.string.help_tip_personalize_shared_elements_p1_s2, Res.string.help_tip_personalize_shared_elements_p1_s3))), sinceVersion = "4.0.0"),
         HelpTip(id = "personalize_app_name", title = Res.string.help_tip_personalize_app_name_title, subtitle = Res.string.help_tip_personalize_app_name_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.TextFields), category = HelpCategory.GET_STARTED_PERSONALIZATION,
-            deepLink = HelpRoute.Target.SETTINGS_GENERAL,
+            deepLink = HelpRoute.Target.COLOR_PALETTE,
             pages = listOf(TutorialPage(title = Res.string.help_tip_personalize_app_name_p1_title, description = Res.string.help_tip_personalize_app_name_p1_desc, steps = listOf(Res.string.help_tip_personalize_app_name_p1_s1, Res.string.help_tip_personalize_app_name_p1_s2, Res.string.help_tip_personalize_app_name_p1_s3, Res.string.help_tip_personalize_app_name_p1_s4))), sinceVersion = "4.1.1"),
         HelpTip(id = "personalize_app_logo", title = Res.string.help_tip_personalize_app_logo_title, subtitle = Res.string.help_tip_personalize_app_logo_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Apps), category = HelpCategory.GET_STARTED_PERSONALIZATION,
-            deepLink = HelpRoute.Target.SETTINGS_GENERAL,
+            deepLink = HelpRoute.Target.COLOR_PALETTE,
             pages = listOf(
                 TutorialPage(title = Res.string.help_tip_personalize_app_logo_p1_title, description = Res.string.help_tip_personalize_app_logo_p1_desc, steps = listOf(Res.string.help_tip_personalize_app_logo_p1_s1, Res.string.help_tip_personalize_app_logo_p1_s2, Res.string.help_tip_personalize_app_logo_p1_s3, Res.string.help_tip_personalize_app_logo_p1_s4), previewType = PreviewType.THEME_PICKER)
             ), sinceVersion = "5.2.1"),

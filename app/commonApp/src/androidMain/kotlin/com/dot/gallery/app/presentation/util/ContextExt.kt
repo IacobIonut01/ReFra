@@ -445,6 +445,21 @@ fun Context.restartApplication() {
 }
 
 /**
+ * The launcher [activity-alias] short names declared in the manifest — every name + logo
+ * combination resolves to exactly one of these via [launcherAliasFor].
+ */
+internal val LAUNCHER_ALIASES = listOf(
+    "Launcher_ReFra",
+    "Launcher_Gallery",
+    "Launcher_ReFra_GalleryLogo",
+    "Launcher_Gallery_GalleryLogo",
+    "Launcher_ReFra_Mono",
+    "Launcher_Gallery_Mono",
+    "Launcher_ReFra_GalleryMono",
+    "Launcher_Gallery_GalleryMono"
+)
+
+/**
  * Resolve the launcher [activity-alias] short name for a given app-name + app-logo
  * combination. The two legacy aliases (ReFra-logo) keep their original names so existing
  * installs are not disrupted; the Gallery-logo combinations use dedicated aliases.
@@ -486,18 +501,8 @@ fun launcherAliasHasMonoLogo(alias: String): Boolean =
  */
 fun Context.changeAppAlias(nameAlias: String, logoAlias: String = "ReFra") {
     val namespace = "com.dot.gallery"
-    val aliases = listOf(
-        "Launcher_ReFra",
-        "Launcher_Gallery",
-        "Launcher_ReFra_GalleryLogo",
-        "Launcher_Gallery_GalleryLogo",
-        "Launcher_ReFra_Mono",
-        "Launcher_Gallery_Mono",
-        "Launcher_ReFra_GalleryMono",
-        "Launcher_Gallery_GalleryMono"
-    )
     val targetAlias = launcherAliasFor(nameAlias, logoAlias)
-    for (alias in aliases) {
+    for (alias in LAUNCHER_ALIASES) {
         val component = ComponentName(packageName, "$namespace.$alias")
         val newState = if (alias == targetAlias) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED
@@ -541,17 +546,7 @@ fun Context.applyLauncherSplashTheme(alias: String) {
  */
 fun Context.currentLauncherAlias(): String {
     val namespace = "com.dot.gallery"
-    val aliases = listOf(
-        "Launcher_ReFra",
-        "Launcher_Gallery",
-        "Launcher_ReFra_GalleryLogo",
-        "Launcher_Gallery_GalleryLogo",
-        "Launcher_ReFra_Mono",
-        "Launcher_Gallery_Mono",
-        "Launcher_ReFra_GalleryMono",
-        "Launcher_Gallery_GalleryMono"
-    )
-    for (alias in aliases) {
+    for (alias in LAUNCHER_ALIASES) {
         val component = ComponentName(packageName, "$namespace.$alias")
         if (packageManager.getComponentEnabledSetting(component)
             == PackageManager.COMPONENT_ENABLED_STATE_ENABLED

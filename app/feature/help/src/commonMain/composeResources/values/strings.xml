@@ -151,11 +151,11 @@
     <string name="help_tip_personalize_app_name_title">Change the app name</string>
     <string name="help_tip_personalize_app_name_subtitle">Display as 'Gallery' or 'Refra' on your home screen</string>
     <string name="help_tip_personalize_app_name_p1_title">App name</string>
-    <string name="help_tip_personalize_app_name_p1_desc">Choose whether the app shows as 'Gallery' or 'Refra' on your home screen and in the app drawer. 'Refra' is the app's alternative name. This changes the icon label only — the app itself stays the same. You may need to restart your launcher or wait a moment for the change to appear on your home screen.</string>
-    <string name="help_tip_personalize_app_name_p1_s1">Go to Settings > General</string>
-    <string name="help_tip_personalize_app_name_p1_s2">Tap 'App name'</string>
-    <string name="help_tip_personalize_app_name_p1_s3">Choose Gallery or Refra</string>
-    <string name="help_tip_personalize_app_name_p1_s4">The home screen icon label will update</string>
+    <string name="help_tip_personalize_app_name_p1_desc">Choose whether the app shows as 'Gallery' or 'Refra' on your home screen and in the app drawer. 'Refra' is the app's alternative name. This changes the icon label only — the app itself stays the same. The app restarts once to apply the change, and your launcher may take a moment to show the new label.</string>
+    <string name="help_tip_personalize_app_name_p1_s1">Go to Settings &gt; Appearance</string>
+    <string name="help_tip_personalize_app_name_p1_s2">Tap 'App icon &amp; name'</string>
+    <string name="help_tip_personalize_app_name_p1_s3">Choose Gallery or Refra, then tap Apply</string>
+    <string name="help_tip_personalize_app_name_p1_s4">The app restarts once with the new name</string>
 
     <!-- TIMELINE &amp; ALBUMS -->
     <string name="help_tip_timeline_group_month_title">Group media by month</string>
@@ -1401,9 +1401,9 @@
     <string name="help_tip_personalize_app_logo_subtitle">Pick a launcher icon, including monochrome variants</string>
     <string name="help_tip_personalize_app_logo_p1_title">App logo</string>
     <string name="help_tip_personalize_app_logo_p1_desc">Choose the launcher icon shown on your home screen and in the app drawer. Four looks are available: the coloured ReFra mark, the classic Gallery icon, and the black-on-white Monochrome and Gallery Mono variants for minimal or themed setups. The logo combines with the app name setting, and the app restarts to apply the change — the splash screen follows the selected icon.</string>
-    <string name="help_tip_personalize_app_logo_p1_s1">Go to Settings &gt; General</string>
-    <string name="help_tip_personalize_app_logo_p1_s2">Tap 'App logo'</string>
-    <string name="help_tip_personalize_app_logo_p1_s3">Pick ReFra, Gallery, Monochrome or Gallery Mono</string>
+    <string name="help_tip_personalize_app_logo_p1_s1">Go to Settings &gt; Appearance</string>
+    <string name="help_tip_personalize_app_logo_p1_s2">Tap 'App icon &amp; name'</string>
+    <string name="help_tip_personalize_app_logo_p1_s3">Pick a logo and name, then tap Apply</string>
     <string name="help_tip_personalize_app_logo_p1_s4">The app restarts with the new icon and splash</string>
 
     <string name="help_tip_action_rename_title">Rename media</string>

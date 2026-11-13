@@ -41,6 +41,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Animation
+import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BlurOn
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.Check
@@ -111,6 +112,8 @@ import com.dot.gallery.feature.settings.generated.resources.amoled_mode_requires
 import com.dot.gallery.feature.settings.generated.resources.amoled_mode_requires_dark_description
 import com.dot.gallery.feature.settings.generated.resources.amoled_mode_summary
 import com.dot.gallery.feature.settings.generated.resources.amoled_mode_title
+import com.dot.gallery.feature.settings.generated.resources.app_icon_and_name
+import com.dot.gallery.feature.settings.generated.resources.appearance_app_icon_header
 import com.dot.gallery.feature.settings.generated.resources.appearance_colors_header
 import com.dot.gallery.feature.settings.generated.resources.appearance_theme_header
 import com.dot.gallery.feature.settings.generated.resources.auto
@@ -163,13 +166,23 @@ private const val DETAIL_AUTO_CONTRAST = "auto_contrast"
 private const val DETAIL_SHARED = "shared"
 private const val DETAIL_SYSTEM_FONT = "system_font"
 private const val DETAIL_MAP_APPEARANCE = "map_appearance"
+private const val DETAIL_APP_ICON = "app_icon"
 
 /** Which tile of the Appearance theme picker is selected. */
 private enum class ThemeMode { Auto, Light, Dark }
 
+/**
+ * [appIcon] draws the platform launcher icon for one alias (Android mipmaps); without it, as
+ * in the docs scene, the icon tiles fall back to a generic badge. [onAppAliasChange] applies a
+ * pending name + logo pair — the wrapper owns the platform work (alias switch + restart).
+ */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ColorPaletteContent(state: ColorPaletteState) {
+fun ColorPaletteContent(
+    state: ColorPaletteState,
+    appIcon: (@Composable (alias: String) -> Unit)? = null,
+    onAppAliasChange: (name: String, logo: String) -> Unit = { _, _ -> },
+) {
     var detailKey by rememberSaveable { mutableStateOf<String?>(null) }
     val contentScrollState = rememberScrollState()
     val initialFocusRequester = remember { FocusRequester() }
@@ -257,6 +270,16 @@ fun ColorPaletteContent(state: ColorPaletteState) {
                     PreferenceOption(MapAppearance.DARK, stringResource(Res.string.map_appearance_dark), mapAppearance == MapAppearance.DARK),
                 ),
                 onOptionSelected = { mapAppearance = it },
+            )
+            return
+        }
+        DETAIL_APP_ICON -> {
+            BackHandler { detailKey = null }
+            AppIconNameDetailScreen(
+                nameAlias = state.appNameAlias,
+                logoAlias = state.appLogoAlias,
+                appIcon = appIcon,
+                onApply = onAppAliasChange,
             )
             return
         }
@@ -351,6 +374,17 @@ fun ColorPaletteContent(state: ColorPaletteState) {
         isChecked = useSystemFont,
         onCheck = { useSystemFont = it },
         onClick = { detailKey = DETAIL_SYSTEM_FONT },
+        screenPosition = Position.Alone
+    )
+    val appIconHeaderTitle = stringResource(Res.string.appearance_app_icon_header)
+    val appIconHeader = remember(appIconHeaderTitle) { SettingsEntity.Header(title = appIconHeaderTitle) }
+    val appIconNamePref = rememberPreference(
+        state.appLogoAlias,
+        state.appNameAlias,
+        title = stringResource(Res.string.app_icon_and_name),
+        icon = Icons.Outlined.Apps,
+        summary = "${state.appLogoAlias} · ${state.appNameAlias}",
+        onClick = { detailKey = DETAIL_APP_ICON },
         screenPosition = Position.Alone
     )
     val mapAppearanceLabel = when (mapAppearance) {
@@ -497,6 +531,9 @@ fun ColorPaletteContent(state: ColorPaletteState) {
 
         SettingsItem(item = fontHeader)
         SettingsItem(item = useSystemFontPref)
+
+        SettingsItem(item = appIconHeader)
+        SettingsItem(item = appIconNamePref)
 
         if (state.mapsEnabled) {
             SettingsItem(item = SettingsEntity.Header(title = stringResource(Res.string.map_appearance_header)))

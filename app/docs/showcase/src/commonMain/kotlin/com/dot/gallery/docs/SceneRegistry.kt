@@ -417,8 +417,6 @@ val sceneRegistry: List<DocsScene> = listOf(
         SettingsGeneralContent(
             state = SettingsGeneralState(
                 supportsTrash = true,
-                appNameAlias = "ReFra",
-                appLogoAlias = "ReFra",
             ),
             actions = SettingsGeneralActions(),
         )
