@@ -210,11 +210,9 @@ object HelpSearchIndex {
             // General
             Toggle(Res.string.settings_trash_title, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.settings_trash_confirmation_title, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
-            Toggle(Res.string.secure_mode_title, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.allow_vibrations, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.change_app_name, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.change_app_logo, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
-            Toggle(Res.string.vault_encrypt_behavior, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             // Appearance and color
             Toggle(Res.string.settings_follow_system_theme_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.settings_dark_mode_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
@@ -246,10 +244,12 @@ object HelpSearchIndex {
             Toggle(Res.string.visual_search_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.dark_media_viewer_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             // Security
+            Toggle(Res.string.secure_mode_title, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
             Toggle(Res.string.security_metadata_isolation, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
             Toggle(Res.string.security_sandboxed_decode, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
             Toggle(Res.string.security_encryption_status, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
             Toggle(Res.string.security_private_folder, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
+            Toggle(Res.string.vault_encrypt_behavior, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
             Toggle(Res.string.vault_gate_lock_all, HelpRoute.Target.VAULT, HelpCategory.VAULT),
             // Timeline & albums
             Toggle(Res.string.timeline_layout_type, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),

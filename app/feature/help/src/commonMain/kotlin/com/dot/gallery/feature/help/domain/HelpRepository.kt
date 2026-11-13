@@ -2411,10 +2411,6 @@ object HelpRepository {
             icon = HelpIcon.ofVector(Icons.Outlined.DeleteForever), category = HelpCategory.SETTINGS_GENERAL,
             deepLink = HelpRoute.Target.SETTINGS_GENERAL,
             pages = listOf(TutorialPage(title = Res.string.help_tip_settings_trash_confirm_p1_title, description = Res.string.help_tip_settings_trash_confirm_p1_desc, steps = listOf(Res.string.help_tip_settings_trash_confirm_p1_s1, Res.string.help_tip_settings_trash_confirm_p1_s2, Res.string.help_tip_settings_trash_confirm_p1_s3))), sinceVersion = "4.0.0"),
-        HelpTip(id = "settings_secure_mode", title = Res.string.help_tip_settings_secure_mode_title, subtitle = Res.string.help_tip_settings_secure_mode_subtitle,
-            icon = HelpIcon.ofVector(Icons.Outlined.Lock), category = HelpCategory.SETTINGS_GENERAL,
-            deepLink = HelpRoute.Target.SETTINGS_GENERAL,
-            pages = listOf(TutorialPage(title = Res.string.help_tip_settings_secure_mode_p1_title, description = Res.string.help_tip_settings_secure_mode_p1_desc, steps = listOf(Res.string.help_tip_settings_secure_mode_p1_s1, Res.string.help_tip_settings_secure_mode_p1_s2, Res.string.help_tip_settings_secure_mode_p1_s3, Res.string.help_tip_settings_secure_mode_p1_s4), previewType = PreviewType.SETTINGS_GENERAL)), sinceVersion = "4.0.0"),
         HelpTip(id = "settings_vibrations", title = Res.string.help_tip_settings_vibrations_title, subtitle = Res.string.help_tip_settings_vibrations_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Vibration), category = HelpCategory.SETTINGS_GENERAL,
             deepLink = HelpRoute.Target.SETTINGS_GENERAL,
@@ -2477,6 +2473,10 @@ object HelpRepository {
     )
 
     private val SETTINGS_SECURITY_TIPS = listOf(
+        HelpTip(id = "settings_secure_mode", title = Res.string.help_tip_settings_secure_mode_title, subtitle = Res.string.help_tip_settings_secure_mode_subtitle,
+            icon = HelpIcon.ofVector(Icons.Outlined.Lock), category = HelpCategory.SETTINGS_SECURITY,
+            deepLink = HelpRoute.Target.SETTINGS_SECURITY,
+            pages = listOf(TutorialPage(title = Res.string.help_tip_settings_secure_mode_p1_title, description = Res.string.help_tip_settings_secure_mode_p1_desc, steps = listOf(Res.string.help_tip_settings_secure_mode_p1_s1, Res.string.help_tip_settings_secure_mode_p1_s2, Res.string.help_tip_settings_secure_mode_p1_s3, Res.string.help_tip_settings_secure_mode_p1_s4), previewType = PreviewType.SETTINGS_GENERAL)), sinceVersion = "4.0.0"),
         HelpTip(id = "security_sandbox", title = Res.string.help_tip_security_sandbox_title, subtitle = Res.string.help_tip_security_sandbox_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Security), category = HelpCategory.SETTINGS_SECURITY,
             deepLink = HelpRoute.Target.SETTINGS_SECURITY,

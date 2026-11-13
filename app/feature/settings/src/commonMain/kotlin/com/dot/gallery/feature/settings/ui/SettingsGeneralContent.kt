@@ -5,38 +5,18 @@
 
 package com.dot.gallery.feature.settings.ui
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Text
-import com.dot.gallery.core.ui.components.PreviewPhoto
-import com.dot.gallery.feature.settings.generated.resources.secure_mode_preview_app
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
-import androidx.compose.material.icons.outlined.EnhancedEncryption
 import androidx.compose.material.icons.outlined.PhonelinkErase
 import androidx.compose.material.icons.outlined.RestoreFromTrash
-import androidx.compose.material.icons.outlined.ScreenLockPortrait
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Vibration
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,10 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
@@ -70,9 +47,6 @@ import com.dot.gallery.domain.settings.DELETE_SCOPE_ASK
 import com.dot.gallery.domain.settings.DELETE_SCOPE_BOTH
 import com.dot.gallery.domain.settings.DELETE_SCOPE_CLOUD
 import com.dot.gallery.domain.settings.DELETE_SCOPE_DEVICE
-import com.dot.gallery.domain.settings.ENCRYPT_ASK
-import com.dot.gallery.domain.settings.ENCRYPT_DELETE
-import com.dot.gallery.domain.settings.ENCRYPT_KEEP
 import com.dot.gallery.domain.settings.SettingsKeys
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.settings.generated.resources.Res
@@ -90,9 +64,6 @@ import com.dot.gallery.feature.settings.generated.resources.delete_scope_from_bo
 import com.dot.gallery.feature.settings.generated.resources.delete_scope_from_cloud
 import com.dot.gallery.feature.settings.generated.resources.delete_scope_from_device
 import com.dot.gallery.feature.settings.generated.resources.other
-import com.dot.gallery.feature.settings.generated.resources.secure_mode_description
-import com.dot.gallery.feature.settings.generated.resources.secure_mode_summary
-import com.dot.gallery.feature.settings.generated.resources.secure_mode_title
 import com.dot.gallery.feature.settings.generated.resources.settings_delete_scope_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_delete_scope_title
 import com.dot.gallery.feature.settings.generated.resources.settings_general
@@ -107,21 +78,13 @@ import com.dot.gallery.feature.settings.generated.resources.trash
 import com.dot.gallery.feature.settings.generated.resources.trash_confirmation_description
 import com.dot.gallery.feature.settings.generated.resources.trash_confirmation_requires_trash_description
 import com.dot.gallery.feature.settings.generated.resources.trash_enabled_description
-import com.dot.gallery.feature.settings.generated.resources.vault
-import com.dot.gallery.feature.settings.generated.resources.vault_encrypt_ask
-import com.dot.gallery.feature.settings.generated.resources.vault_encrypt_behavior
-import com.dot.gallery.feature.settings.generated.resources.vault_encrypt_behavior_summary
-import com.dot.gallery.feature.settings.generated.resources.vault_encrypt_delete
-import com.dot.gallery.feature.settings.generated.resources.vault_encrypt_keep
 
 private const val DETAIL_TRASH = "trash"
 private const val DETAIL_TRASH_CONFIRM = "trash_confirm"
 private const val DETAIL_DELETE_SCOPE = "delete_scope"
-private const val DETAIL_SECURE = "secure"
 private const val DETAIL_VIBRATIONS = "vibrations"
 private const val DETAIL_APP_NAME = "app_name"
 private const val DETAIL_APP_LOGO = "app_logo"
-private const val DETAIL_VAULT_ENCRYPT = "vault_encrypt"
 
 /**
  * Launcher icons are platform renderables (mipmap drawables on Android): [appIcon] draws the icon
@@ -140,9 +103,7 @@ fun SettingsGeneralContent(
     var trashCanEnabled by rememberPreference(SettingsKeys.trashEnabled)
     var trashConfirmationEnabled by rememberPreference(SettingsKeys.trashConfirmEnabled)
     var deleteScope by rememberPreference(SettingsKeys.cloudDeleteScope)
-    var secureMode by rememberPreference(SettingsKeys.secureMode)
     var allowVibrations by rememberPreference(SettingsKeys.allowVibrations)
-    var vaultEncryptBehavior by rememberPreference(SettingsKeys.vaultEncryptBehavior)
 
     when (detailKey) {
         DETAIL_TRASH -> {
@@ -196,16 +157,6 @@ fun SettingsGeneralContent(
                     ),
                 ),
                 onOptionSelected = { deleteScope = it },
-            )
-        }
-        DETAIL_SECURE -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.secure_mode_title),
-                isChecked = secureMode,
-                onCheckedChange = { secureMode = it },
-                description = stringResource(Res.string.secure_mode_description),
-                preview = { checked -> SecureModePreview(checked) },
             )
         }
         DETAIL_VIBRATIONS -> {
@@ -266,31 +217,6 @@ fun SettingsGeneralContent(
                 onOptionSelected = { actions.onAppAliasChange(state.appNameAlias, it) },
             )
         }
-        DETAIL_VAULT_ENCRYPT -> {
-            BackHandler { detailKey = null }
-            ChooserPreferenceDetailScreen(
-                title = stringResource(Res.string.vault_encrypt_behavior),
-                description = stringResource(Res.string.vault_encrypt_behavior_summary),
-                options = listOf(
-                    PreferenceOption(
-                        ENCRYPT_ASK,
-                        stringResource(Res.string.vault_encrypt_ask),
-                        vaultEncryptBehavior == ENCRYPT_ASK
-                    ),
-                    PreferenceOption(
-                        ENCRYPT_DELETE,
-                        stringResource(Res.string.vault_encrypt_delete),
-                        vaultEncryptBehavior == ENCRYPT_DELETE
-                    ),
-                    PreferenceOption(
-                        ENCRYPT_KEEP,
-                        stringResource(Res.string.vault_encrypt_keep),
-                        vaultEncryptBehavior == ENCRYPT_KEEP
-                    ),
-                ),
-                onOptionSelected = { vaultEncryptBehavior = it },
-            )
-        }
         else -> {
             GeneralListScreen(
                 trashCanEnabled = trashCanEnabled,
@@ -298,13 +224,10 @@ fun SettingsGeneralContent(
                 trashConfirmationEnabled = trashConfirmationEnabled,
                 onTrashConfirmChange = { trashConfirmationEnabled = it },
                 deleteScope = deleteScope,
-                secureMode = secureMode,
-                onSecureChange = { secureMode = it },
                 allowVibrations = allowVibrations,
                 onVibrationsChange = { allowVibrations = it },
                 appNameAlias = state.appNameAlias,
                 appLogoAlias = state.appLogoAlias,
-                vaultEncryptBehavior = vaultEncryptBehavior,
                 supportsTrash = state.supportsTrash,
                 onDetailClick = { detailKey = it },
                 onOpenTrash = actions.onOpenTrash,
@@ -322,13 +245,10 @@ private fun GeneralListScreen(
     trashConfirmationEnabled: Boolean,
     onTrashConfirmChange: (Boolean) -> Unit,
     deleteScope: String,
-    secureMode: Boolean,
-    onSecureChange: (Boolean) -> Unit,
     allowVibrations: Boolean,
     onVibrationsChange: (Boolean) -> Unit,
     appNameAlias: String,
     appLogoAlias: String,
-    vaultEncryptBehavior: String,
     supportsTrash: Boolean,
     onDetailClick: (String) -> Unit,
     onOpenTrash: () -> Unit,
@@ -375,17 +295,6 @@ private fun GeneralListScreen(
         screenPosition = Position.Bottom
     )
 
-    val secureModePref = rememberSwitchPreference(
-        secureMode,
-        title = stringResource(Res.string.secure_mode_title),
-        icon = Icons.Outlined.ScreenLockPortrait,
-        summary = stringResource(Res.string.secure_mode_summary),
-        isChecked = secureMode,
-        onCheck = onSecureChange,
-        onClick = { onDetailClick(DETAIL_SECURE) },
-        screenPosition = Position.Top
-    )
-
     val allowVibrationsPref = rememberSwitchPreference(
         allowVibrations,
         title = stringResource(Res.string.allow_vibrations),
@@ -394,7 +303,7 @@ private fun GeneralListScreen(
         isChecked = allowVibrations,
         onCheck = onVibrationsChange,
         onClick = { onDetailClick(DETAIL_VIBRATIONS) },
-        screenPosition = Position.Middle
+        screenPosition = Position.Top
     )
 
     val deleteScopeSummary = when (deleteScope) {
@@ -430,28 +339,13 @@ private fun GeneralListScreen(
         screenPosition = Position.Bottom
     )
 
-    val vaultEncryptBehaviorSummary = when (vaultEncryptBehavior) {
-        ENCRYPT_DELETE -> stringResource(Res.string.vault_encrypt_delete)
-        ENCRYPT_KEEP -> stringResource(Res.string.vault_encrypt_keep)
-        else -> stringResource(Res.string.vault_encrypt_ask)
-    }
-    val vaultEncryptPref = rememberPreference(
-        vaultEncryptBehavior,
-        title = stringResource(Res.string.vault_encrypt_behavior),
-        icon = Icons.Outlined.EnhancedEncryption,
-        summary = vaultEncryptBehaviorSummary,
-        onClick = { onDetailClick(DETAIL_VAULT_ENCRYPT) },
-        screenPosition = Position.Alone
-    )
-
     val trashHeader = stringResource(Res.string.trash)
     val otherHeader = stringResource(Res.string.other)
-    val vaultHeader = stringResource(Res.string.vault)
 
     val settingsList: SnapshotStateList<SettingsEntity> = remember(
         openTrashPref, trashCanEnabledPref, trashConfirmationEnabledPref,
-        secureModePref, allowVibrationsPref, deleteScopePref, appNamePref,
-        appLogoPref, vaultEncryptPref, trashHeader, otherHeader, vaultHeader,
+        allowVibrationsPref, deleteScopePref, appNamePref,
+        appLogoPref, trashHeader, otherHeader,
         supportsTrash,
     ) {
         mutableStateListOf<SettingsEntity>().apply {
@@ -462,13 +356,10 @@ private fun GeneralListScreen(
                 add(trashConfirmationEnabledPref)
             }
             add(SettingsEntity.Header(title = otherHeader))
-            add(secureModePref)
             add(allowVibrationsPref)
             add(deleteScopePref)
             add(appNamePref)
             add(appLogoPref)
-            add(SettingsEntity.Header(title = vaultHeader))
-            add(vaultEncryptPref)
         }
     }
 
@@ -479,64 +370,4 @@ private fun GeneralListScreen(
         searchRoute = searchRoute,
         searchSink = searchSink,
     )
-}
-
-/**
- * ReFra's card in the recent apps overview: the gallery shows through, or secure mode blanks it
- * and screenshots of it.
- */
-@Composable
-private fun SecureModePreview(isChecked: Boolean) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Box(Modifier.size(12.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
-            Text(
-                text = stringResource(Res.string.secure_mode_preview_app),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .size(width = 100.dp, height = 156.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(
-                    if (isChecked) MaterialTheme.colorScheme.surfaceContainerHighest
-                    else MaterialTheme.colorScheme.surface
-                )
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            if (isChecked) {
-                Icon(
-                    imageVector = Icons.Outlined.VisibilityOff,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(28.dp)
-                )
-            } else {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(5.dp),
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
-                ) {
-                    repeat(4) { row ->
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                            repeat(2) { col ->
-                                PreviewPhoto(
-                                    index = row * 2 + col,
-                                    modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(4.dp))
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 }

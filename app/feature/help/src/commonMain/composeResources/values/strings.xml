@@ -734,7 +734,7 @@
     <string name="help_tip_settings_secure_mode_subtitle">Hide from recents and block screenshots</string>
     <string name="help_tip_settings_secure_mode_p1_title">Secure mode</string>
     <string name="help_tip_settings_secure_mode_p1_desc">When activated, Gallery is hidden from the recent apps screen (the task switcher shows a blank preview) and screenshots within the app are blocked. This is an extra privacy measure if you don't want others to see what you were browsing when they glance at your recent apps. Ideal when combined with the vault for maximum privacy.</string>
-    <string name="help_tip_settings_secure_mode_p1_s1">Go to Settings > General</string>
+    <string name="help_tip_settings_secure_mode_p1_s1">Go to Settings > Security</string>
     <string name="help_tip_settings_secure_mode_p1_s2">Toggle 'Secure mode'</string>
     <string name="help_tip_settings_secure_mode_p1_s3">Gallery disappears from recent apps</string>
     <string name="help_tip_settings_secure_mode_p1_s4">Screenshots are blocked within the app</string>

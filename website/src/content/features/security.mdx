@@ -1,6 +1,6 @@
 ---
 title: Security settings
-summary: Sandboxed decoding, metadata isolation, storage encryption status, and the private folder entry.
+summary: Secure mode, sandboxed decoding, metadata isolation, storage encryption status, the private folder entry, and vault encrypt behavior.
 area: organize-secure
 path:
   - Settings
@@ -10,7 +10,11 @@ scenes: [settings-security]
 order: 11
 ---
 
-**Settings › Security** controls how defensively ReFra handles the files it reads and how it stores its own data. These options trade speed for isolation; the defaults are sensible for most people.
+**Settings › Security** controls how defensively ReFra handles the files it reads and how it stores its own data. The sandboxing options trade speed for isolation; the defaults are sensible for most people.
+
+## Privacy
+
+- **Secure Mode**: blocks the app's content from screenshots, the recent-apps overview, and screen recordings. It protects those capture surfaces; it does not encrypt your ordinary files.
 
 ## Sandbox
 
@@ -35,9 +39,13 @@ When the device has **Android Advanced Protection** enabled, Android may enforce
 
 - **Private folder**: opens the private-folder setup, showing the configured folder or **Not configured**. See [private folder](/ReFra/features/private-folder).
 
+## Vault
+
+- **Vault encrypt behavior**: what happens to originals when you add media to a vault: **Always ask** (the sheet asks every time), **Always delete originals**, or **Always keep originals**. The per-use sheet can also remember your choice, which changes this setting. See [vault](/ReFra/features/vault).
+
 ## What this page is not
 
-Hiding and locking media (ignored albums, locked albums, the private folder, vaults) are covered under [hidden content](/ReFra/features/hidden-content) and the linked pages; the Security section is about process isolation and storage protection, not visibility.
+Hiding and locking media (ignored albums, locked albums, the private folder, vaults) are covered under [hidden content](/ReFra/features/hidden-content) and the linked pages; the Security section is about process isolation, storage protection and capture blocking, not media visibility.
 
 ## Example: check your protection level
 

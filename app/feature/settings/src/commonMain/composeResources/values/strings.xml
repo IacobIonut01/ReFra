@@ -10,9 +10,9 @@
     <string name="settings_navigation">Navigation</string>
     <string name="settings_navigation_summary">Launch screen, bars and interface behavior</string>
     <string name="settings_general">General</string>
-    <string name="settings_general_summary">Trash, secure mode, vibrations and app icon</string>
+    <string name="settings_general_summary">Trash, vibrations and app icon</string>
     <string name="settings_security">Security</string>
-    <string name="settings_security_summary">Sandboxing, encryption and private folder</string>
+    <string name="settings_security_summary">Secure mode, sandboxing, encryption, private folder and vault</string>
     <string name="settings_backup">Backup &amp; restore</string>
     <string name="settings_backup_summary">Back up settings, library data, cloud accounts and vaults</string>
     <string name="settings_cloud_accounts">Cloud accounts</string>
@@ -70,6 +70,7 @@
     <string name="edit_backups">Edit Backups</string>
     <string name="edit_backups_summary">Manage original image backups from edited photos</string>
     <string name="edit_backups_storage">Storage Used</string>
+    <string name="settings_privacy_header">Privacy</string>
     <string name="security_sandbox_header">Sandbox</string>
     <string name="security_metadata_isolation">Metadata isolation mode</string>
     <string name="security_metadata_isolation_summary">Controls how metadata parsing is isolated between files. All modes run in a separate process with no permissions — the difference is how often that process is recycled.\n\nShared process — All files are parsed through a single long-lived isolated process. Fastest option with minimal overhead for library scanning. If a malicious file crashes the parser, the process is restarted automatically. Recommended for most users.\n\nHybrid — Files you open in the viewer get a fresh isolated process; background indexing reuses a shared one. Actively viewed files are fully isolated from each other, while batch operations stay fast. Recommended if you occasionally receive files from untrusted sources.\n\nPer-file — Every single file gets its own isolated process, destroyed immediately after parsing. Strongest isolation with zero cross-contamination, but significantly slower for large libraries and uses more battery during scanning. Only recommended if you regularly handle untrusted files.</string>
