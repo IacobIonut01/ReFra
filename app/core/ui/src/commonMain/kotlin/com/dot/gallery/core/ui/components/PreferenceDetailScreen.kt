@@ -128,6 +128,7 @@ fun PreferencePreviewTile(
     canvasHeight: Dp = TileCanvasHeight,
     expandCanvas: Boolean = false,
     canvasColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    labelMaxLines: Int = 2,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val container by animateColorAsState(
@@ -184,7 +185,7 @@ fun PreferencePreviewTile(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
                 color = labelColor,
-                maxLines = 2,
+                maxLines = labelMaxLines,
                 overflow = TextOverflow.Ellipsis,
             )
         }

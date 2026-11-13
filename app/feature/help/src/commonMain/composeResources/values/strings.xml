@@ -349,8 +349,8 @@
     <string name="help_tip_viewer_default_editor_subtitle">Choose between built-in or external editor</string>
     <string name="help_tip_viewer_default_editor_p1_title">Default editor</string>
     <string name="help_tip_viewer_default_editor_p1_desc">Control what happens when you tap the edit button. Choose 'Built-in' to always use Gallery's editor (great for quick crops, filters, and markup). Choose 'External' to use a third-party editor like Snapseed or Lightroom for more advanced editing. You can always switch between them.</string>
-    <string name="help_tip_viewer_default_editor_p1_s1">Go to Settings > Media viewer</string>
-    <string name="help_tip_viewer_default_editor_p1_s2">Tap 'Default image editor'</string>
+    <string name="help_tip_viewer_default_editor_p1_s1">Go to Settings > Editors</string>
+    <string name="help_tip_viewer_default_editor_p1_s2">Tap a tile under 'Image editor'</string>
     <string name="help_tip_viewer_default_editor_p1_s3">Choose built-in or external</string>
     <string name="help_tip_viewer_default_editor_p2_title">External editors</string>
     <string name="help_tip_viewer_default_editor_p2_desc">When set to external, Gallery opens the Android system picker showing all compatible photo editors on your device. Pick your favorite once and it becomes the default. This is ideal if you prefer a dedicated editor for things like HDR adjustments, RAW processing, or advanced retouching.</string>
@@ -1517,6 +1517,8 @@
     <string name="change_app_name">App name</string>
     <string name="default_image_editor">Default image editor</string>
     <string name="default_video_editor">Default video editor</string>
+    <string name="settings_editors">Editors</string>
+    <string name="reencode_quality_title">Save quality</string>
     <string name="settings_title">Settings</string>
     <string name="settings_trash_title">Use trash can</string>
     <string name="map_appearance_title">Map appearance</string>

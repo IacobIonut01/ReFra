@@ -7,6 +7,8 @@
     <string name="settings_timeline_albums_summary">Layout, grouping, date format and album behavior</string>
     <string name="settings_media_viewer">Media viewer</string>
     <string name="settings_media_viewer_summary">Viewing, editors and video playback</string>
+    <string name="settings_editors">Editors</string>
+    <string name="settings_editors_summary">Default image and video editors, save quality</string>
     <string name="settings_navigation">Navigation</string>
     <string name="settings_navigation_summary">Launch screen, bars and interface behavior</string>
     <string name="settings_general">General</string>
@@ -521,6 +523,8 @@
     <string name="default_video_editor_studio">ReFra editor</string>
     <string name="default_video_editor_ask">Ask every time</string>
     <string name="default_video_editor_description">The app that opens when you edit a video</string>
+    <string name="editors_image_header">Image editor</string>
+    <string name="editors_video_header">Video editor</string>
     <string name="disable_smoothing_description">When enabled, images are drawn with nearest-neighbor scaling so zooming into pixel art keeps clean, sharp pixels rather than blurring them. Leave it off for smooth scaling of photos.</string>
     <string name="disable_smoothing_summary">Show crisp, square pixels when zooming instead of a blurry, smoothed image</string>
     <string name="disable_smoothing_title">Disable smoothing</string>

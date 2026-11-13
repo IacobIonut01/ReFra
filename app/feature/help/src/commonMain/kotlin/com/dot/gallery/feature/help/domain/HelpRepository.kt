@@ -1920,7 +1920,7 @@ object HelpRepository {
     private val VIEWER_SETTINGS_TIPS = listOf(
         HelpTip(id = "viewer_default_editor", title = Res.string.help_tip_viewer_default_editor_title, subtitle = Res.string.help_tip_viewer_default_editor_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Edit), category = HelpCategory.VIEWER_SETTINGS,
-            deepLink = HelpRoute.Target.SETTINGS_MEDIA_VIEWER,
+            deepLink = HelpRoute.Target.SETTINGS_EDITORS,
             pages = listOf(
                 TutorialPage(title = Res.string.help_tip_viewer_default_editor_p1_title, description = Res.string.help_tip_viewer_default_editor_p1_desc, steps = listOf(Res.string.help_tip_viewer_default_editor_p1_s1, Res.string.help_tip_viewer_default_editor_p1_s2, Res.string.help_tip_viewer_default_editor_p1_s3)),
                 TutorialPage(title = Res.string.help_tip_viewer_default_editor_p2_title, description = Res.string.help_tip_viewer_default_editor_p2_desc)

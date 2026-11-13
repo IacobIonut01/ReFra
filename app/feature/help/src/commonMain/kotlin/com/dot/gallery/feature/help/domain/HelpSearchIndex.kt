@@ -62,6 +62,7 @@ import com.dot.gallery.feature.help.generated.resources.map_appearance_title
 import com.dot.gallery.feature.help.generated.resources.media_type_albums_setting_title
 import com.dot.gallery.feature.help.generated.resources.merge_albums_by_name
 import com.dot.gallery.feature.help.generated.resources.old_navbar
+import com.dot.gallery.feature.help.generated.resources.reencode_quality_title
 import com.dot.gallery.feature.help.generated.resources.refresh_metadata
 import com.dot.gallery.feature.help.generated.resources.secure_mode_title
 import com.dot.gallery.feature.help.generated.resources.security_encryption_status
@@ -70,6 +71,7 @@ import com.dot.gallery.feature.help.generated.resources.security_private_folder
 import com.dot.gallery.feature.help.generated.resources.security_sandboxed_decode
 import com.dot.gallery.feature.help.generated.resources.set_default_screen
 import com.dot.gallery.feature.help.generated.resources.settings_dark_mode_title
+import com.dot.gallery.feature.help.generated.resources.settings_editors
 import com.dot.gallery.feature.help.generated.resources.settings_follow_system_theme_title
 import com.dot.gallery.feature.help.generated.resources.settings_title
 import com.dot.gallery.feature.help.generated.resources.settings_trash_confirmation_title
@@ -175,6 +177,7 @@ object HelpSearchIndex {
             Entry("settings_general", Res.string.help_cat_settings_general, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Entry("settings_timeline_albums", Res.string.help_cat_timeline_albums, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Entry("settings_media_viewer", Res.string.help_cat_viewer_settings, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
+            Entry("settings_editors", Res.string.settings_editors, HelpRoute.Target.SETTINGS_EDITORS, HelpCategory.VIEWER_SETTINGS),
             Entry("settings_navigation", Res.string.help_cat_settings_navigation, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Entry("settings_smart", Res.string.help_cat_settings_smart, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),
             Entry("settings_security", Res.string.help_cat_settings_security, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
@@ -232,8 +235,6 @@ object HelpSearchIndex {
             Toggle(Res.string.full_brightness_view_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.instant_side_taps_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.show_date_header, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
-            Toggle(Res.string.default_image_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
-            Toggle(Res.string.default_video_editor, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.disable_smoothing_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.long_press_action_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.auto_hide_on_video_play, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
@@ -243,6 +244,10 @@ object HelpSearchIndex {
             Toggle(Res.string.hdr_video_playback, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.visual_search_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.dark_media_viewer_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
+            // Editors
+            Toggle(Res.string.default_image_editor, HelpRoute.Target.SETTINGS_EDITORS, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.default_video_editor, HelpRoute.Target.SETTINGS_EDITORS, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.reencode_quality_title, HelpRoute.Target.SETTINGS_EDITORS, HelpCategory.VIEWER_SETTINGS),
             // Security
             Toggle(Res.string.secure_mode_title, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
             Toggle(Res.string.security_metadata_isolation, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),

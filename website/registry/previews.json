@@ -47,6 +47,14 @@
         "section": "long-press-action"
       }
     ],
+    "editors": [
+      {
+        "scene": "settings-editors",
+        "title": "Editors",
+        "caption": "Pick the default image and video editors and the save quality on one page.",
+        "section": "image-editor"
+      }
+    ],
     "security": [
       {
         "scene": "settings-security",

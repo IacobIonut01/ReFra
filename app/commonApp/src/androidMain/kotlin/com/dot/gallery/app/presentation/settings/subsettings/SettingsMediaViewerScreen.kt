@@ -6,13 +6,10 @@
 package com.dot.gallery.app.presentation.settings.subsettings
 
 import android.graphics.Bitmap
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +21,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
@@ -40,7 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.ml.ModelGroup
@@ -53,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
@@ -61,7 +54,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +62,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
 import com.composeunstyled.LocalTextStyle
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings
@@ -97,10 +88,7 @@ import kotlinx.coroutines.launch
 import com.dot.gallery.ui.core.icons.VisualSearch
 import com.dot.gallery.domain.date.getDate
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
-import com.dot.gallery.R
 import com.dot.gallery.generated.resources.Res
-import com.dot.gallery.generated.resources.default_image_editor_builtin
-import com.dot.gallery.generated.resources.default_image_editor_studio
 import com.dot.gallery.generated.resources.image_sample_2
 
 /**
@@ -138,11 +126,10 @@ fun SettingsMediaViewerScreen(
             visualSearchTargets = context.discoverVisualSearchTargets(),
         )
     }
-    val previews = remember(context, rawEditApps) {
+    val previews = remember(context) {
         MediaViewerPreviews(
             dateHeader = { DateHeaderPreview(it) },
             tapNavigation = { TapNavigationPreview(enabled = it) },
-            editor = { current, _ -> EditorPreview(current, rawEditApps) },
             smoothing = { SmoothingPreview(disableSmoothing = it) },
             visualSearch = { enabled, icon, position ->
                 VisualSearchPreview(enabled = enabled, icon = icon, position = position)
@@ -158,6 +145,9 @@ fun SettingsMediaViewerScreen(
             onOpenSlideshow = { eventHandler.navigate(Screen.SlideshowSettingsScreen()) },
             onOpenViewerActions = {
                 eventHandler.navigate(Screen.SettingsViewerActionsScreen())
+            },
+            onOpenEditors = {
+                eventHandler.navigate(Screen.SettingsEditorsScreen())
             },
             onTapSidesChanged = {
                 scope.launch { Settings.Misc.markTapSidesToNavigatePromptShown(context) }
@@ -311,162 +301,6 @@ private fun DateHeaderPreview(isChecked: Boolean) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun EditorPreview(
-    currentEditor: String,
-    editApps: List<android.content.pm.ResolveInfo>
-) {
-    val context = LocalContext.current
-    val scrollState = rememberScrollState()
-
-    // Auto-scroll to selected item when selection changes
-    val allEditors = remember(editApps) {
-        val list = mutableListOf(Settings.Misc.EDITOR_BUILTIN, Settings.Misc.EDITOR_STUDIO)
-        editApps.forEach { list.add(it.activityInfo.packageName) }
-        list
-    }
-    val selectedIndex = remember(currentEditor, allEditors) {
-        allEditors.indexOf(currentEditor).coerceAtLeast(0)
-    }
-    LaunchedEffect(selectedIndex) {
-        // Estimate scroll position: each card ~120dp + 12dp spacing
-        val targetPx = (selectedIndex * 132 * context.resources.displayMetrics.density).toInt()
-        scrollState.animateScrollTo(
-            (targetPx - 100).coerceAtLeast(0)
-        )
-    }
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp)
-                .horizontalScroll(scrollState)
-                .padding(horizontal = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            EditorOptionCard(
-                label = stringResource(Res.string.default_image_editor_builtin),
-                selected = currentEditor == Settings.Misc.EDITOR_BUILTIN,
-                icon = {
-                    Image(
-                        painter = rememberDrawablePainter(
-                            drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
-                        ),
-                        contentDescription = stringResource(Res.string.default_image_editor_builtin),
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                    )
-                }
-            )
-            EditorOptionCard(
-                label = stringResource(Res.string.default_image_editor_studio),
-                selected = currentEditor == Settings.Misc.EDITOR_STUDIO,
-                icon = {
-                    Image(
-                        painter = rememberDrawablePainter(
-                            drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher_round)
-                        ),
-                        contentDescription = stringResource(Res.string.default_image_editor_studio),
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                    )
-                }
-            )
-            editApps.forEach { app ->
-                val packageName = app.activityInfo.packageName
-                val appLabel = remember(app) { app.loadLabel(context.packageManager).toString() }
-                val appIcon = remember(app) {
-                    try { app.loadIcon(context.packageManager).toBitmap().asImageBitmap() }
-                    catch (_: Exception) { null }
-                }
-                if (appIcon != null) {
-                    EditorOptionCard(
-                        label = appLabel,
-                        selected = currentEditor == packageName,
-                        icon = {
-                            Image(
-                                bitmap = appIcon,
-                                contentDescription = appLabel,
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .clip(CircleShape)
-                            )
-                        }
-                    )
-                }
-            }
-        }
-        // Soft fade-out gradient on left edge
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .size(32.dp, 160.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceContainerHigh,
-                            Color.Transparent
-                        )
-                    )
-                )
-        )
-        // Soft fade-out gradient on right edge
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .size(32.dp, 160.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                    )
-                )
-        )
-    }
-}
-
-@Composable
-private fun EditorOptionCard(
-    label: String,
-    selected: Boolean,
-    icon: @Composable () -> Unit
-) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.outlineVariant
-    val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-    else Color.Transparent
-
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
-            .background(containerColor)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        icon()
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
-        )
-        Icon(
-            imageVector = Icons.Filled.CheckCircle,
-            contentDescription = null,
-            tint = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant,
-            modifier = Modifier.size(24.dp)
-        )
     }
 }
 

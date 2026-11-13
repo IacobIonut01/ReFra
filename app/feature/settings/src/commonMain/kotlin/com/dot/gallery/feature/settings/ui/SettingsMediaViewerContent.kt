@@ -16,17 +16,13 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Grain
 import androidx.compose.material.icons.outlined.HdrOn
-import androidx.compose.material.icons.outlined.HighQuality
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material.icons.outlined.SmartButton
-import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.TouchApp
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.VideoSettings
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.foundation.Image
@@ -91,8 +87,6 @@ import com.dot.gallery.domain.settings.EDITOR_STUDIO
 import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
 import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_NONE
 import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
-import com.dot.gallery.domain.settings.REENCODE_MODE_AUTO
-import com.dot.gallery.domain.settings.REENCODE_MODE_MANUAL
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_CONVERT_ALWAYS
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_CONVERT_ASK
@@ -106,7 +100,6 @@ import com.dot.gallery.domain.settings.VISUAL_SEARCH_PROVIDER_AUTO
 import com.dot.gallery.domain.settings.resolveLongPressAction
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 import com.dot.gallery.ui.core.icons.VisualSearch
-import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.settings.generated.resources.Res
@@ -119,11 +112,7 @@ import com.dot.gallery.feature.settings.generated.resources.auto_play_video_summ
 import com.dot.gallery.feature.settings.generated.resources.dark_media_viewer_description
 import com.dot.gallery.feature.settings.generated.resources.dark_media_viewer_summary
 import com.dot.gallery.feature.settings.generated.resources.dark_media_viewer_title
-import com.dot.gallery.feature.settings.generated.resources.default_editor_description
-import com.dot.gallery.feature.settings.generated.resources.default_image_editor
-import com.dot.gallery.feature.settings.generated.resources.default_video_editor
 import com.dot.gallery.feature.settings.generated.resources.default_video_editor_ask
-import com.dot.gallery.feature.settings.generated.resources.default_video_editor_description
 import com.dot.gallery.feature.settings.generated.resources.default_video_editor_studio
 import com.dot.gallery.feature.settings.generated.resources.default_image_editor_builtin
 import com.dot.gallery.feature.settings.generated.resources.default_image_editor_studio
@@ -146,12 +135,7 @@ import com.dot.gallery.feature.settings.generated.resources.loop_videos
 import com.dot.gallery.feature.settings.generated.resources.loop_videos_description
 import com.dot.gallery.feature.settings.generated.resources.loop_videos_summary
 import com.dot.gallery.feature.settings.generated.resources.media_view
-import com.dot.gallery.feature.settings.generated.resources.reencode_quality_jxl_effort
-import com.dot.gallery.feature.settings.generated.resources.reencode_quality_lossy
-import com.dot.gallery.feature.settings.generated.resources.reencode_quality_mode_auto_summary
-import com.dot.gallery.feature.settings.generated.resources.reencode_quality_mode_manual
-import com.dot.gallery.feature.settings.generated.resources.reencode_quality_summary
-import com.dot.gallery.feature.settings.generated.resources.reencode_quality_title
+import com.dot.gallery.feature.settings.generated.resources.settings_editors
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer
 import com.dot.gallery.feature.settings.generated.resources.show_date_header
 import com.dot.gallery.feature.settings.generated.resources.show_date_header_description
@@ -204,8 +188,6 @@ import com.dot.gallery.feature.settings.generated.resources.visual_search_with
 private const val DETAIL_BRIGHTNESS = "brightness"
 private const val DETAIL_DATE_HEADER = "date_header"
 private const val DETAIL_TAP_NAVIGATION = "tap_navigation"
-private const val DETAIL_EDITOR = "editor"
-private const val DETAIL_VIDEO_EDITOR = "video_editor"
 private const val DETAIL_AUTO_HIDE_VIDEO = "auto_hide_video"
 private const val DETAIL_AUTO_PLAY = "auto_play"
 private const val DETAIL_LOOP_VIDEOS = "loop_videos"
@@ -229,9 +211,8 @@ fun SettingsMediaViewerContent(
     var fullBrightnessView by rememberPreference(SettingsKeys.fullBrightnessView)
     var showMediaDateHeader by rememberPreference(SettingsKeys.mediaViewDateHeader)
     var tapSidesToNavigate by rememberPreference(SettingsKeys.tapSidesToNavigate)
-    var defaultEditor by rememberPreference(SettingsKeys.defaultImageEditor)
-    var imageEditorChoiceExplicit by rememberPreference(SettingsKeys.imageEditorChoiceExplicit)
-    var defaultVideoEditor by rememberPreference(SettingsKeys.defaultVideoEditor)
+    val defaultEditor by rememberPreference(SettingsKeys.defaultImageEditor)
+    val defaultVideoEditor by rememberPreference(SettingsKeys.defaultVideoEditor)
     var autoHideOnVideoPlay by rememberPreference(SettingsKeys.autoHideOnVideoPlay)
     var autoPlayVideo by rememberPreference(SettingsKeys.videoAutoplay)
     var loopVideos by rememberPreference(SettingsKeys.loopVideos)
@@ -244,9 +225,6 @@ fun SettingsMediaViewerContent(
     val legacyLongPressCutout by rememberPreference(SettingsKeys.longPressCutout)
     var storedLongPressAction by rememberPreference(SettingsKeys.longPressAction)
     val longPressAction = resolveLongPressAction(storedLongPressAction, legacyLongPressCutout)
-    var reencodeMode by rememberPreference(SettingsKeys.reencodeQualityMode)
-    var reencodeLossyQuality by rememberPreference(SettingsKeys.reencodeLossyQuality)
-    var reencodeJxlEffort by rememberPreference(SettingsKeys.reencodeJxlEffort)
     var visualSearchEnabled by rememberPreference(SettingsKeys.visualSearchEnabled)
     var visualSearchProvider by rememberPreference(SettingsKeys.visualSearchProvider)
     var visualSearchPosition by rememberPreference(SettingsKeys.visualSearchPosition)
@@ -291,53 +269,6 @@ fun SettingsMediaViewerContent(
                 preview = { checked -> previews.tapNavigation(checked) },
                 useColumnLayout = true,
                 previewBelowSwitch = true,
-            )
-        }
-        DETAIL_EDITOR -> {
-            BackHandler { detailKey = null }
-            val builtinEditorLabel = stringResource(Res.string.default_image_editor_builtin)
-            val studioEditorLabel = stringResource(Res.string.default_image_editor_studio)
-            val editorOptions = remember(defaultEditor, state.editApps, builtinEditorLabel, studioEditorLabel) {
-                val options = mutableListOf(
-                    PreferenceOption(EDITOR_BUILTIN, builtinEditorLabel, defaultEditor == EDITOR_BUILTIN),
-                    PreferenceOption(EDITOR_STUDIO, studioEditorLabel, defaultEditor == EDITOR_STUDIO),
-                )
-                state.editApps.forEach { app ->
-                    options.add(PreferenceOption(app.packageName, app.label, defaultEditor == app.packageName))
-                }
-                options.toList()
-            }
-            ChooserPreferenceDetailScreen(
-                title = stringResource(Res.string.default_image_editor),
-                description = stringResource(Res.string.default_editor_description),
-                preview = { previews.editor(defaultEditor, state.editApps) },
-                options = editorOptions,
-                onOptionSelected = {
-                    defaultEditor = it
-                    imageEditorChoiceExplicit = true
-                },
-            )
-        }
-        DETAIL_VIDEO_EDITOR -> {
-            BackHandler { detailKey = null }
-            val studioVideoLabel = stringResource(Res.string.default_video_editor_studio)
-            val askVideoLabel = stringResource(Res.string.default_video_editor_ask)
-            val videoEditorOptions = remember(defaultVideoEditor, state.videoEditApps, studioVideoLabel, askVideoLabel) {
-                val options = mutableListOf(
-                    PreferenceOption(EDITOR_STUDIO, studioVideoLabel, defaultVideoEditor == EDITOR_STUDIO),
-                    PreferenceOption(EDITOR_BUILTIN, askVideoLabel, defaultVideoEditor == EDITOR_BUILTIN),
-                )
-                state.videoEditApps.forEach { app ->
-                    options.add(PreferenceOption(app.packageName, app.label, defaultVideoEditor == app.packageName))
-                }
-                options.toList()
-            }
-            ChooserPreferenceDetailScreen(
-                title = stringResource(Res.string.default_video_editor),
-                description = stringResource(Res.string.default_video_editor_description),
-                preview = {},
-                options = videoEditorOptions,
-                onOptionSelected = { defaultVideoEditor = it },
             )
         }
         DETAIL_DISABLE_SMOOTHING -> {
@@ -480,6 +411,7 @@ fun SettingsMediaViewerContent(
                 onInstantSideTapsChange = { instantSideTaps = it },
                 defaultEditor = defaultEditor,
                 defaultVideoEditor = defaultVideoEditor,
+                onOpenEditors = actions.onOpenEditors,
                 disableSmoothing = disableSmoothing,
                 onDisableSmoothingChange = { disableSmoothing = it },
                 darkMediaViewer = darkMediaViewer,
@@ -495,12 +427,6 @@ fun SettingsMediaViewerContent(
                 onSurfaceRebindChange = { videoSurfaceRebind = it },
                 hdrVideoPlayback = hdrVideoPlayback,
                 onHdrVideoPlaybackChange = { hdrVideoPlayback = it },
-                reencodeMode = reencodeMode,
-                onReencodeModeChange = { reencodeMode = it },
-                reencodeLossyQuality = reencodeLossyQuality,
-                onReencodeLossyChange = { reencodeLossyQuality = it },
-                reencodeJxlEffort = reencodeJxlEffort,
-                onReencodeJxlEffortChange = { reencodeJxlEffort = it },
                 visualSearchEnabled = visualSearchEnabled,
                 onVisualSearchChange = { visualSearchEnabled = it },
                 visualSearchSummary = when {
@@ -535,6 +461,7 @@ private fun MediaViewerListContent(
     onInstantSideTapsChange: (Boolean) -> Unit,
     defaultEditor: String,
     defaultVideoEditor: String,
+    onOpenEditors: () -> Unit,
     disableSmoothing: Boolean,
     onDisableSmoothingChange: (Boolean) -> Unit,
     darkMediaViewer: Boolean,
@@ -550,12 +477,6 @@ private fun MediaViewerListContent(
     onSurfaceRebindChange: (Boolean) -> Unit,
     hdrVideoPlayback: Boolean,
     onHdrVideoPlaybackChange: (Boolean) -> Unit,
-    reencodeMode: String,
-    onReencodeModeChange: (String) -> Unit,
-    reencodeLossyQuality: Int,
-    onReencodeLossyChange: (Int) -> Unit,
-    reencodeJxlEffort: Int,
-    onReencodeJxlEffortChange: (Int) -> Unit,
     visualSearchEnabled: Boolean,
     onVisualSearchChange: (Boolean) -> Unit,
     visualSearchSummary: String,
@@ -636,7 +557,9 @@ private fun MediaViewerListContent(
 
         val builtinEditorLabel = stringResource(Res.string.default_image_editor_builtin)
         val studioEditorLabel = stringResource(Res.string.default_image_editor_studio)
-        val editorSummary = remember(defaultEditor, state.editApps, builtinEditorLabel, studioEditorLabel) {
+        val studioVideoLabel = stringResource(Res.string.default_video_editor_studio)
+        val askVideoLabel = stringResource(Res.string.default_video_editor_ask)
+        val imageEditorLabel = remember(defaultEditor, state.editApps, builtinEditorLabel, studioEditorLabel) {
             if (defaultEditor == EDITOR_BUILTIN) {
                 builtinEditorLabel
             } else if (defaultEditor == EDITOR_STUDIO) {
@@ -646,18 +569,7 @@ private fun MediaViewerListContent(
                     ?: builtinEditorLabel
             }
         }
-        val defaultEditorPref = rememberPreference(
-            defaultEditor,
-            title = stringResource(Res.string.default_image_editor),
-            icon = Icons.Outlined.Edit,
-            summary = editorSummary,
-            onClick = { onDetailClick(DETAIL_EDITOR) },
-            screenPosition = Position.Middle
-        )
-
-        val studioVideoLabel = stringResource(Res.string.default_video_editor_studio)
-        val askVideoLabel = stringResource(Res.string.default_video_editor_ask)
-        val videoEditorSummary = remember(defaultVideoEditor, state.videoEditApps, studioVideoLabel, askVideoLabel) {
+        val videoEditorLabel = remember(defaultVideoEditor, state.videoEditApps, studioVideoLabel, askVideoLabel) {
             when (defaultVideoEditor) {
                 EDITOR_STUDIO -> studioVideoLabel
                 EDITOR_BUILTIN -> askVideoLabel
@@ -665,12 +577,15 @@ private fun MediaViewerListContent(
                     ?: askVideoLabel
             }
         }
-        val defaultVideoEditorPref = rememberPreference(
-            defaultVideoEditor,
-            title = stringResource(Res.string.default_video_editor),
-            icon = Icons.Outlined.VideoSettings,
-            summary = videoEditorSummary,
-            onClick = { onDetailClick(DETAIL_VIDEO_EDITOR) },
+        val editorsSummary = remember(imageEditorLabel, videoEditorLabel) {
+            "$imageEditorLabel · $videoEditorLabel"
+        }
+        val editorsPref = rememberPreference(
+            editorsSummary,
+            title = stringResource(Res.string.settings_editors),
+            icon = Icons.Outlined.Edit,
+            summary = editorsSummary,
+            onClick = onOpenEditors,
             screenPosition = Position.Middle
         )
 
@@ -731,52 +646,6 @@ private fun MediaViewerListContent(
                 screenPosition = Position.Bottom
             )
         }
-
-        // ── Save quality (format-preserving overwrite) ──
-        val saveQualityHeaderTitle = stringResource(Res.string.reencode_quality_title)
-        val saveQualityHeader = remember(saveQualityHeaderTitle) {
-            SettingsEntity.Header(title = saveQualityHeaderTitle)
-        }
-        val isManualQuality = reencodeMode == REENCODE_MODE_MANUAL
-        val manualQualityPref = rememberSwitchPreference(
-            reencodeMode,
-            title = stringResource(Res.string.reencode_quality_mode_manual),
-            icon = Icons.Outlined.Tune,
-            summary = stringResource(
-                if (isManualQuality) Res.string.reencode_quality_summary
-                else Res.string.reencode_quality_mode_auto_summary
-            ),
-            isChecked = isManualQuality,
-            onCheck = { manual ->
-                onReencodeModeChange(
-                    if (manual) REENCODE_MODE_MANUAL
-                    else REENCODE_MODE_AUTO
-                )
-            },
-            screenPosition = if (isManualQuality) Position.Top else Position.Alone
-        )
-        val lossyQualityPref = SettingsEntity.SeekPreference(
-            title = stringResource(Res.string.reencode_quality_lossy),
-            icon = Icons.Outlined.HighQuality,
-            currentValue = reencodeLossyQuality.toFloat(),
-            minValue = 1f,
-            maxValue = 100f,
-            step = 0,
-            valueMultiplier = 1,
-            onSeek = { onReencodeLossyChange(it.roundToInt().coerceIn(1, 100)) },
-            screenPosition = Position.Middle
-        )
-        val jxlEffortPref = SettingsEntity.SeekPreference(
-            title = stringResource(Res.string.reencode_quality_jxl_effort),
-            icon = Icons.Outlined.Speed,
-            currentValue = reencodeJxlEffort.toFloat(),
-            minValue = 1f,
-            maxValue = 9f,
-            step = 0,
-            valueMultiplier = 1,
-            onSeek = { onReencodeJxlEffortChange(it.roundToInt().coerceIn(1, 9)) },
-            screenPosition = Position.Bottom
-        )
 
         val videoPlaybackHeaderTitle = stringResource(Res.string.video_playback)
         val videoPlaybackHeader = remember(videoPlaybackHeaderTitle) {
@@ -842,11 +711,10 @@ private fun MediaViewerListContent(
         return remember(
             viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
             instantSideTapsPref,
-            viewerActionBarPref, defaultEditorPref, disableSmoothingPref,
+            viewerActionBarPref, editorsPref, disableSmoothingPref,
             darkMediaViewerPref,
             longPressActionPref,
             visualSearchPref, slideshowPref,
-            saveQualityHeader, manualQualityPref, lossyQualityPref, jxlEffortPref, isManualQuality,
             videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, loopVideosPref,
             videoSurfaceRebindPref,
             hdrVideoPlaybackPref, codeScanSettings
@@ -858,8 +726,7 @@ private fun MediaViewerListContent(
                 add(tapNavigationPref)
                 add(instantSideTapsPref)
                 add(viewerActionBarPref)
-                add(defaultEditorPref)
-                add(defaultVideoEditorPref)
+                add(editorsPref)
                 add(disableSmoothingPref)
                 add(darkMediaViewerPref)
                 add(longPressActionPref)
@@ -867,13 +734,6 @@ private fun MediaViewerListContent(
                 add(slideshowPref)
 
                 addAll(codeScanSettings)
-
-                add(saveQualityHeader)
-                add(manualQualityPref)
-                if (isManualQuality) {
-                    add(lossyQualityPref)
-                    add(jxlEffortPref)
-                }
 
                 add(videoPlaybackHeader)
                 add(autoHideOnVideoPlayPref)

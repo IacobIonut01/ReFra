@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Fullscreen
 import androidx.compose.material.icons.outlined.GridView
@@ -52,6 +53,8 @@ import com.dot.gallery.feature.settings.generated.resources.settings_cloud_accou
 import com.dot.gallery.feature.settings.generated.resources.settings_cloud_accounts_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_general
 import com.dot.gallery.feature.settings.generated.resources.settings_general_summary
+import com.dot.gallery.feature.settings.generated.resources.settings_editors
+import com.dot.gallery.feature.settings.generated.resources.settings_editors_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_navigation
@@ -102,6 +105,13 @@ fun SettingsScreenContent(
             title = stringResource(Res.string.settings_media_viewer),
             summary = stringResource(Res.string.settings_media_viewer_summary),
             onClick = { actions.onNavigate(SettingsRoute.MEDIA_VIEWER) },
+            screenPosition = Position.Middle
+        )
+        val editorsPref = rememberPreference(
+            icon = Icons.Outlined.Edit,
+            title = stringResource(Res.string.settings_editors),
+            summary = stringResource(Res.string.settings_editors_summary),
+            onClick = { actions.onNavigate(SettingsRoute.EDITORS) },
             screenPosition = Position.Middle
         )
         val navigationPref = rememberPreference(
@@ -165,13 +175,13 @@ fun SettingsScreenContent(
         val intelligenceHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_intelligence))
         val aboutHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_about))
         return remember(
-            appearancePref, timelineAlbumsPref, mediaViewerPref,
+            appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref,
             navigationPref, generalPref, securityPref, backupPref, cloudPref, smartPref, helpPref,
             developerPref, personalizeHeader, privacyHeader, intelligenceHeader, aboutHeader,
         ) {
             mutableStateListOf<SettingsEntity>(
                 personalizeHeader,
-                appearancePref, timelineAlbumsPref, mediaViewerPref, navigationPref,
+                appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref, navigationPref,
                 privacyHeader,
                 generalPref, securityPref, backupPref,
             ).apply {

@@ -17,8 +17,6 @@ data class MediaViewerPreviews(
     val fullBrightness: @Composable (Boolean) -> Unit = { FullBrightnessPreview(it) },
     val dateHeader: @Composable (Boolean) -> Unit = {},
     val tapNavigation: @Composable (Boolean) -> Unit = {},
-    /** `(currentEditor, editApps)` — icons are resolved by the platform side. */
-    val editor: @Composable (String, List<EditAppEntry>) -> Unit = { _, _ -> },
     val smoothing: @Composable (Boolean) -> Unit = {},
     /** `(enabled, icon, position)`. */
     val visualSearch: @Composable (Boolean, ImageVector, String) -> Unit = { _, _, _ -> },

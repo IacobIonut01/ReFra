@@ -1,0 +1,38 @@
+---
+title: Editors
+summary: Pick the default app for image and video edits, and choose how edited images are re-encoded on save.
+area: customize
+path:
+  - Settings
+  - Editors
+related: [viewer-settings, editor, video-editor, save-edits]
+scenes: [settings-editors]
+order: 9
+---
+
+**Settings › Editors** picks which app the edit actions open for photos and videos, and how edited images are re-encoded when they are saved. The same page is one tap away from the **Editors** row in [media viewer settings](/ReFra/features/viewer-settings).
+
+## Image editor
+
+<PreviewCollection feature="editors" section="image-editor" />
+
+The **Image editor** tiles choose the app that opens when you edit a photo. The whole tile is the control; the selected app shows a filled radio marker.
+
+- **ReFra editor (preview)**: the default. Opens the [ReFra editor](/ReFra/features/editor) for the formats it supports; anything else falls back to the built-in editor.
+- **Built-in editor**: the classic editor with crop, rotate, filters, markup, and [RAW development](/ReFra/features/legacy-raw-development).
+- Every compatible photo editor installed on the device appears as its own tile, named after the app.
+
+## Video editor
+
+The **Video editor** tiles choose the app that opens when you edit a video.
+
+- **ReFra editor**: the default; see [video editor](/ReFra/features/video-editor).
+- **Ask every time**: the system's app chooser opens on each edit instead of a fixed default.
+- Installed video editors appear as their own tiles.
+
+## Save quality
+
+**Save quality** controls how edited and rotated images are re-encoded when they are saved; see [save edits](/ReFra/features/save-edits) for what a save preserves.
+
+- **Manual** off (Auto): saves lossless where the format supports it (JXL) and at high quality otherwise.
+- **Manual** on: adds two sliders — **Lossy quality** (1 to 100) and **JXL effort** (1 to 9).

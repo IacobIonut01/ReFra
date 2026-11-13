@@ -110,6 +110,9 @@ import com.dot.gallery.core.ui.mediaview.KnownVisualSearchProvider
 import com.dot.gallery.core.ui.mediaview.VisualSearchTarget
 import com.dot.gallery.domain.model.AlbumSection
 import com.dot.gallery.domain.model.AlbumSectionType
+import com.dot.gallery.feature.settings.ui.EditAppEntry
+import com.dot.gallery.feature.settings.ui.SettingsEditorsContent
+import com.dot.gallery.feature.settings.ui.SettingsEditorsState
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerActions
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerContent
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerState
@@ -526,6 +529,25 @@ val sceneRegistry: List<DocsScene> = listOf(
         )
     },
     DocsScene(
+        id = "settings-editors",
+        title = "Editors settings",
+        pathTrace = listOf("Settings", "Editors"),
+        states = listOf("default"),
+    ) {
+        SettingsEditorsContent(
+            state = SettingsEditorsState(
+                editApps = listOf(
+                    EditAppEntry("com.google.android.apps.photos", "Google Photos"),
+                    EditAppEntry("com.adobe.lrmobile", "Adobe Lightroom"),
+                ),
+                videoEditApps = listOf(
+                    EditAppEntry("com.instagram.android", "Instagram"),
+                    EditAppEntry("com.google.android.apps.youtube.creator", "YouTube Studio"),
+                ),
+            ),
+        )
+    },
+    DocsScene(
         id = "visual-search-options",
         title = "Visual search options",
         pathTrace = listOf("Settings", "Media viewer", "Visual search"),
@@ -773,6 +795,7 @@ fun settingsRouteSceneId(route: SettingsRoute): String? = when (route) {
     SettingsRoute.APPEARANCE -> "settings-appearance"
     SettingsRoute.TIMELINE_ALBUMS -> "settings-timeline-albums"
     SettingsRoute.MEDIA_VIEWER -> "settings-media-viewer"
+    SettingsRoute.EDITORS -> "settings-editors"
     SettingsRoute.NAVIGATION -> "settings-navigation"
     SettingsRoute.GENERAL -> "settings-general"
     SettingsRoute.SECURITY -> "settings-security"

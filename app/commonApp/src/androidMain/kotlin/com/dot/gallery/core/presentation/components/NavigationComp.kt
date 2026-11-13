@@ -102,6 +102,7 @@ import com.dot.gallery.app.presentation.search.SearchScreen
 import com.dot.gallery.app.presentation.settings.SettingsScreen
 import com.dot.gallery.app.presentation.settings.subsettings.ColorPaletteScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsGeneralScreen
+import com.dot.gallery.app.presentation.settings.subsettings.SettingsEditorsScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsMediaViewerScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsNavigationScreen
 import com.dot.gallery.feature.settings.ui.SettingsSelectionActionsContent
@@ -1364,6 +1365,9 @@ fun NavigationComp(
             }
             composable(Screen.SettingsMediaViewerScreen()) {
                 SettingsMediaViewerScreen()
+            }
+            composable(Screen.SettingsEditorsScreen()) {
+                SettingsEditorsScreen()
             }
             composable(Screen.SettingsNavigationScreen()) {
                 SettingsNavigationScreen()

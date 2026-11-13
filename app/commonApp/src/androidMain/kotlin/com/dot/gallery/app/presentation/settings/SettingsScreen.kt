@@ -73,6 +73,7 @@ fun SettingsScreen() {
                         SettingsRoute.APPEARANCE -> Screen.ColorPaletteScreen()
                         SettingsRoute.TIMELINE_ALBUMS -> Screen.SettingsTimelineAlbumsScreen()
                         SettingsRoute.MEDIA_VIEWER -> Screen.SettingsMediaViewerScreen()
+                        SettingsRoute.EDITORS -> Screen.SettingsEditorsScreen()
                         SettingsRoute.NAVIGATION -> Screen.SettingsNavigationScreen()
                         SettingsRoute.GENERAL -> Screen.SettingsGeneralScreen()
                         SettingsRoute.SECURITY -> Screen.SettingsSecurityScreen()
