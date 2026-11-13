@@ -121,6 +121,7 @@ sealed class Screen(val route: String) {
     data object SettingsTimelineAlbumsScreen : Screen("settings_timeline_albums_screen")
     data object SettingsMediaViewerScreen : Screen("settings_media_viewer_screen")
     data object SettingsEditorsScreen : Screen("settings_editors_screen")
+    data object SettingsGesturesScreen : Screen("settings_gestures_screen")
     data object SettingsNavigationScreen : Screen("settings_navigation_screen")
     data object SettingsSecurityScreen : Screen("settings_security_screen")
     data object SettingsBackupScreen : Screen("settings_backup_screen")

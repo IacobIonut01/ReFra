@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Swipe
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.runtime.mutableStateListOf
@@ -55,6 +56,8 @@ import com.dot.gallery.feature.settings.generated.resources.settings_general
 import com.dot.gallery.feature.settings.generated.resources.settings_general_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_editors
 import com.dot.gallery.feature.settings.generated.resources.settings_editors_summary
+import com.dot.gallery.feature.settings.generated.resources.settings_gestures
+import com.dot.gallery.feature.settings.generated.resources.settings_gestures_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_navigation
@@ -112,6 +115,13 @@ fun SettingsScreenContent(
             title = stringResource(Res.string.settings_editors),
             summary = stringResource(Res.string.settings_editors_summary),
             onClick = { actions.onNavigate(SettingsRoute.EDITORS) },
+            screenPosition = Position.Middle
+        )
+        val gesturesPref = rememberPreference(
+            icon = Icons.Outlined.Swipe,
+            title = stringResource(Res.string.settings_gestures),
+            summary = stringResource(Res.string.settings_gestures_summary),
+            onClick = { actions.onNavigate(SettingsRoute.GESTURES) },
             screenPosition = Position.Middle
         )
         val navigationPref = rememberPreference(
@@ -175,13 +185,13 @@ fun SettingsScreenContent(
         val intelligenceHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_intelligence))
         val aboutHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_about))
         return remember(
-            appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref,
+            appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref, gesturesPref,
             navigationPref, generalPref, securityPref, backupPref, cloudPref, smartPref, helpPref,
             developerPref, personalizeHeader, privacyHeader, intelligenceHeader, aboutHeader,
         ) {
             mutableStateListOf<SettingsEntity>(
                 personalizeHeader,
-                appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref, navigationPref,
+                appearancePref, timelineAlbumsPref, mediaViewerPref, editorsPref, gesturesPref, navigationPref,
                 privacyHeader,
                 generalPref, securityPref, backupPref,
             ).apply {

@@ -55,6 +55,14 @@
         "section": "image-editor"
       }
     ],
+    "gestures": [
+      {
+        "scene": "settings-gestures",
+        "title": "Gestures",
+        "caption": "Tap, swipe, and long-press controls for the viewer on one page.",
+        "section": "taps"
+      }
+    ],
     "security": [
       {
         "scene": "settings-security",
@@ -1480,7 +1488,7 @@
         "section": "photos-are-missing"
       }
     ],
-    "gestures": [
+    "gesture-reference": [
       {
         "scene": "viewer-photo",
         "state": "paging-demo",

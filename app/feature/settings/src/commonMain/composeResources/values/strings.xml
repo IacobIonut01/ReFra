@@ -6,9 +6,11 @@
     <string name="settings_timeline_albums">Timeline &amp; albums</string>
     <string name="settings_timeline_albums_summary">Layout, grouping, date format and album behavior</string>
     <string name="settings_media_viewer">Media viewer</string>
-    <string name="settings_media_viewer_summary">Viewing, editors and video playback</string>
+    <string name="settings_media_viewer_summary">Display, scanning, visual search and video playback</string>
     <string name="settings_editors">Editors</string>
     <string name="settings_editors_summary">Default image and video editors, save quality</string>
+    <string name="settings_gestures">Gestures</string>
+    <string name="settings_gestures_summary">Taps, swipes and long-press in the viewer</string>
     <string name="settings_navigation">Navigation</string>
     <string name="settings_navigation_summary">Launch screen, bars and interface behavior</string>
     <string name="settings_general">General</string>
@@ -556,6 +558,13 @@
     <string name="tap_sides_to_navigate_title">Tap sides to navigate</string>
     <string name="instant_side_taps_title">Instant side taps</string>
     <string name="instant_side_taps_summary">Change photos as soon as you tap a side. Turn off to double-tap the sides to zoom.</string>
+    <string name="gestures_tap_header">Taps</string>
+    <string name="gestures_swipe_hold_header">Swipe and hold</string>
+    <string name="gestures_double_tap_zoom_title">Double-tap to zoom</string>
+    <string name="gestures_double_tap_zoom_summary">Double-tap a photo to zoom in and out; double-tap and drag to zoom with one finger</string>
+    <string name="gestures_double_tap_zoom_description">Double-tap a photo to zoom in and out. Double-tap and hold, then drag up or down to zoom with one finger. Pinch to zoom always works, and videos keep their own double-tap gestures.</string>
+    <string name="gestures_swipe_dismiss_title">Swipe down to close</string>
+    <string name="gestures_swipe_dismiss_summary">Drag a photo or video down to return to the grid</string>
     <string name="video_playback">Video Playback</string>
     <string name="video_surface_rebind">Fix black video on hide</string>
     <string name="video_surface_rebind_description">On some devices the video can turn black when you hide or show the playback controls, even though the audio keeps playing. This re-binds the video surface on each change to keep it visible. Enabled by default on devices where the issue is known to occur.</string>

@@ -86,6 +86,18 @@ class BackupModelsTest {
     }
 
     @Test
+    fun viewerGestureChoicesArePortable() {
+        assertEquals(
+            PortableSettingType.BOOLEAN,
+            PortableBackupSettings.typeFor("viewer_swipe_to_dismiss")
+        )
+        assertEquals(
+            PortableSettingType.BOOLEAN,
+            PortableBackupSettings.typeFor("viewer_double_tap_zoom")
+        )
+    }
+
+    @Test
     fun globalLoopVideosChoiceIsPortable() {
         assertEquals(
             PortableSettingType.BOOLEAN,

@@ -1,0 +1,65 @@
+---
+title: Gesture reference
+summary: Every gesture in the app, where it works, and what it does.
+area: utilities
+path:
+  - Timeline
+related: [gestures, media-viewer, timeline, video-playback]
+scenes: [viewer-photo, viewer-video]
+order: 8
+---
+
+A compact map of the touch gestures the app actually responds to. Where a gesture has a setting or condition, the linked guide covers it.
+
+## Grids and lists
+
+| Where | Gesture | Does |
+| --- | --- | --- |
+| Timeline, or inside an album | Pinch | Change media-grid columns (1–9 grid, 3–6 mosaic); see [timeline](/ReFra/features/timeline) |
+| Library albums (album tiles) | Pinch | Change album columns (1–7); see [albums](/ReFra/features/albums) |
+| Timeline/album grid | Pull down from the top | Refresh the library; see [timeline](/ReFra/features/timeline) |
+| Grid item | Touch and hold | Start selection |
+| Grid, while selecting | Drag | Select everything dragged over |
+| Date header | Tap the check circle | Select that whole group |
+| Album | Touch and hold | Open the album action menu; see [albums](/ReFra/features/albums) |
+| Library shortcut tile, in edit mode | Drag | Rearrange tiles; open edit mode from **⋮ › Customize library**, see [library](/ReFra/features/library) |
+| Library shortcut tile, in edit mode | Drag the side or bottom handle | Resize the tile, even at the screen edge; see [library](/ReFra/features/library) |
+| Search history row | Swipe sideways | Remove that entry; see [search](/ReFra/features/search) |
+| Cloud external URL row | Swipe sideways | Delete the URL; see [networking](/ReFra/features/cloud-networking) |
+
+## Viewer
+
+| Where | Gesture | Does |
+| --- | --- | --- |
+| Photo | Swipe left/right | Next/previous item |
+| Photo | Swipe down | Close the viewer |
+| Photo | Pinch / drag | Zoom and pan |
+| Photo | Double-tap | Zoom in or out |
+| Photo | Tap center | Show/hide controls |
+| Photo | Tap left/right edge | Previous/next, when **Tap sides to navigate** is on and the photo is not zoomed; with **Instant side taps** off, after a short wait so a double tap can zoom instead |
+| Date header | Touch and hold | Lock/unlock the item against paging; see [media viewer](/ReFra/features/media-viewer) |
+| Image | Touch and hold | The action picked under **Long-press action**: rotate by default, cutout, or nothing; see [subject cutout](/ReFra/features/subject-cutout) |
+| Video seek | Drag, then drag up | Finer seek precision; see [video playback](/ReFra/features/video-playback) |
+| Video | Double-tap | Toggle 2.5x zoom |
+| Video | Double-tap left/right side | Skip back/forward 10 seconds, unless **Tap sides to navigate** and **Instant side taps** are both on; see [video playback](/ReFra/features/video-playback) |
+| Panorama | Drag / pinch | Look around / zoom; see [panoramas](/ReFra/features/panoramas) |
+| Open story | Tap left/right third | Previous/next slide inside the story; hold pauses; see [memories](/ReFra/features/memories) |
+| Open story | Swipe down | Close the story; see [memories](/ReFra/features/memories) |
+| Markup text | Drag the label | Move the placed text; tap it again to edit the words; see [markup](/ReFra/features/markup) |
+| Editor photo | Touch and hold | Show the original until you let go; see [the ReFra editor](/ReFra/features/editor) |
+| Built-in editor markup text | Drag body / corner handles, or two fingers on it | Move, rotate, or resize the placed text; see [markup (legacy)](/ReFra/features/legacy-markup) |
+
+<PreviewCollection feature="gesture-reference" section="viewer" />
+
+## Settings
+
+| Where | Gesture | Does |
+| --- | --- | --- |
+| Settings header version | Touch and hold | Unlock the Developer section; see [session logs](/ReFra/features/session-logs) |
+| Built-in editor applied tool | Touch and hold | Remove that adjustment; see [lighting and colour (legacy)](/ReFra/features/legacy-lighting-colour) |
+
+## Example: select a run of photos and share it
+
+1. Touch and hold the first photo until the selection bar appears.
+2. Without lifting, drag across the run; everything under your finger gets selected.
+3. Tap the share action to send them, or back out with **Close** to drop the selection untouched.

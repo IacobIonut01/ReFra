@@ -256,7 +256,7 @@
     <string name="help_tip_view_tap_navigation_subtitle">Tap the viewer edges to move between photos</string>
     <string name="help_tip_view_tap_navigation_p1_title">Instant edge navigation</string>
     <string name="help_tip_view_tap_navigation_p1_desc">Enable edge-tap navigation to move to the previous or next photo as soon as you lift your finger. Tap the left or right third of the viewer to navigate while the center keeps its normal controls and double-tap zoom. ReFra respects right-to-left layouts, viewer lock, slideshow mode, and the beginning and end of your media list.</string>
-    <string name="help_tip_view_tap_navigation_p1_s1">Go to Settings > Media viewer</string>
+    <string name="help_tip_view_tap_navigation_p1_s1">Go to Settings > Gestures</string>
     <string name="help_tip_view_tap_navigation_p1_s2">Open 'Tap sides to navigate'</string>
     <string name="help_tip_view_tap_navigation_p1_s3">Turn the setting on</string>
     <string name="help_tip_view_tap_navigation_p1_s4">Tap either edge of a photo or video to navigate</string>
@@ -1518,6 +1518,7 @@
     <string name="default_image_editor">Default image editor</string>
     <string name="default_video_editor">Default video editor</string>
     <string name="settings_editors">Editors</string>
+    <string name="settings_gestures">Gestures</string>
     <string name="reencode_quality_title">Save quality</string>
     <string name="settings_title">Settings</string>
     <string name="settings_trash_title">Use trash can</string>
@@ -1619,6 +1620,9 @@
     <string name="cloud_free_space_auto">Run automatically</string>
     <string name="change_app_logo">App logo</string>
     <string name="long_press_action_title">Long-press action</string>
+    <string name="tap_sides_to_navigate_title">Tap sides to navigate</string>
+    <string name="gestures_double_tap_zoom_title">Double-tap to zoom</string>
+    <string name="gestures_swipe_dismiss_title">Swipe down to close</string>
     <string name="slideshow_interval">Interval</string>
     <string name="slideshow_random">Shuffle</string>
     <string name="slideshow_reverse">Reverse order</string>

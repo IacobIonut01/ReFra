@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-13T17:00:38.884Z",
+  "generatedAt": "2026-11-13T18:17:34.863Z",
   "capturedAtMs": 1794513389973,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
   ],
-  "sceneCount": 110,
+  "sceneCount": 111,
   "scenes": {
     "album-transfer": {
       "id": "album-transfer",
@@ -9624,6 +9624,25 @@
           }
         }
       }
+    },
+    "settings-gestures": {
+      "id": "settings-gestures",
+      "title": "Gestures settings",
+      "path": [
+        "Settings",
+        "Gestures"
+      ],
+      "states": [
+        "default",
+        "cutout-unavailable"
+      ],
+      "presentation": "screen",
+      "widthDp": 412,
+      "heightDp": 915,
+      "live": false,
+      "fidelity": "pending",
+      "assets": {},
+      "themes": {}
     },
     "settings-hub": {
       "id": "settings-hub",

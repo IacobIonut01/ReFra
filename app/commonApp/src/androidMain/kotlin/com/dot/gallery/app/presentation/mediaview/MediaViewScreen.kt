@@ -412,13 +412,16 @@ internal enum class SideTapNavigation {
 internal fun resolveSideTapNavigation(
     tapNavigationEnabled: Boolean,
     instantSideTaps: Boolean,
+    doubleTapZoom: Boolean,
     zoomed: Boolean,
     zone: TapNavigationZone,
     canNavigate: Boolean,
 ): SideTapNavigation = when {
     !tapNavigationEnabled || zoomed || zone == TapNavigationZone.Center || !canNavigate ->
         SideTapNavigation.None
-    instantSideTaps -> SideTapNavigation.Immediate
+    // No double-tap zoom on this page means nothing competes with the side tap, so it
+    // does not have to wait out the double-tap timeout.
+    instantSideTaps || !doubleTapZoom -> SideTapNavigation.Immediate
     else -> SideTapNavigation.OnSingleTap
 }
 
@@ -746,7 +749,9 @@ internal fun viewerDismissGestureEnabled(
     pagerScrolling: Boolean,
     sheetOpening: Boolean,
     selectingText: Boolean,
-): Boolean = overlayMode && !metadataCoverShown && !locked && !imageZoomed && !videoZoomed &&
+    swipeToDismissEnabled: Boolean = true,
+): Boolean = overlayMode && swipeToDismissEnabled && !metadataCoverShown && !locked &&
+        !imageZoomed && !videoZoomed &&
         !cutoutActive && !slideshowActive && !pagerScrolling && !sheetOpening && !selectingText
 
 /**
@@ -1219,6 +1224,8 @@ fun <T : Media> MediaViewScreen(
         val canAutoPlay by rememberVideoAutoplay()
         var tapSidesToNavigate by Settings.Misc.rememberTapSidesToNavigate()
         val instantSideTaps by rememberPreference(SettingsKeys.instantSideTaps)
+        val viewerSwipeToDismiss by rememberPreference(SettingsKeys.viewerSwipeToDismiss)
+        val viewerDoubleTapZoom by rememberPreference(SettingsKeys.viewerDoubleTapZoom)
         val playWhenReady by rememberedDerivedState(
             currentMedia,
             canAutoPlay,
@@ -1648,10 +1655,14 @@ fun <T : Media> MediaViewScreen(
                 }
             }
         }
-        val sideTapNavigation: (TapNavigationZone) -> SideTapNavigation = { zone ->
+        // [doubleTapZoom] is whether this page still has a double-tap gesture that must win
+        // over a deferred side tap: photos only when the setting is on, videos always (their
+        // double-tap seeks and zooms regardless).
+        val sideTapNavigation: (TapNavigationZone, Boolean) -> SideTapNavigation = { zone, doubleTapZoom ->
             resolveSideTapNavigation(
                 tapNavigationEnabled = tapSidesToNavigate,
                 instantSideTaps = instantSideTaps,
+                doubleTapZoom = doubleTapZoom,
                 zoomed = isImageZoomed || isVideoZoomed,
                 zone = zone,
                 canNavigate = tapNavigationTarget(zone) != null,
@@ -1669,7 +1680,7 @@ fun <T : Media> MediaViewScreen(
         }
         val onImageImmediateTap: (Offset) -> Boolean = { offset ->
             val zone = tapZoneAt(offset)
-            if (sideTapNavigation(zone) == SideTapNavigation.Immediate) {
+            if (sideTapNavigation(zone, viewerDoubleTapZoom) == SideTapNavigation.Immediate) {
                 onMediaTap(zone)
                 true
             } else {
@@ -2137,6 +2148,7 @@ fun <T : Media> MediaViewScreen(
                 pagerScrolling = pagerState.isScrollInProgress,
                 sheetOpening = sheetState.progress(imageOnlyDetent, expandedDetent) != 0f,
                 selectingText = textSelection.active,
+                swipeToDismissEnabled = viewerSwipeToDismiss,
             )
             Box(
                 modifier = Modifier
@@ -2165,12 +2177,16 @@ fun <T : Media> MediaViewScreen(
                                     requireUnconsumed = false,
                                     pass = PointerEventPass.Initial,
                                 )
+                                // The hold only protects a live double-tap zoom gesture: with
+                                // "Double-tap to zoom" off the image zoomable ignores it, so the
+                                // drag must be free to arm swipe-to-dismiss. Videos keep the old
+                                // behaviour — their double-tap seek is unaffected by the setting.
                                 val doubleTapHold = isSecondTapPress(
                                     downUptime = down.uptimeMillis,
                                     lastTapUpUptime = lastTapUpUptime,
                                     doubleTapMinMillis = viewConfiguration.doubleTapMinTimeMillis,
                                     doubleTapTimeoutMillis = viewConfiguration.doubleTapTimeoutMillis,
-                                )
+                                ) && (currentMedia?.isImage != true || viewerDoubleTapZoom)
                                 var lastPosition = down.position
                                 var totalDrag = Offset.Zero
                                 var draggingToDismiss = false
@@ -2486,7 +2502,8 @@ fun <T : Media> MediaViewScreen(
                                     // into a "phantom" ghost image behind the current page.
                                     renderBackground = !fadeEnabled,
                                     backdropGestureAlpha = backdropAlpha,
-                                    swipeToDismissEnabled = !overlayMode,
+                                    swipeToDismissEnabled = !overlayMode && viewerSwipeToDismiss,
+                                    doubleTapZoomEnabled = viewerDoubleTapZoom,
                                     modifier = Modifier.fillMaxSize(),
                                     containerModifier = Modifier,
                                     media = media,
@@ -2668,8 +2685,8 @@ fun <T : Media> MediaViewScreen(
                                         // Immediate side taps page on pointer-up. Otherwise the zones keep
                                         // combinedClickable, whose onClick waits out the double-tap timeout,
                                         // so a double tap still seeks and a single tap pages.
-                                        val endSideTap = sideTapNavigation(TapNavigationZone.End)
-                                        val startSideTap = sideTapNavigation(TapNavigationZone.Start)
+                                        val endSideTap = sideTapNavigation(TapNavigationZone.End, true)
+                                        val startSideTap = sideTapNavigation(TapNavigationZone.Start, true)
                                         val navigateEndImmediately =
                                             endSideTap == SideTapNavigation.Immediate
                                         val navigateStartImmediately =

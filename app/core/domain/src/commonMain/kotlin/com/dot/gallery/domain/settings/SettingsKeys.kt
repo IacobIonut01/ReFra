@@ -82,6 +82,10 @@ object SettingsKeys {
     val tapSidesPromptShown = PrefKey.bool("tap_sides_to_navigate_prompt_shown", default = false)
     /** With tap sides on, page on the first side tap. Off waits for the double-tap timeout so a double tap zooms. */
     val instantSideTaps = PrefKey.bool("instant_side_taps", default = true)
+    /** Drag the photo or video down to dismiss the viewer back to the grid. */
+    val viewerSwipeToDismiss = PrefKey.bool("viewer_swipe_to_dismiss", default = true)
+    /** Double-tap zoom (and double-tap-and-drag zoom) on photos; pinch zoom is unaffected. */
+    val viewerDoubleTapZoom = PrefKey.bool("viewer_double_tap_zoom", default = true)
     /** Retired "Favorite button in viewer" switch — read only by the one-time viewer action-bar migration and old backups. */
     val showFavoriteButton = PrefKey.bool("show_favorite_button", default = true)
     /**

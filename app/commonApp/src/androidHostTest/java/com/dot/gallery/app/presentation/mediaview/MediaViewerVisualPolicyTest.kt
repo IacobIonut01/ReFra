@@ -138,11 +138,13 @@ class MediaViewerVisualPolicyTest {
         zone: TapNavigationZone,
         tapNavigationEnabled: Boolean = true,
         instantSideTaps: Boolean = true,
+        doubleTapZoom: Boolean = true,
         zoomed: Boolean = false,
         canNavigate: Boolean = true,
     ) = resolveSideTapNavigation(
         tapNavigationEnabled = tapNavigationEnabled,
         instantSideTaps = instantSideTaps,
+        doubleTapZoom = doubleTapZoom,
         zoomed = zoomed,
         zone = zone,
         canNavigate = canNavigate,
@@ -184,6 +186,34 @@ class MediaViewerVisualPolicyTest {
             SideTapNavigation.None,
             sideTap(TapNavigationZone.End, tapNavigationEnabled = false, instantSideTaps = false)
         )
+    }
+
+    @Test
+    fun sideTapsWithDoubleTapZoomOffNavigateImmediately() {
+        // With photo double-tap zoom disabled nothing competes with the side tap, so even
+        // "instant side taps" off does not defer it past the double-tap timeout.
+        assertEquals(
+            SideTapNavigation.Immediate,
+            sideTap(TapNavigationZone.Start, instantSideTaps = false, doubleTapZoom = false)
+        )
+        assertEquals(
+            SideTapNavigation.Immediate,
+            sideTap(TapNavigationZone.End, instantSideTaps = false, doubleTapZoom = false)
+        )
+        assertEquals(
+            SideTapNavigation.None,
+            sideTap(TapNavigationZone.End, instantSideTaps = false, doubleTapZoom = false, canNavigate = false)
+        )
+        assertEquals(
+            SideTapNavigation.None,
+            sideTap(TapNavigationZone.End, tapNavigationEnabled = false, doubleTapZoom = false)
+        )
+    }
+
+    @Test
+    fun doubleTapZoomPreferenceDefaultsToOn() {
+        assertEquals("viewer_double_tap_zoom", SettingsKeys.viewerDoubleTapZoom.name)
+        assertTrue(SettingsKeys.viewerDoubleTapZoom.default)
     }
 
     @Test
@@ -560,5 +590,30 @@ class MediaViewerVisualPolicyTest {
         assertTrue(enabled(selectingText = false))
         // Dragging a selection handle down to take more lines must reach the selection, not dismiss.
         assertFalse(enabled(selectingText = true))
+    }
+
+    @Test
+    fun swipeToDismissSettingTurnsOffTheOverlayDragToDismiss() {
+        fun enabled(swipeToDismissEnabled: Boolean) = viewerDismissGestureEnabled(
+            overlayMode = true,
+            metadataCoverShown = false,
+            locked = false,
+            imageZoomed = false,
+            videoZoomed = false,
+            cutoutActive = false,
+            slideshowActive = false,
+            pagerScrolling = false,
+            sheetOpening = false,
+            selectingText = false,
+            swipeToDismissEnabled = swipeToDismissEnabled,
+        )
+        assertTrue(enabled(swipeToDismissEnabled = true))
+        assertFalse(enabled(swipeToDismissEnabled = false))
+    }
+
+    @Test
+    fun swipeToDismissPreferenceDefaultsToOn() {
+        assertEquals("viewer_swipe_to_dismiss", SettingsKeys.viewerSwipeToDismiss.name)
+        assertTrue(SettingsKeys.viewerSwipeToDismiss.default)
     }
 }

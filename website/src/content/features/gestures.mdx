@@ -1,65 +1,32 @@
 ---
-title: Gesture reference
-summary: Every gesture in the app, where it works, and what it does.
-area: utilities
+title: Gestures
+summary: Tap, swipe, and long-press controls for the full-screen photo and video viewer.
+area: customize
 path:
-  - Timeline
-related: [media-viewer, timeline, video-playback]
-scenes: [viewer-photo, viewer-video]
-order: 8
+  - Settings
+  - Gestures
+related: [viewer-settings, media-viewer, video-playback, subject-cutout, gesture-reference]
+scenes: [settings-gestures, long-press-action]
+order: 7
 ---
 
-A compact map of the touch gestures the app actually responds to. Where a gesture has a setting or condition, the linked guide covers it.
+**Settings › Gestures** gathers every touch interaction the [media viewer](/ReFra/features/media-viewer) responds to. For the full gesture map, including grids and the editor, see the [gesture reference](/ReFra/features/gesture-reference).
 
-## Grids and lists
+## Taps
 
-| Where | Gesture | Does |
-| --- | --- | --- |
-| Timeline, or inside an album | Pinch | Change media-grid columns (1–9 grid, 3–6 mosaic); see [timeline](/ReFra/features/timeline) |
-| Library albums (album tiles) | Pinch | Change album columns (1–7); see [albums](/ReFra/features/albums) |
-| Timeline/album grid | Pull down from the top | Refresh the library; see [timeline](/ReFra/features/timeline) |
-| Grid item | Touch and hold | Start selection |
-| Grid, while selecting | Drag | Select everything dragged over |
-| Date header | Tap the check circle | Select that whole group |
-| Album | Touch and hold | Open the album action menu; see [albums](/ReFra/features/albums) |
-| Library shortcut tile, in edit mode | Drag | Rearrange tiles; open edit mode from **⋮ › Customize library**, see [library](/ReFra/features/library) |
-| Library shortcut tile, in edit mode | Drag the side or bottom handle | Resize the tile, even at the screen edge; see [library](/ReFra/features/library) |
-| Search history row | Swipe sideways | Remove that entry; see [search](/ReFra/features/search) |
-| Cloud external URL row | Swipe sideways | Delete the URL; see [networking](/ReFra/features/cloud-networking) |
+<PreviewCollection feature="gestures" section="taps" />
 
-## Viewer
+- **Tap sides to navigate**: tapping the left or right edge of an unzoomed photo or video jumps to the previous or next item; tapping the center shows or hides the controls. Zoomed images, panoramas, slideshows, and locked or standalone viewers keep their usual gestures.
+- **Instant side taps**: on by default, and only available while **Tap sides to navigate** is on. When on, a side tap changes the item straight away and takes priority over video seeking. When off, a single side tap changes the item only after the double-tap timeout, so a double tap on a side zooms a photo or skips a video 10 seconds back or forward instead. Taps on a zoomed photo or video never change the item.
+- **Double-tap to zoom**: on by default. A double tap on a photo zooms in and out, and double-tap then drag zooms with one finger. Pinch to zoom always works, and videos keep their own double-tap gestures. When it is off, photo side taps respond immediately even with **Instant side taps** turned off, because nothing waits on a double tap.
 
-| Where | Gesture | Does |
-| --- | --- | --- |
-| Photo | Swipe left/right | Next/previous item |
-| Photo | Swipe down | Close the viewer |
-| Photo | Pinch / drag | Zoom and pan |
-| Photo | Double-tap | Zoom in or out |
-| Photo | Tap center | Show/hide controls |
-| Photo | Tap left/right edge | Previous/next, when **Tap sides to navigate** is on and the photo is not zoomed; with **Instant side taps** off, after a short wait so a double tap can zoom instead |
-| Date header | Touch and hold | Lock/unlock the item against paging; see [media viewer](/ReFra/features/media-viewer) |
-| Image | Touch and hold | The action picked under **Long-press action**: rotate by default, cutout, or nothing; see [subject cutout](/ReFra/features/subject-cutout) |
-| Video seek | Drag, then drag up | Finer seek precision; see [video playback](/ReFra/features/video-playback) |
-| Video | Double-tap | Toggle 2.5x zoom |
-| Video | Double-tap left/right side | Skip back/forward 10 seconds, unless **Tap sides to navigate** and **Instant side taps** are both on; see [video playback](/ReFra/features/video-playback) |
-| Panorama | Drag / pinch | Look around / zoom; see [panoramas](/ReFra/features/panoramas) |
-| Open story | Tap left/right third | Previous/next slide inside the story; hold pauses; see [memories](/ReFra/features/memories) |
-| Open story | Swipe down | Close the story; see [memories](/ReFra/features/memories) |
-| Markup text | Drag the label | Move the placed text; tap it again to edit the words; see [markup](/ReFra/features/markup) |
-| Editor photo | Touch and hold | Show the original until you let go; see [the ReFra editor](/ReFra/features/editor) |
-| Built-in editor markup text | Drag body / corner handles, or two fingers on it | Move, rotate, or resize the placed text; see [markup (legacy)](/ReFra/features/legacy-markup) |
+## Swipe and hold
 
-<PreviewCollection feature="gestures" section="viewer" />
+- **Swipe down to close**: on by default. Drag a photo or video down to return to the grid. The Back button and predictive back gesture are unaffected when it is off.
+- **Long-press action**: picks what a long-press on an image does in the viewer: **Rotate** (the default), **Cut out subject**, or **None**. While the Subject Cutout model is not downloaded, **Cut out subject** is disabled with a hint to get it from AI models. You can always cut out a subject with the editor's **Cutout** tool; see [subject cutout](/ReFra/features/subject-cutout).
 
-## Settings
+## Example: browse with taps only
 
-| Where | Gesture | Does |
-| --- | --- | --- |
-| Settings header version | Touch and hold | Unlock the Developer section; see [session logs](/ReFra/features/session-logs) |
-| Built-in editor applied tool | Touch and hold | Remove that adjustment; see [lighting and colour (legacy)](/ReFra/features/legacy-lighting-colour) |
-
-## Example: select a run of photos and share it
-
-1. Touch and hold the first photo until the selection bar appears.
-2. Without lifting, drag across the run; everything under your finger gets selected.
-3. Tap the share action to send them, or back out with **Close** to drop the selection untouched.
+1. Open **Settings › Gestures**.
+2. Turn on **Tap sides to navigate** and leave **Instant side taps** on for the fastest paging.
+3. Turn off **Double-tap to zoom** if you never zoom with double taps; pinch still works.

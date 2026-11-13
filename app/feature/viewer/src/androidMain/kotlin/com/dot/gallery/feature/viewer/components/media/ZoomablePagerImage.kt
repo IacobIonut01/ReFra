@@ -163,6 +163,7 @@ import com.github.panpf.zoomimage.subsampling.SubsamplingImage
 import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.isNotEmpty
 import com.github.panpf.zoomimage.zoom.ContentScaleCompat
+import com.github.panpf.zoomimage.zoom.GestureType
 import com.github.panpf.zoomimage.zoom.ScalesCalculator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -357,6 +358,8 @@ fun <T : Media> ZoomablePagerImage(
     onImmediateTap: (Offset) -> Boolean = { false },
     onSwipeDown: () -> Unit,
     swipeToDismissEnabled: Boolean = true,
+    /** Double-tap zoom and double-tap-and-drag zoom; pinch and one-finger pan are unaffected. */
+    doubleTapZoomEnabled: Boolean = true,
     onSubsamplingLoadingChange: (Boolean) -> Unit = {},
     onZoomTransformChange: (Transform) -> Unit = {},
     onLoadFailed: () -> Unit = {},
@@ -406,6 +409,16 @@ fun <T : Media> ZoomablePagerImage(
     // dynamic mediumScale. See ExtendedZoomScalesCalculator.
     LaunchedEffect(zoomState) {
         zoomState.zoomable.setScalesCalculator(ExtendedZoomScalesCalculator(EXTENDED_MAX_NATIVE_SCALE))
+    }
+    // The "Double-tap to zoom" setting gates both zoom gestures that start from a double tap:
+    // DOUBLE_TAP_SCALE is the tap-toggle zoom, ONE_FINGER_SCALE is the double-tap-hold drag
+    // (it only engages while a double-tap press point is held). Pinch (TWO_FINGER_SCALE) and
+    // pan (ONE_FINGER_DRAG) stay enabled.
+    LaunchedEffect(zoomState, doubleTapZoomEnabled) {
+        zoomState.zoomable.setDisabledGestureTypes(
+            if (doubleTapZoomEnabled) 0
+            else GestureType.DOUBLE_TAP_SCALE or GestureType.ONE_FINGER_SCALE
+        )
     }
     // While selecting text the page (photo and text overlay together) can be pinched smaller than
     // "fit", so lines under the selection header and action bar can be moved clear of them.

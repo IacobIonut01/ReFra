@@ -11,8 +11,6 @@ data class SettingsMediaViewerActions(
     val onOpenViewerActions: () -> Unit = {},
     /** Opens the Editors settings page (default image/video editors, save quality). */
     val onOpenEditors: () -> Unit = {},
-    /** Side effect after tap-navigation is toggled (prompt-shown marker write). */
-    val onTapSidesChanged: () -> Unit = {},
     val searchSink: ((String, List<String>) -> Unit)? = null,
     val searchRoute: String? = null,
 )

@@ -38,6 +38,8 @@ import com.dot.gallery.feature.help.generated.resources.disable_smoothing_title
 import com.dot.gallery.feature.help.generated.resources.edit_backups
 import com.dot.gallery.feature.help.generated.resources.fancy_blur
 import com.dot.gallery.feature.help.generated.resources.full_brightness_view_title
+import com.dot.gallery.feature.help.generated.resources.gestures_double_tap_zoom_title
+import com.dot.gallery.feature.help.generated.resources.gestures_swipe_dismiss_title
 import com.dot.gallery.feature.help.generated.resources.group_burst_sequences_title
 import com.dot.gallery.feature.help.generated.resources.group_cloud_local_title
 import com.dot.gallery.feature.help.generated.resources.group_edited_copies_title
@@ -73,6 +75,8 @@ import com.dot.gallery.feature.help.generated.resources.set_default_screen
 import com.dot.gallery.feature.help.generated.resources.settings_dark_mode_title
 import com.dot.gallery.feature.help.generated.resources.settings_editors
 import com.dot.gallery.feature.help.generated.resources.settings_follow_system_theme_title
+import com.dot.gallery.feature.help.generated.resources.settings_gestures
+import com.dot.gallery.feature.help.generated.resources.settings_gestures
 import com.dot.gallery.feature.help.generated.resources.settings_title
 import com.dot.gallery.feature.help.generated.resources.settings_trash_confirmation_title
 import com.dot.gallery.feature.help.generated.resources.settings_trash_title
@@ -89,6 +93,7 @@ import com.dot.gallery.feature.help.generated.resources.slideshow_reverse
 import com.dot.gallery.feature.help.generated.resources.slideshow_transition
 import com.dot.gallery.feature.help.generated.resources.smart_features_include_ignored_albums
 import com.dot.gallery.feature.help.generated.resources.smart_scan_manager_title
+import com.dot.gallery.feature.help.generated.resources.tap_sides_to_navigate_title
 import com.dot.gallery.feature.help.generated.resources.timeline_layout_type
 import com.dot.gallery.feature.help.generated.resources.use_system_font_title
 import com.dot.gallery.feature.help.generated.resources.vault_encrypt_behavior
@@ -178,6 +183,7 @@ object HelpSearchIndex {
             Entry("settings_timeline_albums", Res.string.help_cat_timeline_albums, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Entry("settings_media_viewer", Res.string.help_cat_viewer_settings, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Entry("settings_editors", Res.string.settings_editors, HelpRoute.Target.SETTINGS_EDITORS, HelpCategory.VIEWER_SETTINGS),
+            Entry("settings_gestures", Res.string.settings_gestures, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
             Entry("settings_navigation", Res.string.help_cat_settings_navigation, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Entry("settings_smart", Res.string.help_cat_settings_smart, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),
             Entry("settings_security", Res.string.help_cat_settings_security, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
@@ -233,10 +239,13 @@ object HelpSearchIndex {
             Toggle(Res.string.show_selection_titles, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             // Media viewer
             Toggle(Res.string.full_brightness_view_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
-            Toggle(Res.string.instant_side_taps_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.instant_side_taps_title, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.show_date_header, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.disable_smoothing_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
-            Toggle(Res.string.long_press_action_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.long_press_action_title, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.tap_sides_to_navigate_title, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.gestures_double_tap_zoom_title, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
+            Toggle(Res.string.gestures_swipe_dismiss_title, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.auto_hide_on_video_play, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.auto_play_video, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.loop_videos, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),

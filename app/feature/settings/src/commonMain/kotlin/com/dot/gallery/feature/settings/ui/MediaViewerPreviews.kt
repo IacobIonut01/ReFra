@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 data class MediaViewerPreviews(
     val fullBrightness: @Composable (Boolean) -> Unit = { FullBrightnessPreview(it) },
     val dateHeader: @Composable (Boolean) -> Unit = {},
-    val tapNavigation: @Composable (Boolean) -> Unit = {},
     val smoothing: @Composable (Boolean) -> Unit = {},
     /** `(enabled, icon, position)`. */
     val visualSearch: @Composable (Boolean, ImageVector, String) -> Unit = { _, _, _ -> },

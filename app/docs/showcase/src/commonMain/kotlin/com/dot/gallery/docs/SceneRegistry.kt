@@ -113,6 +113,9 @@ import com.dot.gallery.domain.model.AlbumSectionType
 import com.dot.gallery.feature.settings.ui.EditAppEntry
 import com.dot.gallery.feature.settings.ui.SettingsEditorsContent
 import com.dot.gallery.feature.settings.ui.SettingsEditorsState
+import com.dot.gallery.feature.settings.ui.SettingsGesturesActions
+import com.dot.gallery.feature.settings.ui.SettingsGesturesContent
+import com.dot.gallery.feature.settings.ui.SettingsGesturesState
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerActions
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerContent
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerState
@@ -548,6 +551,19 @@ val sceneRegistry: List<DocsScene> = listOf(
         )
     },
     DocsScene(
+        id = "settings-gestures",
+        title = "Gestures settings",
+        pathTrace = listOf("Settings", "Gestures"),
+        states = listOf("default", "cutout-unavailable"),
+    ) { state ->
+        SettingsGesturesContent(
+            state = SettingsGesturesState(
+                cutoutModelAvailable = state != "cutout-unavailable",
+            ),
+            actions = SettingsGesturesActions(),
+        )
+    },
+    DocsScene(
         id = "visual-search-options",
         title = "Visual search options",
         pathTrace = listOf("Settings", "Media viewer", "Visual search"),
@@ -557,7 +573,7 @@ val sceneRegistry: List<DocsScene> = listOf(
     DocsScene(
         id = "long-press-action",
         title = "Long-press action",
-        pathTrace = listOf("Settings", "Media viewer", "Long-press action"),
+        pathTrace = listOf("Settings", "Gestures", "Long-press action"),
         states = listOf("rotate", "cutout-unavailable"),
     ) { state -> DocsLongPressActionScene(state) },
     DocsScene(
@@ -796,6 +812,7 @@ fun settingsRouteSceneId(route: SettingsRoute): String? = when (route) {
     SettingsRoute.TIMELINE_ALBUMS -> "settings-timeline-albums"
     SettingsRoute.MEDIA_VIEWER -> "settings-media-viewer"
     SettingsRoute.EDITORS -> "settings-editors"
+    SettingsRoute.GESTURES -> "settings-gestures"
     SettingsRoute.NAVIGATION -> "settings-navigation"
     SettingsRoute.GENERAL -> "settings-general"
     SettingsRoute.SECURITY -> "settings-security"

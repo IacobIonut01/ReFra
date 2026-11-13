@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import com.dot.gallery.core.ui.components.PreviewPhoto
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.BrightnessHigh
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.DarkMode
@@ -17,12 +16,10 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Grain
 import androidx.compose.material.icons.outlined.HdrOn
 import androidx.compose.material.icons.outlined.ImageSearch
-import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material.icons.outlined.SmartButton
-import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.foundation.Image
@@ -72,8 +69,6 @@ import com.dot.gallery.core.Position
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.ui.components.BaseSettingsScreen
-import com.dot.gallery.core.ui.components.ChooserPreferenceDetailScreen
-import com.dot.gallery.core.ui.components.PreferenceOption
 import com.dot.gallery.core.ui.components.SettingsItem
 import com.dot.gallery.core.ui.components.SwitchPreferenceDetailScreen
 import com.dot.gallery.core.ui.components.rememberPreference
@@ -84,9 +79,6 @@ import com.dot.gallery.core.ui.mediaview.icon
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.EDITOR_BUILTIN
 import com.dot.gallery.domain.settings.EDITOR_STUDIO
-import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
-import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_NONE
-import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
 import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_CONVERT_ALWAYS
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_CONVERT_ASK
@@ -97,7 +89,6 @@ import com.dot.gallery.domain.settings.VISUAL_SEARCH_FORMAT_WEBP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_BOTTOM
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_TOP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_PROVIDER_AUTO
-import com.dot.gallery.domain.settings.resolveLongPressAction
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 import com.dot.gallery.ui.core.icons.VisualSearch
 import org.jetbrains.compose.resources.StringResource
@@ -125,12 +116,6 @@ import com.dot.gallery.feature.settings.generated.resources.full_brightness_view
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback_description
 import com.dot.gallery.feature.settings.generated.resources.hdr_video_playback_summary
-import com.dot.gallery.feature.settings.generated.resources.long_press_action_cutout
-import com.dot.gallery.feature.settings.generated.resources.long_press_action_cutout_unavailable
-import com.dot.gallery.feature.settings.generated.resources.long_press_action_description
-import com.dot.gallery.feature.settings.generated.resources.long_press_action_none
-import com.dot.gallery.feature.settings.generated.resources.long_press_action_rotate
-import com.dot.gallery.feature.settings.generated.resources.long_press_action_title
 import com.dot.gallery.feature.settings.generated.resources.loop_videos
 import com.dot.gallery.feature.settings.generated.resources.loop_videos_description
 import com.dot.gallery.feature.settings.generated.resources.loop_videos_summary
@@ -142,11 +127,6 @@ import com.dot.gallery.feature.settings.generated.resources.show_date_header_des
 import com.dot.gallery.feature.settings.generated.resources.show_date_header_summary
 import com.dot.gallery.feature.settings.generated.resources.slideshow
 import com.dot.gallery.feature.settings.generated.resources.slideshow_settings_summary
-import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_description
-import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_summary
-import com.dot.gallery.feature.settings.generated.resources.tap_sides_to_navigate_title
-import com.dot.gallery.feature.settings.generated.resources.instant_side_taps_summary
-import com.dot.gallery.feature.settings.generated.resources.instant_side_taps_title
 import com.dot.gallery.feature.settings.generated.resources.video_playback
 import com.dot.gallery.feature.settings.generated.resources.video_surface_rebind
 import com.dot.gallery.feature.settings.generated.resources.video_surface_rebind_description
@@ -187,7 +167,6 @@ import com.dot.gallery.feature.settings.generated.resources.visual_search_with
 
 private const val DETAIL_BRIGHTNESS = "brightness"
 private const val DETAIL_DATE_HEADER = "date_header"
-private const val DETAIL_TAP_NAVIGATION = "tap_navigation"
 private const val DETAIL_AUTO_HIDE_VIDEO = "auto_hide_video"
 private const val DETAIL_AUTO_PLAY = "auto_play"
 private const val DETAIL_LOOP_VIDEOS = "loop_videos"
@@ -195,7 +174,6 @@ private const val DETAIL_SURFACE_REBIND = "surface_rebind"
 private const val DETAIL_HDR_VIDEO = "hdr_video"
 private const val DETAIL_DISABLE_SMOOTHING = "disable_smoothing"
 private const val DETAIL_DARK_BACKGROUND = "dark_background"
-private const val DETAIL_LONG_PRESS_ACTION = "long_press_action"
 private const val DETAIL_VISUAL_SEARCH = "visual_search"
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -210,7 +188,6 @@ fun SettingsMediaViewerContent(
 
     var fullBrightnessView by rememberPreference(SettingsKeys.fullBrightnessView)
     var showMediaDateHeader by rememberPreference(SettingsKeys.mediaViewDateHeader)
-    var tapSidesToNavigate by rememberPreference(SettingsKeys.tapSidesToNavigate)
     val defaultEditor by rememberPreference(SettingsKeys.defaultImageEditor)
     val defaultVideoEditor by rememberPreference(SettingsKeys.defaultVideoEditor)
     var autoHideOnVideoPlay by rememberPreference(SettingsKeys.autoHideOnVideoPlay)
@@ -222,20 +199,12 @@ fun SettingsMediaViewerContent(
     var hdrVideoPlayback by rememberPreference(SettingsKeys.videoHdrPlayback)
     var disableSmoothing by rememberPreference(SettingsKeys.disableSmoothing)
     var darkMediaViewer by rememberPreference(SettingsKeys.darkMediaViewer)
-    val legacyLongPressCutout by rememberPreference(SettingsKeys.longPressCutout)
-    var storedLongPressAction by rememberPreference(SettingsKeys.longPressAction)
-    val longPressAction = resolveLongPressAction(storedLongPressAction, legacyLongPressCutout)
     var visualSearchEnabled by rememberPreference(SettingsKeys.visualSearchEnabled)
     var visualSearchProvider by rememberPreference(SettingsKeys.visualSearchProvider)
     var visualSearchPosition by rememberPreference(SettingsKeys.visualSearchPosition)
     var visualSearchAllowVault by rememberPreference(SettingsKeys.visualSearchAllowVault)
     var visualSearchConvertMode by rememberPreference(SettingsKeys.visualSearchConvertMode)
     var visualSearchConvertFormat by rememberPreference(SettingsKeys.visualSearchConvertFormat)
-    var instantSideTaps by rememberPreference(SettingsKeys.instantSideTaps)
-    val onTapNavigationChange: (Boolean) -> Unit = { enabled ->
-        tapSidesToNavigate = enabled
-        actions.onTapSidesChanged()
-    }
 
     when (detailKey) {
         DETAIL_BRIGHTNESS -> {
@@ -259,18 +228,6 @@ fun SettingsMediaViewerContent(
                 useColumnLayout = true,
             )
         }
-        DETAIL_TAP_NAVIGATION -> {
-            BackHandler { detailKey = null }
-            SwitchPreferenceDetailScreen(
-                title = stringResource(Res.string.tap_sides_to_navigate_title),
-                isChecked = tapSidesToNavigate,
-                onCheckedChange = onTapNavigationChange,
-                description = stringResource(Res.string.tap_sides_to_navigate_description),
-                preview = { checked -> previews.tapNavigation(checked) },
-                useColumnLayout = true,
-                previewBelowSwitch = true,
-            )
-        }
         DETAIL_DISABLE_SMOOTHING -> {
             BackHandler { detailKey = null }
             SwitchPreferenceDetailScreen(
@@ -288,29 +245,6 @@ fun SettingsMediaViewerContent(
                 isChecked = darkMediaViewer,
                 onCheckedChange = { darkMediaViewer = it },
                 description = stringResource(Res.string.dark_media_viewer_description),
-            )
-        }
-        DETAIL_LONG_PRESS_ACTION -> {
-            BackHandler { detailKey = null }
-            val labels = longPressActionLabels()
-            val cutoutUnavailableSummary = stringResource(Res.string.long_press_action_cutout_unavailable)
-            val options = remember(longPressAction, labels, state.cutoutModelAvailable) {
-                labels.map { (value, label) ->
-                    val unavailable = value == LONG_PRESS_ACTION_CUTOUT && !state.cutoutModelAvailable
-                    PreferenceOption(
-                        value = value,
-                        label = label,
-                        isSelected = longPressAction == value,
-                        description = if (unavailable) cutoutUnavailableSummary else null,
-                        enabled = !unavailable,
-                    )
-                }
-            }
-            ChooserPreferenceDetailScreen(
-                title = stringResource(Res.string.long_press_action_title),
-                description = stringResource(Res.string.long_press_action_description),
-                options = options,
-                onOptionSelected = { storedLongPressAction = it },
             )
         }
         DETAIL_AUTO_HIDE_VIDEO -> {
@@ -405,10 +339,6 @@ fun SettingsMediaViewerContent(
                 onBrightnessChange = { fullBrightnessView = it },
                 showMediaDateHeader = showMediaDateHeader,
                 onDateHeaderChange = { showMediaDateHeader = it },
-                tapSidesToNavigate = tapSidesToNavigate,
-                onTapNavigationChange = onTapNavigationChange,
-                instantSideTaps = instantSideTaps,
-                onInstantSideTapsChange = { instantSideTaps = it },
                 defaultEditor = defaultEditor,
                 defaultVideoEditor = defaultVideoEditor,
                 onOpenEditors = actions.onOpenEditors,
@@ -416,7 +346,6 @@ fun SettingsMediaViewerContent(
                 onDisableSmoothingChange = { disableSmoothing = it },
                 darkMediaViewer = darkMediaViewer,
                 onDarkMediaViewerChange = { darkMediaViewer = it },
-                longPressAction = longPressAction,
                 autoHideOnVideoPlay = autoHideOnVideoPlay,
                 onAutoHideChange = { autoHideOnVideoPlay = it },
                 autoPlayVideo = autoPlayVideo,
@@ -455,10 +384,6 @@ private fun MediaViewerListContent(
     onBrightnessChange: (Boolean) -> Unit,
     showMediaDateHeader: Boolean,
     onDateHeaderChange: (Boolean) -> Unit,
-    tapSidesToNavigate: Boolean,
-    onTapNavigationChange: (Boolean) -> Unit,
-    instantSideTaps: Boolean,
-    onInstantSideTapsChange: (Boolean) -> Unit,
     defaultEditor: String,
     defaultVideoEditor: String,
     onOpenEditors: () -> Unit,
@@ -466,7 +391,6 @@ private fun MediaViewerListContent(
     onDisableSmoothingChange: (Boolean) -> Unit,
     darkMediaViewer: Boolean,
     onDarkMediaViewerChange: (Boolean) -> Unit,
-    longPressAction: String,
     autoHideOnVideoPlay: Boolean,
     onAutoHideChange: (Boolean) -> Unit,
     autoPlayVideo: Boolean,
@@ -514,29 +438,6 @@ private fun MediaViewerListContent(
             onCheck = onDateHeaderChange,
             onClick = { onDetailClick(DETAIL_DATE_HEADER) },
             screenPosition = Position.Middle
-        )
-
-        val tapNavigationPref = rememberSwitchPreference(
-            tapSidesToNavigate,
-            title = stringResource(Res.string.tap_sides_to_navigate_title),
-            icon = Icons.Outlined.TouchApp,
-            summary = stringResource(Res.string.tap_sides_to_navigate_summary),
-            isChecked = tapSidesToNavigate,
-            onCheck = onTapNavigationChange,
-            onClick = { onDetailClick(DETAIL_TAP_NAVIGATION) },
-            screenPosition = Position.Middle,
-        )
-
-        // Only meaningful while side taps navigate; off defers them so a double tap can zoom.
-        val instantSideTapsPref = rememberSwitchPreference(
-            instantSideTaps, tapSidesToNavigate,
-            title = stringResource(Res.string.instant_side_taps_title),
-            icon = Icons.Outlined.Bolt,
-            summary = stringResource(Res.string.instant_side_taps_summary),
-            isChecked = instantSideTaps,
-            onCheck = onInstantSideTapsChange,
-            enabled = tapSidesToNavigate,
-            screenPosition = Position.Middle,
         )
 
         val viewerActionBarTitle = stringResource(Res.string.viewer_action_bar)
@@ -608,17 +509,6 @@ private fun MediaViewerListContent(
             isChecked = darkMediaViewer,
             onCheck = onDarkMediaViewerChange,
             onClick = { onDetailClick(DETAIL_DARK_BACKGROUND) },
-            screenPosition = Position.Middle
-        )
-
-        val longPressActionSummary = longPressActionLabels()
-            .firstOrNull { it.first == longPressAction }?.second.orEmpty()
-        val longPressActionPref = rememberPreference(
-            longPressAction,
-            title = stringResource(Res.string.long_press_action_title),
-            icon = Icons.Outlined.PanTool,
-            summary = longPressActionSummary,
-            onClick = { onDetailClick(DETAIL_LONG_PRESS_ACTION) },
             screenPosition = Position.Middle
         )
 
@@ -709,11 +599,9 @@ private fun MediaViewerListContent(
         )
 
         return remember(
-            viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref, tapNavigationPref,
-            instantSideTapsPref,
+            viewingHeader, fullBrightnessViewPref, showMediaDateHeaderPref,
             viewerActionBarPref, editorsPref, disableSmoothingPref,
             darkMediaViewerPref,
-            longPressActionPref,
             visualSearchPref, slideshowPref,
             videoPlaybackHeader, autoHideOnVideoPlayPref, autoPlayVideoPref, loopVideosPref,
             videoSurfaceRebindPref,
@@ -723,13 +611,10 @@ private fun MediaViewerListContent(
                 add(viewingHeader)
                 add(fullBrightnessViewPref)
                 add(showMediaDateHeaderPref)
-                add(tapNavigationPref)
-                add(instantSideTapsPref)
                 add(viewerActionBarPref)
                 add(editorsPref)
                 add(disableSmoothingPref)
                 add(darkMediaViewerPref)
-                add(longPressActionPref)
                 add(visualSearchPref)
                 add(slideshowPref)
 
@@ -753,13 +638,6 @@ private fun MediaViewerListContent(
         searchSink = searchSink,
     )
 }
-
-@Composable
-private fun longPressActionLabels(): List<Pair<String, String>> = listOf(
-    LONG_PRESS_ACTION_ROTATE to stringResource(Res.string.long_press_action_rotate),
-    LONG_PRESS_ACTION_CUTOUT to stringResource(Res.string.long_press_action_cutout),
-    LONG_PRESS_ACTION_NONE to stringResource(Res.string.long_press_action_none),
-)
 
 @Composable
 fun FullBrightnessPreview(isChecked: Boolean) {

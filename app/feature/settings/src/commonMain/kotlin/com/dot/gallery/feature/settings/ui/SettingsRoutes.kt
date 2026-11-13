@@ -11,6 +11,7 @@ enum class SettingsRoute {
     TIMELINE_ALBUMS,
     MEDIA_VIEWER,
     EDITORS,
+    GESTURES,
     NAVIGATION,
     GENERAL,
     SECURITY,

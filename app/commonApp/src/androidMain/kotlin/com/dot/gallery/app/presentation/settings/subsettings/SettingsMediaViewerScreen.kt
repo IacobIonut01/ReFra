@@ -36,13 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dot.gallery.core.ml.ModelGroup
-import com.dot.gallery.core.ml.ModelStatus
-import com.dot.gallery.feature.settings.subsettings.SmartFeaturesViewModel
-import com.dot.gallery.injection.injectViewModel
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -76,7 +70,6 @@ import com.dot.gallery.feature.settings.ui.SettingsMediaViewerActions
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerContent
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerState
 import com.dot.gallery.feature.help.domain.SettingsSearchRegistry
-import com.dot.gallery.app.presentation.mediaview.TapNavigationPreview
 import com.dot.gallery.app.presentation.mediaview.discoverVisualSearchTargets
 import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.presentation.util.Screen
@@ -84,7 +77,6 @@ import com.dot.gallery.app.presentation.util.getEditImageCapableApps
 import com.dot.gallery.app.presentation.util.getEditVideoCapableApps
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
-import kotlinx.coroutines.launch
 import com.dot.gallery.ui.core.icons.VisualSearch
 import com.dot.gallery.domain.date.getDate
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
@@ -98,12 +90,8 @@ import com.dot.gallery.generated.resources.image_sample_2
  * [SettingsMediaViewerContent] in `:feature:settings`.
  */
 @Composable
-fun SettingsMediaViewerScreen(
-    smartFeatures: SmartFeaturesViewModel = injectViewModel { smartFeaturesViewModel }
-) {
+fun SettingsMediaViewerScreen() {
     val context = LocalContext.current
-    val cutoutStatus by smartFeatures.modelStatus(ModelGroup.CUTOUT).collectAsStateWithLifecycle()
-    val scope = rememberCoroutineScope()
     val eventHandler = LocalEventHandler.current
 
     val rawEditApps = remember(context, context::getEditImageCapableApps)
@@ -129,7 +117,6 @@ fun SettingsMediaViewerScreen(
     val previews = remember(context) {
         MediaViewerPreviews(
             dateHeader = { DateHeaderPreview(it) },
-            tapNavigation = { TapNavigationPreview(enabled = it) },
             smoothing = { SmoothingPreview(disableSmoothing = it) },
             visualSearch = { enabled, icon, position ->
                 VisualSearchPreview(enabled = enabled, icon = icon, position = position)
@@ -139,7 +126,7 @@ fun SettingsMediaViewerScreen(
     }
 
     SettingsMediaViewerContent(
-        state = state.copy(cutoutModelAvailable = cutoutStatus == ModelStatus.READY),
+        state = state,
         previews = previews,
         actions = SettingsMediaViewerActions(
             onOpenSlideshow = { eventHandler.navigate(Screen.SlideshowSettingsScreen()) },
@@ -148,9 +135,6 @@ fun SettingsMediaViewerScreen(
             },
             onOpenEditors = {
                 eventHandler.navigate(Screen.SettingsEditorsScreen())
-            },
-            onTapSidesChanged = {
-                scope.launch { Settings.Misc.markTapSidesToNavigatePromptShown(context) }
             },
             searchSink = SettingsSearchRegistry::register,
             searchRoute = Screen.SettingsMediaViewerScreen(),

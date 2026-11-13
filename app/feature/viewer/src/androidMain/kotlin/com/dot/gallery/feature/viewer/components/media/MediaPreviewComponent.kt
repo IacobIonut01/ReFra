@@ -54,6 +54,8 @@ fun <T : Media> MediaPreviewComponent(
     onImageImmediateTap: (Offset) -> Boolean = { false },
     onSwipeDown: () -> Unit,
     swipeToDismissEnabled: Boolean = true,
+    /** Photo double-tap zoom and double-tap-and-drag zoom; pinch zoom is unaffected. */
+    doubleTapZoomEnabled: Boolean = true,
     rotationDisabled: Boolean,
     onImageRotated: (newRotation: Int) -> Unit,
     offset: IntOffset,
@@ -157,6 +159,7 @@ fun <T : Media> MediaPreviewComponent(
                         onImmediateTap = onImageImmediateTap,
                         onSwipeDown = onSwipeDown,
                         swipeToDismissEnabled = swipeToDismissEnabled,
+                        doubleTapZoomEnabled = doubleTapZoomEnabled,
                         onSubsamplingLoadingChange = onSubsamplingLoadingChange,
                         onZoomTransformChange = {
                             if (isSelected) {
