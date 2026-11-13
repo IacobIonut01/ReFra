@@ -21,10 +21,9 @@ Appearance controls how ReFra looks: its color palette, light and dark behavior,
 
 <PreviewCollection feature="appearance" section="theme" />
 
+- **Light / Auto / Dark**: three circles under the **Theme** header set how the app follows brightness. **Light** and **Dark** force that mode; **Auto** follows the system setting. Each circle previews its own scheme, so the row always shows what the palette looks like in both modes.
+- **Use Amoled Mode**: the row directly under the theme circles replaces dark grey surfaces with pure black, which saves a little battery on AMOLED screens. It only works while the app is in dark mode, so pick **Dark** or let **Auto** resolve to dark first.
 - **Color palette**: pick the source of the app's accent colors. **Wallpaper colors** tints the interface to match your wallpaper. **Neutral** keeps a muted palette, and **Other colors** offers fixed accent colors to choose from.
-- **Follow System Theme**: the app switches between light and dark with your device. Turn it off to choose manually.
-- **Use Dark Mode**: forces dark mode regardless of the system setting. This switch only works while **Follow System Theme** is off.
-- **Use Amoled Mode**: replaces dark grey surfaces with pure black, which saves a little battery on AMOLED screens. It is only available while the app is currently in dark mode, so enable dark mode first.
 
 ## Visual effects
 
@@ -48,12 +47,12 @@ Appearance controls how ReFra looks: its color palette, light and dark behavior,
 ## Example: a quiet dark setup
 
 1. Under **Color palette**, choose **Neutral**.
-2. Turn off **Follow System Theme**, then turn on **Use Dark Mode** and **Use Amoled Mode**.
+2. Pick **Dark** in the theme row, then turn on **Use Amoled Mode**.
 3. Turn off **Animate media items** for instant transitions.
 4. Open a photo. The interface is black, muted, and still.
 
 ## If a switch is missing
 
-- **Use Amoled Mode** waits until dark mode is active; turn on **Use Dark Mode** first.
+- **Use Amoled Mode** waits until dark mode is active; pick **Dark** or let **Auto** follow a dark system theme first.
 - **Fancy Blur** requires Android 12 or later.
 - **CARTO basemap API key** only appears on builds that do not ship a bundled key.

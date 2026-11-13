@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +34,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,8 +46,10 @@ import androidx.compose.material.icons.outlined.BlurOn
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Contrast
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.FontDownload
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Tune
@@ -73,9 +75,12 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -91,9 +96,6 @@ import com.dot.gallery.core.presentation.util.LocalHazeState
 import com.dot.gallery.core.ui.components.ChooserPreferenceDetailScreen
 import com.dot.gallery.core.ui.components.MiniHomeScreen
 import com.dot.gallery.core.ui.components.PreferenceOption
-import com.dot.gallery.core.ui.components.PreferencePreviewStage
-import com.dot.gallery.core.ui.components.PreferencePreviewTile
-import com.dot.gallery.core.ui.components.PreviewIconBadge
 import com.dot.gallery.core.ui.components.PreviewPhoto
 import com.dot.gallery.core.ui.components.RequestInitialSettingsFocus
 import com.dot.gallery.core.ui.components.SettingsItem
@@ -157,6 +159,7 @@ import com.dot.gallery.ui.theme.THEME_SEED_SYSTEM
 import com.dot.gallery.ui.theme.colorSchemeFromSeed
 import com.dot.gallery.ui.theme.isDarkTheme
 import com.dot.gallery.ui.theme.neutralColorScheme
+import com.dot.gallery.ui.theme.rememberGalleryColorScheme
 import dev.chrisbanes.haze.hazeSource
 import org.jetbrains.compose.resources.stringResource
 
@@ -168,8 +171,8 @@ private const val DETAIL_SYSTEM_FONT = "system_font"
 private const val DETAIL_MAP_APPEARANCE = "map_appearance"
 private const val DETAIL_APP_ICON = "app_icon"
 
-/** Which tile of the Appearance theme picker is selected. */
-private enum class ThemeMode { Auto, Light, Dark }
+/** Which circle of the Appearance theme picker is selected, in display order. */
+private enum class ThemeMode { Light, Auto, Dark }
 
 /**
  * [appIcon] draws the platform launcher icon for one alias (Android mipmaps); without it, as
@@ -487,6 +490,25 @@ fun ColorPaletteContent(
     }
 
     val controls: @Composable ColumnScope.() -> Unit = {
+        SettingsItem(item = SettingsEntity.Header(title = stringResource(Res.string.appearance_theme_header)))
+        Column(
+            modifier = Modifier
+                .settingsContentWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .padding(vertical = 16.dp),
+        ) {
+            ThemeModePicker(
+                selected = themeMode,
+                amoled = amoledModeValue,
+                themeColorSeed = themeColorSeed,
+                initialFocusRequester = initialFocusRequester,
+                onSelect = onThemeModeSelected,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        SettingsItem(item = amoledModePref)
+
         SettingsItem(item = SettingsEntity.Header(title = stringResource(Res.string.appearance_colors_header)))
         Column(
             modifier = Modifier
@@ -504,7 +526,6 @@ fun ColorPaletteContent(
                     label = stringResource(Res.string.color_palette_wallpaper_colors),
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    modifier = Modifier.focusRequester(initialFocusRequester),
                 )
                 GalleryFilterChip(
                     label = stringResource(Res.string.color_palette_other_colors),
@@ -514,15 +535,6 @@ fun ColorPaletteContent(
             }
             swatchesContent()
         }
-
-        SettingsItem(item = SettingsEntity.Header(title = stringResource(Res.string.appearance_theme_header)))
-        ThemeModePicker(
-            selected = themeMode,
-            amoled = amoledModeValue,
-            onSelect = onThemeModeSelected,
-        )
-        Spacer(Modifier.height(8.dp))
-        SettingsItem(item = amoledModePref)
 
         SettingsItem(item = effectsHeader)
         SettingsItem(item = allowBlurPref)
@@ -682,45 +694,138 @@ private fun ThemePreviewCard(phoneWidth: Dp) {
     }
 }
 
-/** Auto / Light / Dark tiles: Auto follows the system, the other two force a theme. */
+/**
+ * Light / Auto / Dark as a row of circles in the swatch style: each fill previews that mode's
+ * scheme — the light and dark surfaces of the current palette (pure black under AMOLED) or a
+ * diagonal split for Auto — resolved through [rememberGalleryColorScheme] so they follow the
+ * chosen seed.
+ */
 @Composable
 private fun ThemeModePicker(
     selected: ThemeMode,
     amoled: Boolean,
+    themeColorSeed: String,
+    initialFocusRequester: FocusRequester,
     onSelect: (ThemeMode) -> Unit,
 ) {
-    PreferencePreviewStage {
-        Row(
-            modifier = Modifier.height(IntrinsicSize.Max),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+    val lightScheme = rememberGalleryColorScheme(darkTheme = false, themeColorSeed = themeColorSeed)
+    val darkScheme = rememberGalleryColorScheme(
+        darkTheme = true,
+        amoledMode = amoled,
+        themeColorSeed = themeColorSeed,
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        ThemeMode.entries.forEach { mode ->
+            ThemeModeOption(
+                mode = mode,
+                selected = selected == mode,
+                lightScheme = lightScheme,
+                darkScheme = darkScheme,
+                focusRequester = if (mode == ThemeMode.Light) initialFocusRequester else null,
+                onSelect = { onSelect(mode) },
+            )
+        }
+    }
+}
+
+/** One theme-mode circle with its label; the whole column is the radio-button target. */
+@Composable
+private fun ThemeModeOption(
+    mode: ThemeMode,
+    selected: Boolean,
+    lightScheme: ColorScheme,
+    darkScheme: ColorScheme,
+    focusRequester: FocusRequester?,
+    onSelect: () -> Unit,
+) {
+    val focusState = rememberSettingsFocusState()
+    val ringWidth by animateDpAsState(
+        targetValue = if (selected || focusState.hasFocus) 3.dp else 0.dp,
+        label = "themeRingWidth",
+    )
+    val ringColor by animateColorAsState(
+        targetValue = if (selected || focusState.hasFocus) MaterialTheme.colorScheme.primary else Color.Transparent,
+        label = "themeRingColor",
+    )
+    val icon = when (mode) {
+        ThemeMode.Light -> Icons.Outlined.LightMode
+        ThemeMode.Auto -> Icons.Outlined.BrightnessAuto
+        ThemeMode.Dark -> Icons.Outlined.DarkMode
+    }
+    val fill = when (mode) {
+        ThemeMode.Light -> SolidColor(lightScheme.surface)
+        ThemeMode.Dark -> SolidColor(darkScheme.surface)
+        ThemeMode.Auto -> Brush.linearGradient(
+            0f to lightScheme.surface,
+            0.5f to lightScheme.surface,
+            0.5f to darkScheme.surface,
+            1f to darkScheme.surface,
+        )
+    }
+    val iconTint = when (mode) {
+        ThemeMode.Light -> lightScheme.onSurface
+        ThemeMode.Auto -> lerp(lightScheme.onSurface, darkScheme.onSurface, 0.5f)
+        ThemeMode.Dark -> darkScheme.onSurface
+    }
+    val badgeScheme = when (mode) {
+        ThemeMode.Light -> lightScheme
+        ThemeMode.Auto, ThemeMode.Dark -> darkScheme
+    }
+    val label = stringResource(
+        when (mode) {
+            ThemeMode.Light -> Res.string.theme_mode_light
+            ThemeMode.Auto -> Res.string.auto
+            ThemeMode.Dark -> Res.string.theme_mode_dark
+        }
+    )
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .settingsFocusTarget(focusState, focusRequester = focusRequester)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
+            .padding(horizontal = 8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(fill, CircleShape)
+                .border(ringWidth, ringColor, CircleShape),
+            contentAlignment = Alignment.Center,
         ) {
-            ThemeMode.entries.forEach { mode ->
-                PreferencePreviewTile(
-                    selected = selected == mode,
-                    label = stringResource(
-                        when (mode) {
-                            ThemeMode.Auto -> Res.string.auto
-                            ThemeMode.Light -> Res.string.theme_mode_light
-                            ThemeMode.Dark -> Res.string.theme_mode_dark
-                        }
-                    ),
-                    onClick = { onSelect(mode) },
-                    canvasHeight = 152.dp,
-                    expandCanvas = true,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(badgeScheme.primary),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    when (mode) {
-                        ThemeMode.Auto -> PreviewIconBadge(Icons.Outlined.BrightnessAuto)
-                        ThemeMode.Light -> GalleryPreviewTheme(darkTheme = false) {
-                            MiniHomeScreen(modifier = Modifier.width(78.dp))
-                        }
-                        ThemeMode.Dark -> GalleryPreviewTheme(darkTheme = true, amoledMode = amoled) {
-                            MiniHomeScreen(modifier = Modifier.width(78.dp))
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.Check,
+                        contentDescription = null,
+                        tint = badgeScheme.onPrimary,
+                        modifier = Modifier.size(16.dp),
+                    )
                 }
+            } else {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(24.dp),
+                )
             }
         }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
     }
 }
 

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
@@ -60,6 +61,12 @@ import com.dot.gallery.core.ui.generated.resources.Res
 import com.dot.gallery.core.ui.generated.resources.refra_mark
 import com.dot.gallery.ui.theme.GalleryChrome
 import org.jetbrains.compose.resources.painterResource
+
+/** Test tags for the floating destination tabs inside [MiniHomeScreen]. */
+const val MiniHomeNavTabTag = "MiniHome.NavTab"
+
+/** Test tag for the floating search button inside [MiniHomeScreen]. */
+const val MiniHomeSearchTag = "MiniHome.Search"
 
 /**
  * A stand-in photo for settings previews: a soft two-tone gradient from the current palette, so
@@ -173,32 +180,43 @@ fun MiniHomeScreen(
                 Icon(Icons.Outlined.MoreVert, null, tint = c.onSurfaceVariant, modifier = Modifier.size(u * 8f))
             }
         }
-        // Floating navigation and search.
+        // Floating navigation (the two destinations, Timeline active) and search.
         Row(
             modifier = Modifier
-                .offset(u * 10f, u * 162f)
-                .size(u * 62f, u * 17f)
+                .offset(u * 17f, u * 162f)
+                .size(u * 48f, u * 17f)
                 .clip(RoundedCornerShape(u * 8.5f))
                 .background(c.surfaceContainerHigh)
                 .padding(horizontal = u * 9f),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(u * 4f),
         ) {
             Box(
-                Modifier.size(u * 13f, u * 11f).clip(RoundedCornerShape(u * 5.5f)).background(c.secondaryContainer),
+                Modifier
+                    .size(u * 13f, u * 11f)
+                    .clip(RoundedCornerShape(u * 5.5f))
+                    .background(c.secondaryContainer)
+                    .testTag(MiniHomeNavTabTag),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(Modifier.size(u * 5f).clip(RoundedCornerShape(u)).background(c.onSecondaryContainer))
             }
-            Box(Modifier.size(u * 6f, u * 5f).clip(RoundedCornerShape(u)).background(c.onSurfaceVariant))
-            Box(Modifier.size(u * 6f, u * 5f).clip(RoundedCornerShape(u)).background(c.onSurfaceVariant))
+            Box(
+                Modifier
+                    .size(u * 13f, u * 11f)
+                    .testTag(MiniHomeNavTabTag),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(Modifier.size(u * 6f, u * 5f).clip(RoundedCornerShape(u)).background(c.onSurfaceVariant))
+            }
         }
         Box(
             modifier = Modifier
-                .offset(u * 76f, u * 162f)
+                .offset(u * 70f, u * 162f)
                 .size(u * 17f)
                 .clip(CircleShape)
-                .background(c.surfaceContainerHigh),
+                .background(c.surfaceContainerHigh)
+                .testTag(MiniHomeSearchTag),
             contentAlignment = Alignment.Center,
         ) {
             Box(Modifier.size(u * 5f).border(u * 1.2f, c.onSurfaceVariant, CircleShape))
