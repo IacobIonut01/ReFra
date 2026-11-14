@@ -52,6 +52,25 @@ class AlbumArrangementTest {
     }
 
     @Test
+    fun clearedOrderLetsEverySortReorderAllAlbums() {
+        val order = listOf(2L, 3L, 1L)
+        val dateSorted = listOf(album(3), album(2), album(1))
+        val nameSorted = listOf(album(1), album(2), album(3))
+        // While the order is stored the arranged block ignores the sort, which is
+        // why the sort chip and direction arrow looked dead (issue #1428).
+        assertEquals(order, split(dateSorted, order).arranged.ids)
+        assertEquals(order, split(nameSorted, order).arranged.ids)
+        // Clearing the order — what the sort menu's "clears custom order" picks do —
+        // makes every album follow the active sort again.
+        val clearedByDate = split(dateSorted, emptyList())
+        val clearedByName = split(nameSorted, emptyList())
+        assertFalse(clearedByDate.hasArrangement)
+        assertFalse(clearedByName.hasArrangement)
+        assertEquals(dateSorted, clearedByDate.others)
+        assertEquals(nameSorted, clearedByName.others)
+    }
+
+    @Test
     fun newAlbumsLandInOthersInSortOrder() {
         val sorted = listOf(album(5), album(1), album(4), album(2))
         val result = split(sorted, listOf(2L, 1L))

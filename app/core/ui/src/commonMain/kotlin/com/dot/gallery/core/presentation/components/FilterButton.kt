@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.ui.settings.rememberPreference
@@ -46,16 +48,22 @@ import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.domain.util.OrderType
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.core.ui.generated.resources.Res
+import com.dot.gallery.core.ui.generated.resources.sort_clears_custom_order
+import com.dot.gallery.core.ui.generated.resources.sort_custom
 import com.dot.gallery.core.ui.generated.resources.toggle_view_type
+
+/** Test tag on the ascending/descending arrow, which is hidden while a custom order is active. */
+const val SORT_DIRECTION_TAG = "sort_direction"
 
 @Composable
 private fun SortSegment(
     shape: Shape,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .height(40.dp)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -74,6 +82,9 @@ fun FilterButton(
     /** Replaces the leading view toggle; the toggle then joins the trailing controls. */
     title: (@Composable RowScope.() -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
+    /** While set, the chip reads "Custom", the direction arrow hides, and menu picks clear the order. */
+    customOrderActive: Boolean = false,
+    onClearCustomOrder: () -> Unit = {},
 ) {
     var lastSort by rememberPreference(SettingsKeys.albumLastSort)
     var expanded by remember { mutableStateOf(false) }
@@ -125,24 +136,31 @@ fun FilterButton(
                                 modifier = Modifier.padding(start = 16.dp, end = 12.dp),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                text = stringResource(selectedFilter.titleRes)
+                                text = if (customOrderActive) {
+                                    stringResource(Res.string.sort_custom)
+                                } else {
+                                    stringResource(selectedFilter.titleRes)
+                                }
                             )
                         }
-                        SortSegment(
-                            shape = RoundedCornerShape(4.dp),
-                            onClick = {
-                                order = if (order == OrderType.Ascending) OrderType.Descending else OrderType.Ascending
-                                lastSort = lastSort.copy(orderType = order)
-                            },
-                        ) {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 8.dp).size(20.dp),
-                                imageVector = if (order == OrderType.Descending) {
-                                    Icons.Outlined.KeyboardDoubleArrowDown
-                                } else Icons.Outlined.KeyboardDoubleArrowUp,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                contentDescription = null
-                            )
+                        if (!customOrderActive) {
+                            SortSegment(
+                                shape = RoundedCornerShape(4.dp),
+                                onClick = {
+                                    order = if (order == OrderType.Ascending) OrderType.Descending else OrderType.Ascending
+                                    lastSort = lastSort.copy(orderType = order)
+                                },
+                                modifier = Modifier.testTag(SORT_DIRECTION_TAG),
+                            ) {
+                                Icon(
+                                    modifier = Modifier.padding(horizontal = 8.dp).size(20.dp),
+                                    imageVector = if (order == OrderType.Descending) {
+                                        Icons.Outlined.KeyboardDoubleArrowDown
+                                    } else Icons.Outlined.KeyboardDoubleArrowUp,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    contentDescription = null
+                                )
+                            }
                         }
                         SortSegment(
                             shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 20.dp, bottomEnd = 20.dp),
@@ -175,23 +193,30 @@ fun FilterButton(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
-                    text = stringResource(selectedFilter.titleRes)
-                )
-                IconButton(
-                    onClick = {
-                        order = if (order == OrderType.Ascending) OrderType.Descending else OrderType.Ascending
-                        lastSort = lastSort.copy(orderType = order)
+                    text = if (customOrderActive) {
+                        stringResource(Res.string.sort_custom)
+                    } else {
+                        stringResource(selectedFilter.titleRes)
                     }
-                ) {
-                    Icon(
-                        imageVector = remember(selectedFilter) {
-                            if (order == OrderType.Descending)
-                                Icons.Outlined.KeyboardDoubleArrowDown
-                            else Icons.Outlined.KeyboardDoubleArrowUp
-                        },
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = null
-                    )
+                )
+                if (!customOrderActive) {
+                    IconButton(
+                        modifier = Modifier.testTag(SORT_DIRECTION_TAG),
+                        onClick = {
+                            order = if (order == OrderType.Ascending) OrderType.Descending else OrderType.Ascending
+                            lastSort = lastSort.copy(orderType = order)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = remember(selectedFilter) {
+                                if (order == OrderType.Descending)
+                                    Icons.Outlined.KeyboardDoubleArrowDown
+                                else Icons.Outlined.KeyboardDoubleArrowUp
+                            },
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = null
+                        )
+                    }
                 }
             }
         }
@@ -204,21 +229,53 @@ fun FilterButton(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                filterOptions.forEach { filter ->
+                if (customOrderActive) {
                     DropdownMenuItem(
-                        text = { Text(text = stringResource(filter.titleRes)) },
-                        onClick = {
-                            lastSort = lastSort.copy(kind = filter.filterKind)
-                        },
+                        text = { Text(text = stringResource(Res.string.sort_custom)) },
+                        onClick = { expanded = false },
                         trailingIcon = {
-                            if (lastSort.kind == filter.filterKind) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Check,
-                                    contentDescription = null
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Outlined.Check,
+                                contentDescription = null
+                            )
                         }
                     )
+                }
+                filterOptions.forEach { filter ->
+                    if (customOrderActive) {
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(text = stringResource(filter.titleRes))
+                                    Text(
+                                        text = stringResource(Res.string.sort_clears_custom_order),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onClearCustomOrder()
+                                lastSort = lastSort.copy(kind = filter.filterKind)
+                                expanded = false
+                            }
+                        )
+                    } else {
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(filter.titleRes)) },
+                            onClick = {
+                                lastSort = lastSort.copy(kind = filter.filterKind)
+                            },
+                            trailingIcon = {
+                                if (lastSort.kind == filter.filterKind) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

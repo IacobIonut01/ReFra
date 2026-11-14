@@ -361,8 +361,9 @@ fun AlbumsContent(
         )
     }
 
-    // Manual arrangement: arranged albums keep the stored order, the rest fall under
-    // "Others" and follow the active sort.
+    // Manual arrangement: arranged albums keep the stored order and ignore the sort;
+    // the rest fall under "Others" and follow it. The sort applies to every album
+    // once the custom order is cleared.
     var customOrder by rememberPreference(SettingsKeys.albumCustomOrder)
     val arrangement = remember(albumsState.value.albumsUnpinned, customOrder) {
         AlbumArrangement.split(albumsState.value.albumsUnpinned, customOrder)
@@ -495,6 +496,8 @@ fun AlbumsContent(
                                     viewType = viewType,
                                     onViewTypeChange = { viewType = it },
                                     onCreateCollection = onCreateCollection,
+                                    customOrderActive = showDevice && arrangement.hasArrangement,
+                                    onClearCustomOrder = { customOrder = emptyList() },
                                 )
                             }
                             if (visiblePinned.isNotEmpty()) item(
@@ -851,6 +854,8 @@ fun AlbumsContent(
                                 viewType = viewType,
                                 onViewTypeChange = { viewType = it },
                                 onCreateCollection = onCreateCollection,
+                                customOrderActive = showDevice && arrangement.hasArrangement,
+                                onClearCustomOrder = { customOrder = emptyList() },
                             )
                         }
                         if (visiblePinned.isNotEmpty()) item(KEY_PINNED_ALBUMS) {
@@ -1273,6 +1278,8 @@ private fun AlbumsHeading(
     viewType: AlbumViewType,
     onViewTypeChange: (AlbumViewType) -> Unit,
     onCreateCollection: () -> Unit,
+    customOrderActive: Boolean = false,
+    onClearCustomOrder: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     FilterButton(
@@ -1280,6 +1287,8 @@ private fun AlbumsHeading(
         filterOptions = filterOptions.toTypedArray(),
         viewType = viewType,
         onViewTypeChange = onViewTypeChange,
+        customOrderActive = customOrderActive,
+        onClearCustomOrder = onClearCustomOrder,
         title = {
             Row(
                 modifier = Modifier

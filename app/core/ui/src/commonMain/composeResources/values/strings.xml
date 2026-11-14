@@ -101,6 +101,8 @@
     <string name="customize_library">Customize library</string>
     <string name="filter_type_date">Date</string>
     <string name="filter_type_name">Name</string>
+    <string name="sort_custom">Custom</string>
+    <string name="sort_clears_custom_order">Clears custom order</string>
     <string name="header_today">Today</string>
     <string name="header_yesterday">Yesterday</string>
     <string name="video">Video</string>
