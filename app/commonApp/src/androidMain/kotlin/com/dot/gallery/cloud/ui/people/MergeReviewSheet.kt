@@ -20,7 +20,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
@@ -41,7 +43,8 @@ import com.dot.gallery.generated.resources.people_same_person
  * Review queue for "possible duplicates": each row shows two people side by side
  * and asks "are these the same person?". Confirming merges them (writing durable
  * INCLUDE links); rejecting writes EXCLUDE links so the pair never resurfaces.
- * The list shrinks reactively as decisions land.
+ * The list shrinks reactively as decisions land, and the sheet closes itself once
+ * it is empty. It stays open between answers because a merge can surface new pairs.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +54,15 @@ fun MergeReviewSheet(
     onSamePerson: (PersonMergeSuggestion) -> Unit,
     onDifferent: (PersonMergeSuggestion) -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    val sheetState = rememberModalBottomSheetState()
+    val reviewed = suggestions.isEmpty()
+    LaunchedEffect(reviewed) {
+        if (reviewed) {
+            sheetState.hide()
+            onDismiss()
+        }
+    }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
