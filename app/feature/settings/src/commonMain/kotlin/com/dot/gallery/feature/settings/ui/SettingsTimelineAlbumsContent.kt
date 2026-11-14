@@ -6,6 +6,7 @@
 package com.dot.gallery.feature.settings.ui
 
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.BurstMode
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,7 +27,6 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material.icons.outlined.EventRepeat
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.GifBox
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Layers
@@ -84,6 +84,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -123,7 +124,9 @@ import com.dot.gallery.core.presentation.components.DeleteSectionSheet
 import com.dot.gallery.core.presentation.components.FilterKind
 import com.dot.gallery.core.presentation.components.OptionItem
 import com.dot.gallery.core.presentation.components.OptionSheet
+import com.dot.gallery.core.presentation.components.ResolutionBadgeThresholdsMp
 import com.dot.gallery.core.presentation.components.SectionDialogMode
+import com.dot.gallery.core.presentation.components.resolveCellBadgeLayout
 import com.dot.gallery.core.ui.components.BaseSettingsScreen
 import com.dot.gallery.core.ui.components.ChooserPreferenceDetailScreen
 import com.dot.gallery.core.ui.components.PreferenceOption
@@ -184,7 +187,6 @@ import com.dot.gallery.feature.settings.generated.resources.fav_position_bottom_
 import com.dot.gallery.feature.settings.generated.resources.fav_position_disabled
 import com.dot.gallery.feature.settings.generated.resources.fav_position_top_end
 import com.dot.gallery.feature.settings.generated.resources.fav_position_top_start
-import com.dot.gallery.feature.settings.generated.resources.favorite_icon_description
 import com.dot.gallery.feature.settings.generated.resources.favorite_icon_on_thumbnails
 import com.dot.gallery.feature.settings.generated.resources.group_burst_sequences_summary
 import com.dot.gallery.feature.settings.generated.resources.group_burst_sequences_title
@@ -216,6 +218,10 @@ import com.dot.gallery.feature.settings.generated.resources.modified_time_summar
 import com.dot.gallery.feature.settings.generated.resources.recheck_capture_dates
 import com.dot.gallery.feature.settings.generated.resources.recheck_capture_dates_summary
 import com.dot.gallery.feature.settings.generated.resources.rename_section
+import com.dot.gallery.feature.settings.generated.resources.resolution_badges_mp
+import com.dot.gallery.feature.settings.generated.resources.resolution_badges_summary
+import com.dot.gallery.feature.settings.generated.resources.resolution_badges_threshold_title
+import com.dot.gallery.feature.settings.generated.resources.resolution_badges_title
 import com.dot.gallery.feature.settings.generated.resources.search
 import com.dot.gallery.feature.settings.generated.resources.section_type_apps
 import com.dot.gallery.feature.settings.generated.resources.section_type_common
@@ -225,6 +231,10 @@ import com.dot.gallery.feature.settings.generated.resources.settings_display_hea
 import com.dot.gallery.feature.settings.generated.resources.settings_off
 import com.dot.gallery.feature.settings.generated.resources.settings_on
 import com.dot.gallery.feature.settings.generated.resources.settings_timeline_albums
+import com.dot.gallery.feature.settings.generated.resources.thumbnail_badges_description
+import com.dot.gallery.feature.settings.generated.resources.thumbnail_badges_favorite_summary
+import com.dot.gallery.feature.settings.generated.resources.thumbnail_badges_resolution_summary
+import com.dot.gallery.feature.settings.generated.resources.thumbnail_badges_title
 import com.dot.gallery.feature.settings.generated.resources.top_bar_filter
 import com.dot.gallery.feature.settings.generated.resources.top_bar_select
 import com.dot.gallery.feature.settings.generated.resources.top_bar_settings
@@ -274,7 +284,7 @@ internal fun topBarButtonsSummary(enabled: List<String>, none: String): String =
     enabled.joinToString(", ").ifEmpty { none }
 private const val DETAIL_MERGE_ALBUMS = "merge_albums"
 private const val DETAIL_ALBUM_SECTIONS = "album_sections"
-private const val DETAIL_FAV_ICON = "fav_icon"
+private const val DETAIL_THUMBNAIL_BADGES = "thumbnail_badges"
 private const val DETAIL_DATE_HEADERS = "date_headers"
 private const val DETAIL_GROUP_METHOD = "group_method"
 private const val DETAIL_MONTH_HIGHLIGHTS = "month_highlights"
@@ -308,6 +318,8 @@ fun SettingsTimelineAlbumsContent(
     var albumSectionsEnabled by rememberPreference(SettingsKeys.albumSectionsEnabled)
     var updateModifiedDate by rememberPreference(SettingsKeys.updateModifiedDate)
     var favIconPosition by rememberPreference(SettingsKeys.favoriteIconPosition)
+    var resolutionBadges by rememberPreference(SettingsKeys.resolutionBadges)
+    var resolutionMinMp by rememberPreference(SettingsKeys.resolutionBadgeMinMp)
     var dateHeaderTimeline by rememberPreference(SettingsKeys.timelineGroupByDate)
     var dateHeaderFavorites by rememberPreference(SettingsKeys.favoritesGroupByDate)
     var dateHeaderVault by rememberPreference(SettingsKeys.vaultGroupByDate)
@@ -449,21 +461,9 @@ fun SettingsTimelineAlbumsContent(
                 actions = actions,
             )
         }
-        DETAIL_FAV_ICON -> {
+        DETAIL_THUMBNAIL_BADGES -> {
             BackHandler { detailKey = null }
-            ChooserPreferenceDetailScreen(
-                title = stringResource(Res.string.favorite_icon_on_thumbnails),
-                description = stringResource(Res.string.favorite_icon_description),
-                preview = { FavoriteIconPreview(favIconPosition) },
-                options = listOf(
-                    PreferenceOption(FAV_ICON_DISABLED, stringResource(Res.string.fav_position_disabled), favIconPosition == FAV_ICON_DISABLED),
-                    PreferenceOption(FAV_ICON_BOTTOM_END, stringResource(Res.string.fav_position_bottom_end), favIconPosition == FAV_ICON_BOTTOM_END),
-                    PreferenceOption(FAV_ICON_BOTTOM_START, stringResource(Res.string.fav_position_bottom_start), favIconPosition == FAV_ICON_BOTTOM_START),
-                    PreferenceOption(FAV_ICON_TOP_END, stringResource(Res.string.fav_position_top_end), favIconPosition == FAV_ICON_TOP_END),
-                    PreferenceOption(FAV_ICON_TOP_START, stringResource(Res.string.fav_position_top_start), favIconPosition == FAV_ICON_TOP_START),
-                ),
-                onOptionSelected = { favIconPosition = it },
-            )
+            ThumbnailBadgesSettingsDetail(supportsFavorites = state.supportsFavorites)
         }
         DETAIL_DATE_HEADERS -> {
             BackHandler { detailKey = null }
@@ -622,6 +622,8 @@ fun SettingsTimelineAlbumsContent(
                 updateModifiedDate = updateModifiedDate,
                 onUpdateModifiedDateChange = { updateModifiedDate = it },
                 favIconPosition = favIconPosition,
+                resolutionBadges = resolutionBadges,
+                resolutionMinMp = resolutionMinMp,
                 monthHighlights = monthHighlights,
                 onMonthHighlightsChange = { monthHighlights = it },
                 headerPlaces = headerPlaces,
@@ -657,6 +659,8 @@ private fun TimelineAlbumsListContent(
     updateModifiedDate: Boolean,
     onUpdateModifiedDateChange: (Boolean) -> Unit,
     favIconPosition: String,
+    resolutionBadges: Boolean,
+    resolutionMinMp: Int,
     monthHighlights: Boolean = true,
     onMonthHighlightsChange: (Boolean) -> Unit = {},
     headerPlaces: Boolean = true,
@@ -869,13 +873,26 @@ private fun TimelineAlbumsListContent(
                 else -> favBottomEndLabel
             }
         }
-        val hasFavorites = state.supportsFavorites
-        val favIconPositionPref = rememberPreference(
+        val thumbnailBadgesSummary = listOfNotNull(
+            if (state.supportsFavorites) {
+                stringResource(Res.string.thumbnail_badges_favorite_summary, favIconPositionLabel)
+            } else {
+                null
+            },
+            if (resolutionBadges) {
+                stringResource(Res.string.thumbnail_badges_resolution_summary, resolutionMinMp)
+            } else {
+                null
+            },
+        ).joinToString(" · ").ifEmpty { stringResource(Res.string.settings_off) }
+        val thumbnailBadgesPref = rememberPreference(
             favIconPosition,
-            title = stringResource(Res.string.favorite_icon_on_thumbnails),
-            icon = Icons.Outlined.Favorite,
-            summary = favIconPositionLabel,
-            onClick = { onDetailClick(DETAIL_FAV_ICON) },
+            resolutionBadges,
+            resolutionMinMp,
+            title = stringResource(Res.string.thumbnail_badges_title),
+            icon = Icons.AutoMirrored.Outlined.Label,
+            summary = thumbnailBadgesSummary,
+            onClick = { onDetailClick(DETAIL_THUMBNAIL_BADGES) },
             screenPosition = Position.Bottom
         )
 
@@ -897,7 +914,7 @@ private fun TimelineAlbumsListContent(
             icon = Icons.Outlined.Workspaces,
             summary = stringResource(Res.string.group_method_summary),
             onClick = { onDetailClick(DETAIL_GROUP_METHOD) },
-            screenPosition = if (hasFavorites) Position.Middle else Position.Bottom
+            screenPosition = Position.Middle
         )
 
         return remember(
@@ -905,7 +922,7 @@ private fun TimelineAlbumsListContent(
             allowGifAnimationPref, monthHighlightsPref, headerPlacesPref, floatingDateLabelPref,
             dateHeaderPref, recheckCaptureDatesPref, topBarPref, storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
-            displayHeader, favIconPositionPref,
+            displayHeader, thumbnailBadgesPref,
             dateHeadersPref, groupMethodPref
         ) {
             mutableStateListOf<SettingsEntity>().apply {
@@ -930,9 +947,7 @@ private fun TimelineAlbumsListContent(
                 add(displayHeader)
                 add(dateHeadersPref)
                 add(groupMethodPref)
-                if (state.supportsFavorites) {
-                    add(favIconPositionPref)
-                }
+                add(thumbnailBadgesPref)
             }
         }
     }
@@ -1688,20 +1703,98 @@ private fun MergeAlbumRow(name: String, detail: String, photo: Int, merged: Bool
     }
 }
 
-/** One thumbnail with the heart in the chosen corner, or none when hidden. */
+/**
+ * The Thumbnail badges detail page: favourite-icon position radios (when the build
+ * supports favourites) plus the resolution-label switch and its MP threshold chips.
+ * Reads and writes the prefs itself so the docs showcase can render it standalone.
+ */
 @Composable
-private fun FavoriteIconPreview(currentPosition: String) {
-    val alignment = when (currentPosition) {
-        FAV_ICON_BOTTOM_START -> Alignment.BottomStart
-        FAV_ICON_TOP_END -> Alignment.TopEnd
-        FAV_ICON_TOP_START -> Alignment.TopStart
-        else -> Alignment.BottomEnd
-    }
+fun ThumbnailBadgesSettingsDetail(supportsFavorites: Boolean) {
+    var favIconPosition by rememberPreference(SettingsKeys.favoriteIconPosition)
+    var resolutionBadges by rememberPreference(SettingsKeys.resolutionBadges)
+    var resolutionMinMp by rememberPreference(SettingsKeys.resolutionBadgeMinMp)
+
+    ChooserPreferenceDetailScreen<Unit>(
+        title = stringResource(Res.string.thumbnail_badges_title),
+        description = stringResource(Res.string.thumbnail_badges_description),
+        preview = { ThumbnailBadgesPreview(favIconPosition, resolutionBadges) },
+        customContent = {
+            Column {
+                if (supportsFavorites) {
+                    SettingsItem(
+                        item = SettingsEntity.Header(
+                            title = stringResource(Res.string.favorite_icon_on_thumbnails)
+                        )
+                    )
+                    val favOptions = listOf(
+                        FAV_ICON_DISABLED to stringResource(Res.string.fav_position_disabled),
+                        FAV_ICON_BOTTOM_END to stringResource(Res.string.fav_position_bottom_end),
+                        FAV_ICON_BOTTOM_START to stringResource(Res.string.fav_position_bottom_start),
+                        FAV_ICON_TOP_END to stringResource(Res.string.fav_position_top_end),
+                        FAV_ICON_TOP_START to stringResource(Res.string.fav_position_top_start),
+                    )
+                    favOptions.forEachIndexed { index, (value, label) ->
+                        SettingsItem(
+                            item = SettingsEntity.Preference(
+                                title = label,
+                                onClick = { favIconPosition = value },
+                                screenPosition = sectionItemPosition(index, favOptions.size),
+                            ),
+                            customTrailingContent = {
+                                RadioButton(
+                                    selected = favIconPosition == value,
+                                    onClick = { favIconPosition = value },
+                                )
+                            }
+                        )
+                    }
+                }
+                SettingsItem(
+                    item = SettingsEntity.Header(
+                        title = stringResource(Res.string.resolution_badges_title)
+                    )
+                )
+                SettingsItem(
+                    item = SettingsEntity.SwitchPreference(
+                        title = stringResource(Res.string.resolution_badges_title),
+                        summary = stringResource(Res.string.resolution_badges_summary),
+                        isChecked = resolutionBadges,
+                        onCheck = { resolutionBadges = it },
+                        screenPosition = if (resolutionBadges) Position.Top else Position.Alone
+                    )
+                )
+                if (resolutionBadges) {
+                    GroupMethodSectionRow(
+                        title = stringResource(Res.string.resolution_badges_threshold_title),
+                        currentValue = resolutionMinMp.toString(),
+                        options = ResolutionBadgeThresholdsMp.map {
+                            it.toString() to stringResource(Res.string.resolution_badges_mp, it)
+                        },
+                        onValueChange = { resolutionMinMp = it.toInt() },
+                        position = Position.Bottom,
+                    )
+                }
+            }
+        },
+    )
+}
+
+/** One thumbnail with the heart in the chosen corner and, when on, a resolution pill. */
+@Composable
+private fun ThumbnailBadgesPreview(favoritePosition: String, resolutionOn: Boolean) {
     PreviewFocusPhoto(index = 4, modifier = Modifier.padding(vertical = 16.dp)) {
-        if (currentPosition != FAV_ICON_DISABLED) {
+        val badges = resolveCellBadgeLayout(
+            favoritePosition = favoritePosition,
+            isFavorite = true,
+            hasVideo = false,
+            hasStack = false,
+            hasStatus = resolutionOn,
+            selectionActive = false,
+        )
+        badges.favorite?.let { corner ->
             Box(
                 modifier = Modifier
-                    .align(alignment)
+                    .align(corner.alignment)
                     .padding(8.dp)
                     .size(24.dp)
                     .clip(CircleShape)
@@ -1714,6 +1807,24 @@ private fun FavoriteIconPreview(currentPosition: String) {
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(16.dp)
                 )
+            }
+        }
+        if (resolutionOn) {
+            badges.status?.let { corner ->
+                Box(
+                    modifier = Modifier
+                        .align(corner.alignment)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color.Black.copy(alpha = 0.45f))
+                        .padding(horizontal = 5.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = "50MP",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
         }
     }

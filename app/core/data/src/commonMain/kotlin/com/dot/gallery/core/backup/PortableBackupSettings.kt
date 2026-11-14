@@ -102,14 +102,16 @@ object PortableBackupSettings {
         // Text in photos: only the choices. "ocr_enabled", "ocr_packs" and
         // "ocr_external_model_uris" stay out, so a restore never turns reading on without a
         // pack on this device or carries file grants that do not exist here.
-        "ocr_index_library"
+        "ocr_index_library",
+        "resolution_badges"
     )
 
     private val intNames = setOf(
         "slideshow_interval_seconds",
         "reencode_lossy_quality",
         "reencode_jxl_effort",
-        "cloud_offline_budget_mb"
+        "cloud_offline_budget_mb",
+        "resolution_badge_min_mp"
     )
 
     private val stringNames = setOf(

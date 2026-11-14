@@ -49,12 +49,14 @@ import com.dot.gallery.docs.scenes.DateFormatScene
 import com.dot.gallery.docs.scenes.SettingsItemScene
 import com.dot.gallery.docs.scenes.DocsLongPressActionScene
 import com.dot.gallery.docs.scenes.DocsVisualSearchOptionsScene
+import com.dot.gallery.docs.scenes.seedDocsPrefs
 import com.dot.gallery.data.entity.SmartScanStatus
 import com.dot.gallery.docs.scenes.TimelineDateHeaderScene
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.data.fixture.DemoFixtures
 import com.dot.gallery.docs.scenes.docsLogoPainter
 import com.dot.gallery.domain.settings.ALIAS_REFRA
+import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.feature.settings.ui.CategoriesSettingsContent
 import com.dot.gallery.feature.settings.ui.CategoriesSettingsState
 import com.dot.gallery.feature.settings.ui.CloudIndexingProviderState
@@ -124,6 +126,7 @@ import com.dot.gallery.feature.settings.ui.SettingsSelectionActionsContent
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsActions
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsContent
 import com.dot.gallery.feature.settings.ui.TopBarSettingsDetail
+import com.dot.gallery.feature.settings.ui.ThumbnailBadgesSettingsDetail
 import com.dot.gallery.core.presentation.components.HomeShortcutSupport
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsState
 import com.dot.gallery.feature.settings.ui.SettingsNavigationContent
@@ -509,6 +512,15 @@ val sceneRegistry: List<DocsScene> = listOf(
         states = listOf("default", "selecting"),
     ) { state ->
         TopBarSettingsDetail(support = HomeShortcutSupport(), initialPreviewSelecting = state == "selecting")
+    },
+    DocsScene(
+        id = "settings-thumbnail-badges",
+        title = "Thumbnail badges settings",
+        pathTrace = listOf("Settings", "Timeline & albums", "Thumbnail badges"),
+        states = listOf("default", "resolution"),
+    ) { state ->
+        seedDocsPrefs(SettingsKeys.resolutionBadges to (state == "resolution"))
+        ThumbnailBadgesSettingsDetail(supportsFavorites = true)
     },
     DocsScene(
         id = "settings-media-viewer",

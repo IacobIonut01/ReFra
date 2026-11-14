@@ -601,6 +601,14 @@
     <string name="visual_search_vault_title">Allow on vault items</string>
     <string name="visual_search_with">Search with %1$s</string>
     <string name="favorite_icon_on_thumbnails">Favorite icon on thumbnails</string>
+    <string name="thumbnail_badges_title">Thumbnail badges</string>
+    <string name="thumbnail_badges_description">Choose the small labels shown on grid thumbnails. Resolution labels come from the photo details the app collects in the background, so newly added items show theirs once that catches up.</string>
+    <string name="thumbnail_badges_favorite_summary">Favorite: %1$s</string>
+    <string name="thumbnail_badges_resolution_summary">Resolution from %1$d MP</string>
+    <string name="resolution_badges_title">Resolution labels</string>
+    <string name="resolution_badges_summary">Megapixels on large photos, 4K or 8K on videos</string>
+    <string name="resolution_badges_threshold_title">Label photos from</string>
+    <string name="resolution_badges_mp">%1$d MP</string>
     <string name="fav_position_disabled">Hidden</string>
     <string name="fav_position_bottom_end">Bottom right</string>
     <string name="fav_position_bottom_start">Bottom left</string>
@@ -635,7 +643,6 @@
     <string name="allow_gif_animation_description">When enabled, GIF images play their animation directly in the timeline and album grids. Disable this to show static thumbnails instead, which can reduce lag in folders with many GIFs.</string>
     <string name="merge_albums_by_name_description">Combines albums that share the same name from different storage locations into a single album. Useful if you have media spread across internal storage and SD card.</string>
     <string name="timeline_layout_description">Choose how photos are arranged in the timeline grid. The uniform grid shows equal-sized thumbnails, while the mosaic layout varies sizes for a more dynamic look.</string>
-    <string name="favorite_icon_description">Choose where the favorite heart icon appears on thumbnails in the grid, or hide it entirely.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
     <string name="update_modified_date_title">Update modified date</string>

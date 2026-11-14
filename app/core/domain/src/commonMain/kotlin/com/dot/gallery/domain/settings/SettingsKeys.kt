@@ -204,6 +204,8 @@ object SettingsKeys {
     val homeShortcut = PrefKey.string("home_shortcut", default = "")
     val showHomeSelectButton = PrefKey.bool("show_home_select_button", default = true)
     val favoriteIconPosition = PrefKey.string("favorite_icon_position", default = FAV_ICON_BOTTOM_END)
+    val resolutionBadges = PrefKey.bool("resolution_badges", default = false)
+    val resolutionBadgeMinMp = PrefKey.int("resolution_badge_min_mp", default = 24)
     val albumGroupByDate = PrefKey.bool("album_group_by_date", default = true)
     val mergeAlbumsByName = PrefKey.bool("merge_albums_by_name", default = true)
     val albumSectionsEnabled = PrefKey.bool("album_sections_enabled", default = false)

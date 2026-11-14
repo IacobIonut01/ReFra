@@ -7,6 +7,7 @@ package com.dot.gallery.core.presentation.components
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
+import com.dot.gallery.data.entity.MediaMetadata
 import com.dot.gallery.domain.settings.FAV_ICON_BOTTOM_START
 import com.dot.gallery.domain.settings.FAV_ICON_DISABLED
 import com.dot.gallery.domain.settings.FAV_ICON_TOP_END
@@ -76,4 +77,31 @@ fun resolveCellBadgeLayout(
     val video = claim(CellCorner.TopEnd.takeIf { hasVideo })
     val status = claim(CellCorner.BottomStart.takeIf { hasStatus })
     return CellBadgeLayout(favorite = favorite, video = video, stack = stack, status = status)
+}
+
+/** Photo megapixel thresholds offered for resolution labels. */
+val ResolutionBadgeThresholdsMp: List<Int> = listOf(12, 24, 48, 100)
+
+/**
+ * The resolution label for a grid cell, or null when there is none to show. Photos get their
+ * megapixels, rounded ("50MP"), once that rounded figure reaches [minPhotoMegapixels]; videos get
+ * "4K" or "8K" from their shorter side, so portrait clips count too. Missing metadata or unknown
+ * dimensions give null: the grid never reads files to find out.
+ */
+fun resolutionBadgeLabel(metadata: MediaMetadata?, isVideo: Boolean, minPhotoMegapixels: Int): String? {
+    if (metadata == null) return null
+    if (isVideo) {
+        val width = metadata.videoWidth ?: metadata.imageWidth
+        val height = metadata.videoHeight ?: metadata.imageHeight
+        val shorter = minOf(width, height)
+        return when {
+            shorter >= 4320 -> "8K"
+            shorter >= 2160 -> "4K"
+            else -> null
+        }
+    }
+    val pixels = metadata.imageWidth.toLong() * metadata.imageHeight
+    if (pixels <= 0) return null
+    val megapixels = (pixels + 500_000) / 1_000_000
+    return if (megapixels >= minPhotoMegapixels) "${megapixels}MP" else null
 }

@@ -8,6 +8,7 @@ package com.dot.gallery.core.presentation.components
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf
 import com.dot.gallery.cloud.core.SyncState
+import com.dot.gallery.domain.settings.SettingsKeys
 
 /**
  * Per-grid hoist of the global flows every [MediaImage] cell would otherwise collect
@@ -25,6 +26,8 @@ data class MediaCellState(
     val cloudSyncStates: Map<Long, SyncState>,
     /** Local media ids that have at least one cloud backup (shows a small backup indicator). */
     val cloudBackedUpIds: Set<Long> = emptySet(),
+    val resolutionBadges: Boolean = false,
+    val resolutionBadgeMinMp: Int = SettingsKeys.resolutionBadgeMinMp.default,
 )
 
 /** Null by default: callers that don't provide it (search, picker) fall back to per-cell collection. */

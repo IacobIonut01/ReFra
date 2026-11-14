@@ -414,9 +414,11 @@ fun <T : Media> MosaicMediaGrid(
 
     Box {
         val favoriteIconPosition by rememberPreference(SettingsKeys.favoriteIconPosition)
+        val resolutionBadges by rememberPreference(SettingsKeys.resolutionBadges)
+        val resolutionBadgeMinMp by rememberPreference(SettingsKeys.resolutionBadgeMinMp)
         val cloudSyncStates by LocalMediaDistributor.current.cloudSyncStates.collectAsStateWithLifecycle()
-        val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates) {
-            MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates)
+        val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, resolutionBadges, resolutionBadgeMinMp, cloudSyncStates) {
+            MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, resolutionBadges = resolutionBadges, resolutionBadgeMinMp = resolutionBadgeMinMp)
         }
         // publish debounced scroll-motion for the mosaic grid too.
         val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })

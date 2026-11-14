@@ -106,6 +106,18 @@ class BackupModelsTest {
     }
 
     @Test
+    fun resolutionBadgeChoicesArePortable() {
+        assertEquals(
+            PortableSettingType.BOOLEAN,
+            PortableBackupSettings.typeFor(SettingsKeys.resolutionBadges.name)
+        )
+        assertEquals(
+            PortableSettingType.INT,
+            PortableBackupSettings.typeFor(SettingsKeys.resolutionBadgeMinMp.name)
+        )
+    }
+
+    @Test
     fun textRecognitionRestoresChoicesButNeverTheSwitchPacksOrFileGrants() {
         assertEquals(PortableSettingType.STRING, PortableBackupSettings.typeFor("ocr_mode"))
         assertEquals(PortableSettingType.BOOLEAN, PortableBackupSettings.typeFor("ocr_index_library"))

@@ -308,9 +308,15 @@ fun <T : Media> MediaImage(
         }
 
         val favIconPosition = cellState?.favoriteIconPosition ?: rememberPreference(SettingsKeys.favoriteIconPosition).value
+        val resolutionBadges = cellState?.resolutionBadges ?: rememberPreference(SettingsKeys.resolutionBadges).value
+        val resolutionMinMp = cellState?.resolutionBadgeMinMp ?: rememberPreference(SettingsKeys.resolutionBadgeMinMp).value
         val isBackedUp = cellState?.cloudBackedUpIds?.contains(media.id) == true
-        val hasStatus = (metadata?.isRelevant == true) || media.isCloud || isBackedUp
-        val badges = remember(favIconPosition, media.isFavorite, media.isVideo, stackCount, hasStatus, selectionState) {
+        val showStatusIcons = (metadata?.isRelevant == true) || media.isCloud || isBackedUp
+        val resolutionLabel = remember(metadata, media.isVideo, resolutionBadges, resolutionMinMp) {
+            if (resolutionBadges) resolutionBadgeLabel(metadata, media.isVideo, resolutionMinMp) else null
+        }
+        val hasStatus = showStatusIcons || resolutionLabel != null
+        val badges = remember(favIconPosition, media.isFavorite, media.isVideo, stackCount, hasStatus, resolutionLabel, selectionState) {
             resolveCellBadgeLayout(
                 favoritePosition = favIconPosition,
                 isFavorite = media.isFavorite,
@@ -320,7 +326,8 @@ fun <T : Media> MediaImage(
                 selectionActive = selectionState,
             )
         }
-        val statusAlignment = (badges.status ?: CellCorner.BottomStart).alignment
+        val statusCorner = badges.status ?: CellCorner.BottomStart
+        val statusAlignment = statusCorner.alignment
 
         if (media.isVideo) {
             VideoDurationHeader(
@@ -377,83 +384,101 @@ fun <T : Media> MediaImage(
             )
         }
 
-        if (metadata != null && metadata!!.isRelevant) {
-            Icon(
+        if (showStatusIcons || resolutionLabel != null) {
+            // The pill sits on the side toward the cell's centre: after the icons on start
+            // corners, before them on end corners.
+            val pillBeforeIcons = statusCorner == CellCorner.TopEnd || statusCorner == CellCorner.BottomEnd
+            Row(
                 modifier = Modifier
                     .align(statusAlignment)
-                    .padding(selectedSize / 1.5f)
-                    .scale(scale)
-                    .padding(8.dp)
-                    .size(16.dp)
-                    .advancedShadow(
-                        cornersRadius = 8.dp,
-                        shadowBlurRadius = 6.dp,
-                        alpha = 0.3f
-                    ),
-                imageVector = metadata!!.getIcon()!!,
-                tint = Color.White,
-                contentDescription = null
-            )
-        }
+                    .padding(selectedSize / 1.5f),
+                verticalAlignment = if (statusCorner == CellCorner.BottomStart || statusCorner == CellCorner.BottomEnd) {
+                    Alignment.Bottom
+                } else {
+                    Alignment.Top
+                }
+            ) {
+                if (pillBeforeIcons && resolutionLabel != null) {
+                    ResolutionBadgePill(resolutionLabel, scale)
+                }
+                if (showStatusIcons) {
+                    Box(contentAlignment = statusAlignment) {
+                        if (metadata != null && metadata!!.isRelevant) {
+                            Icon(
+                                modifier = Modifier
+                                    .scale(scale)
+                                    .padding(8.dp)
+                                    .size(16.dp)
+                                    .advancedShadow(
+                                        cornersRadius = 8.dp,
+                                        shadowBlurRadius = 6.dp,
+                                        alpha = 0.3f
+                                    ),
+                                imageVector = metadata!!.getIcon()!!,
+                                tint = Color.White,
+                                contentDescription = null
+                            )
+                        }
 
-        if (media.isCloud) {
-            val syncStates = cellState?.cloudSyncStates
-                ?: LocalMediaDistributor.current.cloudSyncStates.collectAsStateWithLifecycle().value
-            val syncState = syncStates[media.id]
-            val syncIcon = when (syncState) {
-                SyncState.SYNCED -> Icons.Outlined.CloudDone
-                SyncState.CONFLICT -> Icons.Outlined.CloudOff
-                else -> Icons.Outlined.Cloud
+                        if (media.isCloud) {
+                            val syncStates = cellState?.cloudSyncStates
+                                ?: LocalMediaDistributor.current.cloudSyncStates.collectAsStateWithLifecycle().value
+                            val syncState = syncStates[media.id]
+                            val syncIcon = when (syncState) {
+                                SyncState.SYNCED -> Icons.Outlined.CloudDone
+                                SyncState.CONFLICT -> Icons.Outlined.CloudOff
+                                else -> Icons.Outlined.Cloud
+                            }
+                            val showProgress =
+                                syncState == SyncState.DOWNLOADING || syncState == SyncState.UPLOAD_PENDING
+                            if (showProgress) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .scale(scale)
+                                        .padding(6.dp)
+                                        .size(10.dp),
+                                    strokeWidth = 1.5.dp,
+                                    color = Color.White
+                                )
+                            } else {
+                                Icon(
+                                    modifier = Modifier
+                                        .scale(scale)
+                                        .padding(6.dp)
+                                        .size(10.dp)
+                                        .advancedShadow(
+                                            cornersRadius = 5.dp,
+                                            shadowBlurRadius = 4.dp,
+                                            alpha = 0.3f
+                                        ),
+                                    imageVector = syncIcon,
+                                    tint = Color.White.copy(alpha = 0.7f),
+                                    contentDescription = null
+                                )
+                            }
+                        } else if (isBackedUp) {
+                            // Local media that is backed up on at least one cloud provider.
+                            Icon(
+                                modifier = Modifier
+                                    .scale(scale)
+                                    .padding(6.dp)
+                                    .size(10.dp)
+                                    .advancedShadow(
+                                        cornersRadius = 5.dp,
+                                        shadowBlurRadius = 4.dp,
+                                        alpha = 0.3f
+                                    ),
+                                imageVector = Icons.Outlined.CloudDone,
+                                tint = Color.White.copy(alpha = 0.7f),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+                if (!pillBeforeIcons && resolutionLabel != null) {
+                    ResolutionBadgePill(resolutionLabel, scale)
+                }
             }
-            val showProgress =
-                syncState == SyncState.DOWNLOADING || syncState == SyncState.UPLOAD_PENDING
-            if (showProgress) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(statusAlignment)
-                        .padding(selectedSize / 1.5f)
-                        .scale(scale)
-                        .padding(6.dp)
-                        .size(10.dp),
-                    strokeWidth = 1.5.dp,
-                    color = Color.White
-                )
-            } else {
-                Icon(
-                    modifier = Modifier
-                        .align(statusAlignment)
-                        .padding(selectedSize / 1.5f)
-                        .scale(scale)
-                        .padding(6.dp)
-                        .size(10.dp)
-                        .advancedShadow(
-                            cornersRadius = 5.dp,
-                            shadowBlurRadius = 4.dp,
-                            alpha = 0.3f
-                        ),
-                    imageVector = syncIcon,
-                    tint = Color.White.copy(alpha = 0.7f),
-                    contentDescription = null
-                )
-            }
-        } else if (isBackedUp) {
-            // Local media that is backed up on at least one cloud provider.
-            Icon(
-                modifier = Modifier
-                    .align(statusAlignment)
-                    .padding(selectedSize / 1.5f)
-                    .scale(scale)
-                    .padding(6.dp)
-                    .size(10.dp)
-                    .advancedShadow(
-                        cornersRadius = 5.dp,
-                        shadowBlurRadius = 4.dp,
-                        alpha = 0.3f
-                    ),
-                imageVector = Icons.Outlined.CloudDone,
-                tint = Color.White.copy(alpha = 0.7f),
-                contentDescription = null
-            )
         }
 
         if (selectionState) {
@@ -473,6 +498,25 @@ fun <T : Media> MediaImage(
                 )
             }
         }
+    }
+}
+
+/** The resolution label pill, styled like the stack-count badge. */
+@Composable
+private fun ResolutionBadgePill(label: String, scale: Float) {
+    Box(
+        modifier = Modifier
+            .scale(scale)
+            .padding(6.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color.Black.copy(alpha = 0.45f))
+            .padding(horizontal = 5.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = label,
+            color = Color.White,
+            style = MaterialTheme.typography.labelSmall
+        )
     }
 }
 
