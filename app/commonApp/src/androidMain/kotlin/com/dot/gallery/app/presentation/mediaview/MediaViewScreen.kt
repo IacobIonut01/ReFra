@@ -723,6 +723,21 @@ internal fun isViewerNavigationChromeVisible(
 ): Boolean = transitionSettled && !transitionRunning
 
 /**
+ * Progress of the info sheet from [from] to [to], or 0 while the sheet has no measured anchors.
+ * The sheet state is rebuilt whenever the image-only detent height changes, which happens on
+ * every frame of the navigation bar inset animation when the chrome is toggled, and an
+ * unmeasured state reports a progress of 1. Read as 1, the quick-action bar drops a bar height
+ * for that frame and its blur layer keeps the clipped bounds it measured there, so the capsule
+ * stays chopped after the bar returns.
+ */
+internal fun BottomSheetState.measuredProgress(from: SheetDetent, to: SheetDetent): Float =
+    measuredSheetProgress(offset, progress(from, to))
+
+/** [progress] once the sheet has travelled [offsetPx] from the bottom; 0 before it is measured. */
+internal fun measuredSheetProgress(offsetPx: Float, progress: Float): Float =
+    if (offsetPx > 0f) progress else 0f
+
+/**
  * Frames spent watching for an entry transition that has not registered its animations yet.
  * Covers the first composed frame of a viewer, where `isRunning` is still false (see
  * [isViewerNavigationChromeVisible]); reaching the end means no transition is coming.
@@ -1629,7 +1644,7 @@ fun <T : Media> MediaViewScreen(
                 !isVideoZoomed &&
                 !isCutoutActive &&
                 sheetState.currentDetent == imageOnlyDetent &&
-                sheetState.progress(imageOnlyDetent, expandedDetent) == 0f &&
+                sheetState.measuredProgress(imageOnlyDetent, expandedDetent) == 0f &&
                 !pagerState.isScrollInProgress
         val tapNavigationTarget: (TapNavigationZone) -> Int? = { zone ->
             if (canNavigateByTap) {
@@ -1741,7 +1756,7 @@ fun <T : Media> MediaViewScreen(
                     !isCutoutActive &&
                     !pagerState.isScrollInProgress &&
                     sheetState.currentDetent == imageOnlyDetent &&
-                    sheetState.progress(imageOnlyDetent, expandedDetent) == 0f,
+                    sheetState.measuredProgress(imageOnlyDetent, expandedDetent) == 0f,
         )
         LaunchedEffect(tapNavigationPromptEligible) {
             if (tapNavigationPromptEligible && !tapNavigationPromptClaimed) {
@@ -2146,7 +2161,7 @@ fun <T : Media> MediaViewScreen(
                 cutoutActive = isCutoutActive,
                 slideshowActive = slideshowActive,
                 pagerScrolling = pagerState.isScrollInProgress,
-                sheetOpening = sheetState.progress(imageOnlyDetent, expandedDetent) != 0f,
+                sheetOpening = sheetState.measuredProgress(imageOnlyDetent, expandedDetent) != 0f,
                 selectingText = textSelection.active,
                 swipeToDismissEnabled = viewerSwipeToDismiss,
             )
@@ -2648,7 +2663,7 @@ fun <T : Media> MediaViewScreen(
                                                 // make it vanish mid-swipe.
                                                 val sheetMoved = withTimeoutOrNull(2.seconds) {
                                                     snapshotFlow {
-                                                        sheetState.progress(
+                                                        sheetState.measuredProgress(
                                                             imageOnlyDetent,
                                                             expandedDetent
                                                         )
@@ -2656,7 +2671,7 @@ fun <T : Media> MediaViewScreen(
                                                 }
                                                 if (sheetMoved == null &&
                                                     sheetState.currentDetent == imageOnlyDetent &&
-                                                    sheetState.progress(
+                                                    sheetState.measuredProgress(
                                                         imageOnlyDetent,
                                                         expandedDetent
                                                     ) == 0f
@@ -2989,7 +3004,7 @@ fun <T : Media> MediaViewScreen(
                         // full expand. Read inside a lambda so it re-evaluates per frame without
                         // recomposing the whole app bar.
                         topExtrasAlpha = {
-                            1f - sheetState.progress(imageOnlyDetent, expandedDetent)
+                            1f - sheetState.measuredProgress(imageOnlyDetent, expandedDetent)
                                 .coerceIn(0f, 1f)
                         },
                         isImageDark = isTopDark,
@@ -3177,7 +3192,7 @@ fun <T : Media> MediaViewScreen(
                         .align(Alignment.BottomCenter)
                         .graphicsLayer {
                             translationY =
-                                bottomBarHeightDefault.toPx() * sheetState.progress(
+                                bottomBarHeightDefault.toPx() * sheetState.measuredProgress(
                                     imageOnlyDetent,
                                     expandedDetent
                                 )
@@ -3269,7 +3284,7 @@ fun <T : Media> MediaViewScreen(
                 // otherwise freeze the sheet at a mid-offset and, since its alpha is tied to showUI,
                 // leave it invisible-but-still-interactive instead of dismissed.
                 LaunchedEffect(showUI) {
-                    if (!showUI && sheetState.progress(imageOnlyDetent, expandedDetent) > 0f) {
+                    if (!showUI && sheetState.measuredProgress(imageOnlyDetent, expandedDetent) > 0f) {
                         sheetState.animateToOrJump(imageOnlyDetent, sharedElementsEnabled)
                     }
                 }
@@ -3343,7 +3358,7 @@ fun <T : Media> MediaViewScreen(
                                     modifier = Modifier
                                         .graphicsLayer {
                                             val progress =
-                                                sheetState.progress(imageOnlyDetent, expandedDetent)
+                                                sheetState.measuredProgress(imageOnlyDetent, expandedDetent)
                                             alpha = 1f - progress
                                             translationY =
                                                 bottomBarHeightDefault.toPx() * progress
