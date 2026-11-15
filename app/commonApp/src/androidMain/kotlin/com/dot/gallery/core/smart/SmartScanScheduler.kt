@@ -133,12 +133,17 @@ class SmartScanSchedulerImpl @Inject constructor(
         fullRefresh = false
     )
 
-    override suspend fun fullRefresh(): SmartScanScheduleResult = schedule(
-        features = SmartScanFeature.ALL_MASK,
-        trigger = SmartScanTrigger.MANUAL,
-        userVisible = true,
-        fullRefresh = true
-    )
+    override suspend fun fullRefresh(features: Int): SmartScanScheduleResult {
+        require(features and SmartScanFeature.ALL_MASK != 0) { "At least one Smart Scan feature is required" }
+        require(features and SmartScanFeature.ALL_MASK.inv() == 0) { "Unknown Smart Scan feature bits" }
+        return schedule(
+            features = features,
+            trigger = SmartScanTrigger.MANUAL,
+            userVisible = true,
+            fullRefresh = features == SmartScanFeature.ALL_MASK,
+            fullRefreshFeatures = features
+        )
+    }
 
     /**
      * Run only the grouping phase over already-indexed faces — no media re-scan.
@@ -183,7 +188,8 @@ class SmartScanSchedulerImpl @Inject constructor(
             features = failed.requestedFeatures,
             trigger = SmartScanTrigger.RECOVERY,
             userVisible = failed.userVisible,
-            fullRefresh = failed.fullRefresh
+            fullRefresh = failed.fullRefresh,
+            fullRefreshFeatures = failed.fullRefreshFeatures
         )
     }
 
@@ -197,9 +203,10 @@ class SmartScanSchedulerImpl @Inject constructor(
         features: Int,
         trigger: SmartScanTrigger,
         userVisible: Boolean,
-        fullRefresh: Boolean
+        fullRefresh: Boolean,
+        fullRefreshFeatures: Int = 0
     ): SmartScanScheduleResult = schedulingMutex.withLock {
-        scheduleLocked(features, trigger, userVisible, fullRefresh)
+        scheduleLocked(features, trigger, userVisible, fullRefresh, fullRefreshFeatures = fullRefreshFeatures)
     }
 
     private suspend fun scheduleLocked(
@@ -207,6 +214,7 @@ class SmartScanSchedulerImpl @Inject constructor(
         trigger: SmartScanTrigger,
         userVisible: Boolean,
         fullRefresh: Boolean,
+        fullRefreshFeatures: Int = 0,
         onlyPhases: Set<SmartScanPhase>? = null
     ): SmartScanScheduleResult {
         require(features and SmartScanFeature.ALL_MASK != 0) { "At least one Smart Scan feature is required" }
@@ -225,6 +233,7 @@ class SmartScanSchedulerImpl @Inject constructor(
             requestedFeatures = expanded,
             userVisible = userVisible,
             fullRefresh = fullRefresh,
+            fullRefreshFeatures = fullRefreshFeatures,
             workId = work.id,
             requestedAt = now,
             updatedAt = now

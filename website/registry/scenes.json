@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-14T10:56:19.984Z",
+  "generatedAt": "2026-11-15T10:40:35.038Z",
   "capturedAtMs": 1794653721359,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
   ],
-  "sceneCount": 112,
+  "sceneCount": 113,
   "scenes": {
     "album-transfer": {
       "id": "album-transfer",
@@ -13508,6 +13508,27 @@
           }
         }
       }
+    },
+    "settings-smart-scan-full-refresh": {
+      "id": "settings-smart-scan-full-refresh",
+      "title": "Full refresh",
+      "path": [
+        "Settings",
+        "Smart Features",
+        "Smart Features data",
+        "Full refresh"
+      ],
+      "states": [
+        "all-ready",
+        "models-missing"
+      ],
+      "presentation": "screen",
+      "widthDp": 412,
+      "heightDp": 915,
+      "live": false,
+      "fidelity": "pending",
+      "assets": {},
+      "themes": {}
     },
     "settings-thumbnail-badges": {
       "id": "settings-thumbnail-badges",

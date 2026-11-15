@@ -6,6 +6,7 @@
 package com.dot.gallery.core.smart
 
 import com.dot.gallery.data.dao.SmartScanScheduleResult
+import com.dot.gallery.data.entity.SmartScanFeature
 
 /**
  * Schedules SmartScan runs through WorkManager. The implementation lives in `:app`
@@ -21,7 +22,11 @@ interface SmartScanScheduler {
 
     suspend fun all(userVisible: Boolean = true): SmartScanScheduleResult
 
-    suspend fun fullRefresh(): SmartScanScheduleResult
+    /**
+     * Reprocess every item for the given feature mask (default: the whole library).
+     * Results stay usable until replaced; nothing is deleted.
+     */
+    suspend fun fullRefresh(features: Int = SmartScanFeature.ALL_MASK): SmartScanScheduleResult
 
     /**
      * Run only the grouping phase over already-indexed faces — no media re-scan.

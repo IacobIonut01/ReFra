@@ -29,6 +29,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +55,7 @@ import com.dot.gallery.docs.scenes.SettingsItemScene
 import com.dot.gallery.docs.scenes.DocsLongPressActionScene
 import com.dot.gallery.docs.scenes.DocsVisualSearchOptionsScene
 import com.dot.gallery.docs.scenes.seedDocsPrefs
+import com.dot.gallery.data.entity.SmartScanFeature
 import com.dot.gallery.data.entity.SmartScanStatus
 import com.dot.gallery.docs.scenes.TimelineDateHeaderScene
 import com.dot.gallery.cloud.core.ProviderType
@@ -70,6 +76,9 @@ import com.dot.gallery.feature.settings.ui.SlideshowSettingsContent
 import com.dot.gallery.feature.settings.ui.SettingsSecurityContent
 import com.dot.gallery.feature.settings.ui.SmartScanDetailContent
 import com.dot.gallery.feature.settings.ui.SmartScanDetailState
+import com.dot.gallery.feature.settings.ui.SmartScanFullRefreshSheetContent
+import com.dot.gallery.core.presentation.components.ExpressiveSheet
+import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.feature.settings.ui.SettingsSecurityState
 import com.dot.gallery.feature.settings.ui.SmartFeaturesScreenContent
 import com.dot.gallery.feature.settings.ui.SmartFeaturesScreenState
@@ -371,6 +380,44 @@ val sceneRegistry: List<DocsScene> = listOf(
                 initialFirstVisibleItemScrollOffset = if (state == "scrolled") 60 else 0,
             ),
         )
+    },
+    DocsScene(
+        id = "settings-smart-scan-full-refresh",
+        title = "Full refresh",
+        pathTrace = listOf("Settings", "Smart Features", "Smart Features data", "Full refresh"),
+        states = listOf("all-ready", "models-missing"),
+        captureWindow = true,
+    ) { state ->
+        val nowSec = DOCS_DEMO_EPOCH_SECONDS
+        val modelsReady = state != "models-missing"
+        SmartScanDetailContent(
+            state = SmartScanDetailState(
+                latestScan = DemoFixtures.smartScanRun(nowSec).copy(
+                    status = SmartScanStatus.SUCCEEDED,
+                    finishedAt = nowSec * 1_000L,
+                ),
+                searchReady = modelsReady,
+                personsReady = modelsReady,
+            ),
+        )
+        val sheetState = rememberAppBottomSheetState()
+        LaunchedEffect(Unit) { sheetState.show() }
+        var selected by remember {
+            mutableIntStateOf(
+                if (modelsReady) SmartScanFeature.ALL_MASK
+                else SmartScanFeature.METADATA.bit or SmartScanFeature.TEXT.bit
+            )
+        }
+        ExpressiveSheet(sheetState = sheetState) {
+            SmartScanFullRefreshSheetContent(
+                selected = selected,
+                searchReady = modelsReady,
+                personsReady = modelsReady,
+                onToggle = { feature -> selected = selected xor feature.bit },
+                onDismiss = {},
+                onConfirm = {},
+            )
+        }
     },
     DocsScene(
         id = "settings-session-logs",

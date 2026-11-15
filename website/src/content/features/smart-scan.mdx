@@ -7,7 +7,7 @@ path:
   - Smart Features
   - Smart Features data
 related: [smart-features, ai-models, categories, people, remote-inference]
-scenes: [settings-smart-scan]
+scenes: [settings-smart-scan, settings-smart-scan-full-refresh]
 order: 7
 ---
 
@@ -17,7 +17,17 @@ order: 7
 
 The page opens with the rebuild control, ahead of the per-feature refresh rows:
 
-- **Full refresh**: reprocesses every item even where its data is already complete. Slower, but the way to force a clean rebuild after changing models or fixing a bad scan.
+- **Full refresh**: reprocesses every item for the data you choose, even where that data is already complete. Slower than a refresh, but the way to force a clean rebuild after changing models or fixing a bad scan.
+
+Tapping **Full refresh** opens a sheet with a checkbox for each kind of data: **Metadata**, **Search embeddings**, **Categories**, **People**, and **Text in photos**. Every kind whose models are installed starts checked; kinds whose models are missing are greyed out. Clear the ones you want to keep, then tap **Rebuild**, which stays disabled while nothing is checked.
+
+<PreviewCollection feature="smart-scan" section="rebuild-data" />
+
+- Current results stay in use until the rebuild replaces them. Nothing is deleted first, so search, categories, and people keep working during the scan.
+- Only the checked kinds are reprocessed in full. Rebuilding **Categories** alone re-matches every item against your categories and fills in missing search embeddings first, without recomputing the ones already stored.
+- **People** covers both finding faces and grouping them.
+- Any rebuild re-reads the library before it starts. Checking all five is the same as a whole-library rebuild.
+- Starting a rebuild while a scan runs adds the checked kinds to that scan instead of starting a second one, and **Retry failed Smart Features items** keeps the same selection.
 
 ## Refresh data
 

@@ -15,7 +15,7 @@ class SmartScanDetailActions(
     val onPersons: () -> Unit = {},
     val onText: () -> Unit = {},
     val onAll: () -> Unit = {},
-    val onFullRefresh: () -> Unit = {},
+    val onFullRefresh: (features: Int) -> Unit = {},
     val onCancel: () -> Unit = {},
     val onRetry: () -> Unit = {},
 )

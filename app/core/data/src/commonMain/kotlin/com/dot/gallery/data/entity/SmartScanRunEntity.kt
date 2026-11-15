@@ -28,6 +28,8 @@ data class SmartScanRunEntity(
     val userVisible: Boolean = false,
     @ColumnInfo(defaultValue = "0")
     val fullRefresh: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val fullRefreshFeatures: Int = 0,
     val workId: String? = null,
     val currentPhase: SmartScanPhase? = null,
     @ColumnInfo(defaultValue = "'queued'")

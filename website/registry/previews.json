@@ -133,6 +133,13 @@
         "title": "A scan in progress",
         "caption": "Read the stage and progress while ReFra checks the example library.",
         "section": "reading-the-status"
+      },
+      {
+        "scene": "settings-smart-scan-full-refresh",
+        "state": "all-ready",
+        "title": "Choosing what to rebuild",
+        "caption": "The Full refresh sheet with every kind of data checked.",
+        "section": "rebuild-data"
       }
     ],
     "categories": [

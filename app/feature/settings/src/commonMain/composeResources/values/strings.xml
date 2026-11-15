@@ -123,7 +123,9 @@
     <string name="smart_scan_face_models_unavailable">Face detection and recognition models are required</string>
     <string name="smart_scan_rebuild_header">Rebuild</string>
     <string name="smart_scan_full_refresh">Full refresh</string>
-    <string name="smart_scan_full_refresh_summary">Reprocess every item, even ones already complete</string>
+    <string name="smart_scan_full_refresh_summary">Reprocess every item for the data you choose, even ones already complete</string>
+    <string name="smart_scan_full_refresh_sheet_body">Choose the data to rebuild. Every item is reprocessed for it, and current results stay usable until they're replaced.</string>
+    <string name="smart_scan_full_refresh_confirm">Rebuild</string>
     <string name="scanning_media">Scanning media…</string>
     <string name="scan_for_new_categories">Scan for new categories</string>
     <string name="ai_models_not_available">AI models are not downloaded. Download them from Settings → Smart Features.</string>

@@ -273,8 +273,8 @@ class SmartFeaturesViewModel @Inject constructor(
         viewModelScope.launch { smartScanScheduler.all(userVisible = true) }
     }
 
-    fun fullRefresh() {
-        viewModelScope.launch { smartScanScheduler.fullRefresh() }
+    fun fullRefresh(features: Int = SmartScanFeature.ALL_MASK) {
+        viewModelScope.launch { smartScanScheduler.fullRefresh(features) }
     }
 
     fun cancelActiveScan() {

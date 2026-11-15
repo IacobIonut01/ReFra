@@ -156,10 +156,12 @@ class SmartScanWorker @Inject constructor(
                 "run_lease_lost"
             }
             publishAggregate()
-            val phaseFullRefresh = run.fullRefresh
+            val phaseFullRefresh = SmartScanPlan.isPhaseFullRefresh(run, phase)
             val outcome = runProcessorWithHeartbeat(processor, run.sourceSnapshot, phaseFullRefresh)
             finishPhase(phase, outcome)
-            if (!phaseFullRefresh && dao.getRun(runId)?.fullRefresh == true) {
+            if (!phaseFullRefresh &&
+                dao.getRun(runId)?.let { SmartScanPlan.isPhaseFullRefresh(it, phase) } == true
+            ) {
                 dao.requeueTerminalPhase(runId, phase, System.currentTimeMillis())
             }
         } catch (cancelled: CancellationException) {

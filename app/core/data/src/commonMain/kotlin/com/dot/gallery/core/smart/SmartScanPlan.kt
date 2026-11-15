@@ -28,6 +28,33 @@ object SmartScanPlan {
 
     fun shouldProcess(fullRefresh: Boolean, isCurrent: Boolean): Boolean = fullRefresh || !isCurrent
 
+    /** The SmartScanFeature a phase belongs to, or null for SOURCE_SYNC which serves every feature. */
+    fun featureFor(phase: SmartScanPhase): SmartScanFeature? = when (phase) {
+        SmartScanPhase.METADATA -> SmartScanFeature.METADATA
+        SmartScanPhase.SEARCH_INDEX -> SmartScanFeature.EMBEDDINGS
+        SmartScanPhase.CATEGORY_CLASSIFICATION -> SmartScanFeature.CATEGORIES
+        SmartScanPhase.FACE_INDEX, SmartScanPhase.FACE_CLUSTER -> SmartScanFeature.PERSONS
+        SmartScanPhase.OCR_INDEX -> SmartScanFeature.TEXT
+        SmartScanPhase.SOURCE_SYNC -> null
+    }
+
+    /**
+     * Whether [phase] reprocesses every item in this run: the whole-library rebuild
+     * ([fullRefresh]), any scoped rebuild for SOURCE_SYNC, or a scoped rebuild naming the
+     * phase's feature in [fullRefreshFeatures]. The mask is not dependency-expanded, so a
+     * Categories rebuild leaves Search embeddings incremental.
+     */
+    fun isPhaseFullRefresh(
+        fullRefresh: Boolean,
+        fullRefreshFeatures: Int,
+        phase: SmartScanPhase
+    ): Boolean = fullRefresh ||
+        (phase == SmartScanPhase.SOURCE_SYNC && fullRefreshFeatures != 0) ||
+        (featureFor(phase)?.let { it.bit and fullRefreshFeatures != 0 } == true)
+
+    fun isPhaseFullRefresh(run: SmartScanRunEntity, phase: SmartScanPhase): Boolean =
+        isPhaseFullRefresh(run.fullRefresh, run.fullRefreshFeatures, phase)
+
     fun phasesFor(features: Int): List<SmartScanPhase> {
         val expanded = expandedFeatures(features)
         return buildList {

@@ -22,6 +22,7 @@ import com.dot.gallery.domain.model.ImageEmbedding
 import com.dot.gallery.domain.model.MediaCategory
 import com.dot.gallery.data.FloatVectorCodec
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.nio.ByteBuffer
@@ -691,6 +692,82 @@ class SmartScanPlanTest {
                 isLocked = { it == 2L }
             )
         )
+    }
+
+    @Test
+    fun featureForMapsEachPhaseToItsFeature() {
+        assertEquals(SmartScanFeature.METADATA, SmartScanPlan.featureFor(SmartScanPhase.METADATA))
+        assertEquals(SmartScanFeature.EMBEDDINGS, SmartScanPlan.featureFor(SmartScanPhase.SEARCH_INDEX))
+        assertEquals(
+            SmartScanFeature.CATEGORIES,
+            SmartScanPlan.featureFor(SmartScanPhase.CATEGORY_CLASSIFICATION)
+        )
+        assertEquals(SmartScanFeature.PERSONS, SmartScanPlan.featureFor(SmartScanPhase.FACE_INDEX))
+        assertEquals(SmartScanFeature.PERSONS, SmartScanPlan.featureFor(SmartScanPhase.FACE_CLUSTER))
+        assertEquals(SmartScanFeature.TEXT, SmartScanPlan.featureFor(SmartScanPhase.OCR_INDEX))
+        assertEquals(null, SmartScanPlan.featureFor(SmartScanPhase.SOURCE_SYNC))
+    }
+
+    @Test
+    fun wholeLibraryRefreshForcesEveryPhase() {
+        SmartScanPhase.entries.forEach { phase ->
+            assertTrue(
+                "expected full refresh for ${phase.name}",
+                SmartScanPlan.isPhaseFullRefresh(fullRefresh = true, fullRefreshFeatures = 0, phase = phase)
+            )
+        }
+    }
+
+    @Test
+    fun scopedRefreshForcesOnlyTheNamedFeaturesPhases() {
+        val categories = SmartScanFeature.CATEGORIES.bit
+
+        assertTrue(SmartScanPlan.isPhaseFullRefresh(false, categories, SmartScanPhase.CATEGORY_CLASSIFICATION))
+        assertTrue(SmartScanPlan.isPhaseFullRefresh(false, categories, SmartScanPhase.SOURCE_SYNC))
+        // The mask is not dependency-expanded: Categories alone leaves Search embeddings incremental.
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, categories, SmartScanPhase.SEARCH_INDEX))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, categories, SmartScanPhase.METADATA))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, categories, SmartScanPhase.FACE_INDEX))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, categories, SmartScanPhase.OCR_INDEX))
+    }
+
+    @Test
+    fun personsRefreshForcesBothFacePhases() {
+        val persons = SmartScanFeature.PERSONS.bit
+
+        assertTrue(SmartScanPlan.isPhaseFullRefresh(false, persons, SmartScanPhase.FACE_INDEX))
+        assertTrue(SmartScanPlan.isPhaseFullRefresh(false, persons, SmartScanPhase.FACE_CLUSTER))
+        assertTrue(SmartScanPlan.isPhaseFullRefresh(false, persons, SmartScanPhase.SOURCE_SYNC))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, persons, SmartScanPhase.METADATA))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, persons, SmartScanPhase.SEARCH_INDEX))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, persons, SmartScanPhase.CATEGORY_CLASSIFICATION))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(false, persons, SmartScanPhase.OCR_INDEX))
+    }
+
+    @Test
+    fun emptyMaskAndNoFullRefreshForcesNothing() {
+        SmartScanPhase.entries.forEach { phase ->
+            assertFalse(
+                "expected incremental for ${phase.name}",
+                SmartScanPlan.isPhaseFullRefresh(fullRefresh = false, fullRefreshFeatures = 0, phase = phase)
+            )
+        }
+    }
+
+    @Test
+    fun runScopedFullRefreshReadsEntityFlags() {
+        val run = SmartScanRunEntity(
+            runId = "run",
+            trigger = SmartScanTrigger.MANUAL,
+            requestedFeatures = SmartScanFeature.CATEGORIES.bit or SmartScanFeature.EMBEDDINGS.bit,
+            fullRefreshFeatures = SmartScanFeature.CATEGORIES.bit,
+            requestedAt = 1L
+        )
+
+        assertTrue(SmartScanPlan.isPhaseFullRefresh(run, SmartScanPhase.CATEGORY_CLASSIFICATION))
+        assertTrue(SmartScanPlan.isPhaseFullRefresh(run, SmartScanPhase.SOURCE_SYNC))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(run, SmartScanPhase.SEARCH_INDEX))
+        assertFalse(SmartScanPlan.isPhaseFullRefresh(run, SmartScanPhase.METADATA))
     }
 
     @Test

@@ -525,7 +525,7 @@
     <string name="help_tip_ai_indexing_p1_title">Checkpointed Smart scans</string>
     <string name="help_tip_ai_indexing_p1_desc">Once AI models are installed, ReFra processes your library in recoverable stages that power Smart Search, categories, and people. Progress is checkpointed, so interrupted work resumes instead of starting over, while unchanged and already-current results are skipped.</string>
     <string name="help_tip_ai_indexing_p2_title">Indexing details</string>
-    <string name="help_tip_ai_indexing_p2_desc">Smart scans are scheduled to limit battery and performance impact. You can monitor each stage, retry failures, or request a full refresh from Smart Features settings. New and changed media is picked up automatically.</string>
+    <string name="help_tip_ai_indexing_p2_desc">Smart scans are scheduled to limit battery and performance impact. You can monitor each stage, retry failures, or rebuild everything or only the data you choose from Smart Features settings. New and changed media is picked up automatically.</string>
 
     <!-- ALBUMS &amp; COLLECTIONS -->
     <string name="help_tip_albums_browse_title">Browse albums</string>

@@ -148,7 +148,7 @@ import com.dot.gallery.data.Converters
         CloudTagEntity::class,
         CloudMediaTagEntity::class
     ],
-    version = 57,
+    version = 58,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -210,6 +210,7 @@ import com.dot.gallery.data.Converters
         // (selectable search engines: purge foreign-dimension embeddings, normalize thresholds)
         AutoMigration(from = 54, to = 55), // collection_excluded_media
         AutoMigration(from = 55, to = 56), // categories.coverMediaId (user-picked category cover)
+        AutoMigration(from = 57, to = 58), // smart_scan_runs.fullRefreshFeatures (per-feature full refresh)
     ]
 )
 @ColumnTypeConverters(Converters::class, CloudConverters::class, SmartScanConverters::class)

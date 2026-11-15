@@ -11,6 +11,7 @@ import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.Upsert
+import com.dot.gallery.core.smart.SmartScanPlan
 import com.dot.gallery.data.entity.MediaFeature
 import com.dot.gallery.data.entity.MediaFeatureStateEntity
 import com.dot.gallery.data.entity.MediaFeatureStatus
@@ -76,6 +77,7 @@ interface SmartScanDao {
         SET requestedFeatures = requestedFeatures | :features,
             userVisible = CASE WHEN :userVisible = 1 THEN 1 ELSE userVisible END,
             fullRefresh = CASE WHEN :fullRefresh = 1 THEN 1 ELSE fullRefresh END,
+            fullRefreshFeatures = fullRefreshFeatures | :fullRefreshFeatures,
             trigger = CASE WHEN :userVisible = 1 THEN 'manual' ELSE trigger END,
             updatedAt = :now
         WHERE runId = :runId AND status IN ('queued', 'running')
@@ -86,6 +88,7 @@ interface SmartScanDao {
         features: Int,
         userVisible: Boolean,
         fullRefresh: Boolean,
+        fullRefreshFeatures: Int,
         now: Long
     ): Int
 
@@ -226,12 +229,21 @@ interface SmartScanDao {
                 run.requestedFeatures,
                 run.userVisible,
                 run.fullRefresh,
+                run.fullRefreshFeatures,
                 run.updatedAt
             )
             val activePhases = phases.map { it.copy(runId = active.runId) }
             insertPhasesIfAbsent(activePhases)
-            if (run.fullRefresh) {
-                activePhases.forEach { requeueTerminalPhase(active.runId, it.phase, run.updatedAt) }
+            // A whole-library rebuild requeues every incoming phase; a scoped rebuild
+            // requeues only the phases of the features it names. SOURCE_SYNC is left
+            // alone for scoped requests — the run already synced its source.
+            activePhases.forEach { incoming ->
+                val rebuildsPhase = run.fullRefresh ||
+                    SmartScanPlan.featureFor(incoming.phase)
+                        ?.let { it.bit and run.fullRefreshFeatures != 0 } == true
+                if (rebuildsPhase) {
+                    requeueTerminalPhase(active.runId, incoming.phase, run.updatedAt)
+                }
             }
             val promotedWorkId = run.workId.takeIf {
                 run.userVisible && !active.userVisible && active.status == SmartScanStatus.QUEUED

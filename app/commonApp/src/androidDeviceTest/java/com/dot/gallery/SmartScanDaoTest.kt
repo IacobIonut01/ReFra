@@ -364,6 +364,120 @@ class SmartScanDaoTest {
     }
 
     @Test
+    fun scopedFullRefreshRequeuesOnlyMatchingPhases() = runBlocking {
+        dao.upsertRun(
+            SmartScanRunEntity(
+                runId = "active",
+                trigger = SmartScanTrigger.AUTOMATIC,
+                requestedFeatures = SmartScanFeature.ALL_MASK,
+                workId = "existing-work",
+                requestedAt = 10L
+            )
+        )
+        listOf(
+            SmartScanPhase.SOURCE_SYNC,
+            SmartScanPhase.METADATA,
+            SmartScanPhase.SEARCH_INDEX,
+            SmartScanPhase.CATEGORY_CLASSIFICATION
+        ).forEach { phase ->
+            dao.upsertPhase(
+                SmartScanPhaseEntity(
+                    runId = "active",
+                    phase = phase,
+                    status = SmartScanStatus.SUCCEEDED,
+                    finishedAt = 20L,
+                    updatedAt = 20L,
+                    totalMedia = 100,
+                    processedMedia = 100,
+                    succeededMedia = 100
+                )
+            )
+        }
+
+        dao.coalesceOrCreate(
+            run = SmartScanRunEntity(
+                runId = "refresh",
+                trigger = SmartScanTrigger.MANUAL,
+                requestedFeatures = SmartScanFeature.expandDependencies(SmartScanFeature.CATEGORIES.bit),
+                userVisible = true,
+                fullRefreshFeatures = SmartScanFeature.CATEGORIES.bit,
+                workId = "refresh-work",
+                requestedAt = 30L
+            ),
+            phases = listOf(
+                SmartScanPhase.SOURCE_SYNC,
+                SmartScanPhase.SEARCH_INDEX,
+                SmartScanPhase.CATEGORY_CLASSIFICATION
+            ).map { SmartScanPhaseEntity(runId = "refresh", phase = it, updatedAt = 30L) }
+        )
+
+        // Only the named feature's phase is rebuilt; dependencies and SOURCE_SYNC stay put.
+        assertEquals(
+            SmartScanStatus.QUEUED,
+            dao.getPhase("active", SmartScanPhase.CATEGORY_CLASSIFICATION)?.status
+        )
+        assertEquals(
+            SmartScanStatus.SUCCEEDED,
+            dao.getPhase("active", SmartScanPhase.SEARCH_INDEX)?.status
+        )
+        assertEquals(SmartScanStatus.SUCCEEDED, dao.getPhase("active", SmartScanPhase.METADATA)?.status)
+        assertEquals(
+            SmartScanStatus.SUCCEEDED,
+            dao.getPhase("active", SmartScanPhase.SOURCE_SYNC)?.status
+        )
+        val run = dao.getRun("active")
+        assertEquals(false, run?.fullRefresh)
+        assertEquals(SmartScanFeature.CATEGORIES.bit, run?.fullRefreshFeatures)
+    }
+
+    @Test
+    fun scopedFullRefreshRequestsAccumulateFeatureMask() = runBlocking {
+        dao.upsertRun(
+            SmartScanRunEntity(
+                runId = "active",
+                trigger = SmartScanTrigger.AUTOMATIC,
+                requestedFeatures = SmartScanFeature.ALL_MASK,
+                workId = "existing-work",
+                requestedAt = 10L
+            )
+        )
+
+        dao.coalesceOrCreate(
+            run = SmartScanRunEntity(
+                runId = "first",
+                trigger = SmartScanTrigger.MANUAL,
+                requestedFeatures = SmartScanFeature.expandDependencies(SmartScanFeature.CATEGORIES.bit),
+                userVisible = true,
+                fullRefreshFeatures = SmartScanFeature.CATEGORIES.bit,
+                workId = "first-work",
+                requestedAt = 20L
+            ),
+            phases = emptyList()
+        )
+        assertEquals(SmartScanFeature.CATEGORIES.bit, dao.getRun("active")?.fullRefreshFeatures)
+
+        dao.coalesceOrCreate(
+            run = SmartScanRunEntity(
+                runId = "second",
+                trigger = SmartScanTrigger.MANUAL,
+                requestedFeatures = SmartScanFeature.PERSONS.bit,
+                userVisible = true,
+                fullRefreshFeatures = SmartScanFeature.PERSONS.bit,
+                workId = "second-work",
+                requestedAt = 30L
+            ),
+            phases = emptyList()
+        )
+
+        val run = dao.getRun("active")
+        assertEquals(
+            SmartScanFeature.CATEGORIES.bit or SmartScanFeature.PERSONS.bit,
+            run?.fullRefreshFeatures
+        )
+        assertEquals(false, run?.fullRefresh)
+    }
+
+    @Test
     fun manualRequestPromotesQueuedAutomaticWork() = runBlocking {
         dao.upsertRun(
             SmartScanRunEntity(
