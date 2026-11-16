@@ -75,7 +75,8 @@ fun <T : Media> MediaViewButton(
                 Text(text = title)
             }
         },
-        state = tooltipState
+        state = tooltipState,
+        enableUserInput = enabled
     ) {
         // Inside a segmented group the whole segment is the target; elsewhere a 48 dp circle.
         val segmentSize = LocalActionSegmentSize.current

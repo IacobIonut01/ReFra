@@ -372,7 +372,8 @@ private fun CutoutToolButton(
             4.dp
         ),
         tooltip = { PlainTooltip { Text(text = label) } },
-        state = tooltipState
+        state = tooltipState,
+        enableUserInput = enabled
     ) {
         IconButton(
             onClick = onClick,
