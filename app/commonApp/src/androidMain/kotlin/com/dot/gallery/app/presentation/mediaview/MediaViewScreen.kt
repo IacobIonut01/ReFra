@@ -54,13 +54,11 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemGestures
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
@@ -652,17 +650,6 @@ internal fun isMediaViewerSharedElementPage(
     page: Int,
     currentPage: Int,
 ): Boolean = page == currentPage
-
-private fun Modifier.mediaViewerBackGestureGuard(width: Dp): Modifier =
-    fillMaxHeight()
-        .width(width)
-        .pointerInput(width) {
-            awaitPointerEventScope {
-                while (true) {
-                    awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
-                }
-            }
-        }
 
 internal fun resolveMediaViewerInitialSelection(
     mediaId: Long,
@@ -2286,8 +2273,18 @@ fun <T : Media> MediaViewScreen(
                         }
                     }
             ) {
+                val gesturePadding = WindowInsets.systemGestures.asPaddingValues()
                 HorizontalPager(
                     modifier = Modifier
+                        .edgeHorizontalDragGuard(
+                            enabled = currentMedia?.isImage == true && isGestureEnabled,
+                            startWidth = gesturePadding.calculateStartPadding(
+                                LocalLayoutDirection.current
+                            ),
+                            endWidth = gesturePadding.calculateEndPadding(
+                                LocalLayoutDirection.current
+                            ),
+                        )
                         .fillMaxSize()
                         .onSizeChanged { viewerWidth = it.width },
                     userScrollEnabled = userScrollEnabled &&
@@ -2918,23 +2915,6 @@ fun <T : Media> MediaViewScreen(
                                 scaleX = s
                                 scaleY = s
                             },
-                    )
-                }
-                if (currentMedia?.isImage == true && isGestureEnabled) {
-                    val gesturePadding = WindowInsets.systemGestures.asPaddingValues()
-                    Spacer(
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .mediaViewerBackGestureGuard(
-                                gesturePadding.calculateStartPadding(LocalLayoutDirection.current)
-                            )
-                    )
-                    Spacer(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .mediaViewerBackGestureGuard(
-                                gesturePadding.calculateEndPadding(LocalLayoutDirection.current)
-                            )
                     )
                 }
                 // Sync status bar icon color with the top image luminance
